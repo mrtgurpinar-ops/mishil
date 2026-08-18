@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>Mishil Mobile Simulator — Baby Sleep & Routines</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-night: #141B2E;
+      --card-night: #1D2640;
+      --card-elevated: #242F4D;
+      --border-night: #2A3656;
+      --text-night: #C9CEDC;
+      --text-muted: #818B9F;
+      --heading-night: #FFFFFF;
+      --accent: #E8A855;
+      --accent-glow: rgba(232, 168, 85, 0.28);
+      --moon-blue: #4A69BD;
+      --moon-blue-glow: rgba(74, 105, 189, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    body {
+      background: #0B0E17;
+      font-family: 'Inter', sans-serif;
+      color: var(--text-night);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    /* Device Container Frame */
+    .device-wrapper {
+      position: relative;
+      width: 390px;
+      height: 844px;
+      background: var(--bg-night);
+      border-radius: 48px;
+      border: 8px solid #232B3E;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(74, 105, 189, 0.15);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Dynamic Island Notch */
+    .device-notch {
+      position: absolute;
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 28px;
+      background: #000000;
+      border-radius: 14px;
+      z-index: 100;
+    }
+
+    /* Status Bar */
+    .status-bar {
+      height: 48px;
+      padding: 14px 28px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: #FFFFFF;
+      z-index: 90;
+    }
+
+    /* Screen Views Container */
+    .screen-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px 90px;
+      position: relative;
+    }
+
+    .screen-container::-webkit-scrollbar {
+      display: none;
+    }
+
+    .tab-view {
+      display: none;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    .tab-view.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Header */
+    .app-header {
+      margin-bottom: 12px;
+    }
+
+    .baby-subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .main-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--heading-night);
+      margin-top: 2px;
+    }
+
+    /* Signature Breathing Moon Component */
+    .moon-stage {
+      position: relative;
+      width: 220px;
+      height: 220px;
+      margin: 10px auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .moon-aura {
+      position: absolute;
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: radial-gradient(circle, var(--accent-glow) 0%, rgba(232, 168, 85, 0) 70%);
+      animation: breatheAura 4s ease-in-out infinite;
+    }
+
+    .moon-ring {
+      position: absolute;
+      width: 160px;
+      height: 160px;
+      border-radius: 50%;
+      border: 1.5px solid rgba(232, 168, 85, 0.2);
+    }
+
+    .moon-svg {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      animation: breatheMoon 4s ease-in-out infinite;
+      filter: drop-shadow(0 0 16px var(--accent));
+    }
+
+    @keyframes breatheAura {
+      0% { transform: scale(0.92); opacity: 0.4; }
+      50% { transform: scale(1.10); opacity: 0.85; }
+      100% { transform: scale(0.92); opacity: 0.4; }
+    }
+
+    @keyframes breatheMoon {
+      0% { transform: scale(0.98); }
+      50% { transform: scale(1.04); }
+      100% { transform: scale(0.98); }
+    }
+
+    .moon-label {
+      position: absolute;
+      bottom: 0;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+      background: rgba(29, 38, 64, 0.8);
+      padding: 4px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--border-night);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--card-night);
+      border: 1px solid var(--border-night);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+
+    .metric-grid {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+    }
+
+    .metric-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .metric-val {
+      font-family: 'Sora', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--heading-night);
+    }
+
+    .metric-val.accent {
+      color: var(--accent);
+    }
+
+    /* Quick Actions */
+    .section-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--heading-night);
+      margin: 12px 0 10px;
+    }
+
+    .quick-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .quick-btn {
+      flex: 1;
+      background: var(--card-night);
+      border: 1px solid var(--border-night);
+      border-radius: 16px;
+      padding: 14px 8px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-btn:active {
+      transform: scale(0.96);
+      background: var(--card-elevated);
+      border-color: var(--accent);
+    }
+
+    .quick-icon {
+      font-size: 22px;
+      margin-bottom: 4px;
+    }
+
+    .quick-txt {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--heading-night);
+    }
+
+    /* Primary CTA Button */
+    .btn-primary {
+      width: 100%;
+      background: var(--accent);
+      color: #141B2E;
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 14px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      text-align: center;
+      transition: opacity 0.2s;
+    }
+
+    .btn-primary:active {
+      opacity: 0.85;
+    }
+
+    /* Bottom Navigation Bar */
+    .tab-bar {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 72px;
+      background: #111728;
+      border-top: 1px solid var(--border-night);
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding-bottom: 10px;
+      z-index: 100;
+    }
+
+    .tab-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: color 0.2s;
+    }
+
+    .tab-item.active {
+      color: var(--accent);
+    }
+
+    .tab-icon {
+      font-size: 20px;
+      margin-bottom: 2px;
+    }
+
+    .tab-label {
+      font-size: 10px;
+      font-weight: 600;
+    }
+
+    /* Cry Analysis View Styles */
+    .mic-record-box {
+      text-align: center;
+      padding: 24px;
+    }
+
+    .mic-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: 40px;
+      background: var(--accent);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      cursor: pointer;
+      box-shadow: 0 0 24px var(--accent-glow);
+      margin-bottom: 16px;
+      transition: transform 0.2s;
+    }
+
+    .mic-circle:active {
+      transform: scale(0.92);
+    }
+
+    .progress-bar-wrap {
+      background: #242F4D;
+      height: 8px;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 6px 0;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: var(--accent);
+      border-radius: 4px;
+    }
+
+    .disclaimer-box {
+      background: #2D241E;
+      border: 1px solid var(--accent);
+      border-radius: 12px;
+      padding: 12px;
+      font-size: 12px;
+      color: #F5C68A;
+      margin-bottom: 12px;
+      line-height: 16px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="device-wrapper">
+  <div class="device-notch"></div>
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span>09:41</span>
+    <span style="font-size: 11px;">5G 🔋 100%</span>
+  </div>
+
+  <!-- Content Screens -->
+  <div class="screen-container">
+
+    <!-- 1. HOME TAB -->
+    <div id="view-home" class="tab-view active">
+      <div class="app-header">
+        <div class="baby-subtitle">Melis (6 Aylık) • Uyku Ritmi</div>
+        <div class="main-title">45 dk Sonra Uyku Vakti</div>
+      </div>
+
+      <!-- Breathing Moon Indicator -->
+      <div class="moon-stage">
+        <div class="moon-aura"></div>
+        <div class="moon-ring"></div>
+        <svg class="moon-svg" viewBox="0 0 100 100">
+          <path d="M 50 10 A 40 40 0 1 0 90 50 A 30 30 0 1 1 50 10 Z" fill="#E8A855" />
+          <circle cx="80" cy="22" r="3" fill="#FFFFFF" opacity="0.8" />
+          <circle cx="20" cy="70" r="2" fill="#FFFFFF" opacity="0.5" />
+        </svg>
+        <div class="moon-label">Hedef Uyku: 12:30</div>
+      </div>
+
+      <div class="card">
+        <div class="metric-grid">
+          <div>
+            <div class="metric-label">Uyanıklık Penceresi</div>
+            <div class="metric-val accent">150 dk</div>
+          </div>
+          <div>
+            <div class="metric-label">Kalan Nap</div>
+            <div class="metric-val">2 nap</div>
+          </div>
+          <div>
+            <div class="metric-label">Bildirim Saati</div>
+            <div class="metric-val">12:15</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Hızlı Rutin Ekle</div>
+      <div class="quick-row">
+        <div class="quick-btn" onclick="quickLog('Beslenme')">
+          <span class="quick-icon">🍼</span>
+          <span class="quick-txt">Beslenme</span>
+        </div>
+        <div class="quick-btn" onclick="quickLog('Bez Değişimi')">
+          <span class="quick-icon">🚼</span>
+          <span class="quick-txt">Alt Değişimi</span>
+        </div>
+        <div class="quick-btn" onclick="quickLog('Uyku')">
+          <span class="quick-icon">🌙</span>
+          <span class="quick-txt">Uyku</span>
+        </div>
+      </div>
+
+      <div class="card" style="display: flex; align-items: center; justify-content: space-between;">
+        <div>
+          <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF;">432Hz Pembe Gürültü</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Derin uykuya geçiş frekansı</div>
+        </div>
+        <button class="btn-primary" style="width: auto; padding: 8px 16px;" onclick="switchTab('sounds')">Çal</button>
+      </div>
+    </div>
+
+    <!-- 2. CRY ANALYSIS TAB -->
+    <div id="view-cry" class="tab-view">
+      <div class="app-header">
+        <div class="baby-subtitle">DSP Akustik Analiz</div>
+        <div class="main-title">Ağlama Sesi Analizi</div>
+      </div>
+
+      <div class="card mic-record-box" id="cry-recorder">
+        <div class="mic-circle" onclick="startSimulatedCryAnalysis()">🎙️</div>
+        <div style="font-family: 'Sora'; font-size: 16px; font-weight: 600; color: #FFF; margin-bottom: 4px;">
+          Kaydı Başlatmak İçin Dokunun
+        </div>
+        <div style="font-size: 12px; color: var(--text-muted);">
+          10-30 saniye boyunca bebeğinizin sesini net şekilde kaydedin.
+        </div>
+      </div>
+
+      <div id="cry-result" style="display: none;">
+        <div class="disclaimer-box">
+          ℹ️ Bu analiz klinik veya tıbbi bir tanı değildir; ebeveyne yönelik ipucu niteliğindedir.
+        </div>
+
+        <div class="card">
+          <div style="font-family: 'Sora'; font-size: 15px; font-weight: 600; color: #FFF; margin-bottom: 12px;">
+            Olasılık Dağılımı (MFCC & ZCR)
+          </div>
+
+          <div style="margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: var(--accent);">
+              <span>Açlık Ağlaması</span>
+              <span>%65</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-fill" style="width: 65%;"></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 13px; color: #FFF;">
+              <span>Yorgunluk / Uyku</span>
+              <span>%22</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-fill" style="width: 22%; background: var(--moon-blue);"></div>
+            </div>
+          </div>
+
+          <div>
+            <div style="display: flex; justify-content: space-between; font-size: 13px; color: #FFF;">
+              <span>Fiziksel Rahatsızlık</span>
+              <span>%13</span>
+            </div>
+            <div class="progress-bar-wrap">
+              <div class="progress-fill" style="width: 13%; background: var(--moon-blue);"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="border-color: var(--accent);">
+          <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">
+            Önerilen Ebeveyn Aksiyonu
+          </div>
+          <div style="font-size: 13px; color: #FFF; line-height: 18px; margin-bottom: 12px;">
+            Bebeğinizi beslemeyi veya emzirme pozisyonunu kontrol etmeyi deneyin.
+          </div>
+          <button class="btn-primary" onclick="switchTab('sounds')">Anne Karnı & Kalp Atışı Sesini Aç</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. ROUTINES TAB -->
+    <div id="view-routines" class="tab-view">
+      <div class="app-header">
+        <div class="baby-subtitle">Günlük Takip</div>
+        <div class="main-title">Rutin Günlüğü</div>
+      </div>
+
+      <div class="card" style="display: flex; align-items: center; gap: 12px;">
+        <div style="font-size: 24px;">🍼</div>
+        <div style="flex: 1;">
+          <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF;">Beslenme • 150 ml</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Bugün 08:30 • Sakin içti</div>
+        </div>
+      </div>
+
+      <div class="card" style="display: flex; align-items: center; gap: 12px;">
+        <div style="font-size: 24px;">🌙</div>
+        <div style="flex: 1;">
+          <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF;">Gündüz Uykusu • 75 dk</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Bugün 06:45 - 08:00</div>
+        </div>
+      </div>
+
+      <div class="card" style="display: flex; align-items: center; gap: 12px;">
+        <div style="font-size: 24px;">🚼</div>
+        <div style="flex: 1;">
+          <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF;">Bez Değişimi • Temiz</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Bugün 06:30</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. SOUNDS TAB -->
+    <div id="view-sounds" class="tab-view">
+      <div class="app-header">
+        <div class="baby-subtitle">Arka Planda Çalabilen</div>
+        <div class="main-title">Sakinleştirici Sesler</div>
+      </div>
+
+      <div class="card" style="display: flex; justify-content: space-between; align-items: center; border-color: var(--accent);">
+        <div>
+          <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: var(--accent);">432Hz Pembe Gürültü</div>
+          <div style="font-size: 11px; color: var(--text-muted);">▶ Şu an çalıyor (Arka planda aktif)</div>
+        </div>
+        <span style="font-size: 20px;">⏸️</span>
+      </div>
+
+      <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF;">Anne Karnı & Kalp Atışı</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Doğal ritmik kan akışı</div>
+        </div>
+        <span style="font-size: 20px;">▶️</span>
+      </div>
+
+      <div class="card" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF;">Ritmik Pışpışlama (5S)</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Dr. Karp metoduna uygun</div>
+        </div>
+        <span style="font-size: 20px;">▶️</span>
+      </div>
+    </div>
+
+    <!-- 5. SETTINGS / PAYWALL TAB -->
+    <div id="view-settings" class="tab-view">
+      <div class="app-header">
+        <div class="baby-subtitle">Hesap & Abonelik</div>
+        <div class="main-title">Ayarlar</div>
+      </div>
+
+      <div class="card">
+        <div style="font-family: 'Sora'; font-size: 15px; font-weight: 600; color: #FFF; margin-bottom: 8px;">Abonelik Durumu</div>
+        <div style="font-size: 13px; color: var(--accent); font-weight: 600;">3 Günlük Ücretsiz Deneme (Aktif)</div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Deneme sürenizin bitmesine 3 gün kaldı.</div>
+      </div>
+
+      <div class="card">
+        <div style="font-family: 'Sora'; font-size: 15px; font-weight: 600; color: #FFF; margin-bottom: 8px;">Görünüm & Tema</div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 13px; color: #FFF;">Karanlık Mod (Melatonin Dostu)</span>
+          <span style="color: var(--accent); font-weight: 700;">AÇIK</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active" onclick="switchTab('home')">
+      <span class="tab-icon">🌙</span>
+      <span class="tab-label">Ana Sayfa</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('cry')">
+      <span class="tab-icon">🎙️</span>
+      <span class="tab-label">Ağlama</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('routines')">
+      <span class="tab-icon">📋</span>
+      <span class="tab-label">Rutinler</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('sounds')">
+      <span class="tab-icon">🎵</span>
+      <span class="tab-label">Sesler</span>
+    </div>
+    <div class="tab-item" onclick="switchTab('settings')">
+      <span class="tab-icon">⚙️</span>
+      <span class="tab-label">Ayarlar</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  function switchTab(tabName) {
+    document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+
+    const targetView = document.getElementById('view-' + tabName);
+    if (targetView) targetView.classList.add('active');
+
+    const tabs = ['home', 'cry', 'routines', 'sounds', 'settings'];
+    const idx = tabs.indexOf(tabName);
+    if (idx !== -1) {
+      document.querySelectorAll('.tab-item')[idx].classList.add('active');
+    }
+  }
+
+  function startSimulatedCryAnalysis() {
+    const box = document.getElementById('cry-recorder');
+    box.innerHTML = `
+      <div style="font-size: 32px; animation: breatheMoon 1s infinite;">⏳</div>
+      <div style="font-family: 'Sora'; font-size: 16px; font-weight: 600; color: var(--accent); margin: 12px 0 4px;">
+        Akustik Spektrum İnceleniyor...
+      </div>
+      <div style="font-size: 12px; color: var(--text-muted);">MFCC (13) & Zero Crossing Rate hesaplanıyor</div>
+    `;
+
+    setTimeout(() => {
+      box.style.display = 'none';
+      document.getElementById('cry-result').style.display = 'block';
+    }, 1600);
+  }
+
+  function quickLog(type) {
+    alert('✅ ' + type + ' kaydı başarıyla eklendi (Offline kuyruk senkronize edildi).');
+    switchTab('routines');
+  }
+</script>
+
+</body>
+</html>

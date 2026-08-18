@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  mishil-db:
+    image: postgres:16-alpine
+    container_name: mishil-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: mishil_user
+      POSTGRES_PASSWORD: mishil_password
+      POSTGRES_DB: mishil_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - mishil_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mishil_user -d mishil_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  mishil-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mishil-api
+    restart: unless-stopped
+    depends_on:
+      mishil-db:
+        condition: service_healthy
+    environment:
+      - APP_NAME=mishil
+      - ENVIRONMENT=production
+      - DATABASE_URL=postgresql://mishil_user:mishil_password@mishil-db:5432/mishil_db
+      - JWT_SECRET=super_secret_jwt_key_for_mishil_app_min_32_chars_long
+      - PORT=8000
+      - HOST=0.0.0.0
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  mishil_postgres_data:
