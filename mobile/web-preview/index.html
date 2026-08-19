@@ -41,7 +41,7 @@
       padding: 20px;
     }
 
-    /* Device Container Frame */
+    /* Device Container Frame (Desktop) */
     .device-wrapper {
       position: relative;
       width: 390px;
@@ -53,6 +53,35 @@
       overflow: hidden;
       display: flex;
       flex-direction: column;
+    }
+
+    /* Full-Screen Native View on Mobile Phones */
+    @media (max-width: 600px) {
+      body {
+        padding: 0;
+        background: var(--bg-night);
+      }
+      .device-wrapper {
+        width: 100vw;
+        height: 100vh;
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+      }
+      .device-notch {
+        display: none !important;
+      }
+      .status-bar {
+        display: none !important;
+      }
+      .screen-container {
+        padding-top: max(20px, env(safe-area-inset-top));
+        padding-bottom: max(85px, env(safe-area-inset-bottom));
+      }
+      .tab-bar {
+        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        height: max(72px, calc(60px + env(safe-area-inset-bottom)));
+      }
     }
 
     /* Dynamic Island Notch */
