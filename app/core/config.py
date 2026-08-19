@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     DEBUG: bool = True
     PORT: int = 8000
     HOST: str = "0.0.0.0"
+    API_V1_STR: str = "/api/v1"
 
     # Security & Authentication
     JWT_SECRET: str = Field(

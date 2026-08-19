@@ -144,7 +144,7 @@ async def generic_exception_handler(request: Request, exc: Exception):
 # ============================================================
 
 # Include API V1 router
-app.include_router(api_router, prefix=settings.API_V1_STR)
+app.include_router(api_router, prefix="/api/v1")
 
 
 @app.get("/", response_class=HTMLResponse, tags=["Web App"])
