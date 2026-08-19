@@ -6,7 +6,7 @@ TOKEN = "9f63d90f-1145-4093-a3ca-02677de69f5e"
 URL = "https://backboard.railway.com/graphql/v2"
 PROJECT_ID = "56fcbff5-ac17-4f21-a05b-758c108bcfc3"
 ENV_ID = "19bda2e9-b971-45df-9706-d050f25d9dd7"
-SERVICE_ID = "b310e428-c5a5-4395-8798-c257dda88d21"
+SERVICE_ID = "2481ed65-c245-4561-9414-332791d5c7f7"
 
 headers = {
     "Content-Type": "application/json",

@@ -734,7 +734,7 @@
           </div>
           <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;" id="mini-sound-status">Melatonin uyarımı • Duraklatıldı</div>
         </div>
-        <button class="sound-play-btn" id="mini-play-btn" onclick="togglePlaySound('pink')">▶</button>
+        <button class="sound-play-btn" id="mini-play-btn" onclick="toggleMiniPlay()">▶</button>
       </div>
     </div>
 
@@ -1016,10 +1016,8 @@
   }
 
   // =========================================================================
-  // 2. STUDIO QUALITY AUDIO ENGINE (HYBRID LOSSLESS WAV + WEB AUDIO DSP)
+  // 2. STUDIO QUALITY AUDIO ENGINE (ZERO-HISS VELVET SLEEP SOUNDS)
   // =========================================================================
-  let audioCtx = null;
-  let gainNode = null;
   let currentAudioElem = null;
   let currentPlayingTrack = null;
   let timerTimeout = null;
@@ -1028,35 +1026,25 @@
   const STUDIO_SOUND_TRACKS = {
     pink: {
       url: './sounds/pink_432hz.wav',
-      title: '432Hz Analog Pembe Gürültü',
+      title: '432Hz Kadife Derin Uyku (Zero-Hiss)',
       subtitle: 'Derin uyku & melatonin ritmi'
     },
     womb: {
       url: './sounds/womb_heartbeat.wav',
-      title: 'Anne Karnı & 65 BPM Kalp Atışı',
-      subtitle: 'Amniyotik sıvı ve doğal ritim'
+      title: 'Anne Karnı & 60 BPM Nabız',
+      subtitle: 'Amniyotik sıvı ve organik kalp atışı'
     },
     shush: {
       url: './sounds/shush_5s.wav',
-      title: '5S Dr. Karp İnsan Pışpışlaması',
-      subtitle: 'Doğal nefes dalgası ve yatıştırıcı ses'
+      title: '5S Dr. Karp Doğal İnsan Nefesi',
+      subtitle: 'Yatıştırıcı ritmik insan pışpışlaması'
     },
     rain: {
       url: './sounds/soft_rain.wav',
-      title: 'Gece Yağmuru & Orman Ambiyansı',
+      title: 'Gece Yağmuru & Doğa Ambiyansı',
       subtitle: 'Huzurlu doğa sesi ve derin rahatlama'
     }
   };
-
-  function initAudioDSP() {
-    if (!audioCtx) {
-      const AudioContext = window.AudioContext || window.webkitAudioContext;
-      audioCtx = new AudioContext();
-    }
-    if (audioCtx.state === 'suspended') {
-      audioCtx.resume();
-    }
-  }
 
   function setVolume(val) {
     currentVolume = parseFloat(val);
@@ -1067,30 +1055,17 @@
     }
   }
 
-  function stopAllAudio(fade = true) {
+  function stopAllAudio() {
     if (currentAudioElem) {
-      const audioToStop = currentAudioElem;
-      if (fade && audioToStop.volume > 0.05) {
-        // Smooth 1.2s Fade-out
-        let step = audioToStop.volume / 12;
-        const fadeInterval = setInterval(() => {
-          if (audioToStop.volume > step) {
-            audioToStop.volume -= step;
-          } else {
-            clearInterval(fadeInterval);
-            audioToStop.pause();
-            audioToStop.currentTime = 0;
-          }
-        }, 100);
-      } else {
-        audioToStop.pause();
-        audioToStop.currentTime = 0;
-      }
+      try {
+        currentAudioElem.pause();
+        currentAudioElem.currentTime = 0;
+      } catch (e) {}
       currentAudioElem = null;
     }
     currentPlayingTrack = null;
 
-    // Reset UI
+    // Reset UI buttons
     ['pink', 'womb', 'shush', 'rain'].forEach(type => {
       const card = document.getElementById('card-' + type);
       const btn = document.getElementById('btn-' + type);
@@ -1107,8 +1082,7 @@
   }
 
   function playStudioSound(type) {
-    initAudioDSP();
-    stopAllAudio(false);
+    stopAllAudio();
 
     const track = STUDIO_SOUND_TRACKS[type];
     if (!track) return;
@@ -1116,25 +1090,12 @@
     try {
       const audio = new Audio(track.url);
       audio.loop = true;
-      audio.volume = 0.0; // Start for smooth Fade-In
+      audio.volume = currentVolume;
       currentAudioElem = audio;
       currentPlayingTrack = type;
 
-      audio.play().then(() => {
-        // Smooth 1.5s Fade-In Envelope
-        let targetVol = currentVolume;
-        let step = targetVol / 15;
-        const fadeInInterval = setInterval(() => {
-          if (audio.volume + step < targetVol) {
-            audio.volume += step;
-          } else {
-            audio.volume = targetVol;
-            clearInterval(fadeInInterval);
-          }
-        }, 100);
-      }).catch(e => {
-        console.warn('Audio play fallback:', e);
-        audio.volume = currentVolume;
+      audio.play().catch(e => {
+        console.warn('Audio play exception:', e);
       });
 
       updateSoundUI(type, track.title);
@@ -1146,9 +1107,18 @@
   function togglePlaySound(type) {
     hapticPulse();
     if (currentPlayingTrack === type) {
-      stopAllAudio(true);
+      stopAllAudio();
     } else {
       playStudioSound(type);
+    }
+  }
+
+  function toggleMiniPlay() {
+    hapticPulse();
+    if (currentPlayingTrack) {
+      stopAllAudio();
+    } else {
+      playStudioSound('pink');
     }
   }
 
@@ -1166,7 +1136,7 @@
     if (miniName) miniName.innerText = name;
     if (miniWaves) miniWaves.style.display = 'inline-flex';
     if (miniBtn) miniBtn.innerHTML = '⏸';
-    if (miniStatus) miniStatus.innerText = '▶ Şu an çalıyor (Stüdyo Kayıpsız Loop)';
+    if (miniStatus) miniStatus.innerText = '▶ Şu an çalıyor (Doğal Akustik Ses)';
   }
 
   function setTimer(minutes, elem) {

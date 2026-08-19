@@ -2,6 +2,15 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [1.4.0] - 2026-08-19
+### Added
+- **Stüdyo Kaydı Akustik Ses Motoru:**
+  - **432Hz Analog Pembe Gürültü (Pink Noise):** Voss-McCartney algoritması ve 432Hz sub-harmonik rezonans ile ipeksi derin uyku frekansı.
+  - **Anne Karnı & 65 BPM Kalp Atışı:** 55-110Hz sub-bass kalp vuruşları ve amniyotik sıvı dinamiği.
+  - **5S Dr. Karp İnsan Nefesi Pışpışlaması:** 850Hz vokal formantlı doğal insan nefes döngüsü.
+  - **Gece Yağmuru & Doğa Ambiyansı:** Yüksek çözünürlüklü stereo ortam sesleri.
+  - **Ses Seviyesi & Yumuşak Fade Zarfı:** 1.5s Fade-in ve 1.2s Fade-out ile bebeği uyandırmayan yumuşak geçişler ve dinamik Volume Slider.
+
 ## [1.3.0] - 2026-08-19
 ### Added
 - **360° Güvenlik & Dayanıklılık:**
