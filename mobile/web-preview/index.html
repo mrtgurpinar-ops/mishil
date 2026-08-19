@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Mishil — Baby Sleep & Routines</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" />
@@ -21,7 +21,7 @@
       --moon-blue: #4A69BD;
       --moon-blue-glow: rgba(74, 105, 189, 0.25);
       --success: #2ED573;
-      --pink: #FF6B81;
+      --danger: #FF4757;
     }
 
     * {
@@ -74,11 +74,11 @@
         display: none !important;
       }
       .screen-container {
-        padding-top: max(20px, env(safe-area-inset-top));
+        padding-top: max(24px, env(safe-area-inset-top));
         padding-bottom: max(95px, env(safe-area-inset-bottom));
       }
       .tab-bar {
-        padding-bottom: max(12px, env(safe-area-inset-bottom));
+        padding-bottom: max(14px, env(safe-area-inset-bottom));
         height: max(72px, calc(60px + env(safe-area-inset-bottom)));
       }
     }
@@ -138,6 +138,9 @@
     /* Header */
     .app-header {
       margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
     }
 
     .baby-subtitle {
@@ -151,6 +154,16 @@
       font-weight: 700;
       color: var(--heading-night);
       margin-top: 2px;
+    }
+
+    .header-badge {
+      background: rgba(46, 213, 115, 0.15);
+      border: 1px solid var(--success);
+      color: var(--success);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 8px;
     }
 
     /* Signature Breathing Moon Component */
@@ -322,7 +335,7 @@
     }
 
     .quick-btn:active {
-      transform: scale(0.96);
+      transform: scale(0.95);
       background: var(--card-elevated);
       border-color: var(--accent);
     }
@@ -356,6 +369,21 @@
 
     .btn-primary:active {
       opacity: 0.85;
+      transform: scale(0.98);
+    }
+
+    .btn-secondary {
+      width: 100%;
+      background: #242F4D;
+      color: #FFFFFF;
+      font-family: 'Sora', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border-night);
+      cursor: pointer;
+      margin-top: 8px;
     }
 
     /* Sound Player Cards & Audio Visualizer */
@@ -564,12 +592,33 @@
       border-radius: 6px;
       margin-bottom: 6px;
     }
+
+    /* Toast Notification */
+    .toast-msg {
+      position: absolute;
+      top: 60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2ED573;
+      color: #141B2E;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 8px 16px;
+      border-radius: 20px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+      z-index: 200;
+      display: none;
+      animation: fadeIn 0.2s;
+    }
   </style>
 </head>
 <body>
 
 <div class="device-wrapper">
   <div class="device-notch"></div>
+
+  <!-- Toast -->
+  <div id="app-toast" class="toast-msg">✅ İşlem Tamamlandı</div>
 
   <!-- Status Bar -->
   <div class="status-bar">
@@ -583,12 +632,15 @@
     <!-- 1. HOME TAB -->
     <div id="view-home" class="tab-view active">
       <div class="app-header">
-        <div class="baby-subtitle">Melis (6 Aylık) • Uyku Ritmi</div>
-        <div class="main-title">45 dk Sonra Uyku Vakti</div>
+        <div>
+          <div class="baby-subtitle">Melis (6 Aylık) • Uyku Ritmi</div>
+          <div class="main-title">45 dk Sonra Uyku Vakti</div>
+        </div>
+        <div class="header-badge">Canlı Senkronize</div>
       </div>
 
       <!-- Breathing Moon Indicator -->
-      <div class="moon-stage" onclick="switchTab('sounds')">
+      <div class="moon-stage" onclick="hapticPulse(); switchTab('sounds');">
         <div class="moon-aura"></div>
         <div class="moon-ring"></div>
         <svg class="moon-svg" viewBox="0 0 100 100">
@@ -689,8 +741,10 @@
     <!-- 2. CRY ANALYSIS TAB -->
     <div id="view-cry" class="tab-view">
       <div class="app-header">
-        <div class="baby-subtitle">DSP Akustik Frekans Motoru</div>
-        <div class="main-title">Ağlama Sesi Analizi</div>
+        <div>
+          <div class="baby-subtitle">DSP Akustik Frekans Motoru</div>
+          <div class="main-title">Ağlama Sesi Analizi</div>
+        </div>
       </div>
 
       <div class="card mic-record-box" id="cry-recorder">
@@ -699,7 +753,7 @@
           Dinlemek İçin Dokunun
         </div>
         <div style="font-size: 11px; color: var(--text-muted); line-height: 16px;">
-          13 bant MFCC & Zero Crossing Rate ile bebeğinizin ses deseni taranır.
+          13 bant MFCC & Zero Crossing Rate taranır. Sesler cihazınızda anlık işlenir ve asla sunucuya kaydedilmez (Zero-Storage).
         </div>
       </div>
 
@@ -760,15 +814,17 @@
     <!-- 3. ROUTINES TAB -->
     <div id="view-routines" class="tab-view">
       <div class="app-header">
-        <div class="baby-subtitle">Günlük Günlük & Senkronizasyon</div>
-        <div class="main-title">Rutin Takibi</div>
+        <div>
+          <div class="baby-subtitle">Günlük Günlük & Senkronizasyon</div>
+          <div class="main-title">Rutin Takibi</div>
+        </div>
       </div>
 
       <div class="card" style="display: flex; align-items: center; gap: 12px;">
         <div style="font-size: 22px;">🍼</div>
         <div style="flex: 1;">
           <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">Beslenme • 150 ml Anne Sütü</div>
-          <div style="font-size: 11px; color: var(--text-muted);">Bugün 10:15 • Sakin içti</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Bugün 10:15 • Anne tarafından kaydedildi</div>
         </div>
       </div>
 
@@ -794,8 +850,10 @@
     <!-- 4. SOUNDS TAB (WEB AUDIO ENGINE REAL GENERATOR) -->
     <div id="view-sounds" class="tab-view">
       <div class="app-header">
-        <div class="baby-subtitle">Web Audio Sentezleyici Motoru</div>
-        <div class="main-title">Sakinleştirici Sesler</div>
+        <div>
+          <div class="baby-subtitle">Web Audio Sentezleyici Motoru</div>
+          <div class="main-title">Sakinleştirici Sesler</div>
+        </div>
       </div>
 
       <!-- Sleep Timer Control (Hatch Benchmark) -->
@@ -850,28 +908,52 @@
       </div>
     </div>
 
-    <!-- 5. SETTINGS TAB -->
+    <!-- 5. SETTINGS TAB (APPLE & GOOGLE COMPLIANCE READY) -->
     <div id="view-settings" class="tab-view">
       <div class="app-header">
-        <div class="baby-subtitle">Hesap & Yapılandırma</div>
-        <div class="main-title">Ayarlar</div>
-      </div>
-
-      <div class="card">
-        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 6px;">Abonelik Durumu</div>
-        <div style="font-size: 13px; color: var(--accent); font-weight: 700;">3 Günlük Ücretsiz Deneme (Aktif)</div>
-        <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">Deneme sürenizin bitmesine 3 gün kaldı. Tüm yapay zeka DSP özellikleri açık.</div>
-      </div>
-
-      <div class="card">
-        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 8px;">Kullanıcı & Bebek Profili</div>
-        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-night); margin-bottom: 6px;">
-          <span>Bebek Adı:</span>
-          <span style="font-weight: 600; color: #FFF;">Melis Gürpınar</span>
+        <div>
+          <div class="baby-subtitle">Hesap, Güvenlik & Abonelik</div>
+          <div class="main-title">Ayarlar</div>
         </div>
-        <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-night);">
-          <span>Doğum Tarihi / Yaş:</span>
-          <span style="font-weight: 600; color: #FFF;">6 Aylık (180 Gün)</span>
+      </div>
+
+      <!-- Subscription Card with Apple Restore Purchases -->
+      <div class="card">
+        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 6px;">
+          Abonelik & Premium
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 13px; color: var(--accent); font-weight: 700;">3 Günlük Ücretsiz Deneme (Aktif)</span>
+          <span style="font-size: 11px; color: var(--text-muted);">Kalan: 3 Gün</span>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 15px;">
+          Tüm yapay zeka akustik ağlama modelleri ve 432Hz ses motoru açıktır.
+        </div>
+        
+        <!-- Apple Guideline 3.1.1 Mandatory Button -->
+        <button class="btn-secondary" onclick="restorePurchases()">🔄 Satın Alımları Geri Yükle (Restore Purchases)</button>
+      </div>
+
+      <!-- Caregiver / Partner Share (Architecture) -->
+      <div class="card">
+        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 6px;">
+          Ebeveyn & Bakıcı Paylaşımı
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
+          Eşinizi veya bakıcınızı davet ederek rutinleri anlık senkronize takip edin.
+        </div>
+        <button class="btn-secondary" onclick="inviteCaregiver()">➕ Eşini / Bakıcıyı Davet Et</button>
+      </div>
+
+      <!-- Profile & Legal Links -->
+      <div class="card">
+        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 8px;">
+          Yasal & Gizlilik Dokümanları
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
+          <a href="/privacy" target="_blank" style="color: var(--accent); text-decoration: none;">🔒 Gizlilik Politikası (Privacy Policy) ➔</a>
+          <a href="/terms" target="_blank" style="color: var(--accent); text-decoration: none;">⚖️ Kullanım Koşulları & Tıbbi Feragatname ➔</a>
+          <a href="/delete-account" target="_blank" style="color: var(--danger); text-decoration: none;">🗑️ Hesabımı ve Verilerimi Sil (Apple 5.1.1) ➔</a>
         </div>
       </div>
     </div>
@@ -880,23 +962,23 @@
 
   <!-- Bottom Tab Bar -->
   <div class="tab-bar">
-    <div class="tab-item active" onclick="switchTab('home')">
+    <div class="tab-item active" onclick="hapticPulse(); switchTab('home');">
       <span class="tab-icon">🌙</span>
       <span class="tab-label">Ana Sayfa</span>
     </div>
-    <div class="tab-item" onclick="switchTab('cry')">
+    <div class="tab-item" onclick="hapticPulse(); switchTab('cry');">
       <span class="tab-icon">🎙️</span>
       <span class="tab-label">Ağlama</span>
     </div>
-    <div class="tab-item" onclick="switchTab('routines')">
+    <div class="tab-item" onclick="hapticPulse(); switchTab('routines');">
       <span class="tab-icon">📋</span>
       <span class="tab-label">Rutinler</span>
     </div>
-    <div class="tab-item" onclick="switchTab('sounds')">
+    <div class="tab-item" onclick="hapticPulse(); switchTab('sounds');">
       <span class="tab-icon">🎵</span>
       <span class="tab-label">Sesler</span>
     </div>
-    <div class="tab-item" onclick="switchTab('settings')">
+    <div class="tab-item" onclick="hapticPulse(); switchTab('settings');">
       <span class="tab-icon">⚙️</span>
       <span class="tab-label">Ayarlar</span>
     </div>
@@ -905,7 +987,27 @@
 
 <script>
   // =========================================================================
-  // 1. WEB AUDIO API SYNTHESIZER ENGINE (REAL-TIME NATIVE FREQUENCY SYNTHESIS)
+  // 1. HAPTIC FEEDBACK & TOAST NOTIFICATION ENGINE
+  // =========================================================================
+  function hapticPulse() {
+    if (navigator.vibrate) {
+      navigator.vibrate(15);
+    }
+  }
+
+  function showToast(msg) {
+    const toast = document.getElementById('app-toast');
+    if (toast) {
+      toast.innerText = msg;
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 2400);
+    }
+  }
+
+  // =========================================================================
+  // 2. WEB AUDIO API SYNTHESIZER ENGINE (REAL-TIME NATIVE FREQUENCY SYNTHESIS)
   // =========================================================================
   let audioCtx = null;
   let activeNodes = [];
@@ -948,7 +1050,7 @@
     if (miniStatus) miniStatus.innerText = 'Melatonin uyarımı • Duraklatıldı';
   }
 
-  // 1.1 Pink Noise Generator (432Hz Harmonic Tuned)
+  // 2.1 Pink Noise Generator (432Hz Harmonic Tuned)
   function playPinkNoise() {
     initAudio();
     stopAllAudio();
@@ -992,7 +1094,7 @@
     updateSoundUI('pink', '432Hz Pembe Gürültü');
   }
 
-  // 1.2 Womb & Heartbeat Pulse (65 BPM Sub-bass Pulse)
+  // 2.2 Womb & Heartbeat Pulse (65 BPM Sub-bass Pulse)
   function playWombSound() {
     initAudio();
     stopAllAudio();
@@ -1025,7 +1127,7 @@
     updateSoundUI('womb', 'Anne Karnı & Ritmik Nabız');
   }
 
-  // 1.3 5S Rhythmic Shushing (Modulated White Noise Wave)
+  // 2.3 5S Rhythmic Shushing
   function playShushSound() {
     initAudio();
     stopAllAudio();
@@ -1059,7 +1161,7 @@
     updateSoundUI('shush', '5S Ritmik Pışpışlama');
   }
 
-  // 1.4 Soft Night Rain
+  // 2.4 Soft Night Rain
   function playRainSound() {
     initAudio();
     stopAllAudio();
@@ -1093,6 +1195,7 @@
   }
 
   function togglePlaySound(type) {
+    hapticPulse();
     if (currentPlayingTrack === type) {
       stopAllAudio();
     } else {
@@ -1121,6 +1224,7 @@
   }
 
   function setTimer(minutes, elem) {
+    hapticPulse();
     document.querySelectorAll('.timer-pill').forEach(p => p.classList.remove('active'));
     elem.classList.add('active');
 
@@ -1129,17 +1233,19 @@
     const disp = document.getElementById('timer-display');
     if (minutes === 0) {
       disp.innerText = 'Sürekli Çal';
+      showToast('⏱️ Zamanlayıcı: Sürekli Çalma');
     } else {
       disp.innerText = minutes + ' dk sonra kapanacak';
+      showToast('⏱️ ' + minutes + ' dk Kapanma Zamanlayıcısı Ayarlandı');
       timerTimeout = setTimeout(() => {
         stopAllAudio();
-        alert('⏱️ Uyku zamanlayıcısı süresi doldu. Sesler yavaşça kapatıldı.');
+        showToast('🌙 Uyku süresi doldu. Sesler durduruldu.');
       }, minutes * 60 * 1000);
     }
   }
 
   // =========================================================================
-  // 2. TAB NAVIGATION & SMART CROSS ACTIONS
+  // 3. TAB NAVIGATION & COMPLIANCE ACTIONS
   // =========================================================================
   function switchTab(tabName) {
     document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
@@ -1156,29 +1262,46 @@
   }
 
   function startSimulatedCryAnalysis() {
+    hapticPulse();
     const box = document.getElementById('cry-recorder');
     box.innerHTML = `
       <div style="font-size: 32px; animation: breatheMoon 0.8s infinite;">⏳</div>
       <div style="font-family: 'Sora'; font-size: 15px; font-weight: 600; color: var(--accent); margin: 10px 0 2px;">
         Akustik Spektrum Hesaplanıyor...
       </div>
-      <div style="font-size: 11px; color: var(--text-muted);">13 MFCC & Zero Crossing Rate taranıyor</div>
+      <div style="font-size: 11px; color: var(--text-muted);">13 MFCC & Zero Crossing Rate taranıyor (Zero-Storage RAM)</div>
     `;
 
     setTimeout(() => {
       box.style.display = 'none';
       document.getElementById('cry-result').style.display = 'block';
+      hapticPulse();
     }, 1500);
   }
 
   function triggerSmartSleepAction() {
+    hapticPulse();
     playPinkNoise();
     quickLog('Uyku Rutini Başlatıldı (432Hz)');
     switchTab('home');
   }
 
   function quickLog(type) {
-    alert('✅ ' + type + ' kaydı başarıyla eklendi.');
+    hapticPulse();
+    showToast('✅ ' + type + ' kaydı eklendi');
+  }
+
+  function restorePurchases() {
+    hapticPulse();
+    showToast('🔄 Satın alımlar RevenueCat üzerinden doğrulandı');
+  }
+
+  function inviteCaregiver() {
+    hapticPulse();
+    const email = prompt('Davet edilecek ebeveyn / bakıcı e-posta adresi:');
+    if (email) {
+      showToast('✉️ Davet bağlantısı ' + email + ' adresine gönderildi');
+    }
   }
 </script>
 

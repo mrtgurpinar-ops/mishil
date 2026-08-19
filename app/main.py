@@ -24,6 +24,9 @@ from app.api.v1.router import api_router
 setup_logging(debug=settings.DEBUG)
 logger = get_logger("main")
 
+# In-Memory Sliding Window Rate Limiter (IP-based, 120 req / min)
+RATE_LIMIT_RECORD = {}
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -59,9 +62,35 @@ app.add_middleware(
 )
 
 
-# Request ID and Timing Middleware
+# Rate Limiting & Security Header Middleware
 @app.middleware("http")
-async def request_middleware(request: Request, call_next):
+async def security_and_rate_limit_middleware(request: Request, call_next):
+    # 1. Rate Limiting Check (Bypass for static files and health check)
+    if not request.url.path.startswith(("/health", "/privacy", "/terms", "/delete-account", "/docs", "/openapi.json")):
+        client_ip = request.client.host if request.client else "unknown"
+        now = time.time()
+        
+        # Clean older than 60s
+        history = RATE_LIMIT_RECORD.get(client_ip, [])
+        history = [t for t in history if now - t < 60]
+        
+        if len(history) >= 120:
+            return JSONResponse(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                content={
+                    "type": "https://mishil.app/errors/rate-limit-exceeded",
+                    "title": "Too Many Requests",
+                    "status": 429,
+                    "detail": "Çok fazla istek gönderildi. Lütfen 1 dakika sonra tekrar deneyiniz.",
+                    "instance": request.url.path,
+                },
+                headers={"Retry-After": "60"}
+            )
+        
+        history.append(now)
+        RATE_LIMIT_RECORD[client_ip] = history
+
+    # 2. Request ID & Timing
     req_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
     request_id_ctx.set(req_id)
     
@@ -71,19 +100,24 @@ async def request_middleware(request: Request, call_next):
         process_time = (time.time() - start_time) * 1000
         response.headers["X-Request-ID"] = req_id
         response.headers["X-Process-Time-Ms"] = f"{process_time:.2f}"
-        
-        # Log request summary
-        logger.info(
-            f"{request.method} {request.url.path} completed {response.status_code} in {process_time:.2f}ms"
-        )
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        logger.info(f"{request.method} {request.url.path} - {response.status_code} ({process_time:.2f}ms)")
         return response
     except Exception as exc:
         process_time = (time.time() - start_time) * 1000
-        logger.error(
-            f"{request.method} {request.url.path} failed in {process_time:.2f}ms: {str(exc)}",
-            exc_info=True
+        logger.error(f"{request.method} {request.url.path} failed in {process_time:.2f}ms: {str(exc)}", exc_info=True)
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "type": "https://mishil.app/errors/internal-server-error",
+                "title": "Internal Server Error",
+                "status": 500,
+                "detail": "Sunucuda beklenmeyen bir durum oluştu. Güvenlik gereği detaylar gizlenmiştir.",
+                "instance": request.url.path,
+                "request_id": req_id,
+            }
         )
-        raise exc
 
 
 # ============================================================

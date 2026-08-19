@@ -156,7 +156,7 @@ class SoundListResponse(BaseModel):
 # ==========================================
 class RoutineLogCreateRequest(BaseModel):
     baby_id: int
-    routine_type: RoutineType
+    routine_type: Optional[RoutineType] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     details: Dict[str, Any] = Field(default_factory=dict, description="Ek veriler (ml, sol/sağ meme, bez tipi vb.)")

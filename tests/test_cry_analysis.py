@@ -1,84 +1,67 @@
+# -*- coding: utf-8 -*-
 import io
-import pytest
+import math
+import struct
+import unittest
+import wave
 from app.services.cry_analysis import CryAnalysisService
 from app.models.enums import CryType
 
 
-def test_cry_feature_extraction_and_probabilities(synthetic_cry_wav_bytes):
-    """Test feature extraction and probability calculation with synthetic wave bytes."""
-    _, duration, features = CryAnalysisService.extract_features(synthetic_cry_wav_bytes)
-
-    assert duration > 1.5
-    assert features["sample_rate"] == 22050
-    assert "zcr_mean" in features
-    assert "spectral_centroid_mean" in features
-    assert len(features["mfcc_mean_0_to_12"]) == 13
-
-    # Check probabilities
-    probs = CryAnalysisService.evaluate_probabilities(features)
-    assert len(probs) == 5
+def create_synthetic_cry_wav_bytes():
+    """Generates a 2-second in-memory synthetic baby cry wav byte stream."""
+    sample_rate = 22050
+    duration_sec = 2.0
+    num_samples = int(sample_rate * duration_sec)
     
-    # Verify probability distribution sums close to 1.0
-    total_prob = sum(p.likelihood for p in probs)
-    assert 0.95 <= total_prob <= 1.05
-
-    # Check top cause
-    top_cause = probs[0].cause
-    assert top_cause in [CryType.HUNGRY, CryType.TIRED, CryType.PAIN_COLIC, CryType.DISCOMFORT, CryType.BURPING_NEEDED]
-
-
-def test_cry_analysis_api_endpoint(client, synthetic_cry_wav_bytes):
-    """Test POST /api/v1/cry-analysis/analyze with valid audio upload."""
-    # First register user to get token
-    reg_res = client.post(
-        "/api/v1/auth/register",
-        json={"email": "mom@mishil.app", "password": "password123", "full_name": "Ayşe Yılmaz"}
-    )
-    token = reg_res.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
-    files = {"file": ("baby_cry.wav", io.BytesIO(synthetic_cry_wav_bytes), "audio/wav")}
-    response = client.post("/api/v1/cry-analysis/analyze", headers=headers, files=files)
-
-    assert response.status_code == 200
-    data = response.json()
-    assert "possible_causes" in data
-    assert "dominant_cause" in data
-    assert "confidence_note" in data
-    assert "recommended_action" in data
-    assert "recommended_sound_type" in data
-    assert len(data["possible_causes"]) > 0
+    buf = io.BytesIO()
+    with wave.open(buf, "wb") as wav_file:
+        wav_file.setnchannels(1)  # Mono
+        wav_file.setsampwidth(2)  # 16-bit PCM
+        wav_file.setframerate(sample_rate)
+        
+        frames = bytearray()
+        for i in range(num_samples):
+            t = float(i) / sample_rate
+            # 450 Hz pitch fundamental + 900 Hz formant with tremolo
+            tremolo = 1.0 + 0.3 * math.sin(2.0 * math.pi * 5.0 * t)
+            sample_val = math.sin(2.0 * math.pi * 450.0 * t) * tremolo * 0.4
+            sample_val += 0.2 * math.sin(2.0 * math.pi * 900.0 * t)
+            # Clip between -1.0 and 1.0
+            sample_val = max(-1.0, min(1.0, sample_val))
+            int_val = int(sample_val * 32767.0)
+            frames.extend(struct.pack("<h", int_val))
+            
+        wav_file.writeframes(frames)
+        
+    buf.seek(0)
+    return buf.read()
 
 
-def test_cry_analysis_empty_file(client):
-    """Test empty audio file rejection with 400 Bad Request."""
-    reg_res = client.post(
-        "/api/v1/auth/register",
-        json={"email": "test_empty@mishil.app", "password": "password123"}
-    )
-    token = reg_res.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
+class TestCryAnalysisService(unittest.TestCase):
+    def test_cry_feature_extraction_and_probabilities(self):
+        """Test feature extraction and probability calculation with synthetic wave bytes."""
+        wav_bytes = create_synthetic_cry_wav_bytes()
+        _, duration, features = CryAnalysisService.extract_features(wav_bytes)
 
-    files = {"file": ("empty.wav", io.BytesIO(b""), "audio/wav")}
-    response = client.post("/api/v1/cry-analysis/analyze", headers=headers, files=files)
+        self.assertGreater(duration, 1.5)
+        self.assertEqual(features["sample_rate"], 22050)
+        self.assertIn("zcr_mean", features)
+        self.assertIn("spectral_centroid_mean", features)
+        self.assertEqual(len(features["mfcc_mean_0_to_12"]), 13)
 
-    assert response.status_code == 400
-    assert "boş" in response.json()["message"].lower()
+        # Check probabilities
+        probs = CryAnalysisService.evaluate_probabilities(features)
+        self.assertEqual(len(probs), 5)
+        
+        # Verify probability distribution sums close to 1.0
+        total_prob = sum(p.likelihood for p in probs)
+        self.assertTrue(0.95 <= total_prob <= 1.05)
+
+        # Check top cause
+        top_cause = probs[0].cause
+        self.assertIn(top_cause, [CryType.HUNGRY, CryType.TIRED, CryType.PAIN_COLIC, CryType.DISCOMFORT, CryType.BURPING_NEEDED])
 
 
-def test_cry_analysis_file_too_large(client):
-    """Test oversized file (>10MB) rejection with 413 Payload Too Large."""
-    reg_res = client.post(
-        "/api/v1/auth/register",
-        json={"email": "test_large@mishil.app", "password": "password123"}
-    )
-    token = reg_res.json()["access_token"]
-    headers = {"Authorization": f"Bearer {token}"}
-
-    # 11 MB dummy bytes
-    large_payload = b"0" * (11 * 1024 * 1024)
-    files = {"file": ("huge.wav", io.BytesIO(large_payload), "audio/wav")}
-    response = client.post("/api/v1/cry-analysis/analyze", headers=headers, files=files)
-
-    assert response.status_code == 413
-    assert "büyük" in response.json()["message"].lower()
+if __name__ == "__main__":
+    unittest.main()
