@@ -20,10 +20,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   assetBundlePatterns: ['**/*'],
   ios: {
-    supportsTablet: true,
-    bundleIdentifier: 'com.mishil.app',
+    supportsTablet: false,
+    bundleIdentifier: 'com.mrtgurpinar.mishil',
     infoPlist: {
-      NSMicrophoneUsageDescription: 'Mishil, bebeğinizin ağlama sesindeki akustik özellikleri analiz etmek için mikrofonunuza erişir. Sesler yalnızca analiz amaçlı işlenir.',
+      NSMicrophoneUsageDescription: 'Mishil, bebeğinizin ağlama sesindeki akustik özellikleri analiz etmek için mikrofonunuza erişir. Sesler yalnızca yerel analiz amaçlı işlenir ve kaydedilmez.',
       UIBackgroundModes: ['audio']
     }
   },
@@ -32,7 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#141B2E'
     },
-    package: 'com.mishil.app',
+    package: 'com.mrtgurpinar.mishil',
     permissions: [
       'RECORD_AUDIO',
       'WAKE_LOCK',

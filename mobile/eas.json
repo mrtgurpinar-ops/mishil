@@ -1,0 +1,41 @@
+{
+  "cli": {
+    "version": ">= 12.0.0"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "simulator": true
+      }
+    },
+    "production": {
+      "android": {
+        "buildType": "app-bundle"
+      },
+      "ios": {
+        "distribution": "store"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "serviceAccountKeyPath": "./google-play-service-account.json",
+        "track": "internal"
+      },
+      "ios": {
+        "appleId": "mrtgurpinar@gmail.com",
+        "ascAppId": "6470000000",
+        "appleTeamId": "MISHILTEAM1"
+      }
+    }
+  }
+}

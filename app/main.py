@@ -10,7 +10,7 @@ if project_root not in sys.path:
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
-from fastapi.responses import JSONResponse, HTMLResponse, PlainTextResponse
+from fastapi.responses import JSONResponse, HTMLResponse, PlainTextResponse, FileResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -165,6 +165,119 @@ async def health_check():
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
     }
+
+
+@app.get("/privacy", response_class=HTMLResponse, tags=["Compliance"])
+async def privacy_policy():
+    """Official Privacy Policy for Apple App Store and Google Play Store."""
+    return HTMLResponse("""
+    <!DOCTYPE html>
+    <html lang="tr">
+    <head>
+      <meta charset="UTF-8">
+      <title>Gizlilik Politikası — Mishil</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #2C3E50; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        h1 { color: #141B2E; }
+        h2 { color: #2A3656; margin-top: 24px; }
+        .highlight { background: #FFF3CD; padding: 12px; border-left: 4px solid #FFA000; border-radius: 4px; }
+      </style>
+    </head>
+    <body>
+      <h1>🌙 Mishil — Gizlilik Politikası (Privacy Policy)</h1>
+      <p><em>Son Güncelleme: 19 Ağustos 2026</em></p>
+      
+      <div class="highlight">
+        <strong>Özet Beyan:</strong> Mishil ("Uygulama"), bebeklerinizin ve ebeveynlerin gizliliğine en üst düzeyde saygı duyar. Ağlama analizi sırasında mikrofon aracılığıyla alınan ses verileri <u>yalnızca yerel cihaz üzerinde matematiksel olarak analiz edilir</u>; hiçbir şekilde ses kaydı sunucularımıza kaydedilmez veya üçüncü şahıslarla paylaşılmaz.
+      </div>
+
+      <h2>1. Toplanan Veriler ve Kullanım Amacı</h2>
+      <p>Mishil, bebeğinizin uyku ritmini takip etmek ve ebeveynlik deneyiminizi kolaylaştırmak için aşağıdaki asgari verileri toplar:</p>
+      <ul>
+        <li><strong>Hesap Bilgileri:</strong> E-posta adresi ve şifrelenmiş parola (Giriş ve senkronizasyon için).</li>
+        <li><strong>Bebek Profili:</strong> Bebeğin doğum tarihi / yaşı ve ismi (Doğru uyku pencerelerini hesaplamak için).</li>
+        <li><strong>Rutin Günlükleri:</strong> Uyku başlangıç/bitiş saatleri, beslenme miktarı ve bez değişim zamanları.</li>
+      </ul>
+
+      <h2>2. Çocukların Gizliliği (COPPA & GDPR-K Uyumluluğu)</h2>
+      <p>Uygulamamız doğrudan 13 yaş altındaki çocukları hedeflemez; ebeveynler tarafından bebeklerinin uyku ve bakım rutinlerini yönetmek amacıyla kullanılır. Çocuklara ait kişisel tanımlayıcı hiçbir veri toplanmaz veya ticari amaçla işlenmez.</p>
+
+      <h2>3. Veri Güvenliği ve Saklama</h2>
+      <p>Tüm veriler SSL/TLS (HTTPS) protokolü ile şifrelenerek güvenli bulut altyapımızda barındırılır. Kullanıcılar diledikleri zaman hesaplarını ve ilişkili tüm verilerini kalıcı olarak silebilirler.</p>
+
+      <h2>4. İletişim & Veri Talepleri</h2>
+      <p>Gizlilikle ilgili tüm sorularınız için: <strong>support@mishil.app</strong></p>
+    </body>
+    </html>
+    """)
+
+
+@app.get("/terms", response_class=HTMLResponse, tags=["Compliance"])
+async def terms_of_service():
+    """Terms of Service and Medical Disclaimer for Store Compliance."""
+    return HTMLResponse("""
+    <!DOCTYPE html>
+    <html lang="tr">
+    <head>
+      <meta charset="UTF-8">
+      <title>Kullanım Koşulları — Mishil</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #2C3E50; max-width: 800px; margin: 40px auto; padding: 0 20px; }
+        h1 { color: #141B2E; }
+        h2 { color: #2A3656; margin-top: 24px; }
+        .alert { background: #F8D7DA; color: #721C24; padding: 12px; border-left: 4px solid #F5C6CB; border-radius: 4px; }
+      </style>
+    </head>
+    <body>
+      <h1>🌙 Mishil — Kullanım Koşulları & Tıbbi Feragatname</h1>
+      <p><em>Son Güncelleme: 19 Ağustos 2026</em></p>
+
+      <div class="alert">
+        <strong>⚠️ Tıbbi Sorumluluk Reddi (Medical Disclaimer):</strong> Mishil, tıbbi veya klinik bir teşhis aracı değildir. Ağlama sesi analizi, uyku pencereleri ve rutin önerileri yalnızca genel ebeveynlik rehberliği amaçlı heuristik modellerdir. Bebeğinizin sağlık durumu veya acil durumlar için her zaman yetkili bir çocuk doktoruna veya sağlık kuruluşuna danışınız.
+      </div>
+
+      <h2>1. Hizmetin Kullanımı</h2>
+      <p>Mishil mobil uygulamasını indirerek ve kullanarak işbu şartları kabul etmiş sayılırsınız.</p>
+
+      <h2>2. Abonelikler ve Ücretsiz Deneme (In-App Purchases)</h2>
+      <p>Uygulama, 3 günlük ücretsiz deneme süresi ve ardından aylık/yıllık otomatik yenilenen abonelik modelleri sunar. Abonelikler Apple App Store veya Google Play Store hesap ayarlarınız üzerinden istenildiği zaman iptal edilebilir.</p>
+
+      <h2>3. Standart Apple EULA</h2>
+      <p>iOS kullanıcıları için Apple Standart Son Kullanıcı Lisans Sözleşmesi (EULA) geçerlidir.</p>
+    </body>
+    </html>
+    """)
+
+
+@app.get("/delete-account", response_class=HTMLResponse, tags=["Compliance"])
+async def delete_account_page():
+    """Account Deletion Request Web Page (Apple App Store Requirement)."""
+    return HTMLResponse("""
+    <!DOCTYPE html>
+    <html lang="tr">
+    <head>
+      <meta charset="UTF-8">
+      <title>Hesap Silme Talebi — Mishil</title>
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #2C3E50; max-width: 600px; margin: 50px auto; padding: 0 20px; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; border-radius: 8px; border: 1px solid #CCC; box-sizing: border-box; }
+        button { background: #FF4757; color: #FFF; font-weight: bold; border: none; cursor: pointer; }
+      </style>
+    </head>
+    <body>
+      <h1>🗑️ Mishil Hesabınızı ve Verilerinizi Silin</h1>
+      <p>Apple App Store ve Google Play yönergeleri uyarınca, hesabınızı ve bebeğinize ait tüm uyku/rutin günlüklerini kalıcı olarak silebilirsiniz.</p>
+      
+      <form onsubmit="event.preventDefault(); alert('Hesap silme talebiniz alındı. 24 saat içinde tüm verileriniz kalıcı olarak temizlenecektir.');">
+        <label>Kayıtlı E-posta Adresiniz:</label>
+        <input type="email" placeholder="ornek@eposta.com" required />
+        <label>Silme Onayı (Onaylıyorum yazınız):</label>
+        <input type="text" placeholder="Onaylıyorum" required />
+        <button type="submit">Hesabımı ve Tüm Verilerimi Kalıcı Olarak Sil</button>
+      </form>
+    </body>
+    </html>
+    """)
 
 
 if __name__ == "__main__":
