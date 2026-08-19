@@ -142,11 +142,25 @@ async def generic_exception_handler(request: Request, exc: Exception):
 # ============================================================
 # Health Check & Root Endpoints
 # ============================================================
-@app.get("/health", tags=["System Health"])
-def health_check():
-    """Service health check endpoint for Docker & load balancers."""
+
+# Include API V1 router
+app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+@app.get("/", response_class=HTMLResponse, tags=["Web App"])
+async def root_app():
+    """Serves the live interactive Mishil Mobile Web Application."""
+    preview_path = os.path.join(project_root, "mobile", "web-preview", "index.html")
+    if os.path.exists(preview_path):
+        return FileResponse(preview_path)
+    return HTMLResponse("<h2>Mishil API is running. Visit <a href='/docs'>/docs</a></h2>")
+
+
+@app.get("/health", tags=["Health"])
+async def health_check():
+    """Liveness probe endpoint."""
     return {
-        "status": "healthy",
+        "status": "ok",
         "app": settings.APP_NAME,
         "version": settings.APP_VERSION,
         "environment": settings.ENVIRONMENT,
