@@ -3,12 +3,11 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker, Session
 from app.core.config import settings
 
-# Normalize postgres:// to postgresql:// for SQLAlchemy 2.0+ compatibility
+# DATABASE_URL normalization (postgres:// → postgresql://) is handled in
+# config.py via field_validator. No double conversion needed here.
 db_url = settings.DATABASE_URL
-if db_url.startswith("postgres://"):
-    db_url = db_url.replace("postgres://", "postgresql://", 1)
 
-# Check if SQLite for connect_args
+# SQLite requires check_same_thread=False for FastAPI sync + async mixing
 connect_args = {"check_same_thread": False} if db_url.startswith("sqlite") else {}
 
 engine = create_engine(

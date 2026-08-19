@@ -27,3 +27,12 @@ dist/
 build/
 .DS_Store
 Thumbs.db
+
+# Test cache & coverage
+.pytest_cache/
+htmlcov/
+.coverage
+*.cover
+
+# Dev/debug utility scripts (not part of the app, kept locally)
+scripts/

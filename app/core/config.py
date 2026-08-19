@@ -1,6 +1,6 @@
 from typing import List
 import os
-from pydantic import Field, field_validator
+from pydantic import Field, field_validator, model_validator
 
 try:
     from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -19,9 +19,9 @@ class Settings(BaseSettings):
     # General App Config
     APP_NAME: str = "mishil"
     APP_TITLE: str = "Mishil API - Baby Sleep & Routines"
-    APP_VERSION: str = "1.0.0"
+    APP_VERSION: str = "1.5.0"
     ENVIRONMENT: str = "development"
-    DEBUG: bool = True
+    DEBUG: bool = False  # Default False — production-safe. Set DEBUG=True in .env for local dev.
     PORT: int = 8000
     HOST: str = "0.0.0.0"
     API_V1_STR: str = "/api/v1"
@@ -29,12 +29,11 @@ class Settings(BaseSettings):
     # Security & Authentication
     JWT_SECRET: str = Field(
         default="mishil_default_dev_jwt_secret_key_change_in_production_32_bytes",
-        description="Secret key for signing JWT tokens"
+        description="Secret key for signing JWT tokens. MUST be overridden in production via JWT_SECRET env var."
     )
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200  # 30 days for mobile apps
     API_KEY_HEADER_NAME: str = "X-Mishil-API-Key"
-    STATIC_API_KEY: str = "mishil_mobile_client_key_v1"
 
     # Database
     DATABASE_URL: str = "sqlite:///./mishil.db"
@@ -45,6 +44,20 @@ class Settings(BaseSettings):
         if isinstance(v, str) and v.startswith("postgres://"):
             return v.replace("postgres://", "postgresql://", 1)
         return v
+
+    @model_validator(mode="after")
+    def warn_insecure_defaults(self) -> "Settings":
+        """Warn when running production with default JWT secret."""
+        default_secret = "mishil_default_dev_jwt_secret_key_change_in_production_32_bytes"
+        if self.ENVIRONMENT == "production" and self.JWT_SECRET == default_secret:
+            import warnings
+            warnings.warn(
+                "SECURITY WARNING: JWT_SECRET is set to the default development value in production! "
+                "Set a strong JWT_SECRET environment variable immediately.",
+                RuntimeWarning,
+                stacklevel=2,
+            )
+        return self
 
     # RevenueCat & Subscription
     REVENUECAT_WEBHOOK_SECRET: str = "rc_webhook_secret_example_key"
@@ -68,5 +81,9 @@ class Settings(BaseSettings):
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
 
+    # Sounds base URL — override in production if using external CDN
+    SOUNDS_BASE_URL: str = ""  # Empty = serve from local /sounds mount
+
 
 settings = Settings()
+

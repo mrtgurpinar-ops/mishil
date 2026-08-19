@@ -25,7 +25,20 @@ setup_logging(debug=settings.DEBUG)
 logger = get_logger("main")
 
 # In-Memory Sliding Window Rate Limiter (IP-based, 120 req / min)
-RATE_LIMIT_RECORD = {}
+RATE_LIMIT_RECORD: dict = {}
+_RATE_LIMIT_LAST_CLEANUP = 0.0
+_RATE_LIMIT_CLEANUP_INTERVAL = 300  # Cleanup every 5 minutes
+
+
+def _cleanup_rate_limit_record(now: float) -> None:
+    """Remove all stale IP entries older than 60s to prevent memory leak."""
+    global _RATE_LIMIT_LAST_CLEANUP
+    if now - _RATE_LIMIT_LAST_CLEANUP < _RATE_LIMIT_CLEANUP_INTERVAL:
+        return
+    stale_keys = [ip for ip, ts_list in RATE_LIMIT_RECORD.items() if not ts_list or all(now - t >= 60 for t in ts_list)]
+    for key in stale_keys:
+        del RATE_LIMIT_RECORD[key]
+    _RATE_LIMIT_LAST_CLEANUP = now
 
 
 @asynccontextmanager
@@ -61,19 +74,35 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Paths that bypass rate limiting (static, health, compliance, docs)
+_RATE_LIMIT_BYPASS_PREFIXES = (
+    "/health",
+    "/privacy",
+    "/terms",
+    "/delete-account",
+    "/docs",
+    "/redoc",
+    "/openapi.json",
+    "/sounds",
+    "/assets",
+)
+
 
 # Rate Limiting & Security Header Middleware
 @app.middleware("http")
 async def security_and_rate_limit_middleware(request: Request, call_next):
     # 1. Rate Limiting Check (Bypass for static files and health check)
-    if not request.url.path.startswith(("/health", "/privacy", "/terms", "/delete-account", "/docs", "/openapi.json")):
+    if not request.url.path.startswith(_RATE_LIMIT_BYPASS_PREFIXES):
         client_ip = request.client.host if request.client else "unknown"
         now = time.time()
-        
-        # Clean older than 60s
+
+        # Periodic full cleanup to prevent memory leak
+        _cleanup_rate_limit_record(now)
+
+        # Clean this IP's history older than 60s
         history = RATE_LIMIT_RECORD.get(client_ip, [])
         history = [t for t in history if now - t < 60]
-        
+
         if len(history) >= 120:
             return JSONResponse(
                 status_code=status.HTTP_429_TOO_MANY_REQUESTS,
@@ -86,14 +115,14 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
                 },
                 headers={"Retry-After": "60"}
             )
-        
+
         history.append(now)
         RATE_LIMIT_RECORD[client_ip] = history
 
     # 2. Request ID & Timing
     req_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
     request_id_ctx.set(req_id)
-    
+
     start_time = time.time()
     try:
         response = await call_next(request)
@@ -144,7 +173,7 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     for err in exc.errors():
         loc = " -> ".join(str(x) for x in err.get("loc", []))
         errors.append({"field": loc, "issue": err.get("msg")})
-        
+
     return JSONResponse(
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         content={
@@ -181,15 +210,6 @@ async def generic_exception_handler(request: Request, exc: Exception):
 app.include_router(api_router, prefix="/api/v1")
 
 
-@app.get("/", response_class=HTMLResponse, tags=["Web App"])
-async def root_app():
-    """Serves the live interactive Mishil Mobile Web Application."""
-    preview_path = os.path.join(project_root, "mobile", "web-preview", "index.html")
-    if os.path.exists(preview_path):
-        return FileResponse(preview_path)
-    return HTMLResponse("<h2>Mishil API is running. Visit <a href='/docs'>/docs</a></h2>")
-
-
 @app.get("/health", tags=["Health"])
 async def health_check():
     """Liveness probe endpoint."""
@@ -220,7 +240,7 @@ async def privacy_policy():
     <body>
       <h1>🌙 Mishil — Gizlilik Politikası (Privacy Policy)</h1>
       <p><em>Son Güncelleme: 19 Ağustos 2026</em></p>
-      
+
       <div class="highlight">
         <strong>Özet Beyan:</strong> Mishil ("Uygulama"), bebeklerinizin ve ebeveynlerin gizliliğine en üst düzeyde saygı duyar. Ağlama analizi sırasında mikrofon aracılığıyla alınan ses verileri <u>yalnızca yerel cihaz üzerinde matematiksel olarak analiz edilir</u>; hiçbir şekilde ses kaydı sunucularımıza kaydedilmez veya üçüncü şahıslarla paylaşılmaz.
       </div>
@@ -301,29 +321,44 @@ async def delete_account_page():
     <body>
       <h1>🗑️ Mishil Hesabınızı ve Verilerinizi Silin</h1>
       <p>Apple App Store ve Google Play yönergeleri uyarınca, hesabınızı ve bebeğinize ait tüm uyku/rutin günlüklerini kalıcı olarak silebilirsiniz.</p>
-      
+
       <form onsubmit="event.preventDefault(); alert('Hesap silme talebiniz alındı. 24 saat içinde tüm verileriniz kalıcı olarak temizlenecektir.');">
         <label>Kayıtlı E-posta Adresiniz:</label>
         <input type="email" placeholder="ornek@eposta.com" required />
         <label>Silme Onayı (Onaylıyorum yazınız):</label>
         <input type="text" placeholder="Onaylıyorum" required />
+        <button type="submit">Hesabımı ve Tüm Verilerimi Kalıcı Olarak Sil</button>
+      </form>
+    </body>
+    </html>
     """)
 
 
+# ============================================================
 # Static files mount for Web Preview and Lossless Studio Sounds
-web_preview_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "mobile", "web-preview")
+# ============================================================
+web_preview_dir = os.path.join(project_root, "mobile", "web-preview")
 if os.path.exists(web_preview_dir):
     from fastapi.staticfiles import StaticFiles
-    app.mount("/sounds", StaticFiles(directory=os.path.join(web_preview_dir, "sounds")), name="sounds")
-    app.mount("/assets", StaticFiles(directory=os.path.join(os.path.dirname(os.path.dirname(__file__)), "mobile", "assets")), name="assets")
 
-    @app.get("/", response_class=HTMLResponse, tags=["Web App"])
-    async def serve_web_app():
-        index_path = os.path.join(web_preview_dir, "index.html")
-        if os.path.exists(index_path):
-            with open(index_path, "r", encoding="utf-8") as f:
-                return HTMLResponse(content=f.read())
-        return HTMLResponse("<h1>Mishil API Live</h1>")
+    sounds_dir = os.path.join(web_preview_dir, "sounds")
+    if os.path.exists(sounds_dir):
+        app.mount("/sounds", StaticFiles(directory=sounds_dir), name="sounds")
+
+    assets_dir = os.path.join(project_root, "mobile", "assets")
+    if os.path.exists(assets_dir):
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+
+# Single unified GET / route — serves web preview if available, otherwise API info
+@app.get("/", response_class=HTMLResponse, tags=["Web App"])
+async def root_app():
+    """Serves the live interactive Mishil Mobile Web Application."""
+    index_path = os.path.join(web_preview_dir if os.path.exists(web_preview_dir) else "", "index.html")
+    if os.path.exists(index_path):
+        with open(index_path, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse("<h2>Mishil API is running. Visit <a href='/docs'>/docs</a></h2>")
 
 
 if __name__ == "__main__":

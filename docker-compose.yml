@@ -6,15 +6,15 @@ services:
     container_name: mishil-db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: mishil_user
-      POSTGRES_PASSWORD: mishil_password
-      POSTGRES_DB: mishil_db
+      POSTGRES_USER: ${POSTGRES_USER:-mishil_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD env var is required}
+      POSTGRES_DB: ${POSTGRES_DB:-mishil_db}
     ports:
       - "5432:5432"
     volumes:
       - mishil_postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U mishil_user -d mishil_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-mishil_user} -d ${POSTGRES_DB:-mishil_db}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -30,15 +30,18 @@ services:
         condition: service_healthy
     environment:
       - APP_NAME=mishil
-      - ENVIRONMENT=production
-      - DATABASE_URL=postgresql://mishil_user:mishil_password@mishil-db:5432/mishil_db
-      - JWT_SECRET=super_secret_jwt_key_for_mishil_app_min_32_chars_long
-      - PORT=8000
+      - ENVIRONMENT=${ENVIRONMENT:-production}
+      - DEBUG=${DEBUG:-false}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-mishil_user}:${POSTGRES_PASSWORD}@mishil-db:5432/${POSTGRES_DB:-mishil_db}
+      - JWT_SECRET=${JWT_SECRET:?JWT_SECRET env var is required}
+      - PORT=${PORT:-8080}
       - HOST=0.0.0.0
+      - REVENUECAT_WEBHOOK_SECRET=${REVENUECAT_WEBHOOK_SECRET:-}
+      - SOUNDS_BASE_URL=${SOUNDS_BASE_URL:-}
     ports:
-      - "8000:8000"
+      - "${PORT:-8080}:${PORT:-8080}"
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${PORT:-8080}/health"]
       interval: 10s
       timeout: 5s
       retries: 3

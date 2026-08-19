@@ -80,17 +80,13 @@ class WakeWindowService:
         remaining_naps_count = max(0, rec_nap_count - completed_naps)
         
         remaining_plan: List[SleepWindowPlanItem] = []
-        current_time_cursor = next_sleep
         
         # Project subsequent nap(s)
+        current_time_cursor = next_sleep
         for i in range(1, remaining_naps_count + 1):
             nap_num = completed_naps + i
-            if i == 1:
-                plan_start = next_sleep
-            else:
-                # Next nap assumes ~60-90 min nap followed by base wake window
-                plan_start = current_time_cursor
-            
+            plan_start = current_time_cursor
+
             # Expected nap duration (e.g. 60-90 mins)
             expected_duration = 75 if payload.baby_age_months < 12 else 90
             remaining_plan.append(
@@ -101,7 +97,8 @@ class WakeWindowService:
                     sleep_type=SleepType.NAP
                 )
             )
-            # Advance cursor for hypothetical next nap
+            # Advance cursor: this nap ends at plan_start + duration,
+            # next nap starts after base_wake_window
             current_time_cursor = plan_start + timedelta(minutes=expected_duration + base_wake_window)
 
         return WakeWindowResponse(

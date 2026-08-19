@@ -160,6 +160,7 @@ class CryAnalysisService:
         - Lower Spectral Centroid (<1600 Hz) + Variable energy -> Tired
         - Low-mid Centroid + Low ZCR -> Discomfort / Wet diaper
         - Intermittent short bursts -> Burping needed
+        - High RMS + High ZCR (no extreme pitch) -> Overstimulated
         """
         sc = features.get("spectral_centroid_mean", 2000.0)
         zcr = features.get("zcr_mean", 0.08)
@@ -172,6 +173,7 @@ class CryAnalysisService:
             CryType.PAIN_COLIC: 0.20,
             CryType.DISCOMFORT: 0.20,
             CryType.BURPING_NEEDED: 0.20,
+            CryType.OVERSTIMULATED: 0.20,
         }
 
         # 1. Pain / Colic: Sharp, high pitched, high frequency
@@ -200,6 +202,11 @@ class CryAnalysisService:
         if zcr > 0.09 and rms < 0.03:
             raw_scores[CryType.BURPING_NEEDED] += 0.30
 
+        # 6. Overstimulated: High energy + high ZCR but not extreme pitch (too much sensory input)
+        if rms > 0.07 and zcr > 0.10 and sc < 2800:
+            raw_scores[CryType.OVERSTIMULATED] += 0.40
+            raw_scores[CryType.PAIN_COLIC] -= 0.10  # Differentiate from pain
+
         # Softmax-style normalization for legitimate probability distribution
         exp_scores = {k: math.exp(v * 2.5) for k, v in raw_scores.items()}
         total_exp = sum(exp_scores.values())
@@ -226,6 +233,10 @@ class CryAnalysisService:
             CryType.BURPING_NEEDED: (
                 "Gaz Çıkarma İhtiyacı",
                 "Beslenme sonrası sıkışmış hava kabarcığı baskısı."
+            ),
+            CryType.OVERSTIMULATED: (
+                "Aşırı Uyarılma (Overstimulated)",
+                "Yüksek ses, ışık veya sosyal uyaran fazlalığı nedeniyle bebeğin aşırı uyarılma belirtileri."
             ),
         }
 
@@ -254,27 +265,32 @@ class CryAnalysisService:
             CryType.HUNGRY: (
                 "Bebeğinizi beslemeyi veya emzirme pozisyonunu kontrol etmeyi deneyin. Son beslenme saatini gözden geçirin.",
                 SoundType.HEARTBEAT_CALM,
-                "https://cdn.mishil.app/sounds/heartbeat_calm.mp3"
+                "/sounds/heartbeat_calm.mp3"
             ),
             CryType.TIRED: (
                 "Uyanıklık penceresi dolmuş olabilir. Odayı karartın, uyku tulumunu giydirin ve pışpışlama sesi başlatın.",
                 SoundType.PINK_NOISE_432HZ,
-                "https://cdn.mishil.app/sounds/pink_noise_432hz.mp3"
+                "/sounds/pink_noise_432hz.mp3"
             ),
             CryType.PAIN_COLIC: (
                 "Bebeğinizi dik pozisyona getirin, bacaklarına bisiklet hareketi yaptırın veya ılık havlu ile hafif karın masajı uygulayın.",
                 SoundType.WOMB_SOUNDS,
-                "https://cdn.mishil.app/sounds/womb_sounds.mp3"
+                "/sounds/womb_sounds.mp3"
             ),
             CryType.DISCOMFORT: (
                 "Bebeğinizin bezini kontrol edin, oda sıcaklığını (ideal 21-22°C) ve kıyafetlerin terletip terletmediğini gözden geçirin.",
                 SoundType.RAIN_GENTLE,
-                "https://cdn.mishil.app/sounds/rain_gentle.mp3"
+                "/sounds/rain_gentle.mp3"
             ),
             CryType.BURPING_NEEDED: (
                 "Bebeğinizi omzunuza alarak sırtını aşağıdan yukarıya dairesel hareketlerle hafifçe sıvazlayın.",
                 SoundType.SHUSHING_RHYTHMIC,
-                "https://cdn.mishil.app/sounds/shushing_rhythmic.mp3"
+                "/sounds/shushing_rhythmic.mp3"
+            ),
+            CryType.OVERSTIMULATED: (
+                "Ortam uyaranlarını azaltın: ışıkları kısın, sesi kapatın, ziyaretçilerden uzaklaşın. Bebeğinizi sakin bir odada ten tene tutun.",
+                SoundType.PINK_NOISE_432HZ,
+                "/sounds/pink_noise_432hz.mp3"
             ),
         }
         return actions.get(
@@ -304,7 +320,7 @@ class CryAnalysisService:
             confidence_note="Bu tahmin klinik bir teşhis veya tıbbi tanı değildir; ebeveynlere yönelik rehberlik ipucu niteliğindedir.",
             recommended_action=action,
             recommended_sound_type=sound_type,
-            sound_url_mock=sound_url,
+            sound_url=sound_url,
             features_extracted=features,
             created_at=datetime.now(timezone.utc),
         )

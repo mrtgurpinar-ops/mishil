@@ -1,11 +1,19 @@
 from typing import List, Optional
 from fastapi import APIRouter, Query, Depends
+from app.core.config import settings
 from app.models.enums import SoundType
 from app.models.schemas import SoundListResponse, SoundItemResponse
 from app.db.models import User
 from .auth import get_current_user
 
 router = APIRouter(prefix="/sounds", tags=["Soothing Sleep & Routine Sounds"])
+
+
+def _sound_url(filename: str) -> str:
+    """Build sound streaming URL. Uses SOUNDS_BASE_URL from config if set (CDN), else local /sounds mount."""
+    base = settings.SOUNDS_BASE_URL.rstrip("/") if settings.SOUNDS_BASE_URL else ""
+    return f"{base}/sounds/{filename}"
+
 
 # Built-in high quality baby sleep sounds catalog
 SOUNDS_CATALOG: List[SoundItemResponse] = [
@@ -17,7 +25,7 @@ SOUNDS_CATALOG: List[SoundItemResponse] = [
         duration_seconds=3600,
         category="Gürültü Frekansları",
         frequency_hz=432,
-        stream_url="https://cdn.mishil.app/audio/pink_noise_432hz.mp3",
+        stream_url=_sound_url("pink_noise_432hz.mp3"),
         is_premium=False,
     ),
     SoundItemResponse(
@@ -28,7 +36,18 @@ SOUNDS_CATALOG: List[SoundItemResponse] = [
         duration_seconds=3600,
         category="Rahatlatıcı Ortam",
         frequency_hz=None,
-        stream_url="https://cdn.mishil.app/audio/womb_sounds.mp3",
+        stream_url=_sound_url("womb_sounds.mp3"),
+        is_premium=False,
+    ),
+    SoundItemResponse(
+        id="snd_heartbeat_calm",
+        sound_type=SoundType.HEARTBEAT_CALM,
+        title="Sakin Kalp Atışı (Heartbeat Calm)",
+        description="65 BPM ritmik kalp atışı — açlık ve huzursuzluk durumunda bebeği sakinleştiren anne kalbinin sesi.",
+        duration_seconds=3600,
+        category="Rahatlatıcı Ortam",
+        frequency_hz=None,
+        stream_url=_sound_url("heartbeat_calm.mp3"),
         is_premium=False,
     ),
     SoundItemResponse(
@@ -39,7 +58,7 @@ SOUNDS_CATALOG: List[SoundItemResponse] = [
         duration_seconds=1800,
         category="Sakinleştirici",
         frequency_hz=None,
-        stream_url="https://cdn.mishil.app/audio/shushing_rhythmic.mp3",
+        stream_url=_sound_url("shushing_rhythmic.mp3"),
         is_premium=False,
     ),
     SoundItemResponse(
@@ -50,7 +69,7 @@ SOUNDS_CATALOG: List[SoundItemResponse] = [
         duration_seconds=3600,
         category="Gürültü Frekansları",
         frequency_hz=None,
-        stream_url="https://cdn.mishil.app/audio/white_noise.mp3",
+        stream_url=_sound_url("white_noise.mp3"),
         is_premium=False,
     ),
     SoundItemResponse(
@@ -61,7 +80,7 @@ SOUNDS_CATALOG: List[SoundItemResponse] = [
         duration_seconds=3600,
         category="Gürültü Frekansları",
         frequency_hz=None,
-        stream_url="https://cdn.mishil.app/audio/brown_noise.mp3",
+        stream_url=_sound_url("brown_noise.mp3"),
         is_premium=True,
     ),
     SoundItemResponse(
@@ -72,7 +91,7 @@ SOUNDS_CATALOG: List[SoundItemResponse] = [
         duration_seconds=3600,
         category="Doğa Sesleri",
         frequency_hz=None,
-        stream_url="https://cdn.mishil.app/audio/rain_gentle.mp3",
+        stream_url=_sound_url("rain_gentle.mp3"),
         is_premium=False,
     ),
     SoundItemResponse(
@@ -83,7 +102,7 @@ SOUNDS_CATALOG: List[SoundItemResponse] = [
         duration_seconds=1200,
         category="Ninniler",
         frequency_hz=None,
-        stream_url="https://cdn.mishil.app/audio/brahms_lullaby.mp3",
+        stream_url=_sound_url("brahms_lullaby.mp3"),
         is_premium=True,
     ),
 ]

@@ -173,12 +173,13 @@ class SubscriptionService:
             user.subscription_status = SubscriptionStatus.ACTIVE
         elif event_type == "CANCELLATION":
             sub.status = SubscriptionStatus.CANCELLED
-            # Still active until expiration period ends
+            user.subscription_status = SubscriptionStatus.CANCELLED  # Still valid until period ends
         elif event_type == "EXPIRATION":
             sub.status = SubscriptionStatus.EXPIRED
             user.subscription_status = SubscriptionStatus.EXPIRED
         elif event_type == "BILLING_ISSUE":
             sub.status = SubscriptionStatus.GRACE_PERIOD
+            # user.subscription_status stays ACTIVE during grace period
 
         db.commit()
         return {"status": "success", "event_type": event_type, "user_id": user.id}

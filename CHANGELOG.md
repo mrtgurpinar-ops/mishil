@@ -2,6 +2,36 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [1.5.0] - 2026-08-19
+### Fixed (Kritik Bug Düzeltmeleri)
+- **`main.py` Çift `GET /` Route:** İki kez tanımlanan route tek unified fonksiyona birleştirildi; dead code ortadan kaldırıldı.
+- **`/delete-account` Broken HTML:** `<form>`, `<body>`, `<html>` kapanış tagları eksikti, Apple App Store review güvenliği sağlandı.
+- **`security.py` Passlib Dead Import:** `CryptContext` import edilip kullanılmıyordu; kaldırıldı. `passlib[bcrypt]` bağımlılığı `bcrypt>=4.1.0` ile değiştirildi.
+- **`config.py` DEBUG Default:** `DEBUG=True` → `DEBUG=False` olarak güvenli production değerine alındı. JWT_SECRET için production ortamında zayıf default uyarısı eklendi.
+- **`wake_window.py` Endpoint Optional[int]:** `int = None` type annotation `Optional[int] = None` olarak düzeltildi.
+- **Rate Limit Memory Leak:** `RATE_LIMIT_RECORD` dict hiç temizlenmiyordu. 5 dakikalık periyodik TTL cleanup fonksiyonu eklendi.
+- **`conftest.py` Hard Import Crash:** `soundfile` bare import `try/except` ile sarıldı; soundfile yoksa test suite başlamadan çökmüyor, ilgili fixture skip ediliyor.
+- **Wake Window Planlama Algoritması:** Nap loop'unda `current_time_cursor` güncellenmeden ikinci nap için kullanılıyordu. Cursor sırası düzeltildi.
+
+### Fixed (Yüksek Öncelik)
+- **Ses Katalog URL Çakışması:** `cdn.mishil.app` URL'leri config-tabanlı `/sounds/filename.mp3` relative URL'lere dönüştürüldü. `SOUNDS_BASE_URL` config'e eklendi.
+- **`HEARTBEAT_CALM` Katalog Eksikliği:** Ağlama analizi bu ses tipini öneriyordu ama katalogda yoktu; eklendi.
+- **RevenueCat CANCELLATION Bug:** `user.subscription_status` CANCELLATION event'inde güncellenmiyordu; düzeltildi.
+- **Route Çakışması:** `GET /routines/baby/{baby_id}` → `GET /routines/logs/baby/{baby_id}` olarak taşındı; `{routine_type}` path param çakışması engellendi.
+- **Test İzolasyonu:** `unittest.TestCase` pytest fixture tabanlı sınıflara dönüştürüldü; `mishil.db` üretim dosyası kirletilmiyor.
+- **Rate Limit Bypass Eksikliği:** `/redoc`, `/sounds`, `/assets` bypass listesine eklendi.
+- **30 Debug Script Temizliği:** Proje kökündeki geçici Railway/debug scriptleri `scripts/` klasörüne taşındı; `.gitignore`'a eklendi.
+- **docker-compose Hardcoded Secret:** `POSTGRES_PASSWORD` ve `JWT_SECRET` `${ENV_VAR:?required}` syntax'ıyla zorunlu env'e taşındı.
+
+### Fixed (Orta Öncelik)
+- **`sound_url_mock` Field Adı:** Production API yanıtında "mock" sözcüğü kaldırıldı; `sound_url` olarak yeniden adlandırıldı.
+- **`OVERSTIMULATED` Dead Enum:** Heuristic kural (yüksek RMS + yüksek ZCR) ve ebeveyn önerisi eklendi; artık aktif olarak üretilip tavsiye ediliyor.
+- **`RoutineLogCreateRequest.routine_type`:** Endpoint path'ten alındığı için schema'daki gereksiz optional field kaldırıldı.
+- **Çift `postgres://` Dönüşümü:** `config.py`'da zaten yapılan dönüşüm `db/base.py`'dan kaldırıldı.
+- **`STATIC_API_KEY` Kaldırıldı:** Kullanılmayan hardcoded API key config'den çıkarıldı.
+- **`requirements.txt`:** `passlib` kaldırıldı, `bcrypt>=4.1.0` bağımsız paket olarak eklendi.
+- **`.gitignore`:** `scripts/`, `.pytest_cache/`, `.coverage` eklendi.
+
 ## [1.4.0] - 2026-08-19
 ### Added
 - **Stüdyo Kaydı Akustik Ses Motoru:**

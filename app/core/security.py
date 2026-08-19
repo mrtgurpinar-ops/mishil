@@ -1,12 +1,10 @@
 from datetime import datetime, timedelta, timezone
 from typing import Optional, Any, Dict
 from jose import jwt, JWTError
-from passlib.context import CryptContext
+import bcrypt
 from fastapi import HTTPException, Security, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials, APIKeyHeader
 from .config import settings
-
-import bcrypt
 
 security_bearer = HTTPBearer(auto_error=False)
 api_key_header = APIKeyHeader(name=settings.API_KEY_HEADER_NAME, auto_error=False)

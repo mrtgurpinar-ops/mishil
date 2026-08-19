@@ -125,7 +125,7 @@ class CryAnalysisResponse(BaseModel):
     confidence_note: str = "Bu tahmin klinik teşhis değildir, ebeveyn için ipucu niteliğindedir."
     recommended_action: str
     recommended_sound_type: SoundType
-    sound_url_mock: str
+    sound_url: str  # Streaming URL for the recommended soothing sound
     features_extracted: Dict[str, Any]
     created_at: datetime
 
@@ -156,7 +156,6 @@ class SoundListResponse(BaseModel):
 # ==========================================
 class RoutineLogCreateRequest(BaseModel):
     baby_id: int
-    routine_type: Optional[RoutineType] = None
     start_time: Optional[datetime] = None
     end_time: Optional[datetime] = None
     details: Dict[str, Any] = Field(default_factory=dict, description="Ek veriler (ml, sol/sağ meme, bez tipi vb.)")

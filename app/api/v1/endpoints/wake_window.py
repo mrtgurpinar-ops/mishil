@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.base import get_db
@@ -35,7 +36,7 @@ async def calculate_wake_window(
 @router.get("/calculate/baby/{baby_id}", response_model=WakeWindowResponse)
 async def calculate_for_baby(
     baby_id: int,
-    previous_nap_duration: int = None,
+    previous_nap_duration: Optional[int] = None,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):

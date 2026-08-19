@@ -3,10 +3,16 @@ import sys
 import io
 import pytest
 import numpy as np
-import soundfile as sf
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+try:
+    import soundfile as sf
+    HAS_SOUNDFILE = True
+except ImportError:
+    sf = None
+    HAS_SOUNDFILE = False
 
 # Add project root to sys.path
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -56,10 +62,13 @@ def client(db_session):
 @pytest.fixture
 def synthetic_cry_wav_bytes():
     """Generate a 2-second synthetic baby cry audio file in memory."""
+    if not HAS_SOUNDFILE:
+        pytest.skip("soundfile not installed — skipping audio fixture")
+
     sample_rate = 22050
     duration = 2.0  # seconds
     t = np.linspace(0, duration, int(sample_rate * duration), endpoint=False)
-    
+
     # Mix 450Hz fundamental baby pitch + 2500Hz harmonic + gentle noise
     signal = 0.5 * np.sin(2 * np.pi * 450 * t) + 0.3 * np.sin(2 * np.pi * 2500 * t)
     noise = 0.05 * np.random.normal(0, 1, len(t))

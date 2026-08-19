@@ -71,7 +71,7 @@ def create_routine_log(
     )
 
 
-@router.get("/baby/{baby_id}", response_model=List[RoutineLogResponse])
+@router.get("/logs/baby/{baby_id}", response_model=List[RoutineLogResponse])
 def get_baby_routines(
     baby_id: int,
     routine_type: Optional[RoutineType] = None,
