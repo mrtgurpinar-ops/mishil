@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional, List, Dict, Any
-from pydantic import BaseModel, EmailStr, Field, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict, field_validator
+import re
 from .enums import CryType, SoundType, SubscriptionStatus, SubscriptionPlan, SleepType, RoutineType
 
 
@@ -17,13 +18,21 @@ class BaseResponse(BaseModel):
 # 2. Auth & User / Baby Schemas
 # ==========================================
 class UserRegisterRequest(BaseModel):
-    email: EmailStr
+    email: str = Field(..., min_length=5, max_length=255)
     password: str = Field(..., min_length=6, max_length=100)
     full_name: Optional[str] = None
 
+    @field_validator("email")
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        v = v.strip().lower()
+        if not re.match(r"^[^@]+@[^@]+\.[^@]+$", v):
+            raise ValueError("Geçerli bir e-posta adresi giriniz.")
+        return v
+
 
 class UserLoginRequest(BaseModel):
-    email: EmailStr
+    email: str = Field(..., min_length=5, max_length=255)
     password: str
 
 
