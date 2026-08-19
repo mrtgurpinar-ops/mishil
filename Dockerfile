@@ -20,10 +20,10 @@ COPY . .
 
 # Environment defaults
 ENV PYTHONUNBUFFERED=1 \
-    PORT=8000 \
+    PORT=8080 \
     APP_NAME=mishil
 
-EXPOSE 8000
+EXPOSE 8080
 
 # Run via python main.py for resilient port parsing
 CMD ["python", "app/main.py"]

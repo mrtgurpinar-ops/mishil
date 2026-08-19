@@ -167,24 +167,9 @@ async def health_check():
     }
 
 
-@app.get("/", tags=["System Health"])
-def root_index():
-    return {
-        "app": settings.APP_TITLE,
-        "version": settings.APP_VERSION,
-        "docs_url": "/docs",
-        "health_url": "/health",
-        "api_v1": "/api/v1",
-    }
-
-
-# Include API v1 Router
-app.include_router(api_router, prefix="/api/v1")
-
-
 if __name__ == "__main__":
     import uvicorn
-    # Resilient port parsing for container/Railway deployment
-    port = int(os.environ.get("PORT") or settings.PORT or 8000)
-    host = os.environ.get("HOST") or settings.HOST or "0.0.0.0"
-    uvicorn.run("app.main:app", host=host, port=port, reload=settings.DEBUG)
+    # Port 8080 default for Railway & container environments
+    port = int(os.environ.get("PORT") or 8080)
+    host = os.environ.get("HOST") or "0.0.0.0"
+    uvicorn.run("app.main:app", host=host, port=port, reload=False)
