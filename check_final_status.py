@@ -4,7 +4,7 @@ import urllib.request
 
 TOKEN = "9f63d90f-1145-4093-a3ca-02677de69f5e"
 URL = "https://backboard.railway.com/graphql/v2"
-SERVICE_ID = "37d8ca86-a5a9-4858-8d31-f0730fa58c54"
+SERVICE_ID = "b310e428-c5a5-4395-8798-c257dda88d21"
 
 headers = {
     "Content-Type": "application/json",

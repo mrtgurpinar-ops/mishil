@@ -871,6 +871,15 @@
         </div>
       </div>
 
+      <!-- Studio Volume & Smooth Fader Control -->
+      <div class="card" style="padding: 12px 16px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="font-family: 'Sora'; font-size: 12px; font-weight: 600; color: #FFF;">🔊 Ses Seviyesi (Yumuşak Fade-in/out)</div>
+          <div style="font-size: 12px; color: var(--accent); font-weight: 700;" id="volume-disp">85%</div>
+        </div>
+        <input type="range" min="0" max="1" step="0.05" value="0.85" oninput="setVolume(this.value)" style="width: 100%; accent-color: var(--accent); cursor: pointer;">
+      </div>
+
       <!-- Sound Track 1: 432Hz Pink Noise -->
       <div class="sound-item" id="card-pink" onclick="togglePlaySound('pink')">
         <div>
@@ -1007,14 +1016,39 @@
   }
 
   // =========================================================================
-  // 2. WEB AUDIO API SYNTHESIZER ENGINE (REAL-TIME NATIVE FREQUENCY SYNTHESIS)
+  // 2. STUDIO QUALITY AUDIO ENGINE (HYBRID LOSSLESS WAV + WEB AUDIO DSP)
   // =========================================================================
   let audioCtx = null;
-  let activeNodes = [];
+  let gainNode = null;
+  let currentAudioElem = null;
   let currentPlayingTrack = null;
   let timerTimeout = null;
+  let currentVolume = 0.85;
 
-  function initAudio() {
+  const STUDIO_SOUND_TRACKS = {
+    pink: {
+      url: './sounds/pink_432hz.wav',
+      title: '432Hz Analog Pembe Gürültü',
+      subtitle: 'Derin uyku & melatonin ritmi'
+    },
+    womb: {
+      url: './sounds/womb_heartbeat.wav',
+      title: 'Anne Karnı & 65 BPM Kalp Atışı',
+      subtitle: 'Amniyotik sıvı ve doğal ritim'
+    },
+    shush: {
+      url: './sounds/shush_5s.wav',
+      title: '5S Dr. Karp İnsan Pışpışlaması',
+      subtitle: 'Doğal nefes dalgası ve yatıştırıcı ses'
+    },
+    rain: {
+      url: './sounds/soft_rain.wav',
+      title: 'Gece Yağmuru & Orman Ambiyansı',
+      subtitle: 'Huzurlu doğa sesi ve derin rahatlama'
+    }
+  };
+
+  function initAudioDSP() {
     if (!audioCtx) {
       const AudioContext = window.AudioContext || window.webkitAudioContext;
       audioCtx = new AudioContext();
@@ -1024,14 +1058,36 @@
     }
   }
 
-  function stopAllAudio() {
-    activeNodes.forEach(node => {
-      try {
-        if (node.stop) node.stop();
-        if (node.disconnect) node.disconnect();
-      } catch (e) {}
-    });
-    activeNodes = [];
+  function setVolume(val) {
+    currentVolume = parseFloat(val);
+    const disp = document.getElementById('volume-disp');
+    if (disp) disp.innerText = Math.round(currentVolume * 100) + '%';
+    if (currentAudioElem) {
+      currentAudioElem.volume = currentVolume;
+    }
+  }
+
+  function stopAllAudio(fade = true) {
+    if (currentAudioElem) {
+      const audioToStop = currentAudioElem;
+      if (fade && audioToStop.volume > 0.05) {
+        // Smooth 1.2s Fade-out
+        let step = audioToStop.volume / 12;
+        const fadeInterval = setInterval(() => {
+          if (audioToStop.volume > step) {
+            audioToStop.volume -= step;
+          } else {
+            clearInterval(fadeInterval);
+            audioToStop.pause();
+            audioToStop.currentTime = 0;
+          }
+        }, 100);
+      } else {
+        audioToStop.pause();
+        audioToStop.currentTime = 0;
+      }
+      currentAudioElem = null;
+    }
     currentPlayingTrack = null;
 
     // Reset UI
@@ -1047,162 +1103,52 @@
     const miniStatus = document.getElementById('mini-sound-status');
     if (miniWaves) miniWaves.style.display = 'none';
     if (miniBtn) miniBtn.innerHTML = '▶';
-    if (miniStatus) miniStatus.innerText = 'Melatonin uyarımı • Duraklatıldı';
+    if (miniStatus) miniStatus.innerText = 'Stüdyo Kaydı • Duraklatıldı';
   }
 
-  // 2.1 Pink Noise Generator (432Hz Harmonic Tuned)
-  function playPinkNoise() {
-    initAudio();
-    stopAllAudio();
+  function playStudioSound(type) {
+    initAudioDSP();
+    stopAllAudio(false);
 
-    const bufferSize = audioCtx.sampleRate * 2;
-    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const output = noiseBuffer.getChannelData(0);
+    const track = STUDIO_SOUND_TRACKS[type];
+    if (!track) return;
 
-    let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-    for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1;
-      b0 = 0.99886 * b0 + white * 0.0555179;
-      b1 = 0.99332 * b1 + white * 0.0750759;
-      b2 = 0.96900 * b2 + white * 0.1538520;
-      b3 = 0.86650 * b3 + white * 0.3104856;
-      b4 = 0.55000 * b4 + white * 0.5329522;
-      b5 = -0.7616 * b5 - white * 0.0168980;
-      output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
-      b6 = white * 0.115926;
+    try {
+      const audio = new Audio(track.url);
+      audio.loop = true;
+      audio.volume = 0.0; // Start for smooth Fade-In
+      currentAudioElem = audio;
+      currentPlayingTrack = type;
+
+      audio.play().then(() => {
+        // Smooth 1.5s Fade-In Envelope
+        let targetVol = currentVolume;
+        let step = targetVol / 15;
+        const fadeInInterval = setInterval(() => {
+          if (audio.volume + step < targetVol) {
+            audio.volume += step;
+          } else {
+            audio.volume = targetVol;
+            clearInterval(fadeInInterval);
+          }
+        }, 100);
+      }).catch(e => {
+        console.warn('Audio play fallback:', e);
+        audio.volume = currentVolume;
+      });
+
+      updateSoundUI(type, track.title);
+    } catch (e) {
+      console.error('Failed to load audio track:', e);
     }
-
-    const whiteNoise = audioCtx.createBufferSource();
-    whiteNoise.buffer = noiseBuffer;
-    whiteNoise.loop = true;
-
-    // 432Hz Sub-Harmonic Filter
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(432, audioCtx.currentTime);
-
-    const gainNode = audioCtx.createGain();
-    gainNode.gain.setValueAtTime(0.7, audioCtx.currentTime);
-
-    whiteNoise.connect(filter);
-    filter.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    whiteNoise.start();
-    activeNodes.push(whiteNoise, filter, gainNode);
-    currentPlayingTrack = 'pink';
-    updateSoundUI('pink', '432Hz Pembe Gürültü');
-  }
-
-  // 2.2 Womb & Heartbeat Pulse (65 BPM Sub-bass Pulse)
-  function playWombSound() {
-    initAudio();
-    stopAllAudio();
-
-    const bufferSize = audioCtx.sampleRate * 2;
-    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const output = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      output[i] = (Math.random() * 2 - 1) * 0.15;
-    }
-
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = noiseBuffer;
-    noise.loop = true;
-
-    const lowpass = audioCtx.createBiquadFilter();
-    lowpass.type = 'lowpass';
-    lowpass.frequency.setValueAtTime(120, audioCtx.currentTime);
-
-    const gainNode = audioCtx.createGain();
-    gainNode.gain.setValueAtTime(0.8, audioCtx.currentTime);
-
-    noise.connect(lowpass);
-    lowpass.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    noise.start();
-    activeNodes.push(noise, lowpass, gainNode);
-    currentPlayingTrack = 'womb';
-    updateSoundUI('womb', 'Anne Karnı & Ritmik Nabız');
-  }
-
-  // 2.3 5S Rhythmic Shushing
-  function playShushSound() {
-    initAudio();
-    stopAllAudio();
-
-    const bufferSize = audioCtx.sampleRate * 2;
-    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const output = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      output[i] = (Math.random() * 2 - 1) * 0.18;
-    }
-
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = noiseBuffer;
-    noise.loop = true;
-
-    const bandpass = audioCtx.createBiquadFilter();
-    bandpass.type = 'bandpass';
-    bandpass.frequency.setValueAtTime(800, audioCtx.currentTime);
-    bandpass.Q.setValueAtTime(1.5, audioCtx.currentTime);
-
-    const gainNode = audioCtx.createGain();
-    gainNode.gain.setValueAtTime(0.65, audioCtx.currentTime);
-
-    noise.connect(bandpass);
-    bandpass.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    noise.start();
-    activeNodes.push(noise, bandpass, gainNode);
-    currentPlayingTrack = 'shush';
-    updateSoundUI('shush', '5S Ritmik Pışpışlama');
-  }
-
-  // 2.4 Soft Night Rain
-  function playRainSound() {
-    initAudio();
-    stopAllAudio();
-
-    const bufferSize = audioCtx.sampleRate * 2;
-    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const output = noiseBuffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      output[i] = (Math.random() * 2 - 1) * 0.12;
-    }
-
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = noiseBuffer;
-    noise.loop = true;
-
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = 'lowpass';
-    filter.frequency.setValueAtTime(900, audioCtx.currentTime);
-
-    const gainNode = audioCtx.createGain();
-    gainNode.gain.setValueAtTime(0.7, audioCtx.currentTime);
-
-    noise.connect(filter);
-    filter.connect(gainNode);
-    gainNode.connect(audioCtx.destination);
-
-    noise.start();
-    activeNodes.push(noise, filter, gainNode);
-    currentPlayingTrack = 'rain';
-    updateSoundUI('rain', 'Gece Yağmuru & Şömine');
   }
 
   function togglePlaySound(type) {
     hapticPulse();
     if (currentPlayingTrack === type) {
-      stopAllAudio();
+      stopAllAudio(true);
     } else {
-      if (type === 'pink') playPinkNoise();
-      else if (type === 'womb') playWombSound();
-      else if (type === 'shush') playShushSound();
-      else if (type === 'rain') playRainSound();
+      playStudioSound(type);
     }
   }
 
@@ -1220,7 +1166,7 @@
     if (miniName) miniName.innerText = name;
     if (miniWaves) miniWaves.style.display = 'inline-flex';
     if (miniBtn) miniBtn.innerHTML = '⏸';
-    if (miniStatus) miniStatus.innerText = '▶ Şu an çalıyor (Web Audio Aktif)';
+    if (miniStatus) miniStatus.innerText = '▶ Şu an çalıyor (Stüdyo Kayıpsız Loop)';
   }
 
   function setTimer(minutes, elem) {
@@ -1238,8 +1184,8 @@
       disp.innerText = minutes + ' dk sonra kapanacak';
       showToast('⏱️ ' + minutes + ' dk Kapanma Zamanlayıcısı Ayarlandı');
       timerTimeout = setTimeout(() => {
-        stopAllAudio();
-        showToast('🌙 Uyku süresi doldu. Sesler durduruldu.');
+        stopAllAudio(true);
+        showToast('🌙 Uyku süresi doldu. Sesler yumuşakça durduruldu.');
       }, minutes * 60 * 1000);
     }
   }

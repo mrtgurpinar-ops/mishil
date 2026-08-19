@@ -307,11 +307,23 @@ async def delete_account_page():
         <input type="email" placeholder="ornek@eposta.com" required />
         <label>Silme Onayı (Onaylıyorum yazınız):</label>
         <input type="text" placeholder="Onaylıyorum" required />
-        <button type="submit">Hesabımı ve Tüm Verilerimi Kalıcı Olarak Sil</button>
-      </form>
-    </body>
-    </html>
     """)
+
+
+# Static files mount for Web Preview and Lossless Studio Sounds
+web_preview_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "mobile", "web-preview")
+if os.path.exists(web_preview_dir):
+    from fastapi.staticfiles import StaticFiles
+    app.mount("/sounds", StaticFiles(directory=os.path.join(web_preview_dir, "sounds")), name="sounds")
+    app.mount("/assets", StaticFiles(directory=os.path.join(os.path.dirname(os.path.dirname(__file__)), "mobile", "assets")), name="assets")
+
+    @app.get("/", response_class=HTMLResponse, tags=["Web App"])
+    async def serve_web_app():
+        index_path = os.path.join(web_preview_dir, "index.html")
+        if os.path.exists(index_path):
+            with open(index_path, "r", encoding="utf-8") as f:
+                return HTMLResponse(content=f.read())
+        return HTMLResponse("<h1>Mishil API Live</h1>")
 
 
 if __name__ == "__main__":
