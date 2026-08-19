@@ -2,6 +2,18 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [1.3.0] - 2026-08-19
+### Added
+- **360° Güvenlik & Dayanıklılık:**
+  - **In-Memory Rate Limiter:** IP tabanlı kayan pencere koruması (120 req / dakika).
+  - **Production Exception Shield:** RFC 7807 uyumlu, iç Python stack trace ve hassas verileri gizleyen global hata kalkanı.
+  - **Native Bcrypt Hashing:** Passlib wrap-bug hatasını önleyen, 72-byte güvenli kesimli yerel Bcrypt parola motoru.
+- **UI/UX & Mağaza Uyumluluğu:**
+  - **Haptic Dokunsal Titreşim:** Buton ve sekme dokunuşlarında titreşimli geri bildirim (`navigator.vibrate`).
+  - **Apple Restore Purchases:** Apple Guideline 3.1.1 zorunlu abonelik geri yükleme ve RevenueCat senkronizasyon arayüzü.
+  - **Ebeveyn & Bakıcı Paylaşımı:** Anne/Baba ortak bebek profili davet mekanizması.
+- **Otomatik Test Kapsamı:** Standart Python `unittest` ile tüm auth, bebek, rutin ve DSP ağlama analizi testlerinin %100 yeşil geçmesi.
+
 ## [1.2.0] - 2026-08-19
 ### Added
 - **App Store & Google Play Store Hazırlık Paketi:**
