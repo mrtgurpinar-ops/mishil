@@ -2,6 +2,17 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [1.2.0] - 2026-08-19
+### Added
+- **App Store & Google Play Store Hazırlık Paketi:**
+  - **EAS Build Yapılandırması (`eas.json`):** Production ve preview profilleri ile Android `.aab` ve iOS `.ipa` derleme pipeline'ı.
+  - **Paket Kimliği & İzinler (`app.config.ts`):** `com.mrtgurpinar.mishil` bundle identifier, mikrofon izni ve arka plan ses izinleri.
+  - **Mağaza Varlıkları (Assets):** 1024x1024 px resmi App Store ikonu, 1284x2778 px splash screen, adaptive foreground ve bildirim ikonları.
+  - **Canlı Yasal Uç Noktalar (Compliance):** 
+    - `/privacy`: COPPA, GDPR-K ve mikrofon gizlilik politikası sayfası.
+    - `/terms`: Ebeveyn kullanım koşulları ve tıbbi feragatname (Medical Disclaimer).
+    - `/delete-account`: Apple Guideline 5.1.1 zorunlu hesap silme talep sayfası.
+
 ## [1.1.0] - 2026-08-19
 ### Added
 - **Web Audio API Native Sentezleyici Motoru:**
