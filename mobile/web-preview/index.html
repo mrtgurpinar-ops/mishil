@@ -2726,6 +2726,8 @@
     }
   }
 
+  const TARGET_DAY_SLEEP_MINS = 210; // 3.5 Saat (210 dk) Klinik Gündüz Uykusu Hedefi
+
   function renderHomeTodayTimeline() {
     const list = document.getElementById('home-today-timeline-list');
     const countBadge = document.getElementById('today-sleep-count');
@@ -2738,10 +2740,11 @@
     let totalMins = sleepLogs.reduce((acc, s) => acc + (s.durationMins || 0), 0);
     const hrs = Math.floor(totalMins / 60);
     const mins = totalMins % 60;
+    const progressPercent = Math.min(100, Math.round((totalMins / TARGET_DAY_SLEEP_MINS) * 100));
 
     if (countBadge) countBadge.textContent = sleepLogs.length;
-    if (summaryHeader) summaryHeader.textContent = `${hrs}s ${mins}dk / 14s Hedef`;
-    if (progressBar) progressBar.style.width = `${Math.min(100, Math.round((totalMins / 300) * 100))}%`;
+    if (summaryHeader) summaryHeader.textContent = `${hrs}s ${mins}dk / 3.5s Gündüz Hedefi (%${progressPercent})`;
+    if (progressBar) progressBar.style.width = `${progressPercent}%`;
 
     if (sleepLogs.length === 0) {
       list.innerHTML = `
@@ -2792,8 +2795,10 @@
     const sleepLogs = activeRoutines.filter(r => r.type === 'sleep');
     const totalSleepMins = sleepLogs.reduce((acc, s) => acc + (s.durationMins || 0), 0);
 
-    // 1. Uyku Bütçesi Puanı (%40 Ağırlık)
-    const sleepBudgetScore = totalSleepMins === 0 ? 60 : Math.min(100, Math.max(40, Math.round((totalSleepMins / 240) * 100)));
+    // 1. Uyku Bütçesi Puanı (%40 Ağırlık) - 210 dk (3.5 Saat) Hedef
+    const sleepBudgetScore = totalSleepMins === 0 
+      ? 50 
+      : Math.min(100, Math.max(30, Math.round((totalSleepMins / TARGET_DAY_SLEEP_MINS) * 100)));
 
     // 2. SweetSpot Ritim Uyumu Puanı (%35 Ağırlık)
     const sweetspotDeviationScore = calc.isManual ? 78 : 94;
@@ -2858,16 +2863,18 @@
     chartContainer.innerHTML = '';
 
     const sleepLogs = activeRoutines.filter(r => r.type === 'sleep');
-    const todayHrs = (sleepLogs.reduce((acc, s) => acc + (s.durationMins || 0), 0) / 60).toFixed(1);
+    const totalSleepMins = sleepLogs.reduce((acc, s) => acc + (s.durationMins || 0), 0);
+    const todayHrs = (totalSleepMins / 60).toFixed(1);
+    const todayFillPercent = Math.min(100, Math.max(10, Math.round((totalSleepMins / TARGET_DAY_SLEEP_MINS) * 100)));
 
     const weeklyData = [
-      { day: 'Pzt', hours: 13.5, height: '70%' },
-      { day: 'Sal', hours: 14.2, height: '85%' },
-      { day: 'Çar', hours: 13.8, height: '78%' },
-      { day: 'Per', hours: 14.0, height: '82%' },
-      { day: 'Cum', hours: 13.2, height: '65%' },
-      { day: 'Cmt', hours: 14.5, height: '90%' },
-      { day: 'Bugün', hours: todayHrs, height: `${Math.min(100, Math.max(15, Math.round((todayHrs / 14) * 100)))}%` },
+      { day: 'Pzt', hours: '3.2s', height: '75%' },
+      { day: 'Sal', hours: '3.5s', height: '100%' },
+      { day: 'Çar', hours: '3.0s', height: '68%' },
+      { day: 'Per', hours: '3.4s', height: '85%' },
+      { day: 'Cum', hours: '2.8s', height: '60%' },
+      { day: 'Cmt', hours: '3.6s', height: '95%' },
+      { day: 'Bugün', hours: `${todayHrs}s`, height: `${todayFillPercent}%` },
     ];
 
     weeklyData.forEach(d => {
