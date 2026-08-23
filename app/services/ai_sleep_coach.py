@@ -144,7 +144,10 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
         "systemInstruction": {"parts": [{"text": sys_prompt}]},
         "generationConfig": {
             "temperature": 0.65,
-            "maxOutputTokens": 750
+            "maxOutputTokens": 3000,
+            "thinkingConfig": {
+                "thinkingBudget": 0
+            }
         }
     }
 
