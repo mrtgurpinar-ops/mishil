@@ -2,6 +2,22 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [2.2.0] - 2026-08-23
+### 👵 Mışıl Dadı (4 Katmanlı Gemini LLM) & 18 Parçalı Zengin Ses Kütüphanesi
+- **Mışıl Dadı Kimliği & Şefkatli Uzmanlık:** Soğuk "AI Koçu" tabiri kaldırılarak sıcak, şefkatli ve deneyimli **"Mışıl Dadı"** kimliğine geçildi.
+- **4 Katmanlı Kesintisiz AI Mimarisi (`POST /api/v1/coach/chat`):**
+  - Katman 1: Google Gemini 2.5 Flash / 3.6 Pro API
+  - Katman 2: Google Gemini 1.5 Flash API (Yüksek hızlı yedek)
+  - Katman 3: Pollinations AI Free LLM Fallback (Dış açık kaynak fallback)
+  - Katman 4: Klinik Sirkadiyen Kural Motoru (Sıfır çökme & offline güvencesi)
+- **Sıfır Çirkin Scrollbar & Kusursuz Mobil Yerleşim:** Ekrana sığmayan sohbet kutusu `flex: 1; min-height: 0;` ile tam ekrana oturtuldu; tarayıcının standart scrollbar'ı gizlendi (`scrollbar-width: none;`).
+- **18 Stüdyo Master Parçalı Ses Kütüphanesi:**
+  - 🎹 Ninniler (Brahms, Ayışığı, Mozart 432Hz, Celesta, Kadife Gitar)
+  - 🤰 Anne Karnı & Nabız (60 BPM Tok Kalp, Amniyotik Sıvı, Plasenta, Sakin Nefes)
+  - 💨 Gürültü & Pışpış (5S Dr. Karp Pışpış, 432Hz Pembe, Kahverengi Kolik Kalkanı, Fön Makinesi, Vantilatör)
+  - 🌿 Doğa Sesleri (Orman Şırıltısı & Kuşlar, Gece Yağmuru, Okyanus Dalgaları, Cırcır Böcekleri)
+- **Anlık Canlı Arama & 4 Kategori Filtresi:** Başlık, açıklama ve kategori bazında harf harf filtreleme motoru entegre edildi.
+
 ## [2.1.0] - 2026-08-23
 ### 👑 Mışıl Baby: Tam Kapsamlı Premium SaaS & SweetSpot® Dönüşümü
 - **Marka & Kimlik Rebranding (Mışıl Baby):** "Mishil" hibrit yazılışı kaldırılarak, kültürel hafızadaki en sıcak ve doğal Türkçe marka olan **"Mışıl Baby"** tam olarak entegre edildi.
