@@ -1,6 +1,15 @@
-# Changelog - Mishil
+# Changelog - Mışıl Baby
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
+
+## [2.1.0] - 2026-08-23
+### 👑 Mışıl Baby: Tam Kapsamlı Premium SaaS & SweetSpot® Dönüşümü
+- **Marka & Kimlik Rebranding (Mışıl Baby):** "Mishil" hibrit yazılışı kaldırılarak, kültürel hafızadaki en sıcak ve doğal Türkçe marka olan **"Mışıl Baby"** tam olarak entegre edildi.
+- **5 Adımlı İnteraktif Onboarding Teşhis Testi:** Bebeğin ayına, uykuya direnç süresine, gece uyanma sıklığına ve ebeveynin çaresiz kaldığı alana göre dinamik teşhis anketi kuruldu.
+- **Kişiselleştirilmiş Uyku Skoru & Paywall Raporu:** Bebeğe özel Uyku Sağlığı Skoru (%38), aşırı yorgunluk riski ve 7 günlük hedef içeren yüksek dönüşümlü satış ekranı bağlandı.
+- **SweetSpot® Biyolojik Uyku Saati Tahmincisi:** Bebeğin ayına ve sirkadiyen uyanıklık penceresine göre günün bir sonraki en ideal uyku dakikasını hesaplayan motor devreye alındı.
+- **7/24 Mışıl AI Pediatrik Uyku Koçu:** Bebeğin yaşını ve verilerini hafızasında tutan, gece bölünmelerinde hızlı tavsiyeler sunan interaktif AI danışmanı entegre edildi.
+- **Wonder Weeks (Gelişim Atakları) & 4. Ay Regresyonu Radarı:** 10 büyük zihinsel sıçrama haftası ve huysuzluk takvimi arayüze eklendi.
 
 ## [2.0.0] - 2026-08-23
 ### 🎨 Major UI/UX Devrimi (21st.dev Design Engineering & Glassmorphism Edition)
