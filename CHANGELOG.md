@@ -2,6 +2,12 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [1.8.0] - 2026-08-23
+### Added & Mastered (Gerçek Akustik Müzik Kutusu, Stetoskop Nabzı & 2.5s Cosine Crossfade Loop)
+- **Akustik Fiziksel Modelleme & Stüdyo Tınıları:** Sentetik matematiksel sinüzoidler yerine ahşap rezonanslı narin çan tokmakları, canlı kuyruklu piyano harmonikleri ve kardiyoloji stetoskop çift vuruşlu (S1/S2) tok nabız modellerine geçildi.
+- **2.5 Saniyelik Dikişsiz Kosinüs Geçiş Zarfı (Seamless Cosine Crossfade Loop):** Parça başa sardığında oluşan ani klik ve takılmalar 2.5 saniyelik dikişsiz örtüşme zarfıyla %100 sıfırlandı.
+- **-14 LUFS Pik ve Dinamik Seviyeleme:** Kulaklık ve hoparlörlerde distorsiyon (clipping) oluşmaması için yumuşak pik sınırlayıcı (tanh soft limiter) uygulandı.
+
 ## [1.7.0] - 2026-08-23
 ### Added (Huckleberry & Napper Benchmark UI/UX İyileştirmeleri & Tek Dokunuş Uyku Sayacı)
 - **Tek Dokunuşlu Canlı Uyku Sayacı (One-Tap Live Sleep Tracker):** Hilal göstergesi ve altındaki butona basıldığında uyku modu aktive edilerek geçen süreyi saniye bazında sayan `is_sleeping` canlı sayacı entegre edildi.
