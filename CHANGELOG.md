@@ -2,6 +2,14 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [2.8.0] - 2026-08-23
+### 🌙 Segmented Focus Hub, Klinik Dinamik Gelişim Algoritması & 5-Core Analiz Merkezi
+- **🥇 Segmented Focus Hub (2 Modlu Ana Sayfa):** Dikey yığın tamamen kaldırılarak üstte tek tıkla değişen `[ 🌙 SweetSpot & Uyut ]` (dingin nefes alan ay ve tek butonla uyutma) ve `[ ⏱️ Bugünkü Uykular ]` (tamamlanan uyku seansları ve bütçe) segment kontrolü entegre edildi.
+- **🧠 Dinamik Klinik Gelişim Skoru Motoru:** Statik puan yerine gerçek matematiksel formül entegre edildi: $\text{Skor} = (S_{\text{uyku}} \times 0.40) + (S_{\text{sweetspot}} \times 0.35) + (S_{\text{atak}} \times 0.25)$.
+- **📊 5-Core Akıllı Navigasyon & Zengin Analiz Sekmesi (`view-analytics`):** Menü kalabalığı 5 temel sekmeye (`SweetSpot`, `Analiz`, `Mışıl Dadı`, `Sesler`, `Ayarlar`) indirgendi. Yeni Analiz sekmesinde haftalık uyku çubuk grafiği (Bento Chart) ve filtrelenebilir dikey rutin akışı sunuldu.
+- **🎙️ Mışıl Dadı İçine Entegre Akustik Ağlama Analizi:** Menüyü şişirmemek adına Ağlama Analizi doğrudan Mışıl Dadı'nın içine akıllı modal kart olarak bağlandı.
+- **🔄 Canlı Uyku Oturumu & Otomatik SweetSpot Öteleme:** "Bebek Uyandı" denildiği an uyku süresi günlüğe kaydedilir ve sıradaki SweetSpot saati bebeğin uyandığı dakikanın üzerine uyanıklık penceresi (90 dk) eklenerek anında canlı yeniden hesaplanır.
+
 ## [2.7.0] - 2026-08-23
 ### 🌙 UI / UX & Tasarım Mühendisliği Yükseltmesi (Dünya Standartları)
 - **✨ Canlı Uyku Modu & Dinamik Mor Nefes Alan Ay Dönüşümü:** "Uyku Başlat" aksiyonu ile Ay göstergesi uyanıklık sayacından canlı uyku sayacına (`isSleeping = true`, mor/lila nefes aurası) morph eder ve geçen uyku süresini canlı sayar.
