@@ -77,6 +77,6 @@ Kullanım Şartları (EULA): https://mrtgurpinar.github.io/mishil/terms
 
 ## 5. Abonelik ve Fiyatlandırma (Apple Guideline 3.1.2)
 
-- **Yıllık VIP (Önerilen):** ₺599.99 / Yıl *(3 Gün Ücretsiz Deneme ile)*
-- **Aylık VIP:** ₺149.99 / Ay
-- **Ömür Boyu Tek Seferlik:** ₺1.499.99 *(Sonsuz Erişim)*
+- **Yıllık VIP (Önerilen):** ₺599.99 / Yıl *(3 Gün Ücretsiz Deneme ile • Aylık ₺49.99)*
+- **Aylık VIP:** ₺149.99 / Ay *(Taahhütsüz)*
+- **Ömür Boyu VIP (Aile):** ₺2.499.99 *(Tüm Aile ve Gelecek Bebekler İçin Tek Seferlik Sonsuz Erişim)*

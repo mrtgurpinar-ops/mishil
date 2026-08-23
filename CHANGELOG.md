@@ -2,6 +2,15 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.6.0] - 2026-08-23
+### 👑 Fiyatlandırma & Paywall Mimarisi (Seçenek B) & Evrensel Master İkon
+- **❌ "Ücretsiz Temel" Seçeneği Kaldırıldı:** Gelir kaybını önlemek ve dönüşümü artırmak için onboarding paywall'ından ücretsiz devam butonu kaldırıldı.
+- **👑 3'lü Sağlam VIP Fiyatlandırma (Seçenek B):**
+  - **Yıllık VIP:** ₺599.99 / Yıl (3 Gün Ücretsiz Deneme Dahil • Aylık ₺49.99 • %67 Tasarruf)
+  - **Aylık VIP:** ₺149.99 / Ay (Esnek Aylık Plan)
+  - **Ömür Boyu VIP (Aile):** ₺2.499.99 (Tek Seferlik • Tüm Aile ve Gelecek Bebekler Dahil Sonsuz Erişim)
+- **🎨 Evrensel Master İkon Standardı (Lüks Altın Hilal & Yıldız Tozu):** Tüm temas noktalarında (`icon.png`, `adaptive-icon.png`, `splash.png`, `favicon.png`, `icon_512.png`, `ios_icon_1024.png`) tek tip lüks ikon üretildi.
+
 ## [4.5.1] - 2026-08-23
 ### 🔐 Şifreli Geliştirici Geçidi (PIN-Protected Developer Gateway)
 - **🔑 Geliştirici Önizleme Modu (`GET /app` & `GET /preview`):** Canlı geliştirme ve test kontrolleri için PIN korumalı tam çalışan uygulama sayfası (`public/app.html`) entegre edildi.
