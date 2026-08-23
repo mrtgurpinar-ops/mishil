@@ -3,25 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Mishil — Baby Sleep & Routines</title>
+  <title>Mishil — Baby Sleep & Routines (21st.dev Edition)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet" />
   <style>
+    /* =========================================================================
+       21st.dev & OKLCH Modern Design Engineering Tokens
+       ========================================================================= */
     :root {
-      --bg-night: #141B2E;
-      --card-night: #1D2640;
-      --card-elevated: #242F4D;
-      --border-night: #2A3656;
+      --bg-night: #0B0E17;
+      --card-night: rgba(22, 29, 48, 0.72);
+      --card-elevated: rgba(36, 47, 77, 0.85);
+      --border-night: rgba(255, 255, 255, 0.09);
+      --border-highlight: rgba(232, 168, 85, 0.45);
       --text-night: #C9CEDC;
-      --text-muted: #818B9F;
+      --text-muted: #8E99B0;
       --heading-night: #FFFFFF;
       --accent: #E8A855;
-      --accent-glow: rgba(232, 168, 85, 0.28);
+      --accent-glow: oklch(0.75 0.16 65 / 0.35);
       --moon-blue: #4A69BD;
-      --moon-blue-glow: rgba(74, 105, 189, 0.25);
+      --moon-blue-glow: oklch(0.6 0.2 260 / 0.35);
       --success: #2ED573;
       --danger: #FF4757;
+      --radius-lg: 22px;
+      --radius-md: 16px;
+      --radius-sm: 12px;
     }
 
     * {
@@ -33,7 +40,7 @@
     }
 
     body {
-      background: #0B0E17;
+      background: #06080F;
       font-family: 'Inter', sans-serif;
       color: var(--text-night);
       display: flex;
@@ -41,6 +48,37 @@
       align-items: center;
       min-height: 100vh;
       padding: 20px;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Ambient Glowing Aurora Background (21st.dev Style) */
+    .ambient-glow-wrap {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .ambient-pulse {
+      position: absolute;
+      left: 50%;
+      top: 30%;
+      transform: translate(-50%, -50%);
+      width: 140vw;
+      height: 120vh;
+      background: 
+        radial-gradient(50% 50% at 50% 50%, oklch(0.55 0.22 264 / 0.25), transparent 75%),
+        radial-gradient(40% 45% at 65% 45%, oklch(0.75 0.15 65 / 0.18), transparent 75%),
+        radial-gradient(35% 40% at 35% 55%, oklch(0.6 0.18 240 / 0.18), transparent 70%);
+      filter: blur(56px);
+      animation: lp-glow-pulse 10s ease-in-out infinite;
+    }
+
+    @keyframes lp-glow-pulse {
+      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
+      50% { transform: translate(-49%, -51%) scale(1.06); opacity: 0.75; }
     }
 
     /* Device Container Frame (Desktop) */
@@ -50,11 +88,13 @@
       height: 844px;
       background: var(--bg-night);
       border-radius: 48px;
-      border: 8px solid #232B3E;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(74, 105, 189, 0.15);
+      border: 8px solid #1E2538;
+      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(74, 105, 189, 0.2);
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      z-index: 10;
+      backdrop-filter: blur(12px);
     }
 
     /* Full-Screen Native View on Mobile Phones */
@@ -113,7 +153,7 @@
     .screen-container {
       flex: 1;
       overflow-y: auto;
-      padding: 16px 20px 100px;
+      padding: 16px 18px 110px;
       position: relative;
     }
 
@@ -121,31 +161,43 @@
       display: none;
     }
 
+    /* 21st.dev Blur-to-Focus Animation (lp-hero-in) */
     .tab-view {
       display: none;
-      animation: fadeIn 0.25s ease-out;
     }
 
     .tab-view.active {
       display: block;
+      animation: lpHeroIn 0.5s cubic-bezier(0.2, 0.6, 0.2, 1) both;
     }
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(6px); }
-      to { opacity: 1; transform: translateY(0); }
+    @keyframes lpHeroIn {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+        filter: blur(10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
     }
 
     /* Header */
     .app-header {
-      margin-bottom: 12px;
+      margin-bottom: 14px;
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
     }
 
     .baby-subtitle {
-      font-size: 13px;
+      font-size: 12px;
+      font-weight: 500;
       color: var(--text-muted);
+      letter-spacing: 0.3px;
+      text-transform: uppercase;
     }
 
     .main-title {
@@ -154,60 +206,138 @@
       font-weight: 700;
       color: var(--heading-night);
       letter-spacing: -0.5px;
+      margin-top: 2px;
     }
 
-    /* Card Component */
+    /* =========================================================================
+       21st.dev Bento Grid & Modern Card System
+       ========================================================================= */
+    .bento-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .bento-col-full {
+      grid-column: span 2;
+    }
+
     .card {
+      position: relative;
       background: var(--card-night);
       border: 1px solid var(--border-night);
-      border-radius: 20px;
+      border-radius: var(--radius-lg);
       padding: 16px;
       margin-bottom: 12px;
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      overflow: hidden;
+      transition: transform 0.25s cubic-bezier(0.2, 0.6, 0.2, 1), border-color 0.25s ease, box-shadow 0.25s ease;
     }
 
-    /* Crescent Moon Hero (Breathing / Live Sleep Aura) */
+    .card:hover {
+      border-color: rgba(255, 255, 255, 0.16);
+      transform: translateY(-1px);
+    }
+
+    /* Spotlight Radial Aura Follower on Cards */
+    .spotlight-glow {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(280px circle at var(--mouse-x, 50%) var(--mouse-y, 50%), rgba(232, 168, 85, 0.12), transparent 75%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .card:hover .spotlight-glow {
+      opacity: 1;
+    }
+
+    /* =========================================================================
+       Animated Border Beam & Breathing Crescent Hero
+       ========================================================================= */
     .moon-hero {
-      position: relative;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      padding: 24px 0 18px;
+      padding: 24px 0 20px;
+      text-align: center;
+    }
+
+    .moon-beam-wrapper {
+      position: relative;
+      width: 146px;
+      height: 146px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 4px;
+    }
+
+    /* Rotating Conic Border Beam */
+    .moon-beam-wrapper::before {
+      content: "";
+      position: absolute;
+      inset: -2px;
+      border-radius: 50%;
+      background: conic-gradient(from 0deg, transparent 40%, var(--accent) 75%, #FFF 85%, transparent 100%);
+      animation: rotateBeam 4s linear infinite;
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .moon-circle.sleeping ~ .moon-beam-wrapper::before,
+    .moon-beam-wrapper.active-beam::before {
+      opacity: 1;
+      background: conic-gradient(from 0deg, transparent 35%, #74B9FF 70%, #FFF 85%, transparent 100%);
+    }
+
+    @keyframes rotateBeam {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
     }
 
     .moon-circle {
       position: relative;
       width: 140px;
       height: 140px;
-      border-radius: 70px;
+      border-radius: 50%;
+      background: #151D33;
+      border: 1px solid rgba(255, 255, 255, 0.1);
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      z-index: 2;
       transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-      box-shadow: 0 0 40px var(--accent-glow);
+      box-shadow: 0 0 36px var(--accent-glow);
       animation: breatheMoon 4.5s ease-in-out infinite;
     }
 
     .moon-circle.sleeping {
-      box-shadow: 0 0 50px rgba(116, 185, 255, 0.4);
+      box-shadow: 0 0 50px rgba(116, 185, 255, 0.45);
+      background: #111A30;
       animation: breatheSleep 3.5s ease-in-out infinite;
     }
 
     @keyframes breatheMoon {
-      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px var(--accent-glow)); }
-      50% { transform: scale(1.05); filter: drop-shadow(0 0 28px rgba(232, 168, 85, 0.5)); }
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 14px var(--accent-glow)); }
+      50% { transform: scale(1.05); filter: drop-shadow(0 0 32px rgba(232, 168, 85, 0.5)); }
     }
 
     @keyframes breatheSleep {
-      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 14px rgba(116, 185, 255, 0.3)); }
-      50% { transform: scale(1.06); filter: drop-shadow(0 0 32px rgba(116, 185, 255, 0.6)); }
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 16px rgba(116, 185, 255, 0.35)); }
+      50% { transform: scale(1.06); filter: drop-shadow(0 0 36px rgba(116, 185, 255, 0.65)); }
     }
 
     .moon-svg {
-      width: 80px;
-      height: 80px;
+      width: 78px;
+      height: 78px;
       transition: fill 0.3s;
     }
 
@@ -216,7 +346,7 @@
       font-size: 28px;
       font-weight: 700;
       color: var(--heading-night);
-      margin-top: 14px;
+      margin-top: 12px;
       letter-spacing: -0.5px;
     }
 
@@ -226,29 +356,29 @@
       margin-top: 2px;
     }
 
-    /* Primary & Secondary Buttons */
+    /* Primary & Secondary Buttons (21st.dev Spring Physics) */
     .btn-primary {
       width: 100%;
-      background: var(--accent);
-      color: #141B2E;
+      background: linear-gradient(135deg, #F3B96E 0%, #E8A855 100%);
+      color: #121829;
       font-family: 'Sora', sans-serif;
       font-size: 14px;
       font-weight: 700;
       padding: 14px;
-      border-radius: 16px;
+      border-radius: var(--radius-md);
       border: none;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 8px;
-      box-shadow: 0 4px 18px var(--accent-glow);
-      transition: transform 0.15s, opacity 0.15s;
+      box-shadow: 0 6px 20px -2px var(--accent-glow);
+      transition: transform 0.2s cubic-bezier(0.2, 0.6, 0.2, 1), box-shadow 0.2s ease;
     }
 
     .btn-primary:active {
-      transform: scale(0.98);
-      opacity: 0.9;
+      transform: scale(0.97);
+      box-shadow: 0 2px 10px var(--accent-glow);
     }
 
     .btn-secondary {
@@ -259,16 +389,17 @@
       font-size: 13px;
       font-weight: 600;
       padding: 12px;
-      border-radius: 14px;
+      border-radius: var(--radius-md);
       border: 1px solid var(--border-night);
       cursor: pointer;
       margin-top: 8px;
-      transition: background 0.2s;
+      transition: all 0.2s;
       text-align: center;
     }
 
     .btn-secondary:active {
       background: #2D3A5E;
+      transform: scale(0.98);
     }
 
     /* Section Title */
@@ -283,7 +414,7 @@
       align-items: center;
     }
 
-    /* Quick Action 3-Col Buttons */
+    /* Quick Action Bento Grid Buttons */
     .quick-row {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -294,25 +425,26 @@
     .quick-btn {
       background: var(--card-night);
       border: 1px solid var(--border-night);
-      border-radius: 16px;
-      padding: 12px 6px;
+      border-radius: var(--radius-md);
+      padding: 14px 6px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 6px;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.25s cubic-bezier(0.2, 0.6, 0.2, 1);
+      backdrop-filter: blur(12px);
     }
 
     .quick-btn:active {
       background: var(--card-elevated);
-      transform: scale(0.95);
+      transform: scale(0.94);
       border-color: var(--accent);
     }
 
     .quick-icon {
-      font-size: 22px;
+      font-size: 24px;
     }
 
     .quick-txt {
@@ -325,19 +457,21 @@
     .sound-item {
       background: var(--card-night);
       border: 1px solid var(--border-night);
-      border-radius: 16px;
-      padding: 14px;
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
       margin-bottom: 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       cursor: pointer;
-      transition: all 0.2s;
+      backdrop-filter: blur(14px);
+      transition: all 0.25s cubic-bezier(0.2, 0.6, 0.2, 1);
     }
 
     .sound-item.active {
       border-color: var(--accent);
-      background: #242A42;
+      background: rgba(36, 42, 66, 0.9);
+      box-shadow: 0 6px 24px -4px var(--accent-glow);
     }
 
     .sound-title {
@@ -354,9 +488,9 @@
     }
 
     .sound-play-btn {
-      width: 38px;
-      height: 38px;
-      border-radius: 19px;
+      width: 40px;
+      height: 40px;
+      border-radius: 20px;
       background: var(--card-elevated);
       border: 1px solid var(--border-night);
       color: var(--accent);
@@ -365,7 +499,11 @@
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: all 0.2s;
+      transition: all 0.2s cubic-bezier(0.2, 0.6, 0.2, 1);
+    }
+
+    .sound-play-btn:active {
+      transform: scale(0.9);
     }
 
     .sound-item.active .sound-play-btn {
@@ -410,11 +548,11 @@
     .timer-pill {
       flex: 1;
       text-align: center;
-      padding: 8px 4px;
+      padding: 9px 4px;
       font-size: 11px;
       font-weight: 600;
-      background: #242F4D;
-      border-radius: 10px;
+      background: #202A44;
+      border-radius: var(--radius-sm);
       color: var(--text-night);
       cursor: pointer;
       border: 1px solid transparent;
@@ -427,15 +565,17 @@
       font-weight: 700;
     }
 
-    /* Bottom Navigation Bar */
+    /* Bottom Navigation Bar (Glassmorphic Dock) */
     .tab-bar {
       position: absolute;
       bottom: 0;
       left: 0;
       right: 0;
       height: 72px;
-      background: #111728;
-      border-top: 1px solid var(--border-night);
+      background: rgba(13, 18, 32, 0.88);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
       display: flex;
       justify-content: space-around;
       align-items: center;
@@ -448,58 +588,83 @@
       flex-direction: column;
       align-items: center;
       cursor: pointer;
-      color: var(--text-muted);
-      transition: color 0.2s;
+      opacity: 0.55;
+      transition: all 0.2s cubic-bezier(0.2, 0.6, 0.2, 1);
+      position: relative;
     }
 
     .tab-item.active {
-      color: var(--accent);
+      opacity: 1;
+      transform: translateY(-2px);
+    }
+
+    .tab-item.active::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      width: 16px;
+      height: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+      box-shadow: 0 0 8px var(--accent);
     }
 
     .tab-icon {
-      font-size: 18px;
+      font-size: 20px;
       margin-bottom: 2px;
     }
 
     .tab-label {
       font-size: 10px;
       font-weight: 600;
+      color: #FFF;
     }
 
-    /* Cry Analysis View Styles */
+    /* Mic Record Box */
     .mic-record-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 16px;
       text-align: center;
-      padding: 22px;
     }
 
     .mic-circle {
-      width: 84px;
-      height: 84px;
-      border-radius: 42px;
-      background: var(--accent);
-      display: inline-flex;
+      position: relative;
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #E8A855, #D18D36);
+      color: #141B2E;
+      font-size: 36px;
+      display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 34px;
       cursor: pointer;
-      box-shadow: 0 0 28px var(--accent-glow);
-      margin-bottom: 12px;
-      transition: transform 0.2s, background 0.3s;
+      margin-bottom: 16px;
+      box-shadow: 0 0 40px var(--accent-glow);
+      transition: all 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
+    }
+
+    .mic-circle:active {
+      transform: scale(0.92);
     }
 
     .mic-circle.recording {
-      background: var(--danger);
-      box-shadow: 0 0 35px rgba(255, 71, 87, 0.6);
-      animation: pulseMic 1.2s infinite;
+      background: linear-gradient(135deg, #FF4757, #C0392B);
+      color: #FFF;
+      box-shadow: 0 0 50px rgba(255, 71, 87, 0.6);
+      animation: micPulse 1.2s infinite alternate;
     }
 
-    @keyframes pulseMic {
-      0%, 100% { transform: scale(1); }
-      50% { transform: scale(1.1); }
+    @keyframes micPulse {
+      0% { transform: scale(1); }
+      100% { transform: scale(1.1); }
     }
 
     .progress-bar-wrap {
-      background: #242F4D;
+      background: #202A44;
       height: 8px;
       border-radius: 4px;
       overflow: hidden;
@@ -514,14 +679,15 @@
     }
 
     .disclaimer-box {
-      background: #2D241E;
+      background: rgba(45, 36, 30, 0.7);
       border: 1px solid var(--accent);
-      border-radius: 12px;
+      border-radius: var(--radius-sm);
       padding: 10px 12px;
       font-size: 11px;
       color: #F5C68A;
       margin-bottom: 12px;
       line-height: 15px;
+      backdrop-filter: blur(10px);
     }
 
     .leap-badge {
@@ -551,14 +717,15 @@
 
     .form-input {
       width: 100%;
-      background: #242F4D;
+      background: #1C253D;
       border: 1px solid var(--border-night);
-      border-radius: 12px;
+      border-radius: var(--radius-sm);
       padding: 10px 12px;
       font-family: 'Inter', sans-serif;
       font-size: 13px;
       color: #FFF;
       outline: none;
+      transition: border-color 0.2s;
     }
 
     .form-input:focus {
@@ -595,7 +762,7 @@
       position: absolute;
       cursor: pointer;
       top: 0; left: 0; right: 0; bottom: 0;
-      background-color: #242F4D;
+      background-color: #202A44;
       transition: .3s;
       border-radius: 24px;
       border: 1px solid var(--border-night);
@@ -623,13 +790,14 @@
       background-color: #141B2E;
     }
 
-    /* Modal Styles */
+    /* Modal Styles (21st.dev Sheet with Glassmorphism) */
     .modal-overlay {
       display: none;
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(4px);
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       z-index: 200;
       align-items: flex-end;
       justify-content: center;
@@ -641,27 +809,32 @@
     }
 
     .modal-sheet {
-      background: #192138;
-      border-top: 1px solid var(--border-night);
-      border-radius: 24px 24px 0 0;
+      background: #141B2E;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 28px 28px 0 0;
       width: 100%;
-      max-height: 80%;
+      max-height: 85%;
       overflow-y: auto;
-      padding: 20px;
-      box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
-      animation: slideUp 0.25s ease-out;
+      padding: 22px;
+      box-shadow: 0 -12px 50px rgba(0,0,0,0.8);
+      animation: slideUp 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
     }
 
     @keyframes slideUp {
-      from { transform: translateY(100%); }
-      to { transform: translateY(0); }
+      from { transform: translateY(100%); filter: blur(8px); }
+      to { transform: translateY(0); filter: blur(0); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
     }
 
     .modal-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 14px;
+      margin-bottom: 16px;
     }
 
     .modal-close {
@@ -678,14 +851,15 @@
       top: 60px;
       left: 50%;
       transform: translateX(-50%) translateY(-20px);
-      background: #242F4D;
+      background: rgba(32, 42, 68, 0.95);
       border: 1px solid var(--accent);
       color: #FFF;
-      padding: 8px 16px;
+      padding: 8px 18px;
       border-radius: 20px;
       font-size: 12px;
       font-weight: 600;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(12px);
       opacity: 0;
       pointer-events: none;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
@@ -700,6 +874,11 @@
   </style>
 </head>
 <body>
+
+<!-- Ambient Glowing Background Aura -->
+<div class="ambient-glow-wrap">
+  <div class="ambient-pulse"></div>
+</div>
 
 <div class="device-wrapper">
   <div class="device-notch"></div>
@@ -718,7 +897,7 @@
 
   <div class="screen-container">
 
-    <!-- 1. HOME TAB (LIVE SLEEP & WAKE WINDOW) -->
+    <!-- 1. HOME TAB (LIVE SLEEP & BENTO GRID WAKE WINDOW) -->
     <div id="view-home" class="tab-view active">
       <div class="app-header">
         <div>
@@ -727,12 +906,15 @@
         </div>
       </div>
 
-      <!-- Breathing Moon / Live Sleep Hero -->
+      <!-- Bento Hero: Breathing Moon with Animated Border Beam -->
       <div class="card moon-hero">
-        <div class="moon-circle" id="moon-aura-circle" onclick="toggleLiveSleep()">
-          <svg class="moon-svg" viewBox="0 0 100 100">
-            <path id="moon-shape" d="M50 10 A40 40 0 1 0 90 50 A30 30 0 1 1 50 10 Z" fill="#E8A855"/>
-          </svg>
+        <div class="spotlight-glow"></div>
+        <div class="moon-beam-wrapper" id="moon-beam-wrap">
+          <div class="moon-circle" id="moon-aura-circle" onclick="toggleLiveSleep()">
+            <svg class="moon-svg" viewBox="0 0 100 100">
+              <path id="moon-shape" d="M50 10 A40 40 0 1 0 90 50 A30 30 0 1 1 50 10 Z" fill="#E8A855"/>
+            </svg>
+          </div>
         </div>
 
         <div class="sleep-target-time" id="target-sleep-display">11:45</div>
@@ -746,18 +928,21 @@
         <span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>
       </button>
 
-      <!-- Wonder Weeks Leap Card -->
-      <div class="card" style="border-left: 4px solid var(--moon-blue); margin-top: 12px;">
-        <span class="leap-badge" id="leap-badge-txt">GELİŞİM ATAĞI 5</span>
-        <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF; margin-bottom: 2px;">
-          İlişkiler ve Mesafe Algısı Sıçraması
-        </div>
-        <div style="font-size: 11px; color: var(--text-muted); line-height: 15px;">
-          Bebeğiniz bu hafta ayrılık kaygısı nedeniyle uykuya dalmakta zorlanabilir. Brahms ninnisi veya sakinleştirici piyano melodisi kullanmanız önerilir.
+      <!-- Bento Cards Grid: Wonder Weeks & Smart Guide -->
+      <div class="bento-grid" style="margin-top: 12px;">
+        <div class="card bento-col-full" style="border-left: 4px solid var(--moon-blue); margin-bottom: 0;">
+          <div class="spotlight-glow"></div>
+          <span class="leap-badge" id="leap-badge-txt">GELİŞİM ATAĞI 5</span>
+          <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF; margin-bottom: 2px;">
+            İlişkiler ve Mesafe Algısı Sıçraması
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); line-height: 15px;">
+            Bebeğiniz bu hafta ayrılık kaygısı nedeniyle uykuya dalmakta zorlanabilir. Brahms ninnisi veya sakinleştirici piyano melodisi kullanmanız önerilir.
+          </div>
         </div>
       </div>
 
-      <!-- Quick Actions -->
+      <!-- Quick Actions Bento Row -->
       <div class="section-title">
         <span>Hızlı Rutin Kaydı</span>
         <span style="font-size: 11px; color: var(--accent); cursor: pointer;" onclick="openAddRoutineModal()">+ Detaylı Ekle ➔</span>
@@ -777,8 +962,9 @@
         </div>
       </div>
 
-      <!-- Live Mini Sound Bar -->
-      <div class="card" style="display: flex; align-items: center; justify-content: space-between; border-color: var(--accent); background: #1C2237;">
+      <!-- 21st.dev Floating Media Mini Bar -->
+      <div class="card" style="display: flex; align-items: center; justify-content: space-between; border-color: var(--accent); background: rgba(28, 34, 55, 0.85);">
+        <div class="spotlight-glow"></div>
         <div>
           <div style="display: flex; align-items: center;">
             <span style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;" id="mini-sound-name">🎹 Brahms Uyku Ninnisi</span>
@@ -805,6 +991,7 @@
       </div>
 
       <div class="card mic-record-box" id="cry-recorder">
+        <div class="spotlight-glow"></div>
         <div class="mic-circle" id="mic-btn" onclick="toggleRealMicRecording()">🎙️</div>
         <div style="font-family: 'Sora'; font-size: 15px; font-weight: 600; color: #FFF; margin-bottom: 4px;" id="mic-status-title">
           Canlı Dinlemek İçin Dokunun
@@ -823,7 +1010,7 @@
           <span class="wave-bar" style="height: 12px;"></span>
         </div>
 
-        <div style="margin-top: 16px; border-top: 1px solid var(--border-night); padding-top: 12px;">
+        <div style="margin-top: 16px; border-top: 1px solid var(--border-night); padding-top: 12px; width: 100%;">
           <label style="font-size: 11px; color: var(--accent); cursor: pointer; text-decoration: underline;">
             📁 veya Cihazdan Ses Dosyası Seç (.wav, .m4a, .mp3)
             <input type="file" id="audio-file-input" accept="audio/*" style="display: none;" onchange="handleAudioFileUpload(this)" />
@@ -837,6 +1024,7 @@
         </div>
 
         <div class="card">
+          <div class="spotlight-glow"></div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF;">
               Tespit Edilen Nedenler
@@ -876,7 +1064,8 @@
         </div>
 
         <!-- Smart Action Card -->
-        <div class="card" style="border-color: var(--accent); background: #232230;">
+        <div class="card" style="border-color: var(--accent); background: rgba(35, 34, 48, 0.9);">
+          <div class="spotlight-glow"></div>
           <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">
             Önerilen Ebeveyn Aksiyonu
           </div>
@@ -900,7 +1089,8 @@
 
       <div id="routines-list">
         <div class="card" style="display: flex; align-items: center; gap: 12px;">
-          <div style="font-size: 22px;">🍼</div>
+          <div class="spotlight-glow"></div>
+          <div style="font-size: 24px;">🍼</div>
           <div style="flex: 1;">
             <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">Beslenme • 150 ml Anne Sütü</div>
             <div style="font-size: 11px; color: var(--text-muted);">Bugün 10:15 • Anne tarafından kaydedildi</div>
@@ -908,7 +1098,8 @@
         </div>
 
         <div class="card" style="display: flex; align-items: center; gap: 12px;">
-          <div style="font-size: 22px;">🌙</div>
+          <div class="spotlight-glow"></div>
+          <div style="font-size: 24px;">🌙</div>
           <div style="flex: 1;">
             <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">1. Gündüz Uykusu • 65 dk</div>
             <div style="font-size: 11px; color: var(--text-muted);">Bugün 08:00 - 09:05 • Brahms Ninnisi dinlendi</div>
@@ -916,7 +1107,8 @@
         </div>
 
         <div class="card" style="display: flex; align-items: center; gap: 12px;">
-          <div style="font-size: 22px;">🚼</div>
+          <div class="spotlight-glow"></div>
+          <div style="font-size: 24px;">🚼</div>
           <div style="flex: 1;">
             <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">Bez Değişimi • Islak</div>
             <div style="font-size: 11px; color: var(--text-muted);">Bugün 07:45</div>
@@ -938,6 +1130,7 @@
 
       <!-- Sleep Timer Control -->
       <div class="card">
+        <div class="spotlight-glow"></div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">Kapanma Zamanlayıcısı</div>
           <div style="font-size: 11px; color: var(--accent); font-weight: 600;" id="timer-display">Sürekli Çal</div>
@@ -1004,6 +1197,7 @@
 
       <!-- Baby Profile Configuration Card -->
       <div class="card">
+        <div class="spotlight-glow"></div>
         <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 12px;">
           👶 Bebek Profili
         </div>
@@ -1028,6 +1222,7 @@
 
       <!-- Smart Notifications & Alarms -->
       <div class="card">
+        <div class="spotlight-glow"></div>
         <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 10px;">
           🔔 Akıllı Bildirimler & Uyarılar
         </div>
@@ -1065,13 +1260,14 @@
 
       <!-- Caregiver / Partner Share Pairing Code -->
       <div class="card">
+        <div class="spotlight-glow"></div>
         <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 6px;">
           👨‍👩‍👦 Ebeveyn & Bakıcı Eşleşmesi
         </div>
         <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; line-height: 15px;">
           Eşinizi veya bakıcınızı davet ederek rutinleri anlık tek bir bebek profilinde senkronize edin.
         </div>
-        <div style="background: #242F4D; padding: 10px 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px dashed var(--accent);">
+        <div style="background: #1C253D; padding: 10px 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px dashed var(--accent);">
           <div>
             <div style="font-size: 10px; color: var(--text-muted);">Eşleşme Davet Kodunuz:</div>
             <div style="font-family: 'Sora'; font-size: 15px; font-weight: 700; color: var(--accent);" id="pair-code">MISHIL-8492</div>
@@ -1082,6 +1278,7 @@
 
       <!-- Subscription Card with Apple Restore Purchases -->
       <div class="card">
+        <div class="spotlight-glow"></div>
         <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 6px;">
           👑 Mishil Pro Aboneliği
         </div>
@@ -1097,6 +1294,7 @@
 
       <!-- Legal & Privacy -->
       <div class="card">
+        <div class="spotlight-glow"></div>
         <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 8px;">
           Yasal, Güvenlik & Gizlilik
         </div>
@@ -1189,7 +1387,7 @@
 
 <script>
   // =========================================================================
-  // 1. LIVE CLOCK & HAPTIC TOAST
+  // 1. LIVE CLOCK & HAPTIC TOAST & SPOTLIGHT FOLLOWER (21st.dev)
   // =========================================================================
   function updateLiveClock() {
     const now = new Date();
@@ -1214,6 +1412,17 @@
       toast.classList.remove('show');
     }, 2800);
   }
+
+  // 21st.dev Spotlight cursor tracker on cards
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('mousemove', e => {
+      const rect = card.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width) * 100;
+      const y = ((e.clientY - rect.top) / rect.height) * 100;
+      card.style.setProperty('--mouse-x', `${x}%`);
+      card.style.setProperty('--mouse-y', `${y}%`);
+    });
+  });
 
   // =========================================================================
   // 2. TAB NAVIGATION
@@ -1471,7 +1680,7 @@
   }
 
   // =========================================================================
-  // 5. ONE-TAP LIVE SLEEP TRACKER ENGINE
+  // 5. ONE-TAP LIVE SLEEP TRACKER ENGINE & ANIMATED BEAM
   // =========================================================================
   let isSleeping = false;
   let sleepStartTime = null;
@@ -1482,6 +1691,7 @@
     isSleeping = !isSleeping;
 
     const circle = document.getElementById('moon-aura-circle');
+    const beamWrap = document.getElementById('moon-beam-wrap');
     const shape = document.getElementById('moon-shape');
     const btn = document.getElementById('btn-toggle-sleep');
     const targetDisp = document.getElementById('target-sleep-display');
@@ -1491,8 +1701,9 @@
     if (isSleeping) {
       sleepStartTime = new Date();
       circle.classList.add('sleeping');
+      if (beamWrap) beamWrap.classList.add('active-beam');
       shape.setAttribute('fill', '#74B9FF');
-      btn.style.background = '#2ED573';
+      btn.style.background = 'linear-gradient(135deg, #2ED573 0%, #10AC84 100%)';
       btn.style.color = '#141B2E';
       btn.innerHTML = '<span>☀️ Bebek Uyandı (Uykuyu Tamamla)</span>';
       targetDisp.textContent = 'Uyuyor...';
@@ -1515,8 +1726,9 @@
       const totalMins = Math.max(1, Math.round(totalSecs / 60));
 
       circle.classList.remove('sleeping');
+      if (beamWrap) beamWrap.classList.remove('active-beam');
       shape.setAttribute('fill', '#E8A855');
-      btn.style.background = 'var(--accent)';
+      btn.style.background = 'linear-gradient(135deg, #F3B96E 0%, #E8A855 100%)';
       btn.style.color = '#141B2E';
       btn.innerHTML = '<span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>';
       targetDisp.style.color = 'var(--heading-night)';
@@ -1574,7 +1786,8 @@
     card.style.alignItems = 'center';
     card.style.gap = '12px';
     card.innerHTML = `
-      <div style="font-size: 22px;">${icon}</div>
+      <div class="spotlight-glow"></div>
+      <div style="font-size: 24px;">${icon}</div>
       <div style="flex: 1;">
         <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">${title} • ${detail}</div>
         <div style="font-size: 11px; color: var(--text-muted);">Az önce kaydedildi</div>

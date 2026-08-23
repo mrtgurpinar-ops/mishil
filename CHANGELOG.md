@@ -2,6 +2,14 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [2.0.0] - 2026-08-23
+### 🎨 Major UI/UX Devrimi (21st.dev Design Engineering & Glassmorphism Edition)
+- **OKLCH Dinamik Işık Auraları (`lp-glow-pulse`):** Uygulama arka planına derinlik katan çok katmanlı radyal aurora ışık auraları entegre edildi.
+- **Bento Grid Mizanpajı & Spotlight Takipçisi:** Ana sayfa kartları asimetrik Bento Grid düzenine geçirildi; her karta dokunma/fare hareketinde parlayan radyal ışık (Spotlight) kazandırıldı.
+- **Animated Border Beam (Dönen Konik Işık Huzmesi):** Canlı uyku takibinde (Hilal) ve aktif modlarda dönen konik ışık kenarlığı devreye alındı.
+- **Blur-to-Focus Geçiş Fiziği (`lpHeroIn`):** Sekme geçişleri ve açılır modallara 21st.dev standardında pürüzsüz `blur(10px) -> blur(0)` yay fiziği eklendi.
+- **Spring Physics Butonlar & Glassmorphic Dock:** Alt menü barı ve butonlara dokunmatik mikromekanik yay tepkisi uygulandı.
+
 ## [1.9.0] - 2026-08-23
 ### Added & Upgraded (Canlı Mikrofon Ağlama Analizi, Kapsamlı Ayarlar & İnteraktif Rutin Modalı)
 - **Gerçek Mikrofon & Web Audio MediaRecorder Kayıt Motoru:** `navigator.mediaDevices.getUserMedia` ile 5 saniyelik canlı ses dalgası görselleştiricisi ve ses kaydı entegre edildi.
