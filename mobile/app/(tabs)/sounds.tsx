@@ -10,6 +10,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { getTheme } from '../../lib/theme';
 import { Card } from '../../components/ui/Card';
 import { SoundPlayerBar, SoundTrack } from '../../components/SoundPlayerBar';
+import { triggerHaptic } from '../../lib/haptics';
 
 const SOUNDS_DATA: SoundTrack[] = [
   {
@@ -75,7 +76,10 @@ export default function SoundsScreen() {
           const isPlaying = activeTrack?.id === item.id;
           return (
             <TouchableOpacity
-              onPress={() => setActiveTrack(item)}
+              onPress={() => {
+                triggerHaptic('light');
+                setActiveTrack(item);
+              }}
               activeOpacity={0.8}
             >
               <Card

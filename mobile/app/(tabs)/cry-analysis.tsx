@@ -17,6 +17,7 @@ import { CryResultCard, CryAnalysisResult } from '../../components/CryResultCard
 import { useCryRecorder } from '../../features/cry-analysis/hooks/useCryRecorder';
 import { uploadAndAnalyzeCryAudio } from '../../features/cry-analysis/api';
 import { useSubscriptionStatus } from '../../features/subscription/hooks/useSubscriptionStatus';
+import { triggerHaptic } from '../../lib/haptics';
 
 export default function CryAnalysisScreen() {
   const router = useRouter();
@@ -41,16 +42,19 @@ export default function CryAnalysisScreen() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleStart = async () => {
+    triggerHaptic('medium');
     setErrorMessage(null);
     setAnalysisResult(null);
     try {
       await startRecording();
     } catch (err: any) {
       setErrorMessage(err.message || 'Mikrofon başlatılamadı.');
+      triggerHaptic('error');
     }
   };
 
   const handleStopAndAnalyze = async () => {
+    triggerHaptic('medium');
     try {
       const uri = await stopRecording();
       if (!uri) {
@@ -67,8 +71,10 @@ export default function CryAnalysisScreen() {
         onProgress: (pct) => setUploadPercent(pct),
       });
 
+      triggerHaptic('success');
       setAnalysisResult(result);
     } catch (err: any) {
+      triggerHaptic('error');
       setErrorMessage(err.message || 'Analiz sırasında bir hata oluştu.');
     } finally {
       setIsAnalyzing(false);
@@ -79,13 +85,14 @@ export default function CryAnalysisScreen() {
     <ScrollView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       contentContainerStyle={styles.scroll}
+      showsVerticalScrollIndicator={false}
     >
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.colors.heading }]}>
           Ağlama Sesi Analizi
         </Text>
         <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-          Bebeğinizin ağlama frekans ve ritmini 30 saniye kaydederek yapay zeka ile değerlendirin.
+          Bebeğinizin ağlama frekans ve ritmini kaydederek akustik yapay zeka ile değerlendirin.
         </Text>
       </View>
 
@@ -114,7 +121,10 @@ export default function CryAnalysisScreen() {
                 <Button
                   title="İptal"
                   variant="ghost"
-                  onPress={cancelRecording}
+                  onPress={() => {
+                    triggerHaptic('light');
+                    cancelRecording();
+                  }}
                 />
               </View>
             </View>
@@ -125,7 +135,7 @@ export default function CryAnalysisScreen() {
                 Akustik Spektrum İnceleniyor...
               </Text>
               <Text style={[styles.analyzingSubtitle, { color: theme.colors.textMuted }]}>
-                MFCC öznitelikleri ve spektral enerji dağılımı hesaplanıyor (%{uploadPercent})
+                13-Band MFCC öznitelikleri ve spektral enerji hesaplanıyor (%{uploadPercent})
               </Text>
               <ProgressBar progress={uploadPercent} style={styles.uploadProgress} />
             </View>
@@ -141,6 +151,7 @@ export default function CryAnalysisScreen() {
                   },
                 ]}
                 accessibilityLabel="Ses kaydını başlat"
+                activeOpacity={0.8}
               >
                 <Text style={styles.micIcon}>🎙️</Text>
               </TouchableOpacity>
@@ -167,13 +178,17 @@ export default function CryAnalysisScreen() {
         <View>
           <CryResultCard
             result={analysisResult}
-            onPlayRecommendedSound={() => router.push('/(tabs)/sounds')}
+            onPlayRecommendedSound={() => {
+              triggerHaptic('light');
+              router.push('/(tabs)/sounds');
+            }}
           />
 
           <Button
             title="Yeni Kayıt Al"
             variant="secondary"
             onPress={() => {
+              triggerHaptic('light');
               setAnalysisResult(null);
               setErrorMessage(null);
             }}
@@ -192,7 +207,7 @@ const styles = StyleSheet.create({
   scroll: {
     padding: 20,
     paddingTop: 56,
-    paddingBottom: 40,
+    paddingBottom: 80,
   },
   header: {
     marginBottom: 20,
@@ -212,14 +227,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 28,
     marginVertical: 12,
+    borderRadius: 24,
   },
   idleState: {
     alignItems: 'center',
   },
   micButton: {
-    width: 90,
-    height: 90,
-    borderRadius: 45,
+    width: 96,
+    height: 96,
+    borderRadius: 48,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
@@ -229,7 +245,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   micIcon: {
-    fontSize: 36,
+    fontSize: 40,
   },
   idleTitle: {
     fontSize: 17,
@@ -249,18 +265,18 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   waveCircle: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 84,
+    height: 84,
+    borderRadius: 42,
     backgroundColor: 'rgba(232, 168, 85, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 16,
   },
   waveInner: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
   },
   timerText: {
     fontSize: 22,

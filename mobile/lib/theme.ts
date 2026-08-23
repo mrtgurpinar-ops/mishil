@@ -98,6 +98,7 @@ export const getTheme = (isDark: boolean = true) => ({
     success: palette.success,
     warning: palette.warning,
     error: palette.error,
+    info: palette.info,
   },
   typography,
   spacing,

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,9 @@ import { useAppStore } from '../../store/useAppStore';
 import { getTheme } from '../../lib/theme';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
+import { VersionChangelogModal } from '../../components/VersionChangelogModal';
 import { useSubscriptionStatus } from '../../features/subscription/hooks/useSubscriptionStatus';
+import { triggerHaptic } from '../../lib/haptics';
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -28,27 +30,49 @@ export default function SettingsScreen() {
   const theme = getTheme(isDarkMode);
   const { subscription, isTrial, daysLeftInTrial } = useSubscriptionStatus();
 
+  const [changelogVisible, setChangelogVisible] = useState(false);
+
   const handleLogout = async () => {
+    triggerHaptic('warning');
     await logout();
     router.replace('/(auth)/login');
+  };
+
+  const handleToggleDark = () => {
+    triggerHaptic('selection');
+    toggleTheme();
+  };
+
+  const handleToggleSystem = (val: boolean) => {
+    triggerHaptic('selection');
+    setUseSystemTheme(val);
+  };
+
+  const openChangelog = () => {
+    triggerHaptic('light');
+    setChangelogVisible(true);
   };
 
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       contentContainerStyle={styles.scroll}
+      showsVerticalScrollIndicator={false}
     >
       <View style={styles.header}>
         <Text style={[styles.title, { color: theme.colors.heading }]}>
           Ayarlar
         </Text>
+        <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
+          Uygulama tercihleri ve bebek profili
+        </Text>
       </View>
 
-      {/* Baby Profile Card */}
+      {/* 1. GRUP: Bebek Profili & Aile Paylaşımı */}
+      <Text style={[styles.groupTitle, { color: theme.colors.textMuted }]}>
+        BEBEK VE AİLE
+      </Text>
       <Card style={styles.sectionCard}>
-        <Text style={[styles.sectionHeading, { color: theme.colors.heading }]}>
-          Bebek Profili
-        </Text>
         <View style={styles.profileRow}>
           <View
             style={[styles.avatar, { backgroundColor: theme.colors.accent }]}
@@ -63,35 +87,98 @@ export default function SettingsScreen() {
             </Text>
             <Text style={[styles.babyAge, { color: theme.colors.textMuted }]}>
               {activeBaby?.age_in_months
-                ? `${activeBaby.age_in_months} Aylık`
+                ? `${activeBaby.age_in_months} Aylık • SweetSpot Aktif`
                 : 'Yaş bilgisi yok'}
             </Text>
           </View>
+          <TouchableOpacity
+            onPress={() => router.push('/(onboarding)/baby-profile')}
+            style={[styles.editBtn, { borderColor: theme.colors.border }]}
+          >
+            <Text style={[styles.editBtnText, { color: theme.colors.accent }]}>
+              Düzenle
+            </Text>
+          </TouchableOpacity>
         </View>
 
-        <Button
-          title="+ Yeni Bebek Profili Ekle"
-          variant="secondary"
-          size="sm"
-          onPress={() => router.push('/(onboarding)/baby-profile')}
-          style={{ marginTop: 12 }}
-        />
+        <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
+
+        <View style={styles.familyCodeRow}>
+          <View>
+            <Text style={[styles.familyCodeLabel, { color: theme.colors.textMuted }]}>
+              Aile Paylaşım Kodu
+            </Text>
+            <Text style={[styles.familyCodeVal, { color: theme.colors.heading }]}>
+              MISHIL-8492
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => triggerHaptic('success')}
+            style={[styles.shareBadge, { backgroundColor: theme.isDark ? '#25304C' : '#E8EDF5' }]}
+          >
+            <Text style={[styles.shareBadgeText, { color: theme.colors.accent }]}>
+              Kodu Kopyala
+            </Text>
+          </TouchableOpacity>
+        </View>
       </Card>
 
-      {/* Subscription Card */}
+      {/* 2. GRUP: Görünüm & Deneyim */}
+      <Text style={[styles.groupTitle, { color: theme.colors.textMuted }]}>
+        DENEYİM & GÖRÜNÜM
+      </Text>
       <Card style={styles.sectionCard}>
-        <Text style={[styles.sectionHeading, { color: theme.colors.heading }]}>
-          Abonelik Durumu
-        </Text>
+        <View style={styles.settingRow}>
+          <View style={styles.settingTextWrap}>
+            <Text style={[styles.settingLabel, { color: theme.colors.heading }]}>
+              Karanlık Mod (Gece Uykusu)
+            </Text>
+            <Text style={[styles.settingSub, { color: theme.colors.textMuted }]}>
+              Melatonin salgısını koruyan düşük lümen
+            </Text>
+          </View>
+          <Switch
+            value={isDarkMode}
+            onValueChange={handleToggleDark}
+            trackColor={{ false: '#767577', true: theme.colors.accent }}
+            thumbColor={isDarkMode ? '#FFFFFF' : '#f4f3f4'}
+          />
+        </View>
+
+        <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
+
+        <View style={styles.settingRow}>
+          <View style={styles.settingTextWrap}>
+            <Text style={[styles.settingLabel, { color: theme.colors.heading }]}>
+              Sistem Temasını Takip Et
+            </Text>
+            <Text style={[styles.settingSub, { color: theme.colors.textMuted }]}>
+              Cihaz saatine göre otomatik geçiş
+            </Text>
+          </View>
+          <Switch
+            value={useSystemTheme}
+            onValueChange={handleToggleSystem}
+            trackColor={{ false: '#767577', true: theme.colors.accent }}
+            thumbColor={useSystemTheme ? '#FFFFFF' : '#f4f3f4'}
+          />
+        </View>
+      </Card>
+
+      {/* 3. GRUP: Abonelik & Güvenlik */}
+      <Text style={[styles.groupTitle, { color: theme.colors.textMuted }]}>
+        ABONELİK & HESAP
+      </Text>
+      <Card style={styles.sectionCard}>
         <View style={styles.subStatusRow}>
-          <View>
+          <View style={{ flex: 1, marginRight: 10 }}>
             <Text style={[styles.subPlan, { color: theme.colors.heading }]}>
               {isTrial ? '3 Günlük Ücretsiz Deneme' : 'Mishil Yıllık Premium'}
             </Text>
             <Text style={[styles.subDesc, { color: theme.colors.textMuted }]}>
               {isTrial
-                ? `Deneme süresinin bitmesine ${daysLeftInTrial} gün kaldı.`
-                : 'Tüm özellikler aktif.'}
+                ? `Denemenin bitmesine ${daysLeftInTrial} gün kaldı.`
+                : 'Tüm özellikler sınırsız aktif.'}
             </Text>
           </View>
           <Button
@@ -100,44 +187,12 @@ export default function SettingsScreen() {
             onPress={() => router.push('/(paywall)/subscription')}
           />
         </View>
-      </Card>
 
-      {/* Appearance & Theme */}
-      <Card style={styles.sectionCard}>
-        <Text style={[styles.sectionHeading, { color: theme.colors.heading }]}>
-          Görünüm & Tema
-        </Text>
+        <View style={[styles.divider, { backgroundColor: theme.colors.border }]} />
 
-        <View style={styles.settingRow}>
-          <Text style={[styles.settingLabel, { color: theme.colors.text }]}>
-            Karanlık Mod (Gece Uykusu)
-          </Text>
-          <Switch
-            value={isDarkMode}
-            onValueChange={toggleTheme}
-            trackColor={{ false: '#767577', true: theme.colors.accent }}
-            thumbColor={isDarkMode ? '#FFFFFF' : '#f4f3f4'}
-          />
-        </View>
-
-        <View style={styles.settingRow}>
-          <Text style={[styles.settingLabel, { color: theme.colors.text }]}>
-            Sistem Temasını Takip Et
-          </Text>
-          <Switch
-            value={useSystemTheme}
-            onValueChange={setUseSystemTheme}
-            trackColor={{ false: '#767577', true: theme.colors.accent }}
-            thumbColor={useSystemTheme ? '#FFFFFF' : '#f4f3f4'}
-          />
-        </View>
-      </Card>
-
-      {/* App Info & Logout */}
-      <Card style={styles.sectionCard}>
-        <View style={styles.settingRow}>
-          <Text style={[styles.settingLabel, { color: theme.colors.textMuted }]}>
-            Giriş Yapılan Hesap
+        <View style={styles.accountRow}>
+          <Text style={[styles.accountLabel, { color: theme.colors.textMuted }]}>
+            Giriş Yapılan Hesap:
           </Text>
           <Text style={[styles.accountEmail, { color: theme.colors.heading }]}>
             {user?.email || 'demo@mishil.app'}
@@ -145,13 +200,50 @@ export default function SettingsScreen() {
         </View>
 
         <Button
-          title="Çıkış Yap"
+          title="Oturumu Kapat"
           variant="danger"
           size="sm"
           onPress={handleLogout}
-          style={{ marginTop: 16 }}
+          style={{ marginTop: 12 }}
         />
       </Card>
+
+      {/* 4. GRUP: Sürüm & Bilgi (Decluttered Minimal Footer) */}
+      <TouchableOpacity
+        onPress={openChangelog}
+        style={[
+          styles.versionBadgeRow,
+          {
+            backgroundColor: theme.colors.card,
+            borderColor: theme.colors.border,
+          },
+        ]}
+      >
+        <View style={styles.versionBadgeLeft}>
+          <Text style={styles.versionBadgeIcon}>✨</Text>
+          <View>
+            <Text style={[styles.versionBadgeTitle, { color: theme.colors.heading }]}>
+              Mishil Baby v4.3.0
+            </Text>
+            <Text style={[styles.versionBadgeSub, { color: theme.colors.textMuted }]}>
+              Neler Yeni? (Sürüm Notları ve Geliştirme Günlüğü)
+            </Text>
+          </View>
+        </View>
+        <Text style={[styles.versionArrow, { color: theme.colors.accent }]}>
+          İncele ›
+        </Text>
+      </TouchableOpacity>
+
+      <Text style={[styles.legalText, { color: theme.colors.textMuted }]}>
+        Mishil Baby bir medikal teşhis aracı değildir. Pediatrik kılavuzluk sunar.
+      </Text>
+
+      {/* What's New & Changelog Modal */}
+      <VersionChangelogModal
+        visible={changelogVisible}
+        onClose={() => setChangelogVisible(false)}
+      />
     </ScrollView>
   );
 }
@@ -163,40 +255,48 @@ const styles = StyleSheet.create({
   scroll: {
     padding: 20,
     paddingTop: 56,
-    paddingBottom: 40,
+    paddingBottom: 60,
   },
   header: {
-    marginBottom: 16,
+    marginBottom: 20,
   },
   title: {
     fontSize: 24,
     fontFamily: 'Sora',
     fontWeight: '700',
   },
-  sectionCard: {
-    marginBottom: 16,
-    padding: 18,
+  subtitle: {
+    fontSize: 13,
+    fontFamily: 'Inter',
+    marginTop: 2,
   },
-  sectionHeading: {
-    fontSize: 16,
-    fontFamily: 'Sora',
-    fontWeight: '600',
-    marginBottom: 14,
+  groupTitle: {
+    fontSize: 11,
+    fontFamily: 'Inter',
+    fontWeight: '700',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  sectionCard: {
+    marginBottom: 20,
+    padding: 16,
+    borderRadius: 20,
   },
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 14,
+    marginRight: 12,
   },
   avatarText: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: 'bold',
     color: '#141B2E',
   },
@@ -204,12 +304,73 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   babyName: {
-    fontSize: 16,
+    fontSize: 15,
     fontFamily: 'Sora',
     fontWeight: '600',
   },
   babyAge: {
-    fontSize: 13,
+    fontSize: 12,
+    fontFamily: 'Inter',
+    marginTop: 2,
+  },
+  editBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  editBtnText: {
+    fontSize: 11,
+    fontFamily: 'Inter',
+    fontWeight: '600',
+  },
+  divider: {
+    height: 1,
+    marginVertical: 12,
+    opacity: 0.5,
+  },
+  familyCodeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  familyCodeLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter',
+  },
+  familyCodeVal: {
+    fontSize: 14,
+    fontFamily: 'Sora',
+    fontWeight: '700',
+    marginTop: 2,
+  },
+  shareBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  shareBadgeText: {
+    fontSize: 11,
+    fontFamily: 'Inter',
+    fontWeight: '600',
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
+  settingTextWrap: {
+    flex: 1,
+    marginRight: 10,
+  },
+  settingLabel: {
+    fontSize: 14,
+    fontFamily: 'Sora',
+    fontWeight: '600',
+  },
+  settingSub: {
+    fontSize: 12,
     fontFamily: 'Inter',
     marginTop: 2,
   },
@@ -228,19 +389,60 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     marginTop: 2,
   },
-  settingRow: {
+  accountRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 4,
   },
-  settingLabel: {
-    fontSize: 14,
+  accountLabel: {
+    fontSize: 12,
     fontFamily: 'Inter',
   },
   accountEmail: {
     fontSize: 13,
     fontFamily: 'Inter',
-    fontWeight: '500',
+    fontWeight: '600',
+  },
+  versionBadgeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+    borderRadius: 18,
+    borderWidth: 1,
+    marginBottom: 16,
+  },
+  versionBadgeLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  versionBadgeIcon: {
+    fontSize: 22,
+    marginRight: 12,
+  },
+  versionBadgeTitle: {
+    fontSize: 14,
+    fontFamily: 'Sora',
+    fontWeight: '700',
+  },
+  versionBadgeSub: {
+    fontSize: 11,
+    fontFamily: 'Inter',
+    marginTop: 2,
+  },
+  versionArrow: {
+    fontSize: 13,
+    fontFamily: 'Inter',
+    fontWeight: '700',
+    marginLeft: 8,
+  },
+  legalText: {
+    fontSize: 11,
+    fontFamily: 'Inter',
+    textAlign: 'center',
+    lineHeight: 16,
+    paddingHorizontal: 20,
   },
 });

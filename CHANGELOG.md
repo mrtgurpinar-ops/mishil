@@ -2,6 +2,14 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [2.7.0] - 2026-08-23
+### 🌙 UI / UX & Tasarım Mühendisliği Yükseltmesi (Dünya Standartları)
+- **✨ Canlı Uyku Modu & Dinamik Mor Nefes Alan Ay Dönüşümü:** "Uyku Başlat" aksiyonu ile Ay göstergesi uyanıklık sayacından canlı uyku sayacına (`isSleeping = true`, mor/lila nefes aurası) morph eder ve geçen uyku süresini canlı sayar.
+- **⏱️ Sakinleştirici Sesler Mini-Bar Uyku Zamanlayıcısı:** Alt çalar barına `15 dk / 30 dk / 45 dk / 60 dk / Kesintisiz` geri sayım sayaç hapları entegre edildi.
+- **📊 Rutinler Dikey Bento Zaman Çizelgesi & Günlük İstatistik Widgetları:** Düz liste yerine dikey bağlantı çizgili, saat rozetli Bento akışı ve sayfa başında toplam uyku, beslenme ml ve bez sayaçları eklendi.
+- **📱 Dokunsal Haptik Ergonomi (`expo-haptics`):** Hızlı rutin butonları, mikrofon kaydı, ses seçimi ve tema geçişleri için web ve mobil güvenli haptik mikro-titreşimler entegre edildi.
+- **⚙️ Sadeleştirilmiş Modüler Ayarlar & Sürüm/Changelog Takipçisi:** Ayarlar sekmesi 4 net gruba ayrıldı (Bebek & Aile, Görünüm, Abonelik, Sürüm Notları) ve `VersionChangelogModal` ile `v4.3.0` sürüm geçmişi erişilebilir kılındı.
+
 ## [2.6.1] - 2026-08-23
 ### 🎯 Mışıl Dadı AI: Doğrudan Odak, Bağlam İzolasyonu & Hap Bilgi Mimarisi
 - **Gevezelik ve Ezber Şablonların Temizlenmesi:** "Derin nefes al", "omuzlarını bırak" gibi tekrarlayan edebi teselliler ve her soruya zorla dayatılan 3 adımlı genel şablonlar kaldırıldı.

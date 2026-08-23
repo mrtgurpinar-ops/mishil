@@ -15,6 +15,7 @@ import { Input } from '../../components/ui/Input';
 import { Card } from '../../components/ui/Card';
 import { RoutineLogItem } from '../../components/RoutineLogItem';
 import { useRoutines } from '../../features/routines/hooks/useRoutines';
+import { triggerHaptic } from '../../lib/haptics';
 
 export default function RoutinesScreen() {
   const isDarkMode = useAppStore((state) => state.isDarkMode);
@@ -27,16 +28,35 @@ export default function RoutinesScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedType, setSelectedType] = useState('feeding');
   const [amountMl, setAmountMl] = useState('120');
+  const [durationMins, setDurationMins] = useState('45');
   const [notes, setNotes] = useState('');
+  const [filterCategory, setFilterCategory] = useState<string>('all');
 
   const handleSave = async () => {
+    triggerHaptic('success');
     await addRoutine({
       routine_type: selectedType,
-      details: selectedType === 'feeding' ? { amount_ml: parseInt(amountMl, 10) || 100 } : {},
+      details:
+        selectedType === 'feeding'
+          ? { amount_ml: parseInt(amountMl, 10) || 100 }
+          : selectedType === 'sleep'
+          ? { duration_minutes: parseInt(durationMins, 10) || 30 }
+          : {},
       notes,
     });
     setModalVisible(false);
     setNotes('');
+  };
+
+  const openAddModal = (type: string = 'feeding') => {
+    triggerHaptic('medium');
+    setSelectedType(type);
+    setModalVisible(true);
+  };
+
+  const handleFilter = (cat: string) => {
+    triggerHaptic('selection');
+    setFilterCategory(cat);
   };
 
   const routineTypes = [
@@ -46,6 +66,21 @@ export default function RoutinesScreen() {
     { id: 'bath', title: 'Banyo', icon: '🛁' },
     { id: 'mood', title: 'Ruh Hali', icon: '👶' },
   ];
+
+  // Calculate daily summary metrics
+  const totalSleepMinutes = routines
+    .filter((r: any) => r.routine_type === 'sleep')
+    .reduce((acc: number, curr: any) => acc + (curr.details?.duration_minutes || 45), 0);
+
+  const totalFeedingMl = routines
+    .filter((r: any) => r.routine_type === 'feeding')
+    .reduce((acc: number, curr: any) => acc + (curr.details?.amount_ml || 100), 0);
+
+  const totalDiapers = routines.filter((r: any) => r.routine_type === 'diaper').length;
+
+  const filteredRoutines = routines.filter((r: any) =>
+    filterCategory === 'all' ? true : r.routine_type === filterCategory
+  );
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -63,14 +98,17 @@ export default function RoutinesScreen() {
         <Button
           title="+ Rutin Ekle"
           size="sm"
-          onPress={() => setModalVisible(true)}
+          onPress={() => openAddModal('feeding')}
         />
       </View>
 
-      {/* Offline Sync Banner (if any offline items exist) */}
+      {/* Offline Sync Banner */}
       {offlineQueueCount > 0 ? (
         <TouchableOpacity
-          onPress={syncOfflineQueue}
+          onPress={() => {
+            triggerHaptic('warning');
+            syncOfflineQueue();
+          }}
           style={[styles.syncBanner, { backgroundColor: 'rgba(243, 156, 18, 0.15)' }]}
         >
           <Text style={styles.syncText}>
@@ -79,20 +117,118 @@ export default function RoutinesScreen() {
         </TouchableOpacity>
       ) : null}
 
-      {/* Routines List */}
+      {/* Bento-Grid Daily Stats Summary */}
+      <View style={styles.bentoContainer}>
+        <View
+          style={[
+            styles.bentoBox,
+            { backgroundColor: theme.colors.card, borderColor: theme.colors.border },
+          ]}
+        >
+          <Text style={styles.bentoIcon}>🌙</Text>
+          <Text style={[styles.bentoVal, { color: theme.colors.heading }]}>
+            {Math.floor(totalSleepMinutes / 60)}s {totalSleepMinutes % 60}d
+          </Text>
+          <Text style={[styles.bentoLabel, { color: theme.colors.textMuted }]}>
+            Toplam Uyku
+          </Text>
+        </View>
+
+        <View
+          style={[
+            styles.bentoBox,
+            { backgroundColor: theme.colors.card, borderColor: theme.colors.border },
+          ]}
+        >
+          <Text style={styles.bentoIcon}>🍼</Text>
+          <Text style={[styles.bentoVal, { color: theme.colors.accent }]}>
+            {totalFeedingMl} ml
+          </Text>
+          <Text style={[styles.bentoLabel, { color: theme.colors.textMuted }]}>
+            Beslenme
+          </Text>
+        </View>
+
+        <View
+          style={[
+            styles.bentoBox,
+            { backgroundColor: theme.colors.card, borderColor: theme.colors.border },
+          ]}
+        >
+          <Text style={styles.bentoIcon}>🚼</Text>
+          <Text style={[styles.bentoVal, { color: theme.colors.heading }]}>
+            {totalDiapers} adet
+          </Text>
+          <Text style={[styles.bentoLabel, { color: theme.colors.textMuted }]}>
+            Bez Değişimi
+          </Text>
+        </View>
+      </View>
+
+      {/* Category Filter Chips */}
+      <View style={styles.filterRow}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          {[
+            { id: 'all', label: 'Tümü' },
+            { id: 'sleep', label: '🌙 Uyku' },
+            { id: 'feeding', label: '🍼 Beslenme' },
+            { id: 'diaper', label: '🚼 Bez' },
+            { id: 'bath', label: '🛁 Banyo' },
+          ].map((cat) => {
+            const isSelected = filterCategory === cat.id;
+            return (
+              <TouchableOpacity
+                key={cat.id}
+                onPress={() => handleFilter(cat.id)}
+                style={[
+                  styles.filterChip,
+                  {
+                    backgroundColor: isSelected
+                      ? theme.colors.accent
+                      : theme.isDark
+                      ? '#1D2640'
+                      : '#EDE8DF',
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.filterChipText,
+                    {
+                      color: isSelected ? '#141B2E' : theme.colors.text,
+                      fontWeight: isSelected ? '700' : '500',
+                    },
+                  ]}
+                >
+                  {cat.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
+
+      {/* Vertical Timeline Routines List */}
       <FlatList
-        data={routines}
+        data={filteredRoutines}
         keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => <RoutineLogItem log={item} />}
+        renderItem={({ item, index }) => (
+          <RoutineLogItem
+            log={item}
+            isFirst={index === 0}
+            isLast={index === filteredRoutines.length - 1}
+          />
+        )}
         contentContainerStyle={styles.list}
+        showsVerticalScrollIndicator={false}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>📋</Text>
             <Text style={[styles.emptyTitle, { color: theme.colors.heading }]}>
-              Henüz bir rutin kaydedilmedi.
+              Henüz bu kategoride rutin yok.
             </Text>
             <Text style={[styles.emptySub, { color: theme.colors.textMuted }]}>
-              İlk beslenme veya uyku kaydınızı ekleyerek başlayabilirsiniz.
+              İlk kaydı eklemek için yukarıdaki butona dokunun.
             </Text>
           </View>
         }
@@ -122,7 +258,10 @@ export default function RoutinesScreen() {
                 return (
                   <TouchableOpacity
                     key={t.id}
-                    onPress={() => setSelectedType(t.id)}
+                    onPress={() => {
+                      triggerHaptic('selection');
+                      setSelectedType(t.id);
+                    }}
                     style={[
                       styles.typeChip,
                       {
@@ -161,6 +300,16 @@ export default function RoutinesScreen() {
               />
             ) : null}
 
+            {selectedType === 'sleep' ? (
+              <Input
+                label="Uyku Süresi (Dakika)"
+                placeholder="45"
+                value={durationMins}
+                onChangeText={setDurationMins}
+                keyboardType="numeric"
+              />
+            ) : null}
+
             <Input
               label="Not (Opsiyonel)"
               placeholder="Örn: Rahat uyudu, gazı çıkarıldı."
@@ -178,7 +327,10 @@ export default function RoutinesScreen() {
               <Button
                 title="Vazgeç"
                 variant="ghost"
-                onPress={() => setModalVisible(false)}
+                onPress={() => {
+                  triggerHaptic('light');
+                  setModalVisible(false);
+                }}
               />
             </View>
           </View>
@@ -198,7 +350,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingTop: 56,
-    paddingBottom: 16,
+    paddingBottom: 12,
   },
   title: {
     fontSize: 24,
@@ -212,9 +364,9 @@ const styles = StyleSheet.create({
   },
   syncBanner: {
     marginHorizontal: 20,
-    marginBottom: 8,
+    marginBottom: 10,
     padding: 10,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: 'center',
   },
   syncText: {
@@ -223,9 +375,50 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontWeight: '600',
   },
+  bentoContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    gap: 10,
+    marginBottom: 14,
+  },
+  bentoBox: {
+    flex: 1,
+    padding: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    alignItems: 'center',
+  },
+  bentoIcon: {
+    fontSize: 18,
+    marginBottom: 2,
+  },
+  bentoVal: {
+    fontSize: 14,
+    fontFamily: 'Sora',
+    fontWeight: '700',
+  },
+  bentoLabel: {
+    fontSize: 11,
+    fontFamily: 'Inter',
+    marginTop: 2,
+  },
+  filterRow: {
+    paddingHorizontal: 20,
+    marginBottom: 14,
+  },
+  filterChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 14,
+    marginRight: 8,
+  },
+  filterChipText: {
+    fontSize: 12,
+    fontFamily: 'Inter',
+  },
   list: {
     paddingHorizontal: 20,
-    paddingBottom: 80,
+    paddingBottom: 100,
   },
   emptyContainer: {
     alignItems: 'center',
@@ -250,12 +443,12 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+    backgroundColor: 'rgba(0, 0, 0, 0.65)',
     justifyContent: 'flex-end',
   },
   modalCard: {
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     borderWidth: 1,
     padding: 24,
     paddingBottom: 40,

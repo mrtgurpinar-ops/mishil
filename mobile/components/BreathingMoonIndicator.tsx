@@ -85,10 +85,18 @@ export const BreathingMoonIndicator: React.FC<BreathingMoonIndicatorProps> = ({
     };
   });
 
-  // Calculate subtle warm glow if sleep time is close (<= 30 mins)
+  // Calculate subtle warm glow if sleep time is close (<= 30 mins) or soothing purple if sleeping
   const isCloseToSleep = minutesLeft !== undefined && minutesLeft <= 30 && !isSleeping;
-  const primaryGlowColor = isCloseToSleep ? theme.colors.accentGlow : theme.colors.moonBlueGlow;
-  const moonColor = isCloseToSleep ? theme.colors.accent : (isSleeping ? '#9B59B6' : theme.colors.moonBlue);
+  const primaryGlowColor = isSleeping
+    ? 'rgba(155, 89, 182, 0.35)'
+    : isCloseToSleep
+    ? theme.colors.accentGlow
+    : theme.colors.moonBlueGlow;
+  const moonColor = isSleeping
+    ? '#A569BD'
+    : isCloseToSleep
+    ? theme.colors.accent
+    : theme.colors.moonBlue;
 
   return (
     <View

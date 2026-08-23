@@ -4,7 +4,6 @@ import { format } from 'date-fns';
 import { tr } from 'date-fns/locale';
 import { useAppStore } from '../store/useAppStore';
 import { getTheme } from '../lib/theme';
-import { Card } from './ui/Card';
 
 export interface RoutineLogData {
   id: number | string;
@@ -19,9 +18,15 @@ export interface RoutineLogData {
 
 interface RoutineLogItemProps {
   log: RoutineLogData;
+  isFirst?: boolean;
+  isLast?: boolean;
 }
 
-export const RoutineLogItem: React.FC<RoutineLogItemProps> = ({ log }) => {
+export const RoutineLogItem: React.FC<RoutineLogItemProps> = ({
+  log,
+  isFirst = false,
+  isLast = false,
+}) => {
   const isDarkMode = useAppStore((state) => state.isDarkMode);
   const theme = getTheme(isDarkMode);
 
@@ -32,11 +37,12 @@ export const RoutineLogItem: React.FC<RoutineLogItemProps> = ({ log }) => {
           icon: '🍼',
           title: 'Beslenme',
           subtitle: log.details?.amount_ml
-            ? `${log.details.amount_ml} ml mama / anne sütü`
+            ? `${log.details.amount_ml} ml mama / süt`
             : log.details?.breast_side
             ? `${log.details.breast_side} göğüs`
             : 'Beslenme kaydedildi',
           color: theme.colors.accent,
+          bgColor: theme.isDark ? 'rgba(232, 168, 85, 0.15)' : 'rgba(232, 168, 85, 0.12)',
         };
       case 'diaper':
         return {
@@ -44,30 +50,34 @@ export const RoutineLogItem: React.FC<RoutineLogItemProps> = ({ log }) => {
           title: 'Bez Değişimi',
           subtitle: log.details?.condition || 'Bez temizlendi',
           color: theme.colors.moonBlue,
+          bgColor: theme.isDark ? 'rgba(74, 105, 189, 0.15)' : 'rgba(74, 105, 189, 0.12)',
         };
       case 'sleep':
         return {
           icon: '🌙',
-          title: 'Uyku',
+          title: 'Uyku Seansı',
           subtitle: log.details?.duration_minutes
-            ? `${log.details.duration_minutes} dakika uyku`
-            : 'Uyku kaydedildi',
-          color: '#9B59B6',
+            ? `${log.details.duration_minutes} dakika derin uyku`
+            : 'Uyku tamamlandı',
+          color: '#A569BD',
+          bgColor: theme.isDark ? 'rgba(165, 105, 189, 0.18)' : 'rgba(165, 105, 189, 0.12)',
         };
       case 'bath':
         return {
           icon: '🛁',
           title: 'Banyo',
-          subtitle: log.details?.temperature || 'Ilık banyo',
+          subtitle: log.details?.temperature || 'Ilık banyo yapıldı',
           color: theme.colors.info,
+          bgColor: theme.isDark ? 'rgba(52, 152, 219, 0.15)' : 'rgba(52, 152, 219, 0.12)',
         };
       case 'mood':
       default:
         return {
           icon: '👶',
-          title: 'Ruh Hali / Aktivite',
-          subtitle: log.details?.status || 'Aktivite tamamlandı',
+          title: 'Aktivite & Ruh Hali',
+          subtitle: log.details?.status || 'Oyun / Sakin uyanıklık',
           color: theme.colors.success,
+          bgColor: theme.isDark ? 'rgba(78, 186, 134, 0.15)' : 'rgba(78, 186, 134, 0.12)',
         };
     }
   };
@@ -79,85 +89,132 @@ export const RoutineLogItem: React.FC<RoutineLogItemProps> = ({ log }) => {
     : format(dateObj, 'HH:mm', { locale: tr });
 
   return (
-    <Card style={styles.container}>
-      <View style={styles.row}>
+    <View style={styles.container}>
+      {/* Timeline Column */}
+      <View style={styles.timelineCol}>
         <View
           style={[
-            styles.iconWrapper,
-            { backgroundColor: theme.isDark ? '#25304C' : '#E8EDF5' },
+            styles.timelineNode,
+            { backgroundColor: meta.bgColor, borderColor: meta.color },
           ]}
         >
-          <Text style={styles.icon}>{meta.icon}</Text>
+          <Text style={styles.nodeIcon}>{meta.icon}</Text>
         </View>
+        {!isLast ? (
+          <View
+            style={[
+              styles.timelineLine,
+              { backgroundColor: theme.isDark ? '#2A3656' : '#E5E0D8' },
+            ]}
+          />
+        ) : null}
+      </View>
 
-        <View style={styles.content}>
-          <View style={styles.topLine}>
-            <Text style={[styles.title, { color: theme.colors.heading }]}>
-              {meta.title}
-            </Text>
-            <Text style={[styles.time, { color: theme.colors.textMuted }]}>
+      {/* Routine Content Bento Card */}
+      <View
+        style={[
+          styles.card,
+          {
+            backgroundColor: theme.colors.card,
+            borderColor: theme.colors.border,
+          },
+        ]}
+      >
+        <View style={styles.topRow}>
+          <Text style={[styles.title, { color: theme.colors.heading }]}>
+            {meta.title}
+          </Text>
+          <View
+            style={[
+              styles.timeBadge,
+              { backgroundColor: theme.isDark ? '#141B2E' : '#EDE8DF' },
+            ]}
+          >
+            <Text style={[styles.timeText, { color: theme.colors.accent }]}>
               {timeFormatted}
             </Text>
           </View>
-
-          <Text style={[styles.subtitle, { color: theme.colors.text }]}>
-            {meta.subtitle}
-          </Text>
-
-          {log.notes ? (
-            <Text style={[styles.notes, { color: theme.colors.textMuted }]}>
-              "{log.notes}"
-            </Text>
-          ) : null}
-
-          {log.isOffline ? (
-            <View style={styles.offlineBadge}>
-              <Text style={styles.offlineText}>⏳ Çevrimdışı (Eşitlenecek)</Text>
-            </View>
-          ) : null}
         </View>
+
+        <Text style={[styles.subtitle, { color: theme.colors.text }]}>
+          {meta.subtitle}
+        </Text>
+
+        {log.notes ? (
+          <Text style={[styles.notes, { color: theme.colors.textMuted }]}>
+            "{log.notes}"
+          </Text>
+        ) : null}
+
+        {log.isOffline ? (
+          <View style={styles.offlineBadge}>
+            <Text style={styles.offlineText}>⏳ Çevrimdışı (Eşitlenecek)</Text>
+          </View>
+        ) : null}
       </View>
-    </Card>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginVertical: 4,
-    paddingVertical: 12,
-  },
-  row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    marginBottom: 12,
   },
-  iconWrapper: {
+  timelineCol: {
     width: 44,
-    height: 44,
-    borderRadius: 22,
+    alignItems: 'center',
+    marginRight: 10,
+  },
+  timelineNode: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    zIndex: 2,
   },
-  icon: {
-    fontSize: 20,
+  nodeIcon: {
+    fontSize: 16,
   },
-  content: {
+  timelineLine: {
+    width: 2,
     flex: 1,
+    marginTop: 4,
+    marginBottom: -8,
   },
-  topLine: {
+  card: {
+    flex: 1,
+    borderRadius: 16,
+    borderWidth: 1,
+    padding: 14,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 2,
+    marginBottom: 4,
   },
   title: {
     fontSize: 15,
     fontFamily: 'Sora',
     fontWeight: '600',
   },
-  time: {
-    fontSize: 13,
+  timeBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  timeText: {
+    fontSize: 11,
     fontFamily: 'Inter',
+    fontWeight: '700',
   },
   subtitle: {
     fontSize: 13,
@@ -168,15 +225,15 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter',
     fontStyle: 'italic',
-    marginTop: 4,
+    marginTop: 6,
   },
   offlineBadge: {
-    marginTop: 4,
+    marginTop: 6,
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(243, 156, 18, 0.15)',
-    paddingHorizontal: 6,
+    paddingHorizontal: 8,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: 6,
   },
   offlineText: {
     fontSize: 10,

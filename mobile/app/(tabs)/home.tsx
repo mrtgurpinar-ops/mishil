@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { Button } from '../../components/ui/Button';
 import { BreathingMoonIndicator } from '../../components/BreathingMoonIndicator';
 import { useWakeWindow } from '../../features/wake-window/hooks/useWakeWindow';
 import { useRoutines } from '../../features/routines/hooks/useRoutines';
+import { triggerHaptic } from '../../lib/haptics';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -28,8 +29,27 @@ export default function HomeScreen() {
   const { addRoutine } = useRoutines();
   const [refreshing, setRefreshing] = useState(false);
 
+  // Live sleep tracking state
+  const [isSleeping, setIsSleeping] = useState(false);
+  const [sleepStartTimestamp, setSleepStartTimestamp] = useState<number | null>(null);
+  const [elapsedSleepMinutes, setElapsedSleepMinutes] = useState(0);
+
+  useEffect(() => {
+    let timer: any;
+    if (isSleeping && sleepStartTimestamp) {
+      timer = setInterval(() => {
+        const diffMins = Math.floor((Date.now() - sleepStartTimestamp) / 60000);
+        setElapsedSleepMinutes(diffMins);
+      }, 1000);
+    } else {
+      setElapsedSleepMinutes(0);
+    }
+    return () => clearInterval(timer);
+  }, [isSleeping, sleepStartTimestamp]);
+
   const onRefresh = async () => {
     setRefreshing(true);
+    triggerHaptic('light');
     await refetch();
     setRefreshing(false);
   };
@@ -47,7 +67,31 @@ export default function HomeScreen() {
     ? format(new Date(wakeWindowData.next_sleep_time), 'HH:mm', { locale: tr })
     : '--:--';
 
+  const handleStartSleep = () => {
+    triggerHaptic('medium');
+    setIsSleeping(true);
+    setSleepStartTimestamp(Date.now());
+  };
+
+  const handleFinishSleep = async () => {
+    triggerHaptic('success');
+    const duration = Math.max(1, elapsedSleepMinutes);
+    await addRoutine({
+      routine_type: 'sleep',
+      details: { duration_minutes: duration, live_tracked: true },
+      notes: `${duration} dakikalık canlı uyku seansı tamamlandı.`,
+    });
+    setIsSleeping(false);
+    setSleepStartTimestamp(null);
+    router.push('/(tabs)/routines');
+  };
+
   const handleQuickRoutine = async (type: string) => {
+    triggerHaptic('medium');
+    if (type === 'sleep') {
+      handleStartSleep();
+      return;
+    }
     await addRoutine({
       routine_type: type,
       details: { quick_logged: true },
@@ -59,6 +103,7 @@ export default function HomeScreen() {
     <ScrollView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
       contentContainerStyle={styles.scroll}
+      showsVerticalScrollIndicator={false}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
@@ -71,14 +116,21 @@ export default function HomeScreen() {
       <View style={styles.header}>
         <View>
           <Text style={[styles.greeting, { color: theme.colors.textMuted }]}>
-            {activeBaby ? `${activeBaby.name}'in Uyku Ritmi` : 'Mishil'}
+            {activeBaby ? `${activeBaby.name}'in Uyku Ritmi` : 'Mishil Baby'}
           </Text>
           <Text style={[styles.title, { color: theme.colors.heading }]}>
-            {remainingMins > 0 ? `${remainingMins} dk Sonra Uyku` : 'Uyku Vakti!'}
+            {isSleeping
+              ? `${elapsedSleepMinutes} dk Uykuda 💤`
+              : remainingMins > 0
+              ? `${remainingMins} dk Sonra Uyku`
+              : 'Uyku Vakti!'}
           </Text>
         </View>
         <TouchableOpacity
-          onPress={() => router.push('/(preview)/moon-preview')}
+          onPress={() => {
+            triggerHaptic('light');
+            router.push('/(preview)/moon-preview');
+          }}
           style={[styles.previewBadge, { borderColor: theme.colors.border }]}
         >
           <Text style={[styles.previewText, { color: theme.colors.accent }]}>
@@ -90,12 +142,42 @@ export default function HomeScreen() {
       {/* Signature Breathing Moon Indicator */}
       <BreathingMoonIndicator
         minutesLeft={remainingMins}
+        isSleeping={isSleeping}
         size={230}
-        label={`Sıradaki Uyku: ${nextSleepFormatted}`}
+        label={
+          isSleeping
+            ? `Derin Uyku Seansı (${elapsedSleepMinutes} dk)`
+            : `Sıradaki Uyku: ${nextSleepFormatted}`
+        }
       />
 
+      {/* Live Sleep Controller Bar */}
+      {isSleeping ? (
+        <Card
+          style={[
+            styles.liveSleepCard,
+            { backgroundColor: theme.isDark ? '#2D1F38' : '#F5EEF8' },
+          ]}
+        >
+          <View style={styles.liveSleepTextWrap}>
+            <Text style={[styles.liveSleepTitle, { color: '#A569BD' }]}>
+              🌙 Canlı Uyku Seansı Devam Ediyor
+            </Text>
+            <Text style={[styles.liveSleepSub, { color: theme.colors.textMuted }]}>
+              Bebek uyandığında kaydı sonlandırın.
+            </Text>
+          </View>
+          <Button
+            title="Uykuyu Bitir"
+            size="sm"
+            onPress={handleFinishSleep}
+            style={{ backgroundColor: '#A569BD' }}
+          />
+        </Card>
+      ) : null}
+
       {/* Overtired Warning Alert (if triggered) */}
-      {wakeWindowData?.is_overtired_risk ? (
+      {!isSleeping && wakeWindowData?.is_overtired_risk ? (
         <View
           style={[
             styles.overtiredBanner,
@@ -158,22 +240,44 @@ export default function HomeScreen() {
         {[
           { type: 'feeding', icon: '🍼', label: 'Beslenme' },
           { type: 'diaper', icon: '🚼', label: 'Alt Değiştirme' },
-          { type: 'sleep', icon: '🌙', label: 'Uyku Başlat' },
+          {
+            type: 'sleep',
+            icon: isSleeping ? '⏹️' : '🌙',
+            label: isSleeping ? 'Uykuyu Bitir' : 'Uyku Başlat',
+          },
         ].map((act) => (
           <TouchableOpacity
             key={act.type}
             onPress={() => handleQuickRoutine(act.type)}
+            activeOpacity={0.7}
             style={[
               styles.quickActionBtn,
               {
-                backgroundColor: theme.colors.card,
-                borderColor: theme.colors.border,
+                backgroundColor:
+                  act.type === 'sleep' && isSleeping
+                    ? theme.isDark
+                      ? '#3A2048'
+                      : '#F2D7EE'
+                    : theme.colors.card,
+                borderColor:
+                  act.type === 'sleep' && isSleeping
+                    ? '#A569BD'
+                    : theme.colors.border,
               },
             ]}
           >
             <Text style={styles.quickActionIcon}>{act.icon}</Text>
             <Text
-              style={[styles.quickActionLabel, { color: theme.colors.heading }]}
+              style={[
+                styles.quickActionLabel,
+                {
+                  color:
+                    act.type === 'sleep' && isSleeping
+                      ? '#A569BD'
+                      : theme.colors.heading,
+                  fontWeight: act.type === 'sleep' && isSleeping ? '700' : '500',
+                },
+              ]}
             >
               {act.label}
             </Text>
@@ -182,7 +286,12 @@ export default function HomeScreen() {
       </View>
 
       {/* Soothing Noise CTA */}
-      <Card style={[styles.soundCtaCard, { backgroundColor: theme.isDark ? '#1C253D' : '#F0EBE1' }]}>
+      <Card
+        style={[
+          styles.soundCtaCard,
+          { backgroundColor: theme.isDark ? '#1C253D' : '#F0EBE1' },
+        ]}
+      >
         <View style={styles.soundCtaContent}>
           <Text style={styles.soundCtaIcon}>🎧</Text>
           <View style={styles.soundCtaText}>
@@ -197,7 +306,10 @@ export default function HomeScreen() {
         <Button
           title="Çal"
           size="sm"
-          onPress={() => router.push('/(tabs)/sounds')}
+          onPress={() => {
+            triggerHaptic('light');
+            router.push('/(tabs)/sounds');
+          }}
         />
       </Card>
     </ScrollView>
@@ -211,7 +323,7 @@ const styles = StyleSheet.create({
   scroll: {
     padding: 20,
     paddingTop: 56,
-    paddingBottom: 40,
+    paddingBottom: 80,
   },
   header: {
     flexDirection: 'row',
@@ -240,6 +352,30 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter',
     fontWeight: '600',
   },
+  liveSleepCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 14,
+    borderRadius: 16,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#A569BD',
+  },
+  liveSleepTextWrap: {
+    flex: 1,
+    marginRight: 10,
+  },
+  liveSleepTitle: {
+    fontSize: 13,
+    fontFamily: 'Sora',
+    fontWeight: '700',
+  },
+  liveSleepSub: {
+    fontSize: 11,
+    fontFamily: 'Inter',
+    marginTop: 2,
+  },
   overtiredBanner: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -262,6 +398,7 @@ const styles = StyleSheet.create({
   infoCard: {
     marginTop: 12,
     marginBottom: 20,
+    borderRadius: 20,
   },
   metricGrid: {
     flexDirection: 'row',
@@ -297,7 +434,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
-    borderRadius: 16,
+    borderRadius: 18,
     borderWidth: 1,
   },
   quickActionIcon: {
@@ -307,7 +444,6 @@ const styles = StyleSheet.create({
   quickActionLabel: {
     fontSize: 12,
     fontFamily: 'Inter',
-    fontWeight: '500',
     textAlign: 'center',
   },
   soundCtaCard: {
@@ -315,6 +451,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     padding: 16,
+    borderRadius: 20,
   },
   soundCtaContent: {
     flexDirection: 'row',
