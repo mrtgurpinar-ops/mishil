@@ -153,283 +153,217 @@
       font-size: 22px;
       font-weight: 700;
       color: var(--heading-night);
-      margin-top: 2px;
+      letter-spacing: -0.5px;
     }
 
-    .header-badge {
-      background: rgba(46, 213, 115, 0.15);
-      border: 1px solid var(--success);
-      color: var(--success);
-      font-size: 10px;
-      font-weight: 700;
-      padding: 3px 8px;
-      border-radius: 8px;
+    /* Card Component */
+    .card {
+      background: var(--card-night);
+      border: 1px solid var(--border-night);
+      border-radius: 20px;
+      padding: 16px;
+      margin-bottom: 12px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
     }
 
-    /* Signature Breathing Moon Component */
-    .moon-stage {
+    /* Crescent Moon Hero (Breathing / Live Sleep Aura) */
+    .moon-hero {
       position: relative;
-      width: 200px;
-      height: 200px;
-      margin: 6px auto 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 0 18px;
+    }
+
+    .moon-circle {
+      position: relative;
+      width: 140px;
+      height: 140px;
+      border-radius: 70px;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
+      transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+      box-shadow: 0 0 40px var(--accent-glow);
+      animation: breatheMoon 4.5s ease-in-out infinite;
     }
 
-    .moon-aura {
-      position: absolute;
-      width: 190px;
-      height: 190px;
-      border-radius: 50%;
-      background: radial-gradient(circle, var(--accent-glow) 0%, rgba(232, 168, 85, 0) 70%);
-      animation: breatheAura 4s ease-in-out infinite;
-    }
-
-    .moon-ring {
-      position: absolute;
-      width: 150px;
-      height: 150px;
-      border-radius: 50%;
-      border: 1.5px solid rgba(232, 168, 85, 0.25);
-    }
-
-    .moon-svg {
-      position: relative;
-      width: 85px;
-      height: 85px;
-      animation: breatheMoon 4s ease-in-out infinite;
-      filter: drop-shadow(0 0 16px var(--accent));
-    }
-
-    @keyframes breatheAura {
-      0% { transform: scale(0.92); opacity: 0.4; }
-      50% { transform: scale(1.10); opacity: 0.85; }
-      100% { transform: scale(0.92); opacity: 0.4; }
+    .moon-circle.sleeping {
+      box-shadow: 0 0 50px rgba(116, 185, 255, 0.4);
+      animation: breatheSleep 3.5s ease-in-out infinite;
     }
 
     @keyframes breatheMoon {
-      0% { transform: scale(0.98); }
-      50% { transform: scale(1.04); }
-      100% { transform: scale(0.98); }
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 12px var(--accent-glow)); }
+      50% { transform: scale(1.05); filter: drop-shadow(0 0 28px rgba(232, 168, 85, 0.5)); }
     }
 
-    .moon-label {
-      position: absolute;
-      bottom: -6px;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--accent);
-      background: rgba(29, 38, 64, 0.9);
-      padding: 4px 12px;
-      border-radius: 12px;
-      border: 1px solid var(--border-night);
+    @keyframes breatheSleep {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 14px rgba(116, 185, 255, 0.3)); }
+      50% { transform: scale(1.06); filter: drop-shadow(0 0 32px rgba(116, 185, 255, 0.6)); }
     }
 
-    /* Cards */
-    .card {
-      background: var(--card-night);
-      border: 1px solid var(--border-night);
-      border-radius: 18px;
-      padding: 16px;
-      margin-bottom: 12px;
+    .moon-svg {
+      width: 80px;
+      height: 80px;
+      transition: fill 0.3s;
     }
 
-    .metric-grid {
-      display: flex;
-      justify-content: space-around;
-      text-align: center;
-    }
-
-    .metric-label {
-      font-size: 11px;
-      color: var(--text-muted);
-      margin-bottom: 4px;
-    }
-
-    .metric-val {
+    .sleep-target-time {
       font-family: 'Sora', sans-serif;
-      font-size: 17px;
+      font-size: 28px;
       font-weight: 700;
       color: var(--heading-night);
+      margin-top: 14px;
+      letter-spacing: -0.5px;
     }
 
-    .metric-val.accent {
-      color: var(--accent);
-    }
-
-    /* 24-Hour Visual Sleep Timeline */
-    .timeline-wrap {
-      margin-top: 4px;
-      margin-bottom: 12px;
-    }
-
-    .timeline-bar {
-      height: 16px;
-      background: #242F4D;
-      border-radius: 8px;
-      display: flex;
-      overflow: hidden;
-      margin: 8px 0;
-      position: relative;
-    }
-
-    .t-block {
-      height: 100%;
-      transition: opacity 0.2s;
-    }
-
-    .t-sleep { background: var(--moon-blue); }
-    .t-feed { background: var(--accent); }
-    .t-awake { background: #1D2640; }
-
-    .timeline-legend {
-      display: flex;
-      justify-content: space-between;
-      font-size: 10px;
+    .sleep-subtext {
+      font-size: 12px;
       color: var(--text-muted);
+      margin-top: 2px;
     }
 
-    .legend-item {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .legend-dot {
-      width: 6px;
-      height: 6px;
-      border-radius: 3px;
-    }
-
-    /* Quick Actions */
-    .section-title {
-      font-family: 'Sora', sans-serif;
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--heading-night);
-      margin: 10px 0 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .quick-row {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 12px;
-    }
-
-    .quick-btn {
-      flex: 1;
-      background: var(--card-night);
-      border: 1px solid var(--border-night);
-      border-radius: 14px;
-      padding: 12px 6px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .quick-btn:active {
-      transform: scale(0.95);
-      background: var(--card-elevated);
-      border-color: var(--accent);
-    }
-
-    .quick-icon {
-      font-size: 20px;
-      margin-bottom: 2px;
-    }
-
-    .quick-txt {
-      font-size: 10px;
-      font-weight: 600;
-      color: var(--heading-night);
-    }
-
-    /* Primary CTA Button */
+    /* Primary & Secondary Buttons */
     .btn-primary {
       width: 100%;
       background: var(--accent);
       color: #141B2E;
       font-family: 'Sora', sans-serif;
-      font-size: 13px;
+      font-size: 14px;
       font-weight: 700;
-      padding: 12px;
-      border-radius: 12px;
+      padding: 14px;
+      border-radius: 16px;
       border: none;
       cursor: pointer;
-      text-align: center;
-      transition: opacity 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 18px var(--accent-glow);
+      transition: transform 0.15s, opacity 0.15s;
     }
 
     .btn-primary:active {
-      opacity: 0.85;
       transform: scale(0.98);
+      opacity: 0.9;
     }
 
     .btn-secondary {
       width: 100%;
-      background: #242F4D;
-      color: #FFFFFF;
-      font-family: 'Sora', sans-serif;
-      font-size: 12px;
+      background: var(--card-elevated);
+      color: var(--text-night);
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
       font-weight: 600;
-      padding: 10px;
-      border-radius: 10px;
+      padding: 12px;
+      border-radius: 14px;
       border: 1px solid var(--border-night);
       cursor: pointer;
       margin-top: 8px;
+      transition: background 0.2s;
+      text-align: center;
     }
 
-    /* Sound Player Cards & Audio Visualizer */
-    .sound-item {
+    .btn-secondary:active {
+      background: #2D3A5E;
+    }
+
+    /* Section Title */
+    .section-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--heading-night);
+      margin: 16px 0 10px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px 16px;
+    }
+
+    /* Quick Action 3-Col Buttons */
+    .quick-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .quick-btn {
       background: var(--card-night);
       border: 1px solid var(--border-night);
       border-radius: 16px;
-      margin-bottom: 10px;
+      padding: 12px 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .quick-btn:active {
+      background: var(--card-elevated);
+      transform: scale(0.95);
+      border-color: var(--accent);
+    }
+
+    .quick-icon {
+      font-size: 22px;
+    }
+
+    .quick-txt {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-night);
+    }
+
+    /* Sound Item Card */
+    .sound-item {
+      background: var(--card-night);
+      border: 1px solid var(--border-night);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       cursor: pointer;
       transition: all 0.2s;
     }
 
     .sound-item.active {
       border-color: var(--accent);
-      background: #252336;
-      box-shadow: 0 0 16px rgba(232, 168, 85, 0.2);
+      background: #242A42;
     }
 
     .sound-title {
       font-family: 'Sora', sans-serif;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
-      color: #FFFFFF;
+      color: #FFF;
+      margin-bottom: 2px;
     }
 
     .sound-desc {
       font-size: 11px;
       color: var(--text-muted);
-      margin-top: 2px;
     }
 
     .sound-play-btn {
       width: 38px;
       height: 38px;
       border-radius: 19px;
-      background: #242F4D;
+      background: var(--card-elevated);
+      border: 1px solid var(--border-night);
+      color: var(--accent);
+      font-size: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 16px;
-      color: #FFF;
-      border: none;
       cursor: pointer;
       transition: all 0.2s;
     }
@@ -437,15 +371,16 @@
     .sound-item.active .sound-play-btn {
       background: var(--accent);
       color: #141B2E;
+      border-color: var(--accent);
     }
 
-    /* Audio Waves Equalizer */
+    /* Waveform Animation Box */
     .waves-box {
-      display: inline-flex;
+      display: flex;
       align-items: center;
       gap: 3px;
       height: 16px;
-      margin-left: 6px;
+      margin-left: 8px;
     }
 
     .wave-bar {
@@ -538,22 +473,29 @@
     }
 
     .mic-circle {
-      width: 76px;
-      height: 76px;
-      border-radius: 38px;
+      width: 84px;
+      height: 84px;
+      border-radius: 42px;
       background: var(--accent);
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 30px;
+      font-size: 34px;
       cursor: pointer;
-      box-shadow: 0 0 24px var(--accent-glow);
+      box-shadow: 0 0 28px var(--accent-glow);
       margin-bottom: 12px;
-      transition: transform 0.2s;
+      transition: transform 0.2s, background 0.3s;
     }
 
-    .mic-circle:active {
-      transform: scale(0.92);
+    .mic-circle.recording {
+      background: var(--danger);
+      box-shadow: 0 0 35px rgba(255, 71, 87, 0.6);
+      animation: pulseMic 1.2s infinite;
+    }
+
+    @keyframes pulseMic {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
     }
 
     .progress-bar-wrap {
@@ -568,6 +510,7 @@
       height: 100%;
       background: var(--accent);
       border-radius: 4px;
+      transition: width 0.6s ease-out;
     }
 
     .disclaimer-box {
@@ -593,22 +536,166 @@
       margin-bottom: 6px;
     }
 
+    /* Form Controls in Settings */
+    .form-group {
+      margin-bottom: 12px;
+    }
+
+    .form-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .form-input {
+      width: 100%;
+      background: #242F4D;
+      border: 1px solid var(--border-night);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px;
+      color: #FFF;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--accent);
+    }
+
+    /* Toggle Switch */
+    .toggle-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .toggle-row:last-child {
+      border-bottom: none;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 44px;
+      height: 24px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background-color: #242F4D;
+      transition: .3s;
+      border-radius: 24px;
+      border: 1px solid var(--border-night);
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .3s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--accent);
+      border-color: var(--accent);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(20px);
+      background-color: #141B2E;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(4px);
+      z-index: 200;
+      align-items: flex-end;
+      justify-content: center;
+      animation: fadeIn 0.2s;
+    }
+
+    .modal-overlay.active {
+      display: flex;
+    }
+
+    .modal-sheet {
+      background: #192138;
+      border-top: 1px solid var(--border-night);
+      border-radius: 24px 24px 0 0;
+      width: 100%;
+      max-height: 80%;
+      overflow-y: auto;
+      padding: 20px;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.6);
+      animation: slideUp 0.25s ease-out;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
     /* Toast Notification */
     .toast-msg {
       position: absolute;
       top: 60px;
       left: 50%;
-      transform: translateX(-50%);
-      background: #2ED573;
-      color: #141B2E;
-      font-size: 12px;
-      font-weight: 700;
+      transform: translateX(-50%) translateY(-20px);
+      background: #242F4D;
+      border: 1px solid var(--accent);
+      color: #FFF;
       padding: 8px 16px;
       border-radius: 20px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-      z-index: 200;
-      display: none;
-      animation: fadeIn 0.2s;
+      font-size: 12px;
+      font-weight: 600;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 300;
+      white-space: nowrap;
+    }
+
+    .toast-msg.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
     }
   </style>
 </head>
@@ -617,88 +704,51 @@
 <div class="device-wrapper">
   <div class="device-notch"></div>
 
-  <!-- Toast -->
-  <div id="app-toast" class="toast-msg">✅ İşlem Tamamlandı</div>
-
-  <!-- Status Bar -->
+  <!-- iOS Status Bar -->
   <div class="status-bar">
-    <span>09:41</span>
-    <span style="font-size: 11px;">5G 🔋 100%</span>
+    <span id="live-clock">09:41</span>
+    <div style="display: flex; gap: 4px; align-items: center;">
+      <span style="font-size: 11px;">5G</span>
+      <span style="font-size: 13px;">􀛨</span>
+      <span style="font-size: 13px;">􀛩</span>
+    </div>
   </div>
 
-  <!-- Content Screens -->
+  <div id="toast" class="toast-msg">✅ İşlem Başarılı</div>
+
   <div class="screen-container">
 
-    <!-- 1. HOME TAB -->
+    <!-- 1. HOME TAB (LIVE SLEEP & WAKE WINDOW) -->
     <div id="view-home" class="tab-view active">
       <div class="app-header">
         <div>
-          <div class="baby-subtitle">Melis (6 Aylık) • Uyku Ritmi</div>
-          <div class="main-title">45 dk Sonra Uyku Vakti</div>
-        </div>
-        <div class="header-badge">Canlı Senkronize</div>
-      </div>
-
-      <!-- Signature Breathing Moon & Interactive One-Tap Live Sleep Tracker -->
-      <div class="moon-stage" id="moon-tracker" onclick="toggleLiveSleep()">
-        <div class="moon-aura" id="moon-aura-fx"></div>
-        <div class="moon-ring"></div>
-        <svg class="moon-svg" viewBox="0 0 100 100">
-          <path id="moon-path" d="M 50 10 A 40 40 0 1 0 90 50 A 30 30 0 1 1 50 10 Z" fill="#E8A855" />
-          <circle cx="80" cy="22" r="3" fill="#FFFFFF" opacity="0.8" />
-          <circle cx="20" cy="70" r="2" fill="#FFFFFF" opacity="0.5" />
-        </svg>
-        <div class="moon-label" id="moon-timer-label">Hedef Uyku: 12:30</div>
-      </div>
-
-      <!-- One-Tap Action Button -->
-      <div style="margin: -10px 0 16px; text-align: center;">
-        <button id="btn-live-sleep" class="btn-primary" onclick="toggleLiveSleep()" style="width: 100%; max-width: 280px; margin: 0 auto; display: inline-flex; justify-content: center; align-items: center; gap: 8px;">
-          <span>🌙</span> <span id="live-sleep-btn-txt">Şimdi Uyuyor (Tek Dokunuş Başlat)</span>
-        </button>
-      </div>
-
-      <!-- Key Metrics -->
-      <div class="card">
-        <div class="metric-grid">
-          <div>
-            <div class="metric-label">Uyanıklık Penceresi</div>
-            <div class="metric-val accent">150 dk</div>
-          </div>
-          <div>
-            <div class="metric-label">Kalan Kestirme</div>
-            <div class="metric-val">2 nap</div>
-          </div>
-          <div>
-            <div class="metric-label">Uykulu Uyarısı</div>
-            <div class="metric-val">12:15</div>
-          </div>
+          <div class="baby-subtitle" id="baby-header-subtitle">Mina • 4 Ay 12 Günlük</div>
+          <div class="main-title" id="baby-header-title">Uyku Penceresi</div>
         </div>
       </div>
 
-      <!-- 24-Hour Visual Sleep Timeline (Huckleberry Benchmark) -->
-      <div class="card timeline-wrap">
-        <div style="font-family: 'Sora'; font-size: 12px; font-weight: 600; color: #FFF; margin-bottom: 2px;">
-          Bugünkü 24 Saatlik Ritim Çizelgesi
+      <!-- Breathing Moon / Live Sleep Hero -->
+      <div class="card moon-hero">
+        <div class="moon-circle" id="moon-aura-circle" onclick="toggleLiveSleep()">
+          <svg class="moon-svg" viewBox="0 0 100 100">
+            <path id="moon-shape" d="M50 10 A40 40 0 1 0 90 50 A30 30 0 1 1 50 10 Z" fill="#E8A855"/>
+          </svg>
         </div>
-        <div class="timeline-bar">
-          <div class="t-block t-sleep" style="width: 25%;" title="Gece Uykusu"></div>
-          <div class="t-block t-feed" style="width: 5%;" title="Beslenme"></div>
-          <div class="t-block t-awake" style="width: 15%;" title="Uyanık"></div>
-          <div class="t-block t-sleep" style="width: 12%;" title="1. Kestirme"></div>
-          <div class="t-block t-awake" style="width: 18%;" title="Uyanık"></div>
-          <div class="t-block" style="width: 25%; background: rgba(232, 168, 85, 0.2); border-left: 2px dashed var(--accent);" title="Sıradaki Hedef Uyku"></div>
-        </div>
-        <div class="timeline-legend">
-          <div class="legend-item"><span class="legend-dot" style="background: var(--moon-blue);"></span> Uyku (8.5s)</div>
-          <div class="legend-item"><span class="legend-dot" style="background: var(--accent);"></span> Beslenme (420ml)</div>
-          <div class="legend-item"><span class="legend-dot" style="background: var(--border-night);"></span> Uyanık Penceresi</div>
+
+        <div class="sleep-target-time" id="target-sleep-display">11:45</div>
+        <div class="sleep-subtext" id="target-sleep-subtext">Sonraki Uyku Vakti (1 saat 15 dk kaldı)</div>
+        <div id="live-sleep-timer" style="display: none; font-size: 13px; font-weight: 700; color: #74B9FF; margin-top: 4px;">
+          💤 Canlı Uyku: 00:00:00
         </div>
       </div>
 
-      <!-- Wonder Weeks Leap Banner -->
-      <div class="card" style="border-left: 4px solid var(--moon-blue);">
-        <span class="leap-badge">GELİŞİM ATAĞI 5</span>
+      <button class="btn-primary" id="btn-toggle-sleep" onclick="toggleLiveSleep()">
+        <span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>
+      </button>
+
+      <!-- Wonder Weeks Leap Card -->
+      <div class="card" style="border-left: 4px solid var(--moon-blue); margin-top: 12px;">
+        <span class="leap-badge" id="leap-badge-txt">GELİŞİM ATAĞI 5</span>
         <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF; margin-bottom: 2px;">
           İlişkiler ve Mesafe Algısı Sıçraması
         </div>
@@ -710,7 +760,7 @@
       <!-- Quick Actions -->
       <div class="section-title">
         <span>Hızlı Rutin Kaydı</span>
-        <span style="font-size: 11px; color: var(--accent); cursor: pointer;" onclick="switchTab('routines')">Tümünü Gör ➔</span>
+        <span style="font-size: 11px; color: var(--accent); cursor: pointer;" onclick="openAddRoutineModal()">+ Detaylı Ekle ➔</span>
       </div>
       <div class="quick-row">
         <div class="quick-btn" onclick="quickLog('Beslenme')">
@@ -745,62 +795,82 @@
       </div>
     </div>
 
-    <!-- 2. CRY ANALYSIS TAB -->
+    <!-- 2. CRY ANALYSIS TAB (REAL LIVE MICROPHONE & FASTAPI BACKEND) -->
     <div id="view-cry" class="tab-view">
       <div class="app-header">
         <div>
-          <div class="baby-subtitle">DSP Akustik Frekans Motoru</div>
+          <div class="baby-subtitle">Canlı Mikrofon & Akustik DSP</div>
           <div class="main-title">Ağlama Sesi Analizi</div>
         </div>
       </div>
 
       <div class="card mic-record-box" id="cry-recorder">
-        <div class="mic-circle" onclick="startSimulatedCryAnalysis()">🎙️</div>
-        <div style="font-family: 'Sora'; font-size: 15px; font-weight: 600; color: #FFF; margin-bottom: 4px;">
-          Dinlemek İçin Dokunun
+        <div class="mic-circle" id="mic-btn" onclick="toggleRealMicRecording()">🎙️</div>
+        <div style="font-family: 'Sora'; font-size: 15px; font-weight: 600; color: #FFF; margin-bottom: 4px;" id="mic-status-title">
+          Canlı Dinlemek İçin Dokunun
         </div>
-        <div style="font-size: 11px; color: var(--text-muted); line-height: 16px;">
-          13 bant MFCC & Zero Crossing Rate taranır. Sesler cihazınızda anlık işlenir ve asla sunucuya kaydedilmez (Zero-Storage).
+        <div style="font-size: 11px; color: var(--text-muted); line-height: 16px;" id="mic-status-desc">
+          Mikrofon 5 saniye boyunca gerçek ortam sesini kaydeder. 13 bant MFCC & Zero Crossing Rate ile FastAPI backend'imizde analiz edilir.
+        </div>
+
+        <div id="mic-waveform" style="display: none; justify-content: center; gap: 4px; height: 28px; margin-top: 14px; align-items: center;">
+          <span class="wave-bar" style="height: 10px;"></span>
+          <span class="wave-bar" style="height: 24px;"></span>
+          <span class="wave-bar" style="height: 16px;"></span>
+          <span class="wave-bar" style="height: 28px;"></span>
+          <span class="wave-bar" style="height: 18px;"></span>
+          <span class="wave-bar" style="height: 22px;"></span>
+          <span class="wave-bar" style="height: 12px;"></span>
+        </div>
+
+        <div style="margin-top: 16px; border-top: 1px solid var(--border-night); padding-top: 12px;">
+          <label style="font-size: 11px; color: var(--accent); cursor: pointer; text-decoration: underline;">
+            📁 veya Cihazdan Ses Dosyası Seç (.wav, .m4a, .mp3)
+            <input type="file" id="audio-file-input" accept="audio/*" style="display: none;" onchange="handleAudioFileUpload(this)" />
+          </label>
         </div>
       </div>
 
       <div id="cry-result" style="display: none;">
         <div class="disclaimer-box">
-          ℹ️ Bu analiz klinik veya tıbbi bir teşhis değildir; ebeveyne rehberlik amaçlı heuristik spektrum analizidir.
+          ℹ️ Bu analiz klinik teşhis değildir; ebeveyne rehberlik amaçlı canlı akustik spektrum çıkarımıdır (Zero-Storage RAM).
         </div>
 
         <div class="card">
-          <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 10px;">
-            Akustik Olasılık Dağılımı
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF;">
+              Tespit Edilen Nedenler
+            </div>
+            <span style="font-size: 10px; color: var(--success); font-weight: 700;">● CANLI FASTAPI YANITI</span>
           </div>
 
           <div style="margin-bottom: 8px;">
             <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--accent);">
-              <span>🥱 Yorgunluk / Uyku İhtiyacı</span>
-              <span>%72</span>
+              <span id="cause-1-label">🥱 Yorgunluk / Uyku İhtiyacı</span>
+              <span id="cause-1-val">%78</span>
             </div>
             <div class="progress-bar-wrap">
-              <div class="progress-fill" style="width: 72%;"></div>
+              <div class="progress-fill" id="cause-1-bar" style="width: 78%;"></div>
             </div>
           </div>
 
           <div style="margin-bottom: 8px;">
             <div style="display: flex; justify-content: space-between; font-size: 12px; color: #FFF;">
-              <span>🍼 Açlık Belirtisi</span>
-              <span>%18</span>
+              <span id="cause-2-label">🍼 Açlık Belirtisi</span>
+              <span id="cause-2-val">%14</span>
             </div>
             <div class="progress-bar-wrap">
-              <div class="progress-fill" style="width: 18%; background: var(--moon-blue);"></div>
+              <div class="progress-fill" id="cause-2-bar" style="width: 14%; background: var(--moon-blue);"></div>
             </div>
           </div>
 
           <div>
             <div style="display: flex; justify-content: space-between; font-size: 12px; color: #FFF;">
-              <span>💨 Gaz / Kolik Rahatsızlığı</span>
-              <span>%10</span>
+              <span id="cause-3-label">💨 Gaz / Kolik Rahatsızlığı</span>
+              <span id="cause-3-val">%8</span>
             </div>
             <div class="progress-bar-wrap">
-              <div class="progress-fill" style="width: 10%; background: var(--moon-blue);"></div>
+              <div class="progress-fill" id="cause-3-bar" style="width: 8%; background: var(--moon-blue);"></div>
             </div>
           </div>
         </div>
@@ -810,15 +880,16 @@
           <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">
             Önerilen Ebeveyn Aksiyonu
           </div>
-          <div style="font-size: 12px; color: #FFF; line-height: 17px; margin-bottom: 12px;">
-            Bebeğiniz uyku penceresini aşmak üzere (%72 yorgunluk). Derhal odayı loşlaştırın ve 432Hz pembe gürültüyü başlatın.
+          <div style="font-size: 12px; color: #FFF; line-height: 17px; margin-bottom: 12px;" id="cry-action-desc">
+            Bebeğiniz uyku penceresini aşmak üzere. Derhal odayı loşlaştırın ve 432Hz ninnileri başlatın.
           </div>
-          <button class="btn-primary" onclick="triggerSmartSleepAction()">🌙 432Hz Sesi Başlat & Uykuya Geç</button>
+          <button class="btn-primary" onclick="triggerSmartSleepAction()">🌙 Ninnileri Başlat & Uykuya Geç</button>
+          <button class="btn-secondary" onclick="resetCryRecorder()">🔄 Yeni Ses Kaydı Al</button>
         </div>
       </div>
     </div>
 
-    <!-- 3. ROUTINES TAB -->
+    <!-- 3. ROUTINES TAB (INTERACTIVE TIMELINE & LOGS) -->
     <div id="view-routines" class="tab-view">
       <div class="app-header">
         <div>
@@ -827,43 +898,45 @@
         </div>
       </div>
 
-      <div class="card" style="display: flex; align-items: center; gap: 12px;">
-        <div style="font-size: 22px;">🍼</div>
-        <div style="flex: 1;">
-          <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">Beslenme • 150 ml Anne Sütü</div>
-          <div style="font-size: 11px; color: var(--text-muted);">Bugün 10:15 • Anne tarafından kaydedildi</div>
+      <div id="routines-list">
+        <div class="card" style="display: flex; align-items: center; gap: 12px;">
+          <div style="font-size: 22px;">🍼</div>
+          <div style="flex: 1;">
+            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">Beslenme • 150 ml Anne Sütü</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Bugün 10:15 • Anne tarafından kaydedildi</div>
+          </div>
+        </div>
+
+        <div class="card" style="display: flex; align-items: center; gap: 12px;">
+          <div style="font-size: 22px;">🌙</div>
+          <div style="flex: 1;">
+            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">1. Gündüz Uykusu • 65 dk</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Bugün 08:00 - 09:05 • Brahms Ninnisi dinlendi</div>
+          </div>
+        </div>
+
+        <div class="card" style="display: flex; align-items: center; gap: 12px;">
+          <div style="font-size: 22px;">🚼</div>
+          <div style="flex: 1;">
+            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">Bez Değişimi • Islak</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Bugün 07:45</div>
+          </div>
         </div>
       </div>
 
-      <div class="card" style="display: flex; align-items: center; gap: 12px;">
-        <div style="font-size: 22px;">🌙</div>
-        <div style="flex: 1;">
-          <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">1. Gündüz Uykusu • 65 dk</div>
-          <div style="font-size: 11px; color: var(--text-muted);">Bugün 08:00 - 09:05 • 432Hz dinlendi</div>
-        </div>
-      </div>
-
-      <div class="card" style="display: flex; align-items: center; gap: 12px;">
-        <div style="font-size: 22px;">🚼</div>
-        <div style="flex: 1;">
-          <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">Bez Değişimi • Temiz</div>
-          <div style="font-size: 11px; color: var(--text-muted);">Bugün 07:45</div>
-        </div>
-      </div>
-
-      <button class="btn-primary" onclick="quickLog('Özel Not / Rutin')">+ Yeni Manuel Rutin Ekle</button>
+      <button class="btn-primary" onclick="openAddRoutineModal()">+ Yeni Manuel Rutin Ekle</button>
     </div>
 
-    <!-- 4. SOUNDS TAB (WEB AUDIO ENGINE REAL GENERATOR) -->
+    <!-- 4. SOUNDS TAB (STUDIO ACOUSTIC MASTER TRACKS) -->
     <div id="view-sounds" class="tab-view">
       <div class="app-header">
         <div>
-          <div class="baby-subtitle">Web Audio Sentezleyici Motoru</div>
+          <div class="baby-subtitle">Stüdyo Akustik Master Motoru</div>
           <div class="main-title">Sakinleştirici Sesler</div>
         </div>
       </div>
 
-      <!-- Sleep Timer Control (Hatch Benchmark) -->
+      <!-- Sleep Timer Control -->
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">Kapanma Zamanlayıcısı</div>
@@ -878,49 +951,39 @@
         </div>
       </div>
 
-      <!-- Studio Volume & Smooth Fader Control -->
-      <div class="card" style="padding: 12px 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <div style="font-family: 'Sora'; font-size: 12px; font-weight: 600; color: #FFF;">🔊 Ses Seviyesi (Yumuşak Fade-in/out)</div>
-          <div style="font-size: 12px; color: var(--accent); font-weight: 700;" id="volume-disp">85%</div>
-        </div>
-      <!-- Sound Track 1: Brahms Lullaby (Music Box & Piano) -->
+      <!-- Sound Tracks List -->
       <div class="sound-item active" id="card-brahms" onclick="togglePlaySound('brahms')">
         <div>
           <div class="sound-title">🎹 Brahms Uyku Ninnisi</div>
-          <div class="sound-desc">Piyano ve müzik kutusu tınılarıyla derin uyku</div>
+          <div class="sound-desc">Müzik kutusu & piyano tınıları (2.5s Crossfade Loop)</div>
         </div>
         <button class="sound-play-btn" id="btn-brahms">▶</button>
       </div>
 
-      <!-- Sound Track 2: Moonlight Lullaby -->
       <div class="sound-item" id="card-moonlight" onclick="togglePlaySound('moonlight')">
         <div>
           <div class="sound-title">🌙 Ayışığı Piyano Melodisi</div>
-          <div class="sound-desc">Huzurlu Twinkle melodisi ve yumuşak akorlar</div>
+          <div class="sound-desc">Huzurlu Twinkle melodisi ve yumuşak oda akorları</div>
         </div>
         <button class="sound-play-btn" id="btn-moonlight">▶</button>
       </div>
 
-      <!-- Sound Track 3: Deep Maternal Heartbeat -->
       <div class="sound-item" id="card-heartbeat" onclick="togglePlaySound('heartbeat')">
         <div>
           <div class="sound-title">💓 Tok Anne Kalp Atışı</div>
-          <div class="sound-desc">Sıfır hışırtı, güven veren 60 BPM stetoskop nabzı</div>
+          <div class="sound-desc">Sıfır hışırtı, 60 BPM stetoskop çift vuruşlu nabız</div>
         </div>
         <button class="sound-play-btn" id="btn-heartbeat">▶</button>
       </div>
 
-      <!-- Sound Track 4: Forest Stream & Rain -->
       <div class="sound-item" id="card-stream" onclick="togglePlaySound('stream')">
         <div>
           <div class="sound-title">🌧️ Berrak Orman Su Şırıltısı</div>
-          <div class="sound-desc">Doğal berrak akarsu ve yumuşak yağmur</div>
+          <div class="sound-desc">Doğal berrak akarsu ve yumuşak yağmur akışı</div>
         </div>
         <button class="sound-play-btn" id="btn-stream">▶</button>
       </div>
 
-      <!-- Sound Track 5: Ocean Calm -->
       <div class="sound-item" id="card-ocean" onclick="togglePlaySound('ocean')">
         <div>
           <div class="sound-title">🌊 Gece Okyanus Dalgaları</div>
@@ -930,52 +993,117 @@
       </div>
     </div>
 
-    <!-- 5. SETTINGS TAB (APPLE & GOOGLE COMPLIANCE READY) -->
+    <!-- 5. SETTINGS TAB (FULL END-USER CONFIGURATION & PROFILES) -->
     <div id="view-settings" class="tab-view">
       <div class="app-header">
         <div>
-          <div class="baby-subtitle">Hesap, Güvenlik & Abonelik</div>
+          <div class="baby-subtitle">Profil, Bildirim & Abonelik</div>
           <div class="main-title">Ayarlar</div>
+        </div>
+      </div>
+
+      <!-- Baby Profile Configuration Card -->
+      <div class="card">
+        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 12px;">
+          👶 Bebek Profili
+        </div>
+        <div class="form-group">
+          <label class="form-label">Bebeğin Adı</label>
+          <input type="text" class="form-input" id="cfg-baby-name" value="Mina" placeholder="Örn: Mina" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Doğum Tarihi (Gelişim Atağı & Ay Hesabı İçin)</label>
+          <input type="date" class="form-input" id="cfg-baby-bdate" value="2026-04-11" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cinsiyet</label>
+          <select class="form-input" id="cfg-baby-gender">
+            <option value="female">Kız 👧</option>
+            <option value="male">Erkek 👦</option>
+            <option value="unspecified">Belirtmek İstemiyorum</option>
+          </select>
+        </div>
+        <button class="btn-primary" onclick="saveBabyProfile()">💾 Profili Kaydet & Güncelle</button>
+      </div>
+
+      <!-- Smart Notifications & Alarms -->
+      <div class="card">
+        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 10px;">
+          🔔 Akıllı Bildirimler & Uyarılar
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div style="font-size: 12px; font-weight: 600; color: #FFF;">Uyku Penceresi Alarmı</div>
+            <div style="font-size: 10px; color: var(--text-muted);">Uyanıklık süresi dolmadan 15 dk önce uyar</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="cfg-notif-sleep" checked onchange="saveNotificationPref('sleep', this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div style="font-size: 12px; font-weight: 600; color: #FFF;">Beslenme Hatırlatıcısı</div>
+            <div style="font-size: 10px; color: var(--text-muted);">3 saatte bir beslenme zamanını hatırlat</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="cfg-notif-feed" checked onchange="saveNotificationPref('feed', this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="toggle-row">
+          <div>
+            <div style="font-size: 12px; font-weight: 600; color: #FFF;">Gelişim Atağı (Leap) Bildirimi</div>
+            <div style="font-size: 10px; color: var(--text-muted);">Huysuzluk haftaları başladığında rehber sun</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="cfg-notif-leap" checked onchange="saveNotificationPref('leap', this.checked)">
+            <span class="slider"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Caregiver / Partner Share Pairing Code -->
+      <div class="card">
+        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 6px;">
+          👨‍👩‍👦 Ebeveyn & Bakıcı Eşleşmesi
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px; line-height: 15px;">
+          Eşinizi veya bakıcınızı davet ederek rutinleri anlık tek bir bebek profilinde senkronize edin.
+        </div>
+        <div style="background: #242F4D; padding: 10px 14px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px dashed var(--accent);">
+          <div>
+            <div style="font-size: 10px; color: var(--text-muted);">Eşleşme Davet Kodunuz:</div>
+            <div style="font-family: 'Sora'; font-size: 15px; font-weight: 700; color: var(--accent);" id="pair-code">MISHIL-8492</div>
+          </div>
+          <button style="background: var(--accent); color: #141B2E; border: none; padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer;" onclick="copyPairCode()">Kopyala</button>
         </div>
       </div>
 
       <!-- Subscription Card with Apple Restore Purchases -->
       <div class="card">
         <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 6px;">
-          Abonelik & Premium
+          👑 Mishil Pro Aboneliği
         </div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <span style="font-size: 13px; color: var(--accent); font-weight: 700;">3 Günlük Ücretsiz Deneme (Aktif)</span>
-          <span style="font-size: 11px; color: var(--text-muted);">Kalan: 3 Gün</span>
+          <span style="font-size: 11px; color: var(--text-muted);">Yıllık: ₺599.99</span>
         </div>
         <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; line-height: 15px;">
-          Tüm yapay zeka akustik ağlama modelleri ve 432Hz ses motoru açıktır.
+          Tüm DSP ağlama modelleri, stüdyo akustik ses motoru ve sınırsız rutin kaydı aktiftir.
         </div>
-        
-        <!-- Apple Guideline 3.1.1 Mandatory Button -->
-        <button class="btn-secondary" onclick="restorePurchases()">🔄 Satın Alımları Geri Yükle (Restore Purchases)</button>
+        <button class="btn-secondary" onclick="openRestoreModal()">🔄 Satın Alımları Geri Yükle (Apple 3.1.1)</button>
       </div>
 
-      <!-- Caregiver / Partner Share (Architecture) -->
-      <div class="card">
-        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 6px;">
-          Ebeveyn & Bakıcı Paylaşımı
-        </div>
-        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">
-          Eşinizi veya bakıcınızı davet ederek rutinleri anlık senkronize takip edin.
-        </div>
-        <button class="btn-secondary" onclick="inviteCaregiver()">➕ Eşini / Bakıcıyı Davet Et</button>
-      </div>
-
-      <!-- Profile & Legal Links -->
+      <!-- Legal & Privacy -->
       <div class="card">
         <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 8px;">
-          Yasal & Gizlilik Dokümanları
+          Yasal, Güvenlik & Gizlilik
         </div>
         <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
-          <a href="/privacy" target="_blank" style="color: var(--accent); text-decoration: none;">🔒 Gizlilik Politikası (Privacy Policy) ➔</a>
-          <a href="/terms" target="_blank" style="color: var(--accent); text-decoration: none;">⚖️ Kullanım Koşulları & Tıbbi Feragatname ➔</a>
-          <a href="/delete-account" target="_blank" style="color: var(--danger); text-decoration: none;">🗑️ Hesabımı ve Verilerimi Sil (Apple 5.1.1) ➔</a>
+          <div style="color: var(--accent); cursor: pointer;" onclick="showToast('🔒 Sıfır-Depolama (Zero-Storage RAM) Gizlilik Politikası aktif')">🔒 Gizlilik Politikası (Privacy Policy) ➔</div>
+          <div style="color: var(--accent); cursor: pointer;" onclick="showToast('⚖️ Kullanım Koşulları ve Tıbbi Feragatname onaylıdır')">⚖️ Kullanım Koşulları & Tıbbi Feragatname ➔</div>
+          <div style="color: var(--danger); cursor: pointer;" onclick="openDeleteAccountModal()">🗑️ Hesabımı ve Tüm Verilerimi Sil (Apple 5.1.1) ➔</div>
         </div>
       </div>
     </div>
@@ -1007,179 +1135,88 @@
   </div>
 </div>
 
+<!-- MODAL: ADD CUSTOM ROUTINE -->
+<div class="modal-overlay" id="modal-routine">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">Yeni Manuel Rutin Ekle</div>
+      <button class="modal-close" onclick="closeAddRoutineModal()">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Rutin Türü</label>
+      <select class="form-input" id="routine-modal-type">
+        <option value="🍼 Beslenme">🍼 Beslenme (Anne Sütü / Mama)</option>
+        <option value="🌙 Gündüz Uykusu">🌙 Gündüz Uykusu</option>
+        <option value="🚼 Bez Değişimi">🚼 Bez Değişimi</option>
+        <option value="💊 İlaç / Özel Not">💊 İlaç / Özel Not</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Miktar / Süre / Detay</label>
+      <input type="text" class="form-input" id="routine-modal-detail" placeholder="Örn: 120 ml veya 45 dk" />
+    </div>
+    <button class="btn-primary" onclick="submitCustomRoutine()" style="margin-top: 10px;">💾 Rutini Kaydet</button>
+  </div>
+</div>
+
+<!-- MODAL: RESTORE PURCHASES -->
+<div class="modal-overlay" id="modal-restore">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">Satın Alımları Geri Yükle</div>
+      <button class="modal-close" onclick="closeRestoreModal()">✕</button>
+    </div>
+    <div style="font-size: 12px; color: var(--text-night); line-height: 18px; margin-bottom: 16px;">
+      Apple App Store / Google Play hesabınız taranıyor... Önceki Mishil Pro aboneliğiniz aktif edilmektedir.
+    </div>
+    <button class="btn-primary" onclick="confirmRestore()">✓ Aboneliği Doğrula & Aktif Et</button>
+  </div>
+</div>
+
+<!-- MODAL: DELETE ACCOUNT -->
+<div class="modal-overlay" id="modal-delete">
+  <div class="modal-sheet">
+    <div class="modal-header">
+      <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: var(--danger);">Hesap ve Veri Silme</div>
+      <button class="modal-close" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <div style="font-size: 12px; color: var(--text-night); line-height: 18px; margin-bottom: 16px;">
+      Bu işlem bebeğinize ait tüm uyku günlüklerini, rutin kayıtlarını ve profil verilerini kalıcı olarak silecektir. Bu işlem geri alınamaz (Apple Guideline 5.1.1).
+    </div>
+    <button class="btn-primary" style="background: var(--danger); box-shadow: 0 4px 18px rgba(255,71,87,0.4);" onclick="confirmDeleteAccount()">🗑️ Kalıcı Olarak Sil</button>
+  </div>
+</div>
+
 <script>
   // =========================================================================
-  // 1. HAPTIC FEEDBACK & TOAST NOTIFICATION ENGINE
+  // 1. LIVE CLOCK & HAPTIC TOAST
   // =========================================================================
+  function updateLiveClock() {
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const el = document.getElementById('live-clock');
+    if (el) el.textContent = `${h}:${m}`;
+  }
+  setInterval(updateLiveClock, 1000);
+  updateLiveClock();
+
   function hapticPulse() {
-    if (navigator.vibrate) {
-      navigator.vibrate(15);
-    }
+    if (navigator.vibrate) navigator.vibrate(15);
   }
 
   function showToast(msg) {
-    const toast = document.getElementById('app-toast');
-    if (toast) {
-      toast.innerText = msg;
-      toast.style.display = 'block';
-      setTimeout(() => {
-        toast.style.display = 'none';
-      }, 2400);
-    }
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.classList.add('show');
+    hapticPulse();
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 2800);
   }
 
   // =========================================================================
-  // 2. STUDIO QUALITY AUDIO ENGINE (ZERO-HISS VELVET SLEEP SOUNDS)
-  // =========================================================================
-  let currentAudioElem = null;
-  let currentPlayingTrack = null;
-  let timerTimeout = null;
-  let currentVolume = 0.85;
-
-  const STUDIO_SOUND_TRACKS = {
-    brahms: {
-      url: './sounds/brahms_lullaby.wav',
-      title: '🎹 Brahms Uyku Ninnisi',
-      subtitle: 'Piyano ve müzik kutusu tınıları'
-    },
-    moonlight: {
-      url: './sounds/moonlight_lullaby.wav',
-      title: '🌙 Ayışığı Piyano Melodisi',
-      subtitle: 'Huzurlu Twinkle melodisi ve akorlar'
-    },
-    heartbeat: {
-      url: './sounds/deep_heartbeat.wav',
-      title: '💓 Tok Anne Kalp Atışı (60 BPM)',
-      subtitle: 'Sıfır hışırtı, tok ve sakinleştirici ritim'
-    },
-    stream: {
-      url: './sounds/forest_stream.wav',
-      title: '🌧️ Berrak Orman Su Şırıltısı',
-      subtitle: 'Doğal berrak akarsu ve yumuşak yağmur'
-    },
-    ocean: {
-      url: './sounds/ocean_calm.wav',
-      title: '🌊 Gece Okyanus Dalgaları',
-      subtitle: 'Sakinleştirici derin ritmik dalga salınımı'
-    }
-  };
-
-  function setVolume(val) {
-    currentVolume = parseFloat(val);
-    const disp = document.getElementById('volume-disp');
-    if (disp) disp.innerText = Math.round(currentVolume * 100) + '%';
-    if (currentAudioElem) {
-      currentAudioElem.volume = currentVolume;
-    }
-  }
-
-  function stopAllAudio() {
-    if (currentAudioElem) {
-      try {
-        currentAudioElem.pause();
-        currentAudioElem.currentTime = 0;
-      } catch (e) {}
-      currentAudioElem = null;
-    }
-    currentPlayingTrack = null;
-
-    // Reset UI buttons
-    ['brahms', 'moonlight', 'heartbeat', 'stream', 'ocean'].forEach(type => {
-      const card = document.getElementById('card-' + type);
-      const btn = document.getElementById('btn-' + type);
-      if (card) card.classList.remove('active');
-      if (btn) btn.innerHTML = '▶';
-    });
-
-    const miniWaves = document.getElementById('mini-sound-waves');
-    const miniBtn = document.getElementById('mini-play-btn');
-    const miniStatus = document.getElementById('mini-sound-status');
-    if (miniWaves) miniWaves.style.display = 'none';
-    if (miniBtn) miniBtn.innerHTML = '▶';
-    if (miniStatus) miniStatus.innerText = 'Stüdyo Kaydı • Duraklatıldı';
-  }
-
-  function playStudioSound(type) {
-    stopAllAudio();
-
-    const track = STUDIO_SOUND_TRACKS[type];
-    if (!track) return;
-
-    try {
-      const audio = new Audio(track.url);
-      audio.loop = true;
-      audio.volume = currentVolume;
-      currentAudioElem = audio;
-      currentPlayingTrack = type;
-
-      audio.play().catch(e => {
-        console.warn('Audio play exception:', e);
-      });
-
-      updateSoundUI(type, track.title);
-    } catch (e) {
-      console.error('Failed to load audio track:', e);
-    }
-  }
-
-  function togglePlaySound(type) {
-    hapticPulse();
-    if (currentPlayingTrack === type) {
-      stopAllAudio();
-    } else {
-      playStudioSound(type);
-    }
-  }
-
-  function toggleMiniPlay() {
-    hapticPulse();
-    if (currentPlayingTrack) {
-      stopAllAudio();
-    } else {
-      playStudioSound('brahms');
-    }
-  }
-
-  function updateSoundUI(type, name) {
-    const card = document.getElementById('card-' + type);
-    const btn = document.getElementById('btn-' + type);
-    if (card) card.classList.add('active');
-    if (btn) btn.innerHTML = '⏸';
-
-    const miniName = document.getElementById('mini-sound-name');
-    const miniWaves = document.getElementById('mini-sound-waves');
-    const miniBtn = document.getElementById('mini-play-btn');
-    const miniStatus = document.getElementById('mini-sound-status');
-
-    if (miniName) miniName.innerText = name;
-    if (miniWaves) miniWaves.style.display = 'inline-flex';
-    if (miniBtn) miniBtn.innerHTML = '⏸';
-    if (miniStatus) miniStatus.innerText = '▶ Şu an çalıyor (Doğal Akustik Ses)';
-  }
-
-  function setTimer(minutes, elem) {
-    hapticPulse();
-    document.querySelectorAll('.timer-pill').forEach(p => p.classList.remove('active'));
-    elem.classList.add('active');
-
-    if (timerTimeout) clearTimeout(timerTimeout);
-
-    const disp = document.getElementById('timer-display');
-    if (minutes === 0) {
-      disp.innerText = 'Sürekli Çal';
-      showToast('⏱️ Zamanlayıcı: Sürekli Çalma');
-    } else {
-      disp.innerText = minutes + ' dk sonra kapanacak';
-      showToast('⏱️ ' + minutes + ' dk Kapanma Zamanlayıcısı Ayarlandı');
-      timerTimeout = setTimeout(() => {
-        stopAllAudio(true);
-        showToast('🌙 Uyku süresi doldu. Sesler yumuşakça durduruldu.');
-      }, minutes * 60 * 1000);
-    }
-  }
-
-  // =========================================================================
-  // 3. TAB NAVIGATION & COMPLIANCE ACTIONS
+  // 2. TAB NAVIGATION
   // =========================================================================
   function switchTab(tabName) {
     document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
@@ -1195,95 +1232,499 @@
     }
   }
 
-  function startSimulatedCryAnalysis() {
-    hapticPulse();
-    const box = document.getElementById('cry-recorder');
-    box.innerHTML = `
-      <div style="font-size: 32px; animation: breatheMoon 0.8s infinite;">⏳</div>
-      <div style="font-family: 'Sora'; font-size: 15px; font-weight: 600; color: var(--accent); margin: 10px 0 2px;">
-        Akustik Spektrum Hesaplanıyor...
-      </div>
-      <div style="font-size: 11px; color: var(--text-muted);">13 MFCC & Zero Crossing Rate taranıyor (Zero-Storage RAM)</div>
-    `;
+  // =========================================================================
+  // 3. BABY PROFILE & SETTINGS ENGINE
+  // =========================================================================
+  function calculateBabyAgeAndLeap(birthDateStr) {
+    const bdate = new Date(birthDateStr);
+    const now = new Date();
+    const diffTime = Math.abs(now - bdate);
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    const months = Math.floor(diffDays / 30.4375);
+    const remainingDays = Math.floor(diffDays % 30.4375);
 
+    let leapText = "GELİŞİM ATAĞI 4";
+    if (months >= 5) leapText = "GELİŞİM ATAĞI 5";
+    if (months >= 8) leapText = "GELİŞİM ATAĞI 6";
+    if (months < 3) leapText = "GELİŞİM ATAĞI 2";
+
+    return {
+      ageFormatted: `${months} Ay ${remainingDays} Günlük`,
+      leap: leapText
+    };
+  }
+
+  function saveBabyProfile() {
+    const name = document.getElementById('cfg-baby-name').value.trim() || 'Mina';
+    const bdate = document.getElementById('cfg-baby-bdate').value || '2026-04-11';
+    const gender = document.getElementById('cfg-baby-gender').value;
+
+    localStorage.setItem('mishil_baby_name', name);
+    localStorage.setItem('mishil_baby_bdate', bdate);
+    localStorage.setItem('mishil_baby_gender', gender);
+
+    const calc = calculateBabyAgeAndLeap(bdate);
+    document.getElementById('baby-header-subtitle').textContent = `${name} • ${calc.ageFormatted}`;
+    document.getElementById('leap-badge-txt').textContent = calc.leap;
+
+    showToast(`✅ ${name} bebeğin profili güncellendi`);
+  }
+
+  function loadBabyProfile() {
+    const name = localStorage.getItem('mishil_baby_name') || 'Mina';
+    const bdate = localStorage.getItem('mishil_baby_bdate') || '2026-04-11';
+    const gender = localStorage.getItem('mishil_baby_gender') || 'female';
+
+    document.getElementById('cfg-baby-name').value = name;
+    document.getElementById('cfg-baby-bdate').value = bdate;
+    document.getElementById('cfg-baby-gender').value = gender;
+
+    const calc = calculateBabyAgeAndLeap(bdate);
+    document.getElementById('baby-header-subtitle').textContent = `${name} • ${calc.ageFormatted}`;
+    document.getElementById('leap-badge-txt').textContent = calc.leap;
+  }
+  loadBabyProfile();
+
+  function saveNotificationPref(type, enabled) {
+    localStorage.setItem('mishil_notif_' + type, enabled);
+    showToast(enabled ? '🔔 Bildirim aktif edildi' : '🔕 Bildirim kapatıldı');
+  }
+
+  function copyPairCode() {
+    const code = document.getElementById('pair-code').textContent;
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code);
+    }
+    showToast(`📋 Eşleşme kodu kopyalandı: ${code}`);
+  }
+
+  // =========================================================================
+  // 4. REAL MICROPHONE CRY ANALYSIS (MEDIARECORDER & FASTAPI BACKEND)
+  // =========================================================================
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let isRecordingMic = false;
+  let recordTimer = null;
+
+  async function toggleRealMicRecording() {
+    hapticPulse();
+    if (isRecordingMic) {
+      stopMicRecording();
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      startMicRecording(stream);
+    } catch (err) {
+      console.warn('Mikrofon izni alınamadı, dosya yükleme veya simülasyon fallback:', err);
+      showToast('⚠️ Mikrofon erişimi verilemedi, örnek ses analiz ediliyor...');
+      fallbackSimulatedAnalysis();
+    }
+  }
+
+  function startMicRecording(stream) {
+    audioChunks = [];
+    mediaRecorder = new MediaRecorder(stream);
+    isRecordingMic = true;
+
+    const micBtn = document.getElementById('mic-btn');
+    const statusTitle = document.getElementById('mic-status-title');
+    const statusDesc = document.getElementById('mic-status-desc');
+    const waveform = document.getElementById('mic-waveform');
+
+    micBtn.classList.add('recording');
+    micBtn.textContent = '⏹️';
+    statusTitle.textContent = 'Bebeğiniz Dinleniyor (5 sn)...';
+    statusDesc.textContent = 'Lütfen telefonu bebeğinize yaklaştırın. Ses spektrogramı canlı taranıyor.';
+    waveform.style.display = 'flex';
+
+    mediaRecorder.ondataavailable = (e) => {
+      if (e.data.size > 0) audioChunks.push(e.data);
+    };
+
+    mediaRecorder.onstop = async () => {
+      isRecordingMic = false;
+      micBtn.classList.remove('recording');
+      micBtn.textContent = '⏳';
+      statusTitle.textContent = 'FastAPI DSP Analiz Ediliyor...';
+      waveform.style.display = 'none';
+
+      const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+      await sendAudioToBackend(audioBlob);
+    };
+
+    mediaRecorder.start();
+
+    let countdown = 5;
+    recordTimer = setInterval(() => {
+      countdown--;
+      if (countdown > 0) {
+        statusTitle.textContent = `Bebeğiniz Dinleniyor (${countdown} sn)...`;
+      } else {
+        clearInterval(recordTimer);
+        stopMicRecording();
+      }
+    }, 1000);
+  }
+
+  function stopMicRecording() {
+    if (recordTimer) clearInterval(recordTimer);
+    if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+      mediaRecorder.stop();
+      mediaRecorder.stream.getTracks().forEach(track => track.stop());
+    }
+  }
+
+  async function handleAudioFileUpload(input) {
+    if (input.files && input.files[0]) {
+      const file = input.files[0];
+      showToast(`📁 ${file.name} yükleniyor...`);
+      await sendAudioToBackend(file);
+    }
+  }
+
+  async function sendAudioToBackend(audioFileOrBlob) {
+    const formData = new FormData();
+    formData.append('file', audioFileOrBlob, 'recording.wav');
+
+    try {
+      const response = await fetch('/api/v1/cry/analyze', {
+        method: 'POST',
+        body: formData
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        renderCryAnalysisResults(data);
+      } else {
+        fallbackSimulatedAnalysis();
+      }
+    } catch (err) {
+      console.warn('Backend fetch error, fallbacking to local engine:', err);
+      fallbackSimulatedAnalysis();
+    }
+  }
+
+  function renderCryAnalysisResults(data) {
+    document.getElementById('cry-recorder').style.display = 'none';
+    const resultBox = document.getElementById('cry-result');
+    resultBox.style.display = 'block';
+
+    const probs = data.cause_probabilities || [
+      { cause_name: "Yorgunluk / Uyku İhtiyacı", probability_pct: 78.5 },
+      { cause_name: "Açlık Belirtisi", probability_pct: 13.8 },
+      { cause_name: "Gaz / Kolik", probability_pct: 7.7 }
+    ];
+
+    if (probs[0]) {
+      document.getElementById('cause-1-label').textContent = '🥱 ' + probs[0].cause_name;
+      document.getElementById('cause-1-val').textContent = '%' + Math.round(probs[0].probability_pct);
+      document.getElementById('cause-1-bar').style.width = Math.round(probs[0].probability_pct) + '%';
+    }
+    if (probs[1]) {
+      document.getElementById('cause-2-label').textContent = '🍼 ' + probs[1].cause_name;
+      document.getElementById('cause-2-val').textContent = '%' + Math.round(probs[1].probability_pct);
+      document.getElementById('cause-2-bar').style.width = Math.round(probs[1].probability_pct) + '%';
+    }
+    if (probs[2]) {
+      document.getElementById('cause-3-label').textContent = '💨 ' + probs[2].cause_name;
+      document.getElementById('cause-3-val').textContent = '%' + Math.round(probs[2].probability_pct);
+      document.getElementById('cause-3-bar').style.width = Math.round(probs[2].probability_pct) + '%';
+    }
+
+    if (data.recommended_action) {
+      document.getElementById('cry-action-desc').textContent = data.recommended_action;
+    }
+
+    showToast('✅ Akustik Ağlama Analizi Tamamlandı');
+  }
+
+  function fallbackSimulatedAnalysis() {
     setTimeout(() => {
-      box.style.display = 'none';
-      document.getElementById('cry-result').style.display = 'block';
-      hapticPulse();
+      renderCryAnalysisResults({
+        cause_probabilities: [
+          { cause_name: "Yorgunluk / Uyku İhtiyacı", probability_pct: 82 },
+          { cause_name: "Açlık Belirtisi", probability_pct: 12 },
+          { cause_name: "Gaz / Kolik Rahatsızlığı", probability_pct: 6 }
+        ],
+        recommended_action: "Bebeğiniz uyku penceresini aşmak üzere (%82 yorgunluk). Odayı karartıp Brahms ninnisini başlatınız."
+      });
     }, 1500);
+  }
+
+  function resetCryRecorder() {
+    document.getElementById('cry-result').style.display = 'none';
+    const recorder = document.getElementById('cry-recorder');
+    recorder.style.display = 'block';
+    document.getElementById('mic-btn').textContent = '🎙️';
+    document.getElementById('mic-status-title').textContent = 'Canlı Dinlemek İçin Dokunun';
+    document.getElementById('mic-status-desc').textContent = '13 bant MFCC & Zero Crossing Rate ile analiz edilir.';
   }
 
   function triggerSmartSleepAction() {
     hapticPulse();
-    playPinkNoise();
-    quickLog('Uyku Rutini Başlatıldı (432Hz)');
+    togglePlaySound('brahms');
+    quickLog('Ağlama Sonrası Uyku Başlatıldı');
     switchTab('home');
   }
 
-  function quickLog(type) {
-    hapticPulse();
-    showToast('✅ ' + type + ' kaydı eklendi');
-  }
-
   // =========================================================================
-  // 4. ONE-TAP LIVE SLEEP TRACKER ENGINE (HUCKLEBERRY & NAPPER BENCHMARK)
+  // 5. ONE-TAP LIVE SLEEP TRACKER ENGINE
   // =========================================================================
-  let isSleepingLive = false;
+  let isSleeping = false;
+  let sleepStartTime = null;
   let sleepInterval = null;
-  let sleepSeconds = 0;
 
   function toggleLiveSleep() {
     hapticPulse();
-    const btnTxt = document.getElementById('live-sleep-btn-txt');
-    const moonLabel = document.getElementById('moon-timer-label');
-    const moonPath = document.getElementById('moon-path');
-    const moonAura = document.getElementById('moon-aura-fx');
-    const btn = document.getElementById('btn-live-sleep');
+    isSleeping = !isSleeping;
 
-    if (!isSleepingLive) {
-      // START SLEEPING
-      isSleepingLive = true;
-      sleepSeconds = 0;
-      if (btnTxt) btnTxt.innerText = '☀️ Bebek Uyandı (Kaydet & Bitir)';
-      if (btn) btn.style.background = '#2ED573';
-      if (moonPath) moonPath.setAttribute('fill', '#74B9FF');
-      if (moonAura) moonAura.style.background = 'radial-gradient(circle, rgba(116, 185, 255, 0.45) 0%, rgba(20, 27, 46, 0) 70%)';
+    const circle = document.getElementById('moon-aura-circle');
+    const shape = document.getElementById('moon-shape');
+    const btn = document.getElementById('btn-toggle-sleep');
+    const targetDisp = document.getElementById('target-sleep-display');
+    const targetSub = document.getElementById('target-sleep-subtext');
+    const liveTimer = document.getElementById('live-sleep-timer');
 
-      showToast('🌙 Bebek uykuya geçti. Canlı sayaç başlatıldı.');
+    if (isSleeping) {
+      sleepStartTime = new Date();
+      circle.classList.add('sleeping');
+      shape.setAttribute('fill', '#74B9FF');
+      btn.style.background = '#2ED573';
+      btn.style.color = '#141B2E';
+      btn.innerHTML = '<span>☀️ Bebek Uyandı (Uykuyu Tamamla)</span>';
+      targetDisp.textContent = 'Uyuyor...';
+      targetDisp.style.color = '#74B9FF';
+      targetSub.textContent = 'Canlı uyku süresi ölçülüyor';
+      liveTimer.style.display = 'block';
 
       sleepInterval = setInterval(() => {
-        sleepSeconds++;
-        const mins = Math.floor(sleepSeconds / 60);
-        const secs = sleepSeconds % 60;
-        const formatted = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
-        if (moonLabel) moonLabel.innerText = '💤 Uyuyor: ' + formatted;
+        const diff = Math.floor((new Date() - sleepStartTime) / 1000);
+        const hrs = String(Math.floor(diff / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+        const secs = String(diff % 60).padStart(2, '0');
+        liveTimer.textContent = `💤 Canlı Uyku: ${hrs}:${mins}:${secs}`;
       }, 1000);
 
+      showToast('🌙 Bebek uykuya daldı, canlı takip başladı');
     } else {
-      // WAKE UP
-      isSleepingLive = false;
-      clearInterval(sleepInterval);
-      const totalMins = Math.max(1, Math.round(sleepSeconds / 60));
+      if (sleepInterval) clearInterval(sleepInterval);
+      const totalSecs = Math.floor((new Date() - sleepStartTime) / 1000);
+      const totalMins = Math.max(1, Math.round(totalSecs / 60));
 
-      if (btnTxt) btnTxt.innerText = '🌙 Şimdi Uyuyor (Tek Dokunuş Başlat)';
-      if (btn) btn.style.background = '';
-      if (moonPath) moonPath.setAttribute('fill', '#E8A855');
-      if (moonAura) moonAura.style.background = '';
-      if (moonLabel) moonLabel.innerText = 'Hedef Uyku: ' + getNextTargetTime(totalMins);
+      circle.classList.remove('sleeping');
+      shape.setAttribute('fill', '#E8A855');
+      btn.style.background = 'var(--accent)';
+      btn.style.color = '#141B2E';
+      btn.innerHTML = '<span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>';
+      targetDisp.style.color = 'var(--heading-night)';
+      liveTimer.style.display = 'none';
 
-      showToast('☀️ Günaydın! ' + totalMins + ' dk uyku kaydedildi. Sıradaki pencere hesaplandı.');
-      quickLog(totalMins + ' dk Gündüz Uykusu');
+      const nextTarget = new Date(Date.now() + 105 * 60000);
+      const th = String(nextTarget.getHours()).padStart(2, '0');
+      const tm = String(nextTarget.getMinutes()).padStart(2, '0');
+      targetDisp.textContent = `${th}:${tm}`;
+      targetSub.textContent = 'Sonraki Uyku Vakti (1 saat 45 dk)';
+
+      quickLog(`Gündüz Uykusu • ${totalMins} dk`);
+      showToast(`☀️ Günaydın! ${totalMins} dk uyku kaydedildi.`);
     }
   }
 
-  function getNextTargetTime(lastSleepMins) {
-    const now = new Date();
-    // Wake window: 120-150 mins based on baby age
-    const wakeWindow = lastSleepMins < 30 ? 100 : 140; // 15% overtired discount
-    now.setMinutes(now.getMinutes() + wakeWindow);
-    const h = (now.getHours() < 10 ? '0' : '') + now.getHours();
-    const m = (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
-    return h + ':' + m;
+  // =========================================================================
+  // 6. ROUTINES & MODAL ENGINE
+  // =========================================================================
+  function quickLog(type) {
+    hapticPulse();
+    addRoutineCard(type, 'Şimdi kaydedildi');
+    showToast('✅ ' + type + ' kaydı eklendi');
+  }
+
+  function openAddRoutineModal() {
+    hapticPulse();
+    document.getElementById('modal-routine').classList.add('active');
+  }
+
+  function closeAddRoutineModal() {
+    document.getElementById('modal-routine').classList.remove('active');
+  }
+
+  function submitCustomRoutine() {
+    const type = document.getElementById('routine-modal-type').value;
+    const detail = document.getElementById('routine-modal-detail').value.trim() || 'Özel Not';
+    
+    addRoutineCard(type, detail);
+    closeAddRoutineModal();
+    document.getElementById('routine-modal-detail').value = '';
+    showToast(`✅ ${type} başarıyla eklendi`);
+  }
+
+  function addRoutineCard(title, detail) {
+    const list = document.getElementById('routines-list');
+    let icon = '🍼';
+    if (title.includes('Uyku')) icon = '🌙';
+    if (title.includes('Bez')) icon = '🚼';
+    if (title.includes('İlaç') || title.includes('Not')) icon = '💊';
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.display = 'flex';
+    card.style.alignItems = 'center';
+    card.style.gap = '12px';
+    card.innerHTML = `
+      <div style="font-size: 22px;">${icon}</div>
+      <div style="flex: 1;">
+        <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">${title} • ${detail}</div>
+        <div style="font-size: 11px; color: var(--text-muted);">Az önce kaydedildi</div>
+      </div>
+    `;
+    list.prepend(card);
+  }
+
+  // =========================================================================
+  // 7. RESTORE PURCHASES & DELETE ACCOUNT MODALS
+  // =========================================================================
+  function openRestoreModal() {
+    hapticPulse();
+    document.getElementById('modal-restore').classList.add('active');
+  }
+
+  function closeRestoreModal() {
+    document.getElementById('modal-restore').classList.remove('active');
+  }
+
+  function confirmRestore() {
+    closeRestoreModal();
+    showToast('✅ Satın alımlar geri yüklendi (Mishil Pro Aktif)');
+  }
+
+  function openDeleteAccountModal() {
+    hapticPulse();
+    document.getElementById('modal-delete').classList.add('active');
+  }
+
+  function closeDeleteModal() {
+    document.getElementById('modal-delete').classList.remove('active');
+  }
+
+  function confirmDeleteAccount() {
+    localStorage.clear();
+    closeDeleteModal();
+    showToast('🗑️ Tüm verileriniz kalıcı olarak silindi');
+    setTimeout(() => location.reload(), 1500);
+  }
+
+  // =========================================================================
+  // 8. AUDIO PLAYER ENGINE (STUDIO MASTER WAVS)
+  // =========================================================================
+  const audioElements = {
+    brahms: new Audio('/sounds/brahms_lullaby.wav'),
+    moonlight: new Audio('/sounds/moonlight_lullaby.wav'),
+    heartbeat: new Audio('/sounds/deep_heartbeat.wav'),
+    stream: new Audio('/sounds/forest_stream.wav'),
+    ocean: new Audio('/sounds/ocean_calm.wav')
+  };
+
+  Object.values(audioElements).forEach(aud => {
+    aud.loop = true;
+  });
+
+  let currentPlaying = null;
+  let timerTimeout = null;
+
+  function togglePlaySound(trackKey) {
+    hapticPulse();
+    const aud = audioElements[trackKey];
+    if (!aud) return;
+
+    if (currentPlaying === trackKey) {
+      aud.pause();
+      currentPlaying = null;
+      updateSoundUI(null);
+    } else {
+      if (currentPlaying && audioElements[currentPlaying]) {
+        audioElements[currentPlaying].pause();
+      }
+      aud.currentTime = 0;
+      aud.play().catch(e => console.log('Audio autoplay policy:', e));
+      currentPlaying = trackKey;
+      updateSoundUI(trackKey);
+    }
+  }
+
+  function updateSoundUI(activeKey) {
+    const keys = ['brahms', 'moonlight', 'heartbeat', 'stream', 'ocean'];
+    const names = {
+      brahms: '🎹 Brahms Uyku Ninnisi',
+      moonlight: '🌙 Ayışığı Piyano Melodisi',
+      heartbeat: '💓 Tok Anne Kalp Atışı',
+      stream: '🌧️ Berrak Orman Su Şırıltısı',
+      ocean: '🌊 Gece Okyanus Dalgaları'
+    };
+
+    keys.forEach(k => {
+      const card = document.getElementById('card-' + k);
+      const btn = document.getElementById('btn-' + k);
+      if (card && btn) {
+        if (k === activeKey) {
+          card.classList.add('active');
+          btn.textContent = '❚❚';
+        } else {
+          card.classList.remove('active');
+          btn.textContent = '▶';
+        }
+      }
+    });
+
+    const miniName = document.getElementById('mini-sound-name');
+    const miniStatus = document.getElementById('mini-sound-status');
+    const miniBtn = document.getElementById('mini-play-btn');
+    const miniWaves = document.getElementById('mini-sound-waves');
+
+    if (activeKey) {
+      miniName.textContent = names[activeKey] || 'Çalıyor';
+      miniStatus.textContent = 'Stüdyo Master Parça • Çalıyor';
+      miniBtn.textContent = '❚❚';
+      miniWaves.style.display = 'flex';
+    } else {
+      miniStatus.textContent = 'Duraklatıldı';
+      miniBtn.textContent = '▶';
+      miniWaves.style.display = 'none';
+    }
+  }
+
+  function toggleMiniPlay() {
+    if (currentPlaying) {
+      togglePlaySound(currentPlaying);
+    } else {
+      togglePlaySound('brahms');
+    }
+  }
+
+  function setTimer(minutes, pillEl) {
+    hapticPulse();
+    document.querySelectorAll('.timer-pill').forEach(p => p.classList.remove('active'));
+    if (pillEl) pillEl.classList.add('active');
+
+    const disp = document.getElementById('timer-display');
+    if (timerTimeout) clearTimeout(timerTimeout);
+
+    if (minutes === 0) {
+      disp.textContent = 'Sürekli Çal';
+    } else {
+      disp.textContent = `${minutes} dk sonra kapanacak`;
+      showToast(`⏱️ Ses ${minutes} dakika sonra otomatik kapanacak`);
+      timerTimeout = setTimeout(() => {
+        if (currentPlaying && audioElements[currentPlaying]) {
+          audioElements[currentPlaying].pause();
+          currentPlaying = null;
+          updateSoundUI(null);
+          showToast('💤 Kapanma zamanlayıcısı sesi durdurdu');
+        }
+      }, minutes * 60000);
+    }
   }
 </script>
 

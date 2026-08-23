@@ -2,6 +2,17 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [1.9.0] - 2026-08-23
+### Added & Upgraded (Canlı Mikrofon Ağlama Analizi, Kapsamlı Ayarlar & İnteraktif Rutin Modalı)
+- **Gerçek Mikrofon & Web Audio MediaRecorder Kayıt Motoru:** `navigator.mediaDevices.getUserMedia` ile 5 saniyelik canlı ses dalgası görselleştiricisi ve ses kaydı entegre edildi.
+- **FastAPI Canlı API Entegrasyonu (`POST /api/v1/cry/analyze`):** Kaydedilen gerçek ses blob'u veya cihazdan yüklenen dosya FastAPI backend'ine gönderilerek Librosa 13 MFCC / FFT analiziyle canlı olasılık dağılımı (Yorgunluk, Açlık, Kolik) hesaplanır.
+- **Kapsamlı Ayarlar (Settings) Sekmesi:**
+  - Bebek Profili (Ad, Doğum Tarihi seçimi, otomatik ay ve gelişim atağı (Leap) hesaplayıcı).
+  - Akıllı Bildirim & Uyku Alarmı Tercihleri (Toggle switch'ler).
+  - Ebeveyn & Bakıcı Davet Kodu Üreticisi (`MISHIL-8492`).
+  - Apple 3.1.1 Satın Alımları Geri Yükle ve Apple 5.1.1 Hesap/Veri Silme modalları.
+- **İnteraktif Manuel Rutin Ekleme Modalı:** Beslenme (ml), Uyku (dk), Bez ve İlaç/Not kayıtları için modal form eklendi.
+
 ## [1.8.0] - 2026-08-23
 ### Added & Mastered (Gerçek Akustik Müzik Kutusu, Stetoskop Nabzı & 2.5s Cosine Crossfade Loop)
 - **Akustik Fiziksel Modelleme & Stüdyo Tınıları:** Sentetik matematiksel sinüzoidler yerine ahşap rezonanslı narin çan tokmakları, canlı kuyruklu piyano harmonikleri ve kardiyoloji stetoskop çift vuruşlu (S1/S2) tok nabız modellerine geçildi.
