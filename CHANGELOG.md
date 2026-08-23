@@ -2,6 +2,16 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [1.6.0] - 2026-08-23
+### Added & Enhanced (Sıfır Cızırtılı DSP Akustik Ses Motoru & Master Varlıklar)
+- **Paul Kellet 6-Kutuplu Gerçek Pembe Gürültü (Pink Noise):** -3dB/oktav analog eğri ve 300Hz 4-stage cascaded lowpass filtreleme ile kulaklık ve hoparlördeki tüm dijital cızırtı/tıklama ve yüksek frekans hışırtısı %100 yok edildi.
+- **Dikişsiz Cosine Crossfade Döngüsü (Seamless Loop):** 16 saniyelik master parçaların başı ve sonu arasında 2.0 saniyelik dikişsiz örtüşme uygulanarak döngü başa sardığında oluşan ani klik/çıt sesleri engellendi.
+- **Organik Anne Karnı & 62 BPM Nabız:** Stetoskopik çift vuruşlu (S1 Lub 46Hz, S2 Dub 64Hz) akustik rezonans ve amniyotik sıvı dalgalanması.
+- **5S Dr. Karp Doğal İnsan Pışpışlaması:** 720Hz ve 1400Hz vokal trakt formantları ile asimetrik nefes alma-verme (exhale/inhale) zarfı.
+- **Huzurlu Gece Yağmuru:** Poisson yumuşak damla dağılımı ve 42Hz derin ambient drone.
+- **Brahms Ninni (Müzik Kutusu):** Kristal tınılı metal çan harmonikleri (2.75x & 5.4x overtones) ve eksponansiyel sönümleme ile ninni melodisi.
+- **Web Audio Simülatör Entegrasyonu:** `mobile/web-preview/index.html` arayüzüne 5. ses olarak Brahms Ninni kartı eklendi ve tüm ses motoru yeni master dosyalardan beslenecek şekilde güncellendi.
+
 ## [1.5.0] - 2026-08-19
 ### Fixed (Kritik Bug Düzeltmeleri)
 - **`main.py` Çift `GET /` Route:** İki kez tanımlanan route tek unified fonksiyona birleştirildi; dead code ortadan kaldırıldı.

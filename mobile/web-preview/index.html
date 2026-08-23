@@ -910,10 +910,19 @@
       <!-- Sound Track 4: Soft Rain -->
       <div class="sound-item" id="card-rain" onclick="togglePlaySound('rain')">
         <div>
-          <div class="sound-title">Gece Yağmuru & Şömine</div>
-          <div class="sound-desc">Doğal ortam ambiyansı ve sakinlik</div>
+          <div class="sound-title">Gece Yağmuru & Doğa</div>
+          <div class="sound-desc">Doğal ortam ambiyansı ve huzurlu su sesi</div>
         </div>
         <button class="sound-play-btn" id="btn-rain">▶</button>
+      </div>
+
+      <!-- Sound Track 5: Brahms Lullaby Music Box -->
+      <div class="sound-item" id="card-lullaby" onclick="togglePlaySound('lullaby')">
+        <div>
+          <div class="sound-title">Brahms Ninni (Müzik Kutusu)</div>
+          <div class="sound-desc">Klasik tınılı narin çan harmonikleri</div>
+        </div>
+        <button class="sound-play-btn" id="btn-lullaby">▶</button>
       </div>
     </div>
 
@@ -1031,7 +1040,7 @@
     },
     womb: {
       url: './sounds/womb_heartbeat.wav',
-      title: 'Anne Karnı & 60 BPM Nabız',
+      title: 'Anne Karnı & 62 BPM Nabız',
       subtitle: 'Amniyotik sıvı ve organik kalp atışı'
     },
     shush: {
@@ -1043,6 +1052,11 @@
       url: './sounds/soft_rain.wav',
       title: 'Gece Yağmuru & Doğa Ambiyansı',
       subtitle: 'Huzurlu doğa sesi ve derin rahatlama'
+    },
+    lullaby: {
+      url: './sounds/brahms_lullaby.wav',
+      title: 'Brahms Ninni (Müzik Kutusu)',
+      subtitle: 'Saf kristal çan tınıları ve melodi'
     }
   };
 
@@ -1066,7 +1080,7 @@
     currentPlayingTrack = null;
 
     // Reset UI buttons
-    ['pink', 'womb', 'shush', 'rain'].forEach(type => {
+    ['pink', 'womb', 'shush', 'rain', 'lullaby'].forEach(type => {
       const card = document.getElementById('card-' + type);
       const btn = document.getElementById('btn-' + type);
       if (card) card.classList.remove('active');

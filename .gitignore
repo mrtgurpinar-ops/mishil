@@ -36,3 +36,12 @@ htmlcov/
 
 # Dev/debug utility scripts (not part of the app, kept locally)
 scripts/
+
+# Video & Media generation outputs
+*.mp4
+*.jpg
+output_*/
+generate_*_film.py
+generate_*_reels.py
+render_*.py
+test_veo_*.py
