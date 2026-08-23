@@ -18,6 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.logging import setup_logging, get_logger, request_id_ctx
 from app.db.base import Base, engine
+import app.db.models  # Ensures all SQLAlchemy models are registered in Base.metadata
 from app.api.v1.router import api_router
 
 # Setup structured logging
