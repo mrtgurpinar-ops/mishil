@@ -2,6 +2,19 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [2.4.0] - 2026-08-23
+### 👨‍👩‍👧 Aile & Dadı Senkronizasyonu, Wonder Weeks % İlerleme Çubukları & Erken Atak Modu
+- **Dinamik Wonder Weeks (10 Zihinsel Sıçrama) Motoru:** Bebeğin doğum tarihine gün gün duyarlı çalışan; her sıçramada dinamik **% dolum çubuğu**, fırtına zirvesi ve yaklaşan sıçramalara gün geri sayımı entegre edildi.
+- **⚡ Manuel Erken Atak Başlatma Modu (Early Leap Override):** Bebek takvimden 1-2 hafta önce huysuzluk gösterdiğinde ebeveynin/dadının tek tıkla atağı manuel başlatması sağlandı. Bu modda SweetSpot uyanıklık penceresi otomatik olarak 15 dakika kısaltılarak aşırı yorgunluk kalkanı devreye girer.
+- **Ana Ekran Gelişim Skoru Bento Kartı (%84):** SweetSpot ekranına bebeğin gelişim ayına, sirkadiyen dengesine ve aktif atağına göre hesaplanan canlı Gelişim Skoru eklendi.
+- **👨‍👩‍👧 Aile & Dadı Paylaşımı (Co-Parenting Cloud Sync):** 6 haneli aile paylaşım kodu (`MSL782`), Anne 👩 / Baba 👨 / Dadı 👵 rol yönetimi ve Mışıl Dadı'nın kimliğe özel hitap etmesi sağlandı.
+
+## [2.3.0] - 2026-08-23
+### 🎙️ 18 Gerçek Stüdyo & Alan Kaydı Ses Kütüphanesi ve Canlı Gemini 3.5 Entegrasyonu
+- **100% Gerçek Stüdyo & Alan Kaydı Parçalar:** Sentetik ve yapay sinüs frekansları tamamen kaldırılarak; gerçek akustik mekanik müzik kutuları, triküspit stetoskop kalp atışı (Lub-Dub), hidrofon su altı anne karnı, gerçek insan pışpışlaması (5S Shush), pencere yağmuru ve okyanus dalgaları gibi **24+ MB boyutunda gerçek stüdyo kayıtları** entegre edildi.
+- **Canlı Google Gemini 3.5 Flash Motoru:** Mışıl Dadı'nın standart kalıplara düşme sorunu kökten çözüldü; API anahtarı otomatik yüklenerek canlı yapay zeka çıkarımı sağlandı.
+- **`API_BASE` Akıllı İstemci Yönlendirmesi:** `file:///` veya web protokolünden bağımsız olarak tüm isteklerin canlı backend API'sine ulaşması sağlandı.
+
 ## [2.2.0] - 2026-08-23
 ### 👵 Mışıl Dadı (4 Katmanlı Gemini LLM) & 18 Parçalı Zengin Ses Kütüphanesi
 - **Mışıl Dadı Kimliği & Şefkatli Uzmanlık:** Soğuk "AI Koçu" tabiri kaldırılarak sıcak, şefkatli ve deneyimli **"Mışıl Dadı"** kimliğine geçildi.

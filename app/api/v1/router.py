@@ -7,6 +7,7 @@ from app.api.v1.endpoints import (
     routines,
     subscription,
     coach,
+    family,
 )
 
 api_router = APIRouter()
@@ -18,4 +19,4 @@ api_router.include_router(sounds.router)
 api_router.include_router(routines.router)
 api_router.include_router(subscription.router)
 api_router.include_router(coach.router, prefix="/coach", tags=["Mışıl Dadı AI"])
-
+api_router.include_router(family.router, prefix="/family", tags=["Family & Nanny Sync"])

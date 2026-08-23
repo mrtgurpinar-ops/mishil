@@ -17,7 +17,9 @@ class ChatMessage(BaseModel):
 class CoachChatRequest(BaseModel):
     baby_name: str = Field(default="Mina", description="Bebeğin adı")
     birth_date: str = Field(default="2026-04-11", description="Bebeğin doğum tarihi (YYYY-MM-DD)")
-    message: str = Field(..., min_length=1, description="Ebeveynin Mışıl Dadı'ya sorusu")
+    user_role: str = Field(default="mother", description="Soruyu soran rol ('mother', 'father', 'nanny')")
+    manual_leap: Optional[int] = Field(default=None, description="Manuel aktif edilmiş sıçrama numarası (1-10)")
+    message: str = Field(..., min_length=1, description="Ebeveynin/Dadının Mışıl Dadı'ya sorusu")
     chat_history: Optional[List[Dict[str, str]]] = Field(default=[], description="Önceki sohbet geçmişi")
 
 
@@ -25,6 +27,7 @@ class CoachChatResponse(BaseModel):
     reply: str
     tier_used: str
     baby_name: str
+    user_role: str
     timestamp: str
 
 
@@ -32,14 +35,16 @@ class CoachChatResponse(BaseModel):
 async def chat_with_coach(payload: CoachChatRequest):
     """
     4 Katmanlı Gemini LLM Destekli Mışıl Dadı Servisi:
-    Bebeğin adına, tam ayına ve uykusuna özel şefkatli ve bilimsel çözümler sunar.
+    Bebeğin adına, tam ayına, soruyu soran ebeveyn/dadı rolüne ve aktif gelişim sıçramasına özel şefkatli ve bilimsel çözümler sunar.
     """
     try:
         result = ask_mishil_dadi(
             baby_name=payload.baby_name,
             birth_date=payload.birth_date,
             message=payload.message,
-            chat_history=payload.chat_history
+            chat_history=payload.chat_history,
+            user_role=payload.user_role,
+            manual_leap=payload.manual_leap
         )
         return CoachChatResponse(**result)
     except Exception as e:

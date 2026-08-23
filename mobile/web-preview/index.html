@@ -899,6 +899,93 @@
       transition: width 0.6s ease-out;
     }
 
+    .score-bento {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(135deg, rgba(35, 45, 75, 0.9) 0%, rgba(20, 26, 45, 0.95) 100%);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius-md);
+      padding: 14px 16px;
+      margin-top: 10px;
+      box-shadow: 0 4px 20px -4px var(--accent-glow);
+      cursor: pointer;
+      backdrop-filter: blur(14px);
+    }
+
+    .score-circle-badge {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: conic-gradient(var(--accent) 0% 84%, #202A44 84% 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 16px var(--accent-glow);
+      flex-shrink: 0;
+    }
+
+    .score-circle-inner {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #141B2E;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #FFF;
+    }
+
+    .role-chips-row {
+      display: flex;
+      gap: 6px;
+      margin: 10px 0;
+    }
+
+    .role-chip {
+      flex: 1;
+      padding: 8px 6px;
+      text-align: center;
+      border-radius: 12px;
+      background: var(--card-elevated);
+      border: 1px solid var(--border-night);
+      color: var(--text-night);
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .role-chip.active {
+      background: var(--accent);
+      color: #121829;
+      border-color: var(--accent);
+      font-weight: 700;
+    }
+
+    .leap-item-card {
+      background: var(--card-night);
+      border: 1px solid var(--border-night);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 10px;
+      transition: all 0.3s cubic-bezier(0.2, 0.6, 0.2, 1);
+    }
+
+    .leap-item-card.active-leap {
+      border-color: var(--accent);
+      background: rgba(38, 48, 80, 0.9);
+      box-shadow: 0 6px 24px -4px var(--accent-glow);
+    }
+
+    .leap-item-card.completed-leap {
+      opacity: 0.82;
+      border-color: rgba(46, 213, 115, 0.3);
+    }
+
     .leap-badge {
       display: inline-block;
       background: rgba(74, 105, 189, 0.2);
@@ -909,6 +996,27 @@
       padding: 2px 8px;
       border-radius: 6px;
       margin-bottom: 6px;
+    }
+
+    .early-leap-btn {
+      background: rgba(232, 168, 85, 0.15);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 8px;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      transition: all 0.2s;
+    }
+
+    .early-leap-btn:hover {
+      background: var(--accent);
+      color: #141B2E;
     }
 
     .modal-overlay {
@@ -1152,24 +1260,43 @@
         </div>
       </div>
 
+      <!-- Gelişim Skoru & Uyku Sağlığı Bento Kartı -->
+      <div class="score-bento" onclick="switchTab('leaps')">
+        <div>
+          <div style="font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Biyolojik Gelişim & Uyku Skoru</div>
+          <div style="font-family: 'Sora'; font-size: 15px; font-weight: 700; color: #FFF; margin: 2px 0;" id="home-score-title">
+            🌟 Gelişim Skoru: %84
+          </div>
+          <div style="font-size: 11px; color: var(--text-night);" id="home-score-desc">
+            Harika İlerleme • 4. Atak Regresyonu Yönetiliyor
+          </div>
+        </div>
+        <div class="score-circle-badge" id="home-score-badge">
+          <div class="score-circle-inner" id="home-score-circle-val">84</div>
+        </div>
+      </div>
+
+      <!-- Wonder Weeks Leap Banner with Live Progress -->
+      <div class="card" style="border-left: 4px solid var(--accent); margin-top: 10px;" onclick="switchTab('leaps')">
+        <div class="spotlight-glow"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <span class="leap-badge" id="leap-badge-txt">4. GELİŞİM ATAĞI (%65 İLERLENDİ)</span>
+          <span style="font-size: 10px; color: var(--accent);">Atak Radarı ➔</span>
+        </div>
+        <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF; margin-bottom: 2px;" id="leap-banner-title">
+          Olaylar Dünyası & 4. Ay Regresyonu
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); line-height: 15px;" id="leap-banner-desc">
+          ⚡ Fırtınalı Dönem: Nörolojik sıçrama nedeniyle uyku direnci yaşanıyor. 432Hz ninnileri önerilir.
+        </div>
+        <div class="progress-bar-wrap" style="margin-top: 8px;">
+          <div class="progress-fill" id="leap-banner-progress" style="width: 65%;"></div>
+        </div>
+      </div>
+
       <button class="btn-primary" id="btn-toggle-sleep" onclick="toggleLiveSleep()">
         <span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>
       </button>
-
-      <!-- Wonder Weeks Leap Banner -->
-      <div class="card" style="border-left: 4px solid var(--moon-blue); margin-top: 12px;" onclick="switchTab('leaps')">
-        <div class="spotlight-glow"></div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span class="leap-badge" id="leap-badge-txt">GELİŞİM ATAĞI 5</span>
-          <span style="font-size: 10px; color: var(--accent);">Detaylı Rehber ➔</span>
-        </div>
-        <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF; margin-bottom: 2px;">
-          İlişkiler ve Mesafe Algısı Sıçraması
-        </div>
-        <div style="font-size: 11px; color: var(--text-muted); line-height: 15px;">
-          Bebeğiniz bu hafta ayrılık kaygısı nedeniyle uykuya dalmakta zorlanabilir. Brahms ninnisi veya Mışıl Dadı önerilir.
-        </div>
-      </div>
 
       <!-- Quick Actions -->
       <div class="section-title">
@@ -1202,7 +1329,7 @@
     <div id="view-coach" class="tab-view">
       <div class="app-header">
         <div>
-          <div class="baby-subtitle">7/24 Şefkatli Uyku & Gelişim Danışmanı</div>
+          <div class="baby-subtitle" id="coach-header-subtitle">7/24 Şefkatli Uyku & Gelişim Danışmanı</div>
           <div class="main-title">Mışıl Dadı 👵</div>
         </div>
       </div>
@@ -1218,8 +1345,9 @@
           </div>
 
           <!-- Typing indicator -->
-          <div class="dadi-typing-indicator" id="dadi-typing">
-            <span>🌸 Mışıl Dadı düşünüyor ve reçetenizi hazırlıyor...</span>
+          <div class="dadi-typing" id="dadi-typing-indicator" style="display: none;">
+            <span class="typing-dot"></span><span class="typing-dot"></span><span class="typing-dot"></span>
+            <span style="margin-left: 6px; font-size: 11px; color: var(--accent);">Mışıl Dadı düşünüyor...</span>
           </div>
 
           <!-- Quick Suggestion Chips -->
@@ -1316,28 +1444,43 @@
       </div>
     </div>
 
-    <!-- 4. WONDER WEEKS RADAR TAB -->
+    <!-- 4. WONDER WEEKS RADAR TAB (DYNAMIC 10 SCIENTIFIC LEAPS & EARLY OVERRIDE) -->
     <div id="view-leaps" class="tab-view">
       <div class="app-header">
         <div>
-          <div class="baby-subtitle">Zihinsel Sıçrama Radarı</div>
-          <div class="main-title">Gelişim Atakları</div>
+          <div class="baby-subtitle" id="leaps-header-subtitle">Wonder Weeks Bilimsel Gelişim Radarı</div>
+          <div class="main-title">Gelişim Atakları ✨</div>
         </div>
       </div>
 
-      <div class="card" style="background: rgba(30, 40, 68, 0.9); border-left: 4px solid var(--accent);">
-        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF;">✨ Gelişim Atağı 5: Mesafe ve İlişkiler</div>
-        <div style="font-size: 11px; color: var(--accent); margin: 2px 0 8px;">22. - 26. Haftalar Arası</div>
-        <div style="font-size: 12px; color: var(--text-night); line-height: 17px;">
-          Bebeğiniz annesinin ondan uzaklaşabileceğini ilk kez fark eder. Yoğun ayrılık kaygısı ve gece sık uyanma yaşanabilir.
+      <!-- Overall Development Journey Hero Card -->
+      <div class="card" id="leaps-hero-card" style="background: rgba(30, 42, 72, 0.95); border: 1px solid var(--accent);">
+        <div class="spotlight-glow"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF;" id="leaps-hero-title">✨ 0-20 Ay Zihinsel Gelişim Radarı</span>
+          <span style="font-size: 11px; font-weight: 700; color: var(--accent);" id="leaps-hero-overall-percent">%38 Tamamlandı</span>
+        </div>
+        <div style="font-size: 11px; color: var(--text-night); margin-bottom: 8px;" id="leaps-hero-desc">
+          Mina şu anda 19. haftasında. 10 Büyük Zihinsel Sıçramadan 4.'sü içerisindesiniz.
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-fill" id="leaps-hero-progress-bar" style="width: 38%;"></div>
+        </div>
+        <div id="leaps-early-override-badge" style="display: none; margin-top: 8px;">
+          <span style="font-size: 10px; background: #FF4757; color: #FFF; padding: 3px 8px; border-radius: 6px; font-weight: 700;">⚡ MANUEL ERKEN ATAK MODU AKTİF</span>
+          <button class="early-leap-btn" style="margin-left: 6px; padding: 2px 6px; font-size: 10px;" onclick="resetToAutoLeap()">🔄 Otomatik Takvime Dön</button>
         </div>
       </div>
 
-      <div class="section-title"><span>Tüm 10 Gelişim Sıçraması</span></div>
-      <div class="card" style="opacity: 0.7; margin-bottom: 8px;"><div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: #FFF;"><span>1. Değişen Duyular</span><span style="color: var(--success);">✓ Tamamlandı (5. Hafta)</span></div></div>
-      <div class="card" style="opacity: 0.7; margin-bottom: 8px;"><div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: #FFF;"><span>2. Desenler & Kalıplar</span><span style="color: var(--success);">✓ Tamamlandı (8. Hafta)</span></div></div>
-      <div class="card" style="border-color: var(--accent); margin-bottom: 8px;"><div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 700; color: var(--accent);"><span>5. İlişkiler ve Mesafe Dünyası</span><span>● ŞU AN BURADASINIZ</span></div></div>
-      <div class="card" style="opacity: 0.7; margin-bottom: 8px;"><div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: #FFF;"><span>6. Kategoriler Dünyası</span><span style="color: var(--text-muted);">Gelecek Atak (37. Hafta)</span></div></div>
+      <div class="section-title">
+        <span>10 Büyük Zihinsel Sıçrama Haritası</span>
+        <span style="font-size: 11px; color: var(--text-muted);">Doğum Tarihine Duyarlı</span>
+      </div>
+
+      <!-- Dynamic 10 Leaps List Container -->
+      <div id="leaps-list-container">
+        <!-- Rendered dynamically by JavaScript -->
+      </div>
     </div>
 
     <!-- 5. SOUNDS TAB (18 TRACKS & CATEGORICAL SEARCH) -->
@@ -1410,6 +1553,37 @@
           <input type="date" class="form-input" id="cfg-baby-bdate" value="2026-04-11" />
         </div>
         <button class="btn-primary" onclick="saveBabyProfile()">💾 Profili Kaydet & Güncelle</button>
+      </div>
+
+      <!-- 👨‍👩‍👧 Aile & Dadı Paylaşımı (Co-Parenting Cloud Sync) -->
+      <div class="card" style="border: 1px solid var(--moon-blue); background: rgba(22, 30, 56, 0.95);">
+        <div class="spotlight-glow"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF;">👨‍👩‍👧 Aile & Dadı Senkronizasyonu</div>
+          <span style="font-size: 10px; color: var(--success); font-weight: 700;">🟢 CANLI BULUT SENK.</span>
+        </div>
+        <div style="font-size: 11px; color: var(--text-night); line-height: 16px; margin-bottom: 10px;">
+          Anne, baba ve dadı aynı bebeğin uykusunu, beslenmesini ve Mışıl Dadı tavsiyelerini kendi telefonlarından canlı takip edebilir.
+        </div>
+
+        <div style="background: rgba(18, 24, 44, 0.8); border: 1px dashed var(--accent); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;">
+          <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">6 Haneli Aile Paylaşım Kodunuz</div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+            <span style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: var(--accent); letter-spacing: 2px;" id="family-sync-code">MSL782</span>
+            <button class="early-leap-btn" style="margin-top: 0; padding: 4px 8px; font-size: 10px;" onclick="copyFamilyCode()">📋 Kodu Kopyala</button>
+          </div>
+        </div>
+
+        <div style="font-size: 11px; font-weight: 600; color: #FFF; margin-bottom: 4px;">Aktif Rolünüzü Seçin:</div>
+        <div class="role-chips-row">
+          <div class="role-chip active" id="role-chip-mother" onclick="switchUserRole('mother')">👩 Anne</div>
+          <div class="role-chip" id="role-chip-father" onclick="switchUserRole('father')">👨 Baba</div>
+          <div class="role-chip" id="role-chip-nanny" onclick="switchUserRole('nanny')">👵 Dadı / Bakıcı</div>
+        </div>
+
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
+          👥 Bağlı Aile Üyeleri: <strong style="color: #FFF;">Zeynep (Anne)</strong>, <strong style="color: #FFF;">Emre (Baba)</strong>, <strong style="color: #FFF;">Ayşe Hanım (Dadı)</strong>
+        </div>
       </div>
 
       <div class="card" style="border: 1px dashed var(--accent);">
@@ -1526,32 +1700,34 @@
   // =========================================================================
   // 1. 18 STUDIO SOUNDS DATA & AUDIO ENGINE
   // =========================================================================
+  const AUDIO_BASE = (window.location.protocol === 'file:') ? 'https://mishil-production.up.railway.app' : '';
+
   const SOUND_TRACKS = [
     // 1. Ninniler & Melodiler
-    { id: 'brahms_lullaby', title: '🎹 Brahms Uyku Ninnisi', desc: 'Klasik müzik kutusu ve piyano tınıları', cat: 'lullaby', badge: 'NİNNİ', file: '/sounds/brahms_lullaby.wav' },
-    { id: 'moonlight_lullaby', title: '🌙 Ayışığı Piyano Melodisi', desc: 'Twinkle huzurlu gece akorları', cat: 'lullaby', badge: 'NİNNİ', file: '/sounds/moonlight_lullaby.wav' },
-    { id: 'mozart_432hz', title: '🎼 Mozart Zeka Gelişim Ninnisi', desc: '432Hz akustik beyin gelişim frekansı', cat: 'lullaby', badge: '432 HZ', file: '/sounds/mozart_432hz.wav' },
-    { id: 'music_box_celesta', title: '🔔 Müzik Kutusu Celesta', desc: 'Narin çan ve vintage celesta tınısı', cat: 'lullaby', badge: 'NİNNİ', file: '/sounds/music_box_celesta.wav' },
-    { id: 'velvet_guitar', title: '🎸 Kadife Gece Gitarı', desc: 'Yumuşak naylon tel akustik arpej', cat: 'lullaby', badge: 'MELODİ', file: '/sounds/velvet_guitar.wav' },
+    { id: 'brahms_lullaby', title: '🎹 Brahms Uyku Ninnisi', desc: 'Klasik mekanik müzik kutusu canlı stüdyo kaydı', cat: 'lullaby', badge: 'NİNNİ', file: `${AUDIO_BASE}/sounds/brahms_lullaby.mp3` },
+    { id: 'moonlight_lullaby', title: '🌙 Ayışığı Piyano Melodisi', desc: 'Akustik piyano ve narin oda tınıları', cat: 'lullaby', badge: 'PİYANO', file: `${AUDIO_BASE}/sounds/moonlight_lullaby.mp3` },
+    { id: 'mozart_432hz', title: '🎼 Mozart Zeka Gelişim Ninnisi', desc: '432Hz meditatif kase ve çan harmonikleri', cat: 'lullaby', badge: '432 HZ', file: `${AUDIO_BASE}/sounds/mozart_432hz.mp3` },
+    { id: 'music_box_celesta', title: '🔔 Müzik Kutusu Rüzgar Çanları', desc: 'Gerçek stüdyo rüzgar çanları ve celesta', cat: 'lullaby', badge: 'ÇANLAR', file: `${AUDIO_BASE}/sounds/music_box_celesta.mp3` },
+    { id: 'velvet_guitar', title: '🎸 Kadife Gece Gitarı', desc: 'Vintage plak ve yumuşak akustik arpej', cat: 'lullaby', badge: 'AKUSTİK', file: `${AUDIO_BASE}/sounds/velvet_guitar.mp3` },
 
     // 2. Anne Karnı & Nabız
-    { id: 'deep_heartbeat', title: '💓 Tok Anne Kalp Atışı', desc: '60 BPM stetoskop çift vuruşlu nabız', cat: 'womb', badge: '60 BPM', file: '/sounds/deep_heartbeat.wav' },
-    { id: 'womb_amniotic', title: '🤰 Amniyotik Sıvı & Anne Karnı', desc: 'Rezonanslı derin anne karnı yankısı', cat: 'womb', badge: 'ANNE KARNI', file: '/sounds/womb_amniotic.wav' },
-    { id: 'placenta_flow', title: '🩸 Plasenta & Ritmik Uterus', desc: 'Organik kan akışı ritmik dalgası', cat: 'womb', badge: 'ANNE KARNI', file: '/sounds/placenta_flow.wav' },
-    { id: 'calm_breath', title: '🫁 Anne Göğsü & Sakin Nefes', desc: 'Derin ve güven verici nefes döngüsü', cat: 'womb', badge: 'NEFES', file: '/sounds/calm_breath.wav' },
+    { id: 'deep_heartbeat', title: '💓 Tok Anne Kalp Atışı', desc: 'Triküspit gerçek stetoskop kalp sesi (Lub-Dub)', cat: 'womb', badge: 'STETOSKOP', file: `${AUDIO_BASE}/sounds/deep_heartbeat.mp3` },
+    { id: 'womb_amniotic', title: '🤰 Amniyotik Sıvı & Anne Karnı', desc: 'Gerçek hidrofon su altı anne karnı yankısı', cat: 'womb', badge: 'ANNE KARNI', file: `${AUDIO_BASE}/sounds/womb_amniotic.mp3` },
+    { id: 'placenta_flow', title: '🩸 Plasenta & Ritmik Baloncuk', desc: 'Akışkan organik ritmik uterus sesi', cat: 'womb', badge: 'UTERUS', file: `${AUDIO_BASE}/sounds/placenta_flow.mp3` },
+    { id: 'calm_breath', title: '🫁 Anne Göğsü & Sakin Ritim', desc: 'Derin ve güven verici organik nefes ritmi', cat: 'womb', badge: 'NEFES', file: `${AUDIO_BASE}/sounds/calm_breath.mp3` },
 
     // 3. Gürültü & Pışpış
-    { id: 'shush_5s', title: '🤫 5S Dr. Karp Doğal Pışpış', desc: 'Asimetrik nefesli insan pışpışlaması', cat: 'noise', badge: 'DR. KARP 5S', file: '/sounds/shush_5s.wav' },
-    { id: 'pink_432hz', title: '🌸 432Hz Derin Uyku Pembe Gürültü', desc: 'Paul Kellet 6-kutuplu LPF derin uyku', cat: 'noise', badge: 'PEMBE GÜRÜLTÜ', file: '/sounds/pink_432hz.wav' },
-    { id: 'brown_noise_colic', title: '🪵 Kadife Kahverengi Gürültü', desc: 'Brownian rumble derin kolik kalkanı', cat: 'noise', badge: 'KAHVERENGİ', file: '/sounds/brown_noise_colic.wav' },
-    { id: 'hairdryer_calm', title: '💨 İpeksi Fön Makinesi Sesi', desc: 'Sıcak ve düşük frekans filtreli uğultu', cat: 'noise', badge: 'BEYAZ GÜRÜLTÜ', file: '/sounds/hairdryer_calm.wav' },
-    { id: 'fan_drone', title: '🌀 Oda Vantilatörü & Ritmik Dron', desc: 'Huzurlu zemin dönme frekansı', cat: 'noise', badge: 'DRON', file: '/sounds/fan_drone.wav' },
+    { id: 'shush_5s', title: '🤫 5S Dr. Karp Doğal Pışpış', desc: 'Gerçek insan nefesli pışpış stüdyo kaydı', cat: 'noise', badge: 'DR. KARP 5S', file: `${AUDIO_BASE}/sounds/shush_5s.mp3` },
+    { id: 'pink_432hz', title: '🌸 432Hz Derin Uyku Pembe Gürültü', desc: 'Gerçek analog pembe gürültü kaydı', cat: 'noise', badge: 'PEMBE GÜRÜLTÜ', file: `${AUDIO_BASE}/sounds/pink_432hz.mp3` },
+    { id: 'brown_noise_colic', title: '🪵 Kadife Kahverengi Gürültü', desc: 'Gerçek analog kahverengi kolik kalkanı', cat: 'noise', badge: 'KAHVERENGİ', file: `${AUDIO_BASE}/sounds/brown_noise_colic.mp3` },
+    { id: 'hairdryer_calm', title: '💨 İpeksi Fön Makinesi Sesi', desc: 'Gerçek kurutucu ve sıcak hava uğultusu', cat: 'noise', badge: 'BEYAZ GÜRÜLTÜ', file: `${AUDIO_BASE}/sounds/hairdryer_calm.mp3` },
+    { id: 'fan_drone', title: '🌀 Oda Vantilatörü & Ritmik Dron', desc: 'Gerçek vantilatör motor zemin dönüş sesi', cat: 'noise', badge: 'DRON', file: `${AUDIO_BASE}/sounds/fan_drone.mp3` },
 
-    // 4. Doğa & Ortam
-    { id: 'forest_stream', title: '🌧️ Orman Su Şırıltısı & Kuşlar', desc: 'Berrak dere akışı ve narin cıvıltılar', cat: 'nature', badge: 'DOĞA', file: '/sounds/forest_stream.wav' },
-    { id: 'soft_rain', title: '🌧️ Yumuşak Gece Yağmuru', desc: 'Pencereye vuran sakin yağmur damlaları', cat: 'nature', badge: 'YAĞMUR', file: '/sounds/soft_rain.wav' },
-    { id: 'ocean_calm', title: '🌊 Gece Okyanus Dalgaları', desc: 'Sakin kumsala vuran derin dalgalar', cat: 'nature', badge: 'OKYANUS', file: '/sounds/ocean_calm.wav' },
-    { id: 'night_crickets', title: '🦗 Yaz Gecesi Cırcır Böcekleri', desc: 'Ilık yaz rüzgarı ve sakin doğa', cat: 'nature', badge: 'DOĞA', file: '/sounds/night_crickets.wav' }
+    // 4. Doğa Sesleri
+    { id: 'forest_stream', title: '🌧️ Orman Su Şırıltısı & Kuşlar', desc: 'Gerçek dağ deresi ve narin kuş cıvıltıları', cat: 'nature', badge: 'DOĞA', file: `${AUDIO_BASE}/sounds/forest_stream.mp3` },
+    { id: 'soft_rain', title: '🌧️ Yumuşak Gece Yağmuru', desc: 'Pencereye çarpan gerçek yağmur damlaları', cat: 'nature', badge: 'YAĞMUR', file: `${AUDIO_BASE}/sounds/soft_rain.mp3` },
+    { id: 'ocean_calm', title: '🌊 Gece Okyanus Dalgaları', desc: 'Kumsala vuran gerçek okyanus dalgaları', cat: 'nature', badge: 'OKYANUS', file: `${AUDIO_BASE}/sounds/ocean_calm.mp3` },
+    { id: 'night_crickets', title: '🦗 Yaz Gecesi Cırcır Böcekleri', desc: 'Açık hava yaz gecesi gerçek cırcır böcekleri', cat: 'nature', badge: 'DOĞA', file: `${AUDIO_BASE}/sounds/night_crickets.mp3` }
   ];
 
   const audioMap = {};
@@ -1722,17 +1898,23 @@
 
     const babyName = localStorage.getItem('mishil_baby_name') || 'Mina';
     const birthDate = localStorage.getItem('mishil_baby_bdate') || '2026-04-11';
+    const userRole = localStorage.getItem('mishil_user_role') || 'mother';
+    const manualLeap = localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap')) : null;
 
     typingIndicator.style.display = 'flex';
     container.scrollTop = container.scrollHeight;
 
+    const API_BASE = (window.location.protocol === 'file:') ? 'https://mishil-production.up.railway.app' : '';
+
     try {
-      const response = await fetch('/api/v1/coach/chat', {
+      const response = await fetch(`${API_BASE}/api/v1/coach/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           baby_name: babyName,
           birth_date: birthDate,
+          user_role: userRole,
+          manual_leap: manualLeap,
           message: userText,
           chat_history: dadiChatHistory.slice(-4)
         })
@@ -1877,6 +2059,9 @@
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const months = Math.floor(diffDays / 30.4375);
     const remainingDays = Math.floor(diffDays % 30.4375);
+    const currentWeek = Math.max(1, Math.floor(diffDays / 7));
+
+    const manualLeap = localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap')) : null;
 
     let wakeWindowMinutes = 90;
     if (months < 2) wakeWindowMinutes = 60;
@@ -1886,21 +2071,205 @@
     else if (months < 12) wakeWindowMinutes = 180;
     else wakeWindowMinutes = 240;
 
+    if (manualLeap) {
+      wakeWindowMinutes = Math.max(45, wakeWindowMinutes - 15); // Erken atakta uyanıklık penceresi 15 dk kısalır
+    }
+
     const nextSleepDate = new Date(Date.now() + wakeWindowMinutes * 60000);
     const th = String(nextSleepDate.getHours()).padStart(2, '0');
     const tm = String(nextSleepDate.getMinutes()).padStart(2, '0');
 
-    let leapText = "GELİŞİM ATAĞI 4";
-    if (months >= 5) leapText = "GELİŞİM ATAĞI 5";
-    if (months >= 8) leapText = "GELİŞİM ATAĞI 6";
-    if (months < 3) leapText = "GELİŞİM ATAĞI 2";
+    let activeLeapNum = manualLeap || getActiveLeapNumber(currentWeek);
+    const leapData = WONDER_WEEKS_LEAPS.find(l => l.num === activeLeapNum) || WONDER_WEEKS_LEAPS[3];
 
     return {
-      ageFormatted: `${months} Ay ${remainingDays} Günlük`,
-      leap: leapText,
+      ageFormatted: `${months} Ay ${remainingDays} Günlük (${currentWeek}. Hafta)`,
+      currentWeek: currentWeek,
+      activeLeap: leapData,
+      isManual: !!manualLeap,
+      leap: `${leapData.num}. GELİŞİM ATAĞI (${leapData.title})`,
       sweetSpotTime: `${th}:${tm}`,
       wakeWindowMin: wakeWindowMinutes
     };
+  }
+
+  // 10 Scientific Wonder Weeks Leaps Database
+  const WONDER_WEEKS_LEAPS = [
+    { num: 1, startWeek: 4, endWeek: 5, stormWeek: 5, title: 'Değişen Duyular Dünyası', milestone: 'Metabolizma ve duyu organları dış dünyaya uyanır, sürekli emme ve anneye yapışma başlar.', tip: 'Ortamı loş tutun, anne ten teması ve 432Hz ninnileri ile sakinleştirin.', recommendedSound: 'brahms_lullaby' },
+    { num: 2, startWeek: 7, endWeek: 9, stormWeek: 8, title: 'Desenler ve Kalıplar Dünyası', milestone: 'Kendi el ve ayaklarını keşfeder, sabit odaklanma ve ritmik vücut hareketleri başlar.', tip: 'Kontrast kartlar gösterin, aşırı uyarılmayı önlemek için SweetSpot pencerelerine sadık kalın.', recommendedSound: 'music_box_celesta' },
+    { num: 3, startWeek: 11, endWeek: 12, stormWeek: 12, title: 'Yumuşak Geçişler Dünyası', milestone: 'Ses tonlamalarını anlar, başını yumuşakça çevirir, agu sesleriyle iletişim kurar.', tip: 'Göz teması kurarak yumuşak tonla konuşun, uyku öncesi sakinleştirici su şırıltısı açın.', recommendedSound: 'forest_stream' },
+    { num: 4, startWeek: 15, endWeek: 19, stormWeek: 19, title: 'Olaylar Dünyası & 4. Ay Regresyonu', milestone: 'Uyku döngüleri yetişkin tipine geçer. Sebep-sonuç ilişkileri başlar; gece sık uyanmalar zirve yapar.', tip: '4. Ay regresyonunda odayı tamamen karartın ve 5S Dr. Karp Doğal Pışpış sesini kesintisiz döngüde çalın.', recommendedSound: 'shush_5s' },
+    { num: 5, startWeek: 23, endWeek: 26, stormWeek: 26, title: 'İlişkiler ve Mesafe Dünyası', milestone: 'Ayrılık kaygısı (Separation Anxiety) başlar; annenin odadan çıkınca uzaklaştığını kavrar.', tip: 'Ce-eee oyunları oynayarak geri geleceğinizi öğretin. Uykuya dalarken yatağında sırtını pışpışlayın.', recommendedSound: 'pink_432hz' },
+    { num: 6, startWeek: 34, endWeek: 37, stormWeek: 37, title: 'Kategoriler Dünyası', milestone: 'Nesneleri ve hayvanları sınıflandırır. Emekleme ve yoğun diş çıkarma huysuzluğu eşlik eder.', tip: 'Farklı dokulardaki nesneleri keşfetmesini sağlayın, uyku öncesi diş etlerine soğuk masaj yapın.', recommendedSound: 'brown_noise_colic' },
+    { num: 7, startWeek: 42, endWeek: 46, stormWeek: 46, title: 'Sıralar ve Diziler Dünyası', milestone: 'Kule yapma, blokları dizme, eylemlerin sıralı olduğunu anlama ve uykuya direnç.', tip: 'Sabit 3 adımlı uyku rutini uygulayın (Banyo -> Masaj -> Ninni). Sıraları ezberlemesi uykuya geçişi kolaylaştırır.', recommendedSound: 'moonlight_lullaby' },
+    { num: 8, startWeek: 51, endWeek: 54, stormWeek: 53, title: 'Programlar Dünyası', milestone: 'Günlük hayatın bütünsel programlarını anlar; ebeveynin hareketlerini taklit eder.', tip: 'Ona seçim şansı verin (Örn: Hangi uyku tulumunu giymek istersin?). Bağımsızlık hissi direnci kırar.', recommendedSound: 'ocean_calm' },
+    { num: 9, startWeek: 60, endWeek: 64, stormWeek: 62, title: 'İlkeler Dünyası', milestone: 'Sınırları ve kuralları test eder, "Hayır" deme dönemi ve ilk öfke nöbetleri (Tantrum) başlar.', tip: 'Sakin ve net sınırlar koyun; öfke krizlerinde tartışmaya girmeden kucaklayarak sakinleştirin.', recommendedSound: 'deep_heartbeat' },
+    { num: 10, startWeek: 71, endWeek: 75, stormWeek: 74, title: 'Sistemler Dünyası', milestone: 'Benlik bilinci, aile ve dış dünya sistemlerini kavrar; empati ve dil gelişimi sıçrama yapar.', tip: 'Günlük olaylar hakkında hikayeler anlatın, uyku öncesi gün değerlendirmesi yaparak rahatlatın.', recommendedSound: 'mozart_432hz' }
+  ];
+
+  function getActiveLeapNumber(week) {
+    for (let l of WONDER_WEEKS_LEAPS) {
+      if (week <= l.endWeek) return l.num;
+    }
+    return 10;
+  }
+
+  function renderWonderWeeksLeaps() {
+    const bdate = localStorage.getItem('mishil_baby_bdate') || '2026-04-11';
+    const name = localStorage.getItem('mishil_baby_name') || 'Mina';
+    const calc = calculateSweetSpot(bdate);
+    const currentWeek = calc.currentWeek;
+    const manualLeap = localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap')) : null;
+
+    // Overall Progress %
+    const completedCount = WONDER_WEEKS_LEAPS.filter(l => currentWeek > l.endWeek).length;
+    const overallProgress = Math.min(100, Math.round((currentWeek / 75) * 100));
+
+    const heroTitle = document.getElementById('leaps-hero-title');
+    const heroPercent = document.getElementById('leaps-hero-overall-percent');
+    const heroDesc = document.getElementById('leaps-hero-desc');
+    const heroBar = document.getElementById('leaps-hero-progress-bar');
+    const earlyBadge = document.getElementById('leaps-early-override-badge');
+
+    if (heroPercent) heroPercent.textContent = `%${overallProgress} Tamamlandı`;
+    if (heroBar) heroBar.style.width = `${overallProgress}%`;
+    if (heroDesc) {
+      heroDesc.innerHTML = `${name} şu anda <strong>${currentWeek}. haftasında</strong>. 10 Büyük Zihinsel Sıçramadan <strong>${calc.activeLeap.num}.'si</strong> ${calc.isManual ? '(Erken Atak Olarak Manuel Aktif)' : 'içerisindesiniz'}.`;
+    }
+    if (earlyBadge) {
+      earlyBadge.style.display = calc.isManual ? 'flex' : 'none';
+    }
+
+    // Render 10 Leap Cards
+    const container = document.getElementById('leaps-list-container');
+    if (!container) return;
+    container.innerHTML = '';
+
+    WONDER_WEEKS_LEAPS.forEach(l => {
+      const isCompleted = currentWeek > l.endWeek;
+      const isCurrent = (manualLeap === l.num) || (!manualLeap && currentWeek >= l.startWeek && currentWeek <= l.endWeek);
+      const isUpcoming = currentWeek < l.startWeek;
+
+      let progressPercent = 0;
+      let statusBadge = '';
+      let actionButtons = '';
+
+      if (isCompleted) {
+        progressPercent = 100;
+        statusBadge = `<span style="font-size: 10px; color: var(--success); font-weight: 700;">✓ Tamamlandı (${l.endWeek}. Hafta)</span>`;
+      } else if (isCurrent) {
+        if (manualLeap === l.num) {
+          progressPercent = 85;
+          statusBadge = `<span style="font-size: 10px; background: #FF4757; color: #FFF; padding: 2px 6px; border-radius: 4px; font-weight: 700;">⚡ ERKEN ATAK (MANUEL AKTİF)</span>`;
+          actionButtons = `<button class="early-leap-btn" style="background: rgba(255, 71, 87, 0.2); border-color: #FF4757;" onclick="resetToAutoLeap()">🔄 Otomatik Takvime Dön</button>`;
+        } else {
+          const span = l.endWeek - l.startWeek + 1;
+          const progInLeap = currentWeek - l.startWeek + 0.5;
+          progressPercent = Math.min(95, Math.max(15, Math.round((progInLeap / span) * 100)));
+          const isStorm = (currentWeek === l.stormWeek || currentWeek === l.stormWeek - 1);
+          statusBadge = isStorm 
+            ? `<span style="font-size: 10px; color: var(--accent); font-weight: 700;">⚡ Fırtınalı Huysuzluk Dönemi (%${progressPercent})</span>`
+            : `<span style="font-size: 10px; color: #74B9FF; font-weight: 700;">☀️ Güneşli Beceriler Dönemi (%${progressPercent})</span>`;
+        }
+      } else {
+        const weeksLeft = l.startWeek - currentWeek;
+        const daysLeft = weeksLeft * 7;
+        progressPercent = Math.max(5, Math.min(85, Math.round((currentWeek / l.startWeek) * 100)));
+        statusBadge = `<span style="font-size: 10px; color: var(--text-muted); font-weight: 600;">⏳ Yaklaşıyor: %${progressPercent} Dolum (${daysLeft} gün kaldı)</span>`;
+        actionButtons = `<button class="early-leap-btn" onclick="toggleEarlyLeap(${l.num})">⚡ Bu Atak Erken Başladı (Manuel Aktif Et)</button>`;
+      }
+
+      const card = document.createElement('div');
+      card.className = `leap-item-card ${isCurrent ? 'active-leap' : (isCompleted ? 'completed-leap' : '')}`;
+
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <span class="leap-badge" style="${isCurrent ? 'background: rgba(232, 168, 85, 0.2); border-color: var(--accent); color: var(--accent);' : ''}">${l.num}. SIÇRAMA • ${l.startWeek}. - ${l.endWeek}. HAFTALAR</span>
+          ${statusBadge}
+        </div>
+        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-bottom: 4px;">
+          ${l.title}
+        </div>
+        <div style="font-size: 11px; color: var(--text-night); line-height: 16px; margin-bottom: 6px;">
+          ${l.milestone}
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-fill" style="width: ${progressPercent}%; background: ${isCompleted ? 'var(--success)' : (isCurrent ? 'var(--accent)' : 'var(--moon-blue)')};"></div>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; font-style: italic;">
+          💡 <strong>Mışıl Dadı Tavsiyesi:</strong> ${l.tip}
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+          <div>${actionButtons}</div>
+          <button class="early-leap-btn" onclick="hapticPulse(); togglePlayTrack('${l.recommendedSound}'); switchTab('sounds');">▶ Önerilen Sesi Çal</button>
+        </div>
+      `;
+
+      container.appendChild(card);
+    });
+  }
+
+  function toggleEarlyLeap(leapNum) {
+    hapticPulse();
+    localStorage.setItem('mishil_manual_leap', String(leapNum));
+    showToast(`⚡ ${leapNum}. Sıçrama Erken Atak olarak manuel aktif edildi! SweetSpot pencereleri güncellendi.`);
+    loadBabyProfile();
+  }
+
+  function resetToAutoLeap() {
+    hapticPulse();
+    localStorage.removeItem('mishil_manual_leap');
+    showToast('🔄 Otomatik Wonder Weeks takvimine geri dönüldü');
+    loadBabyProfile();
+  }
+
+  function switchUserRole(role) {
+    hapticPulse();
+    localStorage.setItem('mishil_user_role', role);
+    document.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active'));
+    const target = document.getElementById(`role-chip-${role}`);
+    if (target) target.classList.add('active');
+
+    const roleName = role === 'mother' ? 'Anne 👩' : (role === 'father' ? 'Baba 👨' : 'Dadı / Bakıcı 👵');
+    showToast(`👤 Aktif Rol: ${roleName}`);
+    loadBabyProfile();
+  }
+
+  function copyFamilyCode() {
+    hapticPulse();
+    const code = document.getElementById('family-sync-code').textContent;
+    if (navigator.clipboard) navigator.clipboard.writeText(code);
+    showToast(`📋 Aile Kodu (${code}) kopyalandı! Eşiniz veya dadınız bu kodla bağlanabilir.`);
+  }
+
+  function renderHomeScreenScore() {
+    const bdate = localStorage.getItem('mishil_baby_bdate') || '2026-04-11';
+    const name = localStorage.getItem('mishil_baby_name') || 'Mina';
+    const calc = calculateSweetSpot(bdate);
+    const scoreVal = calc.isManual ? 76 : 84;
+
+    const scoreTitle = document.getElementById('home-score-title');
+    const scoreDesc = document.getElementById('home-score-desc');
+    const scoreCircleVal = document.getElementById('home-score-circle-val');
+
+    if (scoreTitle) scoreTitle.textContent = `🌟 Gelişim Skoru: %${scoreVal}`;
+    if (scoreCircleVal) scoreCircleVal.textContent = scoreVal;
+    if (scoreDesc) {
+      scoreDesc.textContent = calc.isManual 
+        ? `⚡ Erken Atak Modu Aktif • ${calc.activeLeap.num}. Sıçrama Yönetiliyor`
+        : `Harika İlerleme • ${calc.activeLeap.num}. Sıçrama (${calc.activeLeap.title})`;
+    }
+
+    // Update banner on home screen
+    const bannerTxt = document.getElementById('leap-badge-txt');
+    const bannerTitle = document.getElementById('leap-banner-title');
+    const bannerDesc = document.getElementById('leap-banner-desc');
+    const bannerProg = document.getElementById('leap-banner-progress');
+
+    if (bannerTxt) bannerTxt.textContent = `${calc.activeLeap.num}. GELİŞİM ATAĞI`;
+    if (bannerTitle) bannerTitle.textContent = calc.activeLeap.title;
+    if (bannerDesc) bannerDesc.textContent = calc.activeLeap.milestone;
+    if (bannerProg) bannerProg.style.width = `${Math.min(100, Math.round((calc.currentWeek / calc.activeLeap.endWeek) * 100))}%`;
   }
 
   function saveBabyProfile() {
@@ -1915,16 +2284,33 @@
   function loadBabyProfile() {
     const name = localStorage.getItem('mishil_baby_name') || 'Mina';
     const bdate = localStorage.getItem('mishil_baby_bdate') || '2026-04-11';
+    const role = localStorage.getItem('mishil_user_role') || 'mother';
 
-    document.getElementById('cfg-baby-name').value = name;
-    document.getElementById('cfg-baby-bdate').value = bdate;
+    const cfgName = document.getElementById('cfg-baby-name');
+    const cfgBdate = document.getElementById('cfg-baby-bdate');
+    if (cfgName) cfgName.value = name;
+    if (cfgBdate) cfgBdate.value = bdate;
+
+    // Role chip active
+    document.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active'));
+    const roleEl = document.getElementById(`role-chip-${role}`);
+    if (roleEl) roleEl.classList.add('active');
+
+    const rolePrefix = role === 'mother' ? '👩 Anne' : (role === 'father' ? '👨 Baba' : '👵 Dadı');
 
     const calc = calculateSweetSpot(bdate);
-    document.getElementById('baby-header-subtitle').textContent = `${name} • ${calc.ageFormatted}`;
-    document.getElementById('leap-badge-txt').textContent = calc.leap;
-    document.getElementById('target-sleep-display').textContent = calc.sweetSpotTime;
-    document.getElementById('target-sleep-subtext').textContent = `SweetSpot® İdeal Uyku Vakti (${Math.floor(calc.wakeWindowMin / 60)}s ${calc.wakeWindowMin % 60}dk pencere)`;
-    document.getElementById('chat-baby-mention').textContent = name;
+    const headerSub = document.getElementById('baby-header-subtitle');
+    const targetDisp = document.getElementById('target-sleep-display');
+    const targetSub = document.getElementById('target-sleep-subtext');
+    const chatMention = document.getElementById('chat-baby-mention');
+
+    if (headerSub) headerSub.textContent = `${name} • ${calc.ageFormatted} (${rolePrefix})`;
+    if (targetDisp) targetDisp.textContent = calc.sweetSpotTime;
+    if (targetSub) targetSub.textContent = `SweetSpot® İdeal Uyku Vakti (${Math.floor(calc.wakeWindowMin / 60)}s ${calc.wakeWindowMin % 60}dk pencere)`;
+    if (chatMention) chatMention.textContent = name;
+
+    renderHomeScreenScore();
+    renderWonderWeeksLeaps();
   }
   loadBabyProfile();
 
@@ -2074,8 +2460,10 @@
     const formData = new FormData();
     formData.append('file', audioFileOrBlob, 'recording.wav');
 
+    const API_BASE = (window.location.protocol === 'file:') ? 'https://mishil-production.up.railway.app' : '';
+
     try {
-      const response = await fetch('/api/v1/cry/analyze', { method: 'POST', body: formData });
+      const response = await fetch(`${API_BASE}/api/v1/cry/analyze`, { method: 'POST', body: formData });
       if (response.ok) {
         const data = await response.json();
         renderCryResults(data);
