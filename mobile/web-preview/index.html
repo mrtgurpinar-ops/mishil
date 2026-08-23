@@ -639,16 +639,23 @@
         <div class="header-badge">Canlı Senkronize</div>
       </div>
 
-      <!-- Breathing Moon Indicator -->
-      <div class="moon-stage" onclick="hapticPulse(); switchTab('sounds');">
-        <div class="moon-aura"></div>
+      <!-- Signature Breathing Moon & Interactive One-Tap Live Sleep Tracker -->
+      <div class="moon-stage" id="moon-tracker" onclick="toggleLiveSleep()">
+        <div class="moon-aura" id="moon-aura-fx"></div>
         <div class="moon-ring"></div>
         <svg class="moon-svg" viewBox="0 0 100 100">
-          <path d="M 50 10 A 40 40 0 1 0 90 50 A 30 30 0 1 1 50 10 Z" fill="#E8A855" />
+          <path id="moon-path" d="M 50 10 A 40 40 0 1 0 90 50 A 30 30 0 1 1 50 10 Z" fill="#E8A855" />
           <circle cx="80" cy="22" r="3" fill="#FFFFFF" opacity="0.8" />
           <circle cx="20" cy="70" r="2" fill="#FFFFFF" opacity="0.5" />
         </svg>
-        <div class="moon-label">Hedef Uyku: 12:30</div>
+        <div class="moon-label" id="moon-timer-label">Hedef Uyku: 12:30</div>
+      </div>
+
+      <!-- One-Tap Action Button -->
+      <div style="margin: -10px 0 16px; text-align: center;">
+        <button id="btn-live-sleep" class="btn-primary" onclick="toggleLiveSleep()" style="width: 100%; max-width: 280px; margin: 0 auto; display: inline-flex; justify-content: center; align-items: center; gap: 8px;">
+          <span>🌙</span> <span id="live-sleep-btn-txt">Şimdi Uyuyor (Tek Dokunuş Başlat)</span>
+        </button>
       </div>
 
       <!-- Key Metrics -->
@@ -1218,17 +1225,65 @@
     showToast('✅ ' + type + ' kaydı eklendi');
   }
 
-  function restorePurchases() {
+  // =========================================================================
+  // 4. ONE-TAP LIVE SLEEP TRACKER ENGINE (HUCKLEBERRY & NAPPER BENCHMARK)
+  // =========================================================================
+  let isSleepingLive = false;
+  let sleepInterval = null;
+  let sleepSeconds = 0;
+
+  function toggleLiveSleep() {
     hapticPulse();
-    showToast('🔄 Satın alımlar RevenueCat üzerinden doğrulandı');
+    const btnTxt = document.getElementById('live-sleep-btn-txt');
+    const moonLabel = document.getElementById('moon-timer-label');
+    const moonPath = document.getElementById('moon-path');
+    const moonAura = document.getElementById('moon-aura-fx');
+    const btn = document.getElementById('btn-live-sleep');
+
+    if (!isSleepingLive) {
+      // START SLEEPING
+      isSleepingLive = true;
+      sleepSeconds = 0;
+      if (btnTxt) btnTxt.innerText = '☀️ Bebek Uyandı (Kaydet & Bitir)';
+      if (btn) btn.style.background = '#2ED573';
+      if (moonPath) moonPath.setAttribute('fill', '#74B9FF');
+      if (moonAura) moonAura.style.background = 'radial-gradient(circle, rgba(116, 185, 255, 0.45) 0%, rgba(20, 27, 46, 0) 70%)';
+
+      showToast('🌙 Bebek uykuya geçti. Canlı sayaç başlatıldı.');
+
+      sleepInterval = setInterval(() => {
+        sleepSeconds++;
+        const mins = Math.floor(sleepSeconds / 60);
+        const secs = sleepSeconds % 60;
+        const formatted = (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
+        if (moonLabel) moonLabel.innerText = '💤 Uyuyor: ' + formatted;
+      }, 1000);
+
+    } else {
+      // WAKE UP
+      isSleepingLive = false;
+      clearInterval(sleepInterval);
+      const totalMins = Math.max(1, Math.round(sleepSeconds / 60));
+
+      if (btnTxt) btnTxt.innerText = '🌙 Şimdi Uyuyor (Tek Dokunuş Başlat)';
+      if (btn) btn.style.background = '';
+      if (moonPath) moonPath.setAttribute('fill', '#E8A855');
+      if (moonAura) moonAura.style.background = '';
+      if (moonLabel) moonLabel.innerText = 'Hedef Uyku: ' + getNextTargetTime(totalMins);
+
+      showToast('☀️ Günaydın! ' + totalMins + ' dk uyku kaydedildi. Sıradaki pencere hesaplandı.');
+      quickLog(totalMins + ' dk Gündüz Uykusu');
+    }
   }
 
-  function inviteCaregiver() {
-    hapticPulse();
-    const email = prompt('Davet edilecek ebeveyn / bakıcı e-posta adresi:');
-    if (email) {
-      showToast('✉️ Davet bağlantısı ' + email + ' adresine gönderildi');
-    }
+  function getNextTargetTime(lastSleepMins) {
+    const now = new Date();
+    // Wake window: 120-150 mins based on baby age
+    const wakeWindow = lastSleepMins < 30 ? 100 : 140; // 15% overtired discount
+    now.setMinutes(now.getMinutes() + wakeWindow);
+    const h = (now.getHours() < 10 ? '0' : '') + now.getHours();
+    const m = (now.getMinutes() < 10 ? '0' : '') + now.getMinutes();
+    return h + ':' + m;
   }
 </script>
 

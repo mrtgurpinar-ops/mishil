@@ -2,6 +2,12 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [1.7.0] - 2026-08-23
+### Added (Huckleberry & Napper Benchmark UI/UX İyileştirmeleri & Tek Dokunuş Uyku Sayacı)
+- **Tek Dokunuşlu Canlı Uyku Sayacı (One-Tap Live Sleep Tracker):** Hilal göstergesi ve altındaki butona basıldığında uyku modu aktive edilerek geçen süreyi saniye bazında sayan `is_sleeping` canlı sayacı entegre edildi.
+- **Dinamik Uyku Sonlandırma & Otomatik Rutin Girişi:** "Bebek Uyandı" tıklandığında geçen toplam süre otomatik hesaplanarak Rutin Günlüğü'ne uyku kaydı olarak eklenir ve bebeğin uyanıklık penceresi (wake window) adaptif olarak yeniden hesaplanır.
+- **Görsel Hilal Aura Değişimi:** Uyku modunda hilal sıcak sarıdan gece mavisi aurasına (`#74B9FF`) geçerek ebeveyne loş ışıkta dingin geri bildirim sunar.
+
 ## [1.6.1] - 2026-08-23
 ### Added & Cleaned (Melodik Kristal Uyku Sesleri & Railway Tek Kart Sadeleştirmesi)
 - **Railway Servis Sadeleştirmesi (Tek Çerçeve):** Atıl durumdaki `inspiring-enthusiasm` servisi Railway GraphQL API üzerinden silinerek dashboard'da yalnızca tek bir `mishil` servisi bırakıldı.
