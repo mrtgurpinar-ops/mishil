@@ -1858,27 +1858,82 @@
   </div>
 </div>
 
-<!-- MODAL: ADD ROUTINE -->
+<!-- MODAL: ADD ROUTINE (DETAYLI MANUEL RUTİN & UYKU EKLEME) -->
 <div class="modal-overlay" id="modal-routine">
   <div class="modal-sheet no-scrollbar">
     <div class="modal-header">
-      <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">Yeni Manuel Rutin Ekle</div>
+      <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">+ Manuel Rutin & Uyku Ekle</div>
       <button class="modal-close" onclick="closeAddRoutineModal()">✕</button>
     </div>
+
     <div class="form-group">
       <label class="form-label">Rutin Türü</label>
-      <select class="form-input" id="routine-modal-type">
-        <option value="🍼 Beslenme">🍼 Beslenme (Anne Sütü / Mama)</option>
-        <option value="🌙 Gündüz Uykusu">🌙 Gündüz Uykusu</option>
-        <option value="🚼 Bez Değişimi">🚼 Bez Değişimi</option>
-        <option value="💊 İlaç / Özel Not">💊 İlaç / Özel Not</option>
+      <select class="form-input" id="routine-modal-type" onchange="handleRoutineTypeChange(this.value)">
+        <option value="sleep" selected>🌙 Gündüz Uykusu</option>
+        <option value="feeding">🍼 Beslenme (Anne Sütü / Mama)</option>
+        <option value="diaper">🚼 Bez Değişimi</option>
+        <option value="custom">✨ Diğer Özel Rutin</option>
       </select>
     </div>
-    <div class="form-group">
-      <label class="form-label">Miktar / Süre / Detay</label>
-      <input type="text" class="form-input" id="routine-modal-detail" placeholder="Örn: 120 ml veya 45 dk" />
+
+    <!-- 1. SLEEP DYNAMIC FIELDS -->
+    <div id="routine-sleep-fields">
+      <div style="display: flex; gap: 10px; margin-bottom: 12px;">
+        <div style="flex: 1;">
+          <label class="form-label">Uyku Başlangıç Saati</label>
+          <input type="time" class="form-input" id="routine-modal-start" value="13:00" onchange="calcModalSleepDuration()" style="margin-bottom: 0;" />
+        </div>
+        <div style="flex: 1;">
+          <label class="form-label">Uyanış Saati</label>
+          <input type="time" class="form-input" id="routine-modal-end" value="14:15" onchange="calcModalSleepDuration()" style="margin-bottom: 0;" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Uyku Kalitesi</label>
+        <select class="form-input" id="routine-modal-quality">
+          <option value="Derin Uyku">💤 Kesintisiz Derin Uyku</option>
+          <option value="Kısa Şekerleme">⚡ Kısa Güç Şekerlemesi (Catnap)</option>
+          <option value="Bölünmüş Uyku">🥱 Bölünmüş / Destekli Uyku</option>
+          <option value="Gece Uykusu">🌙 Gece Uykusu</option>
+        </select>
+      </div>
+
+      <div style="background: rgba(232, 168, 85, 0.12); border: 1px dashed var(--accent); border-radius: 10px; padding: 10px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-size: 11px; color: var(--text-night);">Hesaplanan Uyku Süresi:</span>
+        <strong style="font-family: 'Sora'; font-size: 13px; color: var(--accent);" id="routine-modal-calc-duration">1 saat 15 dk (75 dk)</strong>
+      </div>
     </div>
-    <button class="btn-primary" onclick="submitCustomRoutine()" style="margin-top: 10px;">💾 Rutini Kaydet</button>
+
+    <!-- 2. FEEDING DYNAMIC FIELDS -->
+    <div id="routine-feeding-fields" style="display: none;">
+      <div class="form-group">
+        <label class="form-label">Miktar & Detay (ml / dk)</label>
+        <input type="text" class="form-input" id="routine-modal-feed-detail" value="140 ml Anne Sütü" placeholder="Örn: 140 ml Anne Sütü veya 20 dk Emzirme" />
+      </div>
+    </div>
+
+    <!-- 3. DIAPER DYNAMIC FIELDS -->
+    <div id="routine-diaper-fields" style="display: none;">
+      <div class="form-group">
+        <label class="form-label">Bez Durumu</label>
+        <select class="form-input" id="routine-modal-diaper-status">
+          <option value="Islak (Çiş)">💧 Islak / Temiz Çiş Bezi</option>
+          <option value="Kirli (Kaka)">💩 Kirli Bez</option>
+          <option value="Hem Islak Hem Kirli">💧+💩 Dolu Bez Değişimi</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 4. CUSTOM DYNAMIC FIELDS -->
+    <div id="routine-custom-fields" style="display: none;">
+      <div class="form-group">
+        <label class="form-label">Açıklama</label>
+        <input type="text" class="form-input" id="routine-modal-custom-detail" placeholder="Örn: D vitamini damlası, banyo vb." />
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="submitCustomRoutine()" style="margin-top: 6px;">💾 Rutini Kaydet & Çizelgeye Ekle</button>
   </div>
 </div>
 
@@ -3103,12 +3158,153 @@
     showToast(`✅ ${type} başarıyla eklendi (${timeNow})`);
   }
 
-  function openAddRoutineModal() { document.getElementById('modal-routine').classList.add('active'); }
-  function closeAddRoutineModal() { document.getElementById('modal-routine').classList.remove('active'); }
+  function handleRoutineTypeChange(type) {
+    hapticPulse();
+    document.getElementById('routine-sleep-fields').style.display = (type === 'sleep') ? 'block' : 'none';
+    document.getElementById('routine-feeding-fields').style.display = (type === 'feeding') ? 'block' : 'none';
+    document.getElementById('routine-diaper-fields').style.display = (type === 'diaper') ? 'block' : 'none';
+    document.getElementById('routine-custom-fields').style.display = (type === 'custom') ? 'block' : 'none';
+    if (type === 'sleep') calcModalSleepDuration();
+  }
+
+  function calcModalSleepDuration() {
+    const startVal = document.getElementById('routine-modal-start').value;
+    const endVal = document.getElementById('routine-modal-end').value;
+    const badge = document.getElementById('routine-modal-calc-duration');
+    if (!startVal || !endVal || !badge) return 75;
+
+    const [sh, sm] = startVal.split(':').map(Number);
+    const [eh, em] = endVal.split(':').map(Number);
+
+    let startMins = sh * 60 + sm;
+    let endMins = eh * 60 + em;
+    if (endMins < startMins) endMins += 24 * 60; // Gece devri
+
+    let diff = Math.max(5, endMins - startMins);
+    const hrs = Math.floor(diff / 60);
+    const mins = diff % 60;
+
+    badge.textContent = hrs > 0 ? `${hrs} saat ${mins} dk (${diff} dk)` : `${diff} dk`;
+    return diff;
+  }
+
+  function openAddRoutineModal() { 
+    hapticPulse();
+    const now = new Date();
+    const endH = String(now.getHours()).padStart(2, '0');
+    const endM = String(now.getMinutes()).padStart(2, '0');
+
+    // 1 saat öncesini başlangıç yap
+    const prev = new Date(now.getTime() - 75 * 60000);
+    const startH = String(prev.getHours()).padStart(2, '0');
+    const startM = String(prev.getMinutes()).padStart(2, '0');
+
+    const startInput = document.getElementById('routine-modal-start');
+    const endInput = document.getElementById('routine-modal-end');
+    if (startInput) startInput.value = `${startH}:${startM}`;
+    if (endInput) endInput.value = `${endH}:${endM}`;
+
+    calcModalSleepDuration();
+    document.getElementById('modal-routine').classList.add('active'); 
+  }
+
+  function closeAddRoutineModal() { 
+    hapticPulse();
+    document.getElementById('modal-routine').classList.remove('active'); 
+  }
+
   function submitCustomRoutine() {
+    hapticPulse();
     const type = document.getElementById('routine-modal-type').value;
+    const now = new Date();
+
+    if (type === 'sleep') {
+      const start = document.getElementById('routine-modal-start').value || '13:00';
+      const end = document.getElementById('routine-modal-end').value || '14:15';
+      const quality = document.getElementById('routine-modal-quality').value || 'Derin Uyku';
+      const durMins = calcModalSleepDuration();
+
+      const sleepCount = activeRoutines.filter(r => r.type === 'sleep').length + 1;
+      const newSleepLog = {
+        id: 'slp_' + Date.now(),
+        type: 'sleep',
+        icon: '🌙',
+        title: `${sleepCount}. Gündüz Uykusu (Nap ${sleepCount})`,
+        detail: `${durMins} dk ${quality} (${start} - ${end})`,
+        time: end,
+        start: start,
+        end: end,
+        timestamp: now.getTime(),
+        durationMins: durMins,
+        quality: quality
+      };
+
+      activeRoutines.unshift(newSleepLog);
+      localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+
+      // SweetSpot Saati: Bitiş saati + 90 dk olarak güncelle
+      const [eh, em] = end.split(':').map(Number);
+      const nextSleepDate = new Date();
+      nextSleepDate.setHours(eh, em + 90);
+      const nextSleepFormatted = `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
+      
+      const targetDisp = document.getElementById('target-sleep-display');
+      const targetSub = document.getElementById('target-sleep-subtext');
+      if (targetDisp) targetDisp.textContent = nextSleepFormatted;
+      if (targetSub) targetSub.textContent = `SweetSpot® İdeal Uyku Vakti (1 saat 30 dk sonra)`;
+
+      showToast(`🌙 ${durMins} dk uyku kaydedildi! Sıradaki SweetSpot: ${nextSleepFormatted}`);
+    } else if (type === 'feeding') {
+      const feedDetail = document.getElementById('routine-modal-feed-detail').value || '140 ml Anne Sütü';
+      const timeNow = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      activeRoutines.unshift({
+        id: 'rt_' + Date.now(),
+        type: 'feeding',
+        icon: '🍼',
+        title: 'Beslenme',
+        detail: feedDetail,
+        time: timeNow,
+        timestamp: now.getTime(),
+        durationMins: 0
+      });
+      localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+      showToast(`🍼 Beslenme (${feedDetail}) kaydedildi`);
+    } else if (type === 'diaper') {
+      const diaperStatus = document.getElementById('routine-modal-diaper-status').value || 'Islak / Temiz Bez';
+      const timeNow = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      activeRoutines.unshift({
+        id: 'rt_' + Date.now(),
+        type: 'diaper',
+        icon: '🚼',
+        title: 'Bez Değişimi',
+        detail: diaperStatus,
+        time: timeNow,
+        timestamp: now.getTime(),
+        durationMins: 0
+      });
+      localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+      showToast(`🚼 Bez değişimi (${diaperStatus}) kaydedildi`);
+    } else {
+      const customDetail = document.getElementById('routine-modal-custom-detail').value || 'Özel Rutin';
+      const timeNow = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      activeRoutines.unshift({
+        id: 'rt_' + Date.now(),
+        type: 'custom',
+        icon: '✨',
+        title: 'Özel Rutin',
+        detail: customDetail,
+        time: timeNow,
+        timestamp: now.getTime(),
+        durationMins: 0
+      });
+      localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+      showToast(`✨ Rutin (${customDetail}) kaydedildi`);
+    }
+
     closeAddRoutineModal();
-    quickLog(type);
+    renderHomeTodayTimeline();
+    renderAnalyticsView();
+    renderHomeScreenScore();
   }
 
   function openRestoreModal() { document.getElementById('modal-restore').classList.add('active'); }
