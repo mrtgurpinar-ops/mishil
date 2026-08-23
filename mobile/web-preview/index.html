@@ -1611,6 +1611,18 @@
           <div style="color: var(--danger); cursor: pointer;" onclick="openDeleteAccountModal()">🗑️ Hesabımı ve Tüm Verilerimi Sil (Apple 5.1.1) ➔</div>
         </div>
       </div>
+
+      <!-- Sürüm & Neler Yeni Rozeti -->
+      <div class="card" style="border: 1px solid var(--border-highlight); background: rgba(22, 29, 50, 0.95); cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="openChangelogModal()">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 20px;">✨</span>
+          <div>
+            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Mışıl Baby v4.3.0 (Build 2026.08)</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Neler Yeni? (Sürüm Notları ve Geliştirme Günlüğü)</div>
+          </div>
+        </div>
+        <span style="color: var(--accent); font-weight: 700; font-size: 12px;">İncele ›</span>
+      </div>
     </div>
 
   </div>
@@ -1641,6 +1653,40 @@
       <span class="tab-icon">⚙️</span>
       <span class="tab-label">Ayarlar</span>
     </div>
+  </div>
+</div>
+
+<!-- MODAL: CHANGELOG & NELER YENİ -->
+<div class="modal-overlay" id="modal-changelog">
+  <div class="modal-sheet no-scrollbar">
+    <div class="modal-header">
+      <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">🚀 Sürüm Notları (Changelog)</div>
+      <button class="modal-close" onclick="closeChangelogModal()">✕</button>
+    </div>
+    
+    <div class="card" style="background: rgba(30, 42, 72, 0.95); border: 1px solid var(--accent); margin-bottom: 12px;">
+      <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: var(--accent);">Mışıl Baby v4.3.0 (Güncel)</div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">23 Ağustos 2026 • UI/UX & Tasarım Mühendisliği</div>
+      <div style="font-size: 12px; line-height: 18px; color: #C9CEDC;">
+        <div>• 🌙 <strong>Canlı Uyku Modu:</strong> Ay nefes animasyonu mor uyku aurasına morph eder ve uyku süresini canlı sayar.</div>
+        <div>• ⏱️ <strong>Sakinleştirici Sesler Zamanlayıcısı:</strong> 15m - 60m geri sayım sayaç hapları.</div>
+        <div>• 📊 <strong>Dikey Bento Zaman Çizelgesi:</strong> Günlük özet istatistikleri ve şık dikey zaman şeridi.</div>
+        <div>• 📱 <strong>Dokunsal Haptik Ergonomi:</strong> Tüm butonlara hafif titreşim geri bildirimi.</div>
+        <div>• ⚙️ <strong>Sadeleştirilmiş Ayarlar Mimarisi:</strong> Modüler kategori gruplaması ve sürüm takipçisi.</div>
+      </div>
+    </div>
+
+    <div class="card" style="background: rgba(22, 29, 50, 0.8); border: 1px solid var(--border-night); margin-bottom: 12px;">
+      <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Mışıl Baby v4.2.0</div>
+      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">20 Ağustos 2026</div>
+      <div style="font-size: 12px; line-height: 18px; color: var(--text-night);">
+        <div>• 🎙️ Librosa DSP 13-Band MFCC Akustik Ağlama Analizi.</div>
+        <div>• 🔒 Apple 3.1.1 ve 5.1.1 Mağaza Uyumluluğu.</div>
+        <div>• 👥 6 Haneli Aile Paylaşım Kodu ile Canlı Eşitleme.</div>
+      </div>
+    </div>
+
+    <button class="btn-secondary" onclick="closeChangelogModal()" style="margin-top: 6px;">Kapat</button>
   </div>
 </div>
 
@@ -2689,6 +2735,15 @@
     if (idx !== -1) {
       document.querySelectorAll('.tab-item')[idx].classList.add('active');
     }
+  }
+
+  function openChangelogModal() { 
+    hapticPulse();
+    document.getElementById('modal-changelog').classList.add('active'); 
+  }
+  function closeChangelogModal() { 
+    hapticPulse();
+    document.getElementById('modal-changelog').classList.remove('active'); 
   }
 
   function quickLog(type) {
