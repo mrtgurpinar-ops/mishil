@@ -2435,7 +2435,7 @@
     const role = localStorage.getItem('mishil_user_role') || 'mother';
     const userName = role === 'mother' ? 'Anne' : (role === 'father' ? 'Baba' : 'Dadı');
 
-    const wsUrl = `wss://function-bun-production-951c.up.railway.app/ws?family=${familyCode}&name=${userName}&role=${role}`;
+    const wsUrl = `wss://function-bun-production-9541.up.railway.app/ws?family=${familyCode}&name=${userName}&role=${role}`;
 
     try {
       realtimeWs = new WebSocket(wsUrl);
