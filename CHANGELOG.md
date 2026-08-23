@@ -2,6 +2,10 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.6.1] - 2026-08-23
+### 👶 Konsept 2 (Uyuyan Bebek & Ay) Master İkon Entegrasyonu
+- **🎨 Resmi İkon Belirlendi:** Kullanıcı tercihiyle Concept 2 (Bulut Üzerinde Uyuyan Bebek ve Ay) tüm mobil (`icon.png`, `adaptive-icon.png`, `splash.png`, `favicon.png`) ve mağaza varlıklarına (`icon_512.png`, `ios_icon_1024.png`) işlendi.
+
 ## [4.6.0] - 2026-08-23
 ### 👑 Fiyatlandırma & Paywall Mimarisi (Seçenek B) & Evrensel Master İkon
 - **❌ "Ücretsiz Temel" Seçeneği Kaldırıldı:** Gelir kaybını önlemek ve dönüşümü artırmak için onboarding paywall'ından ücretsiz devam butonu kaldırıldı.

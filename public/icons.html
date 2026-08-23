@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mışıl Baby — İkon Tasarım Konseptleri</title>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #0B0F19;
+      color: #F8FAFC;
+      font-family: 'Inter', sans-serif;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    h1 { font-family: 'Outfit', sans-serif; font-size: 2.2rem; color: #E8A855; margin-bottom: 8px; }
+    p { color: #94A3B8; margin-bottom: 40px; }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 30px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .card {
+      background: #141B2E;
+      border: 1px solid rgba(232, 168, 85, 0.2);
+      border-radius: 24px;
+      padding: 24px;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .card:hover {
+      transform: translateY(-8px);
+      border-color: #E8A855;
+    }
+    img {
+      width: 100%;
+      max-width: 280px;
+      height: auto;
+      border-radius: 28px;
+      box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+      margin-bottom: 20px;
+    }
+    h2 { font-family: 'Outfit', sans-serif; font-size: 1.4rem; color: #FFF; margin-bottom: 8px; }
+    .desc { font-size: 0.9rem; color: #94A3B8; line-height: 1.5; }
+    .badge {
+      display: inline-block;
+      background: rgba(232, 168, 85, 0.15);
+      color: #E8A855;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Mışıl Baby — İkon Tasarım Konseptleri</h1>
+  <p>Tüm platformlarda (App Store, Google Play, Splash, Mobil İkon) kullanılacak 3 aday görsel:</p>
+
+  <div class="grid">
+    <!-- Konsept 1 -->
+    <div class="card">
+      <span class="badge">🥇 ÖNERİLEN</span>
+      <br>
+      <img src="icon1.jpg" alt="Konsept 1">
+      <h2>1. Lüks Altın Hilal & Yıldızlar</h2>
+      <p class="desc">Derin Gece Mavisi üzerinde 3D metalik altın ışıltılı ay ve yıldız tozu. Premium, dingin ve lüks.</p>
+    </div>
+
+    <!-- Konsept 2 -->
+    <div class="card">
+      <span class="badge">👶 SEVİMLİ & ŞEFKATLİ</span>
+      <br>
+      <img src="icon2.jpg" alt="Konsept 2">
+      <h2>2. Uyuyan Bebek & Bulut</h2>
+      <p class="desc">Sevimli 3D mışıl mışıl uyuyan bebek, kadife bulut ve gökyüzü. Sıcak ve duygusal anne-bebek bağı.</p>
+    </div>
+
+    <!-- Konsept 3 -->
+    <div class="card">
+      <span class="badge">⚡ AKUSTİK & TEKNOLOJİ</span>
+      <br>
+      <img src="icon3.jpg" alt="Konsept 3">
+      <h2>3. Akustik Ses Dalgası & Neon</h2>
+      <p class="desc">Cam efektli çerçeve içinde altın ay ile iç içe geçmiş neon frekans dalgaları. Yapay zekâ ve bilimsel uyku vurgusu.</p>
+    </div>
+  </div>
+</body>
+</html>
