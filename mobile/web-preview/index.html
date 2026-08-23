@@ -377,6 +377,83 @@
       font-weight: 600;
     }
 
+    /* Settings Modular Collapsible Accordion */
+    .settings-accordion-card {
+      background: var(--card-night);
+      border: 1px solid var(--border-night);
+      border-radius: var(--radius-lg);
+      margin-bottom: 10px;
+      overflow: hidden;
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .settings-accordion-card.open {
+      border-color: rgba(232, 168, 85, 0.4);
+      box-shadow: 0 6px 20px -2px rgba(0, 0, 0, 0.5);
+    }
+
+    .settings-accordion-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 16px;
+      cursor: pointer;
+      user-select: none;
+      background: rgba(255, 255, 255, 0.02);
+      transition: background 0.2s ease;
+    }
+
+    .settings-accordion-header:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .settings-accordion-title-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .settings-accordion-icon {
+      font-size: 18px;
+    }
+
+    .settings-accordion-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      color: #FFF;
+    }
+
+    .settings-accordion-subtitle {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+
+    .settings-accordion-chevron {
+      font-size: 12px;
+      color: var(--accent);
+      transition: transform 0.3s ease;
+    }
+
+    .settings-accordion-card.open .settings-accordion-chevron {
+      transform: rotate(180deg);
+    }
+
+    .settings-accordion-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s cubic-bezier(0.2, 0.6, 0.2, 1), padding 0.3s ease, opacity 0.25s ease;
+      opacity: 0;
+      padding: 0 16px;
+    }
+
+    .settings-accordion-card.open .settings-accordion-body {
+      max-height: 600px;
+      opacity: 1;
+      padding: 4px 16px 16px;
+    }
+
     .sweetspot-pill {
       display: inline-flex;
       align-items: center;
@@ -1642,87 +1719,142 @@
     </div>
 
     <!-- 6. SETTINGS TAB -->
+    <!-- 5. MODULAR SETTINGS TAB (COLLAPSIBLE ACCORDIONS) -->
     <div id="view-settings" class="tab-view">
       <div class="app-header">
         <div>
-          <div class="baby-subtitle">Profil, Bildirim & Abonelik</div>
-          <div class="main-title">Ayarlar</div>
+          <div class="baby-subtitle">Profil, Aile & Abonelik</div>
+          <div class="main-title">Ayarlar ⚙️</div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="spotlight-glow"></div>
-        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 12px;">👶 Bebek Profili</div>
-        <div class="form-group">
-          <label class="form-label">Bebeğin Adı</label>
-          <input type="text" class="form-input" id="cfg-baby-name" value="Mina" placeholder="Örn: Mina" />
+      <!-- MODÜL 1: BEBEK PROFİLİ (VARSAYILAN AÇIK) -->
+      <div class="settings-accordion-card open" id="acc-profile">
+        <div class="settings-accordion-header" onclick="toggleSettingsAccordion('acc-profile')">
+          <div class="settings-accordion-title-wrap">
+            <span class="settings-accordion-icon">👶</span>
+            <div>
+              <div class="settings-accordion-title">Bebek Profili</div>
+              <div class="settings-accordion-subtitle" id="acc-profile-summary">Mina • 4 Ay 12 Günlük</div>
+            </div>
+          </div>
+          <span class="settings-accordion-chevron">▼</span>
         </div>
-        <div class="form-group">
-          <label class="form-label">Doğum Tarihi (Gelişim Atağı & Ay Hesabı)</label>
-          <input type="date" class="form-input" id="cfg-baby-bdate" value="2026-04-11" />
+        <div class="settings-accordion-body">
+          <div class="form-group" style="margin-top: 10px;">
+            <label class="form-label">Bebeğin Adı</label>
+            <input type="text" class="form-input" id="cfg-baby-name" value="Mina" placeholder="Örn: Mina" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Doğum Tarihi (Gelişim Atağı & Ay Hesabı)</label>
+            <input type="date" class="form-input" id="cfg-baby-bdate" value="2026-04-11" />
+          </div>
+          <button class="btn-primary" onclick="saveBabyProfile()">💾 Profili Kaydet & Güncelle</button>
         </div>
-        <button class="btn-primary" onclick="saveBabyProfile()">💾 Profili Kaydet & Güncelle</button>
       </div>
 
-      <!-- 👨‍👩‍👧 Aile & Dadı Paylaşımı (Co-Parenting Cloud Sync) -->
-      <div class="card" style="border: 1px solid var(--moon-blue); background: rgba(22, 30, 56, 0.95);">
-        <div class="spotlight-glow"></div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF;">👨‍👩‍👧 Aile & Dadı Senkronizasyonu</div>
-          <span style="font-size: 10px; color: var(--success); font-weight: 700;">🟢 CANLI BULUT SENK.</span>
+      <!-- MODÜL 2: AİLE & DADI SENKRONİZASYONU -->
+      <div class="settings-accordion-card" id="acc-family">
+        <div class="settings-accordion-header" onclick="toggleSettingsAccordion('acc-family')">
+          <div class="settings-accordion-title-wrap">
+            <span class="settings-accordion-icon">👨‍👩‍👧</span>
+            <div>
+              <div class="settings-accordion-title">Aile & Dadı Senkronizasyonu</div>
+              <div class="settings-accordion-subtitle">Bulut Kodu: <strong style="color: var(--accent);">MSL782</strong> • 3 Üye Bağlı</div>
+            </div>
+          </div>
+          <span class="settings-accordion-chevron">▼</span>
         </div>
-        <div style="font-size: 11px; color: var(--text-night); line-height: 16px; margin-bottom: 10px;">
-          Anne, baba ve dadı aynı bebeğin uykusunu, beslenmesini ve Mışıl Dadı tavsiyelerini kendi telefonlarından canlı takip edebilir.
-        </div>
+        <div class="settings-accordion-body">
+          <div style="font-size: 11px; color: var(--text-night); line-height: 16px; margin: 8px 0 10px;">
+            Anne, baba ve dadı aynı bebeğin uykusunu, beslenmesini ve Mışıl Dadı tavsiyelerini kendi telefonlarından canlı takip edebilir.
+          </div>
 
-        <div style="background: rgba(18, 24, 44, 0.8); border: 1px dashed var(--accent); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;">
-          <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">6 Haneli Aile Paylaşım Kodunuz</div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
-            <span style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: var(--accent); letter-spacing: 2px;" id="family-sync-code">MSL782</span>
-            <button class="early-leap-btn" style="margin-top: 0; padding: 4px 8px; font-size: 10px;" onclick="copyFamilyCode()">📋 Kodu Kopyala</button>
+          <div style="background: rgba(18, 24, 44, 0.8); border: 1px dashed var(--accent); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;">
+            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">6 Haneli Aile Paylaşım Kodunuz</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 2px;">
+              <span style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: var(--accent); letter-spacing: 2px;" id="family-sync-code">MSL782</span>
+              <button class="early-leap-btn" style="margin-top: 0; padding: 4px 8px; font-size: 10px;" onclick="copyFamilyCode()">📋 Kodu Kopyala</button>
+            </div>
+          </div>
+
+          <div style="font-size: 11px; font-weight: 600; color: #FFF; margin-bottom: 4px;">Aktif Rolünüzü Seçin:</div>
+          <div class="role-chips-row">
+            <div class="role-chip active" id="role-chip-mother" onclick="switchUserRole('mother')">👩 Anne</div>
+            <div class="role-chip" id="role-chip-father" onclick="switchUserRole('father')">👨 Baba</div>
+            <div class="role-chip" id="role-chip-nanny" onclick="switchUserRole('nanny')">👵 Dadı / Bakıcı</div>
+          </div>
+
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
+            👥 Bağlı Aile Üyeleri: <strong style="color: #FFF;">Zeynep (Anne)</strong>, <strong style="color: #FFF;">Emre (Baba)</strong>, <strong style="color: #FFF;">Ayşe Hanım (Dadı)</strong>
           </div>
         </div>
+      </div>
 
-        <div style="font-size: 11px; font-weight: 600; color: #FFF; margin-bottom: 4px;">Aktif Rolünüzü Seçin:</div>
-        <div class="role-chips-row">
-          <div class="role-chip active" id="role-chip-mother" onclick="switchUserRole('mother')">👩 Anne</div>
-          <div class="role-chip" id="role-chip-father" onclick="switchUserRole('father')">👨 Baba</div>
-          <div class="role-chip" id="role-chip-nanny" onclick="switchUserRole('nanny')">👵 Dadı / Bakıcı</div>
+      <!-- MODÜL 3: UYKU TEŞHİS RAPORU -->
+      <div class="settings-accordion-card" id="acc-quiz">
+        <div class="settings-accordion-header" onclick="toggleSettingsAccordion('acc-quiz')">
+          <div class="settings-accordion-title-wrap">
+            <span class="settings-accordion-icon">📋</span>
+            <div>
+              <div class="settings-accordion-title">Uyku Teşhis Raporu</div>
+              <div class="settings-accordion-subtitle">Anket & Sirkadiyen Teşhisi Yenile</div>
+            </div>
+          </div>
+          <span class="settings-accordion-chevron">▼</span>
         </div>
-
-        <div style="font-size: 11px; color: var(--text-muted); margin-top: 8px;">
-          👥 Bağlı Aile Üyeleri: <strong style="color: #FFF;">Zeynep (Anne)</strong>, <strong style="color: #FFF;">Emre (Baba)</strong>, <strong style="color: #FFF;">Ayşe Hanım (Dadı)</strong>
+        <div class="settings-accordion-body">
+          <div style="font-size: 11px; color: var(--text-muted); margin: 8px 0 10px; line-height: 16px;">
+            Bebeğinizin uyku düzeni değiştikçe teşhis testini tekrar çözüp güncel Uyku Sağlığı Skorunuzu görüntüleyin.
+          </div>
+          <button class="btn-secondary" onclick="restartOnboardingQuiz()">🔄 Uyku Teşhis Testini Sıfırdan Başlat</button>
         </div>
       </div>
 
-      <div class="card" style="border: 1px dashed var(--accent);">
-        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">📋 Uyku Teşhis Raporunu Yenile</div>
-        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 10px;">Bebeğinizin uyku düzeni değiştikçe teşhis testini tekrar çözüp güncel Uyku Skorunuzu görüntüleyin.</div>
-        <button class="btn-secondary" onclick="restartOnboardingQuiz()">🔄 Uyku Teşhis Testini Başlat</button>
-      </div>
-
-      <div class="card">
-        <div class="spotlight-glow"></div>
-        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 6px;">👑 Mışıl Baby Pro Aboneliği</div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <span style="font-size: 13px; color: var(--accent); font-weight: 700;">3 Günlük Ücretsiz Deneme (Aktif)</span>
-          <span style="font-size: 11px; color: var(--text-muted);">Yıllık: ₺599.99</span>
+      <!-- MODÜL 4: ABONELİK & SATIN ALIMLAR -->
+      <div class="settings-accordion-card" id="acc-sub">
+        <div class="settings-accordion-header" onclick="toggleSettingsAccordion('acc-sub')">
+          <div class="settings-accordion-title-wrap">
+            <span class="settings-accordion-icon">👑</span>
+            <div>
+              <div class="settings-accordion-title">Abonelik & Pro Haklar</div>
+              <div class="settings-accordion-subtitle" style="color: var(--accent); font-weight: 700;">3 Günlük Ücretsiz Deneme (Aktif)</div>
+            </div>
+          </div>
+          <span class="settings-accordion-chevron">▼</span>
         </div>
-        <button class="btn-secondary" onclick="openRestoreModal()" style="margin-top: 10px;">🔄 Satın Alımları Geri Yükle (Apple 3.1.1)</button>
+        <div class="settings-accordion-body">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0 10px;">
+            <span style="font-size: 12px; color: #FFF; font-weight: 600;">Mışıl Baby Pro (Yıllık Plan)</span>
+            <span style="font-size: 11px; color: var(--text-muted);">₺599.99 / Yıl</span>
+          </div>
+          <button class="btn-secondary" onclick="openRestoreModal()">🔄 Satın Alımları Geri Yükle (Apple 3.1.1)</button>
+        </div>
       </div>
 
-      <div class="card">
-        <div class="spotlight-glow"></div>
-        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF; margin-bottom: 8px;">Yasal, Güvenlik & Gizlilik</div>
-        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
-          <div style="color: var(--accent); cursor: pointer;" onclick="showToast('🔒 Sıfır-Depolama (Zero-Storage RAM) Gizlilik Politikası aktif')">🔒 Gizlilik Politikası (Privacy Policy) ➔</div>
-          <div style="color: var(--accent); cursor: pointer;" onclick="showToast('⚖️ Kullanım Koşulları ve Tıbbi Feragatname onaylıdır')">⚖️ Kullanım Koşulları & Tıbbi Feragatname ➔</div>
-          <div style="color: var(--danger); cursor: pointer;" onclick="openDeleteAccountModal()">🗑️ Hesabımı ve Tüm Verilerimi Sil (Apple 5.1.1) ➔</div>
+      <!-- MODÜL 5: GİZLİLİK, GÜVENLİK & YASAL -->
+      <div class="settings-accordion-card" id="acc-legal">
+        <div class="settings-accordion-header" onclick="toggleSettingsAccordion('acc-legal')">
+          <div class="settings-accordion-title-wrap">
+            <span class="settings-accordion-icon">🔒</span>
+            <div>
+              <div class="settings-accordion-title">Gizlilik & Hesap Yönetimi</div>
+              <div class="settings-accordion-subtitle">Sıfır-Depolama RAM Politikası & Silme</div>
+            </div>
+          </div>
+          <span class="settings-accordion-chevron">▼</span>
+        </div>
+        <div class="settings-accordion-body">
+          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; margin: 8px 0;">
+            <div style="color: var(--accent); cursor: pointer;" onclick="showToast('🔒 Sıfır-Depolama (Zero-Storage RAM) Gizlilik Politikası aktif')">🔒 Gizlilik Politikası (Privacy Policy) ➔</div>
+            <div style="color: var(--accent); cursor: pointer;" onclick="showToast('⚖️ Kullanım Koşulları ve Tıbbi Feragatname onaylıdır')">⚖️ Kullanım Koşulları & Tıbbi Feragatname ➔</div>
+            <div style="color: var(--danger); cursor: pointer; margin-top: 4px;" onclick="openDeleteAccountModal()">🗑️ Hesabımı ve Tüm Verilerimi Sil (Apple 5.1.1) ➔</div>
+          </div>
         </div>
       </div>
 
       <!-- Sürüm & Neler Yeni Rozeti -->
-      <div class="card" style="border: 1px solid var(--border-highlight); background: rgba(22, 29, 50, 0.95); cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="openChangelogModal()">
+      <div class="card" style="border: 1px solid var(--border-highlight); background: rgba(22, 29, 50, 0.95); cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;" onclick="openChangelogModal()">
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-size: 20px;">✨</span>
           <div>
@@ -3123,6 +3255,31 @@
       renderAnalyticsView();
     } else if (tabName === 'home') {
       renderHomeTodayTimeline();
+    } else if (tabName === 'settings') {
+      updateSettingsProfileSummary();
+    }
+  }
+
+  function toggleSettingsAccordion(id) {
+    hapticPulse();
+    const card = document.getElementById(id);
+    if (!card) return;
+    const wasOpen = card.classList.contains('open');
+    // Tek tek açılma (veya serbest açılma)
+    card.classList.toggle('open', !wasOpen);
+  }
+
+  function updateSettingsProfileSummary() {
+    const bname = localStorage.getItem('mishil_baby_name') || 'Mina';
+    const bdate = localStorage.getItem('mishil_baby_bdate') || '2026-04-11';
+    const summary = document.getElementById('acc-profile-summary');
+    if (summary) {
+      const bDateObj = new Date(bdate);
+      const now = new Date();
+      const diffDays = Math.floor((now - bDateObj) / (1000 * 60 * 60 * 24));
+      const months = Math.floor(diffDays / 30.4375);
+      const days = Math.round(diffDays % 30.4375);
+      summary.textContent = `${bname} • ${months} Ay ${days} Günlük`;
     }
   }
 
