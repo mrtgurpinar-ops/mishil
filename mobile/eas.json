@@ -22,6 +22,10 @@
       },
       "ios": {
         "distribution": "store"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://mishil-api-production.up.railway.app/api/v1",
+        "APP_ENV": "production"
       }
     }
   },
@@ -29,12 +33,12 @@
     "production": {
       "android": {
         "serviceAccountKeyPath": "./google-play-service-account.json",
-        "track": "internal"
+        "track": "closed"
       },
       "ios": {
         "appleId": "mrtgurpinar@gmail.com",
         "ascAppId": "6470000000",
-        "appleTeamId": "MISHILTEAM1"
+        "appleTeamId": "LEVITAS1"
       }
     }
   }

@@ -224,45 +224,16 @@ async def health_check():
 
 @app.get("/privacy", response_class=HTMLResponse, tags=["Compliance"])
 async def privacy_policy():
-    """Official Privacy Policy for Apple App Store and Google Play Store."""
+    """Privacy Policy for Google Play and Apple App Store compliance."""
+    privacy_file = os.path.join(project_root, "public", "privacy.html")
+    if os.path.exists(privacy_file):
+        with open(privacy_file, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
     return HTMLResponse("""
     <!DOCTYPE html>
     <html lang="tr">
-    <head>
-      <meta charset="UTF-8">
-      <title>Gizlilik Politikası — Mishil</title>
-      <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #2C3E50; max-width: 800px; margin: 40px auto; padding: 0 20px; }
-        h1 { color: #141B2E; }
-        h2 { color: #2A3656; margin-top: 24px; }
-        .highlight { background: #FFF3CD; padding: 12px; border-left: 4px solid #FFA000; border-radius: 4px; }
-      </style>
-    </head>
-    <body>
-      <h1>🌙 Mishil — Gizlilik Politikası (Privacy Policy)</h1>
-      <p><em>Son Güncelleme: 19 Ağustos 2026</em></p>
-
-      <div class="highlight">
-        <strong>Özet Beyan:</strong> Mishil ("Uygulama"), bebeklerinizin ve ebeveynlerin gizliliğine en üst düzeyde saygı duyar. Ağlama analizi sırasında mikrofon aracılığıyla alınan ses verileri <u>yalnızca yerel cihaz üzerinde matematiksel olarak analiz edilir</u>; hiçbir şekilde ses kaydı sunucularımıza kaydedilmez veya üçüncü şahıslarla paylaşılmaz.
-      </div>
-
-      <h2>1. Toplanan Veriler ve Kullanım Amacı</h2>
-      <p>Mishil, bebeğinizin uyku ritmini takip etmek ve ebeveynlik deneyiminizi kolaylaştırmak için aşağıdaki asgari verileri toplar:</p>
-      <ul>
-        <li><strong>Hesap Bilgileri:</strong> E-posta adresi ve şifrelenmiş parola (Giriş ve senkronizasyon için).</li>
-        <li><strong>Bebek Profili:</strong> Bebeğin doğum tarihi / yaşı ve ismi (Doğru uyku pencerelerini hesaplamak için).</li>
-        <li><strong>Rutin Günlükleri:</strong> Uyku başlangıç/bitiş saatleri, beslenme miktarı ve bez değişim zamanları.</li>
-      </ul>
-
-      <h2>2. Çocukların Gizliliği (COPPA & GDPR-K Uyumluluğu)</h2>
-      <p>Uygulamamız doğrudan 13 yaş altındaki çocukları hedeflemez; ebeveynler tarafından bebeklerinin uyku ve bakım rutinlerini yönetmek amacıyla kullanılır. Çocuklara ait kişisel tanımlayıcı hiçbir veri toplanmaz veya ticari amaçla işlenmez.</p>
-
-      <h2>3. Veri Güvenliği ve Saklama</h2>
-      <p>Tüm veriler SSL/TLS (HTTPS) protokolü ile şifrelenerek güvenli bulut altyapımızda barındırılır. Kullanıcılar diledikleri zaman hesaplarını ve ilişkili tüm verilerini kalıcı olarak silebilirler.</p>
-
-      <h2>4. İletişim & Veri Talepleri</h2>
-      <p>Gizlilikle ilgili tüm sorularınız için: <strong>support@mishil.app</strong></p>
-    </body>
+    <head><meta charset="UTF-8"><title>Gizlilik Politikası — Mışıl Baby</title></head>
+    <body><h1>Mışıl Baby — Gizlilik Politikası</h1><p>Levitas Enterprise Intelligence & Technology</p></body>
     </html>
     """)
 
@@ -270,36 +241,15 @@ async def privacy_policy():
 @app.get("/terms", response_class=HTMLResponse, tags=["Compliance"])
 async def terms_of_service():
     """Terms of Service and Medical Disclaimer for Store Compliance."""
+    terms_file = os.path.join(project_root, "public", "terms.html")
+    if os.path.exists(terms_file):
+        with open(terms_file, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
     return HTMLResponse("""
     <!DOCTYPE html>
     <html lang="tr">
-    <head>
-      <meta charset="UTF-8">
-      <title>Kullanım Koşulları — Mishil</title>
-      <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #2C3E50; max-width: 800px; margin: 40px auto; padding: 0 20px; }
-        h1 { color: #141B2E; }
-        h2 { color: #2A3656; margin-top: 24px; }
-        .alert { background: #F8D7DA; color: #721C24; padding: 12px; border-left: 4px solid #F5C6CB; border-radius: 4px; }
-      </style>
-    </head>
-    <body>
-      <h1>🌙 Mishil — Kullanım Koşulları & Tıbbi Feragatname</h1>
-      <p><em>Son Güncelleme: 19 Ağustos 2026</em></p>
-
-      <div class="alert">
-        <strong>⚠️ Tıbbi Sorumluluk Reddi (Medical Disclaimer):</strong> Mishil, tıbbi veya klinik bir teşhis aracı değildir. Ağlama sesi analizi, uyku pencereleri ve rutin önerileri yalnızca genel ebeveynlik rehberliği amaçlı heuristik modellerdir. Bebeğinizin sağlık durumu veya acil durumlar için her zaman yetkili bir çocuk doktoruna veya sağlık kuruluşuna danışınız.
-      </div>
-
-      <h2>1. Hizmetin Kullanımı</h2>
-      <p>Mishil mobil uygulamasını indirerek ve kullanarak işbu şartları kabul etmiş sayılırsınız.</p>
-
-      <h2>2. Abonelikler ve Ücretsiz Deneme (In-App Purchases)</h2>
-      <p>Uygulama, 3 günlük ücretsiz deneme süresi ve ardından aylık/yıllık otomatik yenilenen abonelik modelleri sunar. Abonelikler Apple App Store veya Google Play Store hesap ayarlarınız üzerinden istenildiği zaman iptal edilebilir.</p>
-
-      <h2>3. Standart Apple EULA</h2>
-      <p>iOS kullanıcıları için Apple Standart Son Kullanıcı Lisans Sözleşmesi (EULA) geçerlidir.</p>
-    </body>
+    <head><meta charset="UTF-8"><title>Kullanım Koşulları — Mışıl Baby</title></head>
+    <body><h1>Mışıl Baby — Kullanım Koşulları</h1><p>Levitas Enterprise Intelligence & Technology</p></body>
     </html>
     """)
 

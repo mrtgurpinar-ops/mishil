@@ -2,6 +2,13 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.4.0] - 2026-08-23
+### 🚀 Google Play Store Lansman & Levitas Yayıncılık Paketi
+- **🏢 Levitas Kimliği & Kurumsal Yayıncı Entegrasyonu:** Uygulama kimliği `com.levitas.misilbaby` (Android) ve `com.levitas.misilbaby` (iOS) olarak güncellendi; `app.config.ts` dosyası Levitas Enterprise standartlarına uyarlandı.
+- **🎨 HD Mağaza Varlıkları (Store Assets):** Google Play Store gereksinimlerine tam uyumlu 512x512 uygulama simgesi (`icon_512.png`), 1024x500 vitrin afişi (`feature_graphic_1024x500.png`) ve 4 adet 1080x1920 dikey ekran görüntüsü (Ağlama Analizi, Ses Mikseri, Gece Lambası, Uyku Rehberi) üretildi.
+- **📝 Google Play ASO & Mağaza Dokümanı:** 30 karakterlik uygulama adı, 80 karakterlik kısa açıklama ve 4000 karakterlik ASO optimizasyonlu tam açıklama `STORE_LISTING.md` olarak hazırlandı.
+- **🔒 Gizlilik Politikası & Aile Güvenliği (COPPA/KVKK):** Çocuk ve bebek kategorisi için Google Play onaylı `PRIVACY_POLICY.md` dokümantasyonu tamamlandı.
+
 ## [4.3.1] - 2026-08-23
 ### 🌸 Uyumluluk, Güven Mimarisi, Fiyatlandırma & Ebeveyn Dili (Task Sprint Tamamlandı)
 - **🩺 Tıbbi Feragatname & AAP Güvenlik Onayı (TASK-002):** Onboarding anketinin sonuna ve ilk girişe zorunlu tıbbi bilgilendirme ve açık rıza onay kutusu entegre edildi. Onay verilmeden ana ekrana geçiş kilitlendi ve onay anı (`medical_disclaimer_accepted_at`) kaydedildi.

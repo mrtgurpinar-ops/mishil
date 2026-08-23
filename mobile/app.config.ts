@@ -2,9 +2,9 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'Mishil',
-  slug: 'mishil',
-  scheme: 'mishil',
+  name: 'Mışıl Baby',
+  slug: 'misil-baby',
+  scheme: 'misilbaby',
   version: '1.0.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
@@ -21,9 +21,9 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   assetBundlePatterns: ['**/*'],
   ios: {
     supportsTablet: false,
-    bundleIdentifier: 'com.mrtgurpinar.mishil',
+    bundleIdentifier: 'com.levitas.misilbaby',
     infoPlist: {
-      NSMicrophoneUsageDescription: 'Mishil, bebeğinizin ağlama sesindeki akustik özellikleri analiz etmek için mikrofonunuza erişir. Sesler yalnızca yerel analiz amaçlı işlenir ve kaydedilmez.',
+      NSMicrophoneUsageDescription: 'Mışıl Baby, bebeğinizin ağlama sesindeki akustik özellikleri analiz etmek için mikrofonunuza erişir. Sesler yalnızca yerel analiz amaçlı işlenir ve kaydedilmez.',
       UIBackgroundModes: ['audio']
     }
   },
@@ -32,7 +32,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#141B2E'
     },
-    package: 'com.mrtgurpinar.mishil',
+    package: 'com.levitas.misilbaby',
+    versionCode: 1,
     permissions: [
       'RECORD_AUDIO',
       'WAKE_LOCK',
