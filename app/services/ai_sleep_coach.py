@@ -243,3 +243,77 @@ def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history:
         "user_role": user_role,
         "timestamp": datetime.now().isoformat()
     }
+
+
+def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None):
+    """Server-Sent Events (SSE) Live Token Streaming Generator for Mışıl Dadı AI"""
+    import time
+    chat_history = chat_history or []
+    api_key = _find_gemini_api_key()
+    baby_info = _calc_baby_details(birth_date, manual_leap)
+    role_tr = "Anne" if user_role == "mother" else ("Baba" if user_role == "father" else "Dadı / Bakıcı")
+
+    streamed_success = False
+
+    if api_key:
+        sys_prompt = (
+            f"{SYSTEM_PROMPT}\n\n"
+            f"[GÜNCEL BAĞLAM BİLGİSİ]\n"
+            f"Soruyu Soran Rol: {role_tr}\n"
+            f"Bebek Adı: {baby_name}\n"
+            f"Yaş: {baby_info['age_formatted']}\n"
+            f"Aktif Gelişim/Regresyon Durumu: {baby_info['leap_info']}\n"
+            f"Önerilen SweetSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
+        )
+
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:streamGenerateContent?key={api_key}&alt=sse"
+
+        contents = []
+        for h in chat_history[-4:]:
+            role = "user" if h.get("role") == "user" else "model"
+            contents.append({"role": role, "parts": [{"text": h.get("content", "")}]})
+        contents.append({"role": "user", "parts": [{"text": f"[{role_tr} Soruyor]: {message}"}]})
+
+        payload = {
+            "contents": contents,
+            "systemInstruction": {"parts": [{"text": sys_prompt}]},
+            "generationConfig": {
+                "temperature": 0.65,
+                "maxOutputTokens": 3000,
+                "thinkingConfig": {"thinkingBudget": 0}
+            }
+        }
+
+        try:
+            data_bytes = json.dumps(payload).encode("utf-8")
+            req = urllib.request.Request(url, data=data_bytes, headers={"Content-Type": "application/json"}, method="POST")
+            with urllib.request.urlopen(req, timeout=20) as resp:
+                for raw_line in resp:
+                    line = raw_line.decode("utf-8").strip()
+                    if line.startswith("data:"):
+                        data_str = line[5:].strip()
+                        if data_str:
+                            try:
+                                obj = json.loads(data_str)
+                                parts = obj.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+                                for p in parts:
+                                    chunk = p.get("text", "")
+                                    if chunk:
+                                        streamed_success = True
+                                        yield f"data: {json.dumps({'text': chunk, 'tier': 'Tier 1 (Gemini 3.5 Flash Streaming)'})}\n\n"
+                            except Exception:
+                                pass
+        except Exception as err:
+            logger.warning(f"Live Gemini SSE streaming error: {err}")
+
+    # Fallback to local clinical heuristic streaming if live API didn't stream
+    if not streamed_success:
+        full_text = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap)
+        # Stream word by word with natural pacing
+        words = full_text.split(" ")
+        for i, word in enumerate(words):
+            chunk = word + (" " if i < len(words) - 1 else "")
+            yield f"data: {json.dumps({'text': chunk, 'tier': 'Tier 4 (Clinical Sirkadiyen Streaming)'})}\n\n"
+            time.sleep(0.015)
+
+    yield f"data: {json.dumps({'done': True})}\n\n"

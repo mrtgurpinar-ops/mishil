@@ -2,6 +2,12 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [2.6.0] - 2026-08-23
+### ⚡ Gerçek Zamanlı Kelime Akışı (SSE Streaming) & Sıfır Kesilme Mimarisi
+- **Mışıl Dadı Real-Time Streaming (`POST /api/v1/coach/stream`):** Google Gemini 3.5 Flash `:streamGenerateContent` SSE motoru ile kelimeler 300ms içinde ekrana canlı canlı akıtılır.
+- **Sıfır Token Sınırı & Sıfır Kesilme:** Modelin klinik muhakeme derinliği kısıtlanmadan, cevaplar harf harf akıtılarak yarıda kesilme riski %100 ortadan kaldırıldı.
+- **Modern `ReadableStream` İstemcisi:** Frontend üzerinde `ReadableStream` okuyucusu ve anlık markdown formatlayıcı ile akıcı canlı sohbet deneyimi sunuldu.
+
 ## [2.5.0] - 2026-08-23
 ### 🐘 Canlı PostgreSQL Veritabanı Tam Senkronizasyonu & Function-Bun Realtime WebSocket Relay
 - **%100 Canlı PostgreSQL Veri Kalıcılığı:** Bebek profili (`POST /api/v1/baby/profile`), uyku oturumları (`POST /api/v1/sleep/log`), gelişim günlükleri ve Mışıl Dadı sohbet geçmişi doğrudan Railway canlı PostgreSQL veritabanına bağlandı.

@@ -1887,7 +1887,7 @@
     const container = document.getElementById('chat-messages-container');
     const typingIndicator = document.getElementById('dadi-typing-indicator') || document.getElementById('dadi-typing');
 
-    // Append User message
+    // 1. Append User message
     if (container) {
       const userBubble = document.createElement('div');
       userBubble.className = 'chat-bubble-user';
@@ -1903,15 +1903,16 @@
     const userRole = localStorage.getItem('mishil_user_role') || 'mother';
     const manualLeap = localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap')) : null;
 
-    if (typingIndicator) {
-      typingIndicator.style.display = 'flex';
-    }
+    if (typingIndicator) typingIndicator.style.display = 'flex';
     if (container) container.scrollTop = container.scrollHeight;
 
     const API_BASE = (window.location.protocol === 'file:') ? 'https://mishil-production.up.railway.app' : '';
 
+    let dadiBubble = null;
+    let accumulatedText = '';
+
     try {
-      const response = await fetch(`${API_BASE}/api/v1/coach/chat`, {
+      const response = await fetch(`${API_BASE}/api/v1/coach/stream`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1924,19 +1925,62 @@
         })
       });
 
+      if (!response.ok || !response.body) {
+        throw new Error('Streaming response not available');
+      }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let buffer = '';
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop(); // Keep last incomplete line in buffer
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (trimmed.startsWith('data:')) {
+            const rawJson = trimmed.slice(5).trim();
+            if (rawJson) {
+              try {
+                const parsed = JSON.parse(rawJson);
+                if (parsed.text) {
+                  if (typingIndicator) typingIndicator.style.display = 'none';
+
+                  if (!dadiBubble) {
+                    dadiBubble = document.createElement('div');
+                    dadiBubble.className = 'chat-bubble-dadi';
+                    container.appendChild(dadiBubble);
+                  }
+
+                  accumulatedText += parsed.text;
+                  dadiBubble.innerHTML = formatMarkdown(accumulatedText);
+                  container.scrollTop = container.scrollHeight;
+                }
+              } catch (e) {}
+            }
+          }
+        }
+      }
+
       if (typingIndicator) typingIndicator.style.display = 'none';
 
-      if (response.ok) {
-        const data = await response.json();
-        renderDadiReply(data.reply);
-        dadiChatHistory.push({ role: 'assistant', content: data.reply });
+      if (accumulatedText) {
+        dadiChatHistory.push({ role: 'assistant', content: accumulatedText });
+        hapticPulse();
       } else {
         fallbackDadiLocalResponse(babyName, birthDate, userText);
       }
     } catch (err) {
-      console.warn('Backend fetch error, executing Tier 4 local fallback:', err);
+      console.warn('Streaming error, falling back to local heuristic:', err);
       if (typingIndicator) typingIndicator.style.display = 'none';
-      fallbackDadiLocalResponse(babyName, birthDate, userText);
+      if (!dadiBubble || !accumulatedText) {
+        fallbackDadiLocalResponse(babyName, birthDate, userText);
+      }
     }
   }
 

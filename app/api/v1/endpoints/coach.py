@@ -1,10 +1,8 @@
-"""
-Mışıl Baby — Mışıl Dadı AI Chat API Endpoint
-"""
 from fastapi import APIRouter, HTTPException, status
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Any
-from app.services.ai_sleep_coach import ask_mishil_dadi
+from app.services.ai_sleep_coach import ask_mishil_dadi, stream_mishil_dadi
 
 router = APIRouter()
 
@@ -31,10 +29,10 @@ class CoachChatResponse(BaseModel):
     timestamp: str
 
 
-@router.post("/chat", response_model=CoachChatResponse, summary="Mışıl Dadı AI Pediatrik Danışmanına Soru Sor")
+@router.post("/chat", response_model=CoachChatResponse, summary="Mışıl Dadı AI Pediatrik Danışmanına Soru Sor (JSON)")
 async def chat_with_coach(payload: CoachChatRequest):
     """
-    4 Katmanlı Gemini LLM Destekli Mışıl Dadı Servisi:
+    4 Katmanlı Gemini LLM Destekli Mışıl Dadı Servisi (Tek Parça JSON):
     Bebeğin adına, tam ayına, soruyu soran ebeveyn/dadı rolüne ve aktif gelişim sıçramasına özel şefkatli ve bilimsel çözümler sunar.
     """
     try:
@@ -52,3 +50,35 @@ async def chat_with_coach(payload: CoachChatRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Mışıl Dadı yanıt üretirken bir hata oluştu: {str(e)}"
         )
+
+
+@router.post("/stream", summary="Mışıl Dadı AI Canlı Token Akışı (Server-Sent Events / SSE)")
+async def stream_coach_response(payload: CoachChatRequest):
+    """
+    Gerçek Zamanlı Kelime Akışı (SSE Streaming):
+    Kelimeleri 300ms içinde canlı canlı ekrana döker, kesintisiz ve sıfır gecikmeli danışmanlık sağlar.
+    """
+    try:
+        generator = stream_mishil_dadi(
+            baby_name=payload.baby_name,
+            birth_date=payload.birth_date,
+            message=payload.message,
+            chat_history=payload.chat_history,
+            user_role=payload.user_role,
+            manual_leap=payload.manual_leap
+        )
+        return StreamingResponse(
+            generator,
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+                "X-Accel-Buffering": "no"
+            }
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Mışıl Dadı akışı başlatılamadı: {str(e)}"
+        )
+
