@@ -2,6 +2,14 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.3.1] - 2026-08-23
+### 🌸 Uyumluluk, Güven Mimarisi, Fiyatlandırma & Ebeveyn Dili (Task Sprint Tamamlandı)
+- **🩺 Tıbbi Feragatname & AAP Güvenlik Onayı (TASK-002):** Onboarding anketinin sonuna ve ilk girişe zorunlu tıbbi bilgilendirme ve açık rıza onay kutusu entegre edildi. Onay verilmeden ana ekrana geçiş kilitlendi ve onay anı (`medical_disclaimer_accepted_at`) kaydedildi.
+- **👑 3'lü Plan Seçici & Apple Guideline 3.1.2 Uyumu (TASK-001 & TASK-006):** Yıllık (3 Gün Ücretsiz Deneme • ₺599.99/yıl), Aylık (₺149.99/ay) ve Ömür Boyu Tek Seferlik (₺1.499.99) plan seçicisi entegre edildi. Dinamik deneme bitiş tarihi (`Bugün + 3 Gün`) ve tek tıkla App Store abonelik iptal yönlendirmesi eklendi.
+- **🎵 Ses Kütüphanesi Filtreleme İzolasyonu & 18 Parça Garantisi (TASK-003):** `.cat-chip` seçicisi `#view-sounds` içine scoped yapılarak filtre çakışması giderildi; 18 stüdyo parçasının (5 Ninni, 4 Anne Karnı, 5 Pışpış, 4 Doğa) kusursuz listelenmesi güvenceye alındı.
+- **🔒 Akustik Ağlama Analizi RAM Sıfır-Depolama Şeffaflığı (TASK-004):** Mikrofona basılmadan önce görünür şeffaf bilgilendirme rozeti eklendi (Ses kaydı diske yazılmaz; 5 sn sunucu RAM analizinden sonra derhal kalıcı olarak silinir).
+- **🌸 Anne-Baba Dostu Sıcak Sürüm Notları (TASK-005):** Geliştirici terimleri yerine anne ve babalara hitap eden anlaşılır ve şefkatli bir dil uygulandı.
+
 ## [2.8.0] - 2026-08-23
 ### 🌙 Segmented Focus Hub, Klinik Dinamik Gelişim Algoritması & 5-Core Analiz Merkezi
 - **🥇 Segmented Focus Hub (2 Modlu Ana Sayfa):** Dikey yığın tamamen kaldırılarak üstte tek tıkla değişen `[ 🌙 SweetSpot & Uyut ]` (dingin nefes alan ay ve tek butonla uyutma) ve `[ ⏱️ Bugünkü Uykular ]` (tamamlanan uyku seansları ve bütçe) segment kontrolü entegre edildi.
