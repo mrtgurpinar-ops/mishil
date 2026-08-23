@@ -2272,16 +2272,38 @@
     if (bannerProg) bannerProg.style.width = `${Math.min(100, Math.round((calc.currentWeek / calc.activeLeap.endWeek) * 100))}%`;
   }
 
-  function saveBabyProfile() {
+  async function saveBabyProfile() {
     const name = document.getElementById('cfg-baby-name').value.trim() || 'Mina';
     const bdate = document.getElementById('cfg-baby-bdate').value || '2026-04-11';
+    const familyCode = document.getElementById('family-sync-code') ? document.getElementById('family-sync-code').textContent : 'MSL782';
+
     localStorage.setItem('mishil_baby_name', name);
     localStorage.setItem('mishil_baby_bdate', bdate);
     loadBabyProfile();
-    showToast(`✅ ${name} bebeğin profili güncellendi`);
+    showToast(`💾 ${name} profili kaydediliyor...`);
+
+    const API_BASE = (window.location.protocol === 'file:') ? 'https://mishil-production.up.railway.app' : '';
+    try {
+      const resp = await fetch(`${API_BASE}/api/v1/baby/profile`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          family_code: familyCode,
+          name: name,
+          birth_date: bdate
+        })
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        showToast(`🐘 Canlı PostgreSQL'e kaydedildi (${data.name} • ${data.current_week}. Hafta)`);
+        broadcastRealtimeEvent('PROFILE_UPDATED', { name, bdate });
+      }
+    } catch (err) {
+      console.warn('Live DB sync notice:', err);
+    }
   }
 
-  function loadBabyProfile() {
+  async function loadBabyProfile() {
     const name = localStorage.getItem('mishil_baby_name') || 'Mina';
     const bdate = localStorage.getItem('mishil_baby_bdate') || '2026-04-11';
     const role = localStorage.getItem('mishil_user_role') || 'mother';
@@ -2318,7 +2340,7 @@
   let sleepStartTime = null;
   let sleepInterval = null;
 
-  function toggleLiveSleep() {
+  async function toggleLiveSleep() {
     hapticPulse();
     isSleeping = !isSleeping;
 
@@ -2329,6 +2351,10 @@
     const targetDisp = document.getElementById('target-sleep-display');
     const targetSub = document.getElementById('target-sleep-subtext');
     const liveTimer = document.getElementById('live-sleep-timer');
+    const familyCode = document.getElementById('family-sync-code') ? document.getElementById('family-sync-code').textContent : 'MSL782';
+    const role = localStorage.getItem('mishil_user_role') || 'mother';
+
+    const API_BASE = (window.location.protocol === 'file:') ? 'https://mishil-production.up.railway.app' : '';
 
     if (isSleeping) {
       sleepStartTime = new Date();
@@ -2351,9 +2377,22 @@
       }, 1000);
 
       showToast('🌙 Bebek uykuya daldı, canlı takip başladı');
+      broadcastRealtimeEvent('SLEEP_STARTED', { by: role, startTime: sleepStartTime.toISOString() });
+
+      // Live PostgreSQL background sync
+      fetch(`${API_BASE}/api/v1/sleep/log`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          family_code: familyCode,
+          start_time: sleepStartTime.toISOString(),
+          is_live_tracking: true
+        })
+      }).catch(() => {});
     } else {
       if (sleepInterval) clearInterval(sleepInterval);
-      const totalSecs = Math.floor((new Date() - sleepStartTime) / 1000);
+      const endTime = new Date();
+      const totalSecs = Math.floor((endTime - sleepStartTime) / 1000);
       const totalMins = Math.max(1, Math.round(totalSecs / 60));
 
       circle.classList.remove('sleeping');
@@ -2369,9 +2408,75 @@
       targetDisp.textContent = calc.sweetSpotTime;
       targetSub.textContent = `SweetSpot® İdeal Uyku Vakti (${Math.floor(calc.wakeWindowMin / 60)}s ${calc.wakeWindowMin % 60}dk pencere)`;
 
-      showToast(`☀️ Günaydın! ${totalMins} dk uyku kaydedildi.`);
+      showToast(`☀️ Günaydın! ${totalMins} dk uyku PostgreSQL'e kaydedildi.`);
+      broadcastRealtimeEvent('SLEEP_COMPLETED', { by: role, duration_mins: totalMins });
+
+      // Save completed sleep log to live PostgreSQL
+      fetch(`${API_BASE}/api/v1/sleep/log`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          family_code: familyCode,
+          start_time: sleepStartTime.toISOString(),
+          end_time: endTime.toISOString(),
+          duration_minutes: totalMins,
+          is_live_tracking: false
+        })
+      }).catch(() => {});
     }
   }
+
+  // =========================================================================
+  // ⚡ REALTIME WEBSOCKET SYNC ENGINE (FUNCTION-BUN)
+  // =========================================================================
+  let realtimeWs = null;
+  function initRealtimeWebSocket() {
+    const familyCode = document.getElementById('family-sync-code') ? document.getElementById('family-sync-code').textContent : 'MSL782';
+    const role = localStorage.getItem('mishil_user_role') || 'mother';
+    const userName = role === 'mother' ? 'Anne' : (role === 'father' ? 'Baba' : 'Dadı');
+
+    const wsUrl = `wss://function-bun-production-951c.up.railway.app/ws?family=${familyCode}&name=${userName}&role=${role}`;
+
+    try {
+      realtimeWs = new WebSocket(wsUrl);
+
+      realtimeWs.onopen = () => {
+        console.log('🟢 Function-Bun Realtime WebSocket Connected');
+      };
+
+      realtimeWs.onmessage = (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          console.log('⚡ Realtime Event Received:', msg);
+          if (msg.type === 'SLEEP_STARTED') {
+            showToast(`🔔 Canlı Bildirim: ${msg.sender_name || 'Ebeveyn'} bebeği uyuttu! 💤`);
+          } else if (msg.type === 'SLEEP_COMPLETED') {
+            showToast(`☀️ Canlı Bildirim: Bebek uyandı (${msg.payload?.duration_mins || ''} dk uyku)`);
+          } else if (msg.type === 'LEAP_OVERRIDE') {
+            showToast(`⚡ Canlı Bildirim: ${msg.payload?.leap}. Sıçrama Erken Atak olarak güncellendi!`);
+            loadBabyProfile();
+          } else if (msg.type === 'PROFILE_UPDATED') {
+            loadBabyProfile();
+          }
+        } catch (e) {}
+      };
+
+      realtimeWs.onclose = () => {
+        setTimeout(initRealtimeWebSocket, 10000); // Reconnect after 10s
+      };
+    } catch (err) {
+      console.warn('Realtime WS connecting in background:', err);
+    }
+  }
+
+  function broadcastRealtimeEvent(type, payload) {
+    if (realtimeWs && realtimeWs.readyState === WebSocket.OPEN) {
+      realtimeWs.send(JSON.stringify({ type, payload }));
+    }
+  }
+
+  // Initialize Realtime WebSocket on load
+  setTimeout(initRealtimeWebSocket, 1500);
 
   // =========================================================================
   // 5. CRY ANALYSIS & AUDIO RECORDING

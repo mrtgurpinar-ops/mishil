@@ -1,0 +1,14 @@
+{
+  "name": "mishil-function-bun",
+  "version": "1.0.0",
+  "description": "Mishil Baby - Realtime Co-Parenting WebSocket Relay & Edge Sync Engine (Bun Runtime)",
+  "main": "index.ts",
+  "scripts": {
+    "start": "bun run index.ts",
+    "dev": "bun --watch index.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/bun": "latest"
+  }
+}

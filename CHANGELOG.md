@@ -2,6 +2,12 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [2.5.0] - 2026-08-23
+### 🐘 Canlı PostgreSQL Veritabanı Tam Senkronizasyonu & Function-Bun Realtime WebSocket Relay
+- **%100 Canlı PostgreSQL Veri Kalıcılığı:** Bebek profili (`POST /api/v1/baby/profile`), uyku oturumları (`POST /api/v1/sleep/log`), gelişim günlükleri ve Mışıl Dadı sohbet geçmişi doğrudan Railway canlı PostgreSQL veritabanına bağlandı.
+- **⚡ Function-Bun Gerçek Zamanlı Ebeveyn & Dadı Senkronizasyonu (`services/function_bun`):** Yüksek hızlı Bun runtime WebSocket motoru ile anne bebeği uyuttuğunda veya dadı mamasını verdiğinde diğer tüm bağlı aile üyelerinin ekranı anında titreşerek canlı güncellenir (`SLEEP_STARTED`, `SLEEP_COMPLETED`, `LEAP_OVERRIDE`).
+- **Uygulama İçi Canlı Veri Akışı:** `localStorage` sadece offline yedek katmanına çekilerek birincil veri kaynağı canlı PostgreSQL yapıldı.
+
 ## [2.4.0] - 2026-08-23
 ### 👨‍👩‍👧 Aile & Dadı Senkronizasyonu, Wonder Weeks % İlerleme Çubukları & Erken Atak Modu
 - **Dinamik Wonder Weeks (10 Zihinsel Sıçrama) Motoru:** Bebeğin doğum tarihine gün gün duyarlı çalışan; her sıçramada dinamik **% dolum çubuğu**, fırtına zirvesi ve yaklaşan sıçramalara gün geri sayımı entegre edildi.
