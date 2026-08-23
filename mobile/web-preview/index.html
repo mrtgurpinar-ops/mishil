@@ -1356,7 +1356,11 @@
   </div>
 
   <!-- =======================================================================
-       MAIN APP TABS C    <!-- 1. HOME TAB (SWEETSPOT & SEGMENTED FOCUS HUB) -->
+       MAIN APP TABS CONTAINER
+       ======================================================================= -->
+  <div class="screen-container no-scrollbar" id="main-app-screen">
+
+    <!-- 1. HOME TAB (SWEETSPOT & SEGMENTED FOCUS HUB) -->
     <div id="view-home" class="tab-view active">
       <div class="app-header">
         <div>
@@ -1545,7 +1549,7 @@
       </div>
 
       <!-- Ağlama Sesi Acil Çözücü Çubuğu (Dadı İçine Entegre) -->
-      <div class="card" style="border: 1px solid var(--accent); background: rgba(36, 30, 50, 0.9); cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;" onclick="openCryModal()">
+      <div class="card" style="border: 1px solid var(--accent); background: rgba(36, 30, 50, 0.9); cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; margin-bottom: 12px;" onclick="openCryModal()">
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-size: 22px;">🎙️</span>
           <div>
@@ -1554,17 +1558,6 @@
           </div>
         </div>
         <span class="early-leap-btn" style="margin: 0; padding: 4px 8px; font-size: 10px;">Dinle 🎙️</span>
-      </div><button class="sound-play-btn" id="mini-play-btn" onclick="toggleMiniPlay()">▶</button>
-      </div>
-    </div>
-
-    <!-- 2. MIŞIL DADI (7/24 ŞEFKATLİ UYKU DANIŞMANI TAB) -->
-    <div id="view-coach" class="tab-view">
-      <div class="app-header">
-        <div>
-          <div class="baby-subtitle" id="coach-header-subtitle">7/24 Şefkatli Uyku & Gelişim Danışmanı</div>
-          <div class="main-title">Mışıl Dadı 👵</div>
-        </div>
       </div>
 
       <div class="dadi-container">
@@ -1599,124 +1592,7 @@
       </div>
     </div>
 
-    <!-- 3. CRY ANALYSIS TAB -->
-    <div id="view-cry" class="tab-view">
-      <div class="app-header">
-        <div>
-          <div class="baby-subtitle">Akustik DSP Ağlama Analizi</div>
-          <div class="main-title">Ağlama Sesi Çözücü</div>
-        </div>
-      </div>
-
-      <div class="card mic-record-box" id="cry-recorder">
-        <div class="spotlight-glow"></div>
-        <div class="mic-circle" id="mic-btn" onclick="toggleRealMicRecording()">🎙️</div>
-        <div style="font-family: 'Sora'; font-size: 15px; font-weight: 600; color: #FFF; margin-bottom: 4px;" id="mic-status-title">
-          Canlı Dinlemek İçin Dokunun
-        </div>
-        <div style="font-size: 11px; color: var(--text-muted); line-height: 16px;" id="mic-status-desc">
-          Mikrofon 5 saniye boyunca ortam sesini kaydeder. 13 bant MFCC & Zero Crossing Rate ile analiz edilir.
-        </div>
-
-        <div id="mic-waveform" style="display: none; justify-content: center; gap: 4px; height: 28px; margin-top: 14px; align-items: center;">
-          <span class="wave-bar" style="height: 10px;"></span>
-          <span class="wave-bar" style="height: 24px;"></span>
-          <span class="wave-bar" style="height: 16px;"></span>
-          <span class="wave-bar" style="height: 28px;"></span>
-          <span class="wave-bar" style="height: 18px;"></span>
-        </div>
-
-        <div style="margin-top: 16px; border-top: 1px solid var(--border-night); padding-top: 12px; width: 100%;">
-          <label style="font-size: 11px; color: var(--accent); cursor: pointer; text-decoration: underline;">
-            📁 Cihazdan Ses Dosyası Seç (.wav, .m4a, .mp3)
-            <input type="file" id="audio-file-input" accept="audio/*" style="display: none;" onchange="handleAudioFileUpload(this)" />
-          </label>
-        </div>
-      </div>
-
-      <div id="cry-result" style="display: none;">
-        <div class="card">
-          <div class="spotlight-glow"></div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF;">Tespit Edilen Nedenler</div>
-            <span style="font-size: 10px; color: var(--success); font-weight: 700;">● CANLI FASTAPI YANITI</span>
-          </div>
-
-          <div style="margin-bottom: 8px;">
-            <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--accent);">
-              <span id="cause-1-label">🥱 Yorgunluk / Uyku İhtiyacı</span>
-              <span id="cause-1-val">%82</span>
-            </div>
-            <div class="progress-bar-wrap"><div class="progress-fill" id="cause-1-bar" style="width: 82%;"></div></div>
-          </div>
-          <div style="margin-bottom: 8px;">
-            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #FFF;">
-              <span id="cause-2-label">🍼 Açlık Belirtisi</span>
-              <span id="cause-2-val">%12</span>
-            </div>
-            <div class="progress-bar-wrap"><div class="progress-fill" id="cause-2-bar" style="width: 12%; background: var(--moon-blue);"></div></div>
-          </div>
-          <div>
-            <div style="display: flex; justify-content: space-between; font-size: 12px; color: #FFF;">
-              <span id="cause-3-label">💨 Gaz / Kolik</span>
-              <span id="cause-3-val">%6</span>
-            </div>
-            <div class="progress-bar-wrap"><div class="progress-fill" id="cause-3-bar" style="width: 6%; background: var(--moon-blue);"></div></div>
-          </div>
-        </div>
-
-        <div class="card" style="border-color: var(--accent); background: rgba(35, 34, 48, 0.9);">
-          <div class="spotlight-glow"></div>
-          <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">Önerilen Ebeveyn Aksiyonu</div>
-          <div style="font-size: 12px; color: #FFF; line-height: 17px; margin-bottom: 12px;" id="cry-action-desc">
-            Bebeğiniz SweetSpot penceresini aşmak üzere. Derhal odayı loşlaştırın ve 432Hz ninnileri başlatın.
-          </div>
-          <button class="btn-primary" onclick="triggerSmartSleepAction()">🌙 Ninnileri Başlat & Uykuya Geç</button>
-          <button class="btn-secondary" onclick="resetCryRecorder()">🔄 Yeni Ses Kaydı Al</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 4. WONDER WEEKS RADAR TAB (DYNAMIC 10 SCIENTIFIC LEAPS & EARLY OVERRIDE) -->
-    <div id="view-leaps" class="tab-view">
-      <div class="app-header">
-        <div>
-          <div class="baby-subtitle" id="leaps-header-subtitle">Wonder Weeks Bilimsel Gelişim Radarı</div>
-          <div class="main-title">Gelişim Atakları ✨</div>
-        </div>
-      </div>
-
-      <!-- Overall Development Journey Hero Card -->
-      <div class="card" id="leaps-hero-card" style="background: rgba(30, 42, 72, 0.95); border: 1px solid var(--accent);">
-        <div class="spotlight-glow"></div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <span style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF;" id="leaps-hero-title">✨ 0-20 Ay Zihinsel Gelişim Radarı</span>
-          <span style="font-size: 11px; font-weight: 700; color: var(--accent);" id="leaps-hero-overall-percent">%38 Tamamlandı</span>
-        </div>
-        <div style="font-size: 11px; color: var(--text-night); margin-bottom: 8px;" id="leaps-hero-desc">
-          Mina şu anda 19. haftasında. 10 Büyük Zihinsel Sıçramadan 4.'sü içerisindesiniz.
-        </div>
-        <div class="progress-bar-wrap">
-          <div class="progress-fill" id="leaps-hero-progress-bar" style="width: 38%;"></div>
-        </div>
-        <div id="leaps-early-override-badge" style="display: none; margin-top: 8px;">
-          <span style="font-size: 10px; background: #FF4757; color: #FFF; padding: 3px 8px; border-radius: 6px; font-weight: 700;">⚡ MANUEL ERKEN ATAK MODU AKTİF</span>
-          <button class="early-leap-btn" style="margin-left: 6px; padding: 2px 6px; font-size: 10px;" onclick="resetToAutoLeap()">🔄 Otomatik Takvime Dön</button>
-        </div>
-      </div>
-
-      <div class="section-title">
-        <span>10 Büyük Zihinsel Sıçrama Haritası</span>
-        <span style="font-size: 11px; color: var(--text-muted);">Doğum Tarihine Duyarlı</span>
-      </div>
-
-      <!-- Dynamic 10 Leaps List Container -->
-      <div id="leaps-list-container">
-        <!-- Rendered dynamically by JavaScript -->
-      </div>
-    </div>
-
-    <!-- 5. SOUNDS TAB (18 TRACKS & CATEGORICAL SEARCH) -->
+    <!-- 4. SOUNDS TAB (18 TRACKS & CATEGORICAL SEARCH) -->
     <div id="view-sounds" class="tab-view">
       <div class="app-header">
         <div>
