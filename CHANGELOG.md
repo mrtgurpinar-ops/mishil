@@ -2,6 +2,11 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.5.1] - 2026-08-23
+### 🔐 Şifreli Geliştirici Geçidi (PIN-Protected Developer Gateway)
+- **🔑 Geliştirici Önizleme Modu (`GET /app` & `GET /preview`):** Canlı geliştirme ve test kontrolleri için PIN korumalı tam çalışan uygulama sayfası (`public/app.html`) entegre edildi.
+- **🛡️ `levitas2026` Şifre Doğrulaması:** `sessionStorage` üzerinden yetkilendirme ile izinsiz ziyaretçiler engellenirken, geliştiricinin kesintisiz test yapabilmesi sağlandı.
+
 ## [4.5.0] - 2026-08-23
 ### 🌟 Tier-1 Lüks Landing Page & Mağaza İndirme Dönüşümü
 - **🛡️ Ücretsiz Doğrudan Erişim Koruması:** Açık web sürümü kaldırılarak tüm web trafiği App Store ve Google Play indirmelerine yönlendirildi.

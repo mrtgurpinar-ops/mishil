@@ -227,6 +227,17 @@ async def landing_page():
     """)
 
 
+@app.get("/app", response_class=HTMLResponse, tags=["Developer"])
+@app.get("/preview", response_class=HTMLResponse, tags=["Developer"])
+async def developer_preview():
+    """PIN-Protected Live Developer Preview of Mışıl Baby."""
+    app_file = os.path.join(project_root, "public", "app.html")
+    if os.path.exists(app_file):
+        with open(app_file, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse("<h2>Uygulama dosyası bulunamadı.</h2>", status_code=404)
+
+
 @app.get("/health", tags=["Health"])
 async def health_check():
     """Liveness probe endpoint."""
