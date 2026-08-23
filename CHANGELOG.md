@@ -2,6 +2,12 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.6.2] - 2026-08-23
+### 📱 PWA & Apple Touch Icon & Favicon Standardizasyonu
+- **🍏 Apple iOS Safari Ana Ekrana Ekleme:** `apple-touch-icon.png` (180x180 px) ve ilgili iOS Web Clip meta etiketleri bağlandı.
+- **🤖 Android Chrome & PWA Manifest:** `manifest.json`, `icon-192.png` ve `icon-512.png` PWA ikonları eklendi.
+- **🌐 Web Sekmesi Favicon:** `favicon.ico`, `favicon-32x32.png` ve `favicon-16x16.png` FastAPI doğrudan rotalarıyla servis edildi.
+
 ## [4.6.1] - 2026-08-23
 ### 👶 Konsept 2 (Uyuyan Bebek & Ay) Master İkon Entegrasyonu
 - **🎨 Resmi İkon Belirlendi:** Kullanıcı tercihiyle Concept 2 (Bulut Üzerinde Uyuyan Bebek ve Ay) tüm mobil (`icon.png`, `adaptive-icon.png`, `splash.png`, `favicon.png`) ve mağaza varlıklarına (`icon_512.png`, `ios_icon_1024.png`) işlendi.

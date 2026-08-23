@@ -211,6 +211,28 @@ async def generic_exception_handler(request: Request, exc: Exception):
 app.include_router(api_router, prefix="/api/v1")
 
 
+# PWA & Static Brand Icon Endpoints
+@app.get("/favicon.ico", include_in_schema=False)
+@app.get("/favicon.png", include_in_schema=False)
+@app.get("/favicon-32x32.png", include_in_schema=False)
+@app.get("/favicon-16x16.png", include_in_schema=False)
+@app.get("/apple-touch-icon.png", include_in_schema=False)
+@app.get("/apple-touch-icon-precomposed.png", include_in_schema=False)
+@app.get("/icon-192.png", include_in_schema=False)
+@app.get("/icon-512.png", include_in_schema=False)
+@app.get("/manifest.json", include_in_schema=False)
+async def serve_pwa_static(request: Request):
+    """Serve PWA icons and web manifest directly from public/ folder."""
+    filename = request.url.path.lstrip("/")
+    file_path = os.path.join(project_root, "public", filename)
+    if os.path.exists(file_path):
+        media_type = "application/manifest+json" if filename.endswith(".json") else "image/png"
+        if filename.endswith(".ico"):
+            media_type = "image/x-icon"
+        return FileResponse(file_path, media_type=media_type)
+    return PlainTextResponse("Not Found", status_code=404)
+
+
 @app.get("/", response_class=HTMLResponse, tags=["Landing"])
 async def landing_page():
     """Mışıl Baby Official Landing Page & Store Download Hub."""
