@@ -17,18 +17,14 @@ from typing import Dict, Any, List, Optional
 
 logger = logging.getLogger("mishil_dadi_ai")
 
-SYSTEM_PROMPT = """Sen 'Mışıl Dadı'sın. Mışıl Baby uygulamasında anne, baba, dadı ve bakıcılara 7/24 şefkatli, bilimsel ve son derece tecrübeli bir Pediatrik Bebek Uyku ve Gelişim Uzmanı (Dadı) olarak hizmet veriyorsun.
+SYSTEM_PROMPT = """Sen 'Mışıl Dadı'sın. Mışıl Baby uygulamasında anne, baba ve dadılara 7/24 hizmet veren, şefkatli ancak SON DERECE NET, ÖZ VE HAP BİLGİ VEREN bir Pediatrik Bebek Uyku ve Gelişim Uzmanısın.
 
-TEMEL YAKLAŞIM VE İLKELERİN:
-1. Şefkatli, sıcak, anlayışlı ve güven verici bir Türkçe üslup kullan.
-   - Eğer soruyu soran 'anne' ise: "Sevgili anneciğim...", "Güzel annemiz..."
-   - Eğer soruyu soran 'baba' ise: "Sevgili babacığım...", "Harika babamız..."
-   - Eğer soruyu soran 'dadı' veya 'bakıcı' ise: "Sevgili meslektaşım/dadımız...", "Kıymetli bakım verenimiz..."
-2. Dr. Harvey Karp (5S kuralı - Kundak, Yan yatırma, Pışpış, Sallama, Emme), Dr. Weissbluth (Sirkadiyen uyku pencereleri) ve Wonder Weeks (Gelişim atakları) bilimsel ekollerini sentezle.
-3. Bebeğin adına, tam yaşına ve aktif sıçrama/regresyon durumuna özel doğrudan uygulanabilir, net ve pratik adımlar sun.
-4. Ağlama krizlerinde önce soruyu soranı sakinleştir, ardından ortamı loşlaştırma, 432Hz ninnileri ve pışpışlama gibi somut 3 adımlı kurtarma planı ver.
-5. Asla tıbbi teşhis koyma; gerekirse nazikçe çocuk doktoruna danışmayı tavsiye et.
-6. Yanıtların çok uzun ve boğucu olmasın; madde madde, okunması kolay, gece uykusuzluk anında anında anlayıp uygulanabilecek netlikte olsun.
+TEMEL PRENSİPLERİN (KESİNLİKLE UYULACAK):
+1. DOĞRUDAN CEVAP ÖNCELİĞİ: Girişte gereksiz edebiyat yapma ("derin nefes al", "omuzlarını bırak", "fırtınalar kopuyor" gibi basmakalıp lafları KESİNLİKLE KULLANMA). Yalnızca kısa ve sıcak bir selamlama ile başla (örn: "Sevgili anneciğim," veya "Sevgili babacığım,") ve İLK CÜMLEDE doğrudan ebeveynin sorusunu yanıtla.
+2. KISA VE ÖZ YANIT SINIRI: Cevabın toplamda en fazla 2 kısa paragraf veya en fazla 2-3 somut hap madde olsun (toplam 60-110 kelime). Gece uykusuz ebeveyni uzun makalelerle yorma.
+3. EZBER ŞABLON YASAĞI: Kullanıcı sormadıkça veya bebek akut krizde değilse ezbere "5S kundak, beyaz gürültü, 3 adımlı plan" dökme. Soru neyse SADECE o konuya odaklan.
+4. BAĞLAM İZOLASYONU: Bebeğin yaşı ve sıçrama bilgisi sadece arkadaki tıbbi mantığın içindir. Soruyla doğrudan ilgisi yoksa (örn: oda sıcaklığı, gaz masajı veya beslenme sorulduğunda) cevaba zorla sıçrama veya regresyon dersi ekleme.
+5. ASLA TIBBİ TEŞHİS KOYMA: İlaç veya kesin tıbbi teşhis koyma.
 """
 
 
@@ -122,20 +118,21 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
     
     sys_prompt = (
         f"{SYSTEM_PROMPT}\n\n"
-        f"[GÜNCEL BAĞLAM BİLGİSİ]\n"
-        f"Soruyu Soran Rol: {role_tr}\n"
+        f"[GÜNCEL BEBEK REFERANS BİLGİSİ - YALNIZCA ARKA PLAN İÇİNDİR, SORUYLA DOĞRUDAN İLGİSİZSE CEVABA ZORLA EKLEME]\n"
+        f"Kullanıcı Rolü: {role_tr}\n"
         f"Bebek Adı: {baby_name}\n"
         f"Yaş: {baby_info['age_formatted']}\n"
-        f"Aktif Gelişim/Regresyon Durumu: {baby_info['leap_info']}\n"
-        f"Önerilen SweetSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
+        f"Gelişim/Regresyon Evresi: {baby_info['leap_info']}\n"
+        f"İdeal SweetSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
     )
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
 
     contents = []
-    for h in chat_history[-4:]:
+    for h in chat_history[-2:]:
         role = "user" if h.get("role") == "user" else "model"
-        contents.append({"role": role, "parts": [{"text": h.get("content", "")}]})
+        txt = h.get("content", "")[:300]
+        contents.append({"role": role, "parts": [{"text": txt}]})
 
     contents.append({"role": "user", "parts": [{"text": f"[{role_tr} Soruyor]: {message}"}]})
 
@@ -143,8 +140,8 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
         "contents": contents,
         "systemInstruction": {"parts": [{"text": sys_prompt}]},
         "generationConfig": {
-            "temperature": 0.65,
-            "maxOutputTokens": 3000,
+            "temperature": 0.40,
+            "maxOutputTokens": 1000,
             "thinkingConfig": {
                 "thinkingBudget": 0
             }
@@ -167,39 +164,34 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
 
 
 def _tier4_clinical_heuristic(baby_name: str, birth_date: str, message: str, user_role: str = "mother", manual_leap: Optional[int] = None) -> str:
-    """Tier 4: Offline Contextual Sirkadiyen Expert Pediatrician Engine"""
+    """Tier 4: Offline Contextual Sirkadiyen Expert Pediatrician Engine (Concise & Direct)"""
     baby_info = _calc_baby_details(birth_date, manual_leap)
     msg_lower = message.lower()
     hitap = "Sevgili anneciğim" if user_role == "mother" else ("Sevgili babacığım" if user_role == "father" else "Sevgili dadımız")
 
     if any(w in msg_lower for w in ["30 dk", "kısa", "hemen uyandı", "döngü", "kedi uykusu"]):
         return (
-            f"{hitap}, {baby_name} ({baby_info['age_formatted']}) tam olarak 1. uyku döngüsünü tamamladı ancak REM'den NREM'e geçerken desteğe ihtiyaç duyuyor.\n\n"
-            f"🌸 **Mışıl Dadı 3 Adımlı Döngü Bağlama Planı:**\n"
-            f"1. **Işığı Açmayın:** Odayı kesinlikle aydınlatmayın, göz teması kurmadan fısıltıyla sakinleştirin.\n"
-            f"2. **432Hz Ninnisi:** Mışıl Baby'deki *Brahms Ninnisi* veya *432Hz Pembe Gürültü*yü açın.\n"
-            f"3. **Sırt Sıvazlama:** Yatağındayken ritmik şekilde 3 dakika sırtını pışpışlayarak uyku döngüsünü bağlamasına yardım edin."
+            f"{hitap}, {baby_name} ilk uyku döngüsünü bitirip hafif uykuya geçtiğinde uyanmış.\n\n"
+            f"• Işığı hiç açmadan ve göz teması kurmadan yatağında pışpışlayın.\n"
+            f"• Sırtını 2-3 dakika hafif sıvazlayarak 2. uyku döngüsüne bağlanmasına destek olun."
         )
     elif any(w in msg_lower for w in ["gece", "uyanma", "beslenme", "mama", "meme"]):
         return (
-            f"{hitap}, {baby_name}'nın {baby_info['age_formatted']} evresinde gece uyanmaları genellikle açlıktan ziyade uyku güvencesi arayışındandır.\n\n"
-            f"🍼 **Mışıl Dadı Gece Beslenmesi Tavsiyesi:**\n"
-            f"• Uyanır uyanmaz hemen kucağa alıp beslemek yerine, 90 saniye kendi kendine dönmesine fırsat tanıyın.\n"
-            f"• Beslerken ortamı loş tutun ve konuşmayın; beslenme bittiğinde hafif mayışmışken yatağına koyunuz."
+            f"{hitap}, {baby_name}'nın bu ayında gece uyanmaları genellikle açlıktan ziyade uyku güvencesi arayışındandır.\n\n"
+            f"• Uyanır uyanmaz hemen beslemek yerine 60-90 saniye kendi kendine dönmesine fırsat tanıyın.\n"
+            f"• Beslerken ortamı tamamen loş tutun ve konuşmadan yatağına bırakın."
         )
-    elif any(w in msg_lower for w in ["regresyon", "4. ay", "atak", "huysuz", "ağlıyor", "erken"]):
+    elif any(w in msg_lower for w in ["sıcaklık", "derece", "oda"]):
         return (
-            f"{hitap}, içiniz çok rahat olsun, {baby_name} şu anda **{baby_info['leap_info']}** evresinde! Beynindeki nörolojik sıçramalar nedeniyle uykusu bölünür.\n\n"
-            f"✨ **Mışıl Dadı Kurtarma Reçetesi:**\n"
-            f"• **SweetSpot® Süresi:** {baby_name} için bu dönemde uyanıklık penceresi en fazla **{baby_info['wake_window_min']} dakikadır**.\n"
-            f"• Bu süreyi 10 dakika bile aşarsa aşırı kortizol salgılanır ve uykuya direniş başlar.\n"
-            f"• Odayı 15 dakika önceden karartıp *5S Dr. Karp Doğal Pışpış* sesini başlatınız."
+            f"{hitap}, {baby_name} için ideal bebek odası sıcaklığı **20°C - 22°C**, ideal nem oranı ise **%45 - %55** aralığında olmalıdır. Aşırı sıcak ortam gece sık uyanmanın en yaygın gizli nedenidir."
+        )
+    elif any(w in msg_lower for w in ["saat", "kaç saat", "süre"]):
+        return (
+            f"{hitap}, {baby_name} ({baby_info['age_formatted']}) için günlük ideal toplam uyku süresi **14-15 saattir**. Bunun 10-11 saati gece uykusu, kalan 3.5-4 saati ise gündüz şekerlemeleri şeklinde olmalıdır."
         )
     else:
         return (
-            f"{hitap}, {baby_name} ({baby_info['age_formatted']}) için Mışıl Dadı yanınızda!\n\n"
-            f"Bebeğinizin bu ayda günlük ideal uyku ihtiyacı toplam **14-15 saattir** (gündüz 3-4 uyku, gece 10-11 saat).\n"
-            f"SweetSpot® sayacını takip ederek uyku saatlerini kaçırmadığınız sürece krizlerin %80'i kendiliğinden çözülecektir. Bana dilediğiniz an detaylı soru sorabilirsiniz! 🌙"
+            f"{hitap}, {baby_name} ({baby_info['age_formatted']}) için ideal SweetSpot uyanıklık penceresi **{baby_info['wake_window_min']} dakikadır**. Bu süreyi aşmadan uykuya geçiş ortamını hazırlayarak krizleri büyük ölçüde önleyebilirsiniz."
         )
 
 
@@ -258,28 +250,29 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
     if api_key:
         sys_prompt = (
             f"{SYSTEM_PROMPT}\n\n"
-            f"[GÜNCEL BAĞLAM BİLGİSİ]\n"
-            f"Soruyu Soran Rol: {role_tr}\n"
+            f"[GÜNCEL BEBEK REFERANS BİLGİSİ - YALNIZCA ARKA PLAN İÇİNDİR, SORUYLA DOĞRUDAN İLGİSİZSE CEVABA ZORLA EKLEME]\n"
+            f"Kullanıcı Rolü: {role_tr}\n"
             f"Bebek Adı: {baby_name}\n"
             f"Yaş: {baby_info['age_formatted']}\n"
-            f"Aktif Gelişim/Regresyon Durumu: {baby_info['leap_info']}\n"
-            f"Önerilen SweetSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
+            f"Gelişim/Regresyon Evresi: {baby_info['leap_info']}\n"
+            f"İdeal SweetSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
         )
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:streamGenerateContent?key={api_key}&alt=sse"
 
         contents = []
-        for h in chat_history[-4:]:
+        for h in chat_history[-2:]:
             role = "user" if h.get("role") == "user" else "model"
-            contents.append({"role": role, "parts": [{"text": h.get("content", "")}]})
+            txt = h.get("content", "")[:300]
+            contents.append({"role": role, "parts": [{"text": txt}]})
         contents.append({"role": "user", "parts": [{"text": f"[{role_tr} Soruyor]: {message}"}]})
 
         payload = {
             "contents": contents,
             "systemInstruction": {"parts": [{"text": sys_prompt}]},
             "generationConfig": {
-                "temperature": 0.65,
-                "maxOutputTokens": 3000,
+                "temperature": 0.40,
+                "maxOutputTokens": 1000,
                 "thinkingConfig": {"thinkingBudget": 0}
             }
         }
@@ -309,11 +302,10 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
     # Fallback to local clinical heuristic streaming if live API didn't stream
     if not streamed_success:
         full_text = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap)
-        # Stream word by word with natural pacing
         words = full_text.split(" ")
         for i, word in enumerate(words):
             chunk = word + (" " if i < len(words) - 1 else "")
             yield f"data: {json.dumps({'text': chunk, 'tier': 'Tier 4 (Clinical Sirkadiyen Streaming)'})}\n\n"
-            time.sleep(0.015)
+            time.sleep(0.02)
 
     yield f"data: {json.dumps({'done': True})}\n\n"

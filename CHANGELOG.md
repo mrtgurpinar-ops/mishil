@@ -2,6 +2,13 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [2.6.1] - 2026-08-23
+### 🎯 Mışıl Dadı AI: Doğrudan Odak, Bağlam İzolasyonu & Hap Bilgi Mimarisi
+- **Gevezelik ve Ezber Şablonların Temizlenmesi:** "Derin nefes al", "omuzlarını bırak" gibi tekrarlayan edebi teselliler ve her soruya zorla dayatılan 3 adımlı genel şablonlar kaldırıldı.
+- **Doğrudan Soruya Odaklanma (55-100 Kelime):** İlk cümlede doğrudan soruya cevap veren, en fazla 2 kısa paragraf veya 2-3 hap maddeden oluşan net klinik format uygulandı.
+- **Bağlam İzolasyonu:** Bebeğin ayı ve sıçrama durumu arka plan referansına çekildi; oda sıcaklığı veya beslenme sorulduğunda zorla 4. Ay Regresyonu dersi anlatılması engellendi.
+- **Sıcaklık (Temperature) Optimizasyonu:** Model sıcaklığı `0.40` seviyesine çekilerek sapmalar ve laf uzatmaları sıfırlandı.
+
 ## [2.6.0] - 2026-08-23
 ### ⚡ Gerçek Zamanlı Kelime Akışı (SSE Streaming) & Sıfır Kesilme Mimarisi
 - **Mışıl Dadı Real-Time Streaming (`POST /api/v1/coach/stream`):** Google Gemini 3.5 Flash `:streamGenerateContent` SSE motoru ile kelimeler 300ms içinde ekrana canlı canlı akıtılır.
