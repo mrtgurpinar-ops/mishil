@@ -2,6 +2,17 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [1.6.1] - 2026-08-23
+### Added & Cleaned (Melodik Kristal Uyku Sesleri & Railway Tek Kart Sadeleştirmesi)
+- **Railway Servis Sadeleştirmesi (Tek Çerçeve):** Atıl durumdaki `inspiring-enthusiasm` servisi Railway GraphQL API üzerinden silinerek dashboard'da yalnızca tek bir `mishil` servisi bırakıldı.
+- **Melodik Uyku Parçaları Devrimi:** Parazit ve radyo hışırtısı hissi veren gürültü frekansları tamamen kaldırılarak yerine kristal netliğinde 5 melodik stüdyo parçası entegre edildi:
+  1. `brahms_lullaby.wav`: Brahms Uyku Ninnisi (Piyano & Müzik Kutusu Melodisi)
+  2. `moonlight_lullaby.wav`: Ayışığı Piyano Melodisi (Twinkle Calm Akorları)
+  3. `deep_heartbeat.wav`: Tok Anne Kalp Atışı (Sıfır Hışırtı, 60 BPM Nabız)
+  4. `forest_stream.wav`: Berrak Orman Su Şırıltısı & Yağmur
+  5. `ocean_calm.wav`: Gece Okyanus Dalgaları (Sakinleştirici Ritim)
+- **Mobil Web Simülatör & Mini Player:** `mobile/web-preview/index.html` arayüzündeki tüm ses kartları, açıklamaları ve mini çalıcı yeni melodik parçalarla senkronize edildi.
+
 ## [1.6.0] - 2026-08-23
 ### Added & Enhanced (Sıfır Cızırtılı DSP Akustik Ses Motoru & Master Varlıklar)
 - **Paul Kellet 6-Kutuplu Gerçek Pembe Gürültü (Pink Noise):** -3dB/oktav analog eğri ve 300Hz 4-stage cascaded lowpass filtreleme ile kulaklık ve hoparlördeki tüm dijital cızırtı/tıklama ve yüksek frekans hışırtısı %100 yok edildi.

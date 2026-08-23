@@ -696,7 +696,7 @@
           İlişkiler ve Mesafe Algısı Sıçraması
         </div>
         <div style="font-size: 11px; color: var(--text-muted); line-height: 15px;">
-          Bebeğiniz bu hafta ayrılık kaygısı nedeniyle uykuya dalmakta zorlanabilir. 432Hz pembe gürültü kullanmanız önerilir.
+          Bebeğiniz bu hafta ayrılık kaygısı nedeniyle uykuya dalmakta zorlanabilir. Brahms ninnisi veya sakinleştirici piyano melodisi kullanmanız önerilir.
         </div>
       </div>
 
@@ -724,7 +724,7 @@
       <div class="card" style="display: flex; align-items: center; justify-content: space-between; border-color: var(--accent); background: #1C2237;">
         <div>
           <div style="display: flex; align-items: center;">
-            <span style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;" id="mini-sound-name">432Hz Pembe Gürültü</span>
+            <span style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;" id="mini-sound-name">🎹 Brahms Uyku Ninnisi</span>
             <div class="waves-box" id="mini-sound-waves" style="display: none;">
               <span class="wave-bar"></span>
               <span class="wave-bar"></span>
@@ -732,7 +732,7 @@
               <span class="wave-bar"></span>
             </div>
           </div>
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;" id="mini-sound-status">Melatonin uyarımı • Duraklatıldı</div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;" id="mini-sound-status">Huzurlu Ninni Melodisi • Duraklatıldı</div>
         </div>
         <button class="sound-play-btn" id="mini-play-btn" onclick="toggleMiniPlay()">▶</button>
       </div>
@@ -877,52 +877,49 @@
           <div style="font-family: 'Sora'; font-size: 12px; font-weight: 600; color: #FFF;">🔊 Ses Seviyesi (Yumuşak Fade-in/out)</div>
           <div style="font-size: 12px; color: var(--accent); font-weight: 700;" id="volume-disp">85%</div>
         </div>
-        <input type="range" min="0" max="1" step="0.05" value="0.85" oninput="setVolume(this.value)" style="width: 100%; accent-color: var(--accent); cursor: pointer;">
+      <!-- Sound Track 1: Brahms Lullaby (Music Box & Piano) -->
+      <div class="sound-item active" id="card-brahms" onclick="togglePlaySound('brahms')">
+        <div>
+          <div class="sound-title">🎹 Brahms Uyku Ninnisi</div>
+          <div class="sound-desc">Piyano ve müzik kutusu tınılarıyla derin uyku</div>
+        </div>
+        <button class="sound-play-btn" id="btn-brahms">▶</button>
       </div>
 
-      <!-- Sound Track 1: 432Hz Pink Noise -->
-      <div class="sound-item" id="card-pink" onclick="togglePlaySound('pink')">
+      <!-- Sound Track 2: Moonlight Lullaby -->
+      <div class="sound-item" id="card-moonlight" onclick="togglePlaySound('moonlight')">
         <div>
-          <div class="sound-title">432Hz Pembe Gürültü</div>
-          <div class="sound-desc">Derin uyku dalgaları ve melatonin ritmi</div>
+          <div class="sound-title">🌙 Ayışığı Piyano Melodisi</div>
+          <div class="sound-desc">Huzurlu Twinkle melodisi ve yumuşak akorlar</div>
         </div>
-        <button class="sound-play-btn" id="btn-pink">▶</button>
+        <button class="sound-play-btn" id="btn-moonlight">▶</button>
       </div>
 
-      <!-- Sound Track 2: Womb & Heartbeat -->
-      <div class="sound-item" id="card-womb" onclick="togglePlaySound('womb')">
+      <!-- Sound Track 3: Deep Maternal Heartbeat -->
+      <div class="sound-item" id="card-heartbeat" onclick="togglePlaySound('heartbeat')">
         <div>
-          <div class="sound-title">Anne Karnı & Ritmik Nabız</div>
-          <div class="sound-desc">65 BPM doğal kan akışı ve kalp atışı</div>
+          <div class="sound-title">💓 Tok Anne Kalp Atışı</div>
+          <div class="sound-desc">Sıfır hışırtı, güven veren 60 BPM stetoskop nabzı</div>
         </div>
-        <button class="sound-play-btn" id="btn-womb">▶</button>
+        <button class="sound-play-btn" id="btn-heartbeat">▶</button>
       </div>
 
-      <!-- Sound Track 3: 5S Shushing -->
-      <div class="sound-item" id="card-shush" onclick="togglePlaySound('shush')">
+      <!-- Sound Track 4: Forest Stream & Rain -->
+      <div class="sound-item" id="card-stream" onclick="togglePlaySound('stream')">
         <div>
-          <div class="sound-title">5S Ritmik Pışpışlama</div>
-          <div class="sound-desc">Dr. Karp metoduna uygun yatıştırıcı nefes</div>
+          <div class="sound-title">🌧️ Berrak Orman Su Şırıltısı</div>
+          <div class="sound-desc">Doğal berrak akarsu ve yumuşak yağmur</div>
         </div>
-        <button class="sound-play-btn" id="btn-shush">▶</button>
+        <button class="sound-play-btn" id="btn-stream">▶</button>
       </div>
 
-      <!-- Sound Track 4: Soft Rain -->
-      <div class="sound-item" id="card-rain" onclick="togglePlaySound('rain')">
+      <!-- Sound Track 5: Ocean Calm -->
+      <div class="sound-item" id="card-ocean" onclick="togglePlaySound('ocean')">
         <div>
-          <div class="sound-title">Gece Yağmuru & Doğa</div>
-          <div class="sound-desc">Doğal ortam ambiyansı ve huzurlu su sesi</div>
+          <div class="sound-title">🌊 Gece Okyanus Dalgaları</div>
+          <div class="sound-desc">Sakinleştirici derin ritmik dalga salınımı</div>
         </div>
-        <button class="sound-play-btn" id="btn-rain">▶</button>
-      </div>
-
-      <!-- Sound Track 5: Brahms Lullaby Music Box -->
-      <div class="sound-item" id="card-lullaby" onclick="togglePlaySound('lullaby')">
-        <div>
-          <div class="sound-title">Brahms Ninni (Müzik Kutusu)</div>
-          <div class="sound-desc">Klasik tınılı narin çan harmonikleri</div>
-        </div>
-        <button class="sound-play-btn" id="btn-lullaby">▶</button>
+        <button class="sound-play-btn" id="btn-ocean">▶</button>
       </div>
     </div>
 
@@ -1033,30 +1030,30 @@
   let currentVolume = 0.85;
 
   const STUDIO_SOUND_TRACKS = {
-    pink: {
-      url: './sounds/pink_432hz.wav',
-      title: '432Hz Kadife Derin Uyku (Zero-Hiss)',
-      subtitle: 'Derin uyku & melatonin ritmi'
-    },
-    womb: {
-      url: './sounds/womb_heartbeat.wav',
-      title: 'Anne Karnı & 62 BPM Nabız',
-      subtitle: 'Amniyotik sıvı ve organik kalp atışı'
-    },
-    shush: {
-      url: './sounds/shush_5s.wav',
-      title: '5S Dr. Karp Doğal İnsan Nefesi',
-      subtitle: 'Yatıştırıcı ritmik insan pışpışlaması'
-    },
-    rain: {
-      url: './sounds/soft_rain.wav',
-      title: 'Gece Yağmuru & Doğa Ambiyansı',
-      subtitle: 'Huzurlu doğa sesi ve derin rahatlama'
-    },
-    lullaby: {
+    brahms: {
       url: './sounds/brahms_lullaby.wav',
-      title: 'Brahms Ninni (Müzik Kutusu)',
-      subtitle: 'Saf kristal çan tınıları ve melodi'
+      title: '🎹 Brahms Uyku Ninnisi',
+      subtitle: 'Piyano ve müzik kutusu tınıları'
+    },
+    moonlight: {
+      url: './sounds/moonlight_lullaby.wav',
+      title: '🌙 Ayışığı Piyano Melodisi',
+      subtitle: 'Huzurlu Twinkle melodisi ve akorlar'
+    },
+    heartbeat: {
+      url: './sounds/deep_heartbeat.wav',
+      title: '💓 Tok Anne Kalp Atışı (60 BPM)',
+      subtitle: 'Sıfır hışırtı, tok ve sakinleştirici ritim'
+    },
+    stream: {
+      url: './sounds/forest_stream.wav',
+      title: '🌧️ Berrak Orman Su Şırıltısı',
+      subtitle: 'Doğal berrak akarsu ve yumuşak yağmur'
+    },
+    ocean: {
+      url: './sounds/ocean_calm.wav',
+      title: '🌊 Gece Okyanus Dalgaları',
+      subtitle: 'Sakinleştirici derin ritmik dalga salınımı'
     }
   };
 
@@ -1080,7 +1077,7 @@
     currentPlayingTrack = null;
 
     // Reset UI buttons
-    ['pink', 'womb', 'shush', 'rain', 'lullaby'].forEach(type => {
+    ['brahms', 'moonlight', 'heartbeat', 'stream', 'ocean'].forEach(type => {
       const card = document.getElementById('card-' + type);
       const btn = document.getElementById('btn-' + type);
       if (card) card.classList.remove('active');
@@ -1132,7 +1129,7 @@
     if (currentPlayingTrack) {
       stopAllAudio();
     } else {
-      playStudioSound('pink');
+      playStudioSound('brahms');
     }
   }
 
