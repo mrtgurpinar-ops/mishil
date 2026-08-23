@@ -1885,14 +1885,16 @@
 
   async function submitDadiChat(userText) {
     const container = document.getElementById('chat-messages-container');
-    const typingIndicator = document.getElementById('dadi-typing');
+    const typingIndicator = document.getElementById('dadi-typing-indicator') || document.getElementById('dadi-typing');
 
     // Append User message
-    const userBubble = document.createElement('div');
-    userBubble.className = 'chat-bubble-user';
-    userBubble.textContent = userText;
-    container.appendChild(userBubble);
-    container.scrollTop = container.scrollHeight;
+    if (container) {
+      const userBubble = document.createElement('div');
+      userBubble.className = 'chat-bubble-user';
+      userBubble.textContent = userText;
+      container.appendChild(userBubble);
+      container.scrollTop = container.scrollHeight;
+    }
 
     dadiChatHistory.push({ role: 'user', content: userText });
 
@@ -1901,8 +1903,10 @@
     const userRole = localStorage.getItem('mishil_user_role') || 'mother';
     const manualLeap = localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap')) : null;
 
-    typingIndicator.style.display = 'flex';
-    container.scrollTop = container.scrollHeight;
+    if (typingIndicator) {
+      typingIndicator.style.display = 'flex';
+    }
+    if (container) container.scrollTop = container.scrollHeight;
 
     const API_BASE = (window.location.protocol === 'file:') ? 'https://mishil-production.up.railway.app' : '';
 
@@ -1920,7 +1924,7 @@
         })
       });
 
-      typingIndicator.style.display = 'none';
+      if (typingIndicator) typingIndicator.style.display = 'none';
 
       if (response.ok) {
         const data = await response.json();
@@ -1931,7 +1935,7 @@
       }
     } catch (err) {
       console.warn('Backend fetch error, executing Tier 4 local fallback:', err);
-      typingIndicator.style.display = 'none';
+      if (typingIndicator) typingIndicator.style.display = 'none';
       fallbackDadiLocalResponse(babyName, birthDate, userText);
     }
   }
