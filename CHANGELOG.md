@@ -2,6 +2,13 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.5.0] - 2026-08-23
+### 🌟 Tier-1 Lüks Landing Page & Mağaza İndirme Dönüşümü
+- **🛡️ Ücretsiz Doğrudan Erişim Koruması:** Açık web sürümü kaldırılarak tüm web trafiği App Store ve Google Play indirmelerine yönlendirildi.
+- **🎨 21st.dev Dark Obsidian & Gold Landing Page:** Titanyum mockup, canlı nefes alan SweetSpot animasyonu ve modern bento kartları ile resmi tanıtım sayfası (`public/index.html` & `web-preview/index.html`) inşa edildi.
+- **🎧 15 Sn Akustik Ses Örnekleyici (Web Audio Synthesizer):** 432 Hz şifalı frekansta 15 saniyelik ses önizlemesi ve süre sonunda mobil uygulamayı indirme yönlendirmesi entegre edildi.
+- **🔗 Kök URL (`GET /`) Entegrasyonu:** Backend kök rotasına doğrudan landing page bağlandı.
+
 ## [4.4.0] - 2026-08-23
 ### 🚀 Google Play Store Lansman & Levitas Yayıncılık Paketi
 - **🏢 Levitas Kimliği & Kurumsal Yayıncı Entegrasyonu:** Uygulama kimliği `com.levitas.misilbaby` (Android) ve `com.levitas.misilbaby` (iOS) olarak güncellendi; `app.config.ts` dosyası Levitas Enterprise standartlarına uyarlandı.

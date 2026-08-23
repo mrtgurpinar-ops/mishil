@@ -211,6 +211,22 @@ async def generic_exception_handler(request: Request, exc: Exception):
 app.include_router(api_router, prefix="/api/v1")
 
 
+@app.get("/", response_class=HTMLResponse, tags=["Landing"])
+async def landing_page():
+    """Mışıl Baby Official Landing Page & Store Download Hub."""
+    landing_file = os.path.join(project_root, "public", "index.html")
+    if os.path.exists(landing_file):
+        with open(landing_file, "r", encoding="utf-8") as f:
+            return HTMLResponse(content=f.read())
+    return HTMLResponse("""
+    <!DOCTYPE html>
+    <html lang="tr">
+    <head><meta charset="UTF-8"><title>Mışıl Baby</title></head>
+    <body><h1>Mışıl Baby</h1><p>App Store ve Google Play'de.</p></body>
+    </html>
+    """)
+
+
 @app.get("/health", tags=["Health"])
 async def health_check():
     """Liveness probe endpoint."""
