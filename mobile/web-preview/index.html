@@ -2505,21 +2505,18 @@
   }
 
   // =========================================================================
-  // 3. DYNAMIC SLEEP LIFECYCLE & SESSIONS DATA STORE
+  // 3. ZERO-MOCK DYNAMIC REACTIVE ROUTINE ENGINE (SINGLE SOURCE OF TRUTH)
   // =========================================================================
-  let todaySleepSessions = JSON.parse(localStorage.getItem('mishil_today_sleep_sessions') || 'null') || [
-    { id: 'slp_1', title: '1. Gündüz Uykusu (Nap 1)', start: '08:30', end: '09:45', durationMins: 75, quality: 'Derin' },
-    { id: 'slp_2', title: '2. Gündüz Uykusu (Nap 2)', start: '11:45', end: '13:15', durationMins: 90, quality: 'Huzurlu' }
-  ];
+  let activeRoutines = JSON.parse(localStorage.getItem('mishil_active_routines') || '[]');
 
-  let todayAllRoutines = JSON.parse(localStorage.getItem('mishil_today_all_routines') || 'null') || [
-    { id: 'rt_1', type: 'feeding', icon: '🍼', title: 'Beslenme', detail: '140 ml Anne Sütü', time: '08:00' },
-    { id: 'rt_2', type: 'sleep', icon: '🌙', title: '1. Gündüz Uykusu', detail: '75 dk Kaliteli Uyku', time: '08:30' },
-    { id: 'rt_3', type: 'diaper', icon: '🚼', title: 'Bez Değişimi', detail: 'Islak / Temiz bez', time: '10:00' },
-    { id: 'rt_4', type: 'feeding', icon: '🍼', title: 'Beslenme', detail: '120 ml Mama', time: '11:15' },
-    { id: 'rt_5', type: 'sleep', icon: '🌙', title: '2. Gündüz Uykusu', detail: '90 dk Derin Uyku', time: '11:45' },
-    { id: 'rt_6', type: 'diaper', icon: '🚼', title: 'Bez Değişimi', detail: 'Temizlendi', time: '13:30' }
-  ];
+  function deleteRoutine(id) {
+    hapticPulse();
+    activeRoutines = activeRoutines.filter(r => r.id !== id);
+    localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+    renderHomeTodayTimeline();
+    renderAnalyticsView();
+    showToast('🗑️ Kayıt silindi');
+  }
 
   function switchHomeSegment(segment) {
     hapticPulse();
@@ -2550,29 +2547,49 @@
     if (!list) return;
 
     list.innerHTML = '';
-    let totalMins = todaySleepSessions.reduce((acc, s) => acc + s.durationMins, 0);
+    const sleepLogs = activeRoutines.filter(r => r.type === 'sleep');
+    let totalMins = sleepLogs.reduce((acc, s) => acc + (s.durationMins || 0), 0);
     const hrs = Math.floor(totalMins / 60);
     const mins = totalMins % 60;
 
-    if (countBadge) countBadge.textContent = todaySleepSessions.length;
+    if (countBadge) countBadge.textContent = sleepLogs.length;
     if (summaryHeader) summaryHeader.textContent = `${hrs}s ${mins}dk / 14s Hedef`;
     if (progressBar) progressBar.style.width = `${Math.min(100, Math.round((totalMins / 300) * 100))}%`;
 
-    todaySleepSessions.forEach((s, idx) => {
+    if (sleepLogs.length === 0) {
+      list.innerHTML = `
+        <div style="text-align: center; padding: 26px 14px; color: var(--text-muted); font-size: 12px; background: rgba(255,255,255,0.02); border-radius: 14px; border: 1px dashed rgba(255,255,255,0.12); line-height: 18px;">
+          🌙 <strong>Bugün henüz uyku seansı kaydedilmedi.</strong><br>
+          <span style="color: var(--accent); font-size: 11px;">"Şimdi Uyuyor" butonuna dokunarak canlı takip başlatabilirsiniz.</span>
+        </div>
+      `;
+      return;
+    }
+
+    sleepLogs.forEach((s, idx) => {
       const item = document.createElement('div');
       item.className = 'timeline-item';
+      const durText = Math.floor((s.durationMins || 0) / 60) > 0 
+        ? `${Math.floor(s.durationMins / 60)}s ${s.durationMins % 60} dk` 
+        : `${s.durationMins || 0} dk`;
+
       item.innerHTML = `
         <div class="timeline-left">
           <div class="timeline-dot">🌙</div>
-          ${idx !== todaySleepSessions.length - 1 ? '<div class="timeline-line"></div>' : ''}
+          ${idx !== sleepLogs.length - 1 ? '<div class="timeline-line"></div>' : ''}
         </div>
         <div class="timeline-card">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">${s.title}</span>
-            <span style="font-size: 11px; color: var(--accent); font-weight: 700;">${s.start} - ${s.end}</span>
-          </div>
-          <div style="font-size: 11px; color: var(--text-night); margin-top: 3px;">
-            Süre: <strong>${Math.floor(s.durationMins / 60) > 0 ? Math.floor(s.durationMins / 60) + 's ' : ''}${s.durationMins % 60} dk</strong> • ${s.quality} Uyku
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">${s.title}</span>
+              <div style="font-size: 11px; color: var(--text-night); margin-top: 2px;">
+                Süre: <strong>${durText}</strong> • ${s.quality || 'Derin'} Uyku
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 11px; color: var(--accent); font-weight: 700;">${s.start || s.time} - ${s.end || s.time}</span>
+              <button onclick="deleteRoutine('${s.id}')" style="background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 13px; padding: 2px 4px;" title="Kaydı Sil">🗑️</button>
+            </div>
           </div>
         </div>
       `;
@@ -2585,10 +2602,11 @@
   // =========================================================================
   function calculateDynamicDevelopmentScore(bdate) {
     const calc = calculateSweetSpot(bdate);
-    const totalSleepMins = todaySleepSessions.reduce((acc, s) => acc + s.durationMins, 0);
+    const sleepLogs = activeRoutines.filter(r => r.type === 'sleep');
+    const totalSleepMins = sleepLogs.reduce((acc, s) => acc + (s.durationMins || 0), 0);
 
-    // 1. Uyku Bütçesi Puanı (%40 Ağırlık) - Gündüz hedefi ~300 dk
-    const sleepBudgetScore = Math.min(100, Math.max(40, Math.round((totalSleepMins / 280) * 100)));
+    // 1. Uyku Bütçesi Puanı (%40 Ağırlık)
+    const sleepBudgetScore = totalSleepMins === 0 ? 60 : Math.min(100, Math.max(40, Math.round((totalSleepMins / 240) * 100)));
 
     // 2. SweetSpot Ritim Uyumu Puanı (%35 Ağırlık)
     const sweetspotDeviationScore = calc.isManual ? 78 : 94;
@@ -2644,13 +2662,16 @@
   function renderAnalyticsView() {
     renderHomeScreenScore();
     renderWeeklyChart();
-    renderAnalyticsRoutinesTimeline('all');
+    renderAnalyticsRoutinesTimeline(activeRoutineFilter);
   }
 
   function renderWeeklyChart() {
     const chartContainer = document.getElementById('weekly-sleep-bento-chart');
     if (!chartContainer) return;
     chartContainer.innerHTML = '';
+
+    const sleepLogs = activeRoutines.filter(r => r.type === 'sleep');
+    const todayHrs = (sleepLogs.reduce((acc, s) => acc + (s.durationMins || 0), 0) / 60).toFixed(1);
 
     const weeklyData = [
       { day: 'Pzt', hours: 13.5, height: '70%' },
@@ -2659,7 +2680,7 @@
       { day: 'Per', hours: 14.0, height: '82%' },
       { day: 'Cum', hours: 13.2, height: '65%' },
       { day: 'Cmt', hours: 14.5, height: '90%' },
-      { day: 'Paz (Bugün)', hours: 14.1, height: '80%' },
+      { day: 'Bugün', hours: todayHrs, height: `${Math.min(100, Math.max(15, Math.round((todayHrs / 14) * 100)))}%` },
     ];
 
     weeklyData.forEach(d => {
@@ -2689,7 +2710,17 @@
     if (!list) return;
     list.innerHTML = '';
 
-    const filtered = todayAllRoutines.filter(r => filter === 'all' ? true : r.type === filter);
+    const filtered = activeRoutines.filter(r => filter === 'all' ? true : r.type === filter);
+
+    if (filtered.length === 0) {
+      list.innerHTML = `
+        <div style="text-align: center; padding: 26px 14px; color: var(--text-muted); font-size: 12px; background: rgba(255,255,255,0.02); border-radius: 14px; border: 1px dashed rgba(255,255,255,0.12);">
+          📭 Bu kategoride henüz kayıtlı rutin bulunmuyor.<br>
+          <span style="color: var(--accent); font-size: 11px;">Yukarıdaki "+ Rutin Ekle" ile kayıt oluşturabilirsiniz.</span>
+        </div>
+      `;
+      return;
+    }
 
     filtered.forEach((r, idx) => {
       const item = document.createElement('div');
@@ -2700,12 +2731,17 @@
           ${idx !== filtered.length - 1 ? '<div class="timeline-line"></div>' : ''}
         </div>
         <div class="timeline-card">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">${r.title}</span>
-            <span style="font-size: 11px; color: var(--accent); font-weight: 700;">${r.time}</span>
-          </div>
-          <div style="font-size: 11px; color: var(--text-night); margin-top: 3px;">
-            ${r.detail}
+          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+              <span style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">${r.title}</span>
+              <div style="font-size: 11px; color: var(--text-night); margin-top: 2px;">
+                ${r.detail}
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 11px; color: var(--accent); font-weight: 700;">${r.time}</span>
+              <button onclick="deleteRoutine('${r.id}')" style="background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 13px; padding: 2px 4px;" title="Kaydı Sil">🗑️</button>
+            </div>
           </div>
         </div>
       `;
@@ -2738,10 +2774,7 @@
     const targetDisp = document.getElementById('target-sleep-display');
     const targetSub = document.getElementById('target-sleep-subtext');
     const liveTimer = document.getElementById('live-sleep-timer');
-    const familyCode = document.getElementById('family-sync-code') ? document.getElementById('family-sync-code').textContent : 'MSL782';
     const role = localStorage.getItem('mishil_user_role') || 'mother';
-
-    const API_BASE = (window.location.protocol === 'file:') ? 'https://mishil-production.up.railway.app' : '';
 
     if (isSleeping) {
       sleepStartTime = new Date();
@@ -2774,30 +2807,23 @@
       const startFormatted = `${String(sleepStartTime.getHours()).padStart(2, '0')}:${String(sleepStartTime.getMinutes()).padStart(2, '0')}`;
       const endFormatted = `${String(endTime.getHours()).padStart(2, '0')}:${String(endTime.getMinutes()).padStart(2, '0')}`;
 
-      // Yeni uyku oturumunu oturumlar dizisine ekle
-      const napNum = todaySleepSessions.length + 1;
-      const newSession = {
+      const sleepCount = activeRoutines.filter(r => r.type === 'sleep').length + 1;
+      const newSleepLog = {
         id: 'slp_' + Date.now(),
-        title: `${napNum}. Gündüz Uykusu (Nap ${napNum})`,
-        start: startFormatted,
-        end: endFormatted,
-        durationMins: totalMins,
-        quality: totalMins > 45 ? 'Derin' : 'Kısa Şekerleme'
-      };
-
-      todaySleepSessions.unshift(newSession);
-      localStorage.setItem('mishil_today_sleep_sessions', JSON.stringify(todaySleepSessions));
-
-      // Genel rutin günlüğüne de ekle
-      todayAllRoutines.unshift({
-        id: 'rt_' + Date.now(),
         type: 'sleep',
         icon: '🌙',
-        title: `${napNum}. Gündüz Uykusu`,
+        title: `${sleepCount}. Gündüz Uykusu (Nap ${sleepCount})`,
         detail: `${totalMins} dk uyku (${startFormatted} - ${endFormatted})`,
-        time: endFormatted
-      });
-      localStorage.setItem('mishil_today_all_routines', JSON.stringify(todayAllRoutines));
+        time: endFormatted,
+        start: startFormatted,
+        end: endFormatted,
+        timestamp: endTime.getTime(),
+        durationMins: totalMins,
+        quality: totalMins >= 45 ? 'Derin' : 'Kısa Şekerleme'
+      };
+
+      activeRoutines.unshift(newSleepLog);
+      localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
 
       circle.classList.remove('sleeping');
       if (beamWrap) beamWrap.classList.remove('active-beam');
@@ -2807,7 +2833,7 @@
       targetDisp.style.color = 'var(--heading-night)';
       liveTimer.style.display = 'none';
 
-      // Dinamik SweetSpot: Uyandığı saat üzerine 90 dakika uyanıklık penceresi ekle!
+      // Dinamik SweetSpot: Uyandığı saat üzerine 90 dakika uyanıklık penceresi ekle
       const nextSleepDate = new Date(endTime.getTime() + 90 * 60000);
       const nextSleepFormatted = `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
       targetDisp.textContent = nextSleepFormatted;
@@ -2818,6 +2844,7 @@
 
       renderHomeTodayTimeline();
       renderHomeScreenScore();
+      renderAnalyticsView();
     }
   }
 
@@ -3055,21 +3082,25 @@
 
   function quickLog(type) {
     hapticPulse();
-    const timeNow = `${String(new Date().getHours()).padStart(2, '0')}:${String(new Date().getMinutes()).padStart(2, '0')}`;
+    const now = new Date();
+    const timeNow = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     const icon = type === 'Beslenme' ? '🍼' : (type === 'Alt Değişimi' ? '🚼' : '🌙');
     const cat = type === 'Beslenme' ? 'feeding' : (type === 'Alt Değişimi' ? 'diaper' : 'sleep');
     
-    todayAllRoutines.unshift({
+    activeRoutines.unshift({
       id: 'rt_' + Date.now(),
       type: cat,
       icon: icon,
       title: type,
-      detail: `${type} kaydedildi`,
-      time: timeNow
+      detail: `${type} kaydedildi (${timeNow})`,
+      time: timeNow,
+      timestamp: now.getTime(),
+      durationMins: cat === 'sleep' ? 45 : 0
     });
-    localStorage.setItem('mishil_today_all_routines', JSON.stringify(todayAllRoutines));
-    renderAnalyticsRoutinesTimeline(activeRoutineFilter);
-    showToast('✅ ' + type + ' kaydı eklendi');
+    localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+    renderHomeTodayTimeline();
+    renderAnalyticsView();
+    showToast(`✅ ${type} başarıyla eklendi (${timeNow})`);
   }
 
   function openAddRoutineModal() { document.getElementById('modal-routine').classList.add('active'); }
