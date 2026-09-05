@@ -373,7 +373,7 @@ export default function SettingsScreen() {
             <View style={styles.modalBtnRow}>
               <Button
                 title="Vazgeç"
-                variant="outline"
+                variant="secondary"
                 onPress={() => setJoinModalVisible(false)}
                 style={{ flex: 1 }}
               />

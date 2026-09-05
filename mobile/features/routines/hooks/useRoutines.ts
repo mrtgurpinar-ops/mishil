@@ -15,7 +15,7 @@ export interface CreateRoutineParams {
 export const useRoutines = () => {
   const queryClient = useQueryClient();
   const activeBaby = useAppStore((state) => state.activeBaby);
-  const { offlineQueue, addToOfflineQueue, removeFromOfflineQueue } = useAppStore();
+  const { offlineQueue, addToOfflineQueue, removeFromOfflineQueue, clearOfflineQueue } = useAppStore();
 
   // Query: Get routines for active baby
   const routinesQuery = useQuery<RoutineLogData[]>({
