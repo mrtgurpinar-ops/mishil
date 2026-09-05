@@ -78,12 +78,21 @@ export default function CoachScreen() {
     setIsLoading(true);
 
     try {
+      // Calculate birth date from age if not available
+      const birthDate = activeBaby?.birth_date 
+        ? activeBaby.birth_date.split('T')[0]
+        : new Date(Date.now() - (babyAge * 30.43 * 86400000)).toISOString().split('T')[0];
+
       // Live backend Gemini call
       const { data } = await apiClient.post('/coach/chat', {
         message: text,
         baby_name: babyName,
-        baby_age_months: babyAge,
+        birth_date: birthDate,
         user_role: 'Anne',
+        chat_history: messages.slice(-6).map((m) => ({
+          role: m.sender === 'user' ? 'user' : 'assistant',
+          content: m.text,
+        })),
       });
 
       const replyText = data?.reply || data?.message || 'Bebeğinizin ritmini korumak için odasını loş tutun ve uyanıklık penceresine dikkat edin.';

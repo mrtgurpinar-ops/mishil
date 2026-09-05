@@ -74,7 +74,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     eas: {
       projectId: "8e739202-2503-4aad-a970-46e22010fddc"
     },
-    apiUrl: process.env.EXPO_PUBLIC_API_URL || 'https://mishil-api-production.up.railway.app/api/v1',
+    apiUrl: process.env.EXPO_PUBLIC_API_URL || 'https://mishil-production.up.railway.app/api/v1',
     revenueCatApiKeyIos: process.env.EXPO_PUBLIC_REVENUECAT_IOS || 'appl_mock_key',
     revenueCatApiKeyAndroid: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID || 'goog_mock_key'
   }

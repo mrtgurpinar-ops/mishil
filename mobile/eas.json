@@ -25,7 +25,7 @@
         "distribution": "store"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://mishil-api-production.up.railway.app/api/v1",
+        "EXPO_PUBLIC_API_URL": "https://mishil-production.up.railway.app/api/v1",
         "APP_ENV": "production"
       }
     }

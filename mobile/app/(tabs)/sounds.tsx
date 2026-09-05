@@ -13,7 +13,7 @@ import { Card } from '../../components/ui/Card';
 import { SoundPlayerBar, SoundTrack } from '../../components/SoundPlayerBar';
 import { triggerHaptic } from '../../lib/haptics';
 
-const BASE_AUDIO_URL = 'https://mishil-api-production.up.railway.app/sounds';
+const BASE_AUDIO_URL = 'https://mishil-production.up.railway.app/sounds';
 
 const SOUNDS_DATA: SoundTrack[] = [
   // 1. Ninniler (Lullabies)

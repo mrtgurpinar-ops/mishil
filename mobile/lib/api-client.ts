@@ -5,7 +5,7 @@ import { storage } from './storage';
 const API_BASE_URL =
   Constants.expoConfig?.extra?.apiUrl ||
   process.env.EXPO_PUBLIC_API_URL ||
-  'http://localhost:8000/api/v1';
+  'https://mishil-production.up.railway.app/api/v1';
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
