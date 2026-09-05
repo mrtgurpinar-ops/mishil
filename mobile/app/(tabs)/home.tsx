@@ -19,6 +19,19 @@ import { useWakeWindow } from '../../features/wake-window/hooks/useWakeWindow';
 import { useRoutines } from '../../features/routines/hooks/useRoutines';
 import { triggerHaptic } from '../../lib/haptics';
 
+const WONDER_WEEKS_LEAPS = [
+  { num: 1, startWeek: 4, endWeek: 5, stormWeek: 5, title: 'Değişen Duyular', milestone: 'Dış dünyaya uyanış ve yoğun tensel temas ihtiyacı.', tip: 'Ortamı loş tutun, 432Hz ninniler açın.' },
+  { num: 2, startWeek: 7, endWeek: 9, stormWeek: 8, title: 'Desenler & Kalıplar', milestone: 'El ve ayaklarını keşfeder, ritmik vücut hareketleri başlar.', tip: 'Aşırı uyarılmayı önlemek için SweetSpot pencerelerine uyun.' },
+  { num: 3, startWeek: 11, endWeek: 12, stormWeek: 12, title: 'Yumuşak Geçişler', milestone: 'Ses tonlamalarını anlar, agu sesleriyle iletişim kurar.', tip: 'Yumuşak fısıltı ve su şırıltısı sesleri açın.' },
+  { num: 4, startWeek: 15, endWeek: 19, stormWeek: 19, title: 'Olaylar & 4. Ay Regresyonu', milestone: 'Uyku döngüleri yetişkin tipine geçer, gece uyanmaları artar.', tip: 'Odayı tamamen karartın, 5S Dr. Karp Doğal Pışpış çalın.' },
+  { num: 5, startWeek: 23, endWeek: 26, stormWeek: 26, title: 'İlişkiler & Mesafe', milestone: 'Ayrılık kaygısı başlar; annenin odadan çıkışını fark eder.', tip: 'Ce-eee oynayın, uykuya dalarken sırtını pışpışlayın.' },
+  { num: 6, startWeek: 34, endWeek: 37, stormWeek: 37, title: 'Kategoriler Dünyası', milestone: 'Nesneleri sınıflandırır, emekleme ve diş çıkarma eşlik eder.', tip: 'Uyku öncesi diş etlerine soğuk masaj uygulayın.' },
+  { num: 7, startWeek: 42, endWeek: 46, stormWeek: 46, title: 'Sıralar & Diziler', milestone: 'Kule yapma ve sıralı eylemleri anlama, uyku direnci.', tip: 'Sabit 3 adımlı uyku rutini uygulayın (Banyo -> Masaj -> Ninni).' },
+  { num: 8, startWeek: 51, endWeek: 54, stormWeek: 53, title: 'Programlar Dünyası', milestone: 'Günlük hayat programlarını kavrar, hareketleri taklit eder.', tip: 'Ona seçim şansı verin, bağımsızlık hissi direnci kırar.' },
+  { num: 9, startWeek: 60, endWeek: 64, stormWeek: 62, title: 'İlkeler Dünyası', milestone: 'Sınırları ve kuralları test eder, ilk inatlaşmalar başlar.', tip: 'Sakin ve net sınırlar koyun, kucaklayarak sakinleştirin.' },
+  { num: 10, startWeek: 71, endWeek: 75, stormWeek: 74, title: 'Sistemler Dünyası', milestone: 'Benlik bilinci ve dil gelişimi büyük sıçrama yapar.', tip: 'Uyku öncesi gün değerlendirmesi yaparak rahatlatın.' },
+];
+
 export default function HomeScreen() {
   const router = useRouter();
   const isDarkMode = useAppStore((state) => state.isDarkMode);
@@ -66,6 +79,15 @@ export default function HomeScreen() {
   const nextSleepFormatted = wakeWindowData?.next_sleep_time
     ? format(new Date(wakeWindowData.next_sleep_time), 'HH:mm', { locale: tr })
     : '--:--';
+
+  // Wonder Weeks Leap Calculation
+  const babyAge = activeBaby?.age_in_months || 6;
+  const babyWeeks = Math.max(1, Math.round(babyAge * 4.345));
+  const activeLeap =
+    WONDER_WEEKS_LEAPS.find((l) => babyWeeks <= l.endWeek) ||
+    WONDER_WEEKS_LEAPS[WONDER_WEEKS_LEAPS.length - 1];
+  const leapProgressPercent = Math.min(100, Math.round((babyWeeks / 75) * 100));
+  const isStormPeak = babyWeeks === activeLeap.stormWeek;
 
   const handleStartSleep = () => {
     triggerHaptic('medium');
@@ -285,6 +307,57 @@ export default function HomeScreen() {
         ))}
       </View>
 
+      {/* Wonder Weeks & Klinik Gelişim Takibi Bento Kartı */}
+      <Text style={[styles.sectionHeading, { color: theme.colors.heading }]}>
+        Gelişim Takibi & Wonder Weeks
+      </Text>
+      <Card style={[styles.growthCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
+        <View style={styles.growthHeader}>
+          <View style={{ flex: 1, marginRight: 8 }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <Text style={[styles.growthTitle, { color: theme.colors.heading }]}>
+                {activeLeap.num}. Sıçrama: {activeLeap.title}
+              </Text>
+              {isStormPeak ? (
+                <View style={styles.stormBadge}>
+                  <Text style={styles.stormBadgeText}>⚡ Fırtına Zirvesi</Text>
+                </View>
+              ) : null}
+            </View>
+            <Text style={[styles.growthSub, { color: theme.colors.textMuted }]}>
+              {activeBaby?.name || 'Bebeğiniz'} şu anda {babyWeeks}. haftasında • {activeLeap.startWeek}-{activeLeap.endWeek}. haftalar arası
+            </Text>
+          </View>
+          <View style={[styles.scoreCircle, { borderColor: theme.colors.accent }]}>
+            <Text style={[styles.scoreNum, { color: theme.colors.accent }]}>%84</Text>
+            <Text style={[styles.scoreLabel, { color: theme.colors.textMuted }]}>Denge</Text>
+          </View>
+        </View>
+
+        <Text style={[styles.milestoneText, { color: theme.colors.text }]}>
+          🌱 {activeLeap.milestone}
+        </Text>
+
+        {/* Progress Bar */}
+        <View style={[styles.progressBarTrack, { backgroundColor: theme.isDark ? '#25304C' : '#E8EDF5' }]}>
+          <View
+            style={[
+              styles.progressBarFill,
+              { width: `${leapProgressPercent}%`, backgroundColor: theme.colors.accent },
+            ]}
+          />
+        </View>
+        <Text style={[styles.progressDesc, { color: theme.colors.textMuted }]}>
+          10 Zihinsel Sıçramadan %{leapProgressPercent} tamamlandı
+        </Text>
+
+        <View style={[styles.dadTipBox, { backgroundColor: theme.isDark ? '#1C263D' : '#F1F5FB' }]}>
+          <Text style={[styles.dadTipText, { color: theme.colors.text }]}>
+            💡 <Text style={{ fontWeight: '700' }}>Mışıl Dadı Tavsiyesi:</Text> {activeLeap.tip}
+          </Text>
+        </View>
+      </Card>
+
       {/* Soothing Noise CTA */}
       <Card
         style={[
@@ -475,5 +548,86 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: 'Inter',
     marginTop: 2,
+  },
+  growthCard: {
+    padding: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    marginBottom: 20,
+  },
+  growthHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 10,
+  },
+  growthTitle: {
+    fontSize: 15,
+    fontFamily: 'Sora',
+    fontWeight: '700',
+  },
+  growthSub: {
+    fontSize: 11,
+    fontFamily: 'Inter',
+    marginTop: 2,
+  },
+  stormBadge: {
+    backgroundColor: 'rgba(231, 76, 60, 0.2)',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 8,
+  },
+  stormBadgeText: {
+    color: '#E74C3C',
+    fontSize: 10,
+    fontFamily: 'Inter',
+    fontWeight: '700',
+  },
+  scoreCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scoreNum: {
+    fontSize: 14,
+    fontFamily: 'Sora',
+    fontWeight: '700',
+  },
+  scoreLabel: {
+    fontSize: 9,
+    fontFamily: 'Inter',
+  },
+  milestoneText: {
+    fontSize: 13,
+    fontFamily: 'Inter',
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  progressBarTrack: {
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  progressBarFill: {
+    height: '100%',
+    borderRadius: 3,
+  },
+  progressDesc: {
+    fontSize: 11,
+    fontFamily: 'Inter',
+    marginBottom: 12,
+  },
+  dadTipBox: {
+    padding: 12,
+    borderRadius: 14,
+  },
+  dadTipText: {
+    fontSize: 12,
+    fontFamily: 'Inter',
+    lineHeight: 16,
   },
 });

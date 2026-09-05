@@ -5,6 +5,7 @@ import {
   StyleSheet,
   FlatList,
   TouchableOpacity,
+  ScrollView,
 } from 'react-native';
 import { useAppStore } from '../../store/useAppStore';
 import { getTheme } from '../../lib/theme';
@@ -12,50 +13,139 @@ import { Card } from '../../components/ui/Card';
 import { SoundPlayerBar, SoundTrack } from '../../components/SoundPlayerBar';
 import { triggerHaptic } from '../../lib/haptics';
 
+const BASE_AUDIO_URL = 'https://mishil-api-production.up.railway.app/sounds';
+
 const SOUNDS_DATA: SoundTrack[] = [
+  // 1. Ninniler (Lullabies)
   {
-    id: 'snd_pink_432',
-    title: '432Hz Derin Pembe Gürültü',
-    category: 'Gürültü Frekansları',
-    streamUrl: 'https://cdn.mishil.app/audio/pink_noise_432hz.mp3',
-  },
-  {
-    id: 'snd_womb',
-    title: 'Anne Karnı & Kalp Atışı',
-    category: 'Rahatlatıcı Ortam',
-    streamUrl: 'https://cdn.mishil.app/audio/womb_sounds.mp3',
-  },
-  {
-    id: 'snd_shushing',
-    title: 'Ritmik Pışpışlama (5S)',
-    category: 'Sakinleştirici',
-    streamUrl: 'https://cdn.mishil.app/audio/shushing_rhythmic.mp3',
-  },
-  {
-    id: 'snd_white_noise',
-    title: 'Klasik Beyaz Gürültü',
-    category: 'Gürültü Frekansları',
-    streamUrl: 'https://cdn.mishil.app/audio/white_noise.mp3',
-  },
-  {
-    id: 'snd_rain',
-    title: 'Hafif Yağmur & Doğa',
-    category: 'Doğa Sesleri',
-    streamUrl: 'https://cdn.mishil.app/audio/rain_gentle.mp3',
-  },
-  {
-    id: 'snd_lullaby',
-    title: 'Brahms Ninni (Müzik Kutusu)',
+    id: 'brahms_lullaby',
+    title: 'Brahms Uyku Ninnisi',
     category: 'Ninniler',
-    streamUrl: 'https://cdn.mishil.app/audio/brahms_lullaby.mp3',
+    streamUrl: `${BASE_AUDIO_URL}/brahms_lullaby.mp3`,
+  },
+  {
+    id: 'moonlight_lullaby',
+    title: 'Ayışığı Piyano Melodisi',
+    category: 'Ninniler',
+    streamUrl: `${BASE_AUDIO_URL}/moonlight_lullaby.mp3`,
+  },
+  {
+    id: 'mozart_432hz',
+    title: 'Mozart Zeka Gelişim Ninnisi (432Hz)',
+    category: 'Ninniler',
+    streamUrl: `${BASE_AUDIO_URL}/mozart_432hz.mp3`,
+  },
+  {
+    id: 'music_box_celesta',
+    title: 'Müzik Kutusu Rüzgar Çanları',
+    category: 'Ninniler',
+    streamUrl: `${BASE_AUDIO_URL}/music_box_celesta.mp3`,
+  },
+  {
+    id: 'velvet_guitar',
+    title: 'Kadife Gece Gitarı',
+    category: 'Ninniler',
+    streamUrl: `${BASE_AUDIO_URL}/velvet_guitar.mp3`,
+  },
+
+  // 2. Anne Karnı (Womb)
+  {
+    id: 'deep_heartbeat',
+    title: 'Tok Anne Kalp Atışı (Lub-Dub)',
+    category: 'Anne Karnı',
+    streamUrl: `${BASE_AUDIO_URL}/deep_heartbeat.mp3`,
+  },
+  {
+    id: 'womb_amniotic',
+    title: 'Amniyotik Sıvı & Anne Karnı',
+    category: 'Anne Karnı',
+    streamUrl: `${BASE_AUDIO_URL}/womb_amniotic.mp3`,
+  },
+  {
+    id: 'placenta_flow',
+    title: 'Plasenta & Ritmik Akış',
+    category: 'Anne Karnı',
+    streamUrl: `${BASE_AUDIO_URL}/placenta_flow.mp3`,
+  },
+  {
+    id: 'calm_breath',
+    title: 'Anne Göğsü & Sakin Ritim',
+    category: 'Anne Karnı',
+    streamUrl: `${BASE_AUDIO_URL}/calm_breath.mp3`,
+  },
+
+  // 3. Pışpış & Frekanslar (Shush & Noise)
+  {
+    id: 'shush_5s',
+    title: '5S Dr. Karp Doğal Pışpış',
+    category: 'Pışpış & Gürültü',
+    streamUrl: `${BASE_AUDIO_URL}/shush_5s.mp3`,
+  },
+  {
+    id: 'pink_432hz',
+    title: '432Hz Derin Pembe Gürültü',
+    category: 'Pışpış & Gürültü',
+    streamUrl: `${BASE_AUDIO_URL}/pink_432hz.mp3`,
+  },
+  {
+    id: 'brown_noise_colic',
+    title: 'Kadife Kahverengi Kolik Kalkanı',
+    category: 'Pışpış & Gürültü',
+    streamUrl: `${BASE_AUDIO_URL}/brown_noise_colic.mp3`,
+  },
+  {
+    id: 'hairdryer_calm',
+    title: 'İpeksi Fön Makinesi Sesi',
+    category: 'Pışpış & Gürültü',
+    streamUrl: `${BASE_AUDIO_URL}/hairdryer_calm.mp3`,
+  },
+  {
+    id: 'fan_drone',
+    title: 'Oda Vantilatörü & Ritmik Dron',
+    category: 'Pışpış & Gürültü',
+    streamUrl: `${BASE_AUDIO_URL}/fan_drone.mp3`,
+  },
+
+  // 4. Doğa Sesleri (Nature)
+  {
+    id: 'forest_stream',
+    title: 'Orman Deresi & Kuşlar',
+    category: 'Doğa Sesleri',
+    streamUrl: `${BASE_AUDIO_URL}/forest_stream.mp3`,
+  },
+  {
+    id: 'soft_rain',
+    title: 'Pencereye Vuran Gece Yağmuru',
+    category: 'Doğa Sesleri',
+    streamUrl: `${BASE_AUDIO_URL}/soft_rain.mp3`,
+  },
+  {
+    id: 'ocean_calm',
+    title: 'Kumsala Vuran Gece Okyanusu',
+    category: 'Doğa Sesleri',
+    streamUrl: `${BASE_AUDIO_URL}/ocean_calm.mp3`,
+  },
+  {
+    id: 'night_crickets',
+    title: 'Yaz Gecesi Cırcır Böcekleri',
+    category: 'Doğa Sesleri',
+    streamUrl: `${BASE_AUDIO_URL}/night_crickets.mp3`,
   },
 ];
+
+const CATEGORIES = ['Tümü', 'Ninniler', 'Anne Karnı', 'Pışpış & Gürültü', 'Doğa Sesleri'];
 
 export default function SoundsScreen() {
   const isDarkMode = useAppStore((state) => state.isDarkMode);
   const theme = getTheme(isDarkMode);
 
-  const [activeTrack, setActiveTrack] = useState<SoundTrack | null>(SOUNDS_DATA[0]);
+  const [activeTrack, setActiveTrack] = useState<SoundTrack | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState('Tümü');
+
+  const filteredSounds = SOUNDS_DATA.filter((sound) =>
+    selectedCategory === 'Tümü' ? true : sound.category === selectedCategory
+  );
+
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -64,12 +154,54 @@ export default function SoundsScreen() {
           Sakinleştirici Sesler
         </Text>
         <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-          Bebeğinizi derin uykuya hazırlayan bilimsel frekanslar ve ortam sesleri (Arka planda kesintisiz çalar).
+          Bebeğinizi derin uykuya hazırlayan bilimsel 18 stüdyo frekansı ve ortam sesi (Arka planda kesintisiz çalar).
         </Text>
+
+        {/* Kategori Filtreleri */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoryScroll}
+        >
+          {CATEGORIES.map((cat) => {
+            const isSelected = selectedCategory === cat;
+            return (
+              <TouchableOpacity
+                key={cat}
+                onPress={() => {
+                  triggerHaptic('selection');
+                  setSelectedCategory(cat);
+                }}
+                style={[
+                  styles.catChip,
+                  {
+                    backgroundColor: isSelected
+                      ? theme.colors.accent
+                      : theme.isDark
+                      ? '#1F2942'
+                      : '#E8EDF5',
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.catChipText,
+                    {
+                      color: isSelected ? '#141B2E' : theme.colors.text,
+                      fontWeight: isSelected ? '700' : '500',
+                    },
+                  ]}
+                >
+                  {cat}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
       <FlatList
-        data={SOUNDS_DATA}
+        data={filteredSounds}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => {
@@ -172,6 +304,21 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Inter',
     lineHeight: 18,
+    marginBottom: 12,
+  },
+  categoryScroll: {
+    paddingVertical: 6,
+    gap: 8,
+  },
+  catChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 16,
+    marginRight: 6,
+  },
+  catChipText: {
+    fontSize: 12,
+    fontFamily: 'Inter',
   },
   list: {
     paddingHorizontal: 20,

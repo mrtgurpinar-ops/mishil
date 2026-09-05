@@ -5,7 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'Mışıl Baby',
   slug: 'misil-baby',
   scheme: 'misilbaby',
-  version: '1.0.0',
+  version: '4.7.0',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
@@ -33,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#141B2E'
     },
     package: 'com.levitas.misilbaby',
-    versionCode: 1,
+    versionCode: 5,
     permissions: [
       'RECORD_AUDIO',
       'WAKE_LOCK',
@@ -43,6 +43,14 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     'expo-router',
+    [
+      'expo-build-properties',
+      {
+        android: {
+          targetSdkVersion: 35
+        }
+      }
+    ],
     [
       'expo-av',
       {
@@ -58,7 +66,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     ]
   ],
   extra: {
-    apiUrl: process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api/v1',
+    eas: {
+      projectId: "8e739202-2503-4aad-a970-46e22010fddc"
+    },
+    apiUrl: process.env.EXPO_PUBLIC_API_URL || 'https://mishil-api-production.up.railway.app/api/v1',
     revenueCatApiKeyIos: process.env.EXPO_PUBLIC_REVENUECAT_IOS || 'appl_mock_key',
     revenueCatApiKeyAndroid: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID || 'goog_mock_key'
   }

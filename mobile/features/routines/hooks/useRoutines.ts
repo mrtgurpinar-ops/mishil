@@ -1,3 +1,4 @@
+import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../../../lib/api-client';
 import { useAppStore, OfflineRoutineItem } from '../../../store/useAppStore';
@@ -119,26 +120,38 @@ export const useRoutines = () => {
     },
   });
 
+  const [isSyncing, setIsSyncing] = useState(false);
+
   // Flush offline queue when network becomes available
-  const syncOfflineQueue = async () => {
-    if (offlineQueue.length === 0) return;
+  const syncOfflineQueue = async (): Promise<{ success: boolean; synced: number; failed: number }> => {
+    if (offlineQueue.length === 0) return { success: true, synced: 0, failed: 0 };
+    setIsSyncing(true);
+    let synced = 0;
+    let failed = 0;
+
     for (const item of [...offlineQueue]) {
       try {
         await apiClient.post(`/routines/${item.routine_type}`, item);
         await removeFromOfflineQueue(item.id);
+        synced++;
       } catch (e) {
-        console.warn('Sync failed for item:', item.id);
+        console.warn('Sync failed for item:', item.id, e);
+        failed++;
       }
     }
-    queryClient.invalidateQueries({ queryKey: ['routines', activeBaby?.id] });
+    await queryClient.invalidateQueries({ queryKey: ['routines', activeBaby?.id] });
+    setIsSyncing(false);
+    return { success: failed === 0, synced, failed };
   };
 
   return {
     routines: routinesQuery.data || [],
     isLoading: routinesQuery.isLoading,
     isAdding: addRoutineMutation.isPending,
+    isSyncing,
     addRoutine: addRoutineMutation.mutateAsync,
     syncOfflineQueue,
+    clearOfflineQueue,
     offlineQueueCount: offlineQueue.length,
   };
 };

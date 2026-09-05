@@ -45,3 +45,4 @@ generate_*_film.py
 generate_*_reels.py
 render_*.py
 test_veo_*.py
+*.aab

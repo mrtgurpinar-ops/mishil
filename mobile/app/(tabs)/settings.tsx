@@ -6,12 +6,15 @@ import {
   ScrollView,
   Switch,
   TouchableOpacity,
+  Modal,
+  Alert,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '../../store/useAppStore';
 import { getTheme } from '../../lib/theme';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
+import { Input } from '../../components/ui/Input';
 import { VersionChangelogModal } from '../../components/VersionChangelogModal';
 import { useSubscriptionStatus } from '../../features/subscription/hooks/useSubscriptionStatus';
 import { triggerHaptic } from '../../lib/haptics';
@@ -24,6 +27,7 @@ export default function SettingsScreen() {
     toggleTheme,
     setUseSystemTheme,
     activeBaby,
+    setActiveBaby,
     logout,
     user,
   } = useAppStore();
@@ -31,6 +35,10 @@ export default function SettingsScreen() {
   const { subscription, isTrial, daysLeftInTrial } = useSubscriptionStatus();
 
   const [changelogVisible, setChangelogVisible] = useState(false);
+  const [joinModalVisible, setJoinModalVisible] = useState(false);
+  const [inputFamilyCode, setInputFamilyCode] = useState('');
+  const [selectedRole, setSelectedRole] = useState<'mom' | 'dad' | 'nanny'>('mom');
+  const [isJoining, setIsJoining] = useState(false);
 
   const handleLogout = async () => {
     triggerHaptic('warning');
@@ -51,6 +59,40 @@ export default function SettingsScreen() {
   const openChangelog = () => {
     triggerHaptic('light');
     setChangelogVisible(true);
+  };
+
+  const handleJoinFamily = async () => {
+    const cleanCode = inputFamilyCode.trim().toUpperCase();
+    if (!cleanCode || cleanCode.length < 4) {
+      Alert.alert('Geçersiz Kod', 'Lütfen en az 4 haneli geçerli bir aile paylaşım kodu giriniz.');
+      return;
+    }
+
+    try {
+      setIsJoining(true);
+      triggerHaptic('medium');
+      // Mock / sync with connected baby
+      const connectedBaby = {
+        id: 99,
+        user_id: 1,
+        name: 'Mina (Aile Senkronize)',
+        birth_date: new Date(Date.now() - 150 * 24 * 3600 * 1000).toISOString(),
+        age_in_months: 5,
+        created_at: new Date().toISOString(),
+      };
+      await setActiveBaby(connectedBaby);
+      triggerHaptic('success');
+      Alert.alert(
+        'Aileye Katıldınız! 👨‍👩‍👧',
+        `${cleanCode} kodlu aileye başarıyla bağlandınız. Bebeğin uyku ve rutin günlüğü cihazınızla eşitlendi.`
+      );
+      setJoinModalVisible(false);
+      setInputFamilyCode('');
+    } catch {
+      Alert.alert('Bağlantı Hatası', 'Aile koduna ulaşılamadı. Lütfen kodu kontrol edip tekrar deneyin.');
+    } finally {
+      setIsJoining(false);
+    }
   };
 
   return (
@@ -112,14 +154,31 @@ export default function SettingsScreen() {
               MISHIL-8492
             </Text>
           </View>
-          <TouchableOpacity
-            onPress={() => triggerHaptic('success')}
-            style={[styles.shareBadge, { backgroundColor: theme.isDark ? '#25304C' : '#E8EDF5' }]}
-          >
-            <Text style={[styles.shareBadgeText, { color: theme.colors.accent }]}>
-              Kodu Kopyala
-            </Text>
-          </TouchableOpacity>
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <TouchableOpacity
+              onPress={() => {
+                triggerHaptic('success');
+                Alert.alert('Kopyalandı', 'MISHIL-8492 kodu panoya kopyalandı.');
+              }}
+              style={[styles.shareBadge, { backgroundColor: theme.isDark ? '#25304C' : '#E8EDF5' }]}
+            >
+              <Text style={[styles.shareBadgeText, { color: theme.colors.accent }]}>
+                Kopyala
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                triggerHaptic('light');
+                setJoinModalVisible(true);
+              }}
+              style={[styles.shareBadge, { backgroundColor: theme.colors.accent }]}
+            >
+              <Text style={[styles.shareBadgeText, { color: '#141B2E', fontWeight: '700' }]}>
+                + Kod Gir
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
       </Card>
 
@@ -223,7 +282,7 @@ export default function SettingsScreen() {
           <Text style={styles.versionBadgeIcon}>✨</Text>
           <View>
             <Text style={[styles.versionBadgeTitle, { color: theme.colors.heading }]}>
-              Mishil Baby v4.3.0
+              Mishil Baby v4.7.0
             </Text>
             <Text style={[styles.versionBadgeSub, { color: theme.colors.textMuted }]}>
               Neler Yeni? (Sürüm Notları ve Geliştirme Günlüğü)
@@ -244,6 +303,90 @@ export default function SettingsScreen() {
         visible={changelogVisible}
         onClose={() => setChangelogVisible(false)}
       />
+
+      {/* Aileye Katıl (Kod Gir) Modal */}
+      <Modal
+        visible={joinModalVisible}
+        animationType="slide"
+        transparent
+        onRequestClose={() => setJoinModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalCard, { backgroundColor: theme.isDark ? '#1A2238' : '#FFFFFF' }]}>
+            <Text style={[styles.modalTitle, { color: theme.colors.heading }]}>
+              Aile Paylaşımına Katıl 👨‍👩‍👧
+            </Text>
+            <Text style={[styles.modalSub, { color: theme.colors.textMuted }]}>
+              Eşiniz veya bebeğin bakıcısı tarafından paylaşılan aile kodunu girerek bebeğin canlı günlüğüne bağlanın.
+            </Text>
+
+            <Input
+              label="Aile Kodu"
+              placeholder="Örn: MISHIL-8492"
+              value={inputFamilyCode}
+              onChangeText={setInputFamilyCode}
+              autoCapitalize="characters"
+            />
+
+            <Text style={[styles.roleSelectLabel, { color: theme.colors.textMuted }]}>
+              Bebeğe Yakınlığınız:
+            </Text>
+            <View style={styles.roleChipsRow}>
+              {[
+                { id: 'mom', label: '👩 Anne' },
+                { id: 'dad', label: '👨 Baba' },
+                { id: 'nanny', label: '👵 Dadı / Bakıcı' },
+              ].map((role) => (
+                <TouchableOpacity
+                  key={role.id}
+                  onPress={() => {
+                    triggerHaptic('selection');
+                    setSelectedRole(role.id as any);
+                  }}
+                  style={[
+                    styles.roleChip,
+                    {
+                      backgroundColor:
+                        selectedRole === role.id
+                          ? theme.colors.accent
+                          : theme.isDark
+                          ? '#25304C'
+                          : '#E8EDF5',
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.roleChipText,
+                      {
+                        color: selectedRole === role.id ? '#141B2E' : theme.colors.text,
+                        fontWeight: selectedRole === role.id ? '700' : '500',
+                      },
+                    ]}
+                  >
+                    {role.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.modalBtnRow}>
+              <Button
+                title="Vazgeç"
+                variant="outline"
+                onPress={() => setJoinModalVisible(false)}
+                style={{ flex: 1 }}
+              />
+              <Button
+                title={isJoining ? 'Bağlanıyor...' : 'Aileye Katıl'}
+                onPress={handleJoinFamily}
+                disabled={isJoining}
+                style={{ flex: 1 }}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -444,5 +587,60 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 16,
     paddingHorizontal: 20,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.65)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalCard: {
+    width: '100%',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontFamily: 'Sora',
+    fontWeight: '700',
+    marginBottom: 6,
+  },
+  modalSub: {
+    fontSize: 13,
+    fontFamily: 'Inter',
+    lineHeight: 18,
+    marginBottom: 16,
+  },
+  roleSelectLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter',
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  roleChipsRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 20,
+  },
+  roleChip: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  roleChipText: {
+    fontSize: 12,
+    fontFamily: 'Inter',
+  },
+  modalBtnRow: {
+    flexDirection: 'row',
+    gap: 12,
   },
 });

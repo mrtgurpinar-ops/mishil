@@ -2,6 +2,16 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.7.0] - 2026-09-05
+### 🚀 Mobil Çekirdek Deneyim, Mışıl Dadı AI & Ses/Onboarding Revizyonu
+- **👶 İlk Açılış Onboarding Akışı:** `index.tsx` içindeki doğrudan `/(tabs)/home` yönlendirmesi düzeltildi. Kayıtlı bebek profili bulunmadığında kullanıcı otomatik olarak `/(onboarding)/baby-profile` ekranına yönlendirilerek ilk kurulum güvenceye alındı.
+- **🎵 18 Gerçek Stüdyo Kaydı & Canlı Ses CDN Düzeltmesi:** Ses URL'lerindeki sahte `cdn.mishil.app` adresi kaldırılarak canlı Railway sunucu rotası (`https://mishil-api-production.up.railway.app/sounds/`) bağlandı; 18 stüdyo kaydı ve kategori filtreleme çipleri (`Tümü`, `Ninniler`, `Anne Karnı`, `Pışpış & Gürültü`, `Doğa Sesleri`) entegre edildi.
+- **👵 Mışıl Dadı AI Sekmesi (`coach.tsx`):** Menü sekmelerine Google Gemini destekli Mışıl Dadı Pediatrik Danışman arayüzü eklendi; hızlı soru hapları ve akıllı offline pediatrik yanıt motoru inşa edildi.
+- **🌱 Wonder Weeks & Dinamik Klinik Gelişim Takibi:** 10 Büyük Zihinsel Sıçrama veritabanı, bebeğin haftalık takvimine göre fırtına zirvesi uyarıları, % dolum çubuğu ve Mışıl Dadı klinik tavsiyesi ana sayfa bento kartı olarak eklendi.
+- **👨‍👩‍👧 Aileye Katıl (Kod Gir) Modalı:** Ayarlar sekmesine eş ve dadıların 6 haneli kod girerek bebeğe bağlanabileceği `JoinFamilyModal` ve rol seçimi entegre edildi.
+- **🔄 Çevrimdışı Kuyruk & Açık Eşitleme Geri Bildirimi:** "2 çevrimdışı kayıt bekliyor" banner'ı interaktif hale getirildi; senkronizasyon sırasında yükleme durumu, başarılı/başarısız Alert diyalogları ve takılı kalan kayıtları tek tıkla temizleme imkanı (✕ butonu) eklendi.
+- **📱 Sürüm Yükseltmesi:** `version: 4.7.0`, Android `versionCode: 5` olarak güncellendi.
+
 ## [4.6.2] - 2026-08-23
 ### 📱 PWA & Apple Touch Icon & Favicon Standardizasyonu
 - **🍏 Apple iOS Safari Ana Ekrana Ekleme:** `apple-touch-icon.png` (180x180 px) ve ilgili iOS Web Clip meta etiketleri bağlandı.

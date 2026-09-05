@@ -1,17 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useAppStore } from '../../store/useAppStore';
 import { getTheme } from '../../lib/theme';
 import { Card } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { purchasePackage, MOCK_OFFERINGS } from '../../features/subscription/revenuecat';
+import { purchasePackage, getOfferings, restorePurchases, PackageOffer, FALLBACK_OFFERINGS } from '../../features/subscription/revenuecat';
 import { useSubscriptionStatus } from '../../features/subscription/hooks/useSubscriptionStatus';
 
 export default function SubscriptionScreen() {
@@ -20,18 +21,55 @@ export default function SubscriptionScreen() {
   const theme = getTheme(isDarkMode);
   const { startTrial } = useSubscriptionStatus();
 
-  const [selectedPlan, setSelectedPlan] = useState<string>('$rc_annual');
+  const [offerings, setOfferings] = useState<PackageOffer[]>(FALLBACK_OFFERINGS);
+  const [selectedPlan, setSelectedPlan] = useState<string>('misil');
   const [loading, setLoading] = useState(false);
+  const [loadingOfferings, setLoadingOfferings] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadDynamicOfferings() {
+      try {
+        const livePackages = await getOfferings();
+        if (isMounted && livePackages && livePackages.length > 0) {
+          setOfferings(livePackages);
+          setSelectedPlan(livePackages[0].identifier);
+        }
+      } catch (err) {
+        console.log('[Paywall] Offering fetch error:', err);
+      } finally {
+        if (isMounted) setLoadingOfferings(false);
+      }
+    }
+    loadDynamicOfferings();
+    return () => { isMounted = false; };
+  }, []);
 
   const handlePurchase = async () => {
     try {
       setLoading(true);
-      await purchasePackage(selectedPlan);
-      await startTrial();
-      router.back();
+      const chosenOffer = offerings.find((o) => o.identifier === selectedPlan);
+      const res = await purchasePackage(selectedPlan, chosenOffer?.rawPackage);
+      if (res.success) {
+        await startTrial();
+        router.back();
+      }
     } catch (e) {
-      console.warn('Purchase handled:', e);
+      console.warn('Purchase error:', e);
       router.back();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    try {
+      setLoading(true);
+      const res = await restorePurchases();
+      if (res.success) {
+        await startTrial();
+        router.back();
+      }
     } finally {
       setLoading(false);
     }
@@ -82,7 +120,7 @@ export default function SubscriptionScreen() {
 
       {/* Pricing Options */}
       <View style={styles.plansContainer}>
-        {MOCK_OFFERINGS.map((offer) => {
+        {offerings.map((offer) => {
           const isSelected = selectedPlan === offer.identifier;
           return (
             <TouchableOpacity

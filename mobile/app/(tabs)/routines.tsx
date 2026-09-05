@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   Modal,
   ScrollView,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { useAppStore } from '../../store/useAppStore';
 import { getTheme } from '../../lib/theme';
@@ -22,8 +24,16 @@ export default function RoutinesScreen() {
   const theme = getTheme(isDarkMode);
   const activeBaby = useAppStore((state) => state.activeBaby);
 
-  const { routines, isLoading, isAdding, addRoutine, syncOfflineQueue, offlineQueueCount } =
-    useRoutines();
+  const {
+    routines,
+    isLoading,
+    isAdding,
+    isSyncing,
+    addRoutine,
+    syncOfflineQueue,
+    clearOfflineQueue,
+    offlineQueueCount,
+  } = useRoutines();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedType, setSelectedType] = useState('feeding');
@@ -82,6 +92,33 @@ export default function RoutinesScreen() {
     filterCategory === 'all' ? true : r.routine_type === filterCategory
   );
 
+  const handleSync = async () => {
+    triggerHaptic('medium');
+    const res = await syncOfflineQueue();
+    if (res.synced > 0) {
+      triggerHaptic('success');
+      Alert.alert('Eşitleme Başarılı', `${res.synced} adet çevrimdışı kayıt buluta aktarıldı.`);
+    } else {
+      triggerHaptic('warning');
+      Alert.alert(
+        'Kayıtlar Eşitlenemedi',
+        'İnternet bağlantınızı kontrol edin veya test amaçlı çevrimdışı kayıtları temizleyin.',
+        [
+          { text: 'Vazgeç', style: 'cancel' },
+          {
+            text: 'Kayıtları Temizle',
+            style: 'destructive',
+            onPress: async () => {
+              await clearOfflineQueue();
+              triggerHaptic('success');
+              Alert.alert('Temizlendi', 'Çevrimdışı kayıt kuyruğu sıfırlandı.');
+            },
+          },
+        ]
+      );
+    }
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       {/* Header */}
@@ -104,17 +141,31 @@ export default function RoutinesScreen() {
 
       {/* Offline Sync Banner */}
       {offlineQueueCount > 0 ? (
-        <TouchableOpacity
-          onPress={() => {
-            triggerHaptic('warning');
-            syncOfflineQueue();
-          }}
-          style={[styles.syncBanner, { backgroundColor: 'rgba(243, 156, 18, 0.15)' }]}
-        >
-          <Text style={styles.syncText}>
-            ⏳ {offlineQueueCount} çevrimdışı kayıt bekliyor. Eşitlemek için dokunun.
-          </Text>
-        </TouchableOpacity>
+        <View style={[styles.syncBanner, { backgroundColor: 'rgba(243, 156, 18, 0.15)' }]}>
+          <TouchableOpacity
+            onPress={handleSync}
+            disabled={isSyncing}
+            style={{ flex: 1, flexDirection: 'row', alignItems: 'center' }}
+          >
+            {isSyncing ? (
+              <ActivityIndicator size="small" color="#F39C12" style={{ marginRight: 8 }} />
+            ) : null}
+            <Text style={styles.syncText}>
+              {isSyncing
+                ? 'Bulut ile eşitleniyor...'
+                : `⏳ ${offlineQueueCount} çevrimdışı kayıt bekliyor. Eşitlemek için dokunun.`}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={async () => {
+              await clearOfflineQueue();
+              triggerHaptic('light');
+            }}
+            style={{ padding: 6, marginLeft: 8 }}
+          >
+            <Text style={{ fontSize: 13, color: '#E74C3C', fontWeight: 'bold' }}>✕</Text>
+          </TouchableOpacity>
+        </View>
       ) : null}
 
       {/* Bento-Grid Daily Stats Summary */}

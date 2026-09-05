@@ -37,10 +37,10 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="cry-analysis"
+        name="coach"
         options={{
-          title: 'Ağlama Analizi',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>🎙️</Text>,
+          title: 'Mışıl Dadı',
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>👵</Text>,
         }}
       />
       <Tabs.Screen
@@ -62,6 +62,12 @@ export default function TabsLayout() {
         options={{
           title: 'Ayarlar',
           tabBarIcon: ({ color }) => <Text style={{ fontSize: 20 }}>⚙️</Text>,
+        }}
+      />
+      <Tabs.Screen
+        name="cry-analysis"
+        options={{
+          href: null, // Accessible via router.push('/(tabs)/cry-analysis')
         }}
       />
     </Tabs>

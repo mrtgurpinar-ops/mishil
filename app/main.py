@@ -271,7 +271,7 @@ async def health_check():
     }
 
 
-@app.get("/privacy", response_class=HTMLResponse, tags=["Compliance"])
+@app.api_route("/privacy", methods=["GET", "HEAD"], response_class=HTMLResponse, tags=["Compliance"])
 async def privacy_policy():
     """Privacy Policy for Google Play and Apple App Store compliance."""
     privacy_file = os.path.join(project_root, "public", "privacy.html")
@@ -287,7 +287,7 @@ async def privacy_policy():
     """)
 
 
-@app.get("/terms", response_class=HTMLResponse, tags=["Compliance"])
+@app.api_route("/terms", methods=["GET", "HEAD"], response_class=HTMLResponse, tags=["Compliance"])
 async def terms_of_service():
     """Terms of Service and Medical Disclaimer for Store Compliance."""
     terms_file = os.path.join(project_root, "public", "terms.html")
