@@ -2,6 +2,13 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.7.1] - 2026-09-05
+### 🛡️ Google Play Store API 36 (Android 16) & Play Billing Library 8+ Uyumluluğu
+- **💳 Play Billing Library 8.0.0+ Geçişi:** `react-native-purchases` paketi `^9.0.0` sürümüne yükseltilerek Google Play Store'un zorunlu kıldığı PBL 8.0.0+ faturalandırma şartı karşılandı.
+- **🎯 Target SDK 36 (Android 16):** `targetSdkVersion: 36`, `compileSdkVersion: 36` ve `buildToolsVersion: '36.0.0'` yapılandırması tamamlandı; `eas.json` Android derleme imajı `"image": "latest"` yapılarak Android 16 desteği sağlandı.
+- **🩹 Expo Modules Core SDK 36 Null-Safety Yaması:** Android 16'da `requestedPermissions` alanının nullable olması nedeniyle Kotlin derleyicisinde oluşan `PermissionsService.kt:166:36` hatası için otomatik `patch-expo-permissions.js` postinstall yaması entegre edildi.
+- **📦 Üretim Paketi Derlemesi:** Android `versionCode: 6` (Sürüm: `4.7.0`) üretim App Bundle (`.aab`) paketi Expo EAS bulutunda derlendi ve yerel `projects/mishil/mobile/misil-baby.aab` dosyasına indirildi.
+
 ## [4.7.0] - 2026-09-05
 ### 🚀 Mobil Çekirdek Deneyim, Mışıl Dadı AI & Ses/Onboarding Revizyonu
 - **👶 İlk Açılış Onboarding Akışı:** `index.tsx` içindeki doğrudan `/(tabs)/home` yönlendirmesi düzeltildi. Kayıtlı bebek profili bulunmadığında kullanıcı otomatik olarak `/(onboarding)/baby-profile` ekranına yönlendirilerek ilk kurulum güvenceye alındı.
