@@ -33,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#141B2E'
     },
     package: 'com.levitas.misilbaby',
-    versionCode: 5,
+    versionCode: 6,
     permissions: [
       'RECORD_AUDIO',
       'WAKE_LOCK',
@@ -47,7 +47,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-build-properties',
       {
         android: {
-          targetSdkVersion: 35
+          targetSdkVersion: 36,
+          compileSdkVersion: 36
         }
       }
     ],
