@@ -33,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#141B2E'
     },
     package: 'com.levitas.misilbaby',
-    versionCode: 6,
+    versionCode: 7,
     permissions: [
       'RECORD_AUDIO',
       'WAKE_LOCK',
