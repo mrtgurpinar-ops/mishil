@@ -2,6 +2,46 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.8.2] - 2026-09-06
+### 📱 "Bazı Android Telefonlarda Açılmıyor" Dayanıklılık Yaması — Sürüm 13
+
+Uygulama tamamen uzak URL'e (`app` sayfası, Railway) bağımlı tek WebView mimarisinde
+çalıştığı için; şebeke/TLS hatası, Railway soğuk başlangıcı veya WebView render
+sürecinin çökmesi durumunda kullanıcı boş/siyah ekranda kalıyordu. `MishilUnifiedWebView`
+sıfırdan dayanıklı hale getirildi.
+
+#### 🛠️ Fixed
+- **Boş/siyah ekran (hata durumu hiç görünmüyordu):** `onLoadEnd` her koşulda (hata dahil)
+  `error` state'ini sıfırladığı için hata ekranı asla çizilmiyordu. Artık yalnızca
+  gerçekten başarılı yükleme (`onLoad`) "hazır" sayılıyor; hatalı yükleme hata ekranını
+  koruyor.
+- **WebView render süreci çökmesi → uygulama kapanması:** `onRenderProcessGone` (Android)
+  ve `onContentProcessDidTerminate` (iOS) yakalanıp otomatik yeniden yükleme yapılıyor.
+  Düşük RAM'li cihazlarda OOM kaynaklı kapanma engellendi.
+- **GPU kaynaklı boş WebView:** `androidLayerType` `"hardware"` → `"software"` alındı;
+  belirli Android GPU'larında donanım katmanının boş ekran vermesi giderildi.
+- **Railway soğuk başlangıcı / zayıf şebeke:** Ana çerçeve hatasında kademeli gecikmeyle
+  (2.5s → 5s → 7.5s) 3 kez sessiz otomatik yeniden deneme; ardından kullanıcıya **"Tekrar Dene"**
+  butonlu hata ekranı gösteriliyor (önceki sürümde hiç retry yoktu).
+- **Sonsuz spinner:** 25 sn içinde yüklenemeyen sayfa için watchdog zamanlayıcı eklendi.
+- **Boş popup pencereleri:** `setSupportMultipleWindows={false}` ile harici bağlantıların
+  dokunuşu yutan boş pencere açması engellendi.
+- `mixedContentMode="never"` açıkça ayarlandı.
+
+#### 🎯 Changed — Android Derleme Hedefi Sadeleştirildi
+- **`targetSdkVersion` / `compileSdkVersion` 36 → 35:** Google Play güncel şartı API 35'tir
+  (Android 15); 36'ya zorlamak Expo SDK 51 / AGP 8.3 üzerinde eski OS sürümlerinde
+  sınıf-yükleme (`NoSuchMethodError` / `VerifyError`) çökme riski taşıyordu.
+  `buildToolsVersion: '35.0.0'`, suppress bayrağı 35'e alındı.
+- **`minSdkVersion: 26` (Android 8.0) sabitlendi:** Android 7.x cihazlar Railway'in
+  kullandığı Let's Encrypt ISRG Root X1 köküne güvenmediği için HTTPS el sıkışması
+  yapamıyor ve tek WebView mimarisinde uygulamayı hiç açamıyordu. Bu OS tabanı
+  desteklenen cihazlar için sorunu kökten kaldırır (Android 7.x pazar payı < %1.5).
+
+#### 📦 Build
+- Android `minSdkVersion: 26`, `targetSdkVersion: 35`, `versionCode: 13`
+- `version: "4.8.2"`
+
 ## [4.8.1] - 2026-09-06
 ### 🔓 Geliştirici Kilit Ekranının Kaldırılması & Google Play Yayına Hazırlık — Sürüm 12
 

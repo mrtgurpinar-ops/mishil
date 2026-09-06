@@ -4,6 +4,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   Text,
+  Pressable,
   StatusBar,
   Platform,
   BackHandler,
@@ -15,6 +16,13 @@ import { initRevenueCat, purchasePackage, restorePurchases, getOfferings } from 
 // Railway canlı URL
 const MISHIL_WEB_URL = 'https://mishil-production.up.railway.app/app';
 
+// Sayfa bu süre içinde yüklenmezse (Railway cold-start / zayıf şebeke) hata ekranına düş
+const LOAD_TIMEOUT_MS = 25000;
+// Kullanıcı dokunmadan sessizce kaç kez yeniden denensin (cold-start toleransı)
+const MAX_AUTO_RETRY = 3;
+
+type Status = 'loading' | 'ready' | 'error';
+
 /**
  * MishilUnifiedWebView
  *
@@ -22,20 +30,37 @@ const MISHIL_WEB_URL = 'https://mishil-production.up.railway.app/app';
  * - public/app.html (Railway) → tek kaynak, tüm UI burada
  * - Bu bileşen sadece native kapasiteleri köprüler:
  *   IAP (RevenueCat/Google Play), haptik, mikrofon izni
+ *
+ * Dayanıklılık: uygulama %100 uzak URL'e bağımlı olduğu için WebView render
+ * sürecinin çökmesi, TLS/şebeke hatası veya Railway soğuk başlangıcı durumunda
+ * kullanıcıyı boş/siyah ekranda bırakmadan otomatik + manuel yeniden deneme sağlar.
  */
 export default function MishilUnifiedWebView() {
   const webviewRef = useRef<WebView>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [status, setStatus] = useState<Status>('loading');
+  const retryCountRef = useRef(0);
+  const autoRetryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const watchdogTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearTimers = () => {
+    if (autoRetryTimer.current) { clearTimeout(autoRetryTimer.current); autoRetryTimer.current = null; }
+    if (watchdogTimer.current) { clearTimeout(watchdogTimer.current); watchdogTimer.current = null; }
+  };
 
   // RevenueCat başlatma
   useEffect(() => {
     initRevenueCat().catch(() => {});
+    return clearTimers;
   }, []);
 
   // Android geri tuşu — WebView geçmişinde geri git
   useEffect(() => {
     const onBack = () => {
+      if (status === 'error') {
+        // Hata ekranındayken geri tuşu = yeniden dene
+        doRetry();
+        return true;
+      }
       if (webviewRef.current) {
         webviewRef.current.goBack();
         return true; // event tüketildi
@@ -44,12 +69,26 @@ export default function MishilUnifiedWebView() {
     };
     const sub = BackHandler.addEventListener('hardwareBackPress', onBack);
     return () => sub.remove();
+  }, [status]);
+
+  // Yükleme başladığında watchdog kur — sonsuz spinner'ı engelle
+  const armWatchdog = useCallback(() => {
+    if (watchdogTimer.current) clearTimeout(watchdogTimer.current);
+    watchdogTimer.current = setTimeout(() => {
+      setStatus((s) => (s === 'ready' ? s : 'error'));
+    }, LOAD_TIMEOUT_MS);
   }, []);
 
-  // WebView yükleme tamamlandığında native bridge sinyali gönder
-  const onLoadEnd = useCallback(() => {
-    setLoading(false);
-    setError(false);
+  const onLoadStart = useCallback(() => {
+    setStatus((s) => (s === 'ready' ? s : 'loading'));
+    armWatchdog();
+  }, [armWatchdog]);
+
+  // Yalnızca BAŞARILI yükleme — hata sonrası tetiklenmez (onLoadEnd aksine)
+  const onLoad = useCallback(() => {
+    clearTimers();
+    retryCountRef.current = 0;
+    setStatus('ready');
     // Native olduğumuzu web tarafına bildir
     webviewRef.current?.injectJavaScript(`
       (function() {
@@ -71,6 +110,62 @@ export default function MishilUnifiedWebView() {
       })();
     `);
   }, []);
+
+  // Ana çerçeve hatası (TLS, DNS, 5xx, timeout) → hata durumuna geç, cold-start için sessiz retry
+  const handleLoadFailure = useCallback(() => {
+    clearTimers();
+    setStatus('error');
+    if (retryCountRef.current < MAX_AUTO_RETRY) {
+      retryCountRef.current += 1;
+      const delay = 2500 * retryCountRef.current; // 2.5s, 5s, 7.5s — Railway uyanana kadar
+      autoRetryTimer.current = setTimeout(() => {
+        setStatus('loading');
+        armWatchdog();
+        webviewRef.current?.reload();
+      }, delay);
+    }
+  }, [armWatchdog]);
+
+  const onError = useCallback((e: any) => {
+    // Alt kaynak (font/ses) hatalarını yok say; sadece ana doküman hatası önemli
+    const ne = e?.nativeEvent;
+    if (ne && ne.url && !String(ne.url).startsWith('https://mishil-production.up.railway.app')) return;
+    handleLoadFailure();
+  }, [handleLoadFailure]);
+
+  const onHttpError = useCallback((e: any) => {
+    const ne = e?.nativeEvent;
+    // Yalnızca ana sayfa isteği 5xx/404 dönerse hata say
+    if (ne && ne.url && ne.url !== MISHIL_WEB_URL) return;
+    if (ne && ne.statusCode && ne.statusCode < 500 && ne.statusCode !== 404) return;
+    handleLoadFailure();
+  }, [handleLoadFailure]);
+
+  // Android: WebView render süreci öldürüldü (düşük RAM'li cihazlarda OOM)
+  // Bu yakalanmazsa uygulama komple çöker ("uygulama açılmıyor / kapanıyor")
+  const onRenderProcessGone = useCallback((e: any) => {
+    e?.preventDefault?.();
+    setStatus('loading');
+    armWatchdog();
+    // ref üzerinden yeniden yükle; render süreci gittiği için reload() güvenli
+    setTimeout(() => webviewRef.current?.reload(), 300);
+    return true;
+  }, [armWatchdog]);
+
+  // iOS eşdeğeri
+  const onContentProcessDidTerminate = useCallback(() => {
+    setStatus('loading');
+    armWatchdog();
+    setTimeout(() => webviewRef.current?.reload(), 300);
+  }, [armWatchdog]);
+
+  const doRetry = useCallback(() => {
+    clearTimers();
+    retryCountRef.current = 0;
+    setStatus('loading');
+    armWatchdog();
+    webviewRef.current?.reload();
+  }, [armWatchdog]);
 
   // Haptik yardımcı
   const triggerHaptic = async (level: string) => {
@@ -142,14 +237,26 @@ export default function MishilUnifiedWebView() {
     }
   }, []);
 
-  // Hata durumunda gösterilecek ekran
+  const autoRetrying = status === 'error' && retryCountRef.current > 0 && retryCountRef.current <= MAX_AUTO_RETRY;
+
+  // Hata durumunda gösterilecek ekran — GERÇEK yeniden deneme butonu ile
   const renderError = () => (
     <View style={styles.errorContainer}>
       <Text style={styles.errorIcon}>🌙</Text>
-      <Text style={styles.errorTitle}>Bağlantı Kuruluyor...</Text>
+      <Text style={styles.errorTitle}>Bağlantı Kurulamadı</Text>
       <Text style={styles.errorSub}>
-        İnternet bağlantınızı kontrol edin.{'\n'}Uygulama kısa süre içinde yeniden bağlanacak.
+        İnternet bağlantınızı kontrol edin.{'\n'}
+        {autoRetrying
+          ? 'Sunucuya yeniden bağlanılıyor...'
+          : 'Aşağıdaki butonla tekrar deneyebilirsiniz.'}
       </Text>
+      {autoRetrying ? (
+        <ActivityIndicator size="small" color="#E8A855" style={{ marginTop: 20 }} />
+      ) : (
+        <Pressable style={styles.retryBtn} onPress={doRetry} accessibilityRole="button">
+          <Text style={styles.retryBtnText}>Tekrar Dene</Text>
+        </Pressable>
+      )}
     </View>
   );
 
@@ -161,9 +268,12 @@ export default function MishilUnifiedWebView() {
         ref={webviewRef}
         source={{ uri: MISHIL_WEB_URL }}
         style={styles.webview}
-        onLoadEnd={onLoadEnd}
-        onError={() => setError(true)}
-        onHttpError={() => setError(true)}
+        onLoadStart={onLoadStart}
+        onLoad={onLoad}
+        onError={onError}
+        onHttpError={onHttpError}
+        onRenderProcessGone={onRenderProcessGone}
+        onContentProcessDidTerminate={onContentProcessDidTerminate}
         onMessage={onMessage}
 
         // Ses ve medya
@@ -190,18 +300,20 @@ export default function MishilUnifiedWebView() {
         sharedCookiesEnabled
         cacheEnabled
         cacheMode="LOAD_DEFAULT"
+        mixedContentMode="never"
 
-        // Android tam ekran
-        androidLayerType="hardware"
+        // Harici pencere açan bağlantılar boş popup'ta takılmasın
+        setSupportMultipleWindows={false}
+
+        // Android render katmanı: bazı GPU'larda "hardware" boş ekrana yol açtığından
+        // yazılım katmanına alındı (animasyon perf. kaybı kabul edilebilir seviyede)
+        androidLayerType="software"
 
         // URL değişikliklerinde izin ver
-        onShouldStartLoadWithRequest={(req) => {
-          // Sadece Railway ve içerik URL'lerine izin ver
-          return true;
-        }}
+        onShouldStartLoadWithRequest={() => true}
       />
 
-      {error && renderError()}
+      {status === 'error' && renderError()}
     </View>
   );
 }
@@ -263,5 +375,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     lineHeight: 20,
+  },
+  retryBtn: {
+    marginTop: 24,
+    paddingVertical: 14,
+    paddingHorizontal: 36,
+    borderRadius: 14,
+    backgroundColor: '#E8A855',
+  },
+  retryBtnText: {
+    color: '#0B0F19',
+    fontSize: 15,
+    fontWeight: '700',
   },
 });
