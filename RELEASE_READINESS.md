@@ -18,7 +18,7 @@
 | Production build guard (mock RevenueCat anahtarıyla derleme engellenir) | ✅ kodda |
 | jest yeşil (`*.test.ts`), Maestro spec ayrıldı | ✅ |
 | Native arka plan ses motoru (kilitli ekranda ninni) | ✅ kodda (v4.9.0) — cihaz testi bekliyor, bkz. §5 R1 |
-| RevenueCat EAS anahtarları | ⚠️ Android eklendi (`eas.json`), **iOS yok** |
+| RevenueCat anahtarları (Android + iOS) | ✅ ikisi de `eas.json` production env'de |
 | Mağaza abonelik ürünleri + RevenueCat offering/entitlement | ⛔ **doğrulanmadı** |
 | Gerçek cihaz testi (Android + iOS) | ⛔ yapılmadı |
 
@@ -28,9 +28,8 @@
 
 ### 1.1 RevenueCat
 - [x] `EXPO_PUBLIC_REVENUECAT_ANDROID` = `goog_...` — `eas.json` production env'e eklendi.
-- [ ] `EXPO_PUBLIC_REVENUECAT_IOS` = `appl_...` — **eksik**. iOS production build `app.config.ts`
-  guard'ına takılır. EAS secret veya `eas.json` env olarak ekle:
-  `eas secret:create --scope project --name EXPO_PUBLIC_REVENUECAT_IOS --value appl_xxx`
+- [x] `EXPO_PUBLIC_REVENUECAT_IOS` = `appl_...` — `eas.json` production env'e eklendi.
+      → her iki platform için `app.config.ts` production guard geçilir.
 - [ ] RevenueCat panelinde **Entitlement** tanımlı (örn. `pro`) ve **Offering** (`default`) 3 pakete bağlı: `misil` (yıllık), `misilaylik` (aylık), `misilomurboyu` (ömür boyu).
 - [ ] `hasActiveEntitlement()` genel kontrol yapıyor (`entitlements.active` / `activeSubscriptions` / tek seferlik). Entitlement adı özelse sorun yok; yine de test satın almasıyla doğrula.
 
