@@ -2,6 +2,25 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.8.3] - 2026-09-06
+### 🎯 Android Hedef API 36 (Android 16) — Google Play 2026 Zorunluluğu — Sürüm 14
+
+#### 🔄 Changed
+- **`targetSdkVersion` / `compileSdkVersion` 35 → 36:** 31 Ağustos 2026 itibarıyla Google
+  Play yeni uygulama ve güncellemeler için **API 36 (Android 16)** hedefini zorunlu
+  kıldığından, 4.8.2'deki geçici 35 kararı geri alındı. `android.suppressUnsupportedCompileSdk: '36'`
+  bayrağı korunuyor.
+- **`minSdkVersion: 26` (Android 8.0) korunuyor:** 4.8.2'de eklenen taban; Android 7.x
+  cihazların Railway'in Let's Encrypt ISRG Root X1 köküne güvenmemesi kaynaklı
+  "hiç açılmıyor" sorununu kapatır.
+- **4.8.2 WebView dayanıklılık yaması aynen geçerli:** render süreci çökme kurtarma,
+  gerçek retry akışı, `androidLayerType: "software"`, watchdog vb. değişmedi.
+- `core/mobile_compliance_checker.py` asgari hedef eşiği tekrar 36'ya çekildi.
+
+#### 📦 Build
+- Android `minSdkVersion: 26`, `targetSdkVersion: 36`, `compileSdkVersion: 36`, `versionCode: 14`
+- `version: "4.8.3"`
+
 ## [4.8.2] - 2026-09-06
 ### 📱 "Bazı Android Telefonlarda Açılmıyor" Dayanıklılık Yaması — Sürüm 13
 
