@@ -26,7 +26,8 @@
         "image": "latest"
       },
       "ios": {
-        "distribution": "store"
+        "distribution": "store",
+        "image": "latest"
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://mishil-production.up.railway.app/api/v1",
