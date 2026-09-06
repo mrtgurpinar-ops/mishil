@@ -25,6 +25,22 @@ Uygulamanın çekirdek işlevi — bebek uyurken telefon cepteyken/kilitliyken n
 - **`MishilUnifiedWebView.tsx`:** yeni ses mesajları işleniyor; `onLoad`'da `audioBridge = true`
   enjekte ediliyor; bileşen unmount'ında ses motoru kapatılıyor.
 
+#### 🛟 Offline Fallback (R2) — %100 uzak URL bağımlılığı azaltıldı
+- **`scripts/bundle-offline-html.js` [YENİ]:** `public/app.html` → gömülebilir TS modülü
+  (`features/webview/offlineHtml.generated.ts`, repoya commit'li). `postinstall`'da ve
+  `npm run bundle:offline` ile yenilenir; EAS build'de kaynak yoksa commit'li sürüm korunur.
+- **`MishilUnifiedWebView.tsx`:** uzak sürüm 3 otomatik denemede de yüklenemezse artık
+  boş/hata ekranı yerine **gömülü çevrimdışı sürüm** açılıyor; üstte "📴 Çevrimdışı sürüm"
+  bandı, arka planda 20 sn'de bir uzak sürüme yeniden bağlanma denemesi, banda/butona
+  dokununca manuel yeniden bağlanma. Bağlantı dönünce otomatik uzak sürüme geçiş.
+- Gömülü sürüm `baseUrl` ile Railway köküne bağlı çalışır (fontlar, sesler, API şebeke
+  dönünce çözülür). RevenueCat guard'ından bağımsız, ek native bağımlılık yok.
+
+#### 🔧 RevenueCat Hizalama
+- `FALLBACK_OFFERINGS` identifier'ları RevenueCat default paket kimlikleriyle hizalandı
+  (`$rc_annual` / `$rc_monthly` / `$rc_lifetime`); `hasActiveEntitlement` önce panelde
+  tanımlı `pro` entitlement'ını kontrol ediyor (genel yedek korunuyor).
+
 #### ⚠️ Bilinen Sınır (takip)
 - Android'de uzun (tüm gece) oturumlarda agresif OEM pil yöneticileri süreci öldürebilir.
   Tam çözüm: gerçek foreground service veya Expo SDK 52+ `expo-audio`. Bu sürümde

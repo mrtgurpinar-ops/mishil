@@ -8,7 +8,9 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "test": "jest",
-    "postinstall": "node scripts/patch-expo-permissions.js"
+    "bundle:offline": "node scripts/bundle-offline-html.js",
+    "prebuild:offline": "node scripts/bundle-offline-html.js",
+    "postinstall": "node scripts/patch-expo-permissions.js && node scripts/bundle-offline-html.js"
   },
   "jest": {
     "testMatch": ["**/tests/**/*.test.ts"]

@@ -17,26 +17,30 @@ export interface PurchaseResult {
   error?: string;
 }
 
+// RevenueCat entitlement adı (panelde tanımlı). hasActiveEntitlement önce bunu arar.
+export const PRO_ENTITLEMENT_ID = 'pro';
+
 // Yalnızca GÖRÜNTÜLEME amaçlı yedek liste (offerings yüklenemezse).
 // Gerçek ücretlendirme her zaman Google Play / App Store fiyatı üzerinden yapılır.
+// identifier'lar RevenueCat default paket kimlikleriyle ($rc_*) hizalı.
 // NOT: Bu stringler mağaza konsolundaki fiyatlarla senkron tutulmalıdır.
 export const FALLBACK_OFFERINGS: PackageOffer[] = [
   {
-    identifier: 'misil',
+    identifier: '$rc_annual',
     packageType: 'ANNUAL',
     priceString: '₺599,99 / Yıl',
     title: '👑 Mışıl Baby Yıllık VIP (Önerilen)',
     description: '3 Gün Ücretsiz Deneme • Aylık ₺49,99 karşılığı • En popüler paket.',
   },
   {
-    identifier: 'misilaylik',
+    identifier: '$rc_monthly',
     packageType: 'MONTHLY',
     priceString: '₺149,99 / Ay',
     title: '🗓️ Mışıl Baby Aylık Pro',
     description: 'Kısa vadeli esneklik arayan ebeveynler için sınırsız erişim.',
   },
   {
-    identifier: 'misilomurboyu',
+    identifier: '$rc_lifetime',
     packageType: 'LIFETIME',
     priceString: '₺2.499,99',
     title: '♾️ Mışıl Baby Ömür Boyu (Aile)',
@@ -81,6 +85,9 @@ export const initRevenueCat = async (userId?: string) => {
 /** RevenueCat customerInfo üzerinden gerçekten aktif hak var mı? */
 export const hasActiveEntitlement = (customerInfo: any): boolean => {
   if (!customerInfo) return false;
+  // Öncelik: panelde tanımlı 'pro' entitlement'ı aktif mi?
+  if (customerInfo.entitlements?.active?.[PRO_ENTITLEMENT_ID]) return true;
+  // Genel yedek (entitlement adı değişmiş olabilir / ömür boyu tek seferlik ürün)
   const activeEntitlements = customerInfo.entitlements?.active
     ? Object.keys(customerInfo.entitlements.active)
     : [];

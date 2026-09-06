@@ -13,14 +13,20 @@ import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import * as Haptics from 'expo-haptics';
 import { initRevenueCat, purchasePackage, restorePurchases, getOfferings } from '../features/subscription/revenuecat';
 import * as nativeAudio from '../features/audio/nativeAudioPlayer';
+import { OFFLINE_HTML } from '../features/webview/offlineHtml.generated';
 
 // Railway canlı URL
-const MISHIL_WEB_URL = 'https://mishil-production.up.railway.app/app';
+const MISHIL_WEB_ORIGIN = 'https://mishil-production.up.railway.app';
+const MISHIL_WEB_URL = `${MISHIL_WEB_ORIGIN}/app`;
 
 // Sayfa bu süre içinde yüklenmezse (Railway cold-start / zayıf şebeke) hata ekranına düş
 const LOAD_TIMEOUT_MS = 25000;
 // Kullanıcı dokunmadan sessizce kaç kez yeniden denensin (cold-start toleransı)
 const MAX_AUTO_RETRY = 3;
+// Çevrimdışı moddayken uzak sürüme yeniden bağlanma denemesi aralığı
+const RECONNECT_PROBE_MS = 20000;
+// Gömülü çevrimdışı sürüm kullanılabilir mi (EAS'te kaynak yoksa boş kalabilir)
+const HAS_OFFLINE_HTML = typeof OFFLINE_HTML === 'string' && OFFLINE_HTML.length > 500;
 
 type Status = 'loading' | 'ready' | 'error';
 
@@ -39,13 +45,20 @@ type Status = 'loading' | 'ready' | 'error';
 export default function MishilUnifiedWebView() {
   const webviewRef = useRef<WebView>(null);
   const [status, setStatus] = useState<Status>('loading');
+  // Uzak sürüm tekrar tekrar başarısız olduğunda gömülü app.html'e düşülür
+  const [useOffline, setUseOffline] = useState(false);
   const retryCountRef = useRef(0);
   const autoRetryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const watchdogTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const reconnectTimer = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const clearTimers = () => {
     if (autoRetryTimer.current) { clearTimeout(autoRetryTimer.current); autoRetryTimer.current = null; }
     if (watchdogTimer.current) { clearTimeout(watchdogTimer.current); watchdogTimer.current = null; }
+  };
+
+  const stopReconnectProbe = () => {
+    if (reconnectTimer.current) { clearInterval(reconnectTimer.current); reconnectTimer.current = null; }
   };
 
   // RevenueCat başlatma + native ses motoru temizliği
@@ -53,8 +66,28 @@ export default function MishilUnifiedWebView() {
     initRevenueCat().catch(() => {});
     return () => {
       clearTimers();
+      stopReconnectProbe();
       void nativeAudio.shutdown();
     };
+  }, []);
+
+  // Çevrimdışı moddayken uzak sürüme sessizce yeniden bağlanmayı dener.
+  // Başarılıysa source {uri}'ye döner; onLoadStart watchdog'u yeniden kurar.
+  const startReconnectProbe = useCallback(() => {
+    stopReconnectProbe();
+    reconnectTimer.current = setInterval(async () => {
+      try {
+        const res = await fetch(MISHIL_WEB_URL, { method: 'HEAD', cache: 'no-store' as RequestCache });
+        if (res && res.ok) {
+          stopReconnectProbe();
+          retryCountRef.current = 0;
+          setStatus('loading');
+          setUseOffline(false);
+        }
+      } catch {
+        // hâlâ erişilemiyor — bir sonraki denemeyi bekle
+      }
+    }, RECONNECT_PROBE_MS);
   }, []);
 
   // Native ses durumunu web'e bildir (mini player UI senkronu)
@@ -123,11 +156,13 @@ export default function MishilUnifiedWebView() {
     `);
   }, []);
 
-  // Ana çerçeve hatası (TLS, DNS, 5xx, timeout) → hata durumuna geç, cold-start için sessiz retry
+  // Ana çerçeve hatası (TLS, DNS, 5xx, timeout) → cold-start için sessiz retry,
+  // denemeler tükenince gömülü çevrimdışı sürüme düş (boş ekran yerine)
   const handleLoadFailure = useCallback(() => {
     clearTimers();
-    setStatus('error');
+    if (useOffline) return; // zaten çevrimdışı sürümdeyiz
     if (retryCountRef.current < MAX_AUTO_RETRY) {
+      setStatus('error');
       retryCountRef.current += 1;
       const delay = 2500 * retryCountRef.current; // 2.5s, 5s, 7.5s — Railway uyanana kadar
       autoRetryTimer.current = setTimeout(() => {
@@ -135,8 +170,17 @@ export default function MishilUnifiedWebView() {
         armWatchdog();
         webviewRef.current?.reload();
       }, delay);
+      return;
     }
-  }, [armWatchdog]);
+    // Otomatik denemeler bitti
+    if (HAS_OFFLINE_HTML) {
+      setUseOffline(true);
+      setStatus('ready');
+      startReconnectProbe();
+    } else {
+      setStatus('error'); // gömülü sürüm yoksa "Tekrar Dene" ekranında kal
+    }
+  }, [armWatchdog, useOffline, startReconnectProbe]);
 
   const onError = useCallback((e: any) => {
     // Alt kaynak (font/ses) hatalarını yok say; sadece ana doküman hatası önemli
@@ -173,11 +217,16 @@ export default function MishilUnifiedWebView() {
 
   const doRetry = useCallback(() => {
     clearTimers();
+    stopReconnectProbe();
     retryCountRef.current = 0;
     setStatus('loading');
     armWatchdog();
-    webviewRef.current?.reload();
-  }, [armWatchdog]);
+    if (useOffline) {
+      setUseOffline(false); // source {uri}'ye döner, kendisi yeniden yükler
+    } else {
+      webviewRef.current?.reload();
+    }
+  }, [armWatchdog, useOffline]);
 
   // Haptik yardımcı
   const triggerHaptic = async (level: string) => {
@@ -318,7 +367,11 @@ export default function MishilUnifiedWebView() {
 
       <WebView
         ref={webviewRef}
-        source={{ uri: MISHIL_WEB_URL }}
+        source={
+          useOffline
+            ? { html: OFFLINE_HTML, baseUrl: MISHIL_WEB_ORIGIN }
+            : { uri: MISHIL_WEB_URL }
+        }
         style={styles.webview}
         onLoadStart={onLoadStart}
         onLoad={onLoad}
@@ -365,6 +418,14 @@ export default function MishilUnifiedWebView() {
         onShouldStartLoadWithRequest={() => true}
       />
 
+      {useOffline && (
+        <Pressable style={styles.offlineBanner} onPress={doRetry} accessibilityRole="button">
+          <Text style={styles.offlineBannerText}>
+            📴 Çevrimdışı sürüm • yeniden bağlanılıyor — dokunup tekrar dene
+          </Text>
+        </Pressable>
+      )}
+
       {status === 'error' && renderError()}
     </View>
   );
@@ -379,6 +440,21 @@ const styles = StyleSheet.create({
   webview: {
     flex: 1,
     backgroundColor: '#0B0E17',
+  },
+  offlineBanner: {
+    position: 'absolute',
+    top: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) : 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(232,168,85,0.95)',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+  },
+  offlineBannerText: {
+    color: '#0B0F19',
+    fontSize: 12,
+    fontWeight: '600',
   },
   loadingContainer: {
     position: 'absolute',

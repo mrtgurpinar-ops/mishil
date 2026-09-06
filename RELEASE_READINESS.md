@@ -18,8 +18,12 @@
 | Production build guard (mock RevenueCat anahtarıyla derleme engellenir) | ✅ kodda |
 | jest yeşil (`*.test.ts`), Maestro spec ayrıldı | ✅ |
 | Native arka plan ses motoru (kilitli ekranda ninni) | ✅ kodda (v4.9.0) — cihaz testi bekliyor, bkz. §5 R1 |
+| Offline fallback (gömülü app.html) | ✅ kodda (v4.9.0) — cihaz testi bekliyor, bkz. §5 R2 |
 | RevenueCat anahtarları (Android + iOS) | ✅ ikisi de `eas.json` production env'de |
-| Mağaza abonelik ürünleri + RevenueCat offering/entitlement | ⛔ **doğrulanmadı** |
+| RevenueCat `pro` entitlement + `default` offering | ✅ panelde bağlı, kod hizalandı |
+| Google Play ürünleri / App Store Team ID / Railway uptime | ✅ kullanıcı doğruladı |
+| `eas.json` iOS `ascAppId` | ⛔ hâlâ placeholder (`eas submit` için gerekli) |
+| Google Play service account json | ⛔ dosya `mobile/` içinde yok (`eas submit` için) |
 | Gerçek cihaz testi (Android + iOS) | ⛔ yapılmadı |
 
 ---
@@ -30,36 +34,36 @@
 - [x] `EXPO_PUBLIC_REVENUECAT_ANDROID` = `goog_...` — `eas.json` production env'e eklendi.
 - [x] `EXPO_PUBLIC_REVENUECAT_IOS` = `appl_...` — `eas.json` production env'e eklendi.
       → her iki platform için `app.config.ts` production guard geçilir.
-- [ ] RevenueCat panelinde **Entitlement** tanımlı (örn. `pro`) ve **Offering** (`default`) 3 pakete bağlı: `misil` (yıllık), `misilaylik` (aylık), `misilomurboyu` (ömür boyu).
-- [ ] `hasActiveEntitlement()` genel kontrol yapıyor (`entitlements.active` / `activeSubscriptions` / tek seferlik). Entitlement adı özelse sorun yok; yine de test satın almasıyla doğrula.
+- [x] RevenueCat panelinde **`pro` Entitlement** + **`default` Offering** 3 pakete bağlı
+      (`$rc_annual` / `$rc_monthly` / `$rc_lifetime`). Kod hizalandı (`FALLBACK_OFFERINGS`
+      identifier'ları + `hasActiveEntitlement` önce `pro`'yu kontrol ediyor).
+- [ ] Sandbox test satın almasıyla `entitlements.active.pro` doğrulanacak (Faz 2).
 
 > Not: RevenueCat **public SDK anahtarı** (`goog_` / `appl_`) tasarımı gereği istemciye gömülür,
 > gizli değildir; `eas.json`'da tutulması güvenlik açığı değil. Yine de EAS secret daha temiz.
 
 ### 1.2 Google Play Console
-- [ ] Uygulama içi ürünler oluşturuldu ve **Aktif**:
-  - `misil` — Yıllık abonelik, 3 gün deneme, ₺599,99
-  - `misilaylik` — Aylık abonelik, ₺149,99
-  - `misilomurboyu` — Tek seferlik ürün (managed product), ₺2.499,99
-- [ ] Fiyatlar `app.html` kartlarıyla **birebir** aynı (₺599.99 / ₺149.99 / ₺2.499.99).
-- [ ] `eas.json > submit.production.android.serviceAccountKeyPath` (`google-play-service-account.json`) mevcut ve geçerli.
+- [x] Uygulama içi ürünler + temel planlar **Etkin (Active)**.
+- [ ] Fiyatların `app.html` kartlarıyla **birebir** aynı olduğu teyit edilecek (₺599.99 / ₺149.99 / ₺2.499.99).
+- [ ] `eas.json > submit.production.android.serviceAccountKeyPath` (`google-play-service-account.json`)
+      — dosya `mobile/` içine konacak (`eas submit` için; `eas build` için gerekmez). Gitignore'da.
 - [ ] Data safety formu dolduruldu (hesap, mikrofon, aile paylaşımı, analitik).
 - [ ] Gizlilik politikası + EULA linkleri canlı (compliance checker PASS veriyor).
 
 ### 1.3 Apple App Store Connect
-- [ ] App Store Connect'te uygulama kaydı açık; **gerçek** değerler `eas.json`'a girildi:
-  - `submit.production.ios.ascAppId` — şu an `6470000000` (placeholder, düzeltilmeli)
-  - `submit.production.ios.appleTeamId` — şu an `LEVITAS1` (placeholder, düzeltilmeli)
-  - `appleId` = `mrtgurpinar@gmail.com` (doğru)
-- [ ] Abonelik grubu + 3 ürün oluşturuldu, "Ready to Submit":
+- [x] `appleTeamId: "V6QVVU79GZ"` (gerçek) + App Identifier tanımlı.
+- [ ] `submit.production.ios.ascAppId` — hâlâ `"6470000000"` placeholder. App Store Connect >
+      uygulama > App Information > **Apple ID** (10 haneli sayı) ile değiştirilecek.
+      (`eas build`'i engellemez; `eas submit` için gerekli.)
+- [ ] Abonelik grubu + 3 ürün "Ready to Submit":
   - Yıllık (3 gün ücretsiz deneme introductory offer), Aylık, Ömür Boyu (Non-Consuming)
 - [ ] App Privacy (nutrition labels) dolduruldu: hesap bilgisi, kullanıcı içeriği, mikrofon, tanımlayıcılar.
-- [ ] Yaş sınırı / Kids kategorisi kararı: uygulama "Kids" kategorisinde **değil** (ebeveyn hedefli) → 3. taraf analitik + hesap açımı buna uygun tutulmalı.
+- [ ] Yaş sınırı / Kids kategorisi kararı: uygulama "Kids" kategorisinde **değil** (ebeveyn hedefli).
 - [ ] Tıbbi feragatname onboarding'de zorunlu (mevcut). Uygulama açıklamasında "teşhis/tedavi" iddiası yok.
 
 ### 1.4 Altyapı
-- [ ] Railway `mishil-production` servisi **uykuya geçmeyen** planda (Hobby değil) — inceleme sırasında ve canlıda ilk açılışta soğuk başlangıç = retry ekranı riski.
-- [ ] `mishil-production.up.railway.app/app`, `/privacy`, `/terms`, `/sounds/*`, `/api/v1/*` GET/HEAD 200.
+- [x] Railway `mishil-production` kesintisiz / uykusuz — Status 200 OK.
+- [ ] `mishil-production.up.railway.app/app`, `/privacy`, `/terms`, `/sounds/*`, `/api/v1/*` GET/HEAD 200 (compliance checker `/privacy` + `/terms` PASS veriyor).
 - [ ] `function-bun-production-9541.up.railway.app/ws` ayakta (kapalıysa app çöker değil ama realtime sync yok; WS artık 6 denemede duruyor).
 
 ---
@@ -156,10 +160,18 @@ WKWebView `<audio>` ve Web Audio API ekran kilitlenince sesi durduruyordu (sente
 - **Kalan sınır:** tüm gece oturumlarında OEM pil katli riski (tam çözüm: foreground service /
   Expo SDK 52 `expo-audio`); kilit ekranı oynatma kontrolleri henüz yok.
 
-### 🟠 R2 — %100 uzak URL bağımlılığı
-Railway/DNS/CDN sorununda uygulama açılmaz (artık retry ekranı var, boş ekran yok).
-- Azaltım: `public/app.html`'in bir kopyasını binary'e göm, uzak 3 denemede de başarısızsa yerelden yükle (`source={{ html, baseUrl: 'https://mishil-production.up.railway.app' }}`). Fallback her derlemede tazelensin.
-- Efor: ~yarım gün. Bu sürüme opsiyonel.
+### 🟢 R2 — %100 uzak URL bağımlılığı — **AZALTILDI (v4.9.0), cihaz testi bekliyor**
+- **Çözüm (uygulandı):** `public/app.html` binary'e gömülüyor (`scripts/bundle-offline-html.js` →
+  `features/webview/offlineHtml.generated.ts`, commit'li). Uzak sürüm 3 otomatik denemede de
+  yüklenemezse gömülü çevrimdışı sürüm açılıyor; üstte "📴 Çevrimdışı sürüm" bandı, 20 sn'de bir
+  uzak sürüme yeniden bağlanma denemesi, bağlantı dönünce otomatik geçiş.
+- **Kalan doğrulama (Faz 2):**
+  - [ ] Uçak modunda başlat → gömülü sürüm açılıyor, banner görünüyor
+  - [ ] Şebeke geri gelince ~20 sn içinde uzak sürüme otomatik dönüyor
+  - [ ] Banner'a dokunma manuel yeniden bağlanma yapıyor
+  - [ ] Gömülü sürümde şebeke varken sesler/fontlar `baseUrl` ile yükleniyor (iOS + Android)
+- **Sürüm bakımı:** `app.html` değişince `npm run bundle:offline` çalıştırılıp generated dosya
+  commit'lenmeli (yerelde `postinstall` otomatik yapar).
 
 ### 🟠 R3 — `compileSdk/targetSdk 36` + Expo SDK 51
 Resmî desteklenen kombinasyon değil (Expo 51 → SDK 34/35). Build geçse bile bazı OS sürümlerinde runtime riski.
