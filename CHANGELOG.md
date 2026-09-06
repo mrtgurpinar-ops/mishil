@@ -2,6 +2,50 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.8.4] - 2026-09-06
+### 💳 Abonelik Akışı Güvenlik Düzeltmeleri — Sürüm 15
+
+Kod incelemesinde tespit edilen gelir sızıntısı ve mağaza politikası riskleri giderildi.
+
+#### 🛠️ Fixed
+- **"Satın Alımları Geri Yükle" herkese ücretsiz Pro veriyordu:** `restorePurchases()`
+  hiç abonelik almamış kullanıcıda da başarıyla çözüldüğü, kod yalnızca `result.success`'e
+  baktığı için Pro açılıyordu. Artık `hasActiveEntitlement(customerInfo)` ile
+  `entitlements.active` / `activeSubscriptions` / tek seferlik işlemler kontrol ediliyor;
+  aktif hak yoksa "geri yüklenecek abonelik bulunamadı" mesajı gösteriliyor.
+- **`purchasePackage` her hata yolunda `success: true` dönüyordu:** `rawPackage` yoksa
+  veya satın alma `userCancelled` dışında hata fırlatırsa fonksiyon sahte başarı
+  döndürüp ödeme alınmadan Pro'yu açıyordu. Artık `no_package` / hata durumlarında
+  `{ success: false }` dönüyor; sahte başarı yalnızca Expo `__DEV__` derlemesinde,
+  yalnızca test amaçlı korunuyor. Üretimde ASLA ücretsiz Pro verilmiyor.
+- **`PURCHASE_PACKAGE` / `RESTORE_PURCHASES` köprüleri:** WebView tarafında Pro,
+  yalnızca `result.success && result.isActive` iken açılıyor; iptal sessiz geçiliyor,
+  gerçek hata kullanıcıya bildiriliyor.
+- **"Ömür Boyu" paketi her zaman sahte-başarı yoluna giriyordu:** `FALLBACK_OFFERINGS`
+  içine `LIFETIME` girişi eklendi.
+- **Tutarsız sabit fiyatlar:** `FALLBACK_OFFERINGS` yıllık fiyatı kart UI ile
+  hizalandı (₺1.299,99 → ₺599,99); `selectPricingPlan` toast'undaki ömür boyu
+  fiyatı düzeltildi (₺1.499.99 → ₺2.499.99). (Kalıcı çözüm: fiyatları Play Billing'den
+  çekmek.)
+- **Her açılışta abonelik toast'ı:** `onLoad` içindeki gereksiz `SUBSCRIPTION_RESULT`
+  event dispatch'i kaldırıldı (durum zaten localStorage'da kalıcı).
+- **Realtime WS sonsuz yeniden bağlanma:** `function-bun` servisi kapalıysa her 10 sn'de
+  bir sınırsız denenen yeniden bağlanma, üstel geri çekilmeye (10s→5dk) ve 6 deneme
+  limitine bağlandı; açık/bağlanıyor durumda çift soket engellendi.
+
+#### 🔎 Doğrulanması Gereken (kod dışı)
+- **`EXPO_PUBLIC_REVENUECAT_ANDROID` / `_IOS` EAS secret'ları:** `eas.json` production
+  `env` bloğunda tanımlı değil; Expo proje ortam değişkeni olarak da yoksa üretim
+  derlemesi `goog_mock_key`'e düşer, RevenueCat yapılandırılmaz ve satın alma ekranı
+  hiç ödeme almaz. Build öncesi Expo panelinden doğrulanmalı.
+
+#### 🧰 Tooling
+- `core/mobile_compliance_checker.py` fiyat linti artık tekil kaynak `public/app.html`
+  dosyasını da tarıyor (önceden yalnızca `mobile/app` ve `mobile/features`).
+
+#### 📦 Build
+- Android `versionCode: 15`, `version: "4.8.4"` (minSdk 26 / targetSdk 36 korunuyor)
+
 ## [4.8.3] - 2026-09-06
 ### 🎯 Android Hedef API 36 (Android 16) — Google Play 2026 Zorunluluğu — Sürüm 14
 

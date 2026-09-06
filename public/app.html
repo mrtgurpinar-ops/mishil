@@ -2661,7 +2661,7 @@
     cardEl.style.border = '2px solid var(--accent)';
     cardEl.style.background = 'rgba(35, 42, 70, 0.95)';
     localStorage.setItem('mishil_selected_plan', planType);
-    const planNames = { yearly: 'Yıllık VIP (₺599.99/yıl)', monthly: 'Aylık Esnek (₺149.99/ay)', lifetime: 'Ömür Boyu (₺1.499.99)' };
+    const planNames = { yearly: 'Yıllık VIP (₺599.99/yıl)', monthly: 'Aylık Esnek (₺149.99/ay)', lifetime: 'Ömür Boyu (₺2.499.99)' };
     showToast(`✅ ${planNames[planType]} seçildi`);
   }
 
@@ -3272,7 +3272,10 @@
   // ⚡ REALTIME WEBSOCKET SYNC ENGINE (FUNCTION-BUN)
   // =========================================================================
   let realtimeWs = null;
+  let realtimeWsAttempts = 0;
+  const REALTIME_WS_MAX_ATTEMPTS = 6;
   function initRealtimeWebSocket() {
+    if (realtimeWs && (realtimeWs.readyState === WebSocket.OPEN || realtimeWs.readyState === WebSocket.CONNECTING)) return;
     const familyCode = document.getElementById('family-sync-code') ? document.getElementById('family-sync-code').textContent : 'MSL782';
     const role = localStorage.getItem('mishil_user_role') || 'mother';
     const userName = role === 'mother' ? 'Anne' : (role === 'father' ? 'Baba' : 'Dadı');
@@ -3283,6 +3286,7 @@
       realtimeWs = new WebSocket(wsUrl);
 
       realtimeWs.onopen = () => {
+        realtimeWsAttempts = 0;
         console.log('🟢 Function-Bun Realtime WebSocket Connected');
       };
 
@@ -3304,7 +3308,14 @@
       };
 
       realtimeWs.onclose = () => {
-        setTimeout(initRealtimeWebSocket, 10000); // Reconnect after 10s
+        realtimeWsAttempts++;
+        if (realtimeWsAttempts > REALTIME_WS_MAX_ATTEMPTS) {
+          console.warn('Realtime WS: max deneme aşıldı, otomatik yeniden bağlanma durduruldu.');
+          return;
+        }
+        // Üstel geri çekilme: 10s, 20s, 40s ... en fazla 5 dk
+        const delay = Math.min(10000 * Math.pow(2, realtimeWsAttempts - 1), 300000);
+        setTimeout(initRealtimeWebSocket, delay);
       };
     } catch (err) {
       console.warn('Realtime WS connecting in background:', err);

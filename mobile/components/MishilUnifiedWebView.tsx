@@ -89,23 +89,12 @@ export default function MishilUnifiedWebView() {
     clearTimers();
     retryCountRef.current = 0;
     setStatus('ready');
-    // Native olduğumuzu web tarafına bildir
+    // Native olduğumuzu web tarafına bildir.
+    // Abonelik durumu app.html içinde zaten localStorage'dan okunuyor; her açılışta
+    // SUBSCRIPTION_RESULT event'i tetiklemek gereksiz toast'a yol açtığı için kaldırıldı.
     webviewRef.current?.injectJavaScript(`
       (function() {
-        // Native bridge hazır sinyali
         window.MishilNative && (window.MishilNative.isNative = true);
-
-        // Abonelik durumunu web'e bildir (mevcut localStorage varsa)
-        var isActive = localStorage.getItem('mishil_subscription_active') === 'true';
-        if (isActive) {
-          var plan = localStorage.getItem('mishil_subscription_plan') || 'premium';
-          window.dispatchEvent(new MessageEvent('message', {
-            data: JSON.stringify({
-              type: 'SUBSCRIPTION_RESULT',
-              data: { isActive: true, plan: plan }
-            })
-          }));
-        }
         true;
       })();
     `);
@@ -176,6 +165,33 @@ export default function MishilUnifiedWebView() {
     } catch {}
   };
 
+  // Web tarafına güvenli toast gönder
+  const webToast = useCallback((text: string) => {
+    const safe = String(text).replace(/[`\\$]/g, '');
+    webviewRef.current?.injectJavaScript(
+      `(function(){ typeof showToast === 'function' && showToast('${safe}'); true; })();`
+    );
+  }, []);
+
+  // Pro'yu YALNIZCA doğrulanmış satın alma/geri yükleme sonrası aç
+  const grantProInWebView = useCallback((plan: string | null, text: string) => {
+    const safe = String(text).replace(/[`\\$]/g, '');
+    const planLine = plan
+      ? `localStorage.setItem('mishil_subscription_plan', '${String(plan).replace(/[^a-z]/gi, '')}');`
+      : '';
+    webviewRef.current?.injectJavaScript(`
+      (function() {
+        localStorage.setItem('misil_onboarding_completed', 'true');
+        localStorage.setItem('mishil_subscription_active', 'true');
+        ${planLine}
+        var screen = document.getElementById('screen-onboarding');
+        if (screen) screen.classList.remove('active');
+        typeof showToast === 'function' && showToast('${safe}');
+        true;
+      })();
+    `);
+  }, []);
+
   // JS Bridge mesaj handler
   const onMessage = useCallback(async (event: WebViewMessageEvent) => {
     try {
@@ -198,33 +214,27 @@ export default function MishilUnifiedWebView() {
 
           const result = await purchasePackage(pkg?.identifier || plan, pkg?.rawPackage);
 
-          if (result.success) {
-            // Başarılı IAP → web'e bildir
-            webviewRef.current?.injectJavaScript(`
-              (function() {
-                localStorage.setItem('misil_onboarding_completed', 'true');
-                localStorage.setItem('mishil_subscription_active', 'true');
-                localStorage.setItem('mishil_subscription_plan', '${plan}');
-                var screen = document.getElementById('screen-onboarding');
-                if (screen) screen.classList.remove('active');
-                typeof showToast === 'function' && showToast('🎉 Mışıl Baby Pro aktif edildi!');
-                true;
-              })();
-            `);
+          if (result.success && result.isActive) {
+            // Yalnızca GERÇEKTEN aktif hak varsa Pro'yu aç
+            grantProInWebView(plan, '🎉 Mışıl Baby Pro aktif edildi!');
+          } else if (result.cancelled) {
+            // Kullanıcı iptal etti — sessiz geç
+          } else {
+            webToast(
+              result.error === 'no_package'
+                ? '⚠️ Abonelik paketleri şu an yüklenemedi. Lütfen tekrar deneyin.'
+                : '⚠️ Satın alma tamamlanamadı. Bir ücret alınmadıysa tekrar deneyebilirsiniz.'
+            );
           }
           break;
         }
 
         case 'RESTORE_PURCHASES': {
           const result = await restorePurchases();
-          if (result.success) {
-            webviewRef.current?.injectJavaScript(`
-              (function() {
-                localStorage.setItem('mishil_subscription_active', 'true');
-                typeof showToast === 'function' && showToast('✅ Satın alımlar geri yüklendi (Mışıl Baby Pro Aktif)');
-                true;
-              })();
-            `);
+          if (result.success && result.isActive) {
+            grantProInWebView(null, '✅ Satın alımlar geri yüklendi (Mışıl Baby Pro Aktif)');
+          } else {
+            webToast('ℹ️ Bu hesapta geri yüklenecek aktif bir abonelik bulunamadı.');
           }
           break;
         }
@@ -235,7 +245,7 @@ export default function MishilUnifiedWebView() {
     } catch (e) {
       // Sessizce geç
     }
-  }, []);
+  }, [webToast, grantProInWebView]);
 
   const autoRetrying = status === 'error' && retryCountRef.current > 0 && retryCountRef.current <= MAX_AUTO_RETRY;
 

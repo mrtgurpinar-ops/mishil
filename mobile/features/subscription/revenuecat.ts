@@ -10,13 +10,23 @@ export interface PackageOffer {
   rawPackage?: any;
 }
 
+export interface PurchaseResult {
+  success: boolean;      // akış hatasız tamamlandı mı
+  isActive: boolean;     // kullanıcının GERÇEKTEN aktif bir hak sahibi olup olmadığı
+  cancelled?: boolean;
+  error?: string;
+}
+
+// Yalnızca GÖRÜNTÜLEME amaçlı yedek liste (offerings yüklenemezse).
+// Gerçek ücretlendirme her zaman Google Play / App Store fiyatı üzerinden yapılır.
+// NOT: Bu stringler mağaza konsolundaki fiyatlarla senkron tutulmalıdır.
 export const FALLBACK_OFFERINGS: PackageOffer[] = [
   {
     identifier: 'misil',
     packageType: 'ANNUAL',
-    priceString: '₺1.299,99 / Yıl',
+    priceString: '₺599,99 / Yıl',
     title: '👑 Mışıl Baby Yıllık VIP (Önerilen)',
-    description: '3 Gün Ücretsiz Deneme • Ayda sadece ₺108.33 (%28 İndirim). En popüler paket.',
+    description: '3 Gün Ücretsiz Deneme • Aylık ₺49,99 karşılığı • En popüler paket.',
   },
   {
     identifier: 'misilaylik',
@@ -25,39 +35,66 @@ export const FALLBACK_OFFERINGS: PackageOffer[] = [
     title: '🗓️ Mışıl Baby Aylık Pro',
     description: 'Kısa vadeli esneklik arayan ebeveynler için sınırsız erişim.',
   },
+  {
+    identifier: 'misilomurboyu',
+    packageType: 'LIFETIME',
+    priceString: '₺2.499,99',
+    title: '♾️ Mışıl Baby Ömür Boyu (Aile)',
+    description: 'Tek seferlik • Tüm aile ve gelecek bebekler dahil sonsuz erişim.',
+  },
 ];
 
 let isConfigured = false;
+let isRealKey = false;
+
+const getApiKey = () =>
+  Platform.OS === 'ios'
+    ? Constants.expoConfig?.extra?.revenueCatApiKeyIos
+    : Constants.expoConfig?.extra?.revenueCatApiKeyAndroid;
 
 export const initRevenueCat = async (userId?: string) => {
-  if (isConfigured) return true;
-  const apiKey =
-    Platform.OS === 'ios'
-      ? Constants.expoConfig?.extra?.revenueCatApiKeyIos
-      : Constants.expoConfig?.extra?.revenueCatApiKeyAndroid;
+  if (isConfigured) return isRealKey;
+  const apiKey = getApiKey();
 
-  if (!apiKey || apiKey.includes('mock_key')) {
-    console.log('[RevenueCat] Sandbox/Mock mode active');
+  if (!apiKey || String(apiKey).includes('mock_key')) {
+    console.warn('[RevenueCat] Geçerli public SDK anahtarı yok — satın alma devre dışı (mock mod).');
     isConfigured = true;
-    return true;
+    isRealKey = false;
+    return false;
   }
 
   try {
     const Purchases = require('react-native-purchases').default;
     await Purchases.configure({ apiKey, appUserID: userId });
     isConfigured = true;
-    console.log('[RevenueCat] Configured successfully with Google Play/App Store');
+    isRealKey = true;
+    console.log('[RevenueCat] Google Play / App Store ile yapılandırıldı.');
     return true;
   } catch (e) {
-    console.warn('[RevenueCat] Initialization warning (running in sandbox):', e);
+    console.warn('[RevenueCat] Yapılandırma hatası:', e);
     isConfigured = true;
-    return true;
+    isRealKey = false;
+    return false;
   }
+};
+
+/** RevenueCat customerInfo üzerinden gerçekten aktif hak var mı? */
+export const hasActiveEntitlement = (customerInfo: any): boolean => {
+  if (!customerInfo) return false;
+  const activeEntitlements = customerInfo.entitlements?.active
+    ? Object.keys(customerInfo.entitlements.active)
+    : [];
+  const activeSubs = Array.isArray(customerInfo.activeSubscriptions)
+    ? customerInfo.activeSubscriptions
+    : [];
+  const nonSubs = customerInfo.nonSubscriptionTransactions?.length || 0; // ömür boyu / tek seferlik
+  return activeEntitlements.length > 0 || activeSubs.length > 0 || nonSubs > 0;
 };
 
 export const getOfferings = async (): Promise<PackageOffer[]> => {
   try {
-    await initRevenueCat();
+    const ready = await initRevenueCat();
+    if (!ready) return FALLBACK_OFFERINGS;
     const Purchases = require('react-native-purchases').default;
     const offerings = await Purchases.getOfferings();
     if (offerings.current && offerings.current.availablePackages.length > 0) {
@@ -71,35 +108,45 @@ export const getOfferings = async (): Promise<PackageOffer[]> => {
       }));
     }
   } catch (err) {
-    console.log('[RevenueCat] Dynamic fetch fallback to localized presets:', err);
+    console.log('[RevenueCat] Offerings alınamadı, yedek görüntüleme listesi:', err);
   }
   return FALLBACK_OFFERINGS;
 };
 
-export const purchasePackage = async (packageId: string, rawPackage?: any) => {
+export const purchasePackage = async (_packageId: string, rawPackage?: any): Promise<PurchaseResult> => {
+  // Gerçek bir satın alınabilir paket yoksa: ASLA sahte başarı döndürme.
+  if (!rawPackage) {
+    // Sadece geliştirme derlemesinde (Expo __DEV__) test kolaylığı için geç.
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
+      console.warn('[RevenueCat] __DEV__ modu: rawPackage yok, test amaçlı başarı taklit ediliyor.');
+      return { success: true, isActive: true };
+    }
+    return { success: false, isActive: false, error: 'no_package' };
+  }
+
   try {
     const Purchases = require('react-native-purchases').default;
-    if (rawPackage) {
-      const { customerInfo } = await Purchases.purchasePackage(rawPackage);
-      return { success: true, customerInfo };
-    }
+    const { customerInfo } = await Purchases.purchasePackage(rawPackage);
+    return { success: true, isActive: hasActiveEntitlement(customerInfo) };
   } catch (err: any) {
-    if (err.userCancelled) {
-      return { success: false, cancelled: true };
+    if (err?.userCancelled) {
+      return { success: false, isActive: false, cancelled: true };
     }
-    console.log('[RevenueCat] Purchase execution (sandbox fallback):', err);
+    console.log('[RevenueCat] Satın alma hatası:', err);
+    return { success: false, isActive: false, error: String(err?.message || err) };
   }
-  return { success: true, customerInfo: { activeSubscriptions: [packageId] } };
 };
 
-export const restorePurchases = async () => {
+export const restorePurchases = async (): Promise<PurchaseResult> => {
   try {
+    const ready = await initRevenueCat();
+    if (!ready) return { success: false, isActive: false, error: 'not_configured' };
     const Purchases = require('react-native-purchases').default;
     const customerInfo = await Purchases.restorePurchases();
-    return { success: true, customerInfo };
+    // restore "başarılı" olsa bile hak yoksa Pro AÇILMAMALI
+    return { success: true, isActive: hasActiveEntitlement(customerInfo) };
   } catch (err) {
-    console.log('[RevenueCat] Restore fallback:', err);
-    return { success: false, error: err };
+    console.log('[RevenueCat] Geri yükleme hatası:', err);
+    return { success: false, isActive: false, error: String(err) };
   }
 };
-
