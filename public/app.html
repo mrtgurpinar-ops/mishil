@@ -2250,9 +2250,27 @@
       var msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
       if (msg && msg.type === 'SUBSCRIPTION_RESULT') {
         window.MishilNative.onSubscriptionResult(msg.data);
+      } else if (msg && msg.type === 'AUDIO_STATE') {
+        // Native ses motoru durum bildirimi → mini player UI senkronu
+        currentTrackId = msg.playing ? msg.id : null;
+        updatePlayerUI();
+        if (!msg.playing && msg.reason === 'timer') showToast('💤 Kapanma zamanlayıcısı sesi durdurdu');
+        if (!msg.playing && msg.reason === 'error') showToast('⚠️ Ses yüklenemedi, bağlantınızı kontrol edin');
       }
     } catch(e) {}
   });
+
+  // Native arka plan ses köprüsü aktif mi? (kilitli ekranda ninni için)
+  function isNativeAudio() {
+    return !!(window.MishilNative && window.MishilNative.isNative &&
+              window.MishilNative.audioBridge && window.ReactNativeWebView);
+  }
+  function absSoundUrl(file) {
+    try { return new URL(file, window.location.origin).href; } catch (e) { return file; }
+  }
+  function nativeAudioSend(obj) {
+    if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(obj));
+  }
 
   // Haptik pulse fonksiyonu (Bridge + Web Vibration API fallback)
   function hapticPulse() {
@@ -2360,6 +2378,22 @@
 
   function togglePlayTrack(trackId) {
     hapticPulse();
+    const track = SOUND_TRACKS.find(t => t.id === trackId);
+    if (!track) return;
+
+    // Native mod: ses çalma arka planda/kilitli ekranda çalışsın diye native tarafta
+    if (isNativeAudio()) {
+      if (currentTrackId === trackId) {
+        nativeAudioSend({ type: 'AUDIO_STOP' });
+        currentTrackId = null;
+      } else {
+        nativeAudioSend({ type: 'AUDIO_PLAY', id: trackId, url: absSoundUrl(track.file) });
+        currentTrackId = trackId;
+      }
+      updatePlayerUI(); // AUDIO_STATE geri döndüğünde de doğrulanır
+      return;
+    }
+
     const aud = audioMap[trackId];
     if (!aud) return;
 
@@ -2412,6 +2446,14 @@
 
     const disp = document.getElementById('timer-display');
     if (timerTimeout) clearTimeout(timerTimeout);
+
+    // Native mod: zamanlayıcı da native tarafta çalışsın (arka planda güvenilir)
+    if (isNativeAudio()) {
+      nativeAudioSend({ type: 'AUDIO_TIMER', minutes: minutes });
+      disp.textContent = minutes === 0 ? 'Sürekli Çal' : `${minutes} dk sonra kapanacak`;
+      if (minutes !== 0) showToast(`⏱️ Ses ${minutes} dakika sonra otomatik kapanacak`);
+      return;
+    }
 
     if (minutes === 0) {
       disp.textContent = 'Sürekli Çal';

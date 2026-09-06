@@ -1,4 +1,4 @@
-# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.8.4 / build 15)
+# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.9.0 / build 16)
 
 > Amaç: Google Play **ve** Apple App Store'a, "bazı telefonlarda açılmıyor" ve
 > "satın alma çalışmıyor" sınıfı sürprizler olmadan çıkmak.
@@ -17,23 +17,25 @@
 | iOS `buildNumber`, `ITSAppUsesNonExemptEncryption` | ✅ kodda |
 | Production build guard (mock RevenueCat anahtarıyla derleme engellenir) | ✅ kodda |
 | jest yeşil (`*.test.ts`), Maestro spec ayrıldı | ✅ |
-| RevenueCat EAS secret'ları | ⛔ **doğrulanmadı** |
+| Native arka plan ses motoru (kilitli ekranda ninni) | ✅ kodda (v4.9.0) — cihaz testi bekliyor, bkz. §5 R1 |
+| RevenueCat EAS anahtarları | ⚠️ Android eklendi (`eas.json`), **iOS yok** |
 | Mağaza abonelik ürünleri + RevenueCat offering/entitlement | ⛔ **doğrulanmadı** |
 | Gerçek cihaz testi (Android + iOS) | ⛔ yapılmadı |
-| iOS arka plan ses (kilitli ekranda ninni) | ⚠️ **mimari risk** — bkz. §5 |
 
 ---
 
 ## 1. Faz 0 — Ön Koşullar (derlemeden ÖNCE, hepsi bloklayıcı)
 
 ### 1.1 RevenueCat
-- [ ] Expo panelinde EAS secret olarak tanımla:
-  - `EXPO_PUBLIC_REVENUECAT_ANDROID` = `goog_...` (RevenueCat > Project > API keys > Google)
-  - `EXPO_PUBLIC_REVENUECAT_IOS` = `appl_...` (RevenueCat > Project > API keys > Apple)
-  - Komut: `eas secret:create --scope project --name EXPO_PUBLIC_REVENUECAT_ANDROID --value goog_xxx`
-  - Not: `app.config.ts` artık `APP_ENV=production` + mock anahtar görürse **derlemeyi durdurur**. Bu kasıtlı.
+- [x] `EXPO_PUBLIC_REVENUECAT_ANDROID` = `goog_...` — `eas.json` production env'e eklendi.
+- [ ] `EXPO_PUBLIC_REVENUECAT_IOS` = `appl_...` — **eksik**. iOS production build `app.config.ts`
+  guard'ına takılır. EAS secret veya `eas.json` env olarak ekle:
+  `eas secret:create --scope project --name EXPO_PUBLIC_REVENUECAT_IOS --value appl_xxx`
 - [ ] RevenueCat panelinde **Entitlement** tanımlı (örn. `pro`) ve **Offering** (`default`) 3 pakete bağlı: `misil` (yıllık), `misilaylik` (aylık), `misilomurboyu` (ömür boyu).
 - [ ] `hasActiveEntitlement()` genel kontrol yapıyor (`entitlements.active` / `activeSubscriptions` / tek seferlik). Entitlement adı özelse sorun yok; yine de test satın almasıyla doğrula.
+
+> Not: RevenueCat **public SDK anahtarı** (`goog_` / `appl_`) tasarımı gereği istemciye gömülür,
+> gizli değildir; `eas.json`'da tutulması güvenlik açığı değil. Yine de EAS secret daha temiz.
 
 ### 1.2 Google Play Console
 - [ ] Uygulama içi ürünler oluşturuldu ve **Aktif**:
@@ -73,10 +75,10 @@ git -C .. push origin main
 git -C ../../.. push origin main
 
 # Android
-eas build --platform android --profile production   # build 15 (.aab)
+eas build --platform android --profile production   # build 16 (.aab)
 
-# iOS
-eas build --platform ios --profile production        # build 15 (.ipa)
+# iOS  (EXPO_PUBLIC_REVENUECAT_IOS eklendikten sonra)
+eas build --platform ios --profile production        # build 16 (.ipa)
 ```
 
 - [ ] Her iki derleme de **hatasız** bitti (RevenueCat guard geçildi = secret'lar tanımlı demek).
@@ -95,12 +97,13 @@ eas build --platform ios --profile production        # build 15 (.ipa)
 | Android 14–16 | targetSdk 36 davranışı, izinler |
 | Zayıf şebeke / uçak modu aç-kapa | Retry ekranı + "Tekrar Dene" butonu + otomatik 3 deneme |
 | Uçak modunda başlat | Hata ekranı görünüyor (boş ekran değil), sonra bağlanınca düzeliyor |
+| Xiaomi/Samsung agresif pil yöneticisi | Ses 30–60 dk arka planda kesilmiyor |
 
 ### 3.2 iOS
 | Profil | Neyi doğrular |
 | :-- | :-- |
 | En eski desteklenen iPhone (iOS 15+) | Açılış, WKWebView render |
-| **Ekran kilitliyken ninni** | ⚠️ Arka plan sesi devam ediyor mu? (bkz. §5 — muhtemel FAIL) |
+| **Ekran kilitliyken ninni** | Native ses motoru (v4.9.0) — arka plan sesi devam ediyor mu? (bkz. §5 R1 kontrol listesi) |
 | Düşük bellek | `onContentProcessDidTerminate` → otomatik reload |
 | Zayıf şebeke | Retry akışı |
 
@@ -114,7 +117,7 @@ eas build --platform ios --profile production        # build 15 (.ipa)
 - [ ] Mikrofon izni: ağlama analizi kaydı çalışıyor.
 - [ ] Haptik geri bildirim çalışıyor.
 - [ ] Hesap silme akışı çalışıyor.
-- [ ] Ses çalarken uygulamayı arka plana al / geri getir.
+- [ ] Ses çalarken uygulamayı arka plana al / geri getir → ses kesilmiyor, mini player senkron.
 
 ---
 
@@ -139,14 +142,20 @@ eas build --platform ios --profile production        # build 15 (.ipa)
 
 ## 5. Bilinen Riskler ve Azaltımlar
 
-### 🔴 R1 — iOS/Android WebView'de arka plan ses
-Uygulamanın çekirdek işlevi: telefon kilitliyken/ceptteyken ninni çalmak.
-**WKWebView, `UIBackgroundModes: ['audio']` tanımlı olsa bile arka planda web audio'yu güvenilir çalmaz** (bu entitlement native `AVAudioSession` içindir, WebView içindeki `<audio>` değil). Android'de de ekran kapanınca WebView sesi durabilir.
-- Etki: App Store "beklendiği gibi çalışmıyor" reddi + temel UX kaybı.
-- Azaltım seçenekleri (yeni geliştirme):
-  1. Ninni/gürültü çalmayı **native köprüye** taşı: `expo-av` / `expo-audio` ile native `AVAudioSession` + Android `MediaBrowserService`, WebView sadece UI. Bridge mesajı `PLAY_SOUND {id}` / `STOP_SOUND`.
-  2. Kısa vadede: en azından "ekran kapanmasın" (Android `WAKE_LOCK` var; iOS `UIApplication.isIdleTimerDisabled`) + kullanıcıya "en iyi deneyim için ekranı açık bırakın" notu.
-- **Karar gerek:** R1 çözülmeden production'a çıkılır mı, yoksa native ses köprüsü bu sürüme mi girsin?
+### 🟢 R1 — iOS/Android WebView'de arka plan ses — **ÇÖZÜLDÜ (v4.9.0), cihaz testi bekliyor**
+WKWebView `<audio>` ve Web Audio API ekran kilitlenince sesi durduruyordu (sentez sesler kesin).
+- **Çözüm (uygulandı):** ses çalma native tarafa taşındı — `features/audio/nativeAudioPlayer.ts`,
+  `expo-av` + `Audio.setAudioModeAsync({ playsInSilentModeIOS, staysActiveInBackground, … })`.
+  WebView yalnızca UI; `AUDIO_PLAY/STOP/TIMER/VOLUME` köprü mesajları. `MishilNative.audioBridge`
+  kill-switch var.
+- **Kalan doğrulama (Faz 2, gerçek cihaz):**
+  - [ ] iOS: kilitli ekranda her ses tipi (MP3 + eskiden sentez olan) çalmaya devam ediyor
+  - [ ] iOS: gelen arama / başka uygulama sesi kesince davranış makul (DoNotMix)
+  - [ ] Android 8-10 + agresif pil yöneticili cihaz (Xiaomi/Samsung): 30-60 dk oturum kesilmiyor
+  - [ ] Sessiz moddayken (iOS sessize alma anahtarı) ninni yine çalıyor
+  - [ ] Timer native tarafta tetikleniyor, uygulama arka plandayken de sesi durduruyor
+- **Kalan sınır:** tüm gece oturumlarında OEM pil katli riski (tam çözüm: foreground service /
+  Expo SDK 52 `expo-audio`); kilit ekranı oynatma kontrolleri henüz yok.
 
 ### 🟠 R2 — %100 uzak URL bağımlılığı
 Railway/DNS/CDN sorununda uygulama açılmaz (artık retry ekranı var, boş ekran yok).
@@ -169,7 +178,7 @@ Resmî desteklenen kombinasyon değil (Expo 51 → SDK 34/35). Build geçse bile
 
 ## 6. Rollback
 
-- **Google Play:** staged rollout'ta çökme artışı → rollout'u durdur / önceki sürüme geri al (build 14 = 4.8.3).
+- **Google Play:** staged rollout'ta çökme artışı → rollout'u durdur / önceki sürüme geri al (build 15 = 4.8.4).
 - **Apple:** onaylı yeni sürümü "Developer removed from sale" değil, **Phased release'i durdur**; kritikse önceki sürümü tekrar yayınla (App Store bir önceki build'i saklar).
 - **Sunucu (app.html):** tekil kaynak olduğu için `git revert` + Railway redeploy anında tüm cihazlara yansır — mobil sürümden bağımsız hızlı kaçış yolu.
 
@@ -178,9 +187,9 @@ Resmî desteklenen kombinasyon değil (Expo 51 → SDK 34/35). Build geçse bile
 ## 7. "Kusursuz" Çıkış Kriterleri
 
 Production'a çıkış için hepsi ✅ olmalı:
-- [ ] Faz 0 tüm maddeler
-- [ ] Android: §3.1'deki 5 profilde açılış + retry testi geçti
-- [ ] iOS: TestFlight'ta açılış + **R1 kararı verildi** (çözüldü veya bilinçli kabul edildi)
+- [ ] Faz 0 tüm maddeler (iOS RevenueCat anahtarı dahil)
+- [ ] Android: §3.1'deki profillerde açılış + retry + arka plan ses testi geçti
+- [ ] iOS: TestFlight'ta açılış + **R1 cihaz testi geçti** (§5 R1 kontrol listesi — kilitli ekranda ninni)
 - [ ] Her iki platformda 3 paket için sandbox satın alma + iptal + restore testi geçti
 - [ ] Closed test / TestFlight'ta 48–72 saat, crash rate < %1
 - [ ] Railway uykusuz planda, tüm uçlar 200
@@ -188,4 +197,4 @@ Production'a çıkış için hepsi ✅ olmalı:
 
 ---
 
-_Son güncelleme: 2026-09-06 · Sürüm hedefi: 4.8.4 (build 15) · Kod durumu: hazır, doğrulama bekliyor_
+_Son güncelleme: 2026-09-06 · Sürüm hedefi: 4.9.0 (build 16) · Kod durumu: hazır, doğrulama bekliyor_

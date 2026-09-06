@@ -2,6 +2,39 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.9.0] - 2026-09-06
+### 🔊 Native Arka Plan Ses Motoru — Kilitli Ekranda Ninni — Sürüm 16
+
+WKWebView / Android WebView içindeki `<audio>` ve Web Audio API ekran kilitlenince
+sesi durduruyordu (sentezlenen gürültüler arka planda **kesinlikle** çalmıyordu).
+Uygulamanın çekirdek işlevi — bebek uyurken telefon cepteyken/kilitliyken ninninin
+çalmaya devam etmesi — bu yüzden çalışmıyor ve App Store reddi riski taşıyordu.
+
+#### ✨ Added
+- **`features/audio/nativeAudioPlayer.ts` [YENİ]:** `expo-av` tabanlı native ses motoru.
+  `Audio.setAudioModeAsync({ playsInSilentModeIOS: true, staysActiveInBackground: true, … })`
+  ile sessiz modda ve arka planda kesintisiz döngü. Tek parça çalar, Railway'den stream eder.
+- **Ses köprüsü mesajları:** WebView → native `AUDIO_PLAY {id,url}`, `AUDIO_STOP`,
+  `AUDIO_TIMER {minutes}`, `AUDIO_VOLUME {value}`; native → WebView `AUDIO_STATE {playing,id,reason}`
+  (mini player UI senkronu, timer/hata toast'ları).
+
+#### 🔄 Changed
+- **`app.html` ses motoru:** `togglePlayTrack` ve `setTimer`, `isNativeAudio()` doğruysa
+  HTMLAudio yerine köprüye yönleniyor; tarayıcı önizlemesinde eski HTMLAudio yolu aynen
+  duruyor. `MishilNative.audioBridge` bayrağı kill-switch (sorun olursa `false` → HTMLAudio).
+- **`MishilUnifiedWebView.tsx`:** yeni ses mesajları işleniyor; `onLoad`'da `audioBridge = true`
+  enjekte ediliyor; bileşen unmount'ında ses motoru kapatılıyor.
+
+#### ⚠️ Bilinen Sınır (takip)
+- Android'de uzun (tüm gece) oturumlarda agresif OEM pil yöneticileri süreci öldürebilir.
+  Tam çözüm: gerçek foreground service veya Expo SDK 52+ `expo-audio`. Bu sürümde
+  `staysActiveInBackground` + `WAKE_LOCK` ile kısa/orta oturumlar hedefleniyor.
+- Kilit ekranı oynatma kontrolleri (`MPNowPlayingInfoCenter` / media notification) bu
+  sürümde yok — sonraki adım.
+
+#### 📦 Build
+- Android `versionCode: 16` · iOS `buildNumber: 16` · `version: "4.9.0"`
+
 ## [4.8.4] - 2026-09-06
 ### 💳 Abonelik Akışı Güvenlik Düzeltmeleri — Sürüm 15
 

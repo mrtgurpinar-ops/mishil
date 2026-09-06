@@ -12,6 +12,7 @@ import {
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import * as Haptics from 'expo-haptics';
 import { initRevenueCat, purchasePackage, restorePurchases, getOfferings } from '../features/subscription/revenuecat';
+import * as nativeAudio from '../features/audio/nativeAudioPlayer';
 
 // Railway canlı URL
 const MISHIL_WEB_URL = 'https://mishil-production.up.railway.app/app';
@@ -47,10 +48,27 @@ export default function MishilUnifiedWebView() {
     if (watchdogTimer.current) { clearTimeout(watchdogTimer.current); watchdogTimer.current = null; }
   };
 
-  // RevenueCat başlatma
+  // RevenueCat başlatma + native ses motoru temizliği
   useEffect(() => {
     initRevenueCat().catch(() => {});
-    return clearTimers;
+    return () => {
+      clearTimers();
+      void nativeAudio.shutdown();
+    };
+  }, []);
+
+  // Native ses durumunu web'e bildir (mini player UI senkronu)
+  const sendAudioState = useCallback((s: nativeAudio.AudioState) => {
+    webviewRef.current?.injectJavaScript(`
+      (function(){
+        window.dispatchEvent(new MessageEvent('message', {
+          data: JSON.stringify({ type: 'AUDIO_STATE', playing: ${s.playing ? 'true' : 'false'},
+            id: ${s.id ? `'${String(s.id).replace(/[^a-z0-9_]/gi, '')}'` : 'null'},
+            reason: '${s.reason || 'user'}' })
+        }));
+        true;
+      })();
+    `);
   }, []);
 
   // Android geri tuşu — WebView geçmişinde geri git
@@ -94,7 +112,12 @@ export default function MishilUnifiedWebView() {
     // SUBSCRIPTION_RESULT event'i tetiklemek gereksiz toast'a yol açtığı için kaldırıldı.
     webviewRef.current?.injectJavaScript(`
       (function() {
-        window.MishilNative && (window.MishilNative.isNative = true);
+        if (window.MishilNative) {
+          window.MishilNative.isNative = true;
+          // Ses çalma native tarafa taşındı (arka plan / kilitli ekran).
+          // Sorun çıkarsa bu bayrağı false yapmak app.html'i HTMLAudio'ya döndürür.
+          window.MishilNative.audioBridge = true;
+        }
         true;
       })();
     `);
@@ -202,6 +225,25 @@ export default function MishilUnifiedWebView() {
           await triggerHaptic(msg.level || 'light');
           break;
 
+        case 'AUDIO_PLAY':
+          // { id, url } — url app.html tarafında mutlak hâle getirilir
+          if (msg.id && msg.url) {
+            await nativeAudio.playSound(String(msg.id), String(msg.url), sendAudioState);
+          }
+          break;
+
+        case 'AUDIO_STOP':
+          await nativeAudio.stopSound(sendAudioState, 'user');
+          break;
+
+        case 'AUDIO_TIMER':
+          nativeAudio.startTimer(Number(msg.minutes) || 0, sendAudioState);
+          break;
+
+        case 'AUDIO_VOLUME':
+          await nativeAudio.setVolume(Number(msg.value));
+          break;
+
         case 'PURCHASE_PACKAGE': {
           // Google Play IAP başlat
           const plan = msg.plan || 'yearly';
@@ -245,7 +287,7 @@ export default function MishilUnifiedWebView() {
     } catch (e) {
       // Sessizce geç
     }
-  }, [webToast, grantProInWebView]);
+  }, [webToast, grantProInWebView, sendAudioState]);
 
   const autoRetrying = status === 'error' && retryCountRef.current > 0 && retryCountRef.current <= MAX_AUTO_RETRY;
 
