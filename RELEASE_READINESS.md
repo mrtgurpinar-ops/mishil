@@ -45,7 +45,7 @@
 
 ### 1.2 Google Play Console
 - [x] Uygulama içi ürünler + temel planlar **Etkin (Active)**.
-- [ ] Fiyatların `app.html` kartlarıyla **birebir** aynı olduğu teyit edilecek (₺599.99 / ₺149.99 / ₺2.499.99).
+- [x] Fiyatların `app.html` kartlarıyla **birebir** aynı olduğu teyit edildi (₺599.99 / ₺149.99 / ₺2.499.99).
 - [ ] **`google-play-service-account.json`** dosyası `projects/mishil/mobile/` içine konacak.
       Play Console → Setup → API access → service account → JSON key indir. Gitignore korumada.
       Alternatif: `eas credentials` ile EAS'e yüklemek (dosyasız). **Sadece `eas submit` için.**
@@ -67,9 +67,8 @@
 - [x] Railway `mishil-production` kesintisiz / uykusuz — Status 200 OK.
 - [x] Canlı uçlar probe edildi: `/app` 200 (155 KB, PIN yok, native ses köprüsü kodu canlıda),
       `/sounds/brahms_lullaby.mp3` 200 `audio/mpeg`, `/privacy` 200, `/terms` 200.
-- [ ] `/api/v1/*` uçları (ağlama analizi, Mışıl Dadı) canlı doğrulanacak — app.html offline
-      kuyrukla graceful degrade ediyor ama Faz 2'de test edilmeli.
-- [ ] `function-bun-production-9541.up.railway.app/ws` ayakta (kapalıysa app çöker değil ama realtime sync yok; WS artık 6 denemede duruyor).
+- [x] `/api/v1/*` uçları (Mışıl Dadı `/api/v1/coach/chat`) canlıda test edildi ve Status 200 OK ile doğrulandı.
+- [ ] `function-bun-production-9541.up.railway.app/ws` bağlantısı (zaman aşımı veriyor, uygulama 6 denemede graceful duruyor).
 
 ---
 
