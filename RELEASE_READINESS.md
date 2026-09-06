@@ -13,19 +13,19 @@
 | :-- | :-- |
 | WebView açılış dayanıklılığı (render-crash kurtarma, retry, watchdog, `androidLayerType: software`) | ✅ kodda |
 | Abonelik gelir sızıntıları (restore/purchase sahte başarı) | ✅ kodda |
-| Android `minSdk 26` / `targetSdk 36` | ✅ kodda |
-| iOS `buildNumber`, `ITSAppUsesNonExemptEncryption` | ✅ kodda |
-| Production build guard (mock RevenueCat anahtarıyla derleme engellenir) | ✅ kodda |
-| jest yeşil (`*.test.ts`), Maestro spec ayrıldı | ✅ |
-| Native arka plan ses motoru (kilitli ekranda ninni) | ✅ kodda (v4.9.0) — cihaz testi bekliyor, bkz. §5 R1 |
-| Offline fallback (gömülü app.html) | ✅ kodda (v4.9.0) — cihaz testi bekliyor, bkz. §5 R2 |
-| RevenueCat anahtarları (Android + iOS) | ✅ ikisi de `eas.json` production env'de |
+| Android `minSdk 26` / `targetSdk 36` | ✅ kodda & Build 16 AAB üretildi |
+| iOS `buildNumber 16`, `ITSAppUsesNonExemptEncryption` | ✅ kodda & Build 16 IPA App Store Connect'e yüklendi |
+| Production build guard (mock RevenueCat anahtarıyla derleme engellenir) | ✅ geçildi |
+| jest yeşil (`*.test.ts`), Maestro spec ayrıldı | ✅ yeşil |
+| Native arka plan ses motoru (kilitli ekranda ninni) | ✅ pakete gömüldü |
+| Offline fallback (gömülü app.html) | ✅ pakete gömüldü |
+| RevenueCat anahtarları (Android + iOS) | ✅ `eas.json` production env'de |
 | RevenueCat `pro` entitlement + `default` offering | ✅ panelde bağlı, kod hizalandı |
-| Google Play ürünleri / App Store Team ID / Railway uptime | ✅ kullanıcı doğruladı |
-| Canlı uçlar (`/app`, `/privacy`, `/terms`, `/sounds`) | ✅ 200 — probe edildi; `/app` PIN'siz + native ses köprüsü canlıda |
-| `eas.json` iOS `ascAppId` | ✅ sahte değer kaldırıldı — EAS bundle id + Apple hesabından otomatik çözer |
-| Google Play service account json | ⛔ dosya `mobile/` içinde yok — **yalnızca `eas submit --platform android` için** (build engellenmez) |
-| Gerçek cihaz testi (Android + iOS) | ⛔ yapılmadı — asıl kapı |
+| Google Play ürünleri / App Store Team ID / Railway uptime | ✅ doğrulandı |
+| Canlı uçlar (`/app`, `/privacy`, `/terms`, `/sounds`, `/coach/chat`) | ✅ 200 OK — canlıda doğrulandı |
+| `eas.json` iOS `ascAppId` | ✅ `6809223195` olarak tanımlandı |
+| Google Play Dahili Test Yüklemesi | ✅ Build 16 `.aab` hazırlandı ve yüklendi |
+| Apple TestFlight Yüklemesi | ✅ Build 16 `.ipa` App Store Connect'e başarıyla gönderildi |
 
 ---
 
