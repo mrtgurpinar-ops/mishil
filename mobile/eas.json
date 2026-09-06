@@ -44,7 +44,10 @@
       },
       "ios": {
         "appleId": "mrtgurpinar@gmail.com",
-        "appleTeamId": "V6QVVU79GZ"
+        "appleTeamId": "V6QVVU79GZ",
+        "ascApiKeyPath": "./AuthKey_8YHMP6BH2H.p8",
+        "ascApiKeyId": "8YHMP6BH2H",
+        "ascApiKeyIssuerId": "7d2413c6-ea40-4bd9-9334-8313a514b0e6"
       }
     }
   }
