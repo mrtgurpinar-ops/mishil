@@ -22,9 +22,10 @@
 | RevenueCat anahtarları (Android + iOS) | ✅ ikisi de `eas.json` production env'de |
 | RevenueCat `pro` entitlement + `default` offering | ✅ panelde bağlı, kod hizalandı |
 | Google Play ürünleri / App Store Team ID / Railway uptime | ✅ kullanıcı doğruladı |
-| `eas.json` iOS `ascAppId` | ⛔ hâlâ placeholder (`eas submit` için gerekli) |
-| Google Play service account json | ⛔ dosya `mobile/` içinde yok (`eas submit` için) |
-| Gerçek cihaz testi (Android + iOS) | ⛔ yapılmadı |
+| Canlı uçlar (`/app`, `/privacy`, `/terms`, `/sounds`) | ✅ 200 — probe edildi; `/app` PIN'siz + native ses köprüsü canlıda |
+| `eas.json` iOS `ascAppId` | ✅ sahte değer kaldırıldı — EAS bundle id + Apple hesabından otomatik çözer |
+| Google Play service account json | ⛔ dosya `mobile/` içinde yok — **yalnızca `eas submit --platform android` için** (build engellenmez) |
+| Gerçek cihaz testi (Android + iOS) | ⛔ yapılmadı — asıl kapı |
 
 ---
 
@@ -45,16 +46,17 @@
 ### 1.2 Google Play Console
 - [x] Uygulama içi ürünler + temel planlar **Etkin (Active)**.
 - [ ] Fiyatların `app.html` kartlarıyla **birebir** aynı olduğu teyit edilecek (₺599.99 / ₺149.99 / ₺2.499.99).
-- [ ] `eas.json > submit.production.android.serviceAccountKeyPath` (`google-play-service-account.json`)
-      — dosya `mobile/` içine konacak (`eas submit` için; `eas build` için gerekmez). Gitignore'da.
+- [ ] **`google-play-service-account.json`** dosyası `projects/mishil/mobile/` içine konacak.
+      Play Console → Setup → API access → service account → JSON key indir. Gitignore korumada.
+      Alternatif: `eas credentials` ile EAS'e yüklemek (dosyasız). **Sadece `eas submit` için.**
 - [ ] Data safety formu dolduruldu (hesap, mikrofon, aile paylaşımı, analitik).
-- [ ] Gizlilik politikası + EULA linkleri canlı (compliance checker PASS veriyor).
+- [x] Gizlilik politikası + EULA linkleri canlı (`/privacy` + `/terms` → 200, probe edildi).
 
 ### 1.3 Apple App Store Connect
 - [x] `appleTeamId: "V6QVVU79GZ"` (gerçek) + App Identifier tanımlı.
-- [ ] `submit.production.ios.ascAppId` — hâlâ `"6470000000"` placeholder. App Store Connect >
-      uygulama > App Information > **Apple ID** (10 haneli sayı) ile değiştirilecek.
-      (`eas build`'i engellemez; `eas submit` için gerekli.)
+- [x] `ascAppId` sahte değeri `eas.json`'dan kaldırıldı — `eas submit` bundle id +
+      Apple hesabından otomatik çözer. (İstenirse App Store Connect > App Information >
+      Apple ID değeri elle de eklenebilir.)
 - [ ] Abonelik grubu + 3 ürün "Ready to Submit":
   - Yıllık (3 gün ücretsiz deneme introductory offer), Aylık, Ömür Boyu (Non-Consuming)
 - [ ] App Privacy (nutrition labels) dolduruldu: hesap bilgisi, kullanıcı içeriği, mikrofon, tanımlayıcılar.
@@ -63,7 +65,10 @@
 
 ### 1.4 Altyapı
 - [x] Railway `mishil-production` kesintisiz / uykusuz — Status 200 OK.
-- [ ] `mishil-production.up.railway.app/app`, `/privacy`, `/terms`, `/sounds/*`, `/api/v1/*` GET/HEAD 200 (compliance checker `/privacy` + `/terms` PASS veriyor).
+- [x] Canlı uçlar probe edildi: `/app` 200 (155 KB, PIN yok, native ses köprüsü kodu canlıda),
+      `/sounds/brahms_lullaby.mp3` 200 `audio/mpeg`, `/privacy` 200, `/terms` 200.
+- [ ] `/api/v1/*` uçları (ağlama analizi, Mışıl Dadı) canlı doğrulanacak — app.html offline
+      kuyrukla graceful degrade ediyor ama Faz 2'de test edilmeli.
 - [ ] `function-bun-production-9541.up.railway.app/ws` ayakta (kapalıysa app çöker değil ama realtime sync yok; WS artık 6 denemede duruyor).
 
 ---
