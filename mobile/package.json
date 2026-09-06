@@ -10,6 +10,9 @@
     "test": "jest",
     "postinstall": "node scripts/patch-expo-permissions.js"
   },
+  "jest": {
+    "testMatch": ["**/tests/**/*.test.ts"]
+  },
   "dependencies": {
     "@expo/metro-runtime": "~3.2.3",
     "@expo/vector-icons": "^14.0.0",

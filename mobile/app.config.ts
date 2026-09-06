@@ -1,11 +1,28 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
+// Uygulama sürümü tek yerden — hem iOS buildNumber hem Android versionCode ile hizalı
+const APP_VERSION = '4.8.4';
+const BUILD_NUMBER = 15;
+
+const IS_PRODUCTION = process.env.APP_ENV === 'production';
+const RC_KEY_IOS = process.env.EXPO_PUBLIC_REVENUECAT_IOS || 'appl_mock_key';
+const RC_KEY_ANDROID = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID || 'goog_mock_key';
+
+// Yayın derlemesi (eas.json production profili APP_ENV=production verir) mock RevenueCat
+// anahtarıyla ÜRETİLEMEZ — aksi halde mağazadaki uygulamada satın alma hiç çalışmaz.
+if (IS_PRODUCTION && (RC_KEY_IOS.includes('mock_key') || RC_KEY_ANDROID.includes('mock_key'))) {
+  throw new Error(
+    '[app.config] Production derlemesi için EXPO_PUBLIC_REVENUECAT_IOS ve ' +
+    'EXPO_PUBLIC_REVENUECAT_ANDROID EAS secret olarak tanımlanmalı (mock anahtar tespit edildi).'
+  );
+}
+
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: 'Mışıl Baby',
   slug: 'misil-baby',
   scheme: 'misilbaby',
-  version: '4.8.4',
+  version: APP_VERSION,
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
@@ -22,9 +39,13 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ios: {
     supportsTablet: false,
     bundleIdentifier: 'com.levitas.misilbaby',
+    buildNumber: String(BUILD_NUMBER),
     infoPlist: {
       NSMicrophoneUsageDescription: 'Mışıl Baby, bebeğinizin ağlama sesindeki akustik özellikleri analiz etmek için mikrofonunuza erişir. Sesler yalnızca yerel analiz amaçlı işlenir ve kaydedilmez.',
-      UIBackgroundModes: ['audio']
+      UIBackgroundModes: ['audio'],
+      // İhracat uyumluluğu: standart HTTPS dışında şifreleme kullanılmıyor →
+      // her TestFlight/App Store yüklemesinde çıkan soruyu otomatik geçer
+      ITSAppUsesNonExemptEncryption: false
     }
   },
   android: {
@@ -33,7 +54,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#141B2E'
     },
     package: 'com.levitas.misilbaby',
-    versionCode: 15,
+    versionCode: BUILD_NUMBER,
     permissions: [
       'RECORD_AUDIO',
       'WAKE_LOCK',
@@ -76,7 +97,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       projectId: "8e739202-2503-4aad-a970-46e22010fddc"
     },
     apiUrl: process.env.EXPO_PUBLIC_API_URL || 'https://mishil-production.up.railway.app/api/v1',
-    revenueCatApiKeyIos: process.env.EXPO_PUBLIC_REVENUECAT_IOS || 'appl_mock_key',
-    revenueCatApiKeyAndroid: process.env.EXPO_PUBLIC_REVENUECAT_ANDROID || 'goog_mock_key'
+    revenueCatApiKeyIos: RC_KEY_IOS,
+    revenueCatApiKeyAndroid: RC_KEY_ANDROID
   }
 });

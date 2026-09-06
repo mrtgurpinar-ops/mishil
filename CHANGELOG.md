@@ -33,18 +33,30 @@ Kod incelemesinde tespit edilen gelir sızıntısı ve mağaza politikası riskl
   bir sınırsız denenen yeniden bağlanma, üstel geri çekilmeye (10s→5dk) ve 6 deneme
   limitine bağlandı; açık/bağlanıyor durumda çift soket engellendi.
 
-#### 🔎 Doğrulanması Gereken (kod dışı)
-- **`EXPO_PUBLIC_REVENUECAT_ANDROID` / `_IOS` EAS secret'ları:** `eas.json` production
-  `env` bloğunda tanımlı değil; Expo proje ortam değişkeni olarak da yoksa üretim
-  derlemesi `goog_mock_key`'e düşer, RevenueCat yapılandırılmaz ve satın alma ekranı
-  hiç ödeme almaz. Build öncesi Expo panelinden doğrulanmalı.
+#### 🍏 iOS Yayın Hazırlığı
+- **`ios.buildNumber` eklendi** (`15`, Android `versionCode` ile hizalı; sürüm ve
+  build numarası `app.config.ts` içinde tek yerden — `APP_VERSION` / `BUILD_NUMBER`).
+- **`ITSAppUsesNonExemptEncryption: false`** eklendi — her TestFlight/App Store
+  yüklemesinde çıkan ihracat uyumluluğu sorusunu otomatik geçer.
+- `eas.json`: `cli.appVersionSource: "local"`, production `autoIncrement: false`,
+  `channel` alanları (preview/production) eklendi.
+
+#### 🛡️ Production Build Guard
+- `app.config.ts`: `APP_ENV=production` iken RevenueCat anahtarı mock ise derleme
+  **hata verip durur**. Sessiz "satın alma çalışmayan yayın" senaryosu artık
+  build zamanında yakalanıyor. (Çözüm: `EXPO_PUBLIC_REVENUECAT_*` EAS secret'larını tanımla.)
 
 #### 🧰 Tooling
 - `core/mobile_compliance_checker.py` fiyat linti artık tekil kaynak `public/app.html`
   dosyasını da tarıyor (önceden yalnızca `mobile/app` ve `mobile/features`).
+- jest yapılandırması: yalnızca `tests/**/*.test.ts` çalıştırılıyor; `e2e-flow.spec.ts`
+  (Maestro YAML fixture, jest testi değil) ayrıldı → `npm test` yeşil (4/4).
+- **`RELEASE_READINESS.md`** eklendi — Google Play + App Store için faz faz kusursuz
+  yayın planı, cihaz test matrisi, bilinen riskler (özellikle iOS arka plan sesi) ve
+  rollback planı.
 
 #### 📦 Build
-- Android `versionCode: 15`, `version: "4.8.4"` (minSdk 26 / targetSdk 36 korunuyor)
+- Android `versionCode: 15` · iOS `buildNumber: 15` · `version: "4.8.4"` (minSdk 26 / targetSdk 36 korunuyor)
 
 ## [4.8.3] - 2026-09-06
 ### 🎯 Android Hedef API 36 (Android 16) — Google Play 2026 Zorunluluğu — Sürüm 14
