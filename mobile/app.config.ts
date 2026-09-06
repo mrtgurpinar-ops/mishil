@@ -9,12 +9,17 @@ const RC_KEY_IOS = process.env.EXPO_PUBLIC_REVENUECAT_IOS || 'appl_mock_key';
 const RC_KEY_ANDROID = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID || 'goog_mock_key';
 
 // Yayın derlemesi (eas.json production profili APP_ENV=production verir) mock RevenueCat
-// anahtarıyla ÜRETİLEMEZ — aksi halde mağazadaki uygulamada satın alma hiç çalışmaz.
-if (IS_PRODUCTION && (RC_KEY_IOS.includes('mock_key') || RC_KEY_ANDROID.includes('mock_key'))) {
-  throw new Error(
-    '[app.config] Production derlemesi için EXPO_PUBLIC_REVENUECAT_IOS ve ' +
-    'EXPO_PUBLIC_REVENUECAT_ANDROID EAS secret olarak tanımlanmalı (mock anahtar tespit edildi).'
-  );
+// anahtarıyla ÜRETİLEMEZ — platforma göre aktif anahtar doğrulanır.
+const isAndroidBuild = process.env.EAS_BUILD_PLATFORM === 'android';
+const isIosBuild = process.env.EAS_BUILD_PLATFORM === 'ios';
+
+if (IS_PRODUCTION) {
+  if ((isAndroidBuild || !isIosBuild) && RC_KEY_ANDROID.includes('mock_key')) {
+    throw new Error('[app.config] Android production derlemesi için EXPO_PUBLIC_REVENUECAT_ANDROID tanımlanmalı.');
+  }
+  if (isIosBuild && RC_KEY_IOS.includes('mock_key')) {
+    throw new Error('[app.config] iOS production derlemesi için EXPO_PUBLIC_REVENUECAT_IOS tanımlanmalı.');
+  }
 }
 
 export default ({ config }: ConfigContext): ExpoConfig => ({

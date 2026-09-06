@@ -30,7 +30,8 @@
       },
       "env": {
         "EXPO_PUBLIC_API_URL": "https://mishil-production.up.railway.app/api/v1",
-        "APP_ENV": "production"
+        "APP_ENV": "production",
+        "EXPO_PUBLIC_REVENUECAT_ANDROID": "goog_LCNeMzKcaNSPdZModiKqmLtygYk"
       }
     }
   },
