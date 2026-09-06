@@ -5,7 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'Mışıl Baby',
   slug: 'misil-baby',
   scheme: 'misilbaby',
-  version: '4.8.2',
+  version: '4.8.3',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
@@ -33,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#141B2E'
     },
     package: 'com.levitas.misilbaby',
-    versionCode: 13,
+    versionCode: 14,
     permissions: [
       'RECORD_AUDIO',
       'WAKE_LOCK',
@@ -47,14 +47,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'expo-build-properties',
       {
         android: {
-          // Google Play güncel şartı API 35 (Android 15). Expo SDK 51 için 36'ya
-          // zorlamak eski OS sürümlerinde sınıf-yükleme çökmesi riski taşıyordu.
+          // Google Play 2026 zorunlu asgari hedefi: API 36 (Android 16)
           minSdkVersion: 26,
-          targetSdkVersion: 35,
-          compileSdkVersion: 35,
-          buildToolsVersion: '35.0.0',
+          targetSdkVersion: 36,
+          compileSdkVersion: 36,
           extraGradleProperties: {
-            'android.suppressUnsupportedCompileSdk': '35'
+            'android.suppressUnsupportedCompileSdk': '36'
           }
         }
       }
