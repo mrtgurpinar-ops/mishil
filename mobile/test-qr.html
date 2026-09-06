@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Mışıl Baby — Expo Canlı Test</title>
+  <style>
+    body {
+      background: #0B0E17;
+      color: #FFF;
+      font-family: system-ui, -apple-system, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+    .card {
+      background: #141B2E;
+      border: 1px solid #E8A855;
+      border-radius: 20px;
+      padding: 32px;
+      max-width: 440px;
+      box-shadow: 0 0 30px rgba(232, 168, 85, 0.2);
+    }
+    h1 { color: #E8A855; font-size: 24px; margin-bottom: 8px; }
+    p { color: #8E99B0; font-size: 14px; line-height: 1.5; margin-bottom: 20px; }
+    .qr-box {
+      background: #FFF;
+      padding: 16px;
+      border-radius: 12px;
+      display: inline-block;
+      margin-bottom: 20px;
+    }
+    .qr-box img { width: 220px; height: 220px; display: block; }
+    .url-badge {
+      background: rgba(232, 168, 85, 0.15);
+      border: 1px dashed #E8A855;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 14px;
+      color: #E8A855;
+      word-break: break-all;
+      margin-bottom: 16px;
+    }
+    .step {
+      text-align: left;
+      font-size: 13px;
+      color: #C9CEDC;
+      margin-bottom: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>📱 Mışıl Baby Canlı Test</h1>
+    <p>Mağaza beklemeden telefonunuzdan anında test edin. Kodlar canlı sunucuya (Gemini & 18 Ses) bağlandı.</p>
+    
+    <div class="qr-box">
+      <img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=exp%3A%2F%2F192.168.1.143%3A8081" alt="Expo QR Code" />
+    </div>
+
+    <div class="url-badge">exp://192.168.1.143:8081</div>
+
+    <div class="step">1. Telefonunuzda <strong>Expo Go</strong> uygulamasını açın.</div>
+    <div class="step">2. <strong>"Scan QR Code"</strong> ile yukarıdaki karekodu okutun.</div>
+    <div class="step">3. Uygulama telefonunuzda anında açılacak; Mışıl Dadı canlı cevap verecek ve 18 stüdyo sesi çalacaktır.</div>
+  </div>
+</body>
+</html>

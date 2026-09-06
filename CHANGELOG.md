@@ -2,7 +2,45 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
-## [4.7.1] - 2026-09-05
+## [4.8.1] - 2026-09-06
+### 🔓 Geliştirici Kilit Ekranının Kaldırılması & Google Play Yayına Hazırlık — Sürüm 12
+
+#### 🛠️ Fixed — Mağaza Blokajı Kaldırıldı
+- **`levitasPinOverlay` (Levitas Developer Mode) tamamen söküldü:** `public/app.html` en altındaki `display: flex` / `z-index: 999999` geliştirici PIN modalı, `checkDevPin()` fonksiyonu ve `pinError` / `devPinInput` elemanları silindi. Uygulama ilk açılışta sıfır gecikmeyle doğrudan ana sayfa / ninni oynatıcıya açılıyor.
+- **Bypass kalıntıları temizlendi:** `app.html` içindeki `BYPASS_PIN` mesaj dalı ve `ReactNativeWebView` `load` listener'ı (`levitas_dev_auth` sessionStorage yazımları dahil) kaldırıldı.
+- **`MishilUnifiedWebView.tsx` sadeleştirildi:** `onLoadEnd` içindeki `levitasPinOverlay` DOM manipülasyonu ve `levitas_dev_auth` enjeksiyonu çıkarıldı; yalnızca native bridge sinyali (`isNative`) ve `SUBSCRIPTION_RESULT` köprüsü bırakıldı.
+- **Google Play "Broken Functionality" reddi riski giderildi:** İnceleme ekibi artık şifre ekranıyla karşılaşmadan uygulamayı test edebilir.
+
+#### 📦 Build
+- Android `versionCode: 12`
+- `version: "4.8.1"`
+
+## [4.8.0] - 2026-09-06
+### 🏗️ Tekil Kod Tabanı (Single Source of Truth) Mimarisi — Sürüm 11
+
+#### 🔄 Changed — Kalıcı Mimari Dönüşümü
+- **Ayrı kod tabanı çalışması sona erdirildi:** Web (Railway `app.html`) ve mobil (React Native) arayüzlerinin birbirinden bağımsız geliştirilmesi problemi kalıcı olarak çözüldü.
+- **`projects/mishil/public/app.html` artık tek kaynak:** Tüm ekranlar (SweetSpot, Analiz & Günlük 📊, Mışıl Dadı 👵, Sakinleştirici Sesler 🎵, Ayarlar ⚙️) yalnızca burada yaşıyor ve hem Railway canlı ortamında hem de Google Play uygulamasında **aynı anda** güncelleniyor.
+
+#### ✨ Added — Yeni Bileşenler
+- **`components/MishilUnifiedWebView.tsx` [YENİ]:** Tekil WebView native köprü bileşeni oluşturuldu. Railway canlı URL'ini (`https://mishil-production.up.railway.app/app`) donanımsal ivmelendirmeli, 60fps tam ekran olarak sunar.
+- **JS Bridge (Native ↔ Web Köprüsü) [YENİ]:** `app.html` içine tam entegre edildi:
+  - `HAPTIC` → `expo-haptics` native titreşim
+  - `PURCHASE_PACKAGE` → RevenueCat / Google Play IAP
+  - `RESTORE_PURCHASES` → Satın alım geri yükleme
+  - `BYPASS_PIN` / `load` event → Geliştirici PIN overlay'i native uygulamada otomatik geçer
+- **`hapticPulse()` Global Fonksiyonu [YENİ]:** Tüm butonlarda kullanılan haptik bridge + Web Vibration API fallback.
+- **IAP Köprüsü `activateTrialAndStart()` [GELİŞTİRİLDİ]:** Native uygulamada Google Play IAP tetikler; tarayıcıda localStorage fallback çalışır.
+
+#### 🛠️ Fixed — Düzeltilen Sorunlar
+- Mağazadaki uygulama (Sürüm 10) ile Railway canlı arayüzü arasındaki görsel fark kalıcı olarak kapandı.
+- Analiz & Günlük sekmesi, Bento grafikleri, Segmented SweetSpot Switcher ve Mışıl Dadı entegre ağlama çubuğu artık mobil uygulamada tam görünüyor.
+
+#### 📦 Build
+- Android `versionCode: 11`
+- `version: "4.8.0"`
+
+
 ### 🛡️ Google Play Store API 36 (Android 16) & Play Billing Library 8+ Uyumluluğu
 - **💳 Play Billing Library 8.0.0+ Geçişi:** `react-native-purchases` paketi `^9.0.0` sürümüne yükseltilerek Google Play Store'un zorunlu kıldığı PBL 8.0.0+ faturalandırma şartı karşılandı.
 - **🎯 Target SDK 36 (Android 16):** `targetSdkVersion: 36`, `compileSdkVersion: 36` ve `buildToolsVersion: '36.0.0'` yapılandırması tamamlandı; `eas.json` Android derleme imajı `"image": "latest"` yapılarak Android 16 desteği sağlandı.

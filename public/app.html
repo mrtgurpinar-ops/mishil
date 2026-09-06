@@ -2206,6 +2206,64 @@
 
 <script>
   // =========================================================================
+  // 0. NATIVE MOBILE BRIDGE (react-native-webview köprüsü)
+  // Mobil uygulama içinde çalışıldığında native kapasiteleri köprüler:
+  // Haptik, IAP (RevenueCat), PIN bypass
+  // =========================================================================
+  window.MishilNative = {
+    isNative: !!(window.ReactNativeWebView),
+
+    // Haptik titreşim
+    haptic: function(level) {
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'HAPTIC', level: level || 'light' }));
+      }
+    },
+
+    // Google Play / App Store satın alma
+    purchasePackage: function(planType) {
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'PURCHASE_PACKAGE', plan: planType }));
+      }
+    },
+
+    // Satın alım geri yükleme
+    restorePurchases: function() {
+      if (window.ReactNativeWebView) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'RESTORE_PURCHASES' }));
+      }
+    },
+
+    // Native'den gelen abonelik durumu callback'i
+    onSubscriptionResult: function(data) {
+      if (data && data.isActive) {
+        localStorage.setItem('mishil_subscription_active', 'true');
+        localStorage.setItem('mishil_subscription_plan', data.plan || 'premium');
+        showToast('🎉 Mışıl Baby Pro aktif edildi!');
+      }
+    }
+  };
+
+  // Native uygulama mesajlarını dinle
+  window.addEventListener('message', function(event) {
+    try {
+      var msg = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+      if (msg && msg.type === 'SUBSCRIPTION_RESULT') {
+        window.MishilNative.onSubscriptionResult(msg.data);
+      }
+    } catch(e) {}
+  });
+
+  // Haptik pulse fonksiyonu (Bridge + Web Vibration API fallback)
+  function hapticPulse() {
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'HAPTIC', level: 'light' }));
+    } else if (navigator.vibrate) {
+      navigator.vibrate(20);
+    }
+  }
+
+  // =========================================================================
   // 1. 18 STUDIO SOUNDS DATA & AUDIO ENGINE
   // =========================================================================
   const AUDIO_BASE = (window.location.protocol === 'file:') ? 'https://mishil-production.up.railway.app' : '';
@@ -2634,6 +2692,15 @@
       return;
     }
     localStorage.setItem('mishil_medical_disclaimer_accepted_at', new Date().toISOString());
+
+    // Native uygulama içindeyse → Google Play IAP başlat
+    if (window.ReactNativeWebView) {
+      const selectedPlan = localStorage.getItem('mishil_selected_plan') || 'yearly';
+      window.MishilNative.purchasePackage(selectedPlan);
+      return; // IAP tamamlanınca native bridge onSubscriptionResult() çağıracak
+    }
+
+    // Web fallback (tarayıcı önizlemesi)
     localStorage.setItem('misil_onboarding_completed', 'true');
     document.getElementById('screen-onboarding').classList.remove('active');
     showToast(`🎉 3 Günlük Ücretsiz Mışıl Baby Pro Aktif!`);
@@ -3643,34 +3710,6 @@
   renderHomeTodayTimeline();
   renderAnalyticsView();
 </script>
-
-
-  <!-- LEVITAS DEV PIN LOCK -->
-  <div id="levitasPinOverlay" style="position: fixed; inset: 0; background: #0B0F19; z-index: 999999; display: flex; align-items: center; justify-content: center; padding: 20px;">
-    <div style="background: #141B2E; border: 1px solid #E8A855; border-radius: 28px; max-width: 400px; width: 100%; padding: 36px 28px; text-align: center; box-shadow: 0 25px 60px rgba(0,0,0,0.9); font-family: sans-serif;">
-      <div style="font-size: 44px; margin-bottom: 12px;">🔐</div>
-      <h2 style="font-size: 1.5rem; color: #E8A855; margin-bottom: 6px;">Levitas Developer Mode</h2>
-      <p style="color: #94A3B8; font-size: 0.9rem; margin-bottom: 24px;">Canlı test ve geliştirici önizlemesi için şifre giriniz.</p>
-      <input type="password" id="devPinInput" placeholder="Geliştirici Şifresi" style="width: 100%; padding: 14px; background: #0B0F19; border: 1px solid rgba(232,168,85,0.4); border-radius: 14px; color: #FFF; font-size: 1rem; text-align: center; margin-bottom: 14px; outline: none; box-sizing: border-box;" onkeydown="if(event.key==='Enter') checkDevPin()">
-      <button onclick="checkDevPin()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #E8A855, #C58535); border: none; border-radius: 14px; color: #0B0F19; font-weight: 700; font-size: 1rem; cursor: pointer;">Giriş Yap</button>
-      <p id="pinError" style="color: #FF6B81; font-size: 0.85rem; margin-top: 12px; display: none;">Geçersiz şifre! Tekrar deneyin.</p>
-    </div>
-  </div>
-  <script>
-    function checkDevPin() {
-      const pin = document.getElementById('devPinInput').value;
-      if (pin === 'levitas2026') {
-        sessionStorage.setItem('levitas_dev_auth', 'true');
-        document.getElementById('levitasPinOverlay').style.display = 'none';
-      } else {
-        document.getElementById('pinError').style.display = 'block';
-        document.getElementById('devPinInput').style.borderColor = '#FF6B81';
-      }
-    }
-    if (sessionStorage.getItem('levitas_dev_auth') === 'true') {
-      document.getElementById('levitasPinOverlay').style.display = 'none';
-    }
-  </script>
 
 </body>
 </html>

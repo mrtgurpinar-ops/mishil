@@ -28,22 +28,25 @@ export default function RootLayout() {
   }, [systemColorScheme, useSystemTheme]);
 
   useEffect(() => {
-    initRevenueCat();
+    // RevenueCat native IAP köprüsü hazırla
+    initRevenueCat().catch(() => {});
   }, []);
-
-  const theme = getTheme(isDarkMode);
 
   return (
     <QueryClientProvider client={queryClient}>
       <SafeAreaProvider>
-        <StatusBar style={theme.isDark ? 'light' : 'dark'} />
+        {/* Tekil Kod Tabanı: Tüm arayüz app.html üzerinde çalışır */}
+        <StatusBar style="light" backgroundColor="#0B0E17" />
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: theme.colors.background },
+            contentStyle: { backgroundColor: '#0B0E17' },
+            animation: 'none',
           }}
         >
+          {/* Ana giriş noktası — MishilUnifiedWebView */}
           <Stack.Screen name="index" options={{ headerShown: false }} />
+          {/* Eski rotalar — geçiş dönemi için korunur, aktif kullanılmaz */}
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />
           <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />

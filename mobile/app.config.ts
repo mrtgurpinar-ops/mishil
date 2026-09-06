@@ -5,7 +5,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'Mışıl Baby',
   slug: 'misil-baby',
   scheme: 'misilbaby',
-  version: '4.7.3',
+  version: '4.8.1',
   orientation: 'portrait',
   icon: './assets/icon.png',
   userInterfaceStyle: 'automatic',
@@ -18,7 +18,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundler: 'metro',
     output: 'static'
   },
-  assetBundlePatterns: ['**/*'],
+  assetBundlePatterns: ['**/*', 'public/**'],
   ios: {
     supportsTablet: false,
     bundleIdentifier: 'com.levitas.misilbaby',
@@ -33,7 +33,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       backgroundColor: '#141B2E'
     },
     package: 'com.levitas.misilbaby',
-    versionCode: 10,
+    versionCode: 12,
     permissions: [
       'RECORD_AUDIO',
       'WAKE_LOCK',

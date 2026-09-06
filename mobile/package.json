@@ -1,6 +1,6 @@
 {
   "name": "mishil-mobile",
-  "version": "4.7.3",
+  "version": "4.8.0",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
@@ -37,6 +37,7 @@
     "react-native-screens": "3.31.1",
     "react-native-svg": "15.2.0",
     "react-native-web": "~0.19.10",
+    "react-native-webview": "13.8.6",
     "zustand": "^4.5.2"
   },
   "devDependencies": {
