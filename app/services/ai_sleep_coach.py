@@ -112,9 +112,18 @@ def _calc_baby_details(birth_date_str: str, manual_leap: Optional[int] = None) -
         }
 
 
-def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date: str, message: str, chat_history: List[Dict[str, str]], user_role: str = "mother", manual_leap: Optional[int] = None) -> Optional[str]:
+def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date: str, message: str, chat_history: List[Dict[str, str]], user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None) -> Optional[str]:
     baby_info = _calc_baby_details(birth_date, manual_leap)
     role_tr = "Anne" if user_role == "mother" else ("Baba" if user_role == "father" else "Dadı / Bakıcı")
+    
+    rollup_text = ""
+    if routine_rollup:
+        rollup_text = (
+            f"\n• Günlük Toplam Uyku: {routine_rollup.get('daily_sleep_hours', '—')} saat"
+            f"\n• Beslenme: {routine_rollup.get('feeding_count', 0)} kez (Toplam {routine_rollup.get('total_feeding_ml', 0)} ml, ort. {routine_rollup.get('avg_feeding_interval_hours', '—')} saat arayla)"
+            f"\n• Bez Durumu: {routine_rollup.get('diaper_wet', 0)} ıslak, {routine_rollup.get('diaper_dirty', 0)} kirli"
+            f"\n• Gece Uyanması: {routine_rollup.get('night_awakenings', 0)} kez"
+        )
     
     sys_prompt = (
         f"{SYSTEM_PROMPT}\n\n"
@@ -124,6 +133,7 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
         f"Yaş: {baby_info['age_formatted']}\n"
         f"Gelişim/Regresyon Evresi: {baby_info['leap_info']}\n"
         f"İdeal SweetSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
+        f"{rollup_text}"
     )
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
@@ -195,7 +205,7 @@ def _tier4_clinical_heuristic(baby_name: str, birth_date: str, message: str, use
         )
 
 
-def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None) -> Dict[str, Any]:
+def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Multi-Tier AI Execution Pipeline with Role Awareness & Leap Sync"""
     chat_history = chat_history or []
     api_key = _find_gemini_api_key()
@@ -205,19 +215,19 @@ def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history:
 
     if api_key:
         # Tier 1: Gemini 3.5 Flash
-        reply = _call_gemini_model("gemini-3.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap)
+        reply = _call_gemini_model("gemini-3.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup)
         if reply:
             tier_used = "Tier 1 (Google Gemini 3.5 Flash API)"
 
         # Tier 2: Gemini 2.5 Flash
         if not reply:
-            reply = _call_gemini_model("gemini-2.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap)
+            reply = _call_gemini_model("gemini-2.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup)
             if reply:
                 tier_used = "Tier 2 (Google Gemini 2.5 Flash API)"
 
         # Tier 3: Gemini 1.5 Flash
         if not reply:
-            reply = _call_gemini_model("gemini-1.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap)
+            reply = _call_gemini_model("gemini-1.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup)
             if reply:
                 tier_used = "Tier 3 (Google Gemini 1.5 Flash API)"
 
@@ -237,7 +247,7 @@ def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history:
     }
 
 
-def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None):
+def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None):
     """Server-Sent Events (SSE) Live Token Streaming Generator for Mışıl Dadı AI"""
     import time
     chat_history = chat_history or []
@@ -248,6 +258,15 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
     streamed_success = False
 
     if api_key:
+        rollup_text = ""
+        if routine_rollup:
+            rollup_text = (
+                f"\n• Günlük Toplam Uyku: {routine_rollup.get('daily_sleep_hours', '—')} saat"
+                f"\n• Beslenme: {routine_rollup.get('feeding_count', 0)} kez (Toplam {routine_rollup.get('total_feeding_ml', 0)} ml, ort. {routine_rollup.get('avg_feeding_interval_hours', '—')} saat arayla)"
+                f"\n• Bez Durumu: {routine_rollup.get('diaper_wet', 0)} ıslak, {routine_rollup.get('diaper_dirty', 0)} kirli"
+                f"\n• Gece Uyanması: {routine_rollup.get('night_awakenings', 0)} kez"
+            )
+
         sys_prompt = (
             f"{SYSTEM_PROMPT}\n\n"
             f"[GÜNCEL BEBEK REFERANS BİLGİSİ - YALNIZCA ARKA PLAN İÇİNDİR, SORUYLA DOĞRUDAN İLGİSİZSE CEVABA ZORLA EKLEME]\n"
@@ -256,6 +275,7 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
             f"Yaş: {baby_info['age_formatted']}\n"
             f"Gelişim/Regresyon Evresi: {baby_info['leap_info']}\n"
             f"İdeal SweetSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
+            f"{rollup_text}"
         )
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:streamGenerateContent?key={api_key}&alt=sse"

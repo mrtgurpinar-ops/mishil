@@ -191,9 +191,18 @@ Resmî desteklenen kombinasyon değil (Expo 51 → SDK 34/35). Build geçse bile
 
 ---
 
+### 🟢 R6 — v4.10.0 (Build 18) İyileştirmeleri & Devir Teslim
+- `loadBabyProfile()` ve `saveBabyProfile()` sıfırdan yazılarak `ReferenceError` çökmesi giderildi.
+- Gelişim Atakları (Wonder Weeks 10 Zihinsel Sıçrama) hem Ana Sayfa Bento Kartı hem Analiz sekmesine bağlandı.
+- Günlük biyometrik analitik rollup (#6) ve Mışıl Dadı AI payload entegrasyonu tamamlandı.
+- 18 stüdyo ses dosyasının tamamı CBR 192kbps, >=30sn seamless loop olarak onarıldı (#4).
+- Gömülü çevrimdışı fallback (`offlineHtml.generated.ts`) ve TypeScript/Jest/Compliance testleri %100 yeşil.
+
+---
+
 ## 6. Rollback
 
-- **Google Play:** staged rollout'ta çökme artışı → rollout'u durdur / önceki sürüme geri al (build 15 = 4.8.4).
+- **Google Play:** staged rollout'ta çökme artışı → rollout'u durdur / önceki sürüme geri al (build 16 = 4.9.0).
 - **Apple:** onaylı yeni sürümü "Developer removed from sale" değil, **Phased release'i durdur**; kritikse önceki sürümü tekrar yayınla (App Store bir önceki build'i saklar).
 - **Sunucu (app.html):** tekil kaynak olduğu için `git revert` + Railway redeploy anında tüm cihazlara yansır — mobil sürümden bağımsız hızlı kaçış yolu.
 
@@ -212,4 +221,4 @@ Production'a çıkış için hepsi ✅ olmalı:
 
 ---
 
-_Son güncelleme: 2026-09-06 · Sürüm hedefi: 4.9.0 (build 16) · Kod durumu: hazır, doğrulama bekliyor_
+_Son güncelleme: 2026-09-07 · Sürüm hedefi: 4.10.0 (build 18) · Kod durumu: hazır, Faz 2 cihaz doğrulaması & mağaza teslimi_

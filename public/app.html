@@ -1560,6 +1560,24 @@
           <div class="quick-btn" onclick="toggleLiveSleep()"><span class="quick-icon">🌙</span><span class="quick-txt">Uyku Başlat</span></div>
         </div>
 
+        <!-- Gelişim Sıçraması & Wonder Weeks Bento Kartı (Ana Sayfa) -->
+        <div class="card" id="home-wonder-weeks-card" style="margin-top: 8px; cursor: pointer; border: 1px solid var(--border-highlight); background: rgba(26, 32, 54, 0.85);" onclick="goToLeapDetails()">
+          <div class="spotlight-glow"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 14px;">🌱</span>
+              <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: #FFF;" id="home-leap-title">Gelişim Sıçraması (Wonder Weeks)</span>
+            </div>
+            <span id="home-leap-badge" style="font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 700; background: rgba(165, 105, 189, 0.2); color: #D7BDE2;">Detaylar ➔</span>
+          </div>
+          <div id="home-leap-subtitle" style="font-size: 11px; color: var(--text-night); line-height: 15px; margin-bottom: 6px;">
+            Bebeğinizin zihinsel sıçrama ve huysuzluk takvimi yükleniyor...
+          </div>
+          <div class="progress-bar-wrap" style="height: 4px;">
+            <div class="progress-fill" id="home-leap-progress-bar" style="width: 0%; background: #A569BD;"></div>
+          </div>
+        </div>
+
         <!-- Mini Player -->
         <div class="card" style="display: flex; align-items: center; justify-content: space-between; border-color: var(--accent); background: rgba(28, 34, 55, 0.85); margin-top: 4px;">
           <div class="spotlight-glow"></div>
@@ -1649,6 +1667,35 @@
           </div>
           <div class="progress-bar-wrap" style="height: 4px;"><div class="progress-fill" id="score-part-leap-bar" style="width: 80%; background: #A569BD;"></div></div>
         </div>
+      <!-- Günlük Biyometrik Rollup Kartı (#6 Derin Analitik) -->
+      <div class="card" id="analytics-daily-rollup-card" style="margin-top: 10px; margin-bottom: 10px;">
+        <div class="spotlight-glow"></div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+          <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Günün Biyometrik Özeti 📋</div>
+          <span style="font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase;">Bugünkü Kayıtlar</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px;">
+            <div style="font-size: 10px; color: var(--text-muted);">🌙 Toplam Uyku</div>
+            <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-top: 2px;" id="rollup-sleep-val">0 saat</div>
+            <div style="font-size: 9px; color: #74B9FF; margin-top: 2px;" id="rollup-longest-sleep">En uzun: —</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px;">
+            <div style="font-size: 10px; color: var(--text-muted);">🍼 Beslenme</div>
+            <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-top: 2px;" id="rollup-feeding-val">0 kez (0 ml)</div>
+            <div style="font-size: 9px; color: var(--accent); margin-top: 2px;" id="rollup-feeding-interval">İlk kayıtlar bekleniyor</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px;">
+            <div style="font-size: 10px; color: var(--text-muted);">🚼 Alt Değişimi</div>
+            <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-top: 2px;" id="rollup-diaper-val">0 bez</div>
+            <div style="font-size: 9px; color: #2ED573; margin-top: 2px;" id="rollup-diaper-detail">0 ıslak / 0 kirli</div>
+          </div>
+          <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px;">
+            <div style="font-size: 10px; color: var(--text-muted);">⚡ Gece Uyanması</div>
+            <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-top: 2px;" id="rollup-night-wakes">0 kez</div>
+            <div style="font-size: 9px; color: #A569BD; margin-top: 2px;">22:00 - 07:00 arası</div>
+          </div>
+        </div>
       </div>
 
       <!-- Haftalık Uyku Bento Çubuk Grafiği -->
@@ -1696,6 +1743,7 @@
         <!-- Rendered by JS -->
       </div>
     </div>
+  </div>
 
     <!-- 3. MIŞIL DADI (7/24 ŞEFKATLİ UYKU DANIŞMANI TAB) -->
     <div id="view-coach" class="tab-view">
@@ -2641,6 +2689,7 @@
           birth_date: birthDate,
           user_role: userRole,
           manual_leap: manualLeap,
+          routine_rollup: typeof calculateRoutineRollup === 'function' ? calculateRoutineRollup() : null,
           message: userText,
           chat_history: dadiChatHistory.slice(-4)
         })
@@ -2984,6 +3033,32 @@
       earlyBadge.style.display = calc.isManual ? 'flex' : 'none';
     }
 
+    // Update Home Screen Wonder Weeks Bento Card
+    const homeCard = document.getElementById('home-wonder-weeks-card');
+    const homeTitle = document.getElementById('home-leap-title');
+    const homeBadge = document.getElementById('home-leap-badge');
+    const homeSubtitle = document.getElementById('home-leap-subtitle');
+    const homeBar = document.getElementById('home-leap-progress-bar');
+    if (homeCard) {
+      if (homeTitle) homeTitle.textContent = `${name} • ${currentWeek}. Hafta Gelişimi`;
+      const isStorm = (currentWeek === calc.activeLeap.stormWeek || currentWeek === calc.activeLeap.stormWeek - 1);
+      if (homeBadge) {
+        if (isStorm) {
+          homeBadge.innerHTML = '⚡ Fırtına Zirvesi';
+          homeBadge.style.background = 'rgba(255, 71, 87, 0.25)';
+          homeBadge.style.color = '#FF6B81';
+        } else {
+          homeBadge.innerHTML = '☀️ Güneşli Dönem';
+          homeBadge.style.background = 'rgba(46, 213, 115, 0.2)';
+          homeBadge.style.color = '#2ED573';
+        }
+      }
+      if (homeSubtitle) {
+        homeSubtitle.innerHTML = `<strong>${calc.activeLeap.num}. Sıçrama: ${calc.activeLeap.title}</strong> — ${calc.activeLeap.milestone}`;
+      }
+      if (homeBar) homeBar.style.width = `${overallProgress}%`;
+    }
+
     // Render 10 Leap Cards
     if (!container) return;
     container.innerHTML = '';
@@ -3257,8 +3332,97 @@
     if (partLeapBar) partLeapBar.style.width = `${scoreData.leapResistanceScore}%`;
   }
 
+  function calculateRoutineRollup() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStart = today.getTime();
+    const todayRoutines = activeRoutines.filter(r => r.timestamp >= todayStart);
+
+    const sleepLogs = todayRoutines.filter(r => r.type === 'sleep');
+    const totalSleepMins = sleepLogs.reduce((acc, s) => acc + (s.durationMins || 0), 0);
+    const longestSleepMins = sleepLogs.length > 0 ? Math.max(...sleepLogs.map(s => s.durationMins || 0)) : 0;
+    
+    const nightWakes = sleepLogs.filter(s => {
+      const h = new Date(s.timestamp).getHours();
+      return h >= 22 || h < 7;
+    }).length;
+
+    const feedingLogs = todayRoutines.filter(r => r.type === 'feeding');
+    const feedingCount = feedingLogs.length;
+    let totalFeedingMl = 0;
+    feedingLogs.forEach(f => {
+      if (f.amountMl) totalFeedingMl += Number(f.amountMl);
+      else if (f.detail && typeof f.detail === 'string') {
+        const match = f.detail.match(/(\d+)\s*ml/i);
+        if (match) totalFeedingMl += parseInt(match[1]);
+      }
+    });
+
+    let avgFeedingInterval = 0;
+    if (feedingLogs.length >= 2) {
+      const sorted = [...feedingLogs].sort((a, b) => a.timestamp - b.timestamp);
+      const diffSum = sorted[sorted.length - 1].timestamp - sorted[0].timestamp;
+      avgFeedingInterval = (diffSum / (feedingLogs.length - 1)) / (1000 * 3600);
+    }
+
+    const diaperLogs = todayRoutines.filter(r => r.type === 'diaper');
+    let wetCount = 0;
+    let dirtyCount = 0;
+    diaperLogs.forEach(d => {
+      if (d.kind === 'wet') wetCount++;
+      else if (d.kind === 'dirty') dirtyCount++;
+      else if (d.kind === 'both') { wetCount++; dirtyCount++; }
+      else if (d.detail && typeof d.detail === 'string') {
+        if (d.detail.toLowerCase().includes('ıslak')) wetCount++;
+        if (d.detail.toLowerCase().includes('kirli')) dirtyCount++;
+      }
+    });
+
+    return {
+      daily_sleep_hours: (totalSleepMins / 60).toFixed(1),
+      daily_sleep_mins: totalSleepMins,
+      longest_sleep_hours: (longestSleepMins / 60).toFixed(1),
+      night_awakenings: nightWakes,
+      feeding_count: feedingCount,
+      total_feeding_ml: totalFeedingMl,
+      avg_feeding_interval_hours: avgFeedingInterval > 0 ? avgFeedingInterval.toFixed(1) : null,
+      diaper_count: diaperLogs.length,
+      diaper_wet: wetCount,
+      diaper_dirty: dirtyCount
+    };
+  }
+
+  function renderDailyRollup() {
+    const rollup = calculateRoutineRollup();
+    const sleepEl = document.getElementById('rollup-sleep-val');
+    const longestEl = document.getElementById('rollup-longest-sleep');
+    const feedingEl = document.getElementById('rollup-feeding-val');
+    const intervalEl = document.getElementById('rollup-feeding-interval');
+    const diaperEl = document.getElementById('rollup-diaper-val');
+    const diaperDetailEl = document.getElementById('rollup-diaper-detail');
+    const nightWakesEl = document.getElementById('rollup-night-wakes');
+
+    if (sleepEl) sleepEl.textContent = `${rollup.daily_sleep_hours} saat`;
+    if (longestEl) longestEl.textContent = `En uzun: ${rollup.longest_sleep_hours}s`;
+    if (feedingEl) feedingEl.textContent = `${rollup.feeding_count} kez (${rollup.total_feeding_ml} ml)`;
+    if (intervalEl) intervalEl.textContent = rollup.avg_feeding_interval_hours ? `Ort. ${rollup.avg_feeding_interval_hours}s arayla` : 'İlk kayıtlar bekleniyor';
+    if (diaperEl) diaperEl.textContent = `${rollup.diaper_count} bez`;
+    if (diaperDetailEl) diaperDetailEl.textContent = `${rollup.diaper_wet} ıslak / ${rollup.diaper_dirty} kirli`;
+    if (nightWakesEl) nightWakesEl.textContent = `${rollup.night_awakenings} kez`;
+  }
+
+  function goToLeapDetails() {
+    hapticPulse();
+    switchTab('analytics');
+    setTimeout(() => {
+      const el = document.getElementById('leaps-hero-title');
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 150);
+  }
+
   function renderAnalyticsView() {
     renderHomeScreenScore();
+    renderDailyRollup();
     renderWeeklyChart();
     renderWonderWeeksLeaps();
     renderAnalyticsRoutinesTimeline(activeRoutineFilter);

@@ -17,6 +17,7 @@ class CoachChatRequest(BaseModel):
     birth_date: str = Field(default="2026-04-11", description="Bebeğin doğum tarihi (YYYY-MM-DD)")
     user_role: str = Field(default="mother", description="Soruyu soran rol ('mother', 'father', 'nanny')")
     manual_leap: Optional[int] = Field(default=None, description="Manuel aktif edilmiş sıçrama numarası (1-10)")
+    routine_rollup: Optional[Dict[str, Any]] = Field(default=None, description="Bebeğin son rutin rollup özeti (uyku, beslenme ml, bez, gece uyanma)")
     message: str = Field(..., min_length=1, description="Ebeveynin/Dadının Mışıl Dadı'ya sorusu")
     chat_history: Optional[List[Dict[str, str]]] = Field(default=[], description="Önceki sohbet geçmişi")
 
@@ -42,7 +43,8 @@ async def chat_with_coach(payload: CoachChatRequest):
             message=payload.message,
             chat_history=payload.chat_history,
             user_role=payload.user_role,
-            manual_leap=payload.manual_leap
+            manual_leap=payload.manual_leap,
+            routine_rollup=payload.routine_rollup
         )
         return CoachChatResponse(**result)
     except Exception as e:
@@ -65,7 +67,8 @@ async def stream_coach_response(payload: CoachChatRequest):
             message=payload.message,
             chat_history=payload.chat_history,
             user_role=payload.user_role,
-            manual_leap=payload.manual_leap
+            manual_leap=payload.manual_leap,
+            routine_rollup=payload.routine_rollup
         )
         return StreamingResponse(
             generator,
