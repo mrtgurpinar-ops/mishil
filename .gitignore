@@ -55,3 +55,4 @@ generate_*_reels.py
 render_*.py
 test_veo_*.py
 *.aab
+*.ipa
