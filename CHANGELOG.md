@@ -2,6 +2,81 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.10.0] - 2026-09-07
+### 🐛 Dahili Test Bulguları — 9 Düzeltme (Build 18)
+
+Kaynak: `projects/mishil/BUGFIX_PLAN_v4.10.0.md`. iOS + Android ayrı incelendi.
+
+#### 🛠️ Fixed
+- **İlk açılışta sahte "geçmiş veri" (5 aylık "Mina"):**
+  - `loadBabyProfile()` ve `saveBabyProfile()` **hiç tanımlı değildi** — çağrıldıkları her yerde
+    `ReferenceError` atıp dinamik render'ı durduruyor, sabit "Mina" HTML'i ekranda bırakıyordu.
+    İkisi de yazıldı.
+  - Tüm `|| 'Mina'` / `|| '2026-04-11'` fallback'leri kaldırıldı; `getBaby()` tek kaynak →
+    kayıtlı profil yoksa `null`, ekranlar "bebek profili ekleyin" boş durumu gösteriyor.
+  - Onboarding ve Ayarlar inputlarındaki ön-dolu `value="Mina"` / `value="2026-04-11"` silindi;
+    ad + doğum tarihi zorunlu ve doğrulanıyor.
+  - Analiz haftalık uyku grafiği artık **gerçek** son-7-gün kayıtlarından; sabit örnek veri silindi.
+  - Sabit skor/yaş HTML değerleri (`%88`, `%38`, "4 Ay 12 Günlük") `—` ile başlayıp JS'ten doluyor.
+- **Gelişim Atakları (Wonder Weeks) alanı geri geldi:** `renderWonderWeeksLeaps()` orphan'dı
+  (konteyner + sekme + çağrı yoktu). Analiz sekmesine "🌱 Gelişim Atakları" bölümü + 10 kart eklendi,
+  `renderAnalyticsView()` + `loadBabyProfile()` içine bağlandı.
+- **Samsung'da kasma:** `androidLayerType` `"software"` → koşullu (`Android <9 software, 9+ hardware`);
+  `.ambient-pulse` `blur(56px)` + `scale()` animasyonu `blur(40px)` + sadece `opacity`'ye indirildi
+  (bulanık katmanın her karede yeniden rasterize edilmesi engellendi); `prefers-reduced-motion`
+  altında dekoratif sonsuz animasyonlar durur.
+- **Bazı sesler "yüklenemedi":** native ses motoru decode hatasında bir kez cache-bust ile tekrar
+  deniyor; başarısız parça listede "KULLANILAMIYOR" işaretleniyor (sessiz kalma yok). NOT: 5 ses
+  dosyası sunucuda şüpheli küçük — yeniden encode edilmeli (bkz. plan #4, sunucu işi).
+- **Beslenme kaydı:** ana ekran "🍼 Beslenme" / "🚼 Alt" artık detay ekranını açıyor. Yapılı model:
+  besleme türü (anne sütü / biberon-mama / biberon-ASS / katı), miktar (ml/g), süre (dk), not.
+  Bez: tür (çiş / kaka / karma). Sabit `140 ml Anne Sütü` ön-dolu değeri kaldırıldı.
+- **Sürüm notları statik + isim karmaşası:** native `Constants.expoConfig` → `window.__MISHIL_APP__`
+  enjeksiyonu; Ayarlar rozeti + changelog modalı dinamik (`CHANGELOG_ENTRIES` + `renderChangelog()`).
+  Sürüm şeması tek tip: `x.y.z (build N)`. `misil_onboarding_completed` → `mishil_onboarding_completed`
+  (otomatik migrasyon). Sabit "v4.3.0 (Build 2026.08)" / "v4.3.1" ibareleri kaldırıldı.
+- **iOS'ta haptik tamamen ölü:** `hapticPulse()` iki kez tanımlıydı; ikincisi (yalnız
+  `navigator.vibrate` — iOS'ta yok) siliniyor, native köprü versiyonu kalıyor.
+
+#### 🔄 Changed — Onboarding / Paywall (plan #7, Seçenek A)
+- Bedava katman kaldırıldı: onboarding "Atla ➔" butonu silindi. Abonelik zorunlu; bebek profili
+  yoksa onboarding tekrar açılır (eski "Atla" ile geçmiş test kurulumları dahil).
+- `activateTrialAndStart` native'de her zaman `MishilNative.purchasePackage()` → 3 günlük deneme
+  mağazanın introductory offer'ı ile başlar; uygulama kendi "trial" state'i tutmaz.
+- `finishOnboardingToApp` / `skipOnboarding` kullanımdan kaldırıldı.
+
+#### 🧰 Tooling
+- `offlineHtml.generated.ts` yenilendi. `RELEASE_READINESS.md` §5'e bulgular işlenecek.
+
+#### 📦 Build
+- Android `versionCode: 18` · iOS `buildNumber: 18` · `version: "4.10.0"`
+
+## [4.9.1] - 2026-09-07
+### 🎨 Ultra-Premium Vitrin Görselleri & App Store İnceleme Gönderimi (Waiting for Review)
+
+#### ✨ Added
+- **5 Adet Ultra-Premium Vitrin Görseli (1284 x 2778 px):** App Store (iPhone 6.5" / 6.7") ve Google Play için modern tasarım mühendisliği standartlarında, derin gece degrade zeminleri ve Türkçe tipografi ile üretildi:
+  1. `1_Yapay_Zeka_Aglama_Analizi.png`: Akustik AI Ağlama Analizi ve Kolik/Gaz tespiti.
+  2. `2_Beyaz_Gurultu_ve_Ninni_Mikseri.png`: 16+ Doğal Ses ve çoklu mikser arayüzü.
+  3. `3_Huzurlu_Gece_Lambasi.png`: Melatonin dostu loş aydınlatma ve uyku zamanlayıcısı.
+  4. `4_Sirkadiyen_Uyku_Takibi.png`: Pediatrik uyku skoru ve uyanıklık pencereleri.
+  5. `5_Guvenlik_ve_Cevrimdisi_Kullanim.png`: %100 Çevrimdışı, sıfır reklam ve yerel gizlilik.
+- Tüm görseller doğrudan `projects/mishil/kullanici/app_store/` ve `projects/mishil/kullanici/google_play/` altına yerleştirildi; masaüstüne tek bir geçici dosya bırakılmadı.
+
+#### 🔄 Changed
+- **Marka & Kurumsal Kimlik Düzeltmeleri:**
+  - Uygulama adı App Store Connect ve yerelleştirme ayarlarında Türkçe karakterlerle **`Mışıl Baby: Bebek Uyku & Ses`** olarak eşitlendi.
+  - Yayıncı ve telif hakkı ibaresi **`2026 Levitas Enterprise Intelligence & Technology`** olarak güncellendi.
+- **Masaüstü Sıfır-Kirlilik Düzenlemesi:** Masaüstünde kalan `voltnet` tanıtım medyaları ait oldukları `projects/voltnet/assets/` dizinine taşındı; masaüstü tamamen arındırıldı.
+
+#### 🚀 Release & Store Submission
+- **Apple App Store Connect:**
+  - Build 17 (`v4.9.0`) sürüme bağlandı.
+  - App Review Information (İletişim Bilgileri: Murat Gürpınar, `mrtgurpinar@gmail.com`, şifresiz misafir modu erişimi) dolduruldu.
+  - Yaş derecelendirmesi (4+), İçerik hakları ve Veri Toplama beyanları onaylandı.
+  - Sürüm başarıyla **"Submit for Review"** yapılarak **`1.0 Waiting for Review` (İnceleme Bekliyor)** durumuna geçirildi.
+
+
 ## [4.9.0] - 2026-09-06
 ### 🔊 Native Arka Plan Ses Motoru — Kilitli Ekranda Ninni — Sürüm 16
 

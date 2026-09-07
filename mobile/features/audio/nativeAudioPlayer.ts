@@ -60,32 +60,39 @@ async function unloadInternal() {
   }
 }
 
+async function loadAndPlay(id: string, url: string): Promise<void> {
+  await ensureAudioMode();
+  await unloadInternal();
+  const { sound: snd } = await Audio.Sound.createAsync(
+    { uri: url },
+    { shouldPlay: true, isLooping: true, volume: currentVolume },
+  );
+  sound = snd;
+  currentId = id;
+}
+
 export async function playSound(id: string, url: string, onState: StateListener): Promise<void> {
-  try {
-    await ensureAudioMode();
-    await unloadInternal();
-
-    const { sound: snd } = await Audio.Sound.createAsync(
-      { uri: url },
-      { shouldPlay: true, isLooping: true, volume: currentVolume },
-    );
-    sound = snd;
-    currentId = id;
-
-    snd.setOnPlaybackStatusUpdate((st: any) => {
-      if (!st) return;
-      if (!st.isLoaded && st.error) {
-        onState({ playing: false, id: null, reason: 'error' });
-        void unloadInternal();
-      }
-    });
-
-    onState({ playing: true, id });
-  } catch (e) {
-    console.log('[nativeAudio] playSound hatası:', e);
-    await unloadInternal();
-    onState({ playing: false, id: null, reason: 'error' });
+  // 1. deneme normal URL; hata olursa 2. deneme cache-bust ile (iOS AVPlayer kısmi/bozuk
+  // cache'i bazen atlatır). İki deneme de olmazsa 'error'.
+  for (let attempt = 0; attempt < 2; attempt++) {
+    const tryUrl = attempt === 0 ? url : `${url}${url.includes('?') ? '&' : '?'}rc=${Date.now()}`;
+    try {
+      await loadAndPlay(id, tryUrl);
+      sound?.setOnPlaybackStatusUpdate((st: any) => {
+        if (!st) return;
+        if (!st.isLoaded && st.error) {
+          onState({ playing: false, id: null, reason: 'error' });
+          void unloadInternal();
+        }
+      });
+      onState({ playing: true, id });
+      return;
+    } catch (e) {
+      console.log(`[nativeAudio] playSound deneme ${attempt + 1} hatası:`, e);
+      await unloadInternal();
+    }
   }
+  onState({ playing: false, id: null, reason: 'error' });
 }
 
 export async function stopSound(onState: StateListener, reason: AudioState['reason'] = 'user'): Promise<void> {

@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import * as Haptics from 'expo-haptics';
+import Constants from 'expo-constants';
 import { initRevenueCat, purchasePackage, restorePurchases, getOfferings } from '../features/subscription/revenuecat';
 import * as nativeAudio from '../features/audio/nativeAudioPlayer';
 import { OFFLINE_HTML } from '../features/webview/offlineHtml.generated';
@@ -18,6 +19,17 @@ import { OFFLINE_HTML } from '../features/webview/offlineHtml.generated';
 // Railway canlı URL
 const MISHIL_WEB_ORIGIN = 'https://mishil-production.up.railway.app';
 const MISHIL_WEB_URL = `${MISHIL_WEB_ORIGIN}/app`;
+
+// Native sürüm bilgisini WebView'e sayfa yüklenmeden önce enjekte et (Settings sürüm rozeti + changelog dinamik)
+const APP_VERSION = Constants.expoConfig?.version ?? '0.0.0';
+const APP_BUILD =
+  Platform.OS === 'ios'
+    ? (Constants.expoConfig?.ios?.buildNumber ?? '0')
+    : String(Constants.expoConfig?.android?.versionCode ?? '0');
+const INJECT_APP_META = `
+  window.__MISHIL_APP__ = { version: ${JSON.stringify(APP_VERSION)}, build: ${JSON.stringify(APP_BUILD)}, platform: ${JSON.stringify(Platform.OS)}, native: true };
+  true;
+`;
 
 // Sayfa bu süre içinde yüklenmezse (Railway cold-start / zayıf şebeke) hata ekranına düş
 const LOAD_TIMEOUT_MS = 25000;
@@ -253,7 +265,7 @@ export default function MishilUnifiedWebView() {
       : '';
     webviewRef.current?.injectJavaScript(`
       (function() {
-        localStorage.setItem('misil_onboarding_completed', 'true');
+        localStorage.setItem('mishil_onboarding_completed', 'true');
         localStorage.setItem('mishil_subscription_active', 'true');
         ${planLine}
         var screen = document.getElementById('screen-onboarding');
@@ -373,6 +385,7 @@ export default function MishilUnifiedWebView() {
             : { uri: MISHIL_WEB_URL }
         }
         style={styles.webview}
+        injectedJavaScriptBeforeContentLoaded={INJECT_APP_META}
         onLoadStart={onLoadStart}
         onLoad={onLoad}
         onError={onError}
@@ -410,9 +423,10 @@ export default function MishilUnifiedWebView() {
         // Harici pencere açan bağlantılar boş popup'ta takılmasın
         setSupportMultipleWindows={false}
 
-        // Android render katmanı: bazı GPU'larda "hardware" boş ekrana yol açtığından
-        // yazılım katmanına alındı (animasyon perf. kaybı kabul edilebilir seviyede)
-        androidLayerType="software"
+        // Android render katmanı: donanım katmanı modern cihazlarda (özellikle Samsung)
+        // çok daha akıcı. Yazılım katmanı yalnızca Android <9 (eski WebView boş ekran
+        // bug'ı) için — 9+ donanım.
+        androidLayerType={Number(Platform.Version) < 28 ? 'software' : 'hardware'}
 
         // URL değişikliklerinde izin ver
         onShouldStartLoadWithRequest={() => true}

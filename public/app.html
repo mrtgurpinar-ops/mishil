@@ -97,13 +97,25 @@
         radial-gradient(50% 50% at 50% 50%, oklch(0.55 0.22 264 / 0.25), transparent 75%),
         radial-gradient(40% 45% at 65% 45%, oklch(0.75 0.15 65 / 0.18), transparent 75%),
         radial-gradient(35% 40% at 35% 55%, oklch(0.6 0.18 240 / 0.18), transparent 70%);
-      filter: blur(56px);
-      animation: lp-glow-pulse 10s ease-in-out infinite;
+      filter: blur(40px);
+      will-change: opacity;
+      animation: lp-glow-pulse 12s ease-in-out infinite;
     }
 
+    /* Sadece opacity animasyonu — transform: scale() bulanık katmanı her karede
+       yeniden rasterize ettiği için özellikle Samsung'da kasmaya yol açıyordu. */
     @keyframes lp-glow-pulse {
-      0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.9; }
-      50% { transform: translate(-49%, -51%) scale(1.06); opacity: 0.75; }
+      0%, 100% { opacity: 0.9; }
+      50% { opacity: 0.7; }
+    }
+
+    /* Düşük güçlü/animasyon istemeyen cihazlarda dekoratif sonsuz animasyonları durdur */
+    @media (prefers-reduced-motion: reduce) {
+      .ambient-pulse, .border-beam, .breathing-moon, .breathing-moon *,
+      .wave-bar, .mic-pulse-ring {
+        animation: none !important;
+      }
+      * { transition-duration: 0.01ms !important; }
     }
 
     /* Device Container Frame */
@@ -1304,7 +1316,6 @@
   <div id="screen-onboarding" class="onboarding-screen no-scrollbar">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
       <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: var(--accent);" id="quiz-step-indicator">ADIM 1 / 5</span>
-      <span style="font-size: 11px; color: var(--text-muted); cursor: pointer;" onclick="skipOnboarding()">Atla ➔</span>
     </div>
 
     <!-- Step 1 -->
@@ -1317,11 +1328,11 @@
       </div>
       <div class="form-group">
         <label class="form-label">Bebeğin Adı</label>
-        <input type="text" class="form-input" id="quiz-baby-name" placeholder="Örn: Mina" value="Mina" />
+        <input type="text" class="form-input" id="quiz-baby-name" placeholder="Bebeğinizin adı" />
       </div>
       <div class="form-group">
         <label class="form-label">Doğum Tarihi</label>
-        <input type="date" class="form-input" id="quiz-baby-bdate" value="2026-04-11" />
+        <input type="date" class="form-input" id="quiz-baby-bdate" />
       </div>
       <button class="btn-primary" style="margin-top: 14px;" onclick="nextQuizStep(2)">Devam Et ➔</button>
     </div>
@@ -1415,7 +1426,7 @@
 
       <div class="card" style="background: rgba(30, 36, 60, 0.95); border: 1px solid var(--accent); text-align: center; padding: 18px;">
         <div style="font-size: 11px; color: var(--text-muted); text-transform: uppercase;">Mevcut Uyku Sağlığı Skoru</div>
-        <div style="font-family: 'Sora'; font-size: 42px; font-weight: 800; color: #FF4757; margin: 4px 0;" id="report-score-val">%38</div>
+        <div style="font-family: 'Sora'; font-size: 42px; font-weight: 800; color: #FF4757; margin: 4px 0;" id="report-score-val">—</div>
         <div style="font-size: 12px; font-weight: 600; color: #FFA502;" id="report-score-desc">⚠️ Yüksek Aşırı Yorgunluk Riski</div>
       </div>
 
@@ -1496,7 +1507,7 @@
     <div id="view-home" class="tab-view active">
       <div class="app-header">
         <div>
-          <div class="baby-subtitle" id="baby-header-subtitle">Mina • 4 Ay 12 Günlük</div>
+          <div class="baby-subtitle" id="baby-header-subtitle">—</div>
           <div class="main-title" id="baby-header-title">SweetSpot® Ritim & Uyku</div>
         </div>
       </div>
@@ -1544,8 +1555,8 @@
           <span style="font-size: 11px; color: var(--accent); cursor: pointer;" onclick="openAddRoutineModal()">+ Detaylı Ekle ➔</span>
         </div>
         <div class="quick-row">
-          <div class="quick-btn" onclick="quickLog('Beslenme')"><span class="quick-icon">🍼</span><span class="quick-txt">Beslenme</span></div>
-          <div class="quick-btn" onclick="quickLog('Alt Değişimi')"><span class="quick-icon">🚼</span><span class="quick-txt">Alt Değişimi</span></div>
+          <div class="quick-btn" onclick="openRoutineModalFor('feeding')"><span class="quick-icon">🍼</span><span class="quick-txt">Beslenme</span></div>
+          <div class="quick-btn" onclick="openRoutineModalFor('diaper')"><span class="quick-icon">🚼</span><span class="quick-txt">Alt Değişimi</span></div>
           <div class="quick-btn" onclick="toggleLiveSleep()"><span class="quick-icon">🌙</span><span class="quick-txt">Uyku Başlat</span></div>
         </div>
 
@@ -1607,14 +1618,14 @@
           <div>
             <div style="font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase;">Klinik Biyolojik Skor</div>
             <div style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: #FFF; margin: 2px 0;" id="analytics-score-val">
-              🌟 Gelişim Skoru: %88
+              🌟 Gelişim Skoru: —
             </div>
             <div style="font-size: 11px; color: var(--text-night); line-height: 15px;" id="analytics-score-desc">
-              SweetSpot Uyumu: %92 • Uyku Bütçesi: %85 • 4. Atak
+              Profil ve kayıt biriktikçe hesaplanır
             </div>
           </div>
           <div class="score-circle-badge" style="width: 52px; height: 52px; border-radius: 26px;">
-            <div class="score-circle-inner" id="analytics-score-badge-val" style="font-size: 16px;">88</div>
+            <div class="score-circle-inner" id="analytics-score-badge-val" style="font-size: 16px;">—</div>
           </div>
         </div>
 
@@ -1651,6 +1662,21 @@
           <!-- Rendered by JS -->
         </div>
       </div>
+
+      <!-- Gelişim Atakları (Wonder Weeks) -->
+      <div class="section-title" style="margin-top: 10px;">
+        <span>🌱 Gelişim Atakları (Wonder Weeks)</span>
+        <span id="leaps-early-override-badge" style="display: none; font-size: 10px; background: #FF4757; color: #FFF; padding: 2px 6px; border-radius: 4px; font-weight: 700;">⚡ ERKEN ATAK</span>
+      </div>
+      <div class="card" style="border: 1px solid var(--border-highlight);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <div style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: #FFF;" id="leaps-hero-title">10 Büyük Zihinsel Sıçrama</div>
+          <span style="font-size: 11px; color: var(--accent); font-weight: 700;" id="leaps-hero-overall-percent">—</span>
+        </div>
+        <div style="font-size: 11px; color: var(--text-night); line-height: 15px;" id="leaps-hero-desc">—</div>
+        <div class="progress-bar-wrap" style="height: 4px; margin-top: 8px;"><div class="progress-fill" id="leaps-hero-progress-bar" style="width: 0%; background: #A569BD;"></div></div>
+      </div>
+      <div id="leaps-list-container" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px;"><!-- renderWonderWeeksLeaps() --></div>
 
       <!-- Tüm Rutinlerin Filtrelenebilir Listesi -->
       <div class="section-title" style="margin-top: 10px;">
@@ -1790,7 +1816,7 @@
             <span class="settings-accordion-icon">👶</span>
             <div>
               <div class="settings-accordion-title">Bebek Profili</div>
-              <div class="settings-accordion-subtitle" id="acc-profile-summary">Mina • 4 Ay 12 Günlük</div>
+              <div class="settings-accordion-subtitle" id="acc-profile-summary">Profil eklenmedi</div>
             </div>
           </div>
           <span class="settings-accordion-chevron">▼</span>
@@ -1798,11 +1824,11 @@
         <div class="settings-accordion-body">
           <div class="form-group" style="margin-top: 10px;">
             <label class="form-label">Bebeğin Adı</label>
-            <input type="text" class="form-input" id="cfg-baby-name" value="Mina" placeholder="Örn: Mina" />
+            <input type="text" class="form-input" id="cfg-baby-name" placeholder="Bebeğinizin adı" />
           </div>
           <div class="form-group">
             <label class="form-label">Doğum Tarihi (Gelişim Atağı & Ay Hesabı)</label>
-            <input type="date" class="form-input" id="cfg-baby-bdate" value="2026-04-11" />
+            <input type="date" class="form-input" id="cfg-baby-bdate" />
           </div>
           <button class="btn-primary" onclick="saveBabyProfile()">💾 Profili Kaydet & Güncelle</button>
         </div>
@@ -1957,7 +1983,7 @@
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-size: 20px;">✨</span>
           <div>
-            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Mışıl Baby v4.3.0 (Build 2026.08)</div>
+            <div id="settings-version-line" style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Mışıl Baby</div>
             <div style="font-size: 11px; color: var(--text-muted);">Neler Yeni? (Sürüm Notları ve Geliştirme Günlüğü)</div>
           </div>
         </div>
@@ -2067,31 +2093,8 @@
       <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">🌸 Yenilikler & İyileştirmeler</div>
       <button class="modal-close" onclick="closeChangelogModal()">✕</button>
     </div>
-    
-    <div class="card" style="background: rgba(30, 42, 72, 0.95); border: 1px solid var(--accent); margin-bottom: 12px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: var(--accent);">Mışıl Baby v4.3.1 (En Güncel)</div>
-        <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">YENİ</span>
-      </div>
-      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">23 Ağustos 2026 • Bebeğinizin Huzuru İçin</div>
-      <div style="font-size: 12px; line-height: 18px; color: #C9CEDC;">
-        <div>• 🩺 <strong>Güvenli Bebek Uykusu:</strong> Amerikan Pediatri Akademisi (AAP) rehberliğinde tıbbi bilgilendirme ve şeffaf rıza sistemi.</div>
-        <div>• 👑 <strong>Esnek Aile Planları:</strong> İhtiyacınıza uygun Yıllık (%67 avantajlı), Aylık ve Tek Seferlik Ömür Boyu seçenekleri.</div>
-        <div>• ⏱️ <strong>Hassas Uyku Ölçümü:</strong> Bebeğinizin gündüz şekerlemelerini dakika dakika tam hesaplayan akıllı uyku barı.</div>
-        <div>• 🎵 <strong>18 Huzurlu Parça:</strong> Ninniler, anne karnı ve doğa seslerinde kesintisiz arama ve dinleme kolaylığı.</div>
-        <div>• ⚙️ <strong>Derli Toplu Ayarlar:</strong> Aradığınız her şeyi tek dokunuşla açıp kapatabileceğiniz 5 sade kutu.</div>
-      </div>
-    </div>
 
-    <div class="card" style="background: rgba(22, 29, 50, 0.8); border: 1px solid var(--border-night); margin-bottom: 12px;">
-      <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Mışıl Baby v4.2.0</div>
-      <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">20 Ağustos 2026</div>
-      <div style="font-size: 12px; line-height: 18px; color: var(--text-night);">
-        <div>• 🎙️ Librosa DSP 13-Band MFCC Akustik Ağlama Analizi.</div>
-        <div>• 🔒 Apple 3.1.1 ve 5.1.1 Mağaza Uyumluluğu.</div>
-        <div>• 👥 6 Haneli Aile Paylaşım Kodu ile Canlı Eşitleme.</div>
-      </div>
-    </div>
+    <div id="changelog-entries"><!-- renderChangelog() ile doldurulur --></div>
 
     <button class="btn-secondary" onclick="closeChangelogModal()" style="margin-top: 6px;">Kapat</button>
   </div>
@@ -2147,8 +2150,25 @@
     <!-- 2. FEEDING DYNAMIC FIELDS -->
     <div id="routine-feeding-fields" style="display: none;">
       <div class="form-group">
-        <label class="form-label">Miktar & Detay (ml / dk)</label>
-        <input type="text" class="form-input" id="routine-modal-feed-detail" value="140 ml Anne Sütü" placeholder="Örn: 140 ml Anne Sütü veya 20 dk Emzirme" />
+        <label class="form-label">Besleme Türü</label>
+        <select class="form-input" id="routine-modal-feed-method" onchange="onFeedMethodChange()">
+          <option value="breast">🤱 Anne Sütü (Emzirme)</option>
+          <option value="bottle_ebm">🍼 Biberon — Sağılmış Anne Sütü</option>
+          <option value="bottle_formula">🍼 Biberon — Mama</option>
+          <option value="solid">🥣 Katı / Ek Gıda</option>
+        </select>
+      </div>
+      <div class="form-group" id="routine-feed-amount-wrap">
+        <label class="form-label" id="routine-feed-amount-label">Miktar (ml)</label>
+        <input type="number" inputmode="numeric" min="0" step="5" class="form-input" id="routine-modal-feed-amount" placeholder="Örn: 140" />
+      </div>
+      <div class="form-group" id="routine-feed-duration-wrap" style="display: none;">
+        <label class="form-label">Süre (dk)</label>
+        <input type="number" inputmode="numeric" min="0" step="1" class="form-input" id="routine-modal-feed-duration" placeholder="Örn: 20" />
+      </div>
+      <div class="form-group">
+        <label class="form-label">Not (opsiyonel)</label>
+        <input type="text" class="form-input" id="routine-modal-feed-note" placeholder="Örn: sağ göğüs, huzursuzdu" />
       </div>
     </div>
 
@@ -2157,9 +2177,9 @@
       <div class="form-group">
         <label class="form-label">Bez Durumu</label>
         <select class="form-input" id="routine-modal-diaper-status">
-          <option value="Islak (Çiş)">💧 Islak / Temiz Çiş Bezi</option>
-          <option value="Kirli (Kaka)">💩 Kirli Bez</option>
-          <option value="Hem Islak Hem Kirli">💧+💩 Dolu Bez Değişimi</option>
+          <option value="wet">💧 Islak / Temiz Çiş Bezi</option>
+          <option value="dirty">💩 Kirli Bez</option>
+          <option value="mixed">💧+💩 Dolu Bez Değişimi</option>
         </select>
       </div>
     </div>
@@ -2252,10 +2272,12 @@
         window.MishilNative.onSubscriptionResult(msg.data);
       } else if (msg && msg.type === 'AUDIO_STATE') {
         // Native ses motoru durum bildirimi → mini player UI senkronu
+        var erroredId = (!msg.playing && msg.reason === 'error') ? currentTrackId : null;
         currentTrackId = msg.playing ? msg.id : null;
+        if (erroredId) markTrackUnavailable(erroredId);
         updatePlayerUI();
         if (!msg.playing && msg.reason === 'timer') showToast('💤 Kapanma zamanlayıcısı sesi durdurdu');
-        if (!msg.playing && msg.reason === 'error') showToast('⚠️ Ses yüklenemedi, bağlantınızı kontrol edin');
+        if (!msg.playing && msg.reason === 'error') showToast('⚠️ Bu ses şu an oynatılamadı, başka bir parça deneyin');
       }
     } catch(e) {}
   });
@@ -2270,6 +2292,80 @@
   }
   function nativeAudioSend(obj) {
     if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(obj));
+  }
+
+  // =========================================================================
+  // UYGULAMA META & SÜRÜM NOTLARI (dinamik)
+  // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
+  // tarayıcı önizlemesinde WEB_APP_META fallback.
+  // =========================================================================
+  const WEB_APP_META = { version: '4.10.0', build: 'web', platform: 'web', native: false };
+  function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
+  function appVersionLabel() {
+    const m = appMeta();
+    return `Mışıl Baby v${m.version}` + (m.build && m.build !== 'web' ? ` (build ${m.build})` : '');
+  }
+
+  // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
+  const CHANGELOG_ENTRIES = [
+    { v: '4.10.0', date: '7 Eylül 2026', latest: true, items: [
+      'Yeni bebek girişinde artık örnek/geçmiş veri görünmüyor; tüm ekranlar gerçek profilinize göre.',
+      'Gelişim Atakları (Wonder Weeks) takip alanı Analiz sekmesine geri geldi.',
+      'Samsung cihazlarda akıcılık: donanım hızlandırma ve sadeleştirilmiş animasyonlar.',
+      'Beslenme kaydında miktar (ml) ve tür (anne sütü / mama / katı) girilebiliyor.',
+      'Bazı seslerin "yüklenemedi" hatası: otomatik yeniden deneme ve net durum bildirimi.',
+      'iOS haptik geri bildirimi düzeltildi.',
+      'Sürüm notları ve numaralandırma dinamik ve tutarlı hale getirildi.',
+    ]},
+    { v: '4.9.0', date: '6 Eylül 2026', items: [
+      'Ninniler artık ekran kilitliyken ve arka planda kesintisiz çalıyor (native ses motoru).',
+      'Bağlantı koptuğunda uygulama boş ekranda kalmıyor; çevrimdışı sürüme düşüp otomatik yeniden bağlanıyor.',
+    ]},
+    { v: '4.8.4', date: '6 Eylül 2026', items: [
+      'Abonelik ve "Satın Alımları Geri Yükle" akışları güvenli hale getirildi.',
+    ]},
+    { v: '4.8.1', date: '6 Eylül 2026', items: [
+      'İlk açılıştaki geliştirici şifre ekranı kaldırıldı; uygulama anında ana ekrana açılıyor.',
+    ]},
+  ];
+
+  function renderAppMeta() {
+    const line = document.getElementById('settings-version-line');
+    if (line) line.textContent = appVersionLabel();
+  }
+
+  // =========================================================================
+  // BEBEK PROFİLİ — tek kaynak. Kayıtlı doğum tarihi yoksa null → hesap YOK,
+  // ekranlar "profil ekleyin" boş durumu gösterir. Örnek/sahte veri kullanılmaz.
+  // =========================================================================
+  const BABY_FALLBACK_NAME = 'Bebeğiniz';
+  function getBaby() {
+    const bdate = localStorage.getItem('mishil_baby_bdate');
+    if (!bdate) return null;
+    return { name: localStorage.getItem('mishil_baby_name') || BABY_FALLBACK_NAME, bdate: bdate };
+  }
+  function hasBaby() { return !!getBaby(); }
+  function babyEmptyStateHTML(msg) {
+    return `<div style="text-align:center;padding:26px 14px;color:var(--text-muted);font-size:12px;background:rgba(255,255,255,0.02);border-radius:14px;border:1px dashed rgba(255,255,255,0.12);line-height:18px;">
+      👶 <strong>${msg || 'Önce bebek profili ekleyin.'}</strong><br>
+      <span style="color:var(--accent);font-size:11px;cursor:pointer;" onclick="restartOnboardingQuiz()">Bebek profili ekle ➔</span>
+    </div>`;
+  }
+  function renderChangelog() {
+    const host = document.getElementById('changelog-entries');
+    if (!host) return;
+    host.innerHTML = CHANGELOG_ENTRIES.map(e => `
+      <div class="card" style="background: ${e.latest ? 'rgba(30, 42, 72, 0.95)' : 'rgba(22, 29, 50, 0.8)'}; border: 1px solid ${e.latest ? 'var(--accent)' : 'var(--border-night)'}; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <div style="font-family: 'Sora'; font-size: ${e.latest ? '14' : '13'}px; font-weight: 700; color: ${e.latest ? 'var(--accent)' : '#FFF'};">Mışıl Baby v${e.v}${e.latest ? ' (En Güncel)' : ''}</div>
+          ${e.latest ? '<span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">YENİ</span>' : ''}
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">${e.date}</div>
+        <div style="font-size: 12px; line-height: 18px; color: ${e.latest ? '#C9CEDC' : 'var(--text-night)'};">
+          ${e.items.map(i => `<div>• ${i}</div>`).join('')}
+        </div>
+      </div>
+    `).join('');
   }
 
   // Haptik pulse fonksiyonu (Bridge + Web Vibration API fallback)
@@ -2315,11 +2411,25 @@
   ];
 
   const audioMap = {};
+  const unavailableTracks = new Set();
   SOUND_TRACKS.forEach(t => {
     const aud = new Audio(t.file);
     aud.loop = true;
+    aud.preload = 'none';
+    aud.addEventListener('error', () => {
+      // Tarayıcı önizleme yolu — parça dekode edilemedi/404
+      markTrackUnavailable(t.id);
+    });
     audioMap[t.id] = aud;
   });
+
+  function markTrackUnavailable(id) {
+    if (!id || unavailableTracks.has(id)) return;
+    unavailableTracks.add(id);
+    if (currentTrackId === id) currentTrackId = null;
+    try { renderSoundsList(); } catch (e) {}
+    try { updatePlayerUI(); } catch (e) {}
+  }
 
   let currentTrackId = null;
   let activeCategory = 'all';
@@ -2347,17 +2457,19 @@
 
     filtered.forEach(t => {
       const isPlaying = (currentTrackId === t.id);
+      const isDown = unavailableTracks.has(t.id);
       const item = document.createElement('div');
       item.className = `sound-item ${isPlaying ? 'active' : ''}`;
-      item.onclick = () => togglePlayTrack(t.id);
+      item.style.opacity = isDown ? '0.45' : '1';
+      item.onclick = () => { if (isDown) { showToast('⚠️ Bu parça şu an kullanılamıyor'); return; } togglePlayTrack(t.id); };
 
       item.innerHTML = `
         <div style="flex: 1; padding-right: 8px;">
           <div class="sound-title">${t.title}</div>
-          <div class="sound-desc">${t.desc}</div>
-          <span class="sound-tag-badge">${t.badge}</span>
+          <div class="sound-desc">${isDown ? 'Şu an oynatılamıyor — daha sonra tekrar deneyin' : t.desc}</div>
+          <span class="sound-tag-badge">${isDown ? 'KULLANILAMIYOR' : t.badge}</span>
         </div>
-        <button class="sound-play-btn">${isPlaying ? '❚❚' : '▶'}</button>
+        <button class="sound-play-btn">${isDown ? '⚠️' : (isPlaying ? '❚❚' : '▶')}</button>
       `;
       container.appendChild(item);
     });
@@ -2506,8 +2618,9 @@
 
     dadiChatHistory.push({ role: 'user', content: userText });
 
-    const babyName = localStorage.getItem('mishil_baby_name') || 'Mina';
-    const birthDate = localStorage.getItem('mishil_baby_bdate') || '2026-04-11';
+    const _b = getBaby();
+    const babyName = _b ? _b.name : BABY_FALLBACK_NAME;
+    const birthDate = _b ? _b.bdate : null;
     const userRole = localStorage.getItem('mishil_user_role') || 'mother';
     const manualLeap = localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap')) : null;
 
@@ -2628,11 +2741,16 @@
   // =========================================================================
   // 3. ONBOARDING & PROFILE ENGINE
   // =========================================================================
-  let quizAnswers = { babyName: 'Mina', babyBdate: '2026-04-11', sleepResistance: 'medium', nightWakes: 'mid', struggleArea: 'meltdown' };
+  let quizAnswers = { babyName: '', babyBdate: '', sleepResistance: 'medium', nightWakes: 'mid', struggleArea: 'meltdown' };
 
   function checkOnboardingState() {
-    const isCompleted = localStorage.getItem('misil_onboarding_completed');
-    if (!isCompleted) {
+    // Eski anahtar geçişi (isim tutarlılığı): misil_* → mishil_*
+    if (localStorage.getItem('misil_onboarding_completed') && !localStorage.getItem('mishil_onboarding_completed')) {
+      localStorage.setItem('mishil_onboarding_completed', localStorage.getItem('misil_onboarding_completed'));
+    }
+    const isCompleted = localStorage.getItem('mishil_onboarding_completed');
+    // Bebek profili yoksa onboarding zorunlu (eski "Atla" ile geçmiş test kurulumları dahil)
+    if (!isCompleted || !hasBaby()) {
       document.getElementById('screen-onboarding').classList.add('active');
     }
   }
@@ -2640,6 +2758,11 @@
 
   function restartOnboardingQuiz() {
     hapticPulse();
+    const baby = getBaby();
+    const nmEl = document.getElementById('quiz-baby-name');
+    const bdEl = document.getElementById('quiz-baby-bdate');
+    if (nmEl) nmEl.value = baby ? baby.name : '';
+    if (bdEl) bdEl.value = baby ? baby.bdate : '';
     document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
     document.getElementById('quiz-step-1').style.display = 'block';
     document.getElementById('quiz-step-indicator').textContent = 'ADIM 1 / 5';
@@ -2658,10 +2781,21 @@
   function nextQuizStep(stepNum) {
     hapticPulse();
     if (stepNum === 2) {
-      quizAnswers.babyName = document.getElementById('quiz-baby-name').value.trim() || 'Mina';
-      quizAnswers.babyBdate = document.getElementById('quiz-baby-bdate').value || '2026-04-11';
-      localStorage.setItem('mishil_baby_name', quizAnswers.babyName);
-      localStorage.setItem('mishil_baby_bdate', quizAnswers.babyBdate);
+      const nm = document.getElementById('quiz-baby-name').value.trim();
+      const bd = document.getElementById('quiz-baby-bdate').value;
+      if (!nm || !bd) {
+        showToast('⚠️ Devam etmek için bebeğinizin adını ve doğum tarihini girin');
+        return;
+      }
+      const bdTime = new Date(bd).getTime();
+      if (isNaN(bdTime) || bdTime > Date.now()) {
+        showToast('⚠️ Geçerli bir doğum tarihi girin');
+        return;
+      }
+      quizAnswers.babyName = nm;
+      quizAnswers.babyBdate = bd;
+      localStorage.setItem('mishil_baby_name', nm);
+      localStorage.setItem('mishil_baby_bdate', bd);
     }
     document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
     document.getElementById(`quiz-step-${stepNum}`).style.display = 'block';
@@ -2742,29 +2876,14 @@
       return; // IAP tamamlanınca native bridge onSubscriptionResult() çağıracak
     }
 
-    // Web fallback (tarayıcı önizlemesi)
-    localStorage.setItem('misil_onboarding_completed', 'true');
+    // Web fallback (yalnızca tarayıcı önizlemesi — mağaza uygulamasında bu yola girilmez)
+    localStorage.setItem('mishil_onboarding_completed', 'true');
     document.getElementById('screen-onboarding').classList.remove('active');
-    showToast(`🎉 3 Günlük Ücretsiz Mışıl Baby Pro Aktif!`);
+    showToast(`🎉 Tarayıcı önizleme modu`);
   }
 
-  function finishOnboardingToApp() {
-    hapticPulse();
-    const chk = document.getElementById('chk-medical-disclaimer');
-    if (chk && !chk.checked) {
-      showToast('⚠️ Lütfen devam etmeden önce tıbbi feragatnameyi onaylayınız.');
-      return;
-    }
-    localStorage.setItem('mishil_medical_disclaimer_accepted_at', new Date().toISOString());
-    localStorage.setItem('misil_onboarding_completed', 'true');
-    document.getElementById('screen-onboarding').classList.remove('active');
-    showToast(`🌙 Mışıl Baby'e Hoş Geldiniz!`);
-  }
-
-  function skipOnboarding() {
-    localStorage.setItem('misil_onboarding_completed', 'true');
-    document.getElementById('screen-onboarding').classList.remove('active');
-  }
+  // NOT: Bedava katman / "Atla" akışı kaldırıldı — abonelik zorunlu (bkz. BUGFIX_PLAN #7A).
+  // finishOnboardingToApp ve skipOnboarding artık kullanılmıyor; UI'dan da çağrılmıyor.
 
   // =========================================================================
   // 4. SWEETSPOT & LIVE SLEEP ENGINE
@@ -2832,8 +2951,16 @@
   }
 
   function renderWonderWeeksLeaps() {
-    const bdate = localStorage.getItem('mishil_baby_bdate') || '2026-04-11';
-    const name = localStorage.getItem('mishil_baby_name') || 'Mina';
+    const container = document.getElementById('leaps-list-container');
+    const baby = getBaby();
+    if (!baby) {
+      if (container) container.innerHTML = babyEmptyStateHTML('Gelişim ataklarını görmek için bebek profili ekleyin.');
+      ['leaps-hero-overall-percent','leaps-hero-desc'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '—'; });
+      const hb = document.getElementById('leaps-hero-progress-bar'); if (hb) hb.style.width = '0%';
+      return;
+    }
+    const bdate = baby.bdate;
+    const name = baby.name;
     const calc = calculateSweetSpot(bdate);
     const currentWeek = calc.currentWeek;
     const manualLeap = localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap')) : null;
@@ -2858,7 +2985,6 @@
     }
 
     // Render 10 Leap Cards
-    const container = document.getElementById('leaps-list-container');
     if (!container) return;
     container.innerHTML = '';
 
@@ -3092,7 +3218,19 @@
   }
 
   function renderHomeScreenScore() {
-    const bdate = localStorage.getItem('mishil_baby_bdate') || '2026-04-11';
+    const baby = getBaby();
+    if (!baby) {
+      const v = document.getElementById('analytics-score-val');
+      const b = document.getElementById('analytics-score-badge-val');
+      const d = document.getElementById('analytics-score-desc');
+      if (v) v.textContent = '🌟 Gelişim Skoru: —';
+      if (b) b.textContent = '—';
+      if (d) d.textContent = 'Profil ekleyip kayıt biriktikçe hesaplanır';
+      ['score-part-sleep','score-part-sweetspot','score-part-leap'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '— / 100'; });
+      ['score-part-sleep-bar','score-part-sweetspot-bar','score-part-leap-bar'].forEach(id => { const el = document.getElementById(id); if (el) el.style.width = '0%'; });
+      return;
+    }
+    const bdate = baby.bdate;
     const scoreData = calculateDynamicDevelopmentScore(bdate);
 
     // Update Analytics Tab Score Elements
@@ -3122,6 +3260,7 @@
   function renderAnalyticsView() {
     renderHomeScreenScore();
     renderWeeklyChart();
+    renderWonderWeeksLeaps();
     renderAnalyticsRoutinesTimeline(activeRoutineFilter);
   }
 
@@ -3130,20 +3269,27 @@
     if (!chartContainer) return;
     chartContainer.innerHTML = '';
 
+    // Son 7 günü GERÇEK uyku kayıtlarından hesapla (sabit örnek veri kaldırıldı)
+    const dayNames = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
     const sleepLogs = activeRoutines.filter(r => r.type === 'sleep');
-    const totalSleepMins = sleepLogs.reduce((acc, s) => acc + (s.durationMins || 0), 0);
-    const todayHrs = (totalSleepMins / 60).toFixed(1);
-    const todayFillPercent = Math.min(100, Math.max(10, Math.round((totalSleepMins / TARGET_DAY_SLEEP_MINS) * 100)));
-
-    const weeklyData = [
-      { day: 'Pzt', hours: '3.2s', height: '75%' },
-      { day: 'Sal', hours: '3.5s', height: '100%' },
-      { day: 'Çar', hours: '3.0s', height: '68%' },
-      { day: 'Per', hours: '3.4s', height: '85%' },
-      { day: 'Cum', hours: '2.8s', height: '60%' },
-      { day: 'Cmt', hours: '3.6s', height: '95%' },
-      { day: 'Bugün', hours: `${todayHrs}s`, height: `${todayFillPercent}%` },
-    ];
+    const buckets = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - i);
+      const start = d.getTime();
+      const end = start + 86400000;
+      const mins = sleepLogs
+        .filter(s => s.timestamp >= start && s.timestamp < end)
+        .reduce((acc, s) => acc + (s.durationMins || 0), 0);
+      buckets.push({ day: i === 0 ? 'Bugün' : dayNames[d.getDay()], mins });
+    }
+    const maxMins = Math.max(TARGET_DAY_SLEEP_MINS, ...buckets.map(b => b.mins), 1);
+    const weeklyData = buckets.map(b => ({
+      day: b.day,
+      hours: `${(b.mins / 60).toFixed(1)}s`,
+      height: `${b.mins === 0 ? 4 : Math.round((b.mins / maxMins) * 100)}%`,
+    }));
 
     weeklyData.forEach(d => {
       const col = document.createElement('div');
@@ -3512,9 +3658,8 @@
   setInterval(updateLiveClock, 1000);
   updateLiveClock();
 
-  function hapticPulse() {
-    if (navigator.vibrate) navigator.vibrate(15);
-  }
+  // NOT: hapticPulse() tek tanım — yukarıda (native köprü + vibrate fallback).
+  // Buradaki ikinci tanım iOS'ta haptiği tamamen öldürüyordu (navigator.vibrate yok), kaldırıldı.
 
   function showToast(msg) {
     const toast = document.getElementById('toast');
@@ -3555,23 +3700,74 @@
     card.classList.toggle('open', !wasOpen);
   }
 
-  function updateSettingsProfileSummary() {
-    const bname = localStorage.getItem('mishil_baby_name') || 'Mina';
-    const bdate = localStorage.getItem('mishil_baby_bdate') || '2026-04-11';
-    const summary = document.getElementById('acc-profile-summary');
-    if (summary) {
-      const bDateObj = new Date(bdate);
-      const now = new Date();
-      const diffDays = Math.floor((now - bDateObj) / (1000 * 60 * 60 * 24));
-      const months = Math.floor(diffDays / 30.4375);
-      const days = Math.round(diffDays % 30.4375);
-      summary.textContent = `${bname} • ${months} Ay ${days} Günlük`;
-    }
+  function babyAgeText(baby) {
+    const bDateObj = new Date(baby.bdate);
+    const now = new Date();
+    const diffDays = Math.floor((now - bDateObj) / (1000 * 60 * 60 * 24));
+    const months = Math.floor(diffDays / 30.4375);
+    const days = Math.round(diffDays % 30.4375);
+    return `${baby.name} • ${months} Ay ${days} Günlük`;
   }
 
-  function openChangelogModal() { 
+  function updateSettingsProfileSummary() {
+    const baby = getBaby();
+    const summary = document.getElementById('acc-profile-summary');
+    if (summary) summary.textContent = baby ? babyAgeText(baby) : 'Profil eklenmedi';
+    // Ana ekran başlığı
+    const header = document.getElementById('baby-header-subtitle');
+    if (header) header.textContent = baby ? babyAgeText(baby) : 'Bebek profili ekleyin';
+    // Ayarlar formu alanları
+    const cn = document.getElementById('cfg-baby-name');
+    const cb = document.getElementById('cfg-baby-bdate');
+    if (cn && baby) cn.value = baby.name;
+    if (cb && baby) cb.value = baby.bdate;
+  }
+
+  // Ana ekran (SweetSpot + başlık) + bağlı ekranları gerçek profile göre yeniden çiz.
+  // NOT: Bu fonksiyon önceden tanımsızdı ve çağrıldığı her yerde ReferenceError atıp
+  // dinamik render'ı durduruyordu (sabit "Mina" HTML'i bu yüzden ekranda kalıyordu).
+  function loadBabyProfile() {
+    const baby = getBaby();
+    const badge = document.getElementById('sweetspot-status-badge');
+    const disp = document.getElementById('target-sleep-display');
+    const sub = document.getElementById('target-sleep-subtext');
+
+    if (!baby) {
+      if (disp) disp.textContent = '—';
+      if (sub) sub.textContent = 'Bebek profili ekleyin — SweetSpot buna göre hesaplanır';
+      if (badge) badge.textContent = 'Profil bekleniyor';
+    } else {
+      const calc = calculateSweetSpot(baby.bdate);
+      if (disp) disp.textContent = calc.sweetSpotTime;
+      if (sub) sub.textContent = `Sonraki İdeal Uyku Vakti • uyanıklık penceresi ${calc.wakeWindowMin} dk`;
+      if (badge) badge.textContent = calc.isManual ? '⚡ Erken Atak Modu Aktif' : 'SweetSpot® Önerisi Aktif';
+    }
+
+    updateSettingsProfileSummary();
+    renderHomeScreenScore();
+    renderWonderWeeksLeaps();
+  }
+
+  // Ayarlar > Bebek Profili kaydet (önceden tanımsızdı — buton hiçbir şey yapmıyordu)
+  function saveBabyProfile() {
     hapticPulse();
-    document.getElementById('modal-changelog').classList.add('active'); 
+    const nm = (document.getElementById('cfg-baby-name').value || '').trim();
+    const bd = document.getElementById('cfg-baby-bdate').value;
+    if (!nm || !bd) { showToast('⚠️ Ad ve doğum tarihi zorunlu'); return; }
+    const t = new Date(bd).getTime();
+    if (isNaN(t) || t > Date.now()) { showToast('⚠️ Geçerli bir doğum tarihi girin'); return; }
+    localStorage.setItem('mishil_baby_name', nm);
+    localStorage.setItem('mishil_baby_bdate', bd);
+    loadBabyProfile();
+    renderHomeTodayTimeline();
+    renderAnalyticsView();
+    showToast('💾 Bebek profili güncellendi');
+  }
+
+  function openChangelogModal() {
+    hapticPulse();
+    renderChangelog();
+    document.getElementById('modal-changelog').classList.add('active');
   }
   function closeChangelogModal() { 
     hapticPulse();
@@ -3608,6 +3804,29 @@
     document.getElementById('routine-diaper-fields').style.display = (type === 'diaper') ? 'block' : 'none';
     document.getElementById('routine-custom-fields').style.display = (type === 'custom') ? 'block' : 'none';
     if (type === 'sleep') calcModalSleepDuration();
+    if (type === 'feeding') onFeedMethodChange();
+  }
+
+  const FEED_METHOD_LABEL = {
+    breast: 'Anne Sütü', bottle_ebm: 'Biberon (Anne Sütü)', bottle_formula: 'Mama', solid: 'Katı Gıda'
+  };
+  function onFeedMethodChange() {
+    const m = (document.getElementById('routine-modal-feed-method') || {}).value || 'breast';
+    const amtWrap = document.getElementById('routine-feed-amount-wrap');
+    const durWrap = document.getElementById('routine-feed-duration-wrap');
+    const amtLabel = document.getElementById('routine-feed-amount-label');
+    if (m === 'breast') {
+      if (amtWrap) amtWrap.style.display = 'none';
+      if (durWrap) durWrap.style.display = 'block';
+    } else if (m === 'solid') {
+      if (amtWrap) amtWrap.style.display = 'block';
+      if (durWrap) durWrap.style.display = 'none';
+      if (amtLabel) amtLabel.textContent = 'Miktar (gram, opsiyonel)';
+    } else {
+      if (amtWrap) amtWrap.style.display = 'block';
+      if (durWrap) durWrap.style.display = 'none';
+      if (amtLabel) amtLabel.textContent = 'Miktar (ml)';
+    }
   }
 
   function calcModalSleepDuration() {
@@ -3631,7 +3850,13 @@
     return diff;
   }
 
-  function openAddRoutineModal() { 
+  function openRoutineModalFor(type) {
+    const sel = document.getElementById('routine-modal-type');
+    if (sel) sel.value = type;
+    openAddRoutineModal(); // içeride handleRoutineTypeChange ile alanlar senkronlanır
+  }
+
+  function openAddRoutineModal() {
     hapticPulse();
     const now = new Date();
     const endH = String(now.getHours()).padStart(2, '0');
@@ -3647,8 +3872,10 @@
     if (startInput) startInput.value = `${startH}:${startM}`;
     if (endInput) endInput.value = `${endH}:${endM}`;
 
-    calcModalSleepDuration();
-    document.getElementById('modal-routine').classList.add('active'); 
+    // Alan görünürlüğünü seçili türle senkronla (select değeri modal kapansa da kalıyor)
+    const sel = document.getElementById('routine-modal-type');
+    handleRoutineTypeChange(sel ? sel.value : 'sleep');
+    document.getElementById('modal-routine').classList.add('active');
   }
 
   function closeAddRoutineModal() { 
@@ -3698,35 +3925,48 @@
 
       showToast(`🌙 ${durMins} dk uyku kaydedildi! Sıradaki SweetSpot: ${nextSleepFormatted}`);
     } else if (type === 'feeding') {
-      const feedDetail = document.getElementById('routine-modal-feed-detail').value || '140 ml Anne Sütü';
+      const method = (document.getElementById('routine-modal-feed-method') || {}).value || 'breast';
+      const amountMl = method === 'breast' ? null : (parseInt(document.getElementById('routine-modal-feed-amount').value, 10) || null);
+      const durationMin = method === 'breast' ? (parseInt(document.getElementById('routine-modal-feed-duration').value, 10) || null) : null;
+      const note = (document.getElementById('routine-modal-feed-note').value || '').trim();
       const timeNow = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      let detail = FEED_METHOD_LABEL[method];
+      if (amountMl) detail += ` • ${amountMl} ${method === 'solid' ? 'g' : 'ml'}`;
+      if (durationMin) detail += ` • ${durationMin} dk`;
+      if (note) detail += ` • ${note}`;
       activeRoutines.unshift({
         id: 'rt_' + Date.now(),
         type: 'feeding',
         icon: '🍼',
         title: 'Beslenme',
-        detail: feedDetail,
+        method: method,
+        amountMl: amountMl,
+        durationMin: durationMin,
+        note: note,
+        detail: detail,
         time: timeNow,
         timestamp: now.getTime(),
         durationMins: 0
       });
       localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
-      showToast(`🍼 Beslenme (${feedDetail}) kaydedildi`);
+      showToast(`🍼 Beslenme kaydedildi (${detail})`);
     } else if (type === 'diaper') {
-      const diaperStatus = document.getElementById('routine-modal-diaper-status').value || 'Islak / Temiz Bez';
+      const kind = (document.getElementById('routine-modal-diaper-status') || {}).value || 'wet';
+      const kindLabel = { wet: 'Islak (çiş)', dirty: 'Kirli (kaka)', mixed: 'Dolu (çiş + kaka)' }[kind] || kind;
       const timeNow = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
       activeRoutines.unshift({
         id: 'rt_' + Date.now(),
         type: 'diaper',
         icon: '🚼',
         title: 'Bez Değişimi',
-        detail: diaperStatus,
+        kind: kind,
+        detail: kindLabel,
         time: timeNow,
         timestamp: now.getTime(),
         durationMins: 0
       });
       localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
-      showToast(`🚼 Bez değişimi (${diaperStatus}) kaydedildi`);
+      showToast(`🚼 Bez değişimi kaydedildi (${kindLabel})`);
     } else {
       const customDetail = document.getElementById('routine-modal-custom-detail').value || 'Özel Rutin';
       const timeNow = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
@@ -3759,9 +3999,11 @@
   function confirmDeleteAccount() { localStorage.clear(); closeDeleteModal(); showToast('🗑️ Tüm verileriniz kalıcı olarak silindi'); setTimeout(() => location.reload(), 1500); }
 
   // Initial renders
+  renderAppMeta();
   renderSoundsList();
   renderHomeTodayTimeline();
   renderAnalyticsView();
+  loadBabyProfile();
 </script>
 
 </body>
