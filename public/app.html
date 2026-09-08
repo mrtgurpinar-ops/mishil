@@ -64,16 +64,26 @@
       scrollbar-width: none !important;
     }
 
-    body {
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
       background: #06080F;
       font-family: 'Inter', sans-serif;
       color: var(--text-night);
+      -webkit-text-size-adjust: 100%;
+      overscroll-behavior: none;
+    }
+
+    body {
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
+      min-height: 100dvh;
       padding: 20px;
-      overflow-x: hidden;
+      overflow: hidden;
       position: relative;
     }
 
@@ -118,11 +128,12 @@
       * { transition-duration: 0.01ms !important; }
     }
 
-    /* Device Container Frame */
+    /* Device Container Frame (Universal Responsive Viewport) */
     .device-wrapper {
       position: relative;
       width: 390px;
       height: 844px;
+      max-height: 96vh;
       background: var(--bg-night);
       border-radius: 48px;
       border: 8px solid #1E2538;
@@ -135,27 +146,55 @@
     }
 
     @media (max-width: 600px) {
+      html, body {
+        width: 100%;
+        height: 100%;
+        height: 100dvh;
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+      }
       body {
         padding: 0;
         background: var(--bg-night);
       }
       .device-wrapper {
-        width: 100vw;
-        height: 100vh;
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        height: 100dvh;
+        max-height: 100dvh;
         border-radius: 0;
         border: none;
         box-shadow: none;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
       }
       .device-notch, .status-bar {
         display: none !important;
       }
       .screen-container {
-        padding-top: max(24px, env(safe-area-inset-top));
-        padding-bottom: max(95px, env(safe-area-inset-bottom));
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-top: max(16px, env(safe-area-inset-top));
+        padding-left: max(16px, env(safe-area-inset-left));
+        padding-right: max(16px, env(safe-area-inset-right));
+        padding-bottom: calc(76px + env(safe-area-inset-bottom));
       }
       .tab-bar {
-        padding-bottom: max(14px, env(safe-area-inset-bottom));
-        height: max(72px, calc(60px + env(safe-area-inset-bottom)));
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 100;
+        height: calc(64px + env(safe-area-inset-bottom));
+        padding-bottom: env(safe-area-inset-bottom);
+        padding-left: max(8px, env(safe-area-inset-left));
+        padding-right: max(8px, env(safe-area-inset-right));
       }
     }
 
@@ -914,9 +953,18 @@
     .dadi-container {
       display: flex;
       flex-direction: column;
-      height: calc(100vh - 180px);
-      max-height: 640px;
-      min-height: 480px;
+      flex: 1 1 auto;
+      height: calc(100vh - 210px);
+      max-height: 600px;
+      min-height: 380px;
+    }
+
+    @media (max-width: 600px) {
+      .dadi-container {
+        height: calc(100dvh - 210px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        max-height: none;
+        min-height: 340px;
+      }
     }
 
     .dadi-chat-card {
@@ -1286,6 +1334,156 @@
       color: var(--text-muted);
       font-size: 20px;
       cursor: pointer;
+    }
+
+    /* =========================================================================
+       WEB GUARD OVERLAY (NATIVE-ONLY DOWNLOAD WALL & ADMIN GATE mrtg.2591)
+       ========================================================================= */
+    #web-guard-overlay {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 30%, #151D33 0%, #080B12 100%);
+      z-index: 999999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      text-align: center;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+    }
+
+    #web-guard-overlay.active {
+      display: flex;
+    }
+
+    .guard-card {
+      max-width: 440px;
+      width: 100%;
+      background: rgba(22, 30, 52, 0.9);
+      border: 1px solid rgba(232, 168, 85, 0.35);
+      border-radius: 28px;
+      padding: 32px 24px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(232, 168, 85, 0.15);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .guard-logo-badge {
+      width: 76px;
+      height: 76px;
+      border-radius: 22px;
+      background: linear-gradient(135deg, #1E294A, #141B2E);
+      border: 1.5px solid rgba(232, 168, 85, 0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 38px;
+      margin-bottom: 16px;
+      box-shadow: 0 8px 24px var(--accent-glow);
+      cursor: pointer;
+      user-select: none;
+      transition: transform 0.2s;
+    }
+
+    .guard-logo-badge:active {
+      transform: scale(0.92);
+    }
+
+    .guard-title {
+      font-family: 'Sora', sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #FFF;
+      margin-bottom: 8px;
+    }
+
+    .guard-desc {
+      font-size: 13px;
+      line-height: 20px;
+      color: var(--text-night);
+      margin-bottom: 22px;
+    }
+
+    .guard-features {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      margin-bottom: 24px;
+      text-align: left;
+    }
+
+    .guard-feature-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #E2E8F0;
+    }
+
+    .guard-btn-row {
+      display: flex;
+      gap: 12px;
+      width: 100%;
+    }
+
+    .guard-store-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: #121829;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 14px;
+      padding: 12px 14px;
+      color: #FFF;
+      font-size: 12px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.2s;
+    }
+
+    .guard-store-btn:hover {
+      border-color: var(--accent);
+      background: #1A2238;
+      transform: translateY(-2px);
+    }
+
+    /* Admin Password Modal */
+    #admin-gate-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      z-index: 1000000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    #admin-gate-modal.active {
+      display: flex;
+    }
+
+    .admin-gate-box {
+      max-width: 360px;
+      width: 100%;
+      background: #141B2E;
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 16px 40px rgba(0,0,0,0.8), 0 0 30px var(--accent-glow);
+      text-align: center;
     }
   </style>
 </head>
@@ -1792,7 +1990,7 @@
           <!-- Chat Input Form -->
           <form onsubmit="handleSendAiMessage(event)" style="display: flex; gap: 6px; margin-top: 8px;">
             <input type="text" class="form-input" id="chat-user-input" placeholder="Mışıl Dadı'ya sorunuzu yazın..." style="margin-bottom: 0;" />
-            <button type="submit" class="sound-play-btn" style="background: var(--accent); color: #141B2E; border: none; flex-shrink: 0;">➔</button>
+            <button type="submit" id="chat-send-btn" class="sound-play-btn" style="background: var(--accent); color: #141B2E; border: none; flex-shrink: 0;">➔</button>
           </form>
         </div>
       </div>
@@ -2272,6 +2470,74 @@
   </div>
 </div>
 
+<!-- WEB GUARD OVERLAY: DOWNLOAD WALL (NATIVE-ONLY GUARD) -->
+<div id="web-guard-overlay">
+  <div class="guard-card">
+    <div class="guard-logo-badge" onclick="handleGuardLogoClick()" title="Mışıl Baby">
+      🌙
+    </div>
+    <div class="guard-title">Mışıl Baby</div>
+    <div style="font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 12px;">
+      Mobil Uygulamaya Özel Deneyim
+    </div>
+    <div class="guard-desc">
+      Kişiselleştirilmiş SweetSpot® sirkadiyen uyku takibi, 18 stüdyo ninnisi ve yapay zekâ ağlama analizi yalnızca <strong>iOS ve Android</strong> uygulamalarımızda kullanılabilir.
+    </div>
+
+    <div class="guard-features">
+      <div class="guard-feature-item">
+        <span style="font-size: 16px;">🌙</span>
+        <span><strong>SweetSpot®:</strong> Bebeğinizin bir sonraki uyku vaktini milimetrik hesaplar</span>
+      </div>
+      <div class="guard-feature-item">
+        <span style="font-size: 16px;">🎙️</span>
+        <span><strong>Akustik Ağlama Analizi:</strong> 13-bant MFCC ile açlık, gaz ve uyku tespiti</span>
+      </div>
+      <div class="guard-feature-item">
+        <span style="font-size: 16px;">🎵</span>
+        <span><strong>Kilitli Ekranda Müzik:</strong> 18 stüdyo sesi arka planda kesintisiz çalar</span>
+      </div>
+    </div>
+
+    <div class="guard-btn-row">
+      <a href="https://apps.apple.com" target="_blank" class="guard-store-btn">
+        <span style="font-size: 18px;">🍎</span>
+        <div style="text-align: left;">
+          <div style="font-size: 9px; color: var(--text-muted); line-height: 10px;">İndirin</div>
+          <div style="font-size: 12px; font-weight: 700;">App Store</div>
+        </div>
+      </a>
+      <a href="https://play.google.com" target="_blank" class="guard-store-btn">
+        <span style="font-size: 18px;">🤖</span>
+        <div style="text-align: left;">
+          <div style="font-size: 9px; color: var(--text-muted); line-height: 10px;">İndirin</div>
+          <div style="font-size: 12px; font-weight: 700;">Google Play</div>
+        </div>
+      </a>
+    </div>
+
+    <div style="margin-top: 20px; font-size: 10px; color: var(--text-muted);">
+      © 2026 Levitas Enterprise • Tüm Hakları Saklıdır
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN GATE PIN MODAL (mrtg.2591) -->
+<div id="admin-gate-modal">
+  <div class="admin-gate-box">
+    <div style="font-size: 28px; margin-bottom: 8px;">🔐</div>
+    <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF; margin-bottom: 6px;">Yönetici Önizleme Girişi</div>
+    <div style="font-size: 11px; color: var(--text-muted); line-height: 15px; margin-bottom: 16px;">
+      Tarayıcıdan tam uygulamaya erişmek için şifrenizi girin.
+    </div>
+    <input type="password" id="admin-gate-pass" class="form-input" placeholder="Şifrenizi girin" style="margin-bottom: 12px; text-align: center; font-size: 14px; letter-spacing: 2px;" onkeydown="if(event.key==='Enter') submitAdminPass();" />
+    <div style="display: flex; gap: 8px;">
+      <button class="btn-secondary" onclick="closeAdminGateModal()" style="margin-top: 0; flex: 1;">Vazgeç</button>
+      <button class="btn-primary" onclick="submitAdminPass()" style="flex: 1; padding: 10px;">Giriş Yap</button>
+    </div>
+  </div>
+</div>
+
 <script>
   // =========================================================================
   // 0. NATIVE MOBILE BRIDGE (react-native-webview köprüsü)
@@ -2311,6 +2577,101 @@
       }
     }
   };
+
+  // =========================================================================
+  // WEB GUARD & ADMIN GATE (mrtg.2591)
+  // Doğrudan web tarayıcısından gelen ziyaretçilere İndirme Duvarı gösterir.
+  // Geliştirici/Yönetici URL'ye ?admin=mrtg.2591 yazarak veya logoya 5 kez tıklayıp
+  // şifreyi girerek canlı ortamda bilgisayardan tam erişim sağlayabilir.
+  // =========================================================================
+  const ADMIN_PASS = 'mrtg.2591';
+  let logoClickCount = 0;
+  let logoClickTimer = null;
+
+  function handleGuardLogoClick() {
+    logoClickCount++;
+    clearTimeout(logoClickTimer);
+    logoClickTimer = setTimeout(() => { logoClickCount = 0; }, 2500);
+
+    if (logoClickCount >= 5) {
+      logoClickCount = 0;
+      openAdminGateModal();
+    }
+  }
+
+  function openAdminGateModal() {
+    const modal = document.getElementById('admin-gate-modal');
+    if (modal) {
+      modal.classList.add('active');
+      const input = document.getElementById('admin-gate-pass');
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 150);
+      }
+    }
+  }
+
+  function closeAdminGateModal() {
+    const modal = document.getElementById('admin-gate-modal');
+    if (modal) modal.classList.remove('active');
+  }
+
+  function submitAdminPass() {
+    const input = document.getElementById('admin-gate-pass');
+    const val = input ? input.value.trim() : '';
+    if (val === ADMIN_PASS) {
+      localStorage.setItem('mishil_admin_gate', 'unlocked');
+      closeAdminGateModal();
+      const overlay = document.getElementById('web-guard-overlay');
+      if (overlay) overlay.classList.remove('active');
+      showToast('🔓 Yönetici erişimi aktif edildi');
+    } else {
+      showToast('❌ Hatalı şifre');
+      if (input) input.value = '';
+    }
+  }
+
+  function checkWebGuard() {
+    try {
+      // 1. URL parametresi kontrolü (?admin=mrtg.2591 veya ?key=mrtg.2591)
+      const urlParams = new URLSearchParams(window.location.search);
+      const adminParam = urlParams.get('admin') || urlParams.get('key');
+      if (adminParam === ADMIN_PASS) {
+        localStorage.setItem('mishil_admin_gate', 'unlocked');
+      }
+
+      // 2. Kilidin daha önce açılıp açılmadığını kontrol et
+      if (localStorage.getItem('mishil_admin_gate') === 'unlocked') {
+        return;
+      }
+
+      // 3. Yerel geliştirme ortamı kontrolü (localhost, file://, 127.0.0.1)
+      if (
+        window.location.protocol === 'file:' ||
+        window.location.hostname === 'localhost' ||
+        window.location.hostname === '127.0.0.1' ||
+        window.location.hostname === ''
+      ) {
+        return;
+      }
+
+      // 4. Mobil Native WebView kontrolü
+      const isNative = !!(
+        (window.__MISHIL_APP__ && window.__MISHIL_APP__.native) ||
+        window.ReactNativeWebView ||
+        (window.MishilNative && window.MishilNative.isNative)
+      );
+      if (isNative) {
+        return;
+      }
+
+      // Web tarayıcısında ve kilit açılmamış: İndirme Duvarını göster
+      const overlay = document.getElementById('web-guard-overlay');
+      if (overlay) overlay.classList.add('active');
+    } catch (e) {
+      console.warn('Web guard check error:', e);
+    }
+  }
 
   // Native uygulama mesajlarını dinle
   window.addEventListener('message', function(event) {
@@ -2356,7 +2717,13 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.10.0', date: '7 Eylül 2026', latest: true, items: [
+    { v: '4.10.1', date: '8 Eylül 2026', latest: true, items: [
+      'Universal Viewport: Tüm iPhone ve Android modellerinde çentik, Dynamic Island ve alt bar taşmaları giderildi.',
+      'Mışıl Dadı AI Koçu: Tekrarları önleyen aşamalı klinik pediatrik akıl yürütme motoru entegre edildi.',
+      'Soru şablonlarına art arda basmayı önleyen işlem kilidi (debounce) getirildi.',
+      'Web linki koruma kalkanı ve yetkili yönetici önizleme sistemi devreye alındı.',
+    ]},
+    { v: '4.10.0', date: '7 Eylül 2026', items: [
       'Yeni bebek girişinde artık örnek/geçmiş veri görünmüyor; tüm ekranlar gerçek profilinize göre.',
       'Gelişim Atakları (Wonder Weeks) takip alanı Analiz sekmesine geri geldi.',
       'Samsung cihazlarda akıcılık: donanım hızlandırma ve sadeleştirilmiş animasyonlar.',
@@ -2635,23 +3002,43 @@
   // 2. MIŞIL DADI AI CHAT ENGINE (4-TIER CASCADING BACKEND API)
   // =========================================================================
   let dadiChatHistory = [];
+  let isDadiGenerating = false;
+
+  function setDadiChipsState(enabled) {
+    document.querySelectorAll('.ai-chip').forEach(chip => {
+      chip.style.pointerEvents = enabled ? 'auto' : 'none';
+      chip.style.opacity = enabled ? '1' : '0.4';
+    });
+    const sendBtn = document.getElementById('chat-send-btn');
+    if (sendBtn) {
+      sendBtn.disabled = !enabled;
+      sendBtn.style.opacity = enabled ? '1' : '0.5';
+    }
+  }
 
   function askAiPrompt(question) {
+    if (isDadiGenerating) return;
     hapticPulse();
-    document.getElementById('chat-user-input').value = question;
+    const input = document.getElementById('chat-user-input');
+    if (input) input.value = question;
     submitDadiChat(question);
   }
 
   function handleSendAiMessage(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
+    if (isDadiGenerating) return;
     const input = document.getElementById('chat-user-input');
-    const msg = input.value.trim();
+    const msg = input ? input.value.trim() : '';
     if (!msg) return;
-    input.value = '';
+    if (input) input.value = '';
     submitDadiChat(msg);
   }
 
   async function submitDadiChat(userText) {
+    if (isDadiGenerating) return;
+    isDadiGenerating = true;
+    setDadiChipsState(false);
+
     const container = document.getElementById('chat-messages-container');
     const typingIndicator = document.getElementById('dadi-typing-indicator') || document.getElementById('dadi-typing');
 
@@ -2691,7 +3078,7 @@
           manual_leap: manualLeap,
           routine_rollup: typeof calculateRoutineRollup === 'function' ? calculateRoutineRollup() : null,
           message: userText,
-          chat_history: dadiChatHistory.slice(-4)
+          chat_history: dadiChatHistory.slice(-8)
         })
       });
 
@@ -2737,8 +3124,6 @@
         }
       }
 
-      if (typingIndicator) typingIndicator.style.display = 'none';
-
       if (accumulatedText) {
         dadiChatHistory.push({ role: 'assistant', content: accumulatedText });
         hapticPulse();
@@ -2747,10 +3132,14 @@
       }
     } catch (err) {
       console.warn('Streaming error, falling back to local heuristic:', err);
-      if (typingIndicator) typingIndicator.style.display = 'none';
       if (!dadiBubble || !accumulatedText) {
         fallbackDadiLocalResponse(babyName, birthDate, userText);
       }
+    } finally {
+      isDadiGenerating = false;
+      setDadiChipsState(true);
+      if (typingIndicator) typingIndicator.style.display = 'none';
+      if (container) container.scrollTop = container.scrollHeight;
     }
   }
 
@@ -4163,6 +4552,7 @@
   function confirmDeleteAccount() { localStorage.clear(); closeDeleteModal(); showToast('🗑️ Tüm verileriniz kalıcı olarak silindi'); setTimeout(() => location.reload(), 1500); }
 
   // Initial renders
+  checkWebGuard();
   renderAppMeta();
   renderSoundsList();
   renderHomeTodayTimeline();

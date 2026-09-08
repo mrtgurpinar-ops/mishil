@@ -2,6 +2,23 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.10.1] - 2026-09-08
+### 📱 Canlı Testflight Bulguları & Web Koruması (Build 19)
+
+#### 🛠️ Fixed
+- **Universal Viewport & Ekrana Sığma (Safe Area Flexbox):**
+  - iOS Dynamic Island, çentik ve alt Home çizgisi olan tüm telefonlarda taşmayı önleyen 3 katmanlı kilitli Flexbox mimarisine geçildi (`position: fixed; inset: 0; height: 100dvh; overflow: hidden`).
+  - Alt sekme çubuğu `env(safe-area-inset-bottom)` ile dinamik boşluk kazandı; `.screen-container` alt boşluğu `calc(76px + env(safe-area-inset-bottom))` ile içeriklerin çubuk arkasında kalması engellendi.
+  - `.dadi-container` sohbet kutusu taşmaları önleyecek şekilde esnek `flex: 1 1 auto` ve responsive yükseklik kurallarıyla optimize edildi.
+- **Mışıl Dadı AI Koçu — Tekrarları Önleyen Kademeli Klinik Akıl Yürütme Motoru:**
+  - Basmakalıp tekrar yanıtları engellemek için `chat_history` bağlamını analiz eden, daha önce verilen tavsiyeleri hatırlayıp bir sonraki aşamaya geçen **kademeli pediatrik akıl yürütme (progressive clinical reasoning)** motoru entegre edildi.
+  - 8 farklı klinik kategori (30 dk uyanma döngüsü köprüsü, gece beslenmesi seyreltme, 4. ay regresyonu, uykuya direnç krizleri, oda sıcaklığı/sirkadiyen ortam, günlük uyku süreleri, kundak/güvenli uyku, diş/atak) bebeğin haftasına göre parametrik olarak yapılandırıldı.
+  - Soru şablonlarına art arda basılmasını önleyen `isDadiGenerating` durum kilidi, debounce mekanizması ve akış süresince butonları koruma kalkanı eklendi.
+- **Canlı Web Koruması (Native-Only Download Wall & Admin Gate):**
+  - Doğrudan `https://mishil-production.up.railway.app/app` linkine tarayıcıdan giren harici ziyaretçilere tam uygulama yerine şık, koyu obsidyen bir **İndirme Duvarı (Download Wall)** gösterilmesi sağlandı.
+  - Yönetici/geliştirici önizlemesi için `?admin=mrtg.2591` URL anahtarı ve logoya 5 tıklama ile açılan gizli şifre kapısı devreye alındı (`localStorage.setItem('mishil_admin_gate', 'unlocked')`).
+  - Mobil WebView içinde çalışan kullanıcılarda `window.__MISHIL_APP__.native` bayrağı sayesinde kilit otomatik olarak devre dışı bırakıldı.
+
 ## [4.10.0] - 2026-09-07
 ### 🐛 Dahili Test Bulguları — 9 Düzeltme (Build 18)
 
@@ -37,6 +54,8 @@ Kaynak: `projects/mishil/BUGFIX_PLAN_v4.10.0.md`. iOS + Android ayrı incelendi.
   (otomatik migrasyon). Sabit "v4.3.0 (Build 2026.08)" / "v4.3.1" ibareleri kaldırıldı.
 - **iOS'ta haptik tamamen ölü:** `hapticPulse()` iki kez tanımlıydı; ikincisi (yalnız
   `navigator.vibrate` — iOS'ta yok) siliniyor, native köprü versiyonu kalıyor.
+- **Apple App Store ITMS-90068 Uyumu (MinimumOSVersion >= 15.0):** `app.config.ts` içinde `expo-build-properties` altına `ios: { deploymentTarget: '15.1' }` yapılandırması eklendi. `core/mobile_compliance_checker.py` motoruna otomatik iOS deployment target denetimi entegre edildi.
+
 
 #### 🔄 Changed — Onboarding / Paywall (plan #7, Seçenek A)
 - Bedava katman kaldırıldı: onboarding "Atla ➔" butonu silindi. Abonelik zorunlu; bebek profili

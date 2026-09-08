@@ -1,31 +1,31 @@
-# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.9.0 / build 16)
+# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.10.0 / build 18)
 
 > Amaç: Google Play **ve** Apple App Store'a, "bazı telefonlarda açılmıyor" ve
 > "satın alma çalışmıyor" sınıfı sürprizler olmadan çıkmak.
-> Durum: kod tarafı hazır ve doğrulandı (typecheck + jest yeşil, compliance PASS).
-> Kalan iş **doğrulama + derleme + mağaza gönderimi** — aşağıdaki fazlar sırayla.
+> Durum: Build 18 her iki platform için EAS Cloud'da başarıyla derlendi, iOS Apple Review'a,
+> Android ise Google Play Dahili/Kapalı Test kanallarına başarıyla gönderildi!
 
 ---
 
-## 0. Mevcut Durum
+## 0. Mevcut Durum (v4.10.0 Build 18)
 
 | Alan | Durum |
 | :-- | :-- |
 | WebView açılış dayanıklılığı (render-crash kurtarma, retry, watchdog, `androidLayerType: software`) | ✅ kodda |
-| Abonelik gelir sızıntıları (restore/purchase sahte başarı) | ✅ kodda |
-| Android `minSdk 26` / `targetSdk 36` | ✅ kodda & Build 16 AAB üretildi |
-| iOS `buildNumber 16`, `ITSAppUsesNonExemptEncryption` | ✅ kodda & Build 16 IPA App Store Connect'e yüklendi |
+| Wonder Weeks (10 Zihinsel Sıçrama) & Sirkadiyen SweetSpot | ✅ kodda & mağazada |
+| 18 Stüdyo Master Parça & Akustik Mikser (CBR 192k) | ✅ kodda & pakette |
+| Klinik Akustik Ağlama Analizi (13-Bant MFCC Spektrogram) | ✅ kodda |
+| Şefkatli Mışıl Dadı AI Koçu & Biyometrik Rollup | ✅ kodda |
+| Android `minSdk 26` / `targetSdk 36` (Build 18) | ✅ Build 18 AAB üretildi & Play Store'a yüklendi |
+| iOS `buildNumber 18`, `ITSAppUsesNonExemptEncryption` | ✅ Build 18 IPA üretildi & **Apple Review'a Gönderildi** |
 | Production build guard (mock RevenueCat anahtarıyla derleme engellenir) | ✅ geçildi |
-| jest yeşil (`*.test.ts`), Maestro spec ayrıldı | ✅ yeşil |
+| jest yeşil (`*.test.ts`), compliance PASS | ✅ yeşil (100%) |
 | Native arka plan ses motoru (kilitli ekranda ninni) | ✅ pakete gömüldü |
-| Offline fallback (gömülü app.html) | ✅ pakete gömüldü |
-| RevenueCat anahtarları (Android + iOS) | ✅ `eas.json` production env'de |
+| Offline fallback (`offlineHtml.generated.ts`) | ✅ pakete gömüldü |
 | RevenueCat `pro` entitlement + `default` offering | ✅ panelde bağlı, kod hizalandı |
-| Google Play ürünleri / App Store Team ID / Railway uptime | ✅ doğrulandı |
 | Canlı uçlar (`/app`, `/privacy`, `/terms`, `/sounds`, `/coach/chat`) | ✅ 200 OK — canlıda doğrulandı |
-| `eas.json` iOS `ascAppId` | ✅ `6809223195` olarak tanımlandı |
-| Google Play Dahili Test Yüklemesi | ✅ Build 16 `.aab` hazırlandı ve yüklendi |
-| Apple TestFlight Yüklemesi | ✅ Build 16 `.ipa` App Store Connect'e başarıyla gönderildi |
+| Google Play Kapalı & Dahili Test Dağıtımı | ✅ Build 18 `.aab` yüklendi ve yayına gönderildi |
+| Apple App Store Connect Dağıtımı | ✅ Build 18 `.ipa` yüklendi ve **İncelemeye (In Review) Gönderildi** |
 
 ---
 

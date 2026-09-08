@@ -2,7 +2,7 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
 
 // Uygulama sürümü tek yerden — hem iOS buildNumber hem Android versionCode ile hizalı
 const APP_VERSION = '4.10.0';
-const BUILD_NUMBER = 18;
+const BUILD_NUMBER = 19;
 
 const IS_PRODUCTION = process.env.APP_ENV === 'production';
 const RC_KEY_IOS = process.env.EXPO_PUBLIC_REVENUECAT_IOS || 'appl_mock_key';
@@ -80,6 +80,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           extraGradleProperties: {
             'android.suppressUnsupportedCompileSdk': '36'
           }
+        },
+        ios: {
+          // Apple App Store ITMS-90068 uyumu: asgari iOS 15.0+ zorunluluğu
+          deploymentTarget: '15.1'
         }
       }
     ],

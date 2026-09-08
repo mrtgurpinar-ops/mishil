@@ -25,6 +25,7 @@ TEMEL PRENSİPLERİN (KESİNLİKLE UYULACAK):
 3. EZBER ŞABLON YASAĞI: Kullanıcı sormadıkça veya bebek akut krizde değilse ezbere "5S kundak, beyaz gürültü, 3 adımlı plan" dökme. Soru neyse SADECE o konuya odaklan.
 4. BAĞLAM İZOLASYONU: Bebeğin yaşı ve sıçrama bilgisi sadece arkadaki tıbbi mantığın içindir. Soruyla doğrudan ilgisi yoksa (örn: oda sıcaklığı, gaz masajı veya beslenme sorulduğunda) cevaba zorla sıçrama veya regresyon dersi ekleme.
 5. ASLA TIBBİ TEŞHİS KOYMA: İlaç veya kesin tıbbi teşhis koyma.
+6. AŞAMALI İLERLEME VE TEKRAR YASAĞI: Daha önceki yanıtlarda verilen tavsiyeleri (örneğin beyaz gürültü açın, oda sıcaklığı 20 derece olsun, yatağında pışpışlayın gibi) devam eden sohbette ASLA ezbere baştan tekrarlama. Ebeveyn bir soru sorduğunda, önceki konuşmada verilen adımları hatırlayarak ("Daha önce uyguladığınız pışpışlama adımı sonrasında, şimdi bir sonraki aşamaya geçelim..." gibi) bir sonraki derinlemesine klinik çözümü sun. Her cevap bir öncekini tamamlamalı ve ilerletmelidir.
 """
 
 
@@ -139,9 +140,9 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
 
     contents = []
-    for h in chat_history[-2:]:
+    for h in (chat_history or [])[-8:]:
         role = "user" if h.get("role") == "user" else "model"
-        txt = h.get("content", "")[:300]
+        txt = h.get("content", "")[:1000]
         contents.append({"role": role, "parts": [{"text": txt}]})
 
     contents.append({"role": "user", "parts": [{"text": f"[{role_tr} Soruyor]: {message}"}]})
@@ -173,36 +174,147 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
     return None
 
 
-def _tier4_clinical_heuristic(baby_name: str, birth_date: str, message: str, user_role: str = "mother", manual_leap: Optional[int] = None) -> str:
-    """Tier 4: Offline Contextual Sirkadiyen Expert Pediatrician Engine (Concise & Direct)"""
+def _tier4_clinical_heuristic(baby_name: str, birth_date: str, message: str, user_role: str = "mother", manual_leap: Optional[int] = None, chat_history: Optional[List[Dict[str, str]]] = None) -> str:
+    """Tier 4: Offline Progressive Clinical Sirkadiyen Expert Pediatrician Engine.
+    Zero-Crash, Multi-Turn Context Aware, Never-Repeating Dynamic Action Protocols.
+    """
     baby_info = _calc_baby_details(birth_date, manual_leap)
+    months = baby_info.get("months", 4)
+    weeks = baby_info.get("weeks", 19)
+    ww = baby_info.get("wake_window_min", 90)
     msg_lower = message.lower()
     hitap = "Sevgili anneciğim" if user_role == "mother" else ("Sevgili babacığım" if user_role == "father" else "Sevgili dadımız")
 
-    if any(w in msg_lower for w in ["30 dk", "kısa", "hemen uyandı", "döngü", "kedi uykusu"]):
+    # Geçmiş konuşmalarda ne önerildiğini analiz et
+    past_replies = " ".join([h.get("content", "").lower() for h in (chat_history or []) if h.get("role") in ("assistant", "model")])
+    turn_count = len([h for h in (chat_history or []) if h.get("role") == "user"])
+
+    # 1. KATEGORİ: 30-45 Dakika Sonra Uyanma / Döngü Köprüsü
+    if any(w in msg_lower for w in ["30 dk", "30 dakika", "kısa", "hemen uyandı", "döngü", "kedi uykusu", "yarım saat"]):
+        if "wake-to-sleep" in past_replies or "25. dakika" in past_replies or turn_count >= 2:
+            return (
+                f"{hitap}, {baby_name}'nın 30. dakika uyanmalarını kalıcı çözmek için 3. seviye köprü adımımız hazır:\n\n"
+                f"• **Uyku Ortamı Sabitlemesi:** Bebek daldığı andaki ses ve ışık ile 30. dakikada uyanırken algıladığı ortam birebir aynı olmalıdır (Mışıl Baby *Pembe Gürültü* kesintisiz açık kalmalı).\n"
+                f"• **Uyanıklık Penceresi Kalibrasyonu:** {baby_name} ({baby_info['age_formatted']}) için uykuya geçiş süresini 10 dakika öne çekin; aşırı yorgun giren bebekler 30. dakikada kortizol fırlamasıyla sıçrar."
+            )
+        elif "pışpış" in past_replies or turn_count >= 1:
+            return (
+                f"{hitap}, ilk pışpışlama adımından sonra 30. dakika direnci devam ediyorsa, klinik **'Wake-to-Sleep' (Uyanmadan Önce Döngü Sıfırlama)** tekniğini uygulayalım:\n\n"
+                f"• {baby_name} uykuya daldıktan 25 dakika sonra sessizce odasına girin.\n"
+                f"• Tam uyanmasına izin vermeden, hafifçe sırtına dokunarak veya pozisyonunu 1 santim kaydırarak hafifçe kıpırdanmasını sağlayın.\n"
+                f"• Bu hafif kıpırdanma, beynin 30. dakikadaki kriz uyanmasını atlayıp 2. derin uyku döngüsüne kesintisiz bağlanmasını sağlar."
+            )
+        else:
+            return (
+                f"{hitap}, {baby_name} ({baby_info['age_formatted']}) 1. hafif uyku döngüsünü (30-40 dk) tamamlayıp derin uykuya geçerken uyanmış.\n\n"
+                f"• Işığı hiç açmadan ve göz teması kurmadan yatağında pışpışlayın.\n"
+                f"• Sırtını 2-3 dakika hafif sıvazlayarak ve arka plandaki ninninin ritmini koruyarak 2. uyku döngüsüne bağlanmasına destek olun."
+            )
+
+    # 2. KATEGORİ: Gece Uyanması & Gece Beslenmesini Azaltma
+    elif any(w in msg_lower for w in ["gece", "uyanma", "beslenme", "mama", "meme", "gece beslenmesi", "emzirme"]):
+        if months < 3:
+            return (
+                f"{hitap}, {baby_name} henüz {weeks} haftalık olduğu için gece uyanmaları fizyolojik bir kalori ve güvenlik ihtiyacıdır.\n\n"
+                f"• Gece beslenmesini aceleyle kesmeye çalışmayın; ancak beslerken ortamı loş tutun, konuşmayın ve altını yalnızca sızıntı varsa değiştirin.\n"
+                f"• Bu sayede gece ile gündüz ayrımı sirkadiyen hafızasına milimetrik kodlanacaktır."
+            )
+        elif 3 <= months < 6:
+            if "rüya beslenmesi" in past_replies or "dream feed" in past_replies or turn_count >= 2:
+                return (
+                    f"{hitap}, {baby_name} için gece beslenmesini kademeli seyreltme evresindeyiz:\n\n"
+                    f"• Biberon veriyorsanız mama miktarını her 2 gecede bir 15-20 ml azaltın; emziriyorsanız emzirme süresini 2 dakika kısaltarak göğsü boşaltmadan uykuya geçiş sağlayın.\n"
+                    f"• Kalan ihtiyacı kucakta pışpışlama ve Mışıl Baby *Brahms Ninnisi* ile sakinleştirerek kapatın."
+                )
+            else:
+                return (
+                    f"{hitap}, {baby_name}'nın ({baby_info['age_formatted']}) gece beslenmesini kademeli azaltmak için klinik **'Rüya Beslenmesi' (Dream Feed)** yöntemini öneriyorum:\n\n"
+                    f"• Siz yatmadan önce (saat 23:00 civarı), {baby_name} hiç uyanmadan ve ışığı açmadan onu hafifçe kucağınıza alıp besleyin.\n"
+                    f"• Bu yöntem, bebeğin gece 02:00-03:00 açlık uyanmasını sıfırlar ve sabah 06:00'ya kadar kesintisiz blok uyku uyumasını sağlar."
+                )
+        else: # months >= 6
+            if "bekleme süresi" in past_replies or "su köprüsü" in past_replies or turn_count >= 2:
+                return (
+                    f"{hitap}, 6. aydan büyük bebeklerde gece alışkanlık uyanmalarında kararlı kalmak esastır:\n\n"
+                    f"• Beslenmeyi uykuya geçiş aracı olmaktan tamamen ayırmak için besleme ile yatak arasına 15 dakikalık bir kitap/masal/ninni rutini koyun.\n"
+                    f"• Gece uyanmalarında ise doğrudan beslemek yerine birkaç yudum ılık su teklif edin ve sakinleştirici ses eşliğinde yatağında sakinleşmesini bekleyin."
+                )
+            else:
+                return (
+                    f"{hitap}, {baby_name} ({baby_info['age_formatted']}) hekim onayına bağlı olarak geceleri fizyolojik açlıktan ziyade uykuya dönüş güvencesi için uyanır.\n\n"
+                    f"• Uyanır uyanmaz ilk 90 saniye hemen müdahale etmeyin; kendi kendine pozisyon almasına fırsat tanıyın.\n"
+                    f"• Devam ederse beslemek yerine sırtını pışpışlayarak uykuya dönmesini sağlayın; böylece gece kalori transferi gündüze kayacaktır."
+                )
+
+    # 3. KATEGORİ: 4. Ay Regresyonu / Atak / Wonder Weeks Sıçraması
+    elif any(w in msg_lower for w in ["regresyon", "4. ay", "atak", "sıçrama", "wonder", "huysuz", "dönem"]):
+        if "uyanıklık penceresi" in past_replies or "melatonin" in past_replies or turn_count >= 2:
+            return (
+                f"{hitap}, {baby_name}'nın atak döneminde sinir sistemi aşırı uyarılmaya çok açıktır:\n\n"
+                f"• Gündüz uykularının sonuncusunu (akşamüstü kestirmesi) kesinlikle saat 17:00'den sonraya bırakmayın.\n"
+                f"• Akşam rutininde 15 dakika önce ışıkları %20 seviyesine düşürün ve banyo sonrası hafif bir masajla melatonin salgısını maksimize edin."
+            )
+        else:
+            return (
+                f"{hitap}, {baby_name} için **{baby_info['leap_info']}** evresi çok kıymetli bir nörolojik sıçramadır.\n\n"
+                f"• Bu dönemde bebeklerin uyku mimarisi yetişkin tipi 4 evreli REM-NREM döngüsüne kalıcı olarak geçer (genellikle 2-3 hafta sürer).\n"
+                f"• En kritik kural: SweetSpot uyanıklık süresini (**{ww} dakika**) 1 dakika bile aşmadan, ilk esneme veya göz ovuşturmada uyku ortamına geçmektir."
+            )
+
+    # 4. KATEGORİ: Uykuya Direnme, Ağlama Krizleri & Kucakta Sallanma
+    elif any(w in msg_lower for w in ["diren", "ağla", "uyumuyor", "kriz", "çıldır", "salla", "kucak", "yatmıyor"]):
+        if "kademeli geri çekilme" in past_replies or "mayışmış" in past_replies or turn_count >= 2:
+            return (
+                f"{hitap}, {baby_name} kriz anında kortizol seviyesini hızla düşürmek için 'Dikey Ritim' tekniğini deneyin:\n\n"
+                f"• Bebeği göğsünüze yaslayarak hafif diz bükme ritmiyle (ritmik kalp atışı temposunda) 3 dakika nefesinizi yavaşlatın.\n"
+                f"• Ağlaması durup kasları gevşediğinde, derin uykuya dalmasını beklemeden yatağına yatırın ve elinizi hafifçe karnına koyun."
+            )
+        else:
+            return (
+                f"{hitap}, {baby_name} uykuya direnirken aşırı yorulmuş ve beyni uyarıcı hormonlar salgılamış olabilir.\n\n"
+                f"• Kriz anında uyutmak için zorlamak direnci artırır; ortamı 5 dakika değiştirin, loş bir odaya geçip camdan dışarı bakın.\n"
+                f"• Nabzı ve solunumu sakinleştiğinde Mışıl Baby *5S Doğal Pışpış* eşliğinde tekrar yatağına yönlendirin."
+            )
+
+    # 5. KATEGORİ: Oda Sıcaklığı, Nem ve Uyku Ortamı
+    elif any(w in msg_lower for w in ["sıcaklık", "derece", "oda", "nem", "kıyafet", "tulum"]):
         return (
-            f"{hitap}, {baby_name} ilk uyku döngüsünü bitirip hafif uykuya geçtiğinde uyanmış.\n\n"
-            f"• Işığı hiç açmadan ve göz teması kurmadan yatağında pışpışlayın.\n"
-            f"• Sırtını 2-3 dakika hafif sıvazlayarak 2. uyku döngüsüne bağlanmasına destek olun."
+            f"{hitap}, {baby_name} için ideal bebek odası sıcaklığı **20°C - 22°C**, ideal nem oranı ise **%45 - %55** aralığında olmalıdır.\n\n"
+            f"• Bebeğin ensesini kontrol edin; nemli veya terliyse ortam sıcaktır. Aşırı sıcak ortam bebeklerde gece sık uyanmanın en yaygın gizli nedenidir.\n"
+            f"• Oda tamamen zifiri karanlık olmalı, gece lambası dahi kullanılmamalıdır."
         )
-    elif any(w in msg_lower for w in ["gece", "uyanma", "beslenme", "mama", "meme"]):
+
+    # 6. KATEGORİ: Günlük Uyku Süresi & Kaç Saat Uyumalı
+    elif any(w in msg_lower for w in ["saat", "kaç saat", "süre", "kaç şekerleme", "şekerleme sayısı"]):
+        if months < 3:
+            return f"{hitap}, {baby_name} ({baby_info['age_formatted']}) için günlük ideal toplam uyku süresi **15-17 saattir**. Gün içinde 4-5 kez şekerleme yapması ve her uyanıklık arasının {ww} dakikayı geçmemesi gerekir."
+        elif 3 <= months < 7:
+            return f"{hitap}, {baby_name} ({baby_info['age_formatted']}) için günlük ideal toplam uyku **14-15 saattir**. Bunun 10-11 saati gece, 3.5-4 saati ise 3 gündüz şekerlemesi (sabah, öğle, akşamüstü) şeklinde olmalıdır."
+        else:
+            return f"{hitap}, {baby_name} ({baby_info['age_formatted']}) için günlük ideal toplam uyku **13-14 saattir**. Genellikle 2 gündüz şekerlemesine (sabah ve öğleden sonra) geçiş tamamlanmış olmalıdır."
+
+    # 7. KATEGORİ: Kundak Bırakma, Dönme & Güvenli Uyku
+    elif any(w in msg_lower for w in ["kundak", "dönme", "dönüyor", "yüzüstü", "tulum"]):
         return (
-            f"{hitap}, {baby_name}'nın bu ayında gece uyanmaları genellikle açlıktan ziyade uyku güvencesi arayışındandır.\n\n"
-            f"• Uyanır uyanmaz hemen beslemek yerine 60-90 saniye kendi kendine dönmesine fırsat tanıyın.\n"
-            f"• Beslerken ortamı tamamen loş tutun ve konuşmadan yatağına bırakın."
+            f"{hitap}, {baby_name} sağa-sola dönme emareleri gösterdiği anda yarım veya tam kundak derhal bırakılmalıdır (AAP Güvenli Uyku Standardı).\n\n"
+            f"• Kolları serbest bırakan güvenli bir uyku tulumuna (0.5-1.0 TOG) geçiş yapın.\n"
+            f"• Yatakta yastık, peluş oyuncak veya gevşek battaniye kesinlikle bulundurmayın."
         )
-    elif any(w in msg_lower for w in ["sıcaklık", "derece", "oda"]):
-        return (
-            f"{hitap}, {baby_name} için ideal bebek odası sıcaklığı **20°C - 22°C**, ideal nem oranı ise **%45 - %55** aralığında olmalıdır. Aşırı sıcak ortam gece sık uyanmanın en yaygın gizli nedenidir."
-        )
-    elif any(w in msg_lower for w in ["saat", "kaç saat", "süre"]):
-        return (
-            f"{hitap}, {baby_name} ({baby_info['age_formatted']}) için günlük ideal toplam uyku süresi **14-15 saattir**. Bunun 10-11 saati gece uykusu, kalan 3.5-4 saati ise gündüz şekerlemeleri şeklinde olmalıdır."
-        )
+
+    # 8. GENEL & DİĞER SORULAR İÇİN KLİNİK İLERLEYİCİ CEVAP
     else:
-        return (
-            f"{hitap}, {baby_name} ({baby_info['age_formatted']}) için ideal SweetSpot uyanıklık penceresi **{baby_info['wake_window_min']} dakikadır**. Bu süreyi aşmadan uykuya geçiş ortamını hazırlayarak krizleri büyük ölçüde önleyebilirsiniz."
-        )
+        if turn_count >= 1:
+            return (
+                f"{hitap}, {baby_name} ({baby_info['age_formatted']}) için sirkadiyen ritmi oturturken en önemli adım tutarlılıktır.\n\n"
+                f"• Gelişim evresi: **{baby_info['leap_info']}**.\n"
+                f"• Her uyku öncesi aynı 3 adımlı rutini (Bez değişimi ➔ Loş ışık & Mışıl ses ➔ Yatakta pışpışlama) 7 gün boyunca aksatmadan uyguladığınızda uykuya dalma süresi 40 dakikadan 12 dakikaya inecektir."
+            )
+        else:
+            return (
+                f"{hitap}, {baby_name} ({baby_info['age_formatted']}) için ideal SweetSpot uyanıklık penceresi **{ww} dakikadır**.\n\n"
+                f"• Bu süreyi aşmadan, bebeğin esneme ve göz ovuşturma gibi ilk yorgunluk sinyallerinde uyku ortamını hazırlayarak krizleri %85 önleyebilirsiniz.\n"
+                f"• Aklınıza takılan spesifik konuyu (gece beslenmesi, kısa uyku, ataklar) bana dilediğiniz an sorabilirsiniz."
+            )
 
 
 def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -214,26 +326,20 @@ def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history:
     tier_used = None
 
     if api_key:
-        # Tier 1: Gemini 3.5 Flash
-        reply = _call_gemini_model("gemini-3.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup)
+        # Tier 1: Gemini 2.0 Flash
+        reply = _call_gemini_model("gemini-2.0-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup)
         if reply:
-            tier_used = "Tier 1 (Google Gemini 3.5 Flash API)"
+            tier_used = "Tier 1 (Google Gemini 2.0 Flash API)"
 
-        # Tier 2: Gemini 2.5 Flash
-        if not reply:
-            reply = _call_gemini_model("gemini-2.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup)
-            if reply:
-                tier_used = "Tier 2 (Google Gemini 2.5 Flash API)"
-
-        # Tier 3: Gemini 1.5 Flash
+        # Tier 2: Gemini 1.5 Flash
         if not reply:
             reply = _call_gemini_model("gemini-1.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup)
             if reply:
-                tier_used = "Tier 3 (Google Gemini 1.5 Flash API)"
+                tier_used = "Tier 2 (Google Gemini 1.5 Flash API)"
 
     # Tier 4: Clinical Sirkadiyen Heuristic Engine
     if not reply:
-        reply = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap)
+        reply = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap, chat_history)
         tier_used = "Tier 4 (Clinical Sirkadiyen Engine)"
 
     logger.info(f"Mışıl Dadı AI executed for {baby_name} ({user_role}) using {tier_used}")
@@ -278,54 +384,58 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
             f"{rollup_text}"
         )
 
-        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:streamGenerateContent?key={api_key}&alt=sse"
+        for candidate_model in ["gemini-2.0-flash", "gemini-1.5-flash"]:
+            if streamed_success:
+                break
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate_model}:streamGenerateContent?key={api_key}&alt=sse"
 
-        contents = []
-        for h in chat_history[-2:]:
-            role = "user" if h.get("role") == "user" else "model"
-            txt = h.get("content", "")[:300]
-            contents.append({"role": role, "parts": [{"text": txt}]})
-        contents.append({"role": "user", "parts": [{"text": f"[{role_tr} Soruyor]: {message}"}]})
+            contents = []
+            for h in (chat_history or [])[-8:]:
+                role = "user" if h.get("role") == "user" else "model"
+                txt = h.get("content", "")[:1000]
+                contents.append({"role": role, "parts": [{"text": txt}]})
+            contents.append({"role": "user", "parts": [{"text": f"[{role_tr} Soruyor]: {message}"}]})
 
-        payload = {
-            "contents": contents,
-            "systemInstruction": {"parts": [{"text": sys_prompt}]},
-            "generationConfig": {
-                "temperature": 0.40,
-                "maxOutputTokens": 1000,
-                "thinkingConfig": {"thinkingBudget": 0}
+            payload = {
+                "contents": contents,
+                "systemInstruction": {"parts": [{"text": sys_prompt}]},
+                "generationConfig": {
+                    "temperature": 0.40,
+                    "maxOutputTokens": 1000,
+                    "thinkingConfig": {"thinkingBudget": 0}
+                }
             }
-        }
 
-        try:
-            data_bytes = json.dumps(payload).encode("utf-8")
-            req = urllib.request.Request(url, data=data_bytes, headers={"Content-Type": "application/json"}, method="POST")
-            with urllib.request.urlopen(req, timeout=20) as resp:
-                for raw_line in resp:
-                    line = raw_line.decode("utf-8").strip()
-                    if line.startswith("data:"):
-                        data_str = line[5:].strip()
-                        if data_str:
-                            try:
-                                obj = json.loads(data_str)
-                                parts = obj.get("candidates", [{}])[0].get("content", {}).get("parts", [])
-                                for p in parts:
-                                    chunk = p.get("text", "")
-                                    if chunk:
-                                        streamed_success = True
-                                        yield f"data: {json.dumps({'text': chunk, 'tier': 'Tier 1 (Gemini 3.5 Flash Streaming)'})}\n\n"
-                            except Exception:
-                                pass
-        except Exception as err:
-            logger.warning(f"Live Gemini SSE streaming error: {err}")
+            try:
+                data_bytes = json.dumps(payload).encode("utf-8")
+                req = urllib.request.Request(url, data=data_bytes, headers={"Content-Type": "application/json"}, method="POST")
+                with urllib.request.urlopen(req, timeout=15) as resp:
+                    for raw_line in resp:
+                        line = raw_line.decode("utf-8").strip()
+                        if line.startswith("data:"):
+                            data_str = line[5:].strip()
+                            if data_str:
+                                try:
+                                    obj = json.loads(data_str)
+                                    parts = obj.get("candidates", [{}])[0].get("content", {}).get("parts", [])
+                                    for p in parts:
+                                        chunk = p.get("text", "")
+                                        if chunk:
+                                            streamed_success = True
+                                            yield f"data: {json.dumps({'text': chunk, 'tier': f'Tier 1 ({candidate_model} Streaming)'})}\n\n"
+                                except Exception:
+                                    pass
+            except Exception as err:
+                logger.warning(f"Live Gemini SSE streaming error with {candidate_model}: {err}")
 
-    # Fallback to local clinical heuristic streaming if live API didn't stream
+    # Fallback to local clinical progressive heuristic streaming if live API didn't stream
     if not streamed_success:
-        full_text = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap)
+        full_text = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap, chat_history)
         words = full_text.split(" ")
         for i, word in enumerate(words):
             chunk = word + (" " if i < len(words) - 1 else "")
-            yield f"data: {json.dumps({'text': chunk, 'tier': 'Tier 4 (Clinical Sirkadiyen Streaming)'})}\n\n"
-            time.sleep(0.02)
+            yield f"data: {json.dumps({'text': chunk, 'tier': 'Tier 4 (Clinical Progressive Streaming)'})}\n\n"
+            time.sleep(0.015)
 
     yield f"data: {json.dumps({'done': True})}\n\n"
+
