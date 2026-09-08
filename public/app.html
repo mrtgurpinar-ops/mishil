@@ -2346,6 +2346,55 @@
   </div>
 </div>
 
+<!-- MODAL: BAĞIMSIZ VIP YENİLEME (ADIM 3 — onboarding anketinden tamamen ayrı) -->
+<div class="modal-overlay" id="vip-renewal-modal">
+  <div class="modal-sheet no-scrollbar">
+    <div class="modal-header">
+      <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;" id="vip-renewal-title">👑 Mışıl VIP Aboneliğinizi Yenileyin</div>
+      <button class="modal-close" onclick="closeVipRenewalModal()">✕</button>
+    </div>
+
+    <div style="font-size: 12px; line-height: 18px; color: #C9CEDC; margin-bottom: 14px;">
+      Sirkadiyen uyku pencereleri, <strong style="color:#FFF;">Mışıl Dadı AI Koçu</strong> ve 18 stüdyo sesine kesintisiz erişim.
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
+      <div id="vip-renewal-plan-yearly" class="onboarding-plan-card selected" style="border: 2px solid var(--accent); background: rgba(35, 42, 70, 0.95); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectVipRenewalPlan('yearly', this)">
+        <div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">👑 Yıllık VIP</strong>
+            <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">ÖNERİLEN</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Aylık ₺49.99 — %67 tasarruf</div>
+        </div>
+        <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: var(--accent);">₺599.99<span style="font-size: 10px; color: var(--text-muted);">/yıl</span></div>
+      </div>
+
+      <div id="vip-renewal-plan-monthly" class="onboarding-plan-card" style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectVipRenewalPlan('monthly', this)">
+        <div>
+          <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">⚡ Aylık Pro</strong>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Taahhütsüz, aylık yenilenir</div>
+        </div>
+        <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: #FFF;">₺149.99<span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
+      </div>
+
+      <div id="vip-renewal-plan-lifetime" class="onboarding-plan-card" style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectVipRenewalPlan('lifetime', this)">
+        <div>
+          <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">💎 Ömür Boyu</strong>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Tüm bebekleriniz için sonsuz erişim</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: #FFF;">₺2.499.99</div>
+          <div style="font-size: 10px; color: var(--success); font-weight: 700;">Tek Seferlik</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-primary" onclick="confirmVipRenewalPurchase()">Yenile / Satın Al</button>
+    <button class="btn-secondary" onclick="restoreVipRenewalPurchases()" style="margin-top: 8px;">Satın Alımları Geri Yükle</button>
+  </div>
+</div>
+
 <!-- MODAL: ADD ROUTINE (DETAYLI MANUEL RUTİN & UYKU EKLEME) -->
 <div class="modal-overlay" id="modal-routine">
   <div class="modal-sheet no-scrollbar">
@@ -3186,11 +3235,23 @@
     if (localStorage.getItem('misil_onboarding_completed') && !localStorage.getItem('mishil_onboarding_completed')) {
       localStorage.setItem('mishil_onboarding_completed', localStorage.getItem('misil_onboarding_completed'));
     }
-    const isCompleted = localStorage.getItem('mishil_onboarding_completed');
-    // Bebek profili yoksa onboarding zorunlu (eski "Atla" ile geçmiş test kurulumları dahil)
-    if (!isCompleted || !hasBaby()) {
-      document.getElementById('screen-onboarding').classList.add('active');
+
+    // ADIM 2 — Bebek profili %100 kalıcıdır: bebeğin adı ve doğum tarihi bir kez
+    // girildiyse onboarding ekranı KESİNLİKLE açılmaz; doğrudan ana ekrana geçilir.
+    // Hiçbir hata, çevrimdışı durum veya lisans senkronu bu iki kaydı sıfırlayamaz.
+    const babyName = localStorage.getItem('mishil_baby_name');
+    const babyBdate = localStorage.getItem('mishil_baby_bdate');
+    if (babyName && babyBdate) {
+      // Tutarlılık: "tamamlandı" bayrağını kendi kendine onar.
+      if (localStorage.getItem('mishil_onboarding_completed') !== 'true') {
+        localStorage.setItem('mishil_onboarding_completed', 'true');
+      }
+      document.getElementById('screen-onboarding').classList.remove('active');
+      return;
     }
+
+    // Bebek profili eksik → onboarding zorunlu.
+    document.getElementById('screen-onboarding').classList.add('active');
   }
   checkOnboardingState();
 
@@ -3322,6 +3383,70 @@
 
   // NOT: Bedava katman / "Atla" akışı kaldırıldı — abonelik zorunlu (bkz. BUGFIX_PLAN #7A).
   // finishOnboardingToApp ve skipOnboarding artık kullanılmıyor; UI'dan da çağrılmıyor.
+
+  // =========================================================================
+  // ADIM 3 — BAĞIMSIZ VIP YENİLEME MODALI (#vip-renewal-modal)
+  // Onboarding anketinden tamamen bağımsızdır. Abonelik açıkça pasifken
+  // (mishil_subscription_active === 'false') bir Pro özelliğe dokunulduğunda
+  // anket yerine doğrudan bu modal açılır. Bebek verisine ASLA dokunmaz.
+  // =========================================================================
+  let vipRenewalSelectedPlan = 'yearly';
+
+  function openVipRenewalModal() {
+    hapticPulse();
+    const baby = getBaby();
+    const babyName = (baby && baby.name) ? baby.name : BABY_FALLBACK_NAME;
+    const titleEl = document.getElementById('vip-renewal-title');
+    if (titleEl) titleEl.textContent = `👑 ${babyName} için Mışıl VIP Aboneliğinizi Yenileyin`;
+    document.getElementById('vip-renewal-modal').classList.add('active');
+  }
+
+  function closeVipRenewalModal() {
+    hapticPulse();
+    document.getElementById('vip-renewal-modal').classList.remove('active');
+  }
+
+  function selectVipRenewalPlan(planType, cardEl) {
+    hapticPulse();
+    vipRenewalSelectedPlan = planType;
+    const parent = cardEl.parentElement;
+    parent.querySelectorAll('.onboarding-plan-card').forEach(el => {
+      el.style.border = '1px solid var(--border-night)';
+      el.style.background = 'rgba(22, 29, 50, 0.8)';
+    });
+    cardEl.style.border = '2px solid var(--accent)';
+    cardEl.style.background = 'rgba(35, 42, 70, 0.95)';
+  }
+
+  function confirmVipRenewalPurchase() {
+    hapticPulse();
+    localStorage.setItem('mishil_selected_plan', vipRenewalSelectedPlan);
+    if (window.ReactNativeWebView) {
+      window.MishilNative.purchasePackage(vipRenewalSelectedPlan);
+      // IAP tamamlanınca native köprü onSubscriptionResult() çağırır.
+    } else {
+      showToast('ℹ️ Satın alma yalnızca mağaza uygulamasında yapılabilir');
+    }
+  }
+
+  function restoreVipRenewalPurchases() {
+    hapticPulse();
+    if (window.ReactNativeWebView) {
+      window.MishilNative.restorePurchases();
+    } else {
+      showToast('ℹ️ Geri yükleme yalnızca mağaza uygulamasında yapılabilir');
+    }
+  }
+
+  // Pro özellik kapısı: abonelik açıkça pasifse (=== 'false') VIP yenileme
+  // modalını aç ve false döndür; aksi halde true (erişime izin ver).
+  function requireActiveSubscription() {
+    if (localStorage.getItem('mishil_subscription_active') === 'false') {
+      openVipRenewalModal();
+      return false;
+    }
+    return true;
+  }
 
   // =========================================================================
   // 4. SWEETSPOT & LIVE SLEEP ENGINE
@@ -4223,6 +4348,10 @@
   }
 
   function switchTab(tabName) {
+    // ADIM 3 — Pro özellik (Mışıl Dadı AI Koçu) abonelik açıkça pasifken kilitli:
+    // anket yerine bağımsız VIP yenileme modalı açılır.
+    if (tabName === 'coach' && !requireActiveSubscription()) return;
+
     document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
 

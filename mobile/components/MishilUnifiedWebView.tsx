@@ -8,11 +8,13 @@ import {
   StatusBar,
   Platform,
   BackHandler,
+  AppState,
+  AppStateStatus,
 } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
-import { initRevenueCat, purchasePackage, restorePurchases, getOfferings } from '../features/subscription/revenuecat';
+import { initRevenueCat, purchasePackage, restorePurchases, getOfferings, hasActiveEntitlement } from '../features/subscription/revenuecat';
 import * as nativeAudio from '../features/audio/nativeAudioPlayer';
 import { OFFLINE_HTML } from '../features/webview/offlineHtml.generated';
 
@@ -147,6 +149,45 @@ export default function MishilUnifiedWebView() {
     armWatchdog();
   }, [armWatchdog]);
 
+  // ADIM 4 — Native tarafta CANLI lisans doğrulaması.
+  // RevenueCat customerInfo'daki gerçek hak durumunu WebView localStorage'ına yazar.
+  // Aktifse Pro açık; süresi dolmuş/iptal ise Pro kilitlenir. Bebek adı/verisine
+  // (mishil_baby_name / mishil_baby_bdate) KESİNLİKLE dokunmaz.
+  const syncEntitlementToWebView = useCallback(async () => {
+    try {
+      const ready = await initRevenueCat();
+      if (!ready) return; // anahtarsız / mock mod — abonelik bayrağını değiştirme
+      const Purchases = require('react-native-purchases').default;
+      const customerInfo = await Purchases.getCustomerInfo();
+      const active = hasActiveEntitlement(customerInfo);
+      webviewRef.current?.injectJavaScript(`
+        (function() {
+          try {
+            localStorage.setItem('mishil_subscription_active', '${active ? 'true' : 'false'}');
+            ${active ? '' : `
+            // Hak yok → Pro özelliği kilitle: açık Mışıl Dadı sekmesinden çık.
+            if (typeof switchTab === 'function') {
+              var coach = document.getElementById('view-coach');
+              if (coach && coach.classList.contains('active')) switchTab('home');
+            }`}
+          } catch (e) {}
+          true;
+        })();
+      `);
+    } catch (e) {
+      // Ağ / SDK hatası abonelik durumunu değiştirmemeli — sessiz geç.
+    }
+  }, []);
+
+  // ADIM 4 — uygulama ön plana geldiğinde canlı lisans doğrulamasını tekrarla
+  // (abonelik başka cihazda iptal/yenilenmiş olabilir).
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
+      if (next === 'active') void syncEntitlementToWebView();
+    });
+    return () => sub.remove();
+  }, [syncEntitlementToWebView]);
+
   // Yalnızca BAŞARILI yükleme — hata sonrası tetiklenmez (onLoadEnd aksine)
   const onLoad = useCallback(() => {
     clearTimers();
@@ -166,7 +207,9 @@ export default function MishilUnifiedWebView() {
         true;
       })();
     `);
-  }, []);
+    // ADIM 4 — her başarılı yüklemede canlı lisans doğrulaması yap.
+    void syncEntitlementToWebView();
+  }, [syncEntitlementToWebView]);
 
   // Ana çerçeve hatası (TLS, DNS, 5xx, timeout) → cold-start için sessiz retry,
   // denemeler tükenince gömülü çevrimdışı sürüme düş (boş ekran yerine)

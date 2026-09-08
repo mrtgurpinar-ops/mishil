@@ -2,6 +2,37 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.10.2] - 2026-09-08
+### 👑 Kalıcı Bebek Profili, Bağımsız VIP Yenileme & Canlı Lisans Senkronu
+
+Kaynak: `projects/mishil/CLAUDE_HANDOFF.md` (Antigravity → Claude Code devir teslim, 7 adım).
+
+#### ✨ Added
+- **Bağımsız VIP yenileme modalı (`#vip-renewal-modal`):** Onboarding anketinden tamamen
+  ayrı; başlık bebeğin adını dinamik okur. 3 paket kartı (Yıllık VIP / Aylık Pro / Ömür Boyu),
+  "Yenile / Satın Al" (`PURCHASE_PACKAGE`) ve "Satın Alımları Geri Yükle" (`RESTORE_PURCHASES`)
+  butonları. Abonelik açıkça pasifken (`mishil_subscription_active === 'false'`) Pro özellik
+  (Mışıl Dadı AI Koçu) açılmak istendiğinde anket yerine doğrudan bu modal açılır.
+- **Backend önbellek kilidi:** `/app` ve `/preview` `HTMLResponse` yanıtlarına
+  `Cache-Control: no-store, no-cache, must-revalidate, max-age=0` + `Pragma: no-cache` + `Expires: 0`
+  başlıkları eklendi; telefonlar eski HTML'i diske önbelleklemeden her zaman Railway'deki canlı
+  kodu çeker.
+- **Native canlı lisans doğrulaması:** `MishilUnifiedWebView` her başarılı yüklemede ve uygulama
+  ön plana geldiğinde (`AppState` 'active') `Purchases.getCustomerInfo()` + `hasActiveEntitlement()`
+  çağırır; sonucu WebView'e `localStorage.setItem('mishil_subscription_active', 'true'|'false')`
+  olarak enjekte eder. Hak yoksa açık Mışıl Dadı sekmesi kapatılır (Pro kilit). Ağ/SDK hatasında
+  durum değiştirilmez.
+
+#### 🛠️ Fixed
+- **Bebek profili %100 kalıcı:** `checkOnboardingState()` artık `mishil_baby_name` **ve**
+  `mishil_baby_bdate` kayıtlıysa `#screen-onboarding` ekranını KESİNLİKLE açmaz; doğrudan ana
+  ekrana geçer ve `mishil_onboarding_completed` bayrağını kendi kendine onarır. Hiçbir hata,
+  çevrimdışı durum veya lisans senkronu bu iki kaydı sıfırlamaz.
+
+#### 🔧 Chore
+- Çevrimdışı paket yenilendi: `mobile/features/webview/offlineHtml.generated.ts` (`npm run bundle:offline`).
+- Doğrulama kapısı: `tsc --noEmit` 0 hata, Jest 4/4 PASS.
+
 ## [4.10.1] - 2026-09-08
 ### 📱 Canlı Testflight Bulguları & Web Koruması (Build 19)
 

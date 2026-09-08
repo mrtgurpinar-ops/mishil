@@ -254,10 +254,17 @@ async def landing_page():
 async def developer_preview():
     """PIN-Protected Live Developer Preview of Mışıl Baby."""
     app_file = os.path.join(project_root, "public", "app.html")
+    # Telefonların diske eski HTML önbelleği kaydetmesini engelle; her zaman
+    # Railway'deki canlı kodu çeksinler.
+    headers = {
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+    }
     if os.path.exists(app_file):
         with open(app_file, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    return HTMLResponse("<h2>Uygulama dosyası bulunamadı.</h2>", status_code=404)
+            return HTMLResponse(content=f.read(), headers=headers)
+    return HTMLResponse("<h2>Uygulama dosyası bulunamadı.</h2>", status_code=404, headers=headers)
 
 
 @app.get("/health", tags=["Health"])
