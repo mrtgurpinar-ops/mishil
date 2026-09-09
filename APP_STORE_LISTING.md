@@ -33,44 +33,45 @@ Mışıl Baby ile bebeğiniz mışıl mışıl uyusun! Yapay zekâ destekli ağl
 
 ## 4. Tam Açıklama Metni (Description):
 ```text
-Mışıl Baby, ebeveynlerin bebeklerine huzurlu, güvenli ve kesintisiz bir uyku ortamı sunması için yapay zekâ ve akustik bilimini bir araya getiren kapsamlı bir bebek bakım ve uyku asistanıdır.
+Mışıl Baby, ebeveynlerin bebeklerine huzurlu, güvenli ve kesintisiz bir uyku ortamı sunması için yapay zekâ ve pediatrik uyku bilimini bir araya getiren kapsamlı bir bebek bakım ve gelişim asistanıdır.
 
-Bebeğiniz ağladığında neye ihtiyacı olduğunu anlamak, doğru uyku rutinini oluşturmak ve sakinleştirici seslerle kolayca uykuya dalmasını sağlamak artık çok kolay!
+Bebeğiniz ağladığında neye ihtiyacı olduğunu anlamak, sirkadiyen uyku ritmini takip etmek, aşı takvimini yönetmek ve sakinleştirici seslerle kolayca uykuya dalmasını sağlamak artık çok kolay!
 
-🌟 ÖNE ÇIKAN TEMEL ÖZELLİKLER:
+─────────────────────────────────────────
+🆓 HERKES İÇİN ÜCRETSİZ TEMEL ÖZELLİKLER:
+─────────────────────────────────────────
+• SweetSpot™ Sirkadiyen Uyku Tahmini: Bebeğinizin yaşına göre ideal uyanıklık ve uyku pencerelerini takip edin.
+• Temel Akustik Sesler: Bebeğinizi sakinleştiren temel beyaz gürültü ve doğa sesleri.
+• Akıllı Gece Lambası: Gece beslenmesi ve alt değişimlerinde göz yormayan ayarlanabilir sıcak ışık.
+• Pediatrik Aşı Takvimi: T.C. Sağlık Bakanlığı ve DSÖ onaylı aşı takvimini doğum tarihine göre takip edin ve hatırlatıcılar alın.
+• Günlük Rutin Takibi: Uyku, beslenme ve bez kayıtlarını kolayca tutun.
+• Uyku Zamanlayıcısı: Sesleri otomatik kapatan pil tasarruflu akıllı zamanlayıcı.
 
-👶 1. YAPAY ZEKÂ DESTEKLİ AĞLAMA ANALİZİ (AI Cry Classifier)
-Bebeğinizin ağlama sesindeki frekans ve ritim paternlerini analiz ederek temel ihtiyaç ipuçlarını belirler (Açlık, Gaz Sancısı/Kolik, Uyku İhtiyacı, İlgi/Rahatsızlık). Pediatrik çalışmalarla desteklenen yerel akustik motorumuz sayesinde bebeğinizi daha hızlı anlayın.
+─────────────────────────────────────────
+👑 MIŞIL VIP — AYRI SATIN ALIM / ABONELİK GEREKTİREN ÖZELLİKLER:
+─────────────────────────────────────────
+Aşağıdaki gelişmiş yapay zekâ ve analitik özellikler ayrı bir Mışıl VIP aboneliği gerektirir:
+• Yapay Zekâ Destekli Ağlama Analizi (AI Cry Classifier): Bebeğinizin ağlama sesindeki akustik paternleri analiz ederek açlık, kolik/gaz sancısı, uyku ihtiyacı ve rahatsızlık ipuçlarını belirler. (Abonelik gerektirir)
+• Mışıl Dadı™ 7/24 AI Uyku & Gelişim Koçu: Bebeğinizin uyku verilerini inceleyerek size özel pediatrik çözümler ve öneriler sunan yapay zekâ asistanı. (Abonelik gerektirir)
+• 18+ Stüdyo Akustik Kütüphanesi & Sınırsız Mikser: Anne karnı, rahim içi rezonans, fön makinesi, vantilatör, 432 Hz ninniler ve birden fazla sesi aynı anda miksleme yeteneği. (Abonelik gerektirir)
+• 24 Saatlik Bebek Ritmi & Zirve Saat Analitiği: Bebeğinizin en sık acıktığı, gaz çıkardığı ve en derin uyuduğu saatleri gösteren derin analitik paneli. (Abonelik gerektirir)
+• Wonder Weeks™ Gelişim Atakları: Zihinsel sıçrama ve huzursuzluk dönemlerini önceden tahmin eden gelişim takvimi. (Abonelik gerektirir)
+• Çoklu Bakıcı & Aile Paylaşımı: Anne, baba ve dadı arasında senkronize veri takibi. (Abonelik gerektirir)
 
-🎧 2. 16+ DOĞAL BEYAZ GÜRÜLTÜ & AKUSTİK MİKSER
-Bebeğinizin anne karnındaki tanıdık ve güvenli ortama dönmesini sağlayan stüdyo kalitesinde sesler:
-• Beyaz Gürültü (White Noise), Pembe Gürültü, Kahverengi Gürültü
-• Anne Karnı & Kalp Atışı Sesleri
-• Fön Makinesi, Süpürge, Vantilatör, Çamaşır Makinesi
-• Yağmur, Okyanus Dalgaları, Orman Esintisi, Nehir Sesi
-• Özel Bestelenmiş Rahatlatıcı Ninniler & Akustik Melodiler
-• Çoklu Ses Mikseri: Kendi özel ses kombinasyonunuzu oluşturun!
-
-🌙 3. AKILLI GECE LAMBASI & EKRAN IŞIĞI
-Gece beslenmeleri ve alt değişimlerinde bebeğinizi uyandırmayan, göz yormayan sıcak renk tonlarında ayarlanabilir gece lambası.
-
-⏱️ 4. UYKU ZAMANLAYICISI & ARKA PLANDA ÇALMA
-Ekran kapalıyken ve arka planda pil tasarrufuyla kesintisiz çalışma. Belirlediğiniz süre sonunda sesi yavaşça kısarak (Fade-Out) kapanan akıllı zamanlayıcı.
-
-📊 5. KİŞİSELLEŞTİRİLMİŞ UYKU RUTİNİ & RAPORLAMA
-Bebeğinizin yaş grubuna özel uyku pencereleri, uyanıklık süreleri ve yatıştırıcı ipuçları.
+💳 ABONELİK VE DENEME BİLGİLERİ:
+Mışıl VIP, 3 gün ücretsiz deneme süresi sunan Yıllık Plan veya esnek Aylık Plan seçenekleriyle sunulur. Satın alma işlemi Apple Kimliğiniz üzerinden güvenle tahsil edilir. Deneme süresi bitmeden 24 saat öncesine kadar App Store Ayarlarınızdan dilediğiniz an iptal edebilirsiniz.
 
 🩺 TIBBİ FERAGATNAME (Apple Guideline Uyumu):
 Mışıl Baby bir tıbbi tanı veya tedavi cihazı değildir. Sunulan ağlama analizi ve uyku önerileri yalnızca bilgilendirme ve ebeveyn rehberliği amaçlıdır. Bebeğinizin sağlık durumu ile ilgili her zaman yetkili bir çocuk doktoruna danışınız.
 
 🔒 GİZLİLİK VE ÇOCUK GÜVENLİĞİ:
-• Bebeğinizin ses analizleri tamamen yerel olarak işlenir; hiçbir ses kaydı harici sunucularda saklanmaz.
+• Bebeğinizin ses analizleri tamamen yerel olarak işlenir; hiçbir ham ses kaydı harici sunucularda saklanmaz.
 • COPPA ve KVKK standartlarına %100 uygundur.
 
 Geliştirici: Levitas Enterprise Intelligence & Technology
 Destek: support@levitas.tech
 Gizlilik Politikası: https://mrtgurpinar.github.io/mishil/privacy-policy
-Kullanım Şartları (EULA): https://mrtgurpinar.github.io/mishil/terms
+Kullanım Şartları (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 ```
 
 ---

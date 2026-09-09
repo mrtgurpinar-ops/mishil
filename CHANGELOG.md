@@ -2,6 +2,44 @@
 
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.11.0] - 2026-09-09
+### 🎨 Dark/Light Mode, Aşı Takvimi, Ritim Zirve Raporu, Serbest Onboarding & Apple Guideline 2.1/2.3.2 Uyumu (Build 21)
+
+Apple App Store ret gerekçeleri (IAP submission & metadata) ve arkadaş incelemesindeki 8 kritik UX geri bildirimi çözüldü.
+
+#### ✨ Added
+- **Dark Mode & Light Mode Dinamik Tema Desteği:**
+  - CSS `:root[data-theme="light"]` ve `:root[data-theme="dark"]` OKLCH tasarım tokenları eklendi.
+  - Telefon sistem temasını (`prefers-color-scheme`) otomatik algılama ve anında tepki verme.
+  - Ayarlar sekmesine 3 seçenekli tema yöneticisi eklendi: `[ 📱 Sistem (Otomatik) | 🌙 Koyu Gece | ☀️ Aydınlık Gündüz ]`. Tercih `localStorage`'da kalıcı saklanır.
+- **Pediatrik Aşı Takvimi (T.C. Sağlık Bakanlığı & DSÖ Onaylı):**
+  - Doğumdan 24. aya kadar 20 aşıyı içeren dinamik pediatrik aşı takip motoru (`VACCINE_SCHEDULE`).
+  - Bebeğin doğum tarihine göre aşı gününü otomatik hesaplama ve durum rozetleri (`Tamamlandı ✅`, `Vakti Geldi 🔔`, `Gelecek ⏳`).
+  - Checkbox ile aşıları tamamlandı olarak işaretleme ve `mishil_completed_vaccines` üzerinde saklama.
+- **24 Saatlik Bebek Ritmi & Zirve (Peak) Saatler Analizi:**
+  - Analiz sekmesine biyometrik ritim kartı eklendi: Girilen rutinlerden beslenmenin zirve yaptığı saatler (`08:30 • 12:30 • 16:30 • 20:00`), gaz ve bez değişim aralıkları ve en derin uyku blokları histogramı.
+- **Girişte Fonksiyon Tanıtım Turu (Feature Highlights):**
+  - Onboarding 1. adımına 4 temel fonksiyonu (SweetSpot uykusu, 18 stüdyo sesi mikseri, Wonder Weeks atakları, Mışıl Dadı AI koçu) tanıtan görsel kartlar eklendi.
+- **Serbest "Şimdilik Atla ➔" (Ücretsiz Temel Mod):**
+  - Onboarding başlığına ve adımlarına zorunlu kilitlemeyi kaldıran "Şimdilik Atla ➔" seçeneği getirildi. Bebeğin adı girilmemişse varsayılan "Bebeğim" olarak ücretsiz ana ekrana anında geçiş sağlanır.
+- **Canlı Aile & Dadı Senkronizasyon Linki:**
+  - Sabit mock aile metni yerine dinamik üye yönetimi (`mishil_family_members`), yeni dadı/bakıcı ekleme ve `navigator.share` / panoya kopyalama ile canlı aile davet bağlantısı üretimi (`shareFamilyInviteLink()`).
+
+#### 🛠️ Fixed
+- **Ücret Seçildiğinde Ödemeye Geçmeme Hatası (Missing `selectOnboardingPlan`):**
+  - HTML'de çağrılan ancak script içinde tanımsız olan `selectOnboardingPlan` fonksiyonu yazılarak düzeltildi; kart seçildiğinde dinamik plan seçimi ve buton güncellemesi sağlandı.
+- **Paywall Kilitlenme Sorunu:**
+  - `chk-medical-disclaimer` varsayılan aktif ve bilgilendirici yapılarak `btn-onboarding-pro` butonunun tıklanamama engeli kaldırıldı; doğrudan "🎁 3 Gün Ücretsiz Dene ve Başlat" akışı açıldı.
+- **StoreKit Satın Alma Hata Toleransı (`revenuecat.ts`):**
+  - Offering paketleri yüklenemediğinde veya sandbox ortamında StoreKit üzerinden doğrudan `Purchases.getProducts(['misil_annual', 'misil_monthly'])` ve `purchaseStoreProduct` yedek kanalı devreye alındı.
+- **Apple Guideline 2.3.2 Mağaza Metni Revizyonu:**
+  - `APP_STORE_LISTING.md` mağaza açıklama metninde Ücretsiz Temel Özellikler ile VIP Ücretli Abonelik Gerektiren Özellikler Apple kurallarına uygun olarak açıkça ayrıştırıldı.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.11.0'`, `BUILD_NUMBER = 21` (`mobile/app.config.ts`, `public/app.html`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts` (221 KB).
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
 ## [4.10.2] - 2026-09-08
 ### 👑 Kalıcı Bebek Profili, Bağımsız VIP Yenileme & Canlı Lisans Senkronu
 

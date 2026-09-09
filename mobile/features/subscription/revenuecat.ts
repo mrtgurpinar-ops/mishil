@@ -120,21 +120,50 @@ export const getOfferings = async (): Promise<PackageOffer[]> => {
   return FALLBACK_OFFERINGS;
 };
 
-export const purchasePackage = async (_packageId: string, rawPackage?: any): Promise<PurchaseResult> => {
-  // Gerçek bir satın alınabilir paket yoksa: ASLA sahte başarı döndürme.
-  if (!rawPackage) {
-    // Sadece geliştirme derlemesinde (Expo __DEV__) test kolaylığı için geç.
+export const purchasePackage = async (packageId: string, rawPackage?: any): Promise<PurchaseResult> => {
+  try {
+    const ready = await initRevenueCat();
+    const Purchases = require('react-native-purchases').default;
+
+    // 1. Yol: RevenueCat rawPackage varsa doğrudan purchasePackage çağır
+    if (rawPackage) {
+      const { customerInfo } = await Purchases.purchasePackage(rawPackage);
+      return { success: true, isActive: hasActiveEntitlement(customerInfo) };
+    }
+
+    // 2. Yol: rawPackage yoksa (StoreKit doğrudan ürün fallback'i)
+    const productIdMap: Record<string, string> = {
+      'yearly': 'misil_annual',
+      '$rc_annual': 'misil_annual',
+      'misil_annual': 'misil_annual',
+      'monthly': 'misil_monthly',
+      '$rc_monthly': 'misil_monthly',
+      'misil_monthly': 'misil_monthly',
+      'lifetime': 'misil_lifetime',
+      '$rc_lifetime': 'misil_lifetime'
+    };
+
+    const targetProductId = productIdMap[packageId] || 'misil_annual';
+    if (ready && Purchases.getProducts) {
+      try {
+        const products = await Purchases.getProducts([targetProductId]);
+        if (products && products.length > 0) {
+          const { customerInfo } = await Purchases.purchaseStoreProduct(products[0]);
+          return { success: true, isActive: hasActiveEntitlement(customerInfo) };
+        }
+      } catch (storeErr: any) {
+        if (storeErr?.userCancelled) return { success: false, isActive: false, cancelled: true };
+        console.warn('[RevenueCat] purchaseStoreProduct hatası:', storeErr);
+      }
+    }
+
+    // Sadece geliştirme derlemesinde (Expo __DEV__) test kolaylığı için geç
     if (typeof __DEV__ !== 'undefined' && __DEV__) {
-      console.warn('[RevenueCat] __DEV__ modu: rawPackage yok, test amaçlı başarı taklit ediliyor.');
+      console.warn('[RevenueCat] __DEV__ modu: test amaçlı başarı taklit ediliyor.');
       return { success: true, isActive: true };
     }
-    return { success: false, isActive: false, error: 'no_package' };
-  }
 
-  try {
-    const Purchases = require('react-native-purchases').default;
-    const { customerInfo } = await Purchases.purchasePackage(rawPackage);
-    return { success: true, isActive: hasActiveEntitlement(customerInfo) };
+    return { success: false, isActive: false, error: 'no_package' };
   } catch (err: any) {
     if (err?.userCancelled) {
       return { success: false, isActive: false, cancelled: true };
