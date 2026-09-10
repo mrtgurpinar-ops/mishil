@@ -251,15 +251,10 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      position: sticky;
-      top: 0;
-      z-index: 60;
-      background: var(--bg-night);
+      position: relative;
+      background: transparent !important;
       padding-top: 4px;
       padding-bottom: 8px;
-    }
-    [data-theme="light"] .app-header {
-      background: #F5F7FB;
     }
 
     .baby-subtitle {
@@ -2090,7 +2085,6 @@
         </div>
       </div>
     </div>
-  </div>
 
     <!-- 3. MIŞIL DADI (7/24 ŞEFKATLİ UYKU DANIŞMANI TAB) -->
     <div id="view-coach" class="tab-view">
@@ -2795,6 +2789,17 @@
     document.addEventListener('DOMContentLoaded', applyUniversalDeviceMetrics);
   }
 
+  // Güvenli HTML Kaçırma Yardımcısı (XSS & Render Koruması)
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   // =========================================================================
   // 0. NATIVE MOBILE BRIDGE (react-native-webview köprüsü)
   // Mobil uygulama içinde çalışıldığında native kapasiteleri köprüler:
@@ -2964,7 +2969,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.15.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.16.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function appVersionLabel() {
     const m = appMeta();
@@ -2973,7 +2978,13 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.15.0', date: '10 Eylül 2026', latest: true, items: [
+    { v: '4.16.0', date: '10 Eylül 2026', latest: true, items: [
+      'DOM Hiyerarşisi Onarımı & Kaydırma Kilidi Çözüldü: Kaçak kapanış etiketi silinerek Mışıl Dadı, Sesler ve Ayarlar sekmeleri ana kaydırma gövdesine alındı; akıcı scroll sağlandı.',
+      'Tüm Sayfalarda Yekpare Başlık: Yapışkan koyu şerit kaldırıldı; başlıklar sayfa içeriğiyle birlikte doğal ve yekpare bir akışla kayacak şekilde uyarlandı.',
+      'Tavan Boşlukları Sıfırlandı: Tüm sekmelerin tavan hizası milimetrik olarak eşitlendi ve üstteki yapay boşluklar giderildi.',
+      'Tam HTML Denetimi & escapeHtml Entegrasyonu: Tüm projenin açılan/kapanan etiketleri sıfır hataya indirildi; aşı ve aile modüllerindeki XSS korumalı escapeHtml yardımcısı bağlandı.',
+    ]},
+    { v: '4.15.0', date: '10 Eylül 2026', items: [
       'Evrensel Adaptif Cihaz Motoru: Her mobil cihazın (iPhone Dynamic Island, Çentik, Android Kamera Deliği, Tarayıcı sekmesi ve Masaüstü) donanım geometrisine göre dinamik şekillenen fluid CSS mimarisi entegre edildi.',
       'Yapay Tavan Boşluğu Sıfırlandı: Sabit 74px yapay boşluk kaldırılarak donanıma göre milimetrik tavan hizalaması sağlandı.',
       'Akıcı Tam Ekran Viewport: Masaüstü ve mobil ekran sınırları tam responsive esneklikle ekrana oturtuldu.',

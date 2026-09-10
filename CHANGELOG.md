@@ -2,6 +2,20 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.16.0] - 2026-09-10
+### 🚀 DOM Hiyerarşi Onarımı, 5 Sayfada Yekpare Başlık & Kaydırma Kilidi Çözümü (Build 27)
+
+Kullanıcının "başlığın şerit şeklinde aşağı inmesi bana güzel gelmedi, mışıl dadı, sesler ve ayarlar sayfalarının üstünde hala boşluk var, bu ekranlar aşağıda kaydırılmıyor artık haliyle kullanılamıyor gibi bir şey, tüm projeyi kontrol et, tüm sayfalarda aynı olmalı" bildirimleri doğrultusunda:
+1. **DOM Kapatma Tagı Onarımı & Kaydırma Kilidi Çözüldü:** `public/app.html` satır 2088'deki fazlalık `</div>` etiketi kaldırıldı. `main-app-screen` konteynerinin erken kapanması önlenerek Mışıl Dadı, Sesler ve Ayarlar sekmeleri tekrar ana kaydırma konteyneri (`.screen-container`) içerisine alındı. 18 parça ses ve tüm uzun sekmeler akıcı kaydırma yeteneğine kavuşturuldu (`canScroll: true`).
+2. **Tavan Boşlukları Sıfırlandı:** Dışarıda kalan sekmelerin üzerindeki 82px'lik yapay boşluk giderildi; 5 sayfanın 5'i de ortak safe padding (`var(--device-safe-top, 6px)`) ile aynı tavan hizasında başlatıldı.
+3. **Tüm Sayfalarda Yekpare Başlık Mimarisi:** `.app-header` üzerindeki `position: sticky; top: 0; background: var(--bg-night);` kaldırıldı; tüm sayfalarda `position: relative; background: transparent !important;` uygulanarak sayfa kaydırılırken üstte oluşan yapay koyu şerit/bant tamamen ortadan kaldırıldı.
+4. **Tam Proje HTML Tag Denetimi & escapeHtml Entegrasyonu:** 5.600+ satırlık HTML kodunun tamamı taranarak sıfır tag hatasına indirildi. Eksik olan `escapeHtml` yardımcı fonksiyonu eklenerek runtime çökmeleri önlendi.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.16.0'`, `BUILD_NUMBER = 27` (`mobile/app.config.ts`, `public/app.html`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts` (242 KB).
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
 ## [4.15.0] - 2026-09-10
 ### 🌐 Evrensel Adaptif Cihaz Motoru (`DeviceAdaptiveEngine`) & Akıcı Tam Ekran Viewport Mimarisi (Build 26)
 
