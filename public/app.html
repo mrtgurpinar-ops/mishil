@@ -180,7 +180,7 @@
       position: relative;
       width: 390px;
       max-width: 100%;
-      height: min(844px, calc(100dvh - 24px));
+      height: min(844px, calc(100dvh - 32px));
       max-height: 100dvh;
       background: var(--bg-night);
       border-radius: 44px;
@@ -191,7 +191,9 @@
       flex-direction: column;
       z-index: 10;
       backdrop-filter: blur(12px);
-      margin: auto 0;
+      margin: 0 auto !important;
+      margin-top: 12px !important;
+      align-self: flex-start;
     }
 
     @media (max-width: 600px) {
@@ -221,7 +223,7 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        margin: 0;
+        margin: 0 !important;
       }
       .device-notch, .status-bar {
         display: none !important;
@@ -230,11 +232,12 @@
         flex: 1 1 auto;
         min-height: 0;
         overflow-y: auto;
+        overscroll-behavior-y: contain;
         -webkit-overflow-scrolling: touch;
-        padding-top: calc(max(20px, env(safe-area-inset-top)) + 8px);
+        padding-top: calc(max(54px, env(safe-area-inset-top) + 20px)) !important;
         padding-left: max(16px, env(safe-area-inset-left));
         padding-right: max(16px, env(safe-area-inset-right));
-        padding-bottom: calc(84px + env(safe-area-inset-bottom));
+        padding-bottom: calc(90px + env(safe-area-inset-bottom));
       }
       .tab-bar {
         position: absolute;
@@ -309,6 +312,15 @@
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
+      position: sticky;
+      top: 0;
+      z-index: 60;
+      background: var(--bg-night);
+      padding-top: 4px;
+      padding-bottom: 8px;
+    }
+    [data-theme="light"] .app-header {
+      background: #F5F7FB;
     }
 
     .baby-subtitle {
@@ -2969,7 +2981,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.13.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.14.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function appVersionLabel() {
     const m = appMeta();
@@ -2978,7 +2990,13 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.13.0', date: '10 Eylül 2026', latest: true, items: [
+    { v: '4.14.0', date: '10 Eylül 2026', latest: true, items: [
+      'Ses Menüsü & Ekran Sabitleme: DOM reflow sonrası çift katmanlı requestAnimationFrame scroll sıfırlama mimarisi entegre edildi.',
+      'Masaüstü Dikey Merkezleme Tuzağı Kaldırıldı: margin: auto 0 iptal edilerek telefon çerçevesinin tavan dışına taşması ve oynamama sorunu çözüldü.',
+      'Mobil Çentik & Tavan Boşluğu: calc(max(54px, env(safe-area-inset-top) + 20px)) ile başlıkların çentik/menü altında kalması engellendi.',
+      'Sabit Başlık (Sticky App-Header): position: sticky ile başlıkların ve filtrelerin kaydırma sırasında ekran tepesinde sabit kalması sağlandı.',
+    ]},
+    { v: '4.13.0', date: '10 Eylül 2026', items: [
       '3 Günlük Ücretsiz Deneme Motoru: Deneme süresi boyunca tüm Pro özellikler kesintisiz kullanıma açıldı.',
       'Satın Alma & Geri Yükleme Onarımı: Web ve mobilde satın alma ve abonelik başlatma tetikleyicileri %100 çalışır hale getirildi.',
       'Sekme Geçişi Scroll Sıfırlama: Sesler ve Ayarlar sekmelerine geçişte ekranın aşağı kaymış başlama sorunu giderildi.',
@@ -5194,14 +5212,10 @@
   }
 
   function switchTab(tabName) {
-    // Sekme geçişinde ekranı en başa al (aşağı kaymış başlama sorununu çözer)
-    const container = document.querySelector('.screen-container');
-    if (container) container.scrollTop = 0;
-    window.scrollTo(0, 0);
-
     // Pro özellikler (Mışıl Dadı AI Koçu & Derin Analiz Sekmesi) abonelik gerektirir
     if ((tabName === 'coach' || tabName === 'analytics') && !requireActiveSubscription()) return;
 
+    // 1. Önceki sekmeleri kapat, hedef sekmeyi görünür yap
     document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
 
@@ -5214,12 +5228,33 @@
       document.querySelectorAll('.tab-item')[idx].classList.add('active');
     }
 
+    // 2. YENİ GÖRÜNÜM DOM'A OTURDUKTAN SONRA KESİN SCROLL SIFIRLAMA (Çift Katman):
+    const resetScroll = () => {
+      const container = document.getElementById('main-app-screen') || document.querySelector('.screen-container');
+      if (container) {
+        container.scrollTop = 0;
+      }
+      if (targetView) {
+        targetView.scrollTop = 0;
+      }
+      window.scrollTo(0, 0);
+    };
+
+    // 1. Katman: Tarayıcının sonraki frame render anı
+    requestAnimationFrame(() => {
+      resetScroll();
+      // 2. Katman: CSS transform/animasyon reflow güvenlik kuyruğu
+      setTimeout(resetScroll, 25);
+    });
+
     if (tabName === 'analytics') {
       renderAnalyticsView();
     } else if (tabName === 'home') {
       renderHomeTodayTimeline();
     } else if (tabName === 'settings') {
       updateSettingsProfileSummary();
+    } else if (tabName === 'sounds') {
+      renderSoundsList();
     }
   }
 

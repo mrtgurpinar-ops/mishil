@@ -1,7 +1,21 @@
 # Changelog - Mışıl Baby
  
- Tüm önemli değişiklikler bu dosyada belgelenecektir.
+Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.14.0] - 2026-09-10
+### 🎯 Ses Menüsü Scroll Kilit & Aşağı Kayma Çözümü, Masaüstü Dikey Kilit ve Yapışkan Başlık Mimarisi (Build 25)
+
+Kullanıcının ilettiği "ses menüsü hala daha aşağı kaymış ve oynamadığı için altta gözüküyor" ve "üst başlıklar ekranın çok üstünde kaldığı için gözükmüyor" bildirimleri üzerine yapılan derin DOM ve CSS reflow incelemesi sonucunda:
+1. **DOM Reflow Sıralama Hatası Giderildi:** `switchTab` içinde `scrollTop = 0` çağrısı, yeni sekme (`view-sounds`) henüz `display: none` halindeyken çalıştırıldığı için tarayıcı tarafından yutuluyordu. Kod, yeni görünüm `display: block` yapıldıktan sonra çalışan çift katmanlı `requestAnimationFrame` ve 25ms güvenlik kuyruğuna bağlandı.
+2. **Masaüstü Dikey Merkezleme Tuzağı (`margin: auto 0;`) Kaldırıldı:** Flexbox dikey ortalaması ekran boyutu 844px'ten küçük olduğunda tüm telefon çerçevesini ekranın üstünden dışarıya (-70px negatif alana) itiyordu. Bu durum başlıkların ekran dışında kalmasına ve sayfa tepe noktasında olduğu için kullanıcının ekranı oynatamamasına yol açıyordu. `margin: 0 auto !important; margin-top: 12px !important; align-self: flex-start;` yapılarak tepe taşması tamamen çözüldü.
+3. **Mobil Çentik & Güvenli Alan Tavanı Artırıldı:** Mobildeki 28px'lik yetersiz padding, Dynamic Island ve çentikleri kapsayacak şekilde `calc(max(54px, env(safe-area-inset-top) + 20px))` yapıldı.
+4. **Yapışkan Başlık (Sticky App-Header):** `.app-header` `position: sticky; top: 0; z-index: 60;` yapılarak ses listesinde gezinirken başlıkların ve filtrelerin daima görünür kalması sağlandı.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.14.0'`, `BUILD_NUMBER = 25` (`mobile/app.config.ts`, `public/app.html`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts` (240 KB).
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
 ## [4.13.0] - 2026-09-10
 ### 🚀 3 Günlük Ücretsiz Deneme Motoru, Satın Alma & Scroll Sıfırlama, Viewport Sığmama ve Canlı Veri Onarımı (Build 24)
 
