@@ -52,6 +52,7 @@ htmlcov/
 output_*/
 generate_*_film.py
 generate_*_reels.py
+generate_reklam_*.py
 render_*.py
 test_veo_*.py
 *.aab
