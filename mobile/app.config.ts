@@ -1,12 +1,12 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
 // Uygulama sürümü tek yerden — hem iOS buildNumber hem Android versionCode ile hizalı
-const APP_VERSION = '4.21.0';
-const BUILD_NUMBER = 33;
+const APP_VERSION = '4.22.0';
+const BUILD_NUMBER = 34;
 
 const IS_PRODUCTION = process.env.APP_ENV === 'production';
-const RC_KEY_IOS = process.env.EXPO_PUBLIC_REVENUECAT_IOS || 'appl_mock_key';
-const RC_KEY_ANDROID = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID || 'goog_mock_key';
+const RC_KEY_IOS = process.env.EXPO_PUBLIC_REVENUECAT_IOS || 'appl_YErlYWqQcbRzipLuFKFliryZXAX';
+const RC_KEY_ANDROID = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID || 'goog_LCNeMzKcaNSPdZModiKqmLtygYk';
 
 // Yayın derlemesi (eas.json production profili APP_ENV=production verir) mock RevenueCat
 // anahtarıyla ÜRETİLEMEZ — platforma göre aktif anahtar doğrulanır.

@@ -2,6 +2,25 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.22.0] - 2026-09-11
+### 🚀 Google Play Ürün ID Eşleme & Abonelik Yönetimi Doğrudan Deep Link Çözümü (Build 34)
+
+Kullanıcının "hala daha abonelik başlat butonuna basınca paket yüklenemedi hatası alıyorum, aboneliği yönet tuşuna basınca hiçbir şey olmuyor" geri bildirimi doğrultusunda kök neden analizleri yapılarak iki kritik mağaza entegrasyonu tamamlandı:
+1. **"Aboneliği Yönet" Doğrudan Deep Link Köprüsü:**
+   - `openStoreSubscriptionManagement()` fonksiyonuna `window.location.href = url;` eklendi.
+   - WebView ve mobil tarayıcılar `play.google.com` ve `apps.apple.com` bağlantılarını işletim sistemi seviyesinde yakalar. Böylece telefonda yüklü eski binary derlemelerde dahi yeni bir APK/AAB derlemesine ihtiyaç duyulmadan anında resmi Google Play / App Store Abonelik Yönetim sayfası açılır.
+2. **Google Play Gerçek Ürün ID ve Seçenek Desteği (no_package Fix):**
+   - Holdingin Google Play Console'daki gerçek ürün kimlikleri olan `'misil'` (Yıllık VIP) ve `'misilaylik'` (Aylık Pro) aday ürün listesine (`candidateProductIds`) ilk sıralardan eklendi.
+   - Google Play Billing v5/v6/v7 tabanlı abonelik teklifleri (`products[0].defaultOption` ve `Purchases.purchaseSubscriptionOption`) desteği sağlandı.
+3. **RevenueCat Canlı Public Anahtar Entegrasyonu:**
+   - `mobile/app.config.ts` içerisindeki mock fallback yerine canlı RevenueCat public SDK anahtarları (`goog_LCNeMzKcaNSPdZModiKqmLtygYk` ve `appl_YErlYWqQcbRzipLuFKFliryZXAX`) bağlandı.
+   - `projects/mishil/mobile/.env` dosyası oluşturularak ortam değişkenleri güvenceye alındı.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.22.0'`, `BUILD_NUMBER = 34` (`mobile/app.config.ts`, `public/app.html`, `WEB_APP_META`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts` (271 KB).
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
 ## [4.21.0] - 2026-09-11
 ### 🛡️ Ödeme, Abonelik ve Deneme Mimarisi Tam Kapsamlı Mantık Güvenliği (Build 33)
 

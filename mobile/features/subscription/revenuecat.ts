@@ -127,10 +127,10 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
     }
 
     // 2. Yol: rawPackage yoksa (StoreKit / Google Play doğrudan çoklu ürün fallback'i)
-    const isYearly = packageId.toLowerCase().includes('year') || packageId.toLowerCase().includes('annual');
+    const isYearly = packageId.toLowerCase().includes('year') || packageId.toLowerCase().includes('annual') || packageId.toLowerCase() === 'misil';
     const candidateProductIds = isYearly
-      ? ['yearly', 'misil_annual', 'misil_yearly', 'misil_baby_annual', '$rc_annual', 'annual']
-      : ['monthly', 'misil_monthly', 'misil_baby_monthly', '$rc_monthly', 'misil_sub_monthly'];
+      ? ['misil', 'yearly', 'misil_annual', 'misil_yearly', 'misil_baby_annual', 'com.levitas.misilbaby.annual', '$rc_annual', 'annual']
+      : ['misilaylik', 'monthly', 'misil_monthly', 'misil_baby_monthly', 'com.levitas.misilbaby.monthly', '$rc_monthly', 'misil_sub_monthly'];
 
     if (ready && Purchases.getProducts) {
       try {
@@ -138,7 +138,14 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
         const products = await Purchases.getProducts(candidateProductIds);
         if (products && products.length > 0) {
           console.log('[RevenueCat] Eşleşen mağaza ürünü bulundu:', products[0].identifier);
-          const { customerInfo } = await Purchases.purchaseStoreProduct(products[0]);
+          // Android Google Play Billing v5/v6/v7 subscription option (basePlan / offer) desteği
+          let purchasePromise;
+          if (Purchases.purchaseSubscriptionOption && products[0].defaultOption) {
+            purchasePromise = Purchases.purchaseSubscriptionOption(products[0].defaultOption);
+          } else {
+            purchasePromise = Purchases.purchaseStoreProduct(products[0]);
+          }
+          const { customerInfo } = await purchasePromise;
           return { success: true, isActive: hasActiveEntitlement(customerInfo) };
         } else {
           console.warn('[RevenueCat] Aday ID\'lerin hiçbiri mağazada bulunamadı:', candidateProductIds);

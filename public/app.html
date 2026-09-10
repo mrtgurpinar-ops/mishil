@@ -2997,7 +2997,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.21.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.22.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function appVersionLabel() {
     const m = appMeta();
@@ -3006,7 +3006,12 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.21.0', date: '11 Eylül 2026', latest: true, items: [
+    { v: '4.22.0', date: '11 Eylül 2026', latest: true, items: [
+      'Abonelik Yönetimi Doğrudan Deep Link: "Aboneliği Yönet" butonunun cihazda yüklü eski binary derlemelerde bile hiçbir güncelleme beklemeden anında Google Play / App Store resmi abonelik sayfasını açması sağlandı.',
+      'Google Play Gerçek Ürün ID Entegrasyonu: Holdingin Google Play Console\'daki asıl ürün kimlikleri olan "misil" (Yıllık) ve "misilaylik" (Aylık) kod tabanına entegre edilerek "paket yüklenemedi" (no_package) hatası kökten giderildi.',
+      'RevenueCat Gerçek Public Key Entegrasyonu: Mock anahtar fallback\'leri yerine canlı üretim public anahtarları kalıcı olarak bağlandı.',
+    ]},
+    { v: '4.21.0', date: '11 Eylül 2026', items: [
       'Deneme Süresi Mantık Koruması: getTrialStatus() fonksiyonunun Onboarding\'i atlayan kullanıcılara kendi kendine sahte deneme başlatıp Pro\'yu bedava açma açığı kökten kapatıldı.',
       'VIP Satın Alma & Yenileme Modal Kapatma: Native IAP ve geri yükleme tamamlandığında vip-renewal-modal ekranının açık kalması engellendi; anında otomatik kapanış bağlandı.',
       'Anlık Arayüz Tazeleme: Satın alma ve geri yükleme bittiği an Ayarlar rozetlerinin (✓ AKTİF PLANINIZ) beklemeden yenilenmesi sağlandı.',
@@ -3775,13 +3780,20 @@
 
   function openStoreSubscriptionManagement() {
     hapticPulse();
+    const isApple = /iPhone|iPad|Macintosh/i.test(navigator.userAgent);
+    const url = isApple
+      ? 'https://apps.apple.com/account/subscriptions'
+      : 'https://play.google.com/store/account/subscriptions';
+
     if (window.ReactNativeWebView) {
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MANAGE_SUBSCRIPTIONS' }));
-    } else {
-      const isApple = /iPhone|iPad|Macintosh/i.test(navigator.userAgent);
-      const url = isApple
-        ? 'https://apps.apple.com/account/subscriptions'
-        : 'https://play.google.com/store/account/subscriptions';
+    }
+    // WebView ve tarayıcıda Deep Link'i doğrudan tetikle:
+    // Android ve iOS WebView, play.google.com ve apps.apple.com URL'lerini
+    // işletim sistemi seviyesinde yakalayıp mağaza abonelik uygulamasını anında açar.
+    try {
+      window.location.href = url;
+    } catch (e) {
       window.open(url, '_blank');
     }
   }
