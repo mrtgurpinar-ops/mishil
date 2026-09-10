@@ -50,7 +50,7 @@ export default function SubscriptionScreen() {
       setLoading(true);
       const chosenOffer = offerings.find((o) => o.identifier === selectedPlan);
       const res = await purchasePackage(selectedPlan, chosenOffer?.rawPackage);
-      if (res.success) {
+      if (res.success && res.isActive) {
         await startTrial();
         router.back();
       }
@@ -66,7 +66,7 @@ export default function SubscriptionScreen() {
     try {
       setLoading(true);
       const res = await restorePurchases();
-      if (res.success) {
+      if (res.success && res.isActive) {
         await startTrial();
         router.back();
       }

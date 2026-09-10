@@ -2,6 +2,21 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.21.0] - 2026-09-11
+### 🛡️ Ödeme, Abonelik ve Deneme Mimarisi Tam Kapsamlı Mantık Güvenliği (Build 33)
+
+Kullanıcının "başka mantık hatası var mı kontrol et tam kapsamlı kontrol istiyorum, ya şunu atlamışız demek istemiyorum lütfen bunu ince ayar tüm detay kontrol sağlayarak yap özellikle ödeme için" talimatı üzerine tüm ödeme, yetkilendirme ve mağaza köprüleri taranarak 5 kritik mantık açığı kapatıldı:
+1. **Deneme Süresi Mantık Koruması:** `getTrialStatus()` içinde anahtar yokken kendi kendine `mishil_trial_start` oluşturup "Şimdilik Atla" diyen ücretsiz kullanıcılara tüm Pro özellikleri 7 gün bedava açma açığı kökten kapatıldı.
+2. **VIP Satın Alma & Yenileme Modal Kapatma:** Native IAP ve geri yükleme tamamlandığında `vip-renewal-modal` ekranının açık kalması engellendi; anında otomatik kapanış sağlandı.
+3. **Anlık Arayüz Tazeleme:** Satın alma ve geri yükleme bittiği an Ayarlar rozetlerinin (`✓ AKTİF PLANINIZ`) beklemeden anında yenilenmesi sağlandı (`updateSubscriptionStatusUI` ve `renderAllViews`).
+4. **RevenueCat Geri Yükleme & Senkron Plan Tespiti:** Geri yüklemede (`RESTORE_PURCHASES`) ve canlı senkronizasyonda (`syncEntitlementToWebView`) kullanıcının aktif planının (Yıllık/Aylık) RevenueCat haklarından dinamik okunması ve diske eşitlenmesi sağlandı.
+5. **Native Paywall Geri Yükleme Güvenliği:** `subscription.tsx` içinde `res.success` yerine `res.success && res.isActive` kontrolü getirilerek hiç ödemesi olmayan kullanıcıların Pro'yu bedava açması engellendi; `useSubscriptionStatus.ts` 7 gün ile hizalandı.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.21.0'`, `BUILD_NUMBER = 33` (`mobile/app.config.ts`, `public/app.html`, `WEB_APP_META`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts` (270 KB).
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
 ## [4.20.0] - 2026-09-11
 ### 🛡️ Ayarlar Abonelik Yönetimi, Plan Yükseltme (Upgrade) Güvenliği & Mağaza Köprüsü (Build 32)
 

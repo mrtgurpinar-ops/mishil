@@ -30,7 +30,7 @@ export const useSubscriptionStatus = () => {
           status: 'trial',
           plan: 'yearly',
           is_active: true,
-          days_left_in_trial: 3,
+          days_left_in_trial: 7,
         };
       }
     },
@@ -54,7 +54,7 @@ export const useSubscriptionStatus = () => {
     subscription: statusQuery.data,
     isPremiumActive: statusQuery.data?.is_active ?? true,
     isTrial: statusQuery.data?.status === 'trial',
-    daysLeftInTrial: statusQuery.data?.days_left_in_trial ?? 3,
+    daysLeftInTrial: statusQuery.data?.days_left_in_trial ?? 7,
     isLoading: statusQuery.isLoading || startTrialMutation.isPending,
     startTrial: startTrialMutation.mutateAsync,
   };

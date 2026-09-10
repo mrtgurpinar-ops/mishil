@@ -15,7 +15,7 @@ import {
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
-import { initRevenueCat, purchasePackage, restorePurchases, getOfferings, hasActiveEntitlement } from '../features/subscription/revenuecat';
+import { initRevenueCat, purchasePackage, restorePurchases, getOfferings, hasActiveEntitlement, PRO_ENTITLEMENT_ID } from '../features/subscription/revenuecat';
 import * as nativeAudio from '../features/audio/nativeAudioPlayer';
 import { OFFLINE_HTML } from '../features/webview/offlineHtml.generated';
 
@@ -153,6 +153,18 @@ export default function MishilUnifiedWebView() {
     armWatchdog();
   }, [armWatchdog]);
 
+  const getPlanFromCustomerInfo = (customerInfo: any): 'yearly' | 'monthly' => {
+    try {
+      const ent = customerInfo?.entitlements?.active?.[PRO_ENTITLEMENT_ID] || customerInfo?.entitlements?.active?.['mışıl_baby_pro'];
+      const prodId = ent?.productIdentifier || (Array.isArray(customerInfo?.activeSubscriptions) && customerInfo.activeSubscriptions[0]) || '';
+      const lower = String(prodId).toLowerCase();
+      if (lower.includes('year') || lower.includes('annual')) return 'yearly';
+      return 'monthly';
+    } catch {
+      return 'monthly';
+    }
+  };
+
   // ADIM 4 — Native tarafta CANLI lisans doğrulaması.
   // RevenueCat customerInfo'daki gerçek hak durumunu WebView localStorage'ına yazar.
   // Aktifse Pro açık; süresi dolmuş/iptal ise Pro kilitlenir. Bebek adı/verisine
@@ -164,10 +176,16 @@ export default function MishilUnifiedWebView() {
       const Purchases = require('react-native-purchases').default;
       const customerInfo = await Purchases.getCustomerInfo();
       const active = hasActiveEntitlement(customerInfo);
+      const detectedPlan = active ? getPlanFromCustomerInfo(customerInfo) : null;
+      const planLine = detectedPlan
+        ? `localStorage.setItem('mishil_subscription_plan', '${detectedPlan}');`
+        : '';
       webviewRef.current?.injectJavaScript(`
         (function() {
           try {
             localStorage.setItem('mishil_subscription_active', '${active ? 'true' : 'false'}');
+            ${planLine}
+            if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
             ${active ? '' : `
             // Hak yok → Pro özelliği kilitle: açık Mışıl Dadı sekmesinden çık.
             if (typeof switchTab === 'function') {
@@ -334,12 +352,18 @@ export default function MishilUnifiedWebView() {
       : '';
     webviewRef.current?.injectJavaScript(`
       (function() {
-        localStorage.setItem('mishil_onboarding_completed', 'true');
-        localStorage.setItem('mishil_subscription_active', 'true');
-        ${planLine}
-        var screen = document.getElementById('screen-onboarding');
-        if (screen) screen.classList.remove('active');
-        typeof showToast === 'function' && showToast('${safe}');
+        try {
+          localStorage.setItem('mishil_onboarding_completed', 'true');
+          localStorage.setItem('mishil_subscription_active', 'true');
+          ${planLine}
+          var screen = document.getElementById('screen-onboarding');
+          if (screen) screen.classList.remove('active');
+          var renewalModal = document.getElementById('vip-renewal-modal');
+          if (renewalModal) renewalModal.classList.remove('active');
+          if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
+          if (typeof renderAllViews === 'function') renderAllViews();
+          typeof showToast === 'function' && showToast('${safe}');
+        } catch (e) {}
         true;
       })();
     `);
@@ -402,7 +426,13 @@ export default function MishilUnifiedWebView() {
         case 'RESTORE_PURCHASES': {
           const result = await restorePurchases();
           if (result.success && result.isActive) {
-            grantProInWebView(null, '✅ Satın alımlar geri yüklendi (Mışıl Baby Pro Aktif)');
+            let detectedPlan: 'yearly' | 'monthly' = 'monthly';
+            try {
+              const Purchases = require('react-native-purchases').default;
+              const customerInfo = await Purchases.getCustomerInfo();
+              detectedPlan = getPlanFromCustomerInfo(customerInfo);
+            } catch {}
+            grantProInWebView(detectedPlan, '✅ Satın alımlar geri yüklendi (Mışıl Baby Pro Aktif)');
           } else {
             webToast('ℹ️ Bu hesapta geri yüklenecek aktif bir abonelik bulunamadı.');
           }

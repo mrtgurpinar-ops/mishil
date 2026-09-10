@@ -2851,8 +2851,17 @@
     // Native'den gelen abonelik durumu callback'i
     onSubscriptionResult: function(data) {
       if (data && data.isActive) {
+        const plan = (data.plan && (data.plan === 'yearly' || data.plan === 'monthly'))
+          ? data.plan
+          : (localStorage.getItem('mishil_selected_plan') || 'monthly');
         localStorage.setItem('mishil_subscription_active', 'true');
-        localStorage.setItem('mishil_subscription_plan', data.plan || 'premium');
+        localStorage.setItem('mishil_subscription_plan', plan);
+        var renewalModal = document.getElementById('vip-renewal-modal');
+        if (renewalModal) renewalModal.classList.remove('active');
+        var onboardingScreen = document.getElementById('screen-onboarding');
+        if (onboardingScreen) onboardingScreen.classList.remove('active');
+        if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
+        if (typeof renderAllViews === 'function') renderAllViews();
         showToast('🎉 Mışıl Baby Pro aktif edildi!');
       }
     }
@@ -2988,7 +2997,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.20.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.21.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function appVersionLabel() {
     const m = appMeta();
@@ -2997,7 +3006,13 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.20.0', date: '11 Eylül 2026', latest: true, items: [
+    { v: '4.21.0', date: '11 Eylül 2026', latest: true, items: [
+      'Deneme Süresi Mantık Koruması: getTrialStatus() fonksiyonunun Onboarding\'i atlayan kullanıcılara kendi kendine sahte deneme başlatıp Pro\'yu bedava açma açığı kökten kapatıldı.',
+      'VIP Satın Alma & Yenileme Modal Kapatma: Native IAP ve geri yükleme tamamlandığında vip-renewal-modal ekranının açık kalması engellendi; anında otomatik kapanış bağlandı.',
+      'Anlık Arayüz Tazeleme: Satın alma ve geri yükleme bittiği an Ayarlar rozetlerinin (✓ AKTİF PLANINIZ) beklemeden yenilenmesi sağlandı.',
+      'RevenueCat Geri Yükleme Plan Senkronu: Geri yüklemede ve canlı senkronizasyonda kullanıcının aktif planının (Yıllık/Aylık) RevenueCat haklarından dinamik okunması sağlandı.',
+    ]},
+    { v: '4.20.0', date: '11 Eylül 2026', items: [
       'Ayarlar Abonelik Yönetimi & Yükseltme (Upgrade) Güvenliği: Aylık plandan Yıllık VIP plana geçişte bedelsiz seçim yanılgısı engellendi; Google Play ve App Store Proration/Upgrade satın alma akışı entegre edildi.',
       'Dinamik Plan Rozetleme: Ayarlar ekranında kullanıcının gerçek aktif planı yeşil "✓ AKTİF PLANINIZ" rozetiyle vurgulandı; alternatif plana özel tasarruf rozetleri ve aksiyon butonları bağlandı.',
       'Apple & Google Mağaza Abonelik Yönetim Köprüsü: Kullanıcının doğrudan mağaza abonelik iptal veya periyot değiştirme sayfasına yönlendirilmesi (Apple Guideline 3.1.2) sağlandı.',
@@ -4287,10 +4302,15 @@
   // DİNAMİK 7 GÜNLÜK DENEME MOTORU (TRIAL ENGINE)
   // =========================================================================
   function getTrialStatus() {
-    let trialStartStr = localStorage.getItem('mishil_trial_start');
+    const trialStartStr = localStorage.getItem('mishil_trial_start');
     if (!trialStartStr) {
-      trialStartStr = new Date().toISOString();
-      localStorage.setItem('mishil_trial_start', trialStartStr);
+      return {
+        isActive: false,
+        hasStarted: false,
+        remainingMs: 0,
+        remainingHours: 0,
+        text: 'Başlatılmadı'
+      };
     }
     const trialStart = new Date(trialStartStr).getTime();
     const now = Date.now();
@@ -4304,6 +4324,7 @@
       const remHours = hours % 24;
       return {
         isActive: true,
+        hasStarted: true,
         remainingMs,
         remainingHours: hours,
         text: days > 0 ? `${days} Gün ${remHours} Saat` : `${hours} Saat`
@@ -4311,6 +4332,7 @@
     } else {
       return {
         isActive: false,
+        hasStarted: true,
         remainingMs: 0,
         remainingHours: 0,
         text: 'Süre Doldu'
@@ -4362,9 +4384,12 @@
         if (trial.isActive) {
           subEl.textContent = `🎁 7 Günlük Deneme Aktif (Kalan: ${trial.text})`;
           subEl.style.color = 'var(--accent)';
-        } else {
+        } else if (trial.hasStarted) {
           subEl.textContent = '⚠️ Deneme Süresi Doldu (VIP Yenileyin)';
           subEl.style.color = 'var(--danger)';
+        } else {
+          subEl.textContent = '✨ Ücretsiz Temel Sürüm (7 Gün Dene)';
+          subEl.style.color = 'var(--text-muted)';
         }
       }
       if (infoEl) {
