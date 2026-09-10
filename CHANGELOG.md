@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.19.1] - 2026-09-10
+### 💳 Genişletilmiş Çoklu Mağaza ID Köprüsü & Test Satın Alma Onarımı (Build 31)
+
+Kullanıcının "yeni test kullanıcısı eklendiğinde abonelik paketi bulunamadı diyor, satın alma yapılamıyor bunun sebebi nedir" sorgusu ve ardından "genişlet güncelle" talimatı doğrultusunda:
+1. **Çoklu Aday Ürün Kimliği Eşleştirme Motoru:** Tekil `misil_monthly` araması yerine hem iOS StoreKit 2 hem Google Play Billing için aday liste mimarisine geçildi (`['monthly', 'misil_monthly', 'misil_baby_monthly', '$rc_monthly', 'misil_sub_monthly']` ve yıllık için `['yearly', 'misil_annual', 'misil_yearly', 'misil_baby_annual', '$rc_annual', 'annual']`).
+2. **'no_package' Engelinin Aşılması:** RevenueCat Dashboard offerings verisi gecikse veya panelde ürünler henüz eşlenmemiş olsa dahi, mağazada açılan ürün adı ne olursa olsun StoreKit ve Play Billing doğrudan taranarak test kullanıcısının karşısına resmi satın alma penceresinin gelmesi sağlandı.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.19.1'`, `BUILD_NUMBER = 31` (`mobile/app.config.ts`, `public/app.html`, `WEB_APP_META`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts` (260 KB).
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS.
+
 ## [4.19.0] - 2026-09-10
 ### 🎁 Ücretsiz Deneme Süresini 7 Güne Çıkarma & Çoklu Platform (iOS, Google Play, RevenueCat) Tam Uyumu (Build 30)
 

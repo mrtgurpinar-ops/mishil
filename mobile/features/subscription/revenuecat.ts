@@ -126,23 +126,22 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
       return { success: true, isActive: hasActiveEntitlement(customerInfo) };
     }
 
-    // 2. Yol: rawPackage yoksa (StoreKit doğrudan ürün fallback'i)
-    const productIdMap: Record<string, string> = {
-      'monthly': 'misil_monthly',
-      '$rc_monthly': 'misil_monthly',
-      'misil_monthly': 'misil_monthly',
-      'yearly': 'misil_annual',
-      '$rc_annual': 'misil_annual',
-      'misil_annual': 'misil_annual'
-    };
+    // 2. Yol: rawPackage yoksa (StoreKit / Google Play doğrudan çoklu ürün fallback'i)
+    const isYearly = packageId.toLowerCase().includes('year') || packageId.toLowerCase().includes('annual');
+    const candidateProductIds = isYearly
+      ? ['yearly', 'misil_annual', 'misil_yearly', 'misil_baby_annual', '$rc_annual', 'annual']
+      : ['monthly', 'misil_monthly', 'misil_baby_monthly', '$rc_monthly', 'misil_sub_monthly'];
 
-    const targetProductId = productIdMap[packageId] || 'misil_monthly';
     if (ready && Purchases.getProducts) {
       try {
-        const products = await Purchases.getProducts([targetProductId]);
+        console.log('[RevenueCat] Mağazada aranacak olası ürün ID\'leri:', candidateProductIds);
+        const products = await Purchases.getProducts(candidateProductIds);
         if (products && products.length > 0) {
+          console.log('[RevenueCat] Eşleşen mağaza ürünü bulundu:', products[0].identifier);
           const { customerInfo } = await Purchases.purchaseStoreProduct(products[0]);
           return { success: true, isActive: hasActiveEntitlement(customerInfo) };
+        } else {
+          console.warn('[RevenueCat] Aday ID\'lerin hiçbiri mağazada bulunamadı:', candidateProductIds);
         }
       } catch (storeErr: any) {
         if (storeErr?.userCancelled) return { success: false, isActive: false, cancelled: true };

@@ -2980,7 +2980,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.19.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.19.1', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function appVersionLabel() {
     const m = appMeta();
@@ -2989,7 +2989,11 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.19.0', date: '10 Eylül 2026', latest: true, items: [
+    { v: '4.19.1', date: '10 Eylül 2026', latest: true, items: [
+      'Genişletilmiş Çoklu Mağaza ID Köprüsü: StoreKit ve Google Play üzerinde ürün ID uyuşmazlığından kaynaklı \'no_package\' hatası giderildi.',
+      'Dinamik Ürün Eşleştirme: monthly, misil_monthly, misil_baby_monthly ve varyasyonları otomatik sorgulanarak test kullanıcılarında mağaza satın alma sheet\'inin kesintisiz açılması sağlandı.',
+    ]},
+    { v: '4.19.0', date: '10 Eylül 2026', items: [
       '7 Günlük Ücretsiz Deneme Lansmanı: Tüm yeni ebeveynler için ücretsiz deneme süresi 3 günden tam 7 güne (168 saat) çıkarıldı.',
       'iOS StoreKit 2 & Google Play Konsol Uyumluluğu: Apple Guideline 3.1.2 ve Google Play faturalandırma ilkelerine tam uyum sağlandı.',
       'RevenueCat Entegrasyonu Senkronu: Yedek paket tanımları ve mağaza katalog köprüsü 7 günlük tanıtım teklifi ile kesintisiz hizalandı.',
