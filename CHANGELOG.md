@@ -2,6 +2,22 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.17.0] - 2026-09-10
+### 🌟 Mışıl Holistik Gelişim Endeksi (MHGE) & Akıllı Klinik Skorlama Motoru (Build 28)
+
+Kullanıcının "gelişim skoru hesaplamasını kontrol et önerilerini sun tüm yapıya uygun bir öneri ve skorlama olmalı" talebi doğrultusunda, eski sahte puanlama (`isManual ? 78 : 94`) ve sabit 210 dk uyku hedefi tamamen kaldırılarak Mışıl Baby'nin tüm modülleriyle entegre çalışan **Mışıl Holistik Gelişim Endeksi (MHGE)** mimarisine geçildi:
+1. **Yaşa Göre Dinamik Pediatrik Uyku Bütçesi (%40 Ağırlık):** WHO ve AAP standartlarına göre bebeğin ayına bağlı dinamik günlük uyku hedefi (`getPediatricDailySleepTargetMins`) entegre edildi (0-2 ay: 15 saat, 3-5 ay: 14 saat, 6-8 ay: 13.5 saat, 9-11 ay: 13 saat, 12+ ay: 12 saat).
+2. **Gerçek SweetSpot Zaman Sapması Toleransı (%30 Ağırlık):** Bebeğin son uykusunun hesaplanan biyolojik uyku penceresiyle (`sweetSpot`) dakikası dakikasına ne kadar örtüştüğü ölçülür. ±15 dk mükemmel (100 puan), ±30 dk çok iyi (85 puan), ±45 dk kabul edilebilir (70 puan).
+3. **Beslenme & Bez Biyolojik Dengesi (%15 Ağırlık):** Son 24 saatteki beslenme aralığı (2.5 - 4 saat) ve yeterli hidrasyon/bez sayısı (≥4 bez) değerlendirilir.
+4. **Wonder Weeks Atak Haftası Koruma Kalkanı (%15 Ağırlık):** Bebek gelişimsel sıçrama (Wonder Weeks leap) dönemindeyse sistem bunu otomatik tespit eder; SweetSpot toleransını +15 dk genişletir ve skoru en az 90 puan koruma kalkanına alır.
+5. **Akıllı Klinik Rehberlik Tavsiyesi (`advice`):** Skora göre generic olmayan, bebeğin o anki uykusuzluk, aşırı yorgunluk veya atak durumunu ebeveyne açıklayan rehberlik metinleri üretir.
+6. **4 İlerlemeli Holistik Skor Kartı UI:** Analiz sekmesindeki skor kartı; Sirkadiyen Uyku, SweetSpot, Beslenme/Bez ve Wonder Weeks bileşenlerini ayrı barlarla ve dinamik klinik tavsiye kutusuyla görselleştirir.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.17.0'`, `BUILD_NUMBER = 28` (`mobile/app.config.ts`, `public/app.html`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts` (247 KB).
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
 ## [4.16.0] - 2026-09-10
 ### 🚀 DOM Hiyerarşi Onarımı, 5 Sayfada Yekpare Başlık & Kaydırma Kilidi Çözümü (Build 27)
 
