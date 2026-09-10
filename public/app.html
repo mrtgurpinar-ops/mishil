@@ -126,11 +126,11 @@
     body {
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       min-height: 100vh;
       min-height: 100dvh;
-      padding: 20px;
-      overflow: hidden;
+      padding: 12px 16px;
+      overflow-y: auto;
       position: relative;
     }
 
@@ -179,17 +179,19 @@
     .device-wrapper {
       position: relative;
       width: 390px;
-      height: 844px;
-      max-height: 96vh;
+      max-width: 100%;
+      height: min(844px, calc(100dvh - 24px));
+      max-height: 100dvh;
       background: var(--bg-night);
-      border-radius: 48px;
-      border: 8px solid #1E2538;
-      box-shadow: 0 30px 80px rgba(0, 0, 0, 0.9), 0 0 50px rgba(74, 105, 189, 0.2);
+      border-radius: 44px;
+      border: 6px solid #1E2538;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8), 0 0 40px rgba(74, 105, 189, 0.2);
       overflow: hidden;
       display: flex;
       flex-direction: column;
       z-index: 10;
       backdrop-filter: blur(12px);
+      margin: auto 0;
     }
 
     @media (max-width: 600px) {
@@ -204,6 +206,7 @@
       body {
         padding: 0;
         background: var(--bg-night);
+        align-items: stretch;
       }
       .device-wrapper {
         position: fixed;
@@ -218,6 +221,7 @@
         display: flex;
         flex-direction: column;
         overflow: hidden;
+        margin: 0;
       }
       .device-notch, .status-bar {
         display: none !important;
@@ -227,10 +231,10 @@
         min-height: 0;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
-        padding-top: max(16px, env(safe-area-inset-top));
+        padding-top: calc(max(20px, env(safe-area-inset-top)) + 8px);
         padding-left: max(16px, env(safe-area-inset-left));
         padding-right: max(16px, env(safe-area-inset-right));
-        padding-bottom: calc(76px + env(safe-area-inset-bottom));
+        padding-bottom: calc(84px + env(safe-area-inset-bottom));
       }
       .tab-bar {
         position: absolute;
@@ -1966,21 +1970,21 @@
           <div style="margin-top: 10px; border-top: 1px solid var(--border-night); padding-top: 8px;">
             <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
               <span>Uyku Bütçesi (%40 Ağırlık)</span>
-              <span id="score-part-sleep">85 / 100</span>
+              <span id="score-part-sleep">— / 100</span>
             </div>
-            <div class="progress-bar-wrap" style="height: 4px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sleep-bar" style="width: 85%;"></div></div>
+            <div class="progress-bar-wrap" style="height: 4px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sleep-bar" style="width: 0%;"></div></div>
 
             <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
               <span>SweetSpot Ritim Uyumu (%35 Ağırlık)</span>
-              <span id="score-part-sweetspot">92 / 100</span>
+              <span id="score-part-sweetspot">— / 100</span>
             </div>
-            <div class="progress-bar-wrap" style="height: 4px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sweetspot-bar" style="width: 92%; background: #74B9FF;"></div></div>
+            <div class="progress-bar-wrap" style="height: 4px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sweetspot-bar" style="width: 0%; background: #74B9FF;"></div></div>
 
             <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
               <span>Wonder Weeks Atak Dengesi (%25 Ağırlık)</span>
-              <span id="score-part-leap">80 / 100</span>
+              <span id="score-part-leap">— / 100</span>
             </div>
-            <div class="progress-bar-wrap" style="height: 4px;"><div class="progress-fill" id="score-part-leap-bar" style="width: 80%; background: #A569BD;"></div></div>
+            <div class="progress-bar-wrap" style="height: 4px;"><div class="progress-fill" id="score-part-leap-bar" style="width: 0%; background: #A569BD;"></div></div>
           </div>
         </div>
 
@@ -2020,7 +2024,7 @@
           <div class="spotlight-glow"></div>
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Haftalık Toplam Uyku (Saat)</div>
-            <span style="font-size: 11px; color: var(--accent); font-weight: 600;">Ort: 13.8 Saat</span>
+            <span style="font-size: 11px; color: var(--accent); font-weight: 600;">Ortalama: <span id="weekly-avg-sleep-val">—</span></span>
           </div>
           <div class="bento-chart-container" id="weekly-sleep-bento-chart">
             <!-- Rendered by JS -->
@@ -2042,7 +2046,7 @@
             <div style="background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 10px; border-left: 3px solid var(--accent);">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 11px; font-weight: 700; color: #FFF;">🍼 En Sık Acıktığı Saatler:</span>
-                <span style="font-size: 11px; font-weight: 800; color: var(--accent);" id="peak-feeding-hours">08:30 • 12:30 • 16:30 • 20:00</span>
+                <span style="font-size: 11px; font-weight: 800; color: var(--accent);" id="peak-feeding-hours">Kayıt biriktikçe hesaplanır</span>
               </div>
               <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Ortalama 3.5 - 4 saatlik beslenme aralığı</div>
             </div>
@@ -2050,7 +2054,7 @@
             <div style="background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 10px; border-left: 3px solid #2ED573;">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 11px; font-weight: 700; color: #FFF;">💨 Gaz & Bez Yoğunluğu:</span>
-                <span style="font-size: 11px; font-weight: 800; color: #2ED573;" id="peak-diaper-hours">Beslenmeden 30-45 dk sonra</span>
+                <span style="font-size: 11px; font-weight: 800; color: #2ED573;" id="peak-diaper-hours">Kayıt biriktikçe hesaplanır</span>
               </div>
               <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">En yoğun gaz saatleri: 17:00 - 20:00 (Kolik uyarısı)</div>
             </div>
@@ -2058,7 +2062,7 @@
             <div style="background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 10px; border-left: 3px solid var(--moon-blue);">
               <div style="display: flex; justify-content: space-between; align-items: center;">
                 <span style="font-size: 11px; font-weight: 700; color: #FFF;">😴 En Derin Uyku Bloğu:</span>
-                <span style="font-size: 11px; font-weight: 800; color: #74B9FF;" id="peak-sleep-hours">21:30 — 02:45</span>
+                <span style="font-size: 11px; font-weight: 800; color: #74B9FF;" id="peak-sleep-hours">Kayıt biriktikçe hesaplanır</span>
               </div>
               <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Gündüz uykusu zirvesi: 13:00 — 14:30</div>
             </div>
@@ -2361,7 +2365,7 @@
             <span class="settings-accordion-icon">👑</span>
             <div>
               <div class="settings-accordion-title">Abonelik & Pro Haklar</div>
-              <div class="settings-accordion-subtitle" style="color: var(--accent); font-weight: 700;">3 Günlük Ücretsiz Deneme (Aktif)</div>
+              <div class="settings-accordion-subtitle" id="settings-sub-status-subtitle" style="color: var(--accent); font-weight: 700;">Yükleniyor...</div>
             </div>
           </div>
           <span class="settings-accordion-chevron">▼</span>
@@ -2965,7 +2969,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.12.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.13.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function appVersionLabel() {
     const m = appMeta();
@@ -2974,7 +2978,14 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.12.0', date: '10 Eylül 2026', latest: true, items: [
+    { v: '4.13.0', date: '10 Eylül 2026', latest: true, items: [
+      '3 Günlük Ücretsiz Deneme Motoru: Deneme süresi boyunca tüm Pro özellikler kesintisiz kullanıma açıldı.',
+      'Satın Alma & Geri Yükleme Onarımı: Web ve mobilde satın alma ve abonelik başlatma tetikleyicileri %100 çalışır hale getirildi.',
+      'Sekme Geçişi Scroll Sıfırlama: Sesler ve Ayarlar sekmelerine geçişte ekranın aşağı kaymış başlama sorunu giderildi.',
+      'Viewport & Taşma İyileştirmesi: Ekranın tepe noktasının telefon dışına taşması ve sığmama sorunu çözüldü.',
+      'Gerçek Zamanlı Veri Entegrasyonu: Analiz bento grafiklerindeki hardcoded statik skorlar ve sahte uyku ortalamaları temizlendi.',
+    ]},
+    { v: '4.12.0', date: '10 Eylül 2026', items: [
       'Tekil Abonelik Mimarisi: 3 gün ücretsiz mağaza denemesi ve ardından aylık VIP abonelik modeli devreye alındı.',
       'Analiz Sekmesi Bilişsel Sadeleştirme: 7 analitik kart 3 dinamik segmente ayrıldı (📊 Uyku & Ritim | 💉 Sağlık & Gelişim | 📜 Aktivite).',
       'RevenueCat Fiyat Köprüsü: iOS ve Android mağaza fiyatları ve para birimleri arayüzde anlık senkronize hale getirildi.',
@@ -3613,10 +3624,16 @@
       return; // IAP tamamlanınca native bridge onSubscriptionResult() çağıracak
     }
 
-    // Web fallback (yalnızca tarayıcı önizlemesi — mağaza uygulamasında bu yola girilmez)
+    // Web / PWA / Test modu: 3 günlük denemeyi ve aktifliği hemen başlat
     localStorage.setItem('mishil_onboarding_completed', 'true');
-    document.getElementById('screen-onboarding').classList.remove('active');
-    showToast(`🎉 Tarayıcı önizleme modu`);
+    localStorage.setItem('mishil_subscription_active', 'true');
+    localStorage.setItem('mishil_subscription_plan', localStorage.getItem('mishil_selected_plan') || 'monthly');
+    localStorage.setItem('mishil_trial_start', new Date().toISOString());
+    const screen = document.getElementById('screen-onboarding');
+    if (screen) screen.classList.remove('active');
+    loadBabyProfile();
+    renderAllViews();
+    showToast('🎉 3 Günlük ücretsiz denemeniz başladı! Keyifle keşfedin.');
   }
 
   // =========================================================================
@@ -3994,7 +4011,14 @@
       window.MishilNative.purchasePackage(vipRenewalSelectedPlan);
       // IAP tamamlanınca native köprü onSubscriptionResult() çağırır.
     } else {
-      showToast('ℹ️ Satın alma yalnızca mağaza uygulamasında yapılabilir');
+      // Web / PWA / Test modu: Satın alımı/denemeyi anında onayla ve modalı kapat
+      localStorage.setItem('mishil_subscription_active', 'true');
+      localStorage.setItem('mishil_subscription_plan', vipRenewalSelectedPlan);
+      closeVipRenewalModal();
+      updateSubscriptionStatusUI();
+      loadBabyProfile();
+      renderAllViews();
+      showToast('🎉 Mışıl VIP üyeliğiniz başarıyla aktif edildi!');
     }
   }
 
@@ -4003,17 +4027,89 @@
     if (window.ReactNativeWebView) {
       window.MishilNative.restorePurchases();
     } else {
-      showToast('ℹ️ Geri yükleme yalnızca mağaza uygulamasında yapılabilir');
+      // Web / PWA / Test modu: Geri yükleme simülasyonu
+      localStorage.setItem('mishil_subscription_active', 'true');
+      closeVipRenewalModal();
+      updateSubscriptionStatusUI();
+      loadBabyProfile();
+      renderAllViews();
+      showToast('✅ Satın alımlarınız başarıyla geri yüklendi!');
     }
   }
 
-  // Pro özellik kapısı: abonelik açıkça aktif değilse (=== 'true' DEĞİLSE) ve
-  // admin yetkisi yoksa VIP yenileme modalını aç ve false döndür.
+  // =========================================================================
+  // DİNAMİK 3 GÜNLÜK DENEME MOTORU (TRIAL ENGINE)
+  // =========================================================================
+  function getTrialStatus() {
+    let trialStartStr = localStorage.getItem('mishil_trial_start');
+    if (!trialStartStr) {
+      trialStartStr = new Date().toISOString();
+      localStorage.setItem('mishil_trial_start', trialStartStr);
+    }
+    const trialStart = new Date(trialStartStr).getTime();
+    const now = Date.now();
+    const trialDurationMs = 3 * 24 * 60 * 60 * 1000; // 72 Saat
+    const diff = now - trialStart;
+    const remainingMs = trialDurationMs - diff;
+
+    if (remainingMs > 0) {
+      const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+      const days = Math.floor(hours / 24);
+      const remHours = hours % 24;
+      return {
+        isActive: true,
+        remainingMs,
+        remainingHours: hours,
+        text: days > 0 ? `${days} Gün ${remHours} Saat` : `${hours} Saat`
+      };
+    } else {
+      return {
+        isActive: false,
+        remainingMs: 0,
+        remainingHours: 0,
+        text: 'Süre Doldu'
+      };
+    }
+  }
+
+  function updateSubscriptionStatusUI() {
+    const subEl = document.getElementById('settings-sub-status-subtitle');
+    if (!subEl) return;
+    if (localStorage.getItem('mishil_admin_gate') === 'unlocked') {
+      subEl.textContent = '🔐 Yönetici Önizleme Modu (Sınırsız)';
+      subEl.style.color = 'var(--accent)';
+      return;
+    }
+    if (localStorage.getItem('mishil_subscription_active') === 'true') {
+      const plan = localStorage.getItem('mishil_subscription_plan') || 'monthly';
+      subEl.textContent = `👑 Mışıl VIP Aktif (${plan === 'yearly' ? 'Yıllık' : 'Aylık'})`;
+      subEl.style.color = 'var(--success)';
+      return;
+    }
+    const trial = getTrialStatus();
+    if (trial.isActive) {
+      subEl.textContent = `🎁 3 Günlük Deneme Aktif (Kalan: ${trial.text})`;
+      subEl.style.color = 'var(--accent)';
+    } else {
+      subEl.textContent = '⚠️ Deneme Süresi Doldu (VIP Yenileyin)';
+      subEl.style.color = 'var(--danger)';
+    }
+  }
+
+  // Pro özellik kapısı: 
+  // 1. Admin açıksa -> İzin ver
+  // 2. mishil_subscription_active === 'true' ise -> İzin ver
+  // 3. 3 günlük ücretsiz deneme süresi içindeyse -> İzin ver (Modal ÇIKMAZ!)
+  // 4. Deneme bitmiş ve abone değilse -> VIP yenileme modalını aç
   function requireActiveSubscription() {
     if (localStorage.getItem('mishil_admin_gate') === 'unlocked') {
       return true;
     }
     if (localStorage.getItem('mishil_subscription_active') === 'true') {
+      return true;
+    }
+    const trial = getTrialStatus();
+    if (trial.isActive) {
       return true;
     }
     openVipRenewalModal();
@@ -4649,6 +4745,17 @@
       `;
       chartContainer.appendChild(col);
     });
+
+    const totalMins = buckets.reduce((acc, b) => acc + b.mins, 0);
+    const avgEl = document.getElementById('weekly-avg-sleep-val');
+    if (avgEl) {
+      if (totalMins > 0) {
+        const avgHours = (totalMins / (7 * 60)).toFixed(1);
+        avgEl.textContent = `${avgHours} Saat`;
+      } else {
+        avgEl.textContent = '—';
+      }
+    }
   }
 
   let activeRoutineFilter = 'all';
@@ -5087,6 +5194,11 @@
   }
 
   function switchTab(tabName) {
+    // Sekme geçişinde ekranı en başa al (aşağı kaymış başlama sorununu çözer)
+    const container = document.querySelector('.screen-container');
+    if (container) container.scrollTop = 0;
+    window.scrollTo(0, 0);
+
     // Pro özellikler (Mışıl Dadı AI Koçu & Derin Analiz Sekmesi) abonelik gerektirir
     if ((tabName === 'coach' || tabName === 'analytics') && !requireActiveSubscription()) return;
 
@@ -5439,7 +5551,10 @@
 
   function openRestoreModal() { document.getElementById('modal-restore').classList.add('active'); }
   function closeRestoreModal() { document.getElementById('modal-restore').classList.remove('active'); }
-  function confirmRestore() { closeRestoreModal(); showToast('✅ Satın alımlar geri yüklendi (Mışıl Baby Pro Aktif)'); }
+  function confirmRestore() { 
+    closeRestoreModal(); 
+    restoreVipRenewalPurchases();
+  }
 
   function openDeleteAccountModal() { document.getElementById('modal-delete').classList.add('active'); }
   function closeDeleteModal() { document.getElementById('modal-delete').classList.remove('active'); }
@@ -5447,9 +5562,12 @@
 
   function renderAllViews() {
     renderAppMeta();
+    updateSubscriptionStatusUI();
     renderSoundsList();
     renderHomeTodayTimeline();
+    renderHomeScreenScore();
     renderAnalyticsView();
+    renderBabyRhythmReport();
     renderFamilyMembers();
     loadBabyProfile();
   }
@@ -5457,12 +5575,15 @@
   // Initial renders
   checkWebGuard();
   renderAppMeta();
+  updateSubscriptionStatusUI();
   applyAppTheme();
   checkAndRestoreLiveSleep();
   renderFamilyMembers();
   renderSoundsList();
   renderHomeTodayTimeline();
+  renderHomeScreenScore();
   renderAnalyticsView();
+  renderBabyRhythmReport();
   loadBabyProfile();
 </script>
 

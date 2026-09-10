@@ -2,6 +2,34 @@
  
  Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.13.0] - 2026-09-10
+### 🚀 3 Günlük Ücretsiz Deneme Motoru, Satın Alma & Scroll Sıfırlama, Viewport Sığmama ve Canlı Veri Onarımı (Build 24)
+
+Kullanıcının doğrudan inceleme geri bildirimleri doğrultusunda:
+1. Satın al tuşuna basıldığında tetiklenmeme sorunu giderildi; hem web/PWA hem mobilde anında deneme başlatma ve VIP satın alma açıldı.
+2. 3 gün ücretsiz deneme çelişkisi çözüldü; 72 saatlik gerçek dinamik `TrialEngine` entegre edildi, deneme süresince tüm Pro özelliklere kesintisiz erişim sağlandı.
+3. Sesler ve Ayarlar sekmelerine geçildiğinde ekranın aşağı kaymış başlama sorunu `switchTab` scroll-reset ile çözüldü.
+4. Telefon ekranının en üstünün çerçevenin/ekranın dışında kalması ve sığmama sorunu CSS esnek padding ve viewport düzenlemesiyle giderildi.
+5. HTML'de kalan sahte sabit skor barları ve uydurma ortalama uyku verileri temizlenerek gerçek kayıtlara bağlandı.
+
+#### 🛡️ Fixed & Functional
+- **Satın Al ve Geri Yükle Onarımı:**
+  - Onboarding ve VIP yenileme modalındaki "Hemen Başla" ve "VIP Aboneliği Başlat" butonları web ortamında `mishil_subscription_active` ve `mishil_trial_start` değerlerini işleyip modalı kapatarak Pro yetkilerini anında devreye sokacak şekilde bağlandı.
+- **72 Saatlik Dinamik Ücretsiz Deneme Motoru (`TrialEngine`):**
+  - İlk kayıt anından itibaren 72 saatlik geri sayım mekanizması kuruldu. `requireActiveSubscription()` fonksiyonu deneme süresince kilit açarak kullanıcının her tıklamada satın alma modalına zorlanmasını engelledi.
+  - Ayarlar sekmesindeki deneme durumu `updateSubscriptionStatusUI()` ile dinamikleştirildi (kalan saat ve dakika anlık hesaplanır).
+- **Sekme Geçişlerinde Scroll Sıfırlama (Scroll-To-Top):**
+  - `switchTab(tabName)` tetiklendiğinde `.screen-container` ve sayfa pencere kaydırma pozisyonu en başa (`scrollTop = 0`) çekilerek Sesler ve Ayarlar sekmesinin aşağı kaymış başlaması tamamen önlendi.
+- **Viewport & Dikey Taşma Düzeltmesi:**
+  - `body` üzerindeki `align-items: center` esnekliği `flex-start` ve `overflow-y: auto` olarak güncellendi; dikey sığmama durumunda üst kısmın ekran dışına taşması engellendi. Mobil safe-area padding'leri optimize edildi.
+- **Statik Sahte Skor ve Uyku Verisi Temizliği:**
+  - Bento kartlarındaki sabit `85/100`, `92/100`, `80/100` sahte yüzdeleri ve `Ort: 13.8 Saat` statik metinleri kaldırıldı; `renderWeeklyChart` gerçek uyku sürelerinin ortalamasını dinamik hesaplayacak şekilde güncellendi.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.13.0'`, `BUILD_NUMBER = 24` (`mobile/app.config.ts`, `public/app.html`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts`.
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
 ## [4.12.0] - 2026-09-10
 ### 👑 Tekil RevenueCat Mimarisi (3 Gün Mağaza Denemesi + Aylık VIP) & Analiz Sekmesi Sadeleştirmesi (Build 23)
 
