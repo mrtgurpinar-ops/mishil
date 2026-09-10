@@ -232,7 +232,7 @@ export default function SettingsScreen() {
         <View style={styles.subStatusRow}>
           <View style={{ flex: 1, marginRight: 10 }}>
             <Text style={[styles.subPlan, { color: theme.colors.heading }]}>
-              {isTrial ? '3 Günlük Ücretsiz Deneme' : 'Mishil Yıllık Premium'}
+              {isTrial ? '7 Günlük Ücretsiz Deneme' : 'Mishil Yıllık Premium'}
             </Text>
             <Text style={[styles.subDesc, { color: theme.colors.textMuted }]}>
               {isTrial

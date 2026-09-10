@@ -1722,14 +1722,14 @@
 
       <!-- APPLE 3.1.2 & GOOGLE PLAY UYUMLU 2'Lİ SADE VIP PAYWALL -->
       <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
-        <!-- Plan 1: Aylık VIP (Önerilen / 3 Gün Deneme) -->
+        <!-- Plan 1: Aylık VIP (Önerilen / 7 Gün Deneme) -->
         <div id="onboarding-plan-monthly" class="onboarding-plan-card selected" style="border: 2px solid var(--accent); background: rgba(35, 42, 70, 0.95); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectOnboardingPlan('monthly', this)">
           <div>
             <div style="display: flex; align-items: center; gap: 6px;">
               <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">🌙 Aylık VIP Plan</strong>
-              <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">3 GÜN ₺0</span>
+              <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">7 GÜN ₺0</span>
             </div>
-            <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 3 Gün Ücretsiz Deneme Dahil</div>
+            <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 7 Gün Ücretsiz Deneme Dahil</div>
           </div>
           <div style="text-align: right;">
             <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: var(--accent);"><span class="price-monthly-text">₺149.99</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
@@ -1754,11 +1754,11 @@
       </div>
 
       <div style="font-size: 11px; color: var(--text-night); line-height: 16px; margin-bottom: 12px; background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 8px;">
-        • <strong style="color: #FFF;" id="onboarding-trial-end-text">İlk 3 gün boyunca</strong> ₺0 ödersiniz. 4. gün seçilen plan devreye girer.<br>
+        • <strong style="color: #FFF;" id="onboarding-trial-end-text">İlk 7 gün boyunca</strong> ₺0 ödersiniz. 8. gün seçilen plan devreye girer.<br>
         • İstediğiniz an App Store / Google Play üzerinden tek tıkla iptal edebilirsiniz.
       </div>
 
-      <button class="btn-primary" id="btn-onboarding-pro" style="margin-top: 4px;" onclick="activateTrialAndStart()">🎁 3 Gün Ücretsiz Dene ve Başlat</button>
+      <button class="btn-primary" id="btn-onboarding-pro" style="margin-top: 4px;" onclick="activateTrialAndStart()">🎁 7 Gün Ücretsiz Dene ve Başlat</button>
       <div style="text-align: center; margin-top: 12px;">
         <button onclick="restoreVipRenewalPurchases()" style="background: none; border: none; font-size: 11px; color: var(--text-muted); cursor: pointer; text-decoration: underline;">Önceki Satın Alımları Geri Yükle</button>
       </div>
@@ -2335,16 +2335,16 @@
         <div class="settings-accordion-body">
           <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Aktif Planınızı veya Abonelik Modelinizi Seçin:</div>
           
-          <!-- 2-TIER PLAN CARDS (Aylık VIP 3 Gün Deneme + Yıllık VIP) -->
+          <!-- 2-TIER PLAN CARDS (Aylık VIP 7 Gün Deneme + Yıllık VIP) -->
           <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
-            <!-- Plan 1: Aylık VIP (Önerilen / 3 Gün Deneme) -->
+            <!-- Plan 1: Aylık VIP (Önerilen / 7 Gün Deneme) -->
             <div style="border: 2px solid var(--accent); background: rgba(35, 42, 70, 0.95); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectPricingPlan('monthly', this)">
               <div>
                 <div style="display: flex; align-items: center; gap: 6px;">
                   <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">🌙 Aylık VIP Plan</strong>
-                  <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">3 GÜN ₺0</span>
+                  <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">7 GÜN ₺0</span>
                 </div>
-                <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 3 Gün Ücretsiz Deneme Dahil</div>
+                <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 7 Gün Ücretsiz Deneme Dahil</div>
               </div>
               <div style="text-align: right;">
                 <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: var(--accent);"><span class="price-monthly-text">₺149.99</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></span>
@@ -2370,7 +2370,7 @@
 
           <!-- Apple 3.1.2 Bilgilendirmesi -->
           <div style="font-size: 11px; color: var(--text-night); line-height: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 8px;">
-            ℹ️ <strong>Apple 3.1.2 Şeffaf Abonelik Kuralı:</strong> 3 günlük deneme süresi içinde ₺0 ödersiniz. İstediğiniz an <em style="color: var(--accent);">App Store > Hesap > Abonelikler</em> adımından tek tıkla iptal edebilirsiniz.
+            ℹ️ <strong>Apple 3.1.2 Şeffaf Abonelik Kuralı:</strong> 7 günlük deneme süresi içinde ₺0 ödersiniz. İstediğiniz an <em style="color: var(--accent);">App Store > Hesap > Abonelikler</em> adımından tek tıkla iptal edebilirsiniz.
           </div>
 
           <button class="btn-secondary" onclick="openRestoreModal()">🔄 Satın Alımları Geri Yükle (Apple 3.1.1)</button>
@@ -2538,14 +2538,14 @@
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
-      <!-- Plan 1: Aylık VIP (Önerilen / 3 Gün Deneme) -->
+      <!-- Plan 1: Aylık VIP (Önerilen / 7 Gün Deneme) -->
       <div id="vip-renewal-plan-monthly" class="onboarding-plan-card selected" style="border: 2px solid var(--accent); background: rgba(35, 42, 70, 0.95); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectVipRenewalPlan('monthly', this)">
         <div>
           <div style="display: flex; align-items: center; gap: 6px;">
             <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">🌙 Aylık VIP Plan</strong>
-            <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">3 GÜN ₺0</span>
+            <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">7 GÜN ₺0</span>
           </div>
-          <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 3 Gün Ücretsiz Deneme Dahil</div>
+          <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 7 Gün Ücretsiz Deneme Dahil</div>
         </div>
         <div style="text-align: right;">
           <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: var(--accent);"><span class="price-monthly-text">₺149.99</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
@@ -2980,7 +2980,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.18.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.19.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function appVersionLabel() {
     const m = appMeta();
@@ -2989,7 +2989,13 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.18.0', date: '10 Eylül 2026', latest: true, items: [
+    { v: '4.19.0', date: '10 Eylül 2026', latest: true, items: [
+      '7 Günlük Ücretsiz Deneme Lansmanı: Tüm yeni ebeveynler için ücretsiz deneme süresi 3 günden tam 7 güne (168 saat) çıkarıldı.',
+      'iOS StoreKit 2 & Google Play Konsol Uyumluluğu: Apple Guideline 3.1.2 ve Google Play faturalandırma ilkelerine tam uyum sağlandı.',
+      'RevenueCat Entegrasyonu Senkronu: Yedek paket tanımları ve mağaza katalog köprüsü 7 günlük tanıtım teklifi ile kesintisiz hizalandı.',
+      'Dinamik Deneme Takvimi: 7 günlük deneme süresinin tam bitiş tarihi cihaz takvimine göre anlık hesaplanıp şeffafça sunuldu.',
+    ]},
+    { v: '4.18.0', date: '10 Eylül 2026', items: [
       'Akustik Ağlama Analizi Dinamizasyonu: Sabit %82 Yorgunluk HTML kutusu kaldırıldı; canlı FastAPI DSP ve dinamik biyolojik kural motoruyla gerçek zamanlı neden ve tavsiye üretimi sağlandı.',
       'Bireyselleştirilmiş Onboarding Kişisel Raporu: Sabit 45 dk -> 12 dk ve 4 kez -> 1 kez yazıları kaldırıldı; annenin girdiği uyanma sıklığı ve uykuya direnç süresine göre 7 günlük kişisel hedefler bağlandı.',
       'Mışıl Dadı Çevrimdışı Klinik Uzman Motoru: Çevrimdışı kural motoru zenginleştirildi; bebeğin tam ayına, uyanıklık penceresine ve Wonder Weeks sıçramasına duyarlı rehberlik eklendi.',
@@ -3629,7 +3635,7 @@
   }
 
   function updateTrialEndDateDisplay() {
-    const trialEnd = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000);
+    const trialEnd = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     const months = ['Ocak', 'Şubat', 'Mart', 'Nisan', 'Mayıs', 'Haziran', 'Temmuz', 'Ağustos', 'Eylül', 'Ekim', 'Kasım', 'Aralık'];
     const formatted = `${trialEnd.getDate()} ${months[trialEnd.getMonth()]} ${trialEnd.getFullYear()}`;
     const el = document.getElementById('onboarding-trial-end-text');
@@ -3658,7 +3664,7 @@
     cardEl.style.border = '2px solid var(--accent)';
     cardEl.style.background = 'rgba(35, 42, 70, 0.95)';
     localStorage.setItem('mishil_selected_plan', planType);
-    const planNames = { monthly: 'Aylık VIP (3 Gün Ücretsiz Deneme)', yearly: 'Yıllık VIP (Tasarruflu)' };
+    const planNames = { monthly: 'Aylık VIP (7 Gün Ücretsiz Deneme)', yearly: 'Yıllık VIP (Tasarruflu)' };
     showToast(`✅ ${planNames[planType] || planType} seçildi`);
   }
 
@@ -3747,14 +3753,14 @@
     }
     localStorage.setItem('mishil_medical_disclaimer_accepted_at', new Date().toISOString());
 
-    // Native uygulama içindeyse → Google Play / App Store IAP başlat (Varsayılan: monthly 3 gün deneme)
+    // Native uygulama içindeyse → Google Play / App Store IAP başlat (Varsayılan: monthly 7 gün deneme)
     if (window.ReactNativeWebView) {
       const selectedPlan = localStorage.getItem('mishil_selected_plan') || 'monthly';
       window.MishilNative.purchasePackage(selectedPlan);
       return; // IAP tamamlanınca native bridge onSubscriptionResult() çağıracak
     }
 
-    // Web / PWA / Test modu: 3 günlük denemeyi ve aktifliği hemen başlat
+    // Web / PWA / Test modu: 7 günlük denemeyi ve aktifliği hemen başlat
     localStorage.setItem('mishil_onboarding_completed', 'true');
     localStorage.setItem('mishil_subscription_active', 'true');
     localStorage.setItem('mishil_subscription_plan', localStorage.getItem('mishil_selected_plan') || 'monthly');
@@ -3763,7 +3769,7 @@
     if (screen) screen.classList.remove('active');
     loadBabyProfile();
     renderAllViews();
-    showToast('🎉 3 Günlük ücretsiz denemeniz başladı! Keyifle keşfedin.');
+    showToast('🎉 7 Günlük ücretsiz denemeniz başladı! Keyifle keşfedin.');
   }
 
   // =========================================================================
@@ -3786,7 +3792,7 @@
     if (btn) {
       btn.style.opacity = '1';
       btn.style.pointerEvents = 'auto';
-      if (planType === 'monthly') btn.textContent = '🎁 3 Gün Ücretsiz Dene ve Başlat';
+      if (planType === 'monthly') btn.textContent = '🎁 7 Gün Ücretsiz Dene ve Başlat';
       else if (planType === 'yearly') btn.textContent = '👑 Yıllık VIP Başlat (%67 Tasarruf)';
     }
   }
@@ -4175,7 +4181,7 @@
   }
 
   // =========================================================================
-  // DİNAMİK 3 GÜNLÜK DENEME MOTORU (TRIAL ENGINE)
+  // DİNAMİK 7 GÜNLÜK DENEME MOTORU (TRIAL ENGINE)
   // =========================================================================
   function getTrialStatus() {
     let trialStartStr = localStorage.getItem('mishil_trial_start');
@@ -4185,7 +4191,7 @@
     }
     const trialStart = new Date(trialStartStr).getTime();
     const now = Date.now();
-    const trialDurationMs = 3 * 24 * 60 * 60 * 1000; // 72 Saat
+    const trialDurationMs = 7 * 24 * 60 * 60 * 1000; // 168 Saat (7 Gün)
     const diff = now - trialStart;
     const remainingMs = trialDurationMs - diff;
 
@@ -4225,7 +4231,7 @@
     }
     const trial = getTrialStatus();
     if (trial.isActive) {
-      subEl.textContent = `🎁 3 Günlük Deneme Aktif (Kalan: ${trial.text})`;
+      subEl.textContent = `🎁 7 Günlük Deneme Aktif (Kalan: ${trial.text})`;
       subEl.style.color = 'var(--accent)';
     } else {
       subEl.textContent = '⚠️ Deneme Süresi Doldu (VIP Yenileyin)';
@@ -4236,7 +4242,7 @@
   // Pro özellik kapısı: 
   // 1. Admin açıksa -> İzin ver
   // 2. mishil_subscription_active === 'true' ise -> İzin ver
-  // 3. 3 günlük ücretsiz deneme süresi içindeyse -> İzin ver (Modal ÇIKMAZ!)
+  // 3. 7 günlük ücretsiz deneme süresi içindeyse -> İzin ver (Modal ÇIKMAZ!)
   // 4. Deneme bitmiş ve abone değilse -> VIP yenileme modalını aç
   function requireActiveSubscription() {
     if (localStorage.getItem('mishil_admin_gate') === 'unlocked') {

@@ -70,7 +70,7 @@ class SubscriptionService:
 
     @classmethod
     def start_trial(cls, db: Session, user: User) -> SubscriptionResponse:
-        """Start a 3-day free trial for user if not previously used."""
+        """Start a 7-day free trial for user if not previously used."""
         now = datetime.now(timezone.utc)
         trial_ends_at = now + timedelta(days=settings.TRIAL_DURATION_DAYS)
 
@@ -79,7 +79,7 @@ class SubscriptionService:
         if sub and sub.trial_ends_at and sub.trial_ends_at < now:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Daha önce 3 günlük ücretsiz deneme süresi kullanılmış."
+                detail="Daha önce 7 günlük ücretsiz deneme süresi kullanılmış."
             )
 
         if not sub:

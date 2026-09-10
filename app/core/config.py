@@ -61,7 +61,7 @@ class Settings(BaseSettings):
 
     # RevenueCat & Subscription
     REVENUECAT_WEBHOOK_SECRET: str = "rc_webhook_secret_example_key"
-    TRIAL_DURATION_DAYS: int = 3
+    TRIAL_DURATION_DAYS: int = 7
 
     # Audio & Cry Analysis Constraints
     MAX_AUDIO_UPLOAD_SIZE_BYTES: int = 10 * 1024 * 1024  # 10 MB

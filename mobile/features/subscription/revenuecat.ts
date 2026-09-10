@@ -30,14 +30,14 @@ export const FALLBACK_OFFERINGS: PackageOffer[] = [
     packageType: 'MONTHLY',
     priceString: '₺149,99 / Ay',
     title: '🌙 Mışıl Baby Aylık VIP (Önerilen)',
-    description: '3 Gün Ücretsiz Deneme • Sonrasında Aylık ₺149,99 • İstediğiniz an iptal edin.',
+    description: '7 Gün Ücretsiz Deneme • Sonrasında Aylık ₺149,99 • İstediğiniz an iptal edin.',
   },
   {
     identifier: '$rc_annual',
     packageType: 'ANNUAL',
     priceString: '₺599,99 / Yıl',
     title: '👑 Mışıl Baby Yıllık VIP (Tasarruflu)',
-    description: '3 Gün Ücretsiz Deneme • Aylık ₺49,99 karşılığı • %67 Tasarruf.',
+    description: '7 Gün Ücretsiz Deneme • Aylık ₺49,99 karşılığı • %67 Tasarruf.',
   },
 ];
 

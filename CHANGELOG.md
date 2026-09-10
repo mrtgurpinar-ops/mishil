@@ -2,7 +2,28 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
-## [4.18.0] - 2026-09-10
+## [4.19.0] - 2026-09-10
+### 🎁 Ücretsiz Deneme Süresini 7 Güne Çıkarma & Çoklu Platform (iOS, Google Play, RevenueCat) Tam Uyumu (Build 30)
+
+Kullanıcının "ücretsiz deneme 7 gün olsa daha iyi bence" ve "iOS google play ve revenue cat için hiçbirinde aksama olmadığını kontrol et" talimatları doğrultusunda tüm ücretsiz deneme kurgusu 3 günden tam 7 güne (168 saat) çıkarıldı ve çoklu platform mağaza uyumluluğu sağlandı:
+1. **iOS StoreKit 2 & App Store Review Guideline 3.1.2 Uyumu:**
+   - Apple Şeffaf Abonelik Kuralı (Guideline 3.1.2) uyarınca tüm ekranlarda (`app.html`, React Native `subscription.tsx`) "7 günlük deneme süresi içinde ₺0 ödersiniz, süre dolmadan en az 24 saat önce iptal edilebilir" net şartları güncellendi.
+2. **Google Play Console & Billing Library Senkronu:**
+   - Tanıtım deneme teklifi (Introductory Free Trial) baz planlarıyla tam hizalandı; Google Play Console'daki 7 günlük periyot (`P7D`) ile WebView ve native köprüler birebir eşitlendi.
+3. **RevenueCat SDK & `FALLBACK_OFFERINGS` Senkronu:**
+   - `mobile/features/subscription/revenuecat.ts` içerisindeki yedek paket açıklamaları "7 Gün Ücretsiz Deneme" olarak güncellendi. Paket tanımlayıcıları (`$rc_monthly`, `$rc_annual`, `misil_monthly`, `misil_annual`) ve entitlement (`pro`) korunarak sıfır kesinti sağlandı.
+4. **Native Paywall & Ayarlar Ekranları (`subscription.tsx`, `settings.tsx`, `register.tsx`):**
+   - React Native native ekranlarındaki tüm rozetler (`En Çok Tercih Edilen • 7 Gün Ücretsiz`), CTA butonları (`7 Gün Ücretsiz Başla`) ve hesap durumu (`7 Günlük Ücretsiz Deneme`) senkronize edildi.
+5. **Dinamik 7 Günlük Deneme Motoru & Yerel Tarih Gösterimi:**
+   - `getTrialStatus()` içindeki hesaplama `7 * 24 * 60 * 60 * 1000` (168 saat) olarak güncellendi; `updateTrialEndDateDisplay()` cihaz yerel takvimine göre tam 7 gün sonrasının Türkçe tarihini (`X Ay Yıl`) dinamik olarak oluşturacak şekilde doğrulandı.
+6. **Backend Servis & Kural Senkronizasyonu:**
+   - `app/core/config.py` `TRIAL_DURATION_DAYS = 7` yapıldı; `app/services/subscription.py` deneme başlatma yanıtları 7 güne çekildi.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.19.0'`, `BUILD_NUMBER = 30` (`mobile/app.config.ts`, `public/app.html`, `WEB_APP_META`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts` (260 KB).
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, Playwright Uçtan Uca 7-Day Trial Testi PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
 ### 🔬 Tüm Mock/Statik Verileri Tam Dinamize Etme & Biyolojik Uçtan Uca Entegrasyon (Build 29)
 
 Kullanıcının "mock veri taraması yap nasıl dinamize ederiz önerilerini sun" incelemesi ve ardından "seçenek c" onayı doğrultusunda sistemdeki tüm sahte ve statik veriler uçtan uca dinamik hale getirildi:

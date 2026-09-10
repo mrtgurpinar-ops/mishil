@@ -92,7 +92,7 @@ export default function SubscriptionScreen() {
           Bebeğinizin Tüm Uyku & Ağlama İpuçları Cebinizde
         </Text>
         <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-          3 gün boyunca hiçbir ücret ödemeden deneyin. Memnun kalmazsanız dilediğiniz an tek tıkla iptal edin.
+          7 gün boyunca hiçbir ücret ödemeden deneyin. Memnun kalmazsanız dilediğiniz an tek tıkla iptal edin.
         </Text>
       </View>
 
@@ -140,7 +140,7 @@ export default function SubscriptionScreen() {
               >
                 {offer.packageType === 'ANNUAL' ? (
                   <View style={styles.bestValueBadge}>
-                    <Text style={styles.bestValueText}>En Çok Tercih Edilen • 3 Gün Ücretsiz</Text>
+                    <Text style={styles.bestValueText}>En Çok Tercih Edilen • 7 Gün Ücretsiz</Text>
                   </View>
                 ) : null}
 
@@ -170,7 +170,7 @@ export default function SubscriptionScreen() {
 
       {/* CTA Button */}
       <Button
-        title="3 Gün Ücretsiz Başla"
+        title="7 Gün Ücretsiz Başla"
         onPress={handlePurchase}
         loading={loading}
         size="lg"
@@ -179,7 +179,7 @@ export default function SubscriptionScreen() {
 
       {/* Honest Transparency Terms */}
       <Text style={[styles.termsText, { color: theme.colors.textMuted }]}>
-        3 günlük ücretsiz deneme süreniz sona ermeden 24 saat önce iptal ederseniz hiçbir ücret yansıtılmaz.
+        7 günlük ücretsiz deneme süreniz sona ermeden 24 saat önce iptal ederseniz hiçbir ücret yansıtılmaz.
         Abonelik App Store / Google Play hesabınız üzerinden yönetilir ve otomatik yenilenir.
       </Text>
     </ScrollView>

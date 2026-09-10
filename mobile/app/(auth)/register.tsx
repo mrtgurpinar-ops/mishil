@@ -73,7 +73,7 @@ export default function RegisterScreen() {
             Hesap Oluştur
           </Text>
           <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-            3 günlük ücretsiz denemenizle uyku takibine hemen başlayın.
+            7 günlük ücretsiz denemenizle uyku takibine hemen başlayın.
           </Text>
         </View>
 
