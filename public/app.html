@@ -60,6 +60,35 @@
       --input-bg: rgba(15, 23, 42, 0.04);
     }
 
+    [data-theme="light"] body,
+    [data-theme="light"] .card,
+    [data-theme="light"] .modal-sheet,
+    [data-theme="light"] .tab-view {
+      color: var(--text-night);
+    }
+    [data-theme="light"] .card span[style*="#FFF"],
+    [data-theme="light"] .card div[style*="#FFF"],
+    [data-theme="light"] .card strong[style*="#FFF"],
+    [data-theme="light"] .tab-item .tab-label {
+      color: var(--heading-night) !important;
+    }
+    [data-theme="light"] .tab-bar {
+      background: rgba(255, 255, 255, 0.94);
+      border-top-color: rgba(15, 23, 42, 0.08);
+    }
+    [data-theme="light"] .tab-item.active .tab-label {
+      color: var(--accent) !important;
+    }
+    [data-theme="light"] .btn-primary {
+      color: #FFFFFF !important;
+    }
+    [data-theme="light"] input,
+    [data-theme="light"] select,
+    [data-theme="light"] textarea {
+      color: var(--heading-night);
+      border-color: var(--border-night);
+    }
+
     * {
       box-sizing: border-box;
       margin: 0;
@@ -1113,7 +1142,7 @@
       border-radius: var(--radius-sm);
       padding: 10px 12px;
       font-family: 'Inter', sans-serif;
-      font-size: 13px;
+      font-size: 16px;
       color: #FFF;
       outline: none;
     }
@@ -1662,8 +1691,8 @@
     <div id="quiz-step-5" class="quiz-step" style="display: none;">
       <div style="text-align: center; margin-bottom: 14px;">
         <span class="leap-badge">📊 AKUSTİK & SİRKADİYEN RAPORU</span>
-        <div style="font-family: 'Sora'; font-size: 22px; font-weight: 800; color: #FFF; margin-top: 4px;" id="report-baby-title">
-          Mina İçin Uyku Analizi
+        <div style="font-family: 'Sora'; font-size: 22px; font-weight: 800; color: var(--heading-night); margin-top: 4px;" id="report-baby-title">
+          Bebeğiniz İçin Uyku Analizi
         </div>
       </div>
 
@@ -1812,7 +1841,7 @@
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <div style="display: flex; align-items: center; gap: 6px;">
               <span style="font-size: 14px;">🌱</span>
-              <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: #FFF;" id="home-leap-title">Gelişim Sıçraması (Wonder Weeks)</span>
+              <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: var(--heading-night);" id="home-leap-title">Gelişim Sıçraması (Wonder Weeks)</span>
             </div>
             <span id="home-leap-badge" style="font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 700; background: rgba(165, 105, 189, 0.2); color: #D7BDE2;">Detaylar ➔</span>
           </div>
@@ -1829,7 +1858,7 @@
           <div class="spotlight-glow"></div>
           <div>
             <div style="display: flex; align-items: center;">
-              <span style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;" id="mini-sound-name">🎹 Brahms Uyku Ninnisi</span>
+              <span style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: var(--heading-night);" id="mini-sound-name">🎹 Brahms Uyku Ninnisi</span>
               <div class="waves-box" id="mini-sound-waves" style="display: none;">
                 <span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span>
               </div>
@@ -1845,7 +1874,7 @@
         <div class="card" style="background: rgba(25, 33, 56, 0.9); border: 1px solid var(--accent);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <span style="font-size: 11px; color: var(--accent); font-weight: 700; text-transform: uppercase;">Bugünkü Uyku Bütçesi</span>
-            <span style="font-size: 11px; color: #FFF; font-weight: 600;" id="today-sleep-summary-header">2s 45dk / 14s</span>
+            <span style="font-size: 11px; color: var(--heading-night); font-weight: 600;" id="today-sleep-summary-header">—</span>
           </div>
           <div class="progress-bar-wrap" style="margin-bottom: 8px;">
             <div class="progress-fill" id="today-sleep-progress-bar" style="width: 25%;"></div>
@@ -2079,7 +2108,7 @@
           
           <div class="dadi-messages-box no-scrollbar" id="chat-messages-container">
             <div class="chat-bubble-dadi">
-              🌸 <strong>Merhaba sevgili anneciğim/babacığım!</strong> Ben Mışıl Dadı. <strong id="chat-baby-mention">Mina</strong>'nın sirkadiyen ritmine, ayına ve uyku geçmişine hakimim. Uykuya direnişler, gece bölünmeleri veya beslenme düzeniyle ilgili aklınıza takılan her şeyi bana sorabilirsiniz.
+              🌸 <strong>Merhaba sevgili anneciğim/babacığım!</strong> Ben Mışıl Dadı. <strong id="chat-baby-mention">Bebeğiniz</strong>'in sirkadiyen ritmine, ayına ve uyku geçmişine hakimim. Uykuya direnişler, gece bölünmeleri veya beslenme düzeniyle ilgili aklınıza takılan her şeyi bana sorabilirsiniz.
             </div>
           </div>
 
@@ -3708,32 +3737,59 @@
   // 24 SAATLİK BEBEK RİTMİ & ZİRVE SAATLER
   // =========================================================================
   function renderBabyRhythmReport() {
-    const routines = getBabyRoutines();
+    const routines = (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines)) ? activeRoutines : [];
     const feedingHours = [];
     const diaperHours = [];
-    const sleepHours = [];
+    const nightSleepHours = [];
+    const daySleepHours = [];
 
     routines.forEach(r => {
       if (!r.timestamp) return;
       const h = new Date(r.timestamp).getHours();
       if (r.type === 'feeding') feedingHours.push(h);
       if (r.type === 'diaper') diaperHours.push(h);
-      if (r.type === 'sleep') sleepHours.push(h);
+      if (r.type === 'sleep') {
+        if (h >= 20 || h < 7) nightSleepHours.push(h);
+        else daySleepHours.push(h);
+      }
     });
 
     const feedEl = document.getElementById('peak-feeding-hours');
     const diaperEl = document.getElementById('peak-diaper-hours');
     const sleepEl = document.getElementById('peak-sleep-hours');
 
-    if (feedingHours.length >= 2 && feedEl) {
-      const uniqueH = Array.from(new Set(feedingHours)).sort((a,b)=>a-b).slice(0, 4);
-      feedEl.textContent = uniqueH.map(h => `${String(h).padStart(2, '0')}:00`).join(' • ');
+    if (feedEl) {
+      if (feedingHours.length >= 2) {
+        const uniqueH = Array.from(new Set(feedingHours)).sort((a,b)=>a-b).slice(0, 4);
+        feedEl.textContent = uniqueH.map(h => `${String(h).padStart(2, '0')}:00`).join(' • ');
+      } else {
+        feedEl.textContent = 'Kayıt biriktikçe hesaplanır';
+      }
     }
-    if (diaperHours.length >= 2 && diaperEl) {
-      diaperEl.textContent = 'Beslenmeden 30-45 dk sonra (Aktif)';
+
+    if (diaperEl) {
+      if (diaperHours.length >= 2) {
+        diaperEl.textContent = 'Beslenmelerden sonra ortalama 30-45 dk';
+      } else {
+        diaperEl.textContent = 'Kayıt biriktikçe hesaplanır';
+      }
     }
-    if (sleepHours.length >= 2 && sleepEl) {
-      sleepEl.textContent = '21:30 — 06:45 (Gece) • 13:00 (Gündüz)';
+
+    if (sleepEl) {
+      if (nightSleepHours.length > 0 || daySleepHours.length > 0) {
+        const parts = [];
+        if (nightSleepHours.length > 0) {
+          const minH = Math.min(...nightSleepHours);
+          parts.push(`Gece ~${String(minH).padStart(2, '0')}:00`);
+        }
+        if (daySleepHours.length > 0) {
+          const uniqueDay = Array.from(new Set(daySleepHours)).sort((a,b)=>a-b).slice(0, 2);
+          parts.push(`Gündüz ${uniqueDay.map(h => `${String(h).padStart(2, '0')}:00`).join(', ')}`);
+        }
+        sleepEl.textContent = parts.join(' • ');
+      } else {
+        sleepEl.textContent = 'Kayıt biriktikçe hesaplanır';
+      }
     }
   }
 
@@ -3909,6 +3965,7 @@
   function calculateSweetSpot(birthDateStr) {
     const bdate = new Date(birthDateStr);
     const now = new Date();
+    const isFuture = bdate > now;
     const diffTime = Math.abs(now - bdate);
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     const months = Math.floor(diffDays / 30.4375);
@@ -3929,7 +3986,40 @@
       wakeWindowMinutes = Math.max(45, wakeWindowMinutes - 15); // Erken atakta uyanıklık penceresi 15 dk kısalır
     }
 
-    const nextSleepDate = new Date(Date.now() + wakeWindowMinutes * 60000);
+    // Gerçek SweetSpot: Bebeğin son uyku kaydındaki uyanma saatini referans al
+    let nextSleepDate = null;
+    let isOverdue = false;
+    let statusNote = '';
+
+    const sleepLogs = (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines))
+      ? activeRoutines.filter(r => r.type === 'sleep' && (r.endTs || r.timestamp))
+      : [];
+
+    if (sleepLogs.length > 0) {
+      const lastSleep = sleepLogs[0];
+      const wakeTs = lastSleep.endTs || lastSleep.timestamp;
+      if (wakeTs) {
+        const lastWakeDate = new Date(wakeTs);
+        const elapsedMins = Math.floor((now.getTime() - lastWakeDate.getTime()) / 60000);
+        // Son uyanma son 24 saat içindeyse
+        if (elapsedMins >= 0 && elapsedMins < 1440) {
+          nextSleepDate = new Date(lastWakeDate.getTime() + wakeWindowMinutes * 60000);
+          if (now.getTime() > nextSleepDate.getTime()) {
+            isOverdue = true;
+            statusNote = `⚠️ Uyanıklık penceresi (${wakeWindowMinutes} dk) aşıldı! Bebeği hemen uyutun`;
+          } else {
+            const remMins = Math.floor((nextSleepDate.getTime() - now.getTime()) / 60000);
+            statusNote = `Son uyanmadan itibaren • ${remMins} dk sonra uyku vakti`;
+          }
+        }
+      }
+    }
+
+    if (!nextSleepDate) {
+      nextSleepDate = new Date(now.getTime() + wakeWindowMinutes * 60000);
+      statusNote = `SweetSpot® Önerisi • uyanıklık penceresi ${wakeWindowMinutes} dk`;
+    }
+
     const th = String(nextSleepDate.getHours()).padStart(2, '0');
     const tm = String(nextSleepDate.getMinutes()).padStart(2, '0');
 
@@ -3937,13 +4027,17 @@
     const leapData = WONDER_WEEKS_LEAPS.find(l => l.num === activeLeapNum) || WONDER_WEEKS_LEAPS[3];
 
     return {
-      ageFormatted: `${months} Ay ${remainingDays} Günlük (${currentWeek}. Hafta)`,
-      currentWeek: currentWeek,
+      ageFormatted: isFuture 
+        ? `Beklenen Doğuma ${diffDays} Gün Kaldı (Yenidoğan Hazırlık)` 
+        : `${months} Ay ${remainingDays} Günlük (${currentWeek}. Hafta)`,
+      currentWeek: isFuture ? 0 : currentWeek,
       activeLeap: leapData,
       isManual: !!manualLeap,
       leap: `${leapData.num}. GELİŞİM ATAĞI (${leapData.title})`,
       sweetSpotTime: `${th}:${tm}`,
-      wakeWindowMin: wakeWindowMinutes
+      wakeWindowMin: wakeWindowMinutes,
+      isOverdue: isOverdue,
+      statusNote: statusNote
     };
   }
 
@@ -4521,6 +4615,7 @@
 
     if (isSleeping) {
       sleepStartTime = new Date();
+      localStorage.setItem('mishil_live_sleep_start', sleepStartTime.toISOString());
       circle.classList.add('sleeping');
       if (beamWrap) beamWrap.classList.add('active-beam');
       shape.setAttribute('fill', '#A569BD');
@@ -4531,6 +4626,7 @@
       targetSub.textContent = 'Derin uyku seansı devam ediyor';
       liveTimer.style.display = 'block';
 
+      if (sleepInterval) clearInterval(sleepInterval);
       sleepInterval = setInterval(() => {
         const diff = Math.floor((new Date() - sleepStartTime) / 1000);
         const hrs = String(Math.floor(diff / 3600)).padStart(2, '0');
@@ -4543,6 +4639,7 @@
       broadcastRealtimeEvent('SLEEP_STARTED', { by: role, startTime: sleepStartTime.toISOString() });
     } else {
       if (sleepInterval) clearInterval(sleepInterval);
+      localStorage.removeItem('mishil_live_sleep_start');
       const endTime = new Date();
       const totalSecs = Math.floor((endTime - sleepStartTime) / 1000);
       const totalMins = Math.max(1, Math.round(totalSecs / 60));
@@ -4550,17 +4647,23 @@
       const startFormatted = `${String(sleepStartTime.getHours()).padStart(2, '0')}:${String(sleepStartTime.getMinutes()).padStart(2, '0')}`;
       const endFormatted = `${String(endTime.getHours()).padStart(2, '0')}:${String(endTime.getMinutes()).padStart(2, '0')}`;
 
+      const startH = sleepStartTime.getHours();
+      const isNight = startH >= 20 || startH < 7;
       const sleepCount = activeRoutines.filter(r => r.type === 'sleep').length + 1;
+      const sleepTitle = isNight ? 'Gece Uykusu' : `${sleepCount}. Gündüz Uykusu (Nap ${sleepCount})`;
+
       const newSleepLog = {
         id: 'slp_' + Date.now(),
         type: 'sleep',
         icon: '🌙',
-        title: `${sleepCount}. Gündüz Uykusu (Nap ${sleepCount})`,
+        title: sleepTitle,
         detail: `${totalMins} dk uyku (${startFormatted} - ${endFormatted})`,
         time: endFormatted,
         start: startFormatted,
         end: endFormatted,
         timestamp: endTime.getTime(),
+        startTs: sleepStartTime.getTime(),
+        endTs: endTime.getTime(),
         durationMins: totalMins,
         quality: totalMins >= 45 ? 'Derin' : 'Kısa Şekerleme'
       };
@@ -4576,11 +4679,13 @@
       targetDisp.style.color = 'var(--heading-night)';
       liveTimer.style.display = 'none';
 
-      // Dinamik SweetSpot: Uyandığı saat üzerine 90 dakika uyanıklık penceresi ekle
-      const nextSleepDate = new Date(endTime.getTime() + 90 * 60000);
+      // Dinamik SweetSpot: Bebeğin uyanıklık penceresi kadar ekle
+      const _baby = getBaby();
+      const _calc = _baby ? calculateSweetSpot(_baby.bdate) : { wakeWindowMin: 90 };
+      const nextSleepDate = new Date(endTime.getTime() + _calc.wakeWindowMin * 60000);
       const nextSleepFormatted = `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
       targetDisp.textContent = nextSleepFormatted;
-      targetSub.textContent = `SweetSpot® İdeal Uyku Vakti (1 saat 30 dk sonra)`;
+      targetSub.textContent = `SweetSpot® İdeal Uyku Vakti (${_calc.wakeWindowMin} dk sonra)`;
 
       showToast(`☀️ Günaydın! ${totalMins} dk uyku kaydedildi. Sıradaki SweetSpot: ${nextSleepFormatted}`);
       broadcastRealtimeEvent('SLEEP_COMPLETED', { by: role, duration_mins: totalMins });
@@ -4588,6 +4693,57 @@
       renderHomeTodayTimeline();
       renderHomeScreenScore();
       renderAnalyticsView();
+    }
+  }
+
+  function checkAndRestoreLiveSleep() {
+    const savedStart = localStorage.getItem('mishil_live_sleep_start');
+    if (!savedStart) return;
+    const parsedStart = new Date(savedStart);
+    if (isNaN(parsedStart.getTime())) {
+      localStorage.removeItem('mishil_live_sleep_start');
+      return;
+    }
+    // 16 saatten eskiyse temizle
+    const elapsed = Date.now() - parsedStart.getTime();
+    if (elapsed > 16 * 3600000) {
+      localStorage.removeItem('mishil_live_sleep_start');
+      return;
+    }
+
+    isSleeping = true;
+    sleepStartTime = parsedStart;
+
+    const circle = document.getElementById('moon-aura-circle');
+    const beamWrap = document.getElementById('moon-beam-wrap');
+    const shape = document.getElementById('moon-shape');
+    const btn = document.getElementById('btn-toggle-sleep');
+    const targetDisp = document.getElementById('target-sleep-display');
+    const targetSub = document.getElementById('target-sleep-subtext');
+    const liveTimer = document.getElementById('live-sleep-timer');
+
+    if (circle) circle.classList.add('sleeping');
+    if (beamWrap) beamWrap.classList.add('active-beam');
+    if (shape) shape.setAttribute('fill', '#A569BD');
+    if (btn) {
+      btn.style.background = 'linear-gradient(135deg, #2ED573 0%, #10AC84 100%)';
+      btn.innerHTML = '<span>☀️ Bebek Uyandı (Uykuyu Tamamla & Kaydet)</span>';
+    }
+    if (targetDisp) {
+      targetDisp.textContent = 'Uyuyor... 💤';
+      targetDisp.style.color = '#A569BD';
+    }
+    if (targetSub) targetSub.textContent = 'Derin uyku seansı devam ediyor';
+    if (liveTimer) {
+      liveTimer.style.display = 'block';
+      if (sleepInterval) clearInterval(sleepInterval);
+      sleepInterval = setInterval(() => {
+        const diff = Math.floor((new Date() - sleepStartTime) / 1000);
+        const hrs = String(Math.floor(diff / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+        const secs = String(diff % 60).padStart(2, '0');
+        liveTimer.textContent = `💤 Canlı Uyku: ${hrs}:${mins}:${secs}`;
+      }, 1000);
     }
   }
 
@@ -5150,6 +5306,7 @@
   checkWebGuard();
   renderAppMeta();
   applyAppTheme();
+  checkAndRestoreLiveSleep();
   renderFamilyMembers();
   renderSoundsList();
   renderHomeTodayTimeline();

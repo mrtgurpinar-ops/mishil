@@ -30,6 +30,9 @@ const APP_BUILD =
     : String(Constants.expoConfig?.android?.versionCode ?? '0');
 const INJECT_APP_META = `
   window.__MISHIL_APP__ = { version: ${JSON.stringify(APP_VERSION)}, build: ${JSON.stringify(APP_BUILD)}, platform: ${JSON.stringify(Platform.OS)}, native: true };
+  window.MishilNative = window.MishilNative || {};
+  window.MishilNative.isNative = true;
+  window.MishilNative.audioBridge = true;
   true;
 `;
 
