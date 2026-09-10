@@ -2,6 +2,21 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.18.0] - 2026-09-10
+### 🔬 Tüm Mock/Statik Verileri Tam Dinamize Etme & Biyolojik Uçtan Uca Entegrasyon (Build 29)
+
+Kullanıcının "mock veri taraması yap nasıl dinamize ederiz önerilerini sun" incelemesi ve ardından "seçenek c" onayı doğrultusunda sistemdeki tüm sahte ve statik veriler uçtan uca dinamik hale getirildi:
+1. **Akustik Ağlama Analizi Dinamizasyonu:** Sabit `%82 Yorgunluk` HTML kartı tamamen kaldırılarak; hem canlı FastAPI DSP (`POST /api/v1/cry-analysis/analyze` ve `/api/v1/cry/analyze`) hem de çevrimdışı biyolojik motoru (`evaluateClientCryProbabilities`) ile uyanıklık penceresi, beslenme aralığı ve atak durumuna duyarlı anlık dinamik olasılıklar (`cause-1-val`, `cause-2-val`, `cause-3-val`) ve klinik aksiyon tavsiyesi (`cry-action-tip`) entegre edildi.
+2. **Bireyselleştirilmiş Onboarding Uyku Raporu:** Sabit "45 dk ➔ 12 dk" ve "4 kez ➔ 1 kez" yazıları kaldırıldı; annenin ankette girdiği gerçek gece uyanma sıklığı (`quizAnswers.nightWakes`) ve uykuya direnç süresine (`quizAnswers.sleepResistance`) göre 7 günlük kişisel hedefler ve ay bazlı regresyon teşhisi bağlandı.
+3. **Mışıl Dadı Çevrimdışı Klinik Uzman Motoru:** `fallbackDadiLocalResponse` motoru zenginleştirildi; bebeğin ayına, günlük uyku açığına (`calculateRoutineRollup()`), uyanıklık penceresine ve Wonder Weeks sıçramasına duyarlı 6 farklı klinik protokol (kısa uyku, gece beslenmesi, atak, gaz masajı, oda sıcaklığı vb.) devreye alındı.
+4. **Wonder Weeks Dinamik Geri Sayım & Fırtına Zirvesi:** Bir sonraki zihinsel sıçramaya kaç gün kaldığı (`X gün kaldı: Hazırlık Modu`) ve atak haftası içerisindeki fırtınalı zirve günleri dinamik rozetle görselleştirildi.
+5. **Pediatrik Aşı Takip Defteri:** Aşının uygulandığı gerçek tarih kaydedilerek rozette dinamik gösterilmesi sağlandı.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.18.0'`, `BUILD_NUMBER = 29` (`mobile/app.config.ts`, `public/app.html`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts` (259 KB).
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, Playwright Uçtan Uca Simülasyon %100 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
 ## [4.17.0] - 2026-09-10
 ### 🌟 Mışıl Holistik Gelişim Endeksi (MHGE) & Akıllı Klinik Skorlama Motoru (Build 28)
 

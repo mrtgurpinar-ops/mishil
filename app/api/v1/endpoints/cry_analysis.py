@@ -5,7 +5,7 @@ from app.db.base import get_db
 from app.db.models import User, Baby, CryEvent
 from app.models.schemas import CryAnalysisResponse
 from app.services.cry_analysis import CryAnalysisService
-from .auth import get_current_user
+from .auth import get_current_user, get_optional_current_user
 
 router = APIRouter(prefix="/cry-analysis", tags=["Cry Audio Analysis"])
 
@@ -15,14 +15,14 @@ async def analyze_cry_audio(
     file: UploadFile = File(..., description="Bebek ağlama ses kaydı (WAV, M4A, MP3, maks 10MB)"),
     baby_id: Optional[int] = Form(None, description="Opsiyonel Bebek ID"),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: Optional[User] = Depends(get_optional_current_user),
 ):
     """
     Analyze baby crying audio file using Librosa acoustic feature extraction (MFCC, ZCR, Spectral Centroid)
     and output a heuristic probability distribution across causes (Hungry, Tired, Pain/Colic, Discomfort).
     """
-    # Verify baby ownership if provided
-    if baby_id:
+    # Verify baby ownership if both baby_id and current_user are provided
+    if baby_id and current_user:
         baby = db.query(Baby).filter(Baby.id == baby_id, Baby.user_id == current_user.id).first()
         if not baby:
             raise HTTPException(

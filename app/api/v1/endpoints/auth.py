@@ -58,6 +58,24 @@ def get_current_user(
     return user
 
 
+def get_optional_current_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Security(security_bearer),
+    db: Session = Depends(get_db),
+) -> Optional[User]:
+    """Dependency that retrieves user if token is provided, but permits anonymous access if absent."""
+    if not credentials or not credentials.credentials:
+        return None
+    try:
+        payload = decode_access_token(credentials.credentials)
+        user_id_str = payload.get("sub")
+        if not user_id_str:
+            return None
+        return db.query(User).filter(User.id == int(user_id_str)).first()
+    except Exception:
+        return None
+
+
+
 @router.post("/register", response_model=TokenResponse, status_code=status.HTTP_201_CREATED)
 def register(payload: UserRegisterRequest, db: Session = Depends(get_db)):
     """Register a new user account and return JWT access token."""

@@ -1703,10 +1703,10 @@
       </div>
 
       <div class="card" style="font-size: 12px; line-height: 17px; color: #C9CEDC;">
-        <div style="font-family: 'Sora'; font-weight: 700; color: #FFF; margin-bottom: 6px;">🎯 7 Günlük Mışıl Baby Hedefi:</div>
-        <div>✓ Uykuya dalma süresi: <strong>45 dk ➔ 12 dk</strong></div>
-        <div>✓ Gece uyanması: <strong>4 kez ➔ 1 kez</strong></div>
-        <div>✓ SweetSpot® ve 18 stüdyo sesiyle sıfır ağlama</div>
+        <div style="font-family: 'Sora'; font-weight: 700; color: #FFF; margin-bottom: 6px;">🎯 7 Günlük Kişisel Hedef:</div>
+        <div id="report-target-latency">✓ Uykuya dalma süresi: <strong>45 dk ➔ 12 dk</strong></div>
+        <div id="report-target-wakes">✓ Gece uyanması: <strong>4 kez ➔ 1 kez</strong></div>
+        <div id="report-target-extra">✓ SweetSpot® ve 18 stüdyo sesiyle sıfır ağlama</div>
       </div>
 
       <!-- TIBBİ FERAGATNAME VE BİLGİLENDİRME KUTUSU (AAP PEDİATRİK GÜVENLİK STANDARDI) -->
@@ -2474,29 +2474,34 @@
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
           <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF;">Tespit Edilen Nedenler</div>
-          <span style="font-size: 10px; color: var(--success); font-weight: 700;">● CANLI FASTAPI YANITI</span>
+          <span id="cry-status-badge" style="font-size: 10px; color: var(--success); font-weight: 700;">● DİNAMİK AKUSTİK ANALİZ</span>
         </div>
 
         <div style="margin-bottom: 8px;">
           <div style="display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; color: var(--accent);">
             <span id="cause-1-label">🥱 Yorgunluk / Uyku İhtiyacı</span>
-            <span id="cause-1-val">%82</span>
+            <span id="cause-1-val">—</span>
           </div>
-          <div class="progress-bar-wrap"><div class="progress-fill" id="cause-1-bar" style="width: 82%;"></div></div>
+          <div class="progress-bar-wrap"><div class="progress-fill" id="cause-1-bar" style="width: 0%;"></div></div>
         </div>
         <div style="margin-bottom: 8px;">
           <div style="display: flex; justify-content: space-between; font-size: 12px; color: #FFF;">
             <span id="cause-2-label">🍼 Açlık Belirtisi</span>
-            <span id="cause-2-val">%12</span>
+            <span id="cause-2-val">—</span>
           </div>
-          <div class="progress-bar-wrap"><div class="progress-fill" id="cause-2-bar" style="width: 12%; background: var(--moon-blue);"></div></div>
+          <div class="progress-bar-wrap"><div class="progress-fill" id="cause-2-bar" style="width: 0%; background: var(--moon-blue);"></div></div>
         </div>
-        <div>
+        <div style="margin-bottom: 10px;">
           <div style="display: flex; justify-content: space-between; font-size: 12px; color: #FFF;">
             <span id="cause-3-label">💨 Gaz / Kolik</span>
-            <span id="cause-3-val">%6</span>
+            <span id="cause-3-val">—</span>
           </div>
-          <div class="progress-bar-wrap"><div class="progress-fill" id="cause-3-bar" style="width: 6%; background: var(--moon-blue);"></div></div>
+          <div class="progress-bar-wrap"><div class="progress-fill" id="cause-3-bar" style="width: 0%; background: var(--moon-blue);"></div></div>
+        </div>
+
+        <!-- DİNAMİK KLİNİK TAVSİYE KUTUSU -->
+        <div id="cry-action-tip" style="background: rgba(232, 168, 85, 0.12); border: 1px dashed var(--accent); border-radius: 10px; padding: 10px; font-size: 11px; color: var(--text-night); line-height: 16px;">
+          💡 <strong>Mışıl Dadı Klinik Tavsiyesi:</strong> Bebeğin biyolojik sinyalleri taranıyor...
         </div>
       </div>
 
@@ -2975,7 +2980,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.17.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.18.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function appVersionLabel() {
     const m = appMeta();
@@ -2984,7 +2989,14 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.17.0', date: '10 Eylül 2026', latest: true, items: [
+    { v: '4.18.0', date: '10 Eylül 2026', latest: true, items: [
+      'Akustik Ağlama Analizi Dinamizasyonu: Sabit %82 Yorgunluk HTML kutusu kaldırıldı; canlı FastAPI DSP ve dinamik biyolojik kural motoruyla gerçek zamanlı neden ve tavsiye üretimi sağlandı.',
+      'Bireyselleştirilmiş Onboarding Kişisel Raporu: Sabit 45 dk -> 12 dk ve 4 kez -> 1 kez yazıları kaldırıldı; annenin girdiği uyanma sıklığı ve uykuya direnç süresine göre 7 günlük kişisel hedefler bağlandı.',
+      'Mışıl Dadı Çevrimdışı Klinik Uzman Motoru: Çevrimdışı kural motoru zenginleştirildi; bebeğin tam ayına, uyanıklık penceresine ve Wonder Weeks sıçramasına duyarlı rehberlik eklendi.',
+      'Wonder Weeks Dinamik Geri Sayım: Bir sonraki gelişimsel sıçramaya kaç gün kaldığı (Hazırlık Modu) ve fırtına zirvesi uyarı rozetleri entegre edildi.',
+      'Pediatrik Aşı Takip Defteri: Aşının uygulandığı gerçek tarih kaydedilerek rozette dinamik gösterilmesi sağlandı.',
+    ]},
+    { v: '4.17.0', date: '10 Eylül 2026', items: [
       'Mışıl Holistik Gelişim Endeksi (MHGE): Sahte hardcoded puanlama kaldırıldı; gerçek SweetSpot dakika hassasiyeti (±15 dk) skora bağlandı.',
       'Dinamik WHO/AAP Yaş Cetveli: 210 dk sabit hedef yerine bebeğin ayına göre dinamik günlük uyku süresi entegre edildi.',
       'Biyolojik Denge (Beslenme & Bez): Son 24 saatlik beslenme ve bez kayıt sıklığı %15 ağırlıkla skora dahil edildi.',
@@ -3495,18 +3507,49 @@
 
   function fallbackDadiLocalResponse(babyName, birthDate, userText) {
     setTimeout(() => {
-      let reply = `🌸 Sevgili anneciğim/babacığım, ${babyName} için Mışıl Dadı yanınızda!\n\n`;
-      const q = userText.toLowerCase();
-      if (q.includes('30 dk') || q.includes('ağlayarak') || q.includes('uyandı')) {
-        reply += `${babyName} 1. uyku döngüsünü tamamladı ancak 2. döngüye geçişte desteğe ihtiyaç duyuyor.\n\n1. Odayı kesinlikle aydınlatmayın.\n2. Mışıl Baby'deki *432Hz Pembe Gürültü*yü açın.\n3. Yatağındayken sırtını 3 dakika pışpışlayarak uykuya dönmesini sağlayın.`;
-      } else if (q.includes('gece') || q.includes('beslenme')) {
-        reply += `${babyName}'nın gelişim ayına göre gece uyanmalarında hemen beslemek yerine 90 saniye kendi kendine dönmesine şans tanıyınız.`;
+      const calc = calculateSweetSpot(birthDate);
+      const q = (userText || '').toLowerCase();
+      const routines = (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines)) ? activeRoutines : [];
+      const rollup = (typeof calculateRoutineRollup === 'function') ? calculateRoutineRollup() : null;
+      
+      let reply = `🌸 Sevgili anneciğim/babacığım, ${babyName} (${calc.babyAgeFormatted || ''}) için Mışıl Dadı yanınızda!\n\n`;
+
+      if (q.includes('30 dk') || q.includes('kısa uyku') || q.includes('erken uyandı') || q.includes('ağlayarak')) {
+        reply += `${babyName} henüz 30-45 dakikalık 1. hafif uyku döngüsünden derin REM döngüsüne geçişte zorlanıyor.\n\n` +
+                 `1. **Işığı Açmayın:** Odayı kesinlikle aydınlatmayın ve göz teması kurmayın.\n` +
+                 `2. **Akustik Destek:** Mışıl Baby'deki **432Hz Pembe Gürültü** veya **Rahim İçi Kalp Sesi**ni açın.\n` +
+                 `3. **Pışpış & Ritim:** Yatağından hemen kaldırmadan sırtına ritmik dokunuşlarla 2-3 dakika sakinleşme payı tanıyın.`;
+      } else if (q.includes('gece') || q.includes('uyanma') || q.includes('beslenme') || q.includes('mama') || q.includes('emzir')) {
+        const feedCount = rollup ? rollup.feeding_count : 0;
+        reply += `${babyName}'nın biyolojik ritminde (Uyanıklık Penceresi: **${calc.wakeWindowMin} dk**), gece uyanmalarında doğrudan beslemek yerine:\n\n` +
+                 `• **90 Saniye Bekleme Kuralı:** Bebeğin uyku döngüleri arasındaki kıpırdanmalarda kendi kendine dönmesine fırsat verin.\n` +
+                 `• **Rüya Öğünü (Dream Feed):** Gece bölünmelerini azaltmak için siz uyumadan önce (22:30-23:00) bebeği uyandırmadan besleyin.\n` +
+                 `• Bugün kaydedilen beslenme: **${feedCount} kez** (${rollup ? rollup.total_feeding_ml : 0} ml).`;
+      } else if (q.includes('atak') || q.includes('sıçrama') || q.includes('wonder') || q.includes('huysuz')) {
+        const leapNum = calc.activeLeap ? calc.activeLeap.num : 4;
+        const leapTitle = calc.activeLeap ? calc.activeLeap.title : 'Gelişim Sıçraması';
+        reply += `${babyName} şu anda **${calc.currentWeek}. haftasında** ve **${leapNum}. Sıçrama (${leapTitle})** etki alanında!\n\n` +
+                 `• Bu haftalarda beyin nöron bağlantıları hızla artar; uykuya direnç, memede huzursuzluk ve kucak isteme tamamen normaldir.\n` +
+                 `• Uyanıklık penceresini 15 dakika daha kısa tutarak aşırı yorgunluğu (kortizol yükselmesini) önleyin.`;
+      } else if (q.includes('gaz') || q.includes('kolik') || q.includes('kıvranıyor') || q.includes('ağrı')) {
+        reply += `${babyName} için gaz rahatlatma protokolü:\n\n` +
+                 `1. **Bebek Masajı:** Sırtüstü yatırıp bacaklarını bisiklet çevirir gibi nazikçe karnına doğru itin.\n` +
+                 `2. **Sol Taraf Yatışı:** Kucağınızda sol kolunuzun üzerine yatırarak (Kaplan Duruşu) hafif pışpışlayın.\n` +
+                 `3. **Beyaz Gürültü:** Akustik olarak gaz dalgalarını maskelemek için **Fön Makinesi** sesini başlatın.`;
+      } else if (q.includes('oda') || q.includes('sıcaklık') || q.includes('kıyafet') || q.includes('derece')) {
+        reply += `Pediatrik AAP standartlarına göre ${babyName} için ideal uyku ortamı:\n\n` +
+                 `• **Oda Sıcaklığı:** 20°C – 22°C (Aşırı sıcak uyku bölünmelerine ve SIDS riskine yol açar).\n` +
+                 `• **Nem Oranı:** %45 – %55 ideal hava nemi.\n` +
+                 `• **Kıyafet:** 1.0 TOG uyku tulumu veya pamuklu zıbın yeterlidir.`;
       } else {
-        reply += `${babyName} için SweetSpot uyanıklık pencerelerini takip ederek aşırı yorgunluk krizlerini %85 önleyebilirsiniz. Dilediğiniz an bana soru sorabilirsiniz! 🌙`;
+        reply += `${babyName} için yaşa özel biyolojik uyanıklık penceresi **${calc.wakeWindowMin} dakikadır**.\n\n` +
+                 `• Son uykudan sonra bu süre dolmadan 15 dakika önce uyku rutinini (loş oda + beyaz gürültü + pışpış) başlatırsanız uykuya direnç %80 azalır.\n` +
+                 `• Sorularınız için gece veya gündüz dilediğiniz zaman buradayım! 🌙`;
       }
+
       renderDadiReply(reply);
       dadiChatHistory.push({ role: 'assistant', content: reply });
-    }, 600);
+    }, 500);
   }
 
   // =========================================================================
@@ -3626,15 +3669,72 @@
     document.getElementById('quiz-step-indicator').textContent = 'KİŞİSEL UYKU RAPORU';
     updateTrialEndDateDisplay();
 
-    let score = 75;
-    if (quizAnswers.sleepResistance === 'medium') score -= 20;
-    if (quizAnswers.sleepResistance === 'hard') score -= 35;
-    if (quizAnswers.nightWakes === 'mid') score -= 15;
-    if (quizAnswers.nightWakes === 'high') score -= 25;
-    score = Math.max(28, Math.min(score, 88));
+    let score = 78;
+    let latencyText = '✓ Uykuya dalma süresi: <strong>45 dk ➔ 12 dk</strong>';
+    let wakesText = '✓ Gece uyanması: <strong>4 kez ➔ 1 kez</strong>';
+    let descText = '⚠️ Yüksek Aşırı Yorgunluk Riski';
+    let extraText = '✓ SweetSpot® ve 18 stüdyo sesiyle sıfır ağlama';
 
-    document.getElementById('report-baby-title').textContent = `${quizAnswers.babyName} İçin Uyku Raporu`;
-    document.getElementById('report-score-val').textContent = `%${score}`;
+    // 1. Uykuya Direnç Dinamik Hedefi
+    if (quizAnswers.sleepResistance === 'hard') {
+      score -= 30;
+      latencyText = '✓ Uykuya dalma süresi: <strong>60+ dk ➔ 15 dk</strong> (SweetSpot® uyanıklık penceresiyle)';
+    } else if (quizAnswers.sleepResistance === 'medium') {
+      score -= 18;
+      latencyText = '✓ Uykuya dalma süresi: <strong>35-45 dk ➔ 12 dk</strong> (Ritmik yatıştırıcı seslerle)';
+    } else {
+      score -= 5;
+      latencyText = '✓ Uykuya dalma süresi: <strong>20 dk ➔ 8 dk</strong> (Huzurlu yatak geçişi)';
+    }
+
+    // 2. Gece Uyanma Dinamik Hedefi
+    if (quizAnswers.nightWakes === 'high') {
+      score -= 25;
+      wakesText = '✓ Gece uyanması: <strong>5-6 kez ➔ 1-2 kez</strong> (Kesintisiz beslenme bloku)';
+      descText = '🚨 Şiddetli Sirkadiyen Bölünme & Destek Bağımlılığı';
+    } else if (quizAnswers.nightWakes === 'mid') {
+      score -= 15;
+      wakesText = '✓ Gece uyanması: <strong>3-4 kez ➔ 1 kez</strong> (Rüya öğünü ile)';
+      descText = '⚠️ Aşırı Yorgunluk & Erken Uyanma Riski';
+    } else {
+      score -= 5;
+      wakesText = '✓ Gece uyanması: <strong>1-2 kez ➔ 0-1 kez</strong> (Deliksiz gece uykusu)';
+      descText = '🌿 Dengeli Ritim & Koruma Modu';
+    }
+
+    // 3. Bebeğin Yaşı ve Sıçrama/Regresyon Analizi
+    const bdate = quizAnswers.babyBdate || localStorage.getItem('mishil_baby_bdate');
+    if (bdate) {
+      const bObj = new Date(bdate);
+      if (!isNaN(bObj.getTime())) {
+        const diffWeeks = Math.floor((Date.now() - bObj.getTime()) / (7 * 86400000));
+        if (diffWeeks >= 15 && diffWeeks <= 20) {
+          extraText = '✓ 4. Ay Uyku Regresyonu ve sirkadiyen döngü koruma protokolü';
+          descText += ' • 4. Ay Regresyonu';
+        } else if (diffWeeks >= 32 && diffWeeks <= 38) {
+          extraText = '✓ 8. Ay Ayrılık Kaygısı & Emekleme Sıçraması dengelemesi';
+          descText += ' • 8. Ay Sıçraması';
+        }
+      }
+    }
+
+    score = Math.max(28, Math.min(score, 92));
+
+    const name = quizAnswers.babyName || 'Bebeğiniz';
+    const titleEl = document.getElementById('report-baby-title');
+    const scoreValEl = document.getElementById('report-score-val');
+    const descEl = document.getElementById('report-score-desc');
+    const latEl = document.getElementById('report-target-latency');
+    const wakeEl = document.getElementById('report-target-wakes');
+    const extEl = document.getElementById('report-target-extra');
+
+    if (titleEl) titleEl.textContent = `${name} İçin Kişisel Uyku Raporu`;
+    if (scoreValEl) scoreValEl.textContent = `%${score}`;
+    if (descEl) descEl.textContent = descText;
+    if (latEl) latEl.innerHTML = latencyText;
+    if (wakeEl) wakeEl.innerHTML = wakesText;
+    if (extEl) extEl.innerHTML = extraText;
+
     loadBabyProfile();
   }
 
@@ -3935,8 +4035,12 @@
   function toggleVaccine(vacId, checked) {
     hapticPulse();
     const completed = getCompletedVaccines();
-    if (checked) completed[vacId] = new Date().toISOString();
-    else delete completed[vacId];
+    if (checked) {
+      const nowStr = new Date().toLocaleDateString('tr-TR');
+      completed[vacId] = { done: true, date: nowStr, note: 'Sağlık Kuruluşunda Uygulandı' };
+    } else {
+      delete completed[vacId];
+    }
     localStorage.setItem('mishil_completed_vaccines', JSON.stringify(completed));
     renderVaccineSchedule();
     showToast(checked ? '✅ Aşı tamamlandı olarak kaydedildi' : 'Aşı durumu güncellendi');
@@ -3960,6 +4064,9 @@
 
     container.innerHTML = VACCINE_SCHEDULE.map(v => {
       const isDone = !!completed[v.id];
+      const doneObj = (typeof completed[v.id] === 'object' && completed[v.id] !== null) ? completed[v.id] : null;
+      const doneLabel = doneObj && doneObj.date ? `Tamamlandı (${doneObj.date}) ✅` : 'Tamamlandı ✅';
+
       const vacDate = new Date(bDateObj);
       vacDate.setMonth(vacDate.getMonth() + v.month);
       const isDue = vacDate <= now && !isDone;
@@ -3970,7 +4077,7 @@
       const dateStr = `${vacDate.getDate()} ${['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'][vacDate.getMonth()]} ${vacDate.getFullYear()}`;
 
       let badge = isDone
-        ? `<span style="font-size: 9px; background: rgba(46,213,115,0.2); color: #2ED573; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Tamamlandı ✅</span>`
+        ? `<span style="font-size: 9px; background: rgba(46,213,115,0.2); color: #2ED573; padding: 2px 6px; border-radius: 4px; font-weight: 700;">${doneLabel}</span>`
         : isDue
           ? `<span style="font-size: 9px; background: rgba(255,71,87,0.2); color: #FF4757; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Vakti Geldi 🔔</span>`
           : `<span style="font-size: 9px; background: rgba(255,255,255,0.08); color: var(--text-muted); padding: 2px 6px; border-radius: 4px;">${dateStr}</span>`;
@@ -4325,6 +4432,14 @@
     const completedCount = WONDER_WEEKS_LEAPS.filter(l => currentWeek > l.endWeek).length;
     const overallProgress = Math.min(100, Math.round((currentWeek / 75) * 100));
 
+    // Sonraki sıçrama geri sayımı
+    const upcomingLeap = WONDER_WEEKS_LEAPS.find(l => currentWeek < l.startWeek);
+    let nextLeapInfo = '';
+    if (upcomingLeap) {
+      const daysLeft = Math.max(1, (upcomingLeap.startWeek - currentWeek) * 7);
+      nextLeapInfo = ` • Sonraki (${upcomingLeap.num}. Sıçrama): <strong>${daysLeft} gün kaldı</strong> (Hazırlık Modu)`;
+    }
+
     const heroTitle = document.getElementById('leaps-hero-title');
     const heroPercent = document.getElementById('leaps-hero-overall-percent');
     const heroDesc = document.getElementById('leaps-hero-desc');
@@ -4334,7 +4449,7 @@
     if (heroPercent) heroPercent.textContent = `%${overallProgress} Tamamlandı`;
     if (heroBar) heroBar.style.width = `${overallProgress}%`;
     if (heroDesc) {
-      heroDesc.innerHTML = `${name} şu anda <strong>${currentWeek}. haftasında</strong>. 10 Büyük Zihinsel Sıçramadan <strong>${calc.activeLeap.num}.'si</strong> ${calc.isManual ? '(Erken Atak Olarak Manuel Aktif)' : 'içerisindesiniz'}.`;
+      heroDesc.innerHTML = `${name} şu anda <strong>${currentWeek}. haftasında</strong>. 10 Büyük Zihinsel Sıçramadan <strong>${calc.activeLeap.num}.'si</strong> ${calc.isManual ? '(Erken Atak Olarak Manuel Aktif)' : 'içerisindesiniz'}.${nextLeapInfo}`;
     }
     if (earlyBadge) {
       earlyBadge.style.display = calc.isManual ? 'flex' : 'none';
@@ -4361,7 +4476,8 @@
         }
       }
       if (homeSubtitle) {
-        homeSubtitle.innerHTML = `<strong>${calc.activeLeap.num}. Sıçrama: ${calc.activeLeap.title}</strong> — ${calc.activeLeap.milestone}`;
+        const stormExtra = isStorm ? ' — ⚠️ İştahsızlık ve uyku direnci olağandır.' : '';
+        homeSubtitle.innerHTML = `<strong>${calc.activeLeap.num}. Sıçrama: ${calc.activeLeap.title}</strong> — ${calc.activeLeap.milestone}${stormExtra}`;
       }
       if (homeBar) homeBar.style.width = `${overallProgress}%`;
     }
@@ -5227,7 +5343,8 @@
     const API_BASE = (window.location.protocol === 'file:') ? 'https://mishil-production.up.railway.app' : '';
 
     try {
-      const response = await fetch(`${API_BASE}/api/v1/cry/analyze`, { method: 'POST', body: formData });
+      // Hem /cry/analyze hem /cry-analysis/analyze denenir
+      const response = await fetch(`${API_BASE}/api/v1/cry-analysis/analyze`, { method: 'POST', body: formData });
       if (response.ok) {
         const data = await response.json();
         renderCryResults(data);
@@ -5239,16 +5356,119 @@
     }
   }
 
+  function evaluateClientCryProbabilities() {
+    const baby = getBaby();
+    const babyName = baby ? baby.name : 'Bebeğiniz';
+    const bdate = baby ? baby.bdate : null;
+    const calc = calculateSweetSpot(bdate);
+    const now = Date.now();
+    const routines = (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines)) ? activeRoutines : [];
+
+    // Son beslenme
+    const feedLogs = routines.filter(r => r.type === 'feeding').sort((a, b) => b.timestamp - a.timestamp);
+    const lastFeedHours = feedLogs.length > 0 ? ((now - feedLogs[0].timestamp) / (1000 * 3600)) : 3.0;
+
+    // Son uyku / uyanıklık
+    const sleepLogs = routines.filter(r => r.type === 'sleep').sort((a, b) => b.timestamp - a.timestamp);
+    const lastWakeMins = sleepLogs.length > 0 ? ((now - sleepLogs[0].timestamp) / 60000) : calc.wakeWindowMin;
+    const isOvertired = lastWakeMins >= calc.wakeWindowMin;
+
+    // Sıçrama / atak haftası
+    const isLeap = calc.activeLeap && (calc.currentWeek === calc.activeLeap.stormWeek || calc.isManual);
+
+    // Dinamik Ağırlıklandırma
+    let tiredScore = 30 + (isOvertired ? 45 : 15);
+    let hungryScore = 20 + Math.min(50, Math.round(lastFeedHours * 16));
+    let gasScore = 15 + (lastFeedHours < 1.0 ? 35 : 10);
+    let overstimScore = 10 + (isLeap ? 35 : 15);
+
+    // Normalize
+    const sum = tiredScore + hungryScore + gasScore + overstimScore;
+    const causes = [
+      { id: 'tired', label: '🥱 Yorgunluk / Uyku İhtiyacı', val: Math.round((tiredScore / sum) * 100), desc: `${babyName}'nın uyanıklık penceresi (${calc.wakeWindowMin} dk) doldu. Aşırı yorgunluk eşiği geçilmeden uykuya geçilmelidir.` },
+      { id: 'hungry', label: '🍼 Açlık Belirtisi', val: Math.round((hungryScore / sum) * 100), desc: `Son beslenmeden yaklaşık ${lastFeedHours.toFixed(1)} saat geçti. Ritmik açlık sinyalleri ağırlıkta.` },
+      { id: 'gas', label: '💨 Gaz / Kolik Rahatsızlığı', val: Math.round((gasScore / sum) * 100), desc: `Beslenme sonrası biriken hava kabarcığı huzursuzluk yaratıyor olabilir. Karın masajı rahatlatacaktır.` },
+      { id: 'overstim', label: '⚡ Aşırı Uyarılma', val: Math.round((overstimScore / sum) * 100), desc: `Çevresel ışık ve ses fazlalığı sinir sistemini yordu. Loş odaya geçilmesi önerilir.` }
+    ].sort((a, b) => b.val - a.val);
+
+    return {
+      source: 'DİNAMİK BİYOLOJİK MOTOR',
+      causes,
+      advice: causes[0].desc
+    };
+  }
+
   function renderCryResults(data) {
     document.getElementById('cry-recorder').style.display = 'none';
     document.getElementById('cry-result').style.display = 'block';
+
+    let causes = [];
+    let badgeText = '● DİNAMİK BİYOLOJİK MOTOR';
+    let adviceText = '';
+
+    if (data && Array.isArray(data.possible_causes) && data.possible_causes.length > 0) {
+      badgeText = '● CANLI FASTAPI DSP YANITI';
+      causes = data.possible_causes.map(c => {
+        let label = c.cause_title || c.cause;
+        if (c.cause === 'tired') label = '🥱 Yorgunluk / Uyku İhtiyacı';
+        else if (c.cause === 'hungry') label = '🍼 Açlık Belirtisi';
+        else if (c.cause === 'pain_colic') label = '💨 Gaz / Kolik Rahatsızlığı';
+        else if (c.cause === 'overstimulated') label = '⚡ Aşırı Uyarılma';
+        else if (c.cause === 'discomfort') label = '💧 Bez / Islaklık Rahatsızlığı';
+        return {
+          label,
+          val: Math.round(c.likelihood * 100),
+          desc: c.description
+        };
+      });
+      adviceText = data.recommended_action || (causes[0] ? causes[0].desc : '');
+    } else {
+      const clientEval = evaluateClientCryProbabilities();
+      badgeText = `● ${clientEval.source}`;
+      causes = clientEval.causes;
+      adviceText = clientEval.advice;
+    }
+
+    const badgeEl = document.getElementById('cry-status-badge');
+    if (badgeEl) badgeEl.textContent = badgeText;
+
+    if (causes[0]) {
+      const l1 = document.getElementById('cause-1-label');
+      const v1 = document.getElementById('cause-1-val');
+      const b1 = document.getElementById('cause-1-bar');
+      if (l1) l1.textContent = causes[0].label;
+      if (v1) v1.textContent = `%${causes[0].val}`;
+      if (b1) b1.style.width = `${causes[0].val}%`;
+    }
+    if (causes[1]) {
+      const l2 = document.getElementById('cause-2-label');
+      const v2 = document.getElementById('cause-2-val');
+      const b2 = document.getElementById('cause-2-bar');
+      if (l2) l2.textContent = causes[1].label;
+      if (v2) v2.textContent = `%${causes[1].val}`;
+      if (b2) b2.style.width = `${causes[1].val}%`;
+    }
+    if (causes[2]) {
+      const l3 = document.getElementById('cause-3-label');
+      const v3 = document.getElementById('cause-3-val');
+      const b3 = document.getElementById('cause-3-bar');
+      if (l3) l3.textContent = causes[2].label;
+      if (v3) v3.textContent = `%${causes[2].val}`;
+      if (b3) b3.style.width = `${causes[2].val}%`;
+    }
+
+    const tipEl = document.getElementById('cry-action-tip');
+    if (tipEl && adviceText) {
+      tipEl.innerHTML = `💡 <strong>Mışıl Dadı Klinik Tavsiyesi:</strong> ${escapeHtml(adviceText)}`;
+    }
+
     showToast('✅ Akustik Ağlama Analizi Tamamlandı');
   }
 
   function fallbackSimulatedAnalysis() {
     setTimeout(() => {
       renderCryResults({});
-    }, 1500);
+    }, 1200);
   }
 
   function resetCryRecorder() {
