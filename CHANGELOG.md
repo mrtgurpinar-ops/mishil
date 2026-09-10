@@ -2,6 +2,20 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.15.0] - 2026-09-10
+### 🌐 Evrensel Adaptif Cihaz Motoru (`DeviceAdaptiveEngine`) & Akıcı Tam Ekran Viewport Mimarisi (Build 26)
+
+Kullanıcının ilettiği "hala alakasız yukarıda kalan boşluk var, tam ekrana oturmuyor bunu çözecek düzgün bir metodoloji bulmalısın" ve "tüm farklı mobil cihazlarda o mobil cihaza göre şekillenmeli" yönlendirmeleri doğrultusunda:
+1. **Yapay Tavan Boşluğu Sıfırlandı:** Önceki versiyonda çentik koruması amacıyla konulan sabit `calc(max(54px, env(safe-area-inset-top) + 20px))` kuralı kaldırıldı; tarayıcı veya masaüstünde oluşan yapay 74px+ gereksiz boşluk temizlendi.
+2. **Evrensel Adaptif Cihaz Motoru (`applyUniversalDeviceMetrics`):** Cihazın fiziksel ekran boyutunu, yönünü (portrait/landscape) ve platform ortamını (Masaüstü, Native Expo iOS/Android, Bağımsız PWA, Mobil Tarayıcı Safari/Chrome) anlık tespit eden JavaScript motoru eklendi. CSS değişkenleri (`--device-safe-top`, `--device-safe-bottom`) her donanımın kendi geometrisine göre dinamik olarak hesaplanmaktadır.
+3. **Akıcı Tam Ekran (Fluid Fullscreen) Mimarisi:** Masaüstü veya mobilde sabit piksel telefon kutusu yerine `100% width/height/dvh` akıcı tam ekran mimarisine geçildi; geniş ekranlarda içeriğin okunabilirliğini korumak için `max-width: 540px; margin: 0 auto;` odaklama container'ı uygulandı.
+4. **Donanım Çentiği ve Sahte Bar Temizliği:** Cihazların üzerinde yapay duran `.device-notch` ve `.status-bar` (sahte pil/saat) her platformda tamamen gizlenerek cihazın kendi donanım barının doğal çalışması sağlandı.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.15.0'`, `BUILD_NUMBER = 26` (`mobile/app.config.ts`, `public/app.html`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts` (241 KB).
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
 ## [4.14.0] - 2026-09-10
 ### 🎯 Ses Menüsü Scroll Kilit & Aşağı Kayma Çözümü, Masaüstü Dikey Kilit ve Yapışkan Başlık Mimarisi (Build 25)
 
