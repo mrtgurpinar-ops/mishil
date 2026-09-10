@@ -2,7 +2,39 @@
  
  Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
-+## [4.11.1] - 2026-09-10
+## [4.12.0] - 2026-09-10
+### 👑 Tekil RevenueCat Mimarisi (3 Gün Mağaza Denemesi + Aylık VIP) & Analiz Sekmesi Sadeleştirmesi (Build 23)
+
+Kullanıcının talimatları ve onayladığı uygulama planı uyarınca:
+1. Analiz sekmesindeki bilişsel yükü düşürmek için 7 analitik kart 3 dinamik segmente ayrıldı.
+2. Freemium ve kontrol açıkları kapatıldı; tekil 3 gün ücretsiz deneme + Aylık VIP (ve Yıllık VIP) iş modeline geçildi.
+3. RevenueCat canlı offering fiyatları native köprü üzerinden web arayüzüne anlık enjekte edildi.
+4. Kafa karıştıran Ömür Boyu paketi kaldırılarak 2-tier temiz paket sunumuna geçildi.
+
+#### ✨ Added
+- **3'lü Segment Hap Menüsü (Analiz Sekmesi):**
+  - Analiz sekmesi 7 ardışık karttan kurtarılarak `[ 📊 Uyku & Ritim | 💉 Sağlık & Gelişim | 📜 Aktivite ]` şeklinde 3 odak paneline bölündü.
+  - `switchAnalyticsSegment()` mimarisi ile kullanıcı istediği alt paneli anında görüntüler, bilişsel aşırı yüklenme önlendi.
+- **Canlı RevenueCat Fiyat Köprüsü:**
+  - `MishilUnifiedWebView.tsx` ve `revenuecat.ts` üzerinden Google Play ve App Store canlı yerel para birimi fiyatları (`window.__MISHIL_STORE_PRICES__`) otomatik olarak WebView'e aktarıldı ve `applyStorePrices()` ile arayüzdeki fiyat metinleri dinamikleştirildi.
+- **Dinamik 18 Stüdyo Sesi VIP & Ücretsiz Göstergesi:**
+  - İlk 2 akustik ninni (`brahms_lullaby`, `moonlight_lullaby`) ücretsiz denemeye açık bırakıldı; diğer 16 parça VIP kilitli hale getirilerek arayüzde şık yeşil "ÜCRETSİZ" ve altın "👑 VIP" rozetleri ile donatıldı.
+
+#### 🛡️ Fixed & Security
+- **Freemium Açığı Kapatıldı & VIP Koruması Genişletildi:**
+  - `requireActiveSubscription()` fonksiyonundaki `null` durumu açığı kapatıldı; `mishil_subscription_active === 'true'` veya `mishil_admin_gate === 'unlocked'` olmayan durumlarda Pro özellikler engellendi.
+  - VIP erişim kapısı; Mışıl Dadı AI Koçu'nun yanı sıra Analiz Sekmesi (`switchTab('analytics')`), Canlı Uyku Başlatma (`toggleLiveSleep()`), Manuel Rutin Ekleme (`openAddRoutineModal()`) ve 16 stüdyo sesine bağlandı.
+- **Onboarding Duvarı Koruması:**
+  - Onboarding Adım 1 ve Adım 5 üzerindeki serbest atlama linkleri kaldırılarak kullanıcının 3 günlük ücretsiz denemeyi (App Store / Google Play In-App Purchase Trial) başlatması veya önceki satın alımlarını geri yüklemesi sağlandı.
+- **Ömür Boyu Paket Temizliği:**
+  - Karışıklık yaratan Ömür Boyu (Lifetime) paketi Onboarding, VIP Yenileme Modalı ve Ayarlar sekmesinden kaldırılarak temiz 2 pakete (Aylık VIP 3 gün ₺0 denemeli & Yıllık VIP %67 tasarruflu) indirildi.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.12.0'`, `BUILD_NUMBER = 23` (`mobile/app.config.ts`, `public/app.html`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts`.
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
+## [4.11.1] - 2026-09-10
 +### 🛡️ 360° Kod, Mantık, UX ve UI Düzeltmeleri & SweetSpot Dinamik Motoru (Build 22)
 +
 +360 derece kod taraması ile tespit edilen çalışma zamanı çökmesi, uyanıklık penceresi mantık hatası, canlı sayaç kalıcılığı ve tema kontrast sorunları giderildi.

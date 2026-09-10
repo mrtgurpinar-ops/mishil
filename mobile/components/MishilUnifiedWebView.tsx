@@ -212,6 +212,28 @@ export default function MishilUnifiedWebView() {
     `);
     // ADIM 4 — her başarılı yüklemede canlı lisans doğrulaması yap.
     void syncEntitlementToWebView();
+
+    // Canlı mağaza fiyatlarını (RevenueCat Offerings) web tarafına dinamik aktar
+    (async () => {
+      try {
+        const offerings = await getOfferings();
+        const m = offerings.find(o => o.packageType === 'MONTHLY');
+        const a = offerings.find(o => o.packageType === 'ANNUAL');
+        const pricePayload = {
+          monthly: m?.priceString || '₺149,99/ay',
+          yearly: a?.priceString || '₺599,99/yıl',
+        };
+        webviewRef.current?.injectJavaScript(`
+          (function() {
+            window.__MISHIL_STORE_PRICES__ = ${JSON.stringify(pricePayload)};
+            if (typeof window.applyStorePrices === 'function') {
+              window.applyStorePrices(window.__MISHIL_STORE_PRICES__);
+            }
+            true;
+          })();
+        `);
+      } catch (e) {}
+    })();
   }, [syncEntitlementToWebView]);
 
   // Ana çerçeve hatası (TLS, DNS, 5xx, timeout) → cold-start için sessiz retry,
@@ -352,20 +374,18 @@ export default function MishilUnifiedWebView() {
           break;
 
         case 'PURCHASE_PACKAGE': {
-          // Google Play IAP başlat
-          const plan = msg.plan || 'yearly';
+          // Google Play / App Store IAP başlat
+          const plan = msg.plan || 'monthly';
           const offerings = await getOfferings();
           const pkg = offerings.find(o =>
-            plan === 'yearly' ? o.packageType === 'ANNUAL'
-            : plan === 'monthly' ? o.packageType === 'MONTHLY'
-            : o.packageType === 'LIFETIME'
+            plan === 'yearly' ? o.packageType === 'ANNUAL' : o.packageType === 'MONTHLY'
           );
 
           const result = await purchasePackage(pkg?.identifier || plan, pkg?.rawPackage);
 
           if (result.success && result.isActive) {
-            // Yalnızca GERÇEKTEN aktif hak varsa Pro'yu aç
-            grantProInWebView(plan, '🎉 Mışıl Baby Pro aktif edildi!');
+            // Yalnızca GERÇEKTEN aktif hak varsa VIP'yi aç
+            grantProInWebView(plan, '🎉 Mışıl VIP aktif edildi!');
           } else if (result.cancelled) {
             // Kullanıcı iptal etti — sessiz geç
           } else {

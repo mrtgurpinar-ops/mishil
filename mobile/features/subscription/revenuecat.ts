@@ -26,25 +26,18 @@ export const PRO_ENTITLEMENT_ID = 'pro';
 // NOT: Bu stringler mağaza konsolundaki fiyatlarla senkron tutulmalıdır.
 export const FALLBACK_OFFERINGS: PackageOffer[] = [
   {
-    identifier: '$rc_annual',
-    packageType: 'ANNUAL',
-    priceString: '₺599,99 / Yıl',
-    title: '👑 Mışıl Baby Yıllık VIP (Önerilen)',
-    description: '3 Gün Ücretsiz Deneme • Aylık ₺49,99 karşılığı • En popüler paket.',
-  },
-  {
     identifier: '$rc_monthly',
     packageType: 'MONTHLY',
     priceString: '₺149,99 / Ay',
-    title: '🗓️ Mışıl Baby Aylık Pro',
-    description: 'Kısa vadeli esneklik arayan ebeveynler için sınırsız erişim.',
+    title: '🌙 Mışıl Baby Aylık VIP (Önerilen)',
+    description: '3 Gün Ücretsiz Deneme • Sonrasında Aylık ₺149,99 • İstediğiniz an iptal edin.',
   },
   {
-    identifier: '$rc_lifetime',
-    packageType: 'LIFETIME',
-    priceString: '₺2.499,99',
-    title: '♾️ Mışıl Baby Ömür Boyu (Aile)',
-    description: 'Tek seferlik • Tüm aile ve gelecek bebekler dahil sonsuz erişim.',
+    identifier: '$rc_annual',
+    packageType: 'ANNUAL',
+    priceString: '₺599,99 / Yıl',
+    title: '👑 Mışıl Baby Yıllık VIP (Tasarruflu)',
+    description: '3 Gün Ücretsiz Deneme • Aylık ₺49,99 karşılığı • %67 Tasarruf.',
   },
 ];
 
@@ -85,16 +78,18 @@ export const initRevenueCat = async (userId?: string) => {
 /** RevenueCat customerInfo üzerinden gerçekten aktif hak var mı? */
 export const hasActiveEntitlement = (customerInfo: any): boolean => {
   if (!customerInfo) return false;
-  // Öncelik: panelde tanımlı 'pro' entitlement'ı aktif mi?
-  if (customerInfo.entitlements?.active?.[PRO_ENTITLEMENT_ID]) return true;
-  // Genel yedek (entitlement adı değişmiş olabilir / ömür boyu tek seferlik ürün)
+  // Öncelik: panelde tanımlı 'pro' veya 'mışıl_baby_pro' entitlement'ı aktif mi?
+  if (customerInfo.entitlements?.active?.[PRO_ENTITLEMENT_ID] || customerInfo.entitlements?.active?.['mışıl_baby_pro']) {
+    return true;
+  }
+  // Genel yedek (aktif abonelikler veya deneme periyodu)
   const activeEntitlements = customerInfo.entitlements?.active
     ? Object.keys(customerInfo.entitlements.active)
     : [];
   const activeSubs = Array.isArray(customerInfo.activeSubscriptions)
     ? customerInfo.activeSubscriptions
     : [];
-  const nonSubs = customerInfo.nonSubscriptionTransactions?.length || 0; // ömür boyu / tek seferlik
+  const nonSubs = customerInfo.nonSubscriptionTransactions?.length || 0;
   return activeEntitlements.length > 0 || activeSubs.length > 0 || nonSubs > 0;
 };
 
@@ -133,17 +128,15 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
 
     // 2. Yol: rawPackage yoksa (StoreKit doğrudan ürün fallback'i)
     const productIdMap: Record<string, string> = {
-      'yearly': 'misil_annual',
-      '$rc_annual': 'misil_annual',
-      'misil_annual': 'misil_annual',
       'monthly': 'misil_monthly',
       '$rc_monthly': 'misil_monthly',
       'misil_monthly': 'misil_monthly',
-      'lifetime': 'misil_lifetime',
-      '$rc_lifetime': 'misil_lifetime'
+      'yearly': 'misil_annual',
+      '$rc_annual': 'misil_annual',
+      'misil_annual': 'misil_annual'
     };
 
-    const targetProductId = productIdMap[packageId] || 'misil_annual';
+    const targetProductId = productIdMap[packageId] || 'misil_monthly';
     if (ready && Purchases.getProducts) {
       try {
         const products = await Purchases.getProducts([targetProductId]);

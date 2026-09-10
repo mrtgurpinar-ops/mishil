@@ -393,6 +393,48 @@
       box-shadow: 0 4px 14px -2px var(--accent-glow);
     }
 
+    /* 3'lü Segmentli Analiz Filtre Çubuğu */
+    .analytics-segment-row {
+      display: flex;
+      background: rgba(18, 24, 42, 0.85);
+      border: 1px solid var(--border-night);
+      border-radius: 16px;
+      padding: 4px;
+      margin-bottom: 14px;
+      gap: 4px;
+    }
+
+    .analytics-segment-btn {
+      flex: 1;
+      font-family: 'Sora', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      padding: 8px 4px;
+      border-radius: 12px;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.25s cubic-bezier(0.2, 0.6, 0.2, 1);
+      white-space: nowrap;
+    }
+
+    .analytics-segment-btn.active {
+      background: var(--accent);
+      color: #121829;
+      font-weight: 700;
+      box-shadow: 0 4px 14px -2px var(--accent-glow);
+    }
+
+    [data-theme="light"] .analytics-segment-row {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--border-night);
+    }
+
     /* Vertical Timeline Styles */
     .timeline-wrap {
       display: flex;
@@ -1561,7 +1603,7 @@
   <div id="screen-onboarding" class="onboarding-screen no-scrollbar">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
       <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: var(--accent);" id="quiz-step-indicator">ADIM 1 / 5</span>
-      <button class="skip-btn" onclick="skipOnboardingToApp()" style="background: none; border: none; font-size: 12px; font-weight: 600; color: var(--text-muted); cursor: pointer; padding: 4px 8px; text-decoration: underline;">Şimdilik Atla ➔</button>
+      <span style="font-size: 11px; color: var(--text-muted);">🌟 Kişiselleştirilmiş Plan</span>
     </div>
 
     <!-- Step 1 -->
@@ -1604,9 +1646,6 @@
         <input type="date" class="form-input" id="quiz-baby-bdate" />
       </div>
       <button class="btn-primary" style="margin-top: 14px;" onclick="nextQuizStep(2)">Devam Et ➔</button>
-      <div style="text-align: center; margin-top: 10px;">
-        <button onclick="skipOnboardingToApp()" style="background: none; border: none; font-size: 11px; color: var(--text-muted); cursor: pointer;">Daha sonra doldur, doğrudan uygulamaya geç ➔</button>
-      </div>
     </div>
 
     <!-- Step 2 -->
@@ -1720,55 +1759,47 @@
         </div>
       </div>
 
-      <!-- APPLE 3.1.2 & GOOGLE PLAY UYUMLU 3'LÜ VIP PAYWALL KARTI -->
+      <!-- APPLE 3.1.2 & GOOGLE PLAY UYUMLU 2'Lİ SADE VIP PAYWALL -->
       <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
-        <!-- Plan 1: Yıllık VIP (Önerilen) -->
-        <div id="onboarding-plan-yearly" class="onboarding-plan-card selected" style="border: 2px solid var(--accent); background: rgba(35, 42, 70, 0.95); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectOnboardingPlan('yearly', this)">
+        <!-- Plan 1: Aylık VIP (Önerilen / 3 Gün Deneme) -->
+        <div id="onboarding-plan-monthly" class="onboarding-plan-card selected" style="border: 2px solid var(--accent); background: rgba(35, 42, 70, 0.95); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectOnboardingPlan('monthly', this)">
           <div>
             <div style="display: flex; align-items: center; gap: 6px;">
-              <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">👑 Yıllık VIP Plan</strong>
-              <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
+              <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">🌙 Aylık VIP Plan</strong>
+              <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">3 GÜN ₺0</span>
             </div>
             <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 3 Gün Ücretsiz Deneme Dahil</div>
           </div>
           <div style="text-align: right;">
-            <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: var(--accent);">₺599.99<span style="font-size: 10px; color: var(--text-muted);">/yıl</span></div>
-            <div style="font-size: 10px; color: var(--text-muted);">Aylık ₺49.99</div>
+            <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: var(--accent);"><span class="price-monthly-text">₺149.99</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
+            <div style="font-size: 10px; color: var(--text-muted);">Taahhütsüz, esnek</div>
           </div>
         </div>
 
-        <!-- Plan 2: Aylık VIP -->
-        <div id="onboarding-plan-monthly" class="onboarding-plan-card" style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectOnboardingPlan('monthly', this)">
+        <!-- Plan 2: Yıllık VIP (Tasarruflu Alternatif) -->
+        <div id="onboarding-plan-yearly" class="onboarding-plan-card" style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectOnboardingPlan('yearly', this)">
           <div>
-            <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">⚡ Aylık Esnek VIP</strong>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Taahhütsüz, aylık yenilenir</div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">👑 Yıllık VIP Plan</strong>
+              <span style="background: rgba(232,168,85,0.2); color: var(--accent); font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
+            </div>
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Aylık ₺49.99 karşılığı</div>
           </div>
           <div style="text-align: right;">
-            <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: #FFF;">₺149.99<span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
-          </div>
-        </div>
-
-        <!-- Plan 3: Ömür Boyu VIP (Aile) -->
-        <div id="onboarding-plan-lifetime" class="onboarding-plan-card" style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectOnboardingPlan('lifetime', this)">
-          <div>
-            <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">💎 Ömür Boyu VIP (Aile)</strong>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Tüm bebekleriniz için sonsuz erişim</div>
-          </div>
-          <div style="text-align: right;">
-            <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: #FFF;">₺2.499.99</div>
-            <div style="font-size: 10px; color: var(--success); font-weight: 700;">Tek Seferlik</div>
+            <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: #FFF;"><span class="price-yearly-text">₺599.99</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></div>
+            <div style="font-size: 10px; color: var(--text-muted);">En avantajlı</div>
           </div>
         </div>
       </div>
 
       <div style="font-size: 11px; color: var(--text-night); line-height: 16px; margin-bottom: 12px; background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 8px;">
-        • <strong style="color: #FFF;" id="onboarding-trial-end-text">3 gün sonra</strong> tarihine kadar Yıllık planda ₺0 ödersiniz.<br>
+        • <strong style="color: #FFF;" id="onboarding-trial-end-text">İlk 3 gün boyunca</strong> ₺0 ödersiniz. 4. gün seçilen plan devreye girer.<br>
         • İstediğiniz an App Store / Google Play üzerinden tek tıkla iptal edebilirsiniz.
       </div>
 
       <button class="btn-primary" id="btn-onboarding-pro" style="margin-top: 4px;" onclick="activateTrialAndStart()">🎁 3 Gün Ücretsiz Dene ve Başlat</button>
       <div style="text-align: center; margin-top: 12px;">
-        <button onclick="skipOnboardingToApp()" style="background: none; border: none; font-size: 12px; color: var(--text-muted); cursor: pointer; text-decoration: underline;">Şimdilik Ücretsiz Sürümle Devam Et ➔</button>
+        <button onclick="restoreVipRenewalPurchases()" style="background: none; border: none; font-size: 11px; color: var(--text-muted); cursor: pointer; text-decoration: underline;">Önceki Satın Alımları Geri Yükle</button>
       </div>
     </div>
   </div>
@@ -1895,7 +1926,7 @@
       </div>
     </div>
 
-    <!-- 2. ANALYTICS & LOGBOOK TAB (YENİ VE ZENGİN ANALİZ MERKEZİ) -->
+    <!-- 2. ANALYTICS & LOGBOOK TAB (SADELEŞTİRİLMİŞ 3'LÜ SEGMENT MERKEZİ) -->
     <div id="view-analytics" class="tab-view">
       <div class="app-header">
         <div>
@@ -1904,179 +1935,193 @@
         </div>
       </div>
 
-      <!-- Dinamik Matematiksel Gelişim Skoru Kartı -->
-      <div class="card" style="border: 1px solid var(--accent); background: rgba(26, 35, 60, 0.95);">
-        <div class="spotlight-glow"></div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div>
-            <div style="font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase;">Klinik Biyolojik Skor</div>
-            <div style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: #FFF; margin: 2px 0;" id="analytics-score-val">
-              🌟 Gelişim Skoru: —
+      <!-- 3'lü Segment Filtre Çubuğu -->
+      <div class="analytics-segment-row">
+        <button class="analytics-segment-btn active" id="btn-seg-sleep" onclick="switchAnalyticsSegment('sleep')">📊 Uyku & Ritim</button>
+        <button class="analytics-segment-btn" id="btn-seg-health" onclick="switchAnalyticsSegment('health')">💉 Sağlık & Gelişim</button>
+        <button class="analytics-segment-btn" id="btn-seg-activity" onclick="switchAnalyticsSegment('activity')">📜 Aktivite</button>
+      </div>
+
+      <!-- PANEL 1: UYKU VE RİTİM ANALİTİĞİ -->
+      <div id="analytics-sec-sleep" class="analytics-sec-panel active">
+        <!-- Dinamik Matematiksel Gelişim Skoru Kartı -->
+        <div class="card" style="border: 1px solid var(--accent); background: rgba(26, 35, 60, 0.95);">
+          <div class="spotlight-glow"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase;">Klinik Biyolojik Skor</div>
+              <div style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: #FFF; margin: 2px 0;" id="analytics-score-val">
+                🌟 Gelişim Skoru: —
+              </div>
+              <div style="font-size: 11px; color: var(--text-night); line-height: 15px;" id="analytics-score-desc">
+                Profil ve kayıt biriktikçe hesaplanır
+              </div>
             </div>
-            <div style="font-size: 11px; color: var(--text-night); line-height: 15px;" id="analytics-score-desc">
-              Profil ve kayıt biriktikçe hesaplanır
+            <div class="score-circle-badge" style="width: 52px; height: 52px; border-radius: 26px;">
+              <div class="score-circle-inner" id="analytics-score-badge-val" style="font-size: 16px;">—</div>
             </div>
           </div>
-          <div class="score-circle-badge" style="width: 52px; height: 52px; border-radius: 26px;">
-            <div class="score-circle-inner" id="analytics-score-badge-val" style="font-size: 16px;">—</div>
+
+          <!-- Matematiksel Bileşen Çubukları -->
+          <div style="margin-top: 10px; border-top: 1px solid var(--border-night); padding-top: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
+              <span>Uyku Bütçesi (%40 Ağırlık)</span>
+              <span id="score-part-sleep">85 / 100</span>
+            </div>
+            <div class="progress-bar-wrap" style="height: 4px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sleep-bar" style="width: 85%;"></div></div>
+
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
+              <span>SweetSpot Ritim Uyumu (%35 Ağırlık)</span>
+              <span id="score-part-sweetspot">92 / 100</span>
+            </div>
+            <div class="progress-bar-wrap" style="height: 4px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sweetspot-bar" style="width: 92%; background: #74B9FF;"></div></div>
+
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
+              <span>Wonder Weeks Atak Dengesi (%25 Ağırlık)</span>
+              <span id="score-part-leap">80 / 100</span>
+            </div>
+            <div class="progress-bar-wrap" style="height: 4px;"><div class="progress-fill" id="score-part-leap-bar" style="width: 80%; background: #A569BD;"></div></div>
           </div>
         </div>
 
-        <!-- Matematiksel Bileşen Çubukları -->
-        <div style="margin-top: 10px; border-top: 1px solid var(--border-night); padding-top: 8px;">
-          <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
-            <span>Uyku Bütçesi (%40 Ağırlık)</span>
-            <span id="score-part-sleep">85 / 100</span>
+        <!-- Günlük Biyometrik Rollup Kartı -->
+        <div class="card" id="analytics-daily-rollup-card" style="margin-top: 10px; margin-bottom: 10px;">
+          <div class="spotlight-glow"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Günün Biyometrik Özeti 📋</div>
+            <span style="font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase;">Bugünkü Kayıtlar</span>
           </div>
-          <div class="progress-bar-wrap" style="height: 4px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sleep-bar" style="width: 85%;"></div></div>
-
-          <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
-            <span>SweetSpot Ritim Uyumu (%35 Ağırlık)</span>
-            <span id="score-part-sweetspot">92 / 100</span>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px;">
+              <div style="font-size: 10px; color: var(--text-muted);">🌙 Toplam Uyku</div>
+              <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-top: 2px;" id="rollup-sleep-val">0 saat</div>
+              <div style="font-size: 9px; color: #74B9FF; margin-top: 2px;" id="rollup-longest-sleep">En uzun: —</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px;">
+              <div style="font-size: 10px; color: var(--text-muted);">🍼 Beslenme</div>
+              <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-top: 2px;" id="rollup-feeding-val">0 kez (0 ml)</div>
+              <div style="font-size: 9px; color: var(--accent); margin-top: 2px;" id="rollup-feeding-interval">İlk kayıtlar bekleniyor</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px;">
+              <div style="font-size: 10px; color: var(--text-muted);">🚼 Alt Değişimi</div>
+              <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-top: 2px;" id="rollup-diaper-val">0 bez</div>
+              <div style="font-size: 9px; color: #2ED573; margin-top: 2px;" id="rollup-diaper-detail">0 ıslak / 0 kirli</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px;">
+              <div style="font-size: 10px; color: var(--text-muted);">⚡ Gece Uyanması</div>
+              <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-top: 2px;" id="rollup-night-wakes">0 kez</div>
+              <div style="font-size: 9px; color: #A569BD; margin-top: 2px;">22:00 - 07:00 arası</div>
+            </div>
           </div>
-          <div class="progress-bar-wrap" style="height: 4px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sweetspot-bar" style="width: 92%; background: #74B9FF;"></div></div>
-
-          <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
-            <span>Wonder Weeks Atak Dengesi (%25 Ağırlık)</span>
-            <span id="score-part-leap">80 / 100</span>
-          </div>
-          <div class="progress-bar-wrap" style="height: 4px;"><div class="progress-fill" id="score-part-leap-bar" style="width: 80%; background: #A569BD;"></div></div>
         </div>
-      <!-- Günlük Biyometrik Rollup Kartı (#6 Derin Analitik) -->
-      <div class="card" id="analytics-daily-rollup-card" style="margin-top: 10px; margin-bottom: 10px;">
-        <div class="spotlight-glow"></div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Günün Biyometrik Özeti 📋</div>
-          <span style="font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase;">Bugünkü Kayıtlar</span>
+
+        <!-- Haftalık Uyku Bento Çubuk Grafiği -->
+        <div class="card" style="margin-bottom: 10px;">
+          <div class="spotlight-glow"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Haftalık Toplam Uyku (Saat)</div>
+            <span style="font-size: 11px; color: var(--accent); font-weight: 600;">Ort: 13.8 Saat</span>
+          </div>
+          <div class="bento-chart-container" id="weekly-sleep-bento-chart">
+            <!-- Rendered by JS -->
+          </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px;">
-            <div style="font-size: 10px; color: var(--text-muted);">🌙 Toplam Uyku</div>
-            <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-top: 2px;" id="rollup-sleep-val">0 saat</div>
-            <div style="font-size: 9px; color: #74B9FF; margin-top: 2px;" id="rollup-longest-sleep">En uzun: —</div>
+
+        <!-- 24 SAATLİK BEBEK RİTMİ & ZİRVE SAATLER RAPORU -->
+        <div class="card" id="baby-rhythm-peak-card" style="border: 1px solid var(--border-highlight);">
+          <div class="spotlight-glow"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div>
+              <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">24 Saatlik Bebek Ritmi & Zirve Saatler ⏱️</div>
+              <div style="font-size: 10px; color: var(--text-muted);">Acıkma, gaz çıkarma ve derin uyku dağılımı</div>
+            </div>
+            <span style="font-size: 9px; background: rgba(232,168,85,0.18); color: var(--accent); padding: 3px 6px; border-radius: 6px; font-weight: 700;">ZİRVE ANALİZİ</span>
           </div>
-          <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px;">
-            <div style="font-size: 10px; color: var(--text-muted);">🍼 Beslenme</div>
-            <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-top: 2px;" id="rollup-feeding-val">0 kez (0 ml)</div>
-            <div style="font-size: 9px; color: var(--accent); margin-top: 2px;" id="rollup-feeding-interval">İlk kayıtlar bekleniyor</div>
-          </div>
-          <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px;">
-            <div style="font-size: 10px; color: var(--text-muted);">🚼 Alt Değişimi</div>
-            <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-top: 2px;" id="rollup-diaper-val">0 bez</div>
-            <div style="font-size: 9px; color: #2ED573; margin-top: 2px;" id="rollup-diaper-detail">0 ıslak / 0 kirli</div>
-          </div>
-          <div style="background: rgba(255,255,255,0.04); border-radius: 10px; padding: 8px;">
-            <div style="font-size: 10px; color: var(--text-muted);">⚡ Gece Uyanması</div>
-            <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-top: 2px;" id="rollup-night-wakes">0 kez</div>
-            <div style="font-size: 9px; color: #A569BD; margin-top: 2px;">22:00 - 07:00 arası</div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 10px; border-left: 3px solid var(--accent);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; font-weight: 700; color: #FFF;">🍼 En Sık Acıktığı Saatler:</span>
+                <span style="font-size: 11px; font-weight: 800; color: var(--accent);" id="peak-feeding-hours">08:30 • 12:30 • 16:30 • 20:00</span>
+              </div>
+              <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Ortalama 3.5 - 4 saatlik beslenme aralığı</div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 10px; border-left: 3px solid #2ED573;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; font-weight: 700; color: #FFF;">💨 Gaz & Bez Yoğunluğu:</span>
+                <span style="font-size: 11px; font-weight: 800; color: #2ED573;" id="peak-diaper-hours">Beslenmeden 30-45 dk sonra</span>
+              </div>
+              <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">En yoğun gaz saatleri: 17:00 - 20:00 (Kolik uyarısı)</div>
+            </div>
+
+            <div style="background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 10px; border-left: 3px solid var(--moon-blue);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; font-weight: 700; color: #FFF;">😴 En Derin Uyku Bloğu:</span>
+                <span style="font-size: 11px; font-weight: 800; color: #74B9FF;" id="peak-sleep-hours">21:30 — 02:45</span>
+              </div>
+              <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Gündüz uykusu zirvesi: 13:00 — 14:30</div>
+            </div>
           </div>
         </div>
       </div>
 
-      <!-- Haftalık Uyku Bento Çubuk Grafiği -->
-      <div class="card">
-        <div class="spotlight-glow"></div>
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-          <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Haftalık Toplam Uyku (Saat)</div>
-          <span style="font-size: 11px; color: var(--accent); font-weight: 600;">Ort: 13.8 Saat</span>
+      <!-- PANEL 2: SAĞLIK VE GELİŞİM (AŞI & WONDER WEEKS) -->
+      <div id="analytics-sec-health" class="analytics-sec-panel" style="display: none;">
+        <!-- PEDİATRİK AŞI TAKVİMİ -->
+        <div class="card" id="vaccine-schedule-card" style="margin-bottom: 12px;">
+          <div class="spotlight-glow"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div>
+              <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Pediatrik Aşı Takvimi 💉</div>
+              <div style="font-size: 10px; color: var(--text-muted);">T.C. Sağlık Bakanlığı & DSÖ Takvimi</div>
+            </div>
+            <span style="font-size: 9px; background: rgba(46,213,115,0.18); color: #2ED573; padding: 3px 6px; border-radius: 6px; font-weight: 700;" id="vaccine-status-summary">Takvim Aktif</span>
+          </div>
+
+          <div style="font-size: 11px; color: var(--text-night); line-height: 15px; margin-bottom: 8px;" id="vaccine-baby-summary">
+            Bebeğinizin doğum tarihine göre aşı zamanları otomatik listelenmiştir.
+          </div>
+
+          <div id="vaccine-items-container" style="display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; padding-right: 4px;" class="no-scrollbar">
+            <!-- Rendered by JS -->
+          </div>
         </div>
-        <div class="bento-chart-container" id="weekly-sleep-bento-chart">
+
+        <!-- GELİŞİM ATAKLARI (WONDER WEEKS) -->
+        <div class="section-title">
+          <span>🌱 Gelişim Atakları (Wonder Weeks)</span>
+          <span id="leaps-early-override-badge" style="display: none; font-size: 10px; background: #FF4757; color: #FFF; padding: 2px 6px; border-radius: 4px; font-weight: 700;">⚡ ERKEN ATAK</span>
+        </div>
+        <div class="card" style="border: 1px solid var(--border-highlight); margin-bottom: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <div style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: #FFF;" id="leaps-hero-title">10 Büyük Zihinsel Sıçrama</div>
+            <span style="font-size: 11px; color: var(--accent); font-weight: 700;" id="leaps-hero-overall-percent">—</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-night); line-height: 15px;" id="leaps-hero-desc">—</div>
+          <div class="progress-bar-wrap" style="height: 4px; margin-top: 8px;"><div class="progress-fill" id="leaps-hero-progress-bar" style="width: 0%; background: #A569BD;"></div></div>
+        </div>
+        <div id="leaps-list-container" style="display: flex; flex-direction: column; gap: 8px;"><!-- renderWonderWeeksLeaps() --></div>
+      </div>
+
+      <!-- PANEL 3: AKTİVİTE & GÜNLÜK RUTİN GEÇMİŞİ -->
+      <div id="analytics-sec-activity" class="analytics-sec-panel" style="display: none;">
+        <div class="section-title">
+          <span>Günlük Rutin Geçmişi</span>
+          <span style="font-size: 11px; color: var(--accent); cursor: pointer;" onclick="openAddRoutineModal()">+ Rutin Ekle</span>
+        </div>
+
+        <!-- Filtre Çipleri -->
+        <div class="cat-chips-row no-scrollbar" style="margin-bottom: 10px;">
+          <div class="cat-chip active" onclick="filterRoutineCategory('all', this)">Tümü</div>
+          <div class="cat-chip" onclick="filterRoutineCategory('sleep', this)">🌙 Uykular</div>
+          <div class="cat-chip" onclick="filterRoutineCategory('feeding', this)">🍼 Beslenmeler</div>
+          <div class="cat-chip" onclick="filterRoutineCategory('diaper', this)">🚼 Bezler</div>
+        </div>
+
+        <div class="timeline-wrap" id="analytics-routines-timeline">
           <!-- Rendered by JS -->
         </div>
-      </div>
-
-      <!-- 24 SAATLİK BEBEK RİTMİ & ZİRVE SAATLER RAPORU -->
-      <div class="card" id="baby-rhythm-peak-card" style="margin-top: 10px; border: 1px solid var(--border-highlight);">
-        <div class="spotlight-glow"></div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <div>
-            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">24 Saatlik Bebek Ritmi & Zirve Saatler ⏱️</div>
-            <div style="font-size: 10px; color: var(--text-muted);">Acıkma, gaz çıkarma ve derin uyku dağılımı</div>
-          </div>
-          <span style="font-size: 9px; background: rgba(232,168,85,0.18); color: var(--accent); padding: 3px 6px; border-radius: 6px; font-weight: 700;">ZİRVE ANALİZİ</span>
-        </div>
-
-        <div style="display: flex; flex-direction: column; gap: 8px;">
-          <!-- Acıkma Saatleri -->
-          <div style="background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 10px; border-left: 3px solid var(--accent);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 11px; font-weight: 700; color: #FFF;">🍼 En Sık Acıktığı Saatler:</span>
-              <span style="font-size: 11px; font-weight: 800; color: var(--accent);" id="peak-feeding-hours">08:30 • 12:30 • 16:30 • 20:00</span>
-            </div>
-            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Ortalama 3.5 - 4 saatlik beslenme aralığı</div>
-          </div>
-
-          <!-- Gaz & Alt Değişimi -->
-          <div style="background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 10px; border-left: 3px solid #2ED573;">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 11px; font-weight: 700; color: #FFF;">💨 Gaz & Bez Yoğunluğu:</span>
-              <span style="font-size: 11px; font-weight: 800; color: #2ED573;" id="peak-diaper-hours">Beslenmeden 30-45 dk sonra</span>
-            </div>
-            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">En yoğun gaz saatleri: 17:00 - 20:00 (Kolik uyarısı)</div>
-          </div>
-
-          <!-- Derin Uyku Pencereleri -->
-          <div style="background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 10px; border-left: 3px solid var(--moon-blue);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 11px; font-weight: 700; color: #FFF;">😴 En Derin Uyku Bloğu:</span>
-              <span style="font-size: 11px; font-weight: 800; color: #74B9FF;" id="peak-sleep-hours">21:30 — 02:45</span>
-            </div>
-            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;">Gündüz uykusu zirvesi: 13:00 — 14:30</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- PEDİATRİK AŞI TAKVİMİ (SAĞLIK BAKANLIĞI & DSÖ ONAYLI) -->
-      <div class="card" id="vaccine-schedule-card" style="margin-top: 10px; margin-bottom: 6px;">
-        <div class="spotlight-glow"></div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <div>
-            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Pediatrik Aşı Takvimi 💉</div>
-            <div style="font-size: 10px; color: var(--text-muted);">T.C. Sağlık Bakanlığı & DSÖ Takvimi</div>
-          </div>
-          <span style="font-size: 9px; background: rgba(46,213,115,0.18); color: #2ED573; padding: 3px 6px; border-radius: 6px; font-weight: 700;" id="vaccine-status-summary">Takvim Aktif</span>
-        </div>
-
-        <div style="font-size: 11px; color: var(--text-night); line-height: 15px; margin-bottom: 8px;" id="vaccine-baby-summary">
-          Bebeğinizin doğum tarihine göre aşı zamanları otomatik listelenmiştir.
-        </div>
-
-        <div id="vaccine-items-container" style="display: flex; flex-direction: column; gap: 6px; max-height: 280px; overflow-y: auto; padding-right: 4px;" class="no-scrollbar">
-          <!-- Rendered by JS -->
-        </div>
-      </div>
-
-      <!-- Gelişim Atakları (Wonder Weeks) -->
-      <div class="section-title" style="margin-top: 10px;">
-        <span>🌱 Gelişim Atakları (Wonder Weeks)</span>
-        <span id="leaps-early-override-badge" style="display: none; font-size: 10px; background: #FF4757; color: #FFF; padding: 2px 6px; border-radius: 4px; font-weight: 700;">⚡ ERKEN ATAK</span>
-      </div>
-      <div class="card" style="border: 1px solid var(--border-highlight);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-          <div style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: #FFF;" id="leaps-hero-title">10 Büyük Zihinsel Sıçrama</div>
-          <span style="font-size: 11px; color: var(--accent); font-weight: 700;" id="leaps-hero-overall-percent">—</span>
-        </div>
-        <div style="font-size: 11px; color: var(--text-night); line-height: 15px;" id="leaps-hero-desc">—</div>
-        <div class="progress-bar-wrap" style="height: 4px; margin-top: 8px;"><div class="progress-fill" id="leaps-hero-progress-bar" style="width: 0%; background: #A569BD;"></div></div>
-      </div>
-      <div id="leaps-list-container" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 6px;"><!-- renderWonderWeeksLeaps() --></div>
-
-      <!-- Tüm Rutinlerin Filtrelenebilir Listesi -->
-      <div class="section-title" style="margin-top: 10px;">
-        <span>Günlük Rutin Geçmişi</span>
-        <span style="font-size: 11px; color: var(--accent); cursor: pointer;" onclick="openAddRoutineModal()">+ Rutin Ekle</span>
-      </div>
-
-      <!-- Filtre Çipleri -->
-      <div class="cat-chips-row no-scrollbar" style="margin-bottom: 10px;">
-        <div class="cat-chip active" onclick="filterRoutineCategory('all', this)">Tümü</div>
-        <div class="cat-chip" onclick="filterRoutineCategory('sleep', this)">🌙 Uykular</div>
-        <div class="cat-chip" onclick="filterRoutineCategory('feeding', this)">🍼 Beslenmeler</div>
-        <div class="cat-chip" onclick="filterRoutineCategory('diaper', this)">🚼 Bezler</div>
-      </div>
-
-      <div class="timeline-wrap" id="analytics-routines-timeline">
-        <!-- Rendered by JS -->
       </div>
     </div>
   </div>
@@ -2324,43 +2369,35 @@
         <div class="settings-accordion-body">
           <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Aktif Planınızı veya Abonelik Modelinizi Seçin:</div>
           
-          <!-- 3-TIER PLAN CARDS -->
+          <!-- 2-TIER PLAN CARDS (Aylık VIP 3 Gün Deneme + Yıllık VIP) -->
           <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
-            <!-- Plan 1: Yıllık -->
-            <div style="border: 2px solid var(--accent); background: rgba(35, 42, 70, 0.95); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectPricingPlan('yearly', this)">
+            <!-- Plan 1: Aylık VIP (Önerilen / 3 Gün Deneme) -->
+            <div style="border: 2px solid var(--accent); background: rgba(35, 42, 70, 0.95); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectPricingPlan('monthly', this)">
+              <div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">🌙 Aylık VIP Plan</strong>
+                  <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">3 GÜN ₺0</span>
+                </div>
+                <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 3 Gün Ücretsiz Deneme Dahil</div>
+              </div>
+              <div style="text-align: right;">
+                <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: var(--accent);"><span class="price-monthly-text">₺149.99</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></span>
+                <div style="font-size: 10px; color: var(--text-muted);">Taahhütsüz, esnek</div>
+              </div>
+            </div>
+
+            <!-- Plan 2: Yıllık VIP (Tasarruflu) -->
+            <div style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectPricingPlan('yearly', this)">
               <div>
                 <div style="display: flex; align-items: center; gap: 6px;">
                   <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">👑 Yıllık VIP Plan</strong>
-                  <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 İNDİRİM</span>
+                  <span style="background: rgba(232,168,85,0.2); color: var(--accent); font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
                 </div>
-                <div style="font-size: 11px; color: var(--accent); margin-top: 2px;">3 Gün Ücretsiz Deneme Dahil</div>
+                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Aylık ₺49.99 karşılığı</div>
               </div>
               <div style="text-align: right;">
-                <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: var(--accent);">₺599.99<span style="font-size: 10px; color: var(--text-muted);">/yıl</span></span>
-                <div style="font-size: 10px; color: var(--text-muted);">Aylık ₺49.99</div>
-              </div>
-            </div>
-
-            <!-- Plan 2: Aylık -->
-            <div style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectPricingPlan('monthly', this)">
-              <div>
-                <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">⚡ Aylık Esnek Plan</strong>
-                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Taahhütsüz, aylık yenilenir</div>
-              </div>
-              <div style="text-align: right;">
-                <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: #FFF;">₺149.99<span style="font-size: 10px; color: var(--text-muted);">/ay</span></span>
-              </div>
-            </div>
-
-            <!-- Plan 3: Lifetime -->
-            <div style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectPricingPlan('lifetime', this)">
-              <div>
-                <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">💎 Ömür Boyu VIP (Aile)</strong>
-                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Tüm bebekleriniz için sonsuz erişim</div>
-              </div>
-              <div style="text-align: right;">
-                <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: #FFF;">₺2.499.99</span>
-                <div style="font-size: 10px; color: var(--success); font-weight: 700;">Tek Seferlik</div>
+                <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: #FFF;"><span class="price-yearly-text">₺599.99</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></span>
+                <div style="font-size: 10px; color: var(--text-muted);">En avantajlı</div>
               </div>
             </div>
           </div>
@@ -2530,33 +2567,33 @@
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px;">
-      <div id="vip-renewal-plan-yearly" class="onboarding-plan-card selected" style="border: 2px solid var(--accent); background: rgba(35, 42, 70, 0.95); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectVipRenewalPlan('yearly', this)">
+      <!-- Plan 1: Aylık VIP (Önerilen / 3 Gün Deneme) -->
+      <div id="vip-renewal-plan-monthly" class="onboarding-plan-card selected" style="border: 2px solid var(--accent); background: rgba(35, 42, 70, 0.95); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectVipRenewalPlan('monthly', this)">
         <div>
           <div style="display: flex; align-items: center; gap: 6px;">
-            <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">👑 Yıllık VIP</strong>
-            <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">ÖNERİLEN</span>
+            <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">🌙 Aylık VIP Plan</strong>
+            <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">3 GÜN ₺0</span>
           </div>
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Aylık ₺49.99 — %67 tasarruf</div>
-        </div>
-        <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: var(--accent);">₺599.99<span style="font-size: 10px; color: var(--text-muted);">/yıl</span></div>
-      </div>
-
-      <div id="vip-renewal-plan-monthly" class="onboarding-plan-card" style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectVipRenewalPlan('monthly', this)">
-        <div>
-          <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">⚡ Aylık Pro</strong>
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Taahhütsüz, aylık yenilenir</div>
-        </div>
-        <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: #FFF;">₺149.99<span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
-      </div>
-
-      <div id="vip-renewal-plan-lifetime" class="onboarding-plan-card" style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectVipRenewalPlan('lifetime', this)">
-        <div>
-          <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">💎 Ömür Boyu</strong>
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Tüm bebekleriniz için sonsuz erişim</div>
+          <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 3 Gün Ücretsiz Deneme Dahil</div>
         </div>
         <div style="text-align: right;">
-          <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: #FFF;">₺2.499.99</div>
-          <div style="font-size: 10px; color: var(--success); font-weight: 700;">Tek Seferlik</div>
+          <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: var(--accent);"><span class="price-monthly-text">₺149.99</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
+          <div style="font-size: 10px; color: var(--text-muted);">Taahhütsüz, esnek</div>
+        </div>
+      </div>
+
+      <!-- Plan 2: Yıllık VIP (Tasarruflu) -->
+      <div id="vip-renewal-plan-yearly" class="onboarding-plan-card" style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 12px; padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectVipRenewalPlan('yearly', this)">
+        <div>
+          <div style="display: flex; align-items: center; gap: 6px;">
+            <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">👑 Yıllık VIP Plan</strong>
+            <span style="background: rgba(232,168,85,0.2); color: var(--accent); font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
+          </div>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Aylık ₺49.99 karşılığı</div>
+        </div>
+        <div style="text-align: right;">
+          <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: #FFF;"><span class="price-yearly-text">₺599.99</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></div>
+          <div style="font-size: 10px; color: var(--text-muted);">En avantajlı</div>
         </div>
       </div>
     </div>
@@ -2928,7 +2965,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.11.1', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.12.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function appVersionLabel() {
     const m = appMeta();
@@ -2937,7 +2974,13 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.11.1', date: '10 Eylül 2026', latest: true, items: [
+    { v: '4.12.0', date: '10 Eylül 2026', latest: true, items: [
+      'Tekil Abonelik Mimarisi: 3 gün ücretsiz mağaza denemesi ve ardından aylık VIP abonelik modeli devreye alındı.',
+      'Analiz Sekmesi Bilişsel Sadeleştirme: 7 analitik kart 3 dinamik segmente ayrıldı (📊 Uyku & Ritim | 💉 Sağlık & Gelişim | 📜 Aktivite).',
+      'RevenueCat Fiyat Köprüsü: iOS ve Android mağaza fiyatları ve para birimleri arayüzde anlık senkronize hale getirildi.',
+      'Pro Hak Güvenliği: Uyku analitiği, canlı uyku takibi, manuel rutin ekleme ve 16 stüdyo sesi VIP koruması altına alındı; ilk 2 akustik ninni ücretsiz keşfe açıldı.',
+    ]},
+    { v: '4.11.1', date: '10 Eylül 2026', items: [
       'Kritik Çökme Giderildi: getBabyRoutines tanımsızlık hatası çözüldü, aşı takvimi ve gelişim atakları kesintisiz çalışır hale getirildi.',
       'Dinamik SweetSpot®: Bebeğin son uyanma saati ve ayına göre hesaplanan akıllı uyku penceresi ve aşım uyarıları entegre edildi.',
       'Canlı Uyku Kalıcılığı: Arka planda veya ekran kilitlendiğinde devam eden canlı uyku sayacının kaybolması önlendi.',
@@ -3105,17 +3148,28 @@
       emptyState.style.display = 'none';
     }
 
+    const FREE_TRACK_IDS = ['brahms_lullaby', 'moonlight_lullaby'];
     filtered.forEach(t => {
       const isPlaying = (currentTrackId === t.id);
       const isDown = unavailableTracks.has(t.id);
+      const isFree = FREE_TRACK_IDS.includes(t.id);
       const item = document.createElement('div');
       item.className = `sound-item ${isPlaying ? 'active' : ''}`;
       item.style.opacity = isDown ? '0.45' : '1';
-      item.onclick = () => { if (isDown) { showToast('⚠️ Bu parça şu an kullanılamıyor'); return; } togglePlayTrack(t.id); };
+      item.onclick = () => {
+        if (isDown) { showToast('⚠️ Bu parça şu an kullanılamıyor'); return; }
+        if (!isFree && !requireActiveSubscription()) return;
+        togglePlayTrack(t.id);
+      };
 
       item.innerHTML = `
         <div style="flex: 1; padding-right: 8px;">
-          <div class="sound-title">${t.title}</div>
+          <div class="sound-title" style="display: flex; align-items: center; flex-wrap: wrap;">
+            <span>${t.title}</span>
+            ${isFree 
+              ? '<span style="background: rgba(46, 213, 115, 0.15); color: var(--success); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px; margin-left: 6px;">ÜCRETSİZ</span>' 
+              : '<span style="background: rgba(232, 168, 85, 0.18); color: var(--accent); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px; margin-left: 6px;">👑 VIP</span>'}
+          </div>
           <div class="sound-desc">${isDown ? 'Şu an oynatılamıyor — daha sonra tekrar deneyin' : t.desc}</div>
           <span class="sound-tag-badge">${isDown ? 'KULLANILAMIYOR' : t.badge}</span>
         </div>
@@ -3142,6 +3196,9 @@
     hapticPulse();
     const track = SOUND_TRACKS.find(t => t.id === trackId);
     if (!track) return;
+
+    const FREE_TRACK_IDS = ['brahms_lullaby', 'moonlight_lullaby'];
+    if (!FREE_TRACK_IDS.includes(trackId) && !requireActiveSubscription()) return;
 
     // Native mod: ses çalma arka planda/kilitli ekranda çalışsın diye native tarafta
     if (isNativeAudio()) {
@@ -3517,8 +3574,8 @@
     cardEl.style.border = '2px solid var(--accent)';
     cardEl.style.background = 'rgba(35, 42, 70, 0.95)';
     localStorage.setItem('mishil_selected_plan', planType);
-    const planNames = { yearly: 'Yıllık VIP (₺599.99/yıl)', monthly: 'Aylık Esnek (₺149.99/ay)', lifetime: 'Ömür Boyu (₺2.499.99)' };
-    showToast(`✅ ${planNames[planType]} seçildi`);
+    const planNames = { monthly: 'Aylık VIP (3 Gün Ücretsiz Deneme)', yearly: 'Yıllık VIP (Tasarruflu)' };
+    showToast(`✅ ${planNames[planType] || planType} seçildi`);
   }
 
   function generateSleepReport() {
@@ -3549,9 +3606,9 @@
     }
     localStorage.setItem('mishil_medical_disclaimer_accepted_at', new Date().toISOString());
 
-    // Native uygulama içindeyse → Google Play IAP başlat
+    // Native uygulama içindeyse → Google Play / App Store IAP başlat (Varsayılan: monthly 3 gün deneme)
     if (window.ReactNativeWebView) {
-      const selectedPlan = localStorage.getItem('mishil_selected_plan') || 'yearly';
+      const selectedPlan = localStorage.getItem('mishil_selected_plan') || 'monthly';
       window.MishilNative.purchasePackage(selectedPlan);
       return; // IAP tamamlanınca native bridge onSubscriptionResult() çağıracak
     }
@@ -3582,9 +3639,8 @@
     if (btn) {
       btn.style.opacity = '1';
       btn.style.pointerEvents = 'auto';
-      if (planType === 'yearly') btn.textContent = '🎁 3 Gün Ücretsiz Dene ve Başlat';
-      else if (planType === 'monthly') btn.textContent = '⚡ Aylık VIP Başlat (₺149.99/ay)';
-      else if (planType === 'lifetime') btn.textContent = '💎 Ömür Boyu VIP Başlat (₺2.499.99)';
+      if (planType === 'monthly') btn.textContent = '🎁 3 Gün Ücretsiz Dene ve Başlat';
+      else if (planType === 'yearly') btn.textContent = '👑 Yıllık VIP Başlat (%67 Tasarruf)';
     }
   }
 
@@ -3903,7 +3959,7 @@
   // (mishil_subscription_active === 'false') bir Pro özelliğe dokunulduğunda
   // anket yerine doğrudan bu modal açılır. Bebek verisine ASLA dokunmaz.
   // =========================================================================
-  let vipRenewalSelectedPlan = 'yearly';
+  let vipRenewalSelectedPlan = 'monthly';
 
   function openVipRenewalModal() {
     hapticPulse();
@@ -3951,14 +4007,74 @@
     }
   }
 
-  // Pro özellik kapısı: abonelik açıkça pasifse (=== 'false') VIP yenileme
-  // modalını aç ve false döndür; aksi halde true (erişime izin ver).
+  // Pro özellik kapısı: abonelik açıkça aktif değilse (=== 'true' DEĞİLSE) ve
+  // admin yetkisi yoksa VIP yenileme modalını aç ve false döndür.
   function requireActiveSubscription() {
-    if (localStorage.getItem('mishil_subscription_active') === 'false') {
-      openVipRenewalModal();
-      return false;
+    if (localStorage.getItem('mishil_admin_gate') === 'unlocked') {
+      return true;
     }
-    return true;
+    if (localStorage.getItem('mishil_subscription_active') === 'true') {
+      return true;
+    }
+    openVipRenewalModal();
+    return false;
+  }
+
+  // =========================================================================
+  // ANALİTİK SEKME SEGMENTLERİ (Uyku & Ritim | Sağlık & Gelişim | Aktivite)
+  // =========================================================================
+  function switchAnalyticsSegment(segment) {
+    hapticPulse();
+    const panels = {
+      sleep: document.getElementById('analytics-sec-sleep'),
+      health: document.getElementById('analytics-sec-health'),
+      activity: document.getElementById('analytics-sec-activity')
+    };
+    const buttons = {
+      sleep: document.getElementById('btn-seg-sleep'),
+      health: document.getElementById('btn-seg-health'),
+      activity: document.getElementById('btn-seg-activity')
+    };
+
+    Object.keys(panels).forEach(k => {
+      if (panels[k]) {
+        if (k === segment) {
+          panels[k].style.display = 'block';
+          panels[k].classList.add('active');
+        } else {
+          panels[k].style.display = 'none';
+          panels[k].classList.remove('active');
+        }
+      }
+      if (buttons[k]) {
+        if (k === segment) {
+          buttons[k].classList.add('active');
+        } else {
+          buttons[k].classList.remove('active');
+        }
+      }
+    });
+  }
+
+  // =========================================================================
+  // DİNAMİK REVENUECAT MAĞAZA FİYAT ENJEKSİYONU
+  // =========================================================================
+  window.applyStorePrices = function(prices) {
+    if (!prices) return;
+    if (prices.monthly) {
+      document.querySelectorAll('.price-monthly-text').forEach(el => {
+        el.textContent = prices.monthly.replace(/\/ay/g, '');
+      });
+    }
+    if (prices.yearly) {
+      document.querySelectorAll('.price-yearly-text').forEach(el => {
+        el.textContent = prices.yearly.replace(/\/yıl/g, '');
+      });
+    }
+  };
+
+  if (window.__MISHIL_STORE_PRICES__) {
+    window.applyStorePrices(window.__MISHIL_STORE_PRICES__);
   }
 
   // =========================================================================
@@ -4603,6 +4719,7 @@
   let sleepInterval = null;
 
   async function toggleLiveSleep() {
+    if (!isSleeping && !requireActiveSubscription()) return;
     hapticPulse();
     isSleeping = !isSleeping;
 
@@ -4970,9 +5087,8 @@
   }
 
   function switchTab(tabName) {
-    // ADIM 3 — Pro özellik (Mışıl Dadı AI Koçu) abonelik açıkça pasifken kilitli:
-    // anket yerine bağımsız VIP yenileme modalı açılır.
-    if (tabName === 'coach' && !requireActiveSubscription()) return;
+    // Pro özellikler (Mışıl Dadı AI Koçu & Derin Analiz Sekmesi) abonelik gerektirir
+    if ((tabName === 'coach' || tabName === 'analytics') && !requireActiveSubscription()) return;
 
     document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
@@ -5174,6 +5290,7 @@
   }
 
   function openAddRoutineModal() {
+    if (!requireActiveSubscription()) return;
     hapticPulse();
     const now = new Date();
     const endH = String(now.getHours()).padStart(2, '0');
