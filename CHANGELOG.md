@@ -1,8 +1,38 @@
 # Changelog - Mışıl Baby
-
-Tüm önemli değişiklikler bu dosyada belgelenecektir.
-
-## [4.11.0] - 2026-09-09
+ 
+ Tüm önemli değişiklikler bu dosyada belgelenecektir.
+ 
++## [4.11.1] - 2026-09-10
++### 🛡️ 360° Kod, Mantık, UX ve UI Düzeltmeleri & SweetSpot Dinamik Motoru (Build 22)
++
++360 derece kod taraması ile tespit edilen çalışma zamanı çökmesi, uyanıklık penceresi mantık hatası, canlı sayaç kalıcılığı ve tema kontrast sorunları giderildi.
++
++#### 🛠️ Fixed
++- **Kritik Çökme Giderildi (`ReferenceError: getBabyRoutines`):**
++  - `renderBabyRhythmReport()` içinde tanımsız olan `getBabyRoutines()` fonksiyonu yerine `activeRoutines` global dizisi bağlandı; sayfa ilk açılışında JS'in patlayıp aşı takvimi, Wonder Weeks ve profil yüklemesini durdurması önlendi.
++- **SweetSpot® Dinamik Referans Mantığı:**
++  - Sonraki ideal uyku vakti hesabı statik `Date.now()` yerine bebeğin son uyku kaydındaki uyanma saatine (`lastWakeDate`) bağlandı.
++  - Uyanıklık penceresi aşıldığında UI üzerinde belirgin uyarı (`⚠️ Uyanıklık penceresi aşıldı!`) ve renk uyarısı tetiklendi.
++  - Rutin ekleme modalında sabit 90 dk yerine bebeğin gelişim ayına uygun dinamik uyanıklık penceresi (`calc.wakeWindowMin`) uygulandı.
++- **Canlı Uyku Sayacı (Timer) Kalıcılığı:**
++  - `toggleLiveSleep()` içinde uyku başlama zamanı `localStorage`'a (`mishil_live_sleep_start`) kaydedildi; telefon ekranı kilitlendiğinde veya tarayıcı yenilendiğinde devam eden seansın silinmesi engellendi ve `checkAndRestoreLiveSleep()` ile otomatik geri yükleme sağlandı.
++- **Gece/Gündüz Uykusu Otomatik Ayrımı:**
++  - Saat 20:00 - 07:00 arasındaki uykular otomatik olarak "Gece Uykusu", gündüz uykuları "Gündüz Uykusu (Nap X)" olarak etiketlendi.
++- **Light Mode Kontrast İyileştirmesi:**
++  - Açık tema aktifleştiğinde kart ve başlık içindeki metinlerin beyaz zemin üzerinde görünmez olmasını engelleyen global adaptif tipografi kuralları (`[data-theme="light"]`) entegre edildi.
++- **iOS Form Auto-Zoom Engeli:**
++  - Input font boyutları 16px'e çekilerek iOS Safari'deki odaklanma yakınlaştırma bug'ı ortadan kaldırıldı.
++- **Modal Backdrop Dokunma Koruması:**
++  - Modalların dış karartma alanına (overlay) dokunarak tek hamlede kapatılabilmesi (`closeModalOnOverlay`) sağlandı.
++- **Sahte Veri Kalıntıları Temizlendi:**
++  - Mışıl Dadı karşılama baloncuğundaki sabit "Mina" ibaresi dinamik `baby.name` ile senkronlandı; anket rapor başlığı ve uyku bütçesi başlangıç değerleri dinamikleştirildi.
++
++#### 🔧 Chore
++- Sürüm artırımı: `APP_VERSION = '4.11.1'`, `BUILD_NUMBER = 22` (`mobile/app.config.ts`, `public/app.html`).
++- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts`.
++- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
++
+ ## [4.11.0] - 2026-09-09
 ### 🎨 Dark/Light Mode, Aşı Takvimi, Ritim Zirve Raporu, Serbest Onboarding & Apple Guideline 2.1/2.3.2 Uyumu (Build 21)
 
 Apple App Store ret gerekçeleri (IAP submission & metadata) ve arkadaş incelemesindeki 8 kritik UX geri bildirimi çözüldü.

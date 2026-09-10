@@ -2436,7 +2436,7 @@
 </div>
 
 <!-- MODAL: CRY ANALYSIS POPUP -->
-<div class="modal-overlay" id="modal-cry">
+<div class="modal-overlay" id="modal-cry" onclick="closeModalOnOverlay(event, 'modal-cry')">
   <div class="modal-sheet no-scrollbar">
     <div class="modal-header">
       <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">🎙️ Akustik Ağlama Analizi</div>
@@ -2504,7 +2504,7 @@
 </div>
 
 <!-- MODAL: CHANGELOG & NELER YENİ -->
-<div class="modal-overlay" id="modal-changelog">
+<div class="modal-overlay" id="modal-changelog" onclick="closeModalOnOverlay(event, 'modal-changelog')">
   <div class="modal-sheet no-scrollbar">
     <div class="modal-header">
       <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">🌸 Yenilikler & İyileştirmeler</div>
@@ -2518,7 +2518,7 @@
 </div>
 
 <!-- MODAL: BAĞIMSIZ VIP YENİLEME (ADIM 3 — onboarding anketinden tamamen ayrı) -->
-<div class="modal-overlay" id="vip-renewal-modal">
+<div class="modal-overlay" id="vip-renewal-modal" onclick="closeModalOnOverlay(event, 'vip-renewal-modal')">
   <div class="modal-sheet no-scrollbar">
     <div class="modal-header">
       <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;" id="vip-renewal-title">👑 Mışıl VIP Aboneliğinizi Yenileyin</div>
@@ -2567,7 +2567,7 @@
 </div>
 
 <!-- MODAL: ADD ROUTINE (DETAYLI MANUEL RUTİN & UYKU EKLEME) -->
-<div class="modal-overlay" id="modal-routine">
+<div class="modal-overlay" id="modal-routine" onclick="closeModalOnOverlay(event, 'modal-routine')">
   <div class="modal-sheet no-scrollbar">
     <div class="modal-header">
       <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">+ Manuel Rutin & Uyku Ekle</div>
@@ -2663,7 +2663,7 @@
 </div>
 
 <!-- MODAL: RESTORE -->
-<div class="modal-overlay" id="modal-restore">
+<div class="modal-overlay" id="modal-restore" onclick="closeModalOnOverlay(event, 'modal-restore')">
   <div class="modal-sheet no-scrollbar">
     <div class="modal-header">
       <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">Satın Alımları Geri Yükle</div>
@@ -2677,7 +2677,7 @@
 </div>
 
 <!-- MODAL: DELETE ACCOUNT -->
-<div class="modal-overlay" id="modal-delete">
+<div class="modal-overlay" id="modal-delete" onclick="closeModalOnOverlay(event, 'modal-delete')">
   <div class="modal-sheet no-scrollbar">
     <div class="modal-header">
       <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: var(--danger);">Hesap ve Veri Silme</div>
@@ -2928,7 +2928,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.11.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.11.1', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function appVersionLabel() {
     const m = appMeta();
@@ -2937,7 +2937,14 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.11.0', date: '9 Eylül 2026', latest: true, items: [
+    { v: '4.11.1', date: '10 Eylül 2026', latest: true, items: [
+      'Kritik Çökme Giderildi: getBabyRoutines tanımsızlık hatası çözüldü, aşı takvimi ve gelişim atakları kesintisiz çalışır hale getirildi.',
+      'Dinamik SweetSpot®: Bebeğin son uyanma saati ve ayına göre hesaplanan akıllı uyku penceresi ve aşım uyarıları entegre edildi.',
+      'Canlı Uyku Kalıcılığı: Arka planda veya ekran kilitlendiğinde devam eden canlı uyku sayacının kaybolması önlendi.',
+      'Light Mode İyileştirmesi: Açık temada beyaz kartlar üzerindeki metin kontrastı optimize edildi.',
+      'Gece/Gündüz Uykusu: Saat aralığına göre otomatik gece uykusu ve gündüz napı etiketlemesi getirildi.',
+    ]},
+    { v: '4.11.0', date: '9 Eylül 2026', items: [
       'Girişte 4 temel fonksiyon tanıtımı ve serbest "Şimdilik Atla" (ücretsiz mod) seçeneği eklendi.',
       'Dark Mode & Light Mode: Telefonun sistem temasıyla otomatik senkronize olan ve Ayarlar\'dan seçilebilen tema motoru.',
       '24 Saatlik Bebek Ritmi & Zirve Saatler: En sık acıkma, gaz çıkarma ve derin uyku saat aralıklarını gösteren biyometrik analiz kartı.',
@@ -3268,7 +3275,7 @@
     setDadiChipsState(false);
 
     const container = document.getElementById('chat-messages-container');
-    const typingIndicator = document.getElementById('dadi-typing-indicator') || document.getElementById('dadi-typing');
+    const typingIndicator = document.getElementById('dadi-typing-indicator');
 
     // 1. Append User message
     if (container) {
@@ -3491,14 +3498,9 @@
   function toggleDisclaimerConsent(checked) {
     hapticPulse();
     const btnPro = document.getElementById('btn-onboarding-pro');
-    const btnFree = document.getElementById('btn-onboarding-free');
     if (btnPro) {
       btnPro.style.opacity = checked ? '1' : '0.5';
       btnPro.style.pointerEvents = checked ? 'auto' : 'none';
-    }
-    if (btnFree) {
-      btnFree.style.opacity = checked ? '1' : '0.5';
-      btnFree.style.pointerEvents = checked ? 'auto' : 'none';
     }
     if (checked) {
       localStorage.setItem('mishil_medical_disclaimer_accepted_at', new Date().toISOString());
@@ -4960,6 +4962,13 @@
     setTimeout(() => toast.classList.remove('show'), 2800);
   }
 
+  function closeModalOnOverlay(e, modalId) {
+    if (e && e.target && e.target.id === modalId) {
+      const el = document.getElementById(modalId);
+      if (el) el.classList.remove('active');
+    }
+  }
+
   function switchTab(tabName) {
     // ADIM 3 — Pro özellik (Mışıl Dadı AI Koçu) abonelik açıkça pasifken kilitli:
     // anket yerine bağımsız VIP yenileme modalı açılır.
@@ -5026,6 +5035,11 @@
     const badge = document.getElementById('sweetspot-status-badge');
     const disp = document.getElementById('target-sleep-display');
     const sub = document.getElementById('target-sleep-subtext');
+    const chatMention = document.getElementById('chat-baby-mention');
+
+    if (chatMention) {
+      chatMention.textContent = baby ? baby.name : 'Bebeğiniz';
+    }
 
     if (!baby) {
       if (disp) disp.textContent = '—';
@@ -5033,14 +5047,22 @@
       if (badge) badge.textContent = 'Profil bekleniyor';
     } else {
       const calc = calculateSweetSpot(baby.bdate);
-      if (disp) disp.textContent = calc.sweetSpotTime;
-      if (sub) sub.textContent = `Sonraki İdeal Uyku Vakti • uyanıklık penceresi ${calc.wakeWindowMin} dk`;
-      if (badge) badge.textContent = calc.isManual ? '⚡ Erken Atak Modu Aktif' : 'SweetSpot® Önerisi Aktif';
+      if (disp) {
+        disp.textContent = calc.sweetSpotTime;
+        disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
+      }
+      if (sub) sub.textContent = calc.statusNote;
+      if (badge) {
+        badge.textContent = calc.isOverdue 
+          ? '⚠️ Uyku Vakti Aşıldı' 
+          : (calc.isManual ? '⚡ Erken Atak Modu Aktif' : 'SweetSpot® Önerisi Aktif');
+      }
     }
 
     updateSettingsProfileSummary();
     renderHomeScreenScore();
     renderWonderWeeksLeaps();
+    checkAndRestoreLiveSleep();
   }
 
   // Ayarlar > Bebek Profili kaydet (önceden tanımsızdı — buton hiçbir şey yapmıyordu)
@@ -5189,17 +5211,30 @@
       const quality = document.getElementById('routine-modal-quality').value || 'Derin Uyku';
       const durMins = calcModalSleepDuration();
 
+      const [sh, sm] = start.split(':').map(Number);
+      const [eh, em] = end.split(':').map(Number);
+      const startDate = new Date();
+      startDate.setHours(sh, sm, 0, 0);
+      const endDate = new Date();
+      endDate.setHours(eh, em, 0, 0);
+      if (endDate < startDate) endDate.setDate(endDate.getDate() + 1);
+
+      const isNight = sh >= 20 || sh < 7;
       const sleepCount = activeRoutines.filter(r => r.type === 'sleep').length + 1;
+      const sleepTitle = isNight ? 'Gece Uykusu' : `${sleepCount}. Gündüz Uykusu (Nap ${sleepCount})`;
+
       const newSleepLog = {
         id: 'slp_' + Date.now(),
         type: 'sleep',
         icon: '🌙',
-        title: `${sleepCount}. Gündüz Uykusu (Nap ${sleepCount})`,
+        title: sleepTitle,
         detail: `${durMins} dk ${quality} (${start} - ${end})`,
         time: end,
         start: start,
         end: end,
-        timestamp: now.getTime(),
+        timestamp: endDate.getTime(),
+        startTs: startDate.getTime(),
+        endTs: endDate.getTime(),
         durationMins: durMins,
         quality: quality
       };
@@ -5207,16 +5242,16 @@
       activeRoutines.unshift(newSleepLog);
       localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
 
-      // SweetSpot Saati: Bitiş saati + 90 dk olarak güncelle
-      const [eh, em] = end.split(':').map(Number);
-      const nextSleepDate = new Date();
-      nextSleepDate.setHours(eh, em + 90);
+      // Dinamik SweetSpot: Bebeğin gerçek uyanıklık penceresi kadar ekle
+      const _baby = getBaby();
+      const _calc = _baby ? calculateSweetSpot(_baby.bdate) : { wakeWindowMin: 90 };
+      const nextSleepDate = new Date(endDate.getTime() + _calc.wakeWindowMin * 60000);
       const nextSleepFormatted = `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
       
       const targetDisp = document.getElementById('target-sleep-display');
       const targetSub = document.getElementById('target-sleep-subtext');
       if (targetDisp) targetDisp.textContent = nextSleepFormatted;
-      if (targetSub) targetSub.textContent = `SweetSpot® İdeal Uyku Vakti (1 saat 30 dk sonra)`;
+      if (targetSub) targetSub.textContent = `SweetSpot® İdeal Uyku Vakti (${_calc.wakeWindowMin} dk sonra)`;
 
       showToast(`🌙 ${durMins} dk uyku kaydedildi! Sıradaki SweetSpot: ${nextSleepFormatted}`);
     } else if (type === 'feeding') {
