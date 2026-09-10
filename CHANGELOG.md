@@ -2,6 +2,25 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.20.0] - 2026-09-11
+### 🛡️ Ayarlar Abonelik Yönetimi, Plan Yükseltme (Upgrade) Güvenliği & Mağaza Köprüsü (Build 32)
+
+Kullanıcının "ödeme sistemini kontrol et aylık ödediğinde ayarlardan yıllık seçip devam ediyor olabilir bunu doğru kurmuş olmamız önemli" talimatı doğrultusunda:
+1. **Bedelsiz Plan Değiştirme Yanılgısının Engellenmesi:**
+   - Ayarlar altındaki abonelik kartlarına tıklandığında yerel depolamadaki planın (`mishil_subscription_plan`) anında ve ücretsizce değiştirilmesi engellendi. Artık kart seçimi yalnızca hedef seçimi (`settingsTargetPlan`) tutar.
+2. **Aktif Plan Dinamik Rozetlemesi & Yükseltme Butonu:**
+   - Kullanıcının aktif abonelik planına göre (Aylık/Yıllık) ilgili karta yeşil `✓ AKTİF PLANINIZ` rozeti dinamik olarak atanır.
+   - Aylık plandaki kullanıcı Yıllık karta tıkladığında kartın altında belirgin bir `👑 Yıllık VIP Plana Yükselt (%67 Tasarruf Et)` butonu gösterilir.
+   - Bu butona tıklandığında `executeSettingsPlanAction()` üzerinden Google Play ve App Store IAP yükseltme (Proration/Upgrade) akışı başlatılır; mağaza işlemi onaylamadan plan asla değiştirilmez.
+3. **Apple & Google Mağaza Abonelik Yönetim Köprüsü (Guideline 3.1.2):**
+   - Yıllık plandaki kullanıcı aylık karta geçmek istediğinde veya "Aboneliği Yönet / İptal Et" butonuna bastığında StoreKit (`apps.apple.com/account/subscriptions`) ya da Google Play Store (`play.google.com/store/account/subscriptions`) doğrudan açılarak periyot düşürme/iptal akışı mağaza kurallarına uygun şekilde yönlendirilir.
+   - `MishilUnifiedWebView.tsx` içerisine `MANAGE_SUBSCRIPTIONS` mesaj yakalayıcısı ve `Linking` köprüsü eklendi.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.20.0'`, `BUILD_NUMBER = 32` (`mobile/app.config.ts`, `public/app.html`, `WEB_APP_META`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts` (268 KB).
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
 ## [4.19.1] - 2026-09-10
 ### 💳 Genişletilmiş Çoklu Mağaza ID Köprüsü & Test Satın Alma Onarımı (Build 31)
 

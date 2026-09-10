@@ -2333,18 +2333,18 @@
           <span class="settings-accordion-chevron">▼</span>
         </div>
         <div class="settings-accordion-body">
-          <div style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Aktif Planınızı veya Abonelik Modelinizi Seçin:</div>
+          <div id="settings-sub-plan-info" style="font-size: 11px; color: var(--text-muted); margin-bottom: 8px;">Abonelik Planınız ve Mağaza Durumu:</div>
           
-          <!-- 2-TIER PLAN CARDS (Aylık VIP 7 Gün Deneme + Yıllık VIP) -->
+          <!-- 2-TIER PLAN CARDS WITH STATUS AWARENESS -->
           <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
-            <!-- Plan 1: Aylık VIP (Önerilen / 7 Gün Deneme) -->
-            <div style="border: 2px solid var(--accent); background: rgba(35, 42, 70, 0.95); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectPricingPlan('monthly', this)">
+            <!-- Plan 1: Aylık VIP -->
+            <div id="settings-plan-card-monthly" class="onboarding-plan-card" style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectPricingPlan('monthly', this)">
               <div>
                 <div style="display: flex; align-items: center; gap: 6px;">
                   <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">🌙 Aylık VIP Plan</strong>
-                  <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">7 GÜN ₺0</span>
+                  <span id="settings-plan-badge-monthly" style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">7 GÜN ₺0</span>
                 </div>
-                <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 7 Gün Ücretsiz Deneme Dahil</div>
+                <div id="settings-plan-sub-monthly" style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 7 Gün Ücretsiz Deneme Dahil</div>
               </div>
               <div style="text-align: right;">
                 <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: var(--accent);"><span class="price-monthly-text">₺149.99</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></span>
@@ -2353,13 +2353,13 @@
             </div>
 
             <!-- Plan 2: Yıllık VIP (Tasarruflu) -->
-            <div style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectPricingPlan('yearly', this)">
+            <div id="settings-plan-card-yearly" class="onboarding-plan-card" style="border: 1px solid var(--border-night); background: rgba(22, 29, 50, 0.8); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectPricingPlan('yearly', this)">
               <div>
                 <div style="display: flex; align-items: center; gap: 6px;">
                   <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">👑 Yıllık VIP Plan</strong>
-                  <span style="background: rgba(232,168,85,0.2); color: var(--accent); font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
+                  <span id="settings-plan-badge-yearly" style="background: rgba(232,168,85,0.2); color: var(--accent); font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
                 </div>
-                <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Aylık ₺49.99 karşılığı</div>
+                <div id="settings-plan-sub-yearly" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Aylık ₺49.99 karşılığı</div>
               </div>
               <div style="text-align: right;">
                 <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: #FFF;"><span class="price-yearly-text">₺599.99</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></span>
@@ -2368,12 +2368,20 @@
             </div>
           </div>
 
+          <!-- DİNAMİK ABONELİK AKSİYON VE YÜKSELTME BUTONU -->
+          <button class="btn-primary" id="btn-settings-sub-action" onclick="executeSettingsPlanAction()" style="margin-bottom: 8px; width: 100%;">
+            🎁 Seçilen Planı Başlat (Google Play / App Store)
+          </button>
+
           <!-- Apple 3.1.2 Bilgilendirmesi -->
-          <div style="font-size: 11px; color: var(--text-night); line-height: 15px; margin-bottom: 10px; background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 8px;">
-            ℹ️ <strong>Apple 3.1.2 Şeffaf Abonelik Kuralı:</strong> 7 günlük deneme süresi içinde ₺0 ödersiniz. İstediğiniz an <em style="color: var(--accent);">App Store > Hesap > Abonelikler</em> adımından tek tıkla iptal edebilirsiniz.
+          <div style="font-size: 11px; color: var(--text-night); line-height: 15px; margin-bottom: 8px; background: rgba(0,0,0,0.25); padding: 8px 10px; border-radius: 8px;">
+            ℹ️ <strong>Apple 3.1.2 Şeffaf Abonelik Kuralı:</strong> 7 günlük deneme süresi içinde ₺0 ödersiniz. Plan yükseltmelerinde mağaza kalan süreyi düşerek farkı tahsil eder.
           </div>
 
-          <button class="btn-secondary" onclick="openRestoreModal()">🔄 Satın Alımları Geri Yükle (Apple 3.1.1)</button>
+          <div style="display: flex; gap: 6px;">
+            <button class="btn-secondary" onclick="openStoreSubscriptionManagement()" style="flex: 1; font-size: 11px; padding: 8px;">⚙️ Aboneliği Yönet / İptal Et</button>
+            <button class="btn-secondary" onclick="openRestoreModal()" style="flex: 1; font-size: 11px; padding: 8px;">🔄 Geri Yükle</button>
+          </div>
         </div>
       </div>
 
@@ -2980,7 +2988,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.19.1', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.20.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function appVersionLabel() {
     const m = appMeta();
@@ -2989,7 +2997,12 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.19.1', date: '10 Eylül 2026', latest: true, items: [
+    { v: '4.20.0', date: '11 Eylül 2026', latest: true, items: [
+      'Ayarlar Abonelik Yönetimi & Yükseltme (Upgrade) Güvenliği: Aylık plandan Yıllık VIP plana geçişte bedelsiz seçim yanılgısı engellendi; Google Play ve App Store Proration/Upgrade satın alma akışı entegre edildi.',
+      'Dinamik Plan Rozetleme: Ayarlar ekranında kullanıcının gerçek aktif planı yeşil "✓ AKTİF PLANINIZ" rozetiyle vurgulandı; alternatif plana özel tasarruf rozetleri ve aksiyon butonları bağlandı.',
+      'Apple & Google Mağaza Abonelik Yönetim Köprüsü: Kullanıcının doğrudan mağaza abonelik iptal veya periyot değiştirme sayfasına yönlendirilmesi (Apple Guideline 3.1.2) sağlandı.',
+    ]},
+    { v: '4.19.1', date: '10 Eylül 2026', items: [
       'Genişletilmiş Çoklu Mağaza ID Köprüsü: StoreKit ve Google Play üzerinde ürün ID uyuşmazlığından kaynaklı \'no_package\' hatası giderildi.',
       'Dinamik Ürün Eşleştirme: monthly, misil_monthly, misil_baby_monthly ve varyasyonları otomatik sorgulanarak test kullanıcılarında mağaza satın alma sheet\'inin kesintisiz açılması sağlandı.',
     ]},
@@ -3658,18 +3671,104 @@
     }
   }
 
+  let settingsTargetPlan = 'monthly';
+
   function selectPricingPlan(planType, cardEl) {
     hapticPulse();
+    settingsTargetPlan = planType;
     const parent = cardEl.parentElement;
-    parent.querySelectorAll('div[onclick]').forEach(el => {
+    parent.querySelectorAll('.onboarding-plan-card').forEach(el => {
       el.style.border = '1px solid var(--border-night)';
       el.style.background = 'rgba(22, 29, 50, 0.8)';
     });
     cardEl.style.border = '2px solid var(--accent)';
     cardEl.style.background = 'rgba(35, 42, 70, 0.95)';
+
+    // KESİNLİKLE mishil_subscription_plan DEĞİŞTİRİLMEZ — yalnızca hedef seçim saklanır
     localStorage.setItem('mishil_selected_plan', planType);
-    const planNames = { monthly: 'Aylık VIP (7 Gün Ücretsiz Deneme)', yearly: 'Yıllık VIP (Tasarruflu)' };
-    showToast(`✅ ${planNames[planType] || planType} seçildi`);
+
+    updateSettingsSubActionBtn();
+  }
+
+  function updateSettingsSubActionBtn() {
+    const btn = document.getElementById('btn-settings-sub-action');
+    if (!btn) return;
+    const isActive = localStorage.getItem('mishil_subscription_active') === 'true';
+    const currentPlan = localStorage.getItem('mishil_subscription_plan') || 'monthly';
+    const target = settingsTargetPlan || 'monthly';
+
+    if (isActive) {
+      if (currentPlan === target) {
+        btn.textContent = `✓ ${target === 'yearly' ? 'Yıllık' : 'Aylık'} VIP Planınız Aktif`;
+        btn.style.opacity = '0.7';
+        btn.style.background = 'rgba(46, 204, 113, 0.2)';
+        btn.style.color = 'var(--success)';
+        btn.style.borderColor = 'var(--success)';
+      } else if (currentPlan === 'monthly' && target === 'yearly') {
+        btn.textContent = '👑 Yıllık VIP Plana Yükselt (%67 Tasarruf Et)';
+        btn.style.opacity = '1';
+        btn.style.background = 'linear-gradient(135deg, #E8A855, #C68A3E)';
+        btn.style.color = '#141B2E';
+        btn.style.borderColor = 'var(--accent)';
+      } else {
+        btn.textContent = '⚙️ Mağaza Üzerinden Planı Değiştir';
+        btn.style.opacity = '0.9';
+        btn.style.background = 'var(--bg-card-night)';
+        btn.style.color = '#FFF';
+        btn.style.borderColor = 'var(--border-night)';
+      }
+    } else {
+      btn.textContent = `🎁 ${target === 'yearly' ? 'Yıllık VIP (Tasarruflu)' : 'Aylık VIP (7 Gün Deneme)'} Başlat`;
+      btn.style.opacity = '1';
+      btn.style.background = 'linear-gradient(135deg, #E8A855, #C68A3E)';
+      btn.style.color = '#141B2E';
+    }
+  }
+
+  function executeSettingsPlanAction() {
+    hapticPulse();
+    const isActive = localStorage.getItem('mishil_subscription_active') === 'true';
+    const currentPlan = localStorage.getItem('mishil_subscription_plan') || 'monthly';
+    const target = settingsTargetPlan || 'monthly';
+
+    if (isActive && currentPlan === target) {
+      showToast(`ℹ️ ${target === 'yearly' ? 'Yıllık' : 'Aylık'} VIP üyeliğiniz zaten aktif durumda.`);
+      return;
+    }
+
+    if (isActive && currentPlan === 'yearly' && target === 'monthly') {
+      showToast('ℹ️ Yıllık plandan aylık plana geçiş mağaza dönemi sonunda gerçekleşir.');
+      openStoreSubscriptionManagement();
+      return;
+    }
+
+    // Google Play / App Store satın alma veya yükseltme (Upgrade) IAP başlat
+    if (window.ReactNativeWebView) {
+      showToast('🔄 Mağaza satın alma penceresi açılıyor...');
+      window.MishilNative.purchasePackage(target);
+      return;
+    }
+
+    // Web / Test modu
+    if (confirm(`${target === 'yearly' ? 'Yıllık VIP (₺599.99/yıl)' : 'Aylık VIP (₺149.99/ay)'} planına geçmek istiyor musunuz?`)) {
+      localStorage.setItem('mishil_subscription_active', 'true');
+      localStorage.setItem('mishil_subscription_plan', target);
+      showToast(`🎉 Tebrikler! ${target === 'yearly' ? 'Yıllık' : 'Aylık'} VIP planına başarıyla geçildi.`);
+      updateSubscriptionStatusUI();
+    }
+  }
+
+  function openStoreSubscriptionManagement() {
+    hapticPulse();
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MANAGE_SUBSCRIPTIONS' }));
+    } else {
+      const isApple = /iPhone|iPad|Macintosh/i.test(navigator.userAgent);
+      const url = isApple
+        ? 'https://apps.apple.com/account/subscriptions'
+        : 'https://play.google.com/store/account/subscriptions';
+      window.open(url, '_blank');
+    }
   }
 
   function generateSleepReport() {
@@ -4221,26 +4320,68 @@
 
   function updateSubscriptionStatusUI() {
     const subEl = document.getElementById('settings-sub-status-subtitle');
-    if (!subEl) return;
-    if (localStorage.getItem('mishil_admin_gate') === 'unlocked') {
+    const badgeM = document.getElementById('settings-plan-badge-monthly');
+    const badgeY = document.getElementById('settings-plan-badge-yearly');
+    const subM = document.getElementById('settings-plan-sub-monthly');
+    const subY = document.getElementById('settings-plan-sub-yearly');
+    const cardM = document.getElementById('settings-plan-card-monthly');
+    const cardY = document.getElementById('settings-plan-card-yearly');
+    const infoEl = document.getElementById('settings-sub-plan-info');
+
+    const isActive = localStorage.getItem('mishil_subscription_active') === 'true';
+    const plan = localStorage.getItem('mishil_subscription_plan') || 'monthly';
+
+    if (isActive) {
+      if (subEl) {
+        subEl.textContent = `👑 Mışıl VIP Aktif (${plan === 'yearly' ? 'Yıllık Plan' : 'Aylık Plan'})`;
+        subEl.style.color = 'var(--success)';
+      }
+      if (infoEl) {
+        infoEl.innerHTML = `Mevcut Aboneliğiniz: <strong style="color:var(--success);">${plan === 'yearly' ? '👑 Yıllık VIP (Tasarruflu)' : '🌙 Aylık VIP'}</strong> (Otomatik Yenilenir)`;
+      }
+      if (plan === 'yearly') {
+        if (badgeY) { badgeY.textContent = '✓ AKTİF PLANINIZ'; badgeY.style.background = 'var(--success)'; badgeY.style.color = '#FFF'; }
+        if (subY) { subY.textContent = 'Aboneliğiniz Yıllık Olarak Aktif'; subY.style.color = 'var(--success)'; }
+        if (badgeM) { badgeM.textContent = 'Aylık Seçenek'; badgeM.style.background = 'rgba(255,255,255,0.1)'; badgeM.style.color = 'var(--text-muted)'; }
+        if (subM) { subM.textContent = 'Yıllık dönem sonunda geçilebilir'; subM.style.color = 'var(--text-muted)'; }
+        if (cardY) { cardY.style.borderColor = 'var(--success)'; cardY.style.background = 'rgba(46, 204, 113, 0.1)'; }
+        if (cardM) { cardM.style.borderColor = 'var(--border-night)'; cardM.style.background = 'rgba(22, 29, 50, 0.8)'; }
+        settingsTargetPlan = 'yearly';
+      } else {
+        if (badgeM) { badgeM.textContent = '✓ AKTİF PLANINIZ'; badgeM.style.background = 'var(--success)'; badgeM.style.color = '#FFF'; }
+        if (subM) { subM.textContent = 'Aboneliğiniz Aylık Olarak Aktif'; subM.style.color = 'var(--success)'; }
+        if (badgeY) { badgeY.textContent = '%67 TASARRUF İLE YÜKSELT'; badgeY.style.background = 'var(--accent)'; badgeY.style.color = '#141B2E'; }
+        if (subY) { subY.textContent = 'İstediğiniz an Yıllık plana geçebilirsiniz'; subY.style.color = 'var(--accent)'; }
+        if (cardM) { cardM.style.borderColor = 'var(--success)'; cardM.style.background = 'rgba(46, 204, 113, 0.1)'; }
+        if (cardY) { cardY.style.borderColor = 'var(--border-night)'; cardY.style.background = 'rgba(22, 29, 50, 0.8)'; }
+        settingsTargetPlan = 'monthly';
+      }
+    } else {
+      const trial = getTrialStatus();
+      if (subEl) {
+        if (trial.isActive) {
+          subEl.textContent = `🎁 7 Günlük Deneme Aktif (Kalan: ${trial.text})`;
+          subEl.style.color = 'var(--accent)';
+        } else {
+          subEl.textContent = '⚠️ Deneme Süresi Doldu (VIP Yenileyin)';
+          subEl.style.color = 'var(--danger)';
+        }
+      }
+      if (infoEl) {
+        infoEl.textContent = '7 Günlük Deneme veya VIP Abonelik Modelinizi Seçin:';
+      }
+      if (badgeM) { badgeM.textContent = '7 GÜN ₺0'; badgeM.style.background = 'var(--accent)'; badgeM.style.color = '#141B2E'; }
+      if (badgeY) { badgeY.textContent = '%67 TASARRUF'; badgeY.style.background = 'rgba(232,168,85,0.2)'; badgeY.style.color = 'var(--accent)'; }
+      if (cardM) { cardM.style.borderColor = 'var(--accent)'; cardM.style.background = 'rgba(35, 42, 70, 0.95)'; }
+      settingsTargetPlan = 'monthly';
+    }
+
+    if (localStorage.getItem('mishil_admin_gate') === 'unlocked' && subEl) {
       subEl.textContent = '🔐 Yönetici Önizleme Modu (Sınırsız)';
       subEl.style.color = 'var(--accent)';
-      return;
     }
-    if (localStorage.getItem('mishil_subscription_active') === 'true') {
-      const plan = localStorage.getItem('mishil_subscription_plan') || 'monthly';
-      subEl.textContent = `👑 Mışıl VIP Aktif (${plan === 'yearly' ? 'Yıllık' : 'Aylık'})`;
-      subEl.style.color = 'var(--success)';
-      return;
-    }
-    const trial = getTrialStatus();
-    if (trial.isActive) {
-      subEl.textContent = `🎁 7 Günlük Deneme Aktif (Kalan: ${trial.text})`;
-      subEl.style.color = 'var(--accent)';
-    } else {
-      subEl.textContent = '⚠️ Deneme Süresi Doldu (VIP Yenileyin)';
-      subEl.style.color = 'var(--danger)';
-    }
+
+    updateSettingsSubActionBtn();
   }
 
   // Pro özellik kapısı: 

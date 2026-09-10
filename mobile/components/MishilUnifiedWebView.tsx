@@ -10,6 +10,7 @@ import {
   BackHandler,
   AppState,
   AppStateStatus,
+  Linking,
 } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import * as Haptics from 'expo-haptics';
@@ -405,6 +406,14 @@ export default function MishilUnifiedWebView() {
           } else {
             webToast('ℹ️ Bu hesapta geri yüklenecek aktif bir abonelik bulunamadı.');
           }
+          break;
+        }
+
+        case 'MANAGE_SUBSCRIPTIONS': {
+          const url = Platform.OS === 'ios'
+            ? 'https://apps.apple.com/account/subscriptions'
+            : 'https://play.google.com/store/account/subscriptions';
+          await Linking.openURL(url).catch(err => console.warn('Abonelik yönetimi açılamadı:', err));
           break;
         }
 
