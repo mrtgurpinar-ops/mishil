@@ -414,10 +414,11 @@ export default function MishilUnifiedWebView() {
           } else if (result.cancelled) {
             // Kullanıcı iptal etti — sessiz geç
           } else {
+            const errDetail = result.error ? ` (${result.error})` : '';
             webToast(
               result.error === 'no_package'
-                ? '⚠️ Abonelik paketleri şu an yüklenemedi. Lütfen tekrar deneyin.'
-                : '⚠️ Satın alma tamamlanamadı. Bir ücret alınmadıysa tekrar deneyebilirsiniz.'
+                ? '⚠️ Abonelik paketleri mağazadan (StoreKit/Google Play) yüklenemedi. TestFlight veya Play Store test hesabınızı kontrol edin.'
+                : `⚠️ Satın alma tamamlanamadı${errDetail}. Bir ücret alınmadıysa tekrar deneyebilirsiniz.`
             );
           }
           break;

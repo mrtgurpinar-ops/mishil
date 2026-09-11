@@ -63,18 +63,62 @@
     [data-theme="light"] body,
     [data-theme="light"] .card,
     [data-theme="light"] .modal-sheet,
-    [data-theme="light"] .tab-view {
+    [data-theme="light"] .tab-view,
+    [data-theme="light"] .onboarding-screen {
       color: var(--text-night);
     }
-    [data-theme="light"] .card span[style*="#FFF"],
-    [data-theme="light"] .card div[style*="#FFF"],
-    [data-theme="light"] .card strong[style*="#FFF"],
+    [data-theme="light"] .card {
+      background: var(--card-night) !important;
+      border-color: var(--border-night) !important;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+    [data-theme="light"] .modal-sheet {
+      background: #FFFFFF !important;
+      border-top-color: rgba(15, 23, 42, 0.12) !important;
+      color: var(--heading-night) !important;
+    }
+    [data-theme="light"] .chat-bubble-dadi {
+      background: #FFFFFF !important;
+      border-color: rgba(15, 23, 42, 0.12) !important;
+      color: var(--heading-night) !important;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+    [data-theme="light"] .onboarding-plan-card {
+      background: #FFFFFF !important;
+      border-color: rgba(15, 23, 42, 0.12) !important;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.03);
+    }
+    [data-theme="light"] .onboarding-plan-card.selected {
+      background: rgba(217, 119, 6, 0.06) !important;
+      border-color: var(--accent) !important;
+    }
+    [data-theme="light"] [style*="rgba(22, 29, 50"],
+    [data-theme="light"] [style*="rgba(35, 42, 70"],
+    [data-theme="light"] [style*="rgba(30, 42, 72"] {
+      background: #FFFFFF !important;
+      border-color: rgba(15, 23, 42, 0.12) !important;
+    }
+    [data-theme="light"] [style*="rgba(0,0,0,0.25"] {
+      background: rgba(15, 23, 42, 0.04) !important;
+      border: 1px solid rgba(15, 23, 42, 0.08) !important;
+      color: var(--text-night) !important;
+    }
+    [data-theme="light"] span[style*="#FFF"],
+    [data-theme="light"] div[style*="#FFF"],
+    [data-theme="light"] strong[style*="#FFF"],
+    [data-theme="light"] h1[style*="#FFF"],
+    [data-theme="light"] h2[style*="#FFF"],
+    [data-theme="light"] h3[style*="#FFF"],
+    [data-theme="light"] label[style*="#FFF"] {
+      color: var(--heading-night) !important;
+    }
     [data-theme="light"] .tab-item .tab-label {
       color: var(--heading-night) !important;
     }
     [data-theme="light"] .tab-bar {
-      background: rgba(255, 255, 255, 0.94);
+      background: rgba(255, 255, 255, 0.96);
       border-top-color: rgba(15, 23, 42, 0.08);
+      box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.03);
     }
     [data-theme="light"] .tab-item.active .tab-label {
       color: var(--accent) !important;
@@ -82,11 +126,17 @@
     [data-theme="light"] .btn-primary {
       color: #FFFFFF !important;
     }
+    [data-theme="light"] .btn-secondary {
+      background: #FFFFFF !important;
+      color: var(--heading-night) !important;
+      border-color: rgba(15, 23, 42, 0.15) !important;
+    }
     [data-theme="light"] input,
     [data-theme="light"] select,
     [data-theme="light"] textarea {
       color: var(--heading-night);
       border-color: var(--border-night);
+      background: #FFFFFF !important;
     }
 
     * {
@@ -2997,7 +3047,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.22.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.23.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function appVersionLabel() {
     const m = appMeta();
@@ -3006,7 +3056,12 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.22.0', date: '11 Eylül 2026', latest: true, items: [
+    { v: '4.23.0', date: '11 Eylül 2026', latest: true, items: [
+      'Light Mod Görsel & Tipografi Restorasyonu: Onboarding tıbbi feragatname, abonelik plan kartları, Apple 3.1.2 bilgilendirme, changelog ve modal kutularındaki koyu arka planlar açık temada saf beyaz zemin ve derin grafit-lacivert (#0F172A) okunaklı metin renkleriyle yenilendi.',
+      'iOS App Store & RevenueCat Sunucu Entegrasyonu: RevenueCat üzerinde Mışıl Baby (App Store) için monthly ve yearly ürünleri tanımlanarak $rc_monthly ve $rc_annual paketleriyle canlı API üzerinden resmi olarak eşleştirildi.',
+      'Açıklayıcı Mağaza Hata Bildirimi: Abonelik başlatma hatalarında jenerik uyarı yerine teknik kök nedeni belirten şeffaf bildirim mekanizması sağlandı.',
+    ]},
+    { v: '4.22.0', date: '11 Eylül 2026', items: [
       'Abonelik Yönetimi Doğrudan Deep Link: "Aboneliği Yönet" butonunun cihazda yüklü eski binary derlemelerde bile hiçbir güncelleme beklemeden anında Google Play / App Store resmi abonelik sayfasını açması sağlandı.',
       'Google Play Gerçek Ürün ID Entegrasyonu: Holdingin Google Play Console\'daki asıl ürün kimlikleri olan "misil" (Yıllık) ve "misilaylik" (Aylık) kod tabanına entegre edilerek "paket yüklenemedi" (no_package) hatası kökten giderildi.',
       'RevenueCat Gerçek Public Key Entegrasyonu: Mock anahtar fallback\'leri yerine canlı üretim public anahtarları kalıcı olarak bağlandı.',

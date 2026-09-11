@@ -2,6 +2,24 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.23.0] - 2026-09-11
+### 🎨 Light Mod Görsel Restorasyonu & iOS RevenueCat Sunucu Eşleşmesi (Build 35)
+
+1. **Light Mod Görsel & Tipografi Restorasyonu:**
+   - Onboarding tıbbi feragatname kutusu, abonelik plan kartları (`onboarding-plan-card`), Apple 3.1.2 bilgilendirme kutuları, changelog ve modal sayfalarındaki koyu/okunaksız zeminler açık temada saf beyaz zemin (`#FFFFFF`) ve derin okunaklı lacivert (`#0F172A`) renge kavuşturuldu.
+   - Açık temada tüm kart gölgeleri ve yumuşak gri kenarlıklar netleştirildi.
+2. **iOS App Store & RevenueCat Canlı Sunucu Entegrasyonu:**
+   - Canlı RevenueCat v2 API üzerinden `proja1528882` projesine resmi `monthly` (`prodffab50f7a6`) ve `yearly` (`prodfdd7f067db`) App Store ürünleri eklendi.
+   - Projenin `pro` ve `mışıl_baby_pro` entitlement'larına bağlandı.
+   - Varsayılan `$rc_monthly` ve `$rc_annual` paketlerine `eligibility_criteria: all` ile resmi olarak iliştirildi (`HTTP 200 OK`).
+3. **Şeffaf Hata Raporlama:**
+   - `MishilUnifiedWebView.tsx` içerisinde IAP hatalarında genel uyarı yerine StoreKit veya Play Store test hesabını kontrol etmeye yönlendiren açıklayıcı hata detayı eklendi.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.23.0'`, `BUILD_NUMBER = 35` (`mobile/app.config.ts`, `public/app.html`, `WEB_APP_META`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts` (274 KB).
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
 ## [4.22.0] - 2026-09-11
 ### 🚀 Google Play Ürün ID Eşleme & Abonelik Yönetimi Doğrudan Deep Link Çözümü (Build 34)
 
