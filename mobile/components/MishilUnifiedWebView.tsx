@@ -414,10 +414,13 @@ export default function MishilUnifiedWebView() {
           } else if (result.cancelled) {
             // Kullanıcı iptal etti — sessiz geç
           } else {
+            const isIOS = Platform.OS === 'ios';
+            const storeName = isIOS ? 'App Store' : 'Google Play';
+            const accountRef = isIOS ? 'Apple Kimliğinizi veya internet bağlantınızı' : 'Google Play test hesabınızı veya internet bağlantınızı';
             const errDetail = result.error ? ` (${result.error})` : '';
             webToast(
               result.error === 'no_package'
-                ? '⚠️ Abonelik paketleri mağazadan (StoreKit/Google Play) yüklenemedi. TestFlight veya Play Store test hesabınızı kontrol edin.'
+                ? `⚠️ Abonelik paketleri ${storeName}'dan yüklenemedi. Lütfen ${accountRef} kontrol edin.`
                 : `⚠️ Satın alma tamamlanamadı${errDetail}. Bir ücret alınmadıysa tekrar deneyebilirsiniz.`
             );
           }

@@ -3085,8 +3085,16 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.24.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.25.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
+  function getAppPlatform() {
+    const meta = appMeta();
+    if (meta.platform && meta.platform !== 'web') return meta.platform;
+    return /iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent) ? 'ios' : 'android';
+  }
+  function getStoreName() {
+    return getAppPlatform() === 'ios' ? 'App Store' : 'Google Play';
+  }
   function appVersionLabel() {
     const m = appMeta();
     return `Mışıl Baby v${m.version}` + (m.build && m.build !== 'web' ? ` (build ${m.build})` : '');
@@ -3094,7 +3102,12 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.24.0', date: '11 Eylül 2026', latest: true, items: [
+    { v: '4.25.0', date: '11 Eylül 2026', latest: true, items: [
+      'Dinamik Platform İzolasyonu (Apple Guideline 2.3.10 Uyumlu): iOS ve Android mağaza mesajları, test ortamı yönlendirmeleri ve hata bildirimleri Platform.OS bazında tamamen birbirinden izole edildi.',
+      'Sıfır Çapraz Mağaza Referansı: iOS üzerinde yalnızca App Store ve Apple Kimliği/TestFlight, Android üzerinde yalnızca Google Play referansları gösterilerek mağaza ret riskleri kökten ortadan kaldırıldı.',
+      'Gelişmiş Mağaza Abonelik Yönetimi Köprüsü: Ayarlar ekranındaki abonelik yönetimi yönlendirmesi cihaz işletim sistemine göre native derin linkleme ile dinamikleştirildi.',
+    ]},
+    { v: '4.24.0', date: '11 Eylül 2026', items: [
       'Apple Guideline 3.1.2(c) Yasal Bağlantı Entegrasyonu: Onboarding Paywall ve VIP Yenileme ekranlarına tıklanabilir Kullanım Koşulları (EULA) ve Gizlilik Politikası (Privacy Policy) bağlantıları ile otomatik yenileme/iptal bilgilendirmesi eklendi.',
       'Apple StoreKit Asıl Ürün Senkronizasyonu: App Store Connect üzerindeki gerçek abonelik kimlikleri (misil_monthly ve misil_annual) RevenueCat iOS uygulamasına ve paketlerine resmi olarak bağlanarak Sandbox ürün teslimatı garantiye alındı.',
       'Native URL & StoreKit Köprü Güçlendirmesi: Uygulama içi yasal linklerin Safari\'de güvenle açılmasını sağlayan OPEN_URL köprüsü ve runtime API anahtarı üçlü güvenlik kalkanı tamamlandı.',
@@ -3879,8 +3892,8 @@
 
   function openStoreSubscriptionManagement() {
     hapticPulse();
-    const isApple = /iPhone|iPad|Macintosh/i.test(navigator.userAgent);
-    const url = isApple
+    const isIOS = getAppPlatform() === 'ios';
+    const url = isIOS
       ? 'https://apps.apple.com/account/subscriptions'
       : 'https://play.google.com/store/account/subscriptions';
 

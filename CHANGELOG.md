@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.25.0] - 2026-09-11
+### 📱 Dinamik Platform İzolasyonu & Çapraz Mağaza İhlali Koruması (Build 37)
+
+1. **Dinamik Hata & Bilgilendirme Toast'ları:**
+   - `MishilUnifiedWebView.tsx` içerisinde sabit `(StoreKit/Google Play)` metni kaldırılarak `Platform.OS === 'ios'` ayrımıyla App Store ve Google Play hata mesajları tamamen birbirinden izole edildi.
+   - iOS'ta yalnızca "App Store" ve "Apple Kimliği / TestFlight" referansı; Android'de yalnızca "Google Play" referansı gösterilmesi garanti altına alındı (Apple Guideline 2.3.10 tam uyum).
+2. **WebView Platform Standardizasyonu (`app.html`):**
+   - `getAppPlatform()` ve `getStoreName()` yardımcı fonksiyonları eklenerek mağaza derin linkleri (`openStoreSubscriptionManagement`) ve UI metinleri platforma göre dinamik hale getirildi.
+3. **Sürüm & Paket Senkronu:**
+   - `APP_VERSION = '4.25.0'`, `BUILD_NUMBER = 37`.
+   - `offlineHtml.generated.ts` paketi yeniden üretildi.
+
 ## [4.24.0] - 2026-09-11
 ### 🛡️ Apple StoreKit Gerçek Ürün Senkronizasyonu & Guideline 3.1.2(c) Yasal Uyumluluk (Build 36)
 
