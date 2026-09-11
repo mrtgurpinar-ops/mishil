@@ -44,10 +44,12 @@ export const FALLBACK_OFFERINGS: PackageOffer[] = [
 let isConfigured = false;
 let isRealKey = false;
 
-const getApiKey = () =>
-  Platform.OS === 'ios'
-    ? Constants.expoConfig?.extra?.revenueCatApiKeyIos
-    : Constants.expoConfig?.extra?.revenueCatApiKeyAndroid;
+const getApiKey = () => {
+  if (Platform.OS === 'ios') {
+    return process.env.EXPO_PUBLIC_REVENUECAT_IOS || Constants.expoConfig?.extra?.revenueCatApiKeyIos || 'appl_YErlYWqQcbRzipLuFKFliryZXAX';
+  }
+  return process.env.EXPO_PUBLIC_REVENUECAT_ANDROID || Constants.expoConfig?.extra?.revenueCatApiKeyAndroid || 'goog_LCNeMzKcaNSPdZModiKqmLtygYk';
+};
 
 export const initRevenueCat = async (userId?: string) => {
   if (isConfigured) return isRealKey;
@@ -129,8 +131,8 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
     // 2. Yol: rawPackage yoksa (StoreKit / Google Play doğrudan çoklu ürün fallback'i)
     const isYearly = packageId.toLowerCase().includes('year') || packageId.toLowerCase().includes('annual') || packageId.toLowerCase() === 'misil';
     const candidateProductIds = isYearly
-      ? ['misil', 'yearly', 'misil_annual', 'misil_yearly', 'misil_baby_annual', 'com.levitas.misilbaby.annual', '$rc_annual', 'annual']
-      : ['misilaylik', 'monthly', 'misil_monthly', 'misil_baby_monthly', 'com.levitas.misilbaby.monthly', '$rc_monthly', 'misil_sub_monthly'];
+      ? ['misil_annual', 'com.levitas.misilbaby.annual', 'misil', 'yearly', '$rc_annual', 'annual']
+      : ['misil_monthly', 'com.levitas.misilbaby.monthly', 'misilaylik', 'monthly', '$rc_monthly', 'misil_sub_monthly'];
 
     if (ready && Purchases.getProducts) {
       try {

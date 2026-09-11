@@ -448,6 +448,13 @@ export default function MishilUnifiedWebView() {
           break;
         }
 
+        case 'OPEN_URL': {
+          if (msg.url) {
+            await Linking.openURL(String(msg.url)).catch(err => console.warn('Bağlantı açılamadı:', err));
+          }
+          break;
+        }
+
         default:
           break;
       }

@@ -2,6 +2,27 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.24.0] - 2026-09-11
+### 🛡️ Apple StoreKit Gerçek Ürün Senkronizasyonu & Guideline 3.1.2(c) Yasal Uyumluluk (Build 36)
+
+1. **Apple Guideline 3.1.2(c) Yasal Bağlantı Entegrasyonu:**
+   - Onboarding Paywall (`#quiz-step-5`) ve VIP Yenileme Modalı (`#vip-renewal-modal`) altına tıklanabilir, fonksiyonel **Kullanım Koşulları (EULA)** ve **Gizlilik Politikası (Privacy Policy)** bağlantıları eklendi.
+   - Apple Guideline 3.1.2 zorunlu otomatik yenileme ve hesap ayarlarından iptal bilgilendirme metni kart altına yerleştirildi.
+2. **Apple StoreKit Asıl Ürün Senkronizasyonu:**
+   - App Store Connect üzerinde tanımlı gerçek ürün kimlikleri olan `misil_monthly` (`prod2fc9b4842a`) ve `misil_annual` (`proddd11361bba`), RevenueCat iOS uygulamasına (`app3226253e41`) kaydedildi.
+   - `pro` ve `mışıl_baby_pro` entitlement'larına bağlandı.
+   - `$rc_monthly` ve `$rc_annual` paketlerine tek yetkili ürün olarak atanarak StoreKit Sandbox ürün teslimatı garantiye alındı.
+3. **Native Güvenlik Kalkanı & OPEN_URL Köprüsü:**
+   - Standalone iOS derlemelerinde runtime API anahtarı çözümlemesi `process.env.EXPO_PUBLIC_REVENUECAT_IOS` ile üçlü kalkan yapısına geçirildi.
+   - Native köprüye `OPEN_URL` desteği eklenerek yasal sayfaların Safari'de sorunsuz açılması sağlandı.
+4. **Light Mod Arayüz Kontrast Temizliği:**
+   - Onboarding skor ve hedef kartlarındaki koyu zemin ve soluk metinler saf beyaz zemin ve derin lacivert (#0F172A) okunabilir renklerle hizalandı.
+
+#### 🔧 Chore
+- Sürüm artırımı: `APP_VERSION = '4.24.0'`, `BUILD_NUMBER = 36` (`mobile/app.config.ts`, `public/app.html`, `WEB_APP_META`).
+- Çevrimdışı paket yenilendi: `features/webview/offlineHtml.generated.ts`.
+- Pre-flight doğrulama: `tsc --noEmit` 0 hata, Jest 4/4 PASS, `mobile_compliance_checker.py` READY_FOR_RELEASE.
+
 ## [4.23.0] - 2026-09-11
 ### 🎨 Light Mod Görsel Restorasyonu & iOS RevenueCat Sunucu Eşleşmesi (Build 35)
 

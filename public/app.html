@@ -94,6 +94,7 @@
     }
     [data-theme="light"] [style*="rgba(22, 29, 50"],
     [data-theme="light"] [style*="rgba(35, 42, 70"],
+    [data-theme="light"] [style*="rgba(30, 36, 60"],
     [data-theme="light"] [style*="rgba(30, 42, 72"] {
       background: #FFFFFF !important;
       border-color: rgba(15, 23, 42, 0.12) !important;
@@ -102,6 +103,9 @@
       background: rgba(15, 23, 42, 0.04) !important;
       border: 1px solid rgba(15, 23, 42, 0.08) !important;
       color: var(--text-night) !important;
+    }
+    [data-theme="light"] [style*="#C9CEDC"] {
+      color: var(--text-muted) !important;
     }
     [data-theme="light"] span[style*="#FFF"],
     [data-theme="light"] div[style*="#FFF"],
@@ -1809,8 +1813,20 @@
       </div>
 
       <button class="btn-primary" id="btn-onboarding-pro" style="margin-top: 4px;" onclick="activateTrialAndStart()">🎁 7 Gün Ücretsiz Dene ve Başlat</button>
-      <div style="text-align: center; margin-top: 12px;">
+      <div style="text-align: center; margin-top: 10px;">
         <button onclick="restoreVipRenewalPurchases()" style="background: none; border: none; font-size: 11px; color: var(--text-muted); cursor: pointer; text-decoration: underline;">Önceki Satın Alımları Geri Yükle</button>
+      </div>
+
+      <!-- APPLE GUIDELINE 3.1.2(c) ZORUNLU YASAL BİLGİLENDİRME & BAĞLANTILAR -->
+      <div style="font-size: 10px; color: var(--text-muted); line-height: 15px; margin-top: 12px; text-align: center; padding: 0 4px;">
+        • <strong>Otomatik Yenileme:</strong> 7 günlük ücretsiz deneme süresi bitiminde seçilen plan üzerinden Apple Kimliğinize yansıtılır. Mevcut dönemin bitiminden en az 24 saat önce iptal edilmediği sürece abonelik otomatik yenilenir.<br>
+        • <strong>İptal:</strong> İstediğiniz an App Store / Google Play Hesap Ayarlarınızdan tek tıkla iptal edebilirsiniz.
+      </div>
+
+      <div class="paywall-legal-links" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 10px; font-size: 11px;">
+        <a href="https://mishil-production.up.railway.app/terms" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/terms')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">⚖️ Kullanım Koşulları (EULA)</a>
+        <span style="color: var(--text-muted);">•</span>
+        <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
       </div>
     </div>
   </div>
@@ -2629,6 +2645,16 @@
 
     <button class="btn-primary" onclick="confirmVipRenewalPurchase()">Yenile / Satın Al</button>
     <button class="btn-secondary" onclick="restoreVipRenewalPurchases()" style="margin-top: 8px;">Satın Alımları Geri Yükle</button>
+
+    <!-- APPLE GUIDELINE 3.1.2(c) ZORUNLU YASAL BİLGİLENDİRME & BAĞLANTILAR -->
+    <div style="font-size: 10px; color: var(--text-muted); line-height: 15px; margin-top: 10px; text-align: center;">
+      Aboneliğiniz dönem sonunda otomatik yenilenir. İstediğiniz an App Store / Google Play hesap ayarlarınızdan iptal edebilirsiniz.
+    </div>
+    <div class="paywall-legal-links" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 8px; font-size: 11px;">
+      <a href="https://mishil-production.up.railway.app/terms" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/terms')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">⚖️ Kullanım Koşulları (EULA)</a>
+      <span style="color: var(--text-muted);">•</span>
+      <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
+    </div>
   </div>
 </div>
 
@@ -2917,6 +2943,18 @@
     }
   };
 
+  // Apple StoreKit & Web uyumlu yasal bağlantı açıcı (EULA / Privacy)
+  function openLegalUrl(e, url) {
+    if (e && typeof e.preventDefault === 'function') {
+      try { e.preventDefault(); } catch (err) {}
+    }
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'OPEN_URL', url: url }));
+    } else {
+      window.open(url, '_blank');
+    }
+  }
+
   // =========================================================================
   // WEB GUARD & ADMIN GATE (mrtg.2591)
   // Doğrudan web tarayıcısından gelen ziyaretçilere İndirme Duvarı gösterir.
@@ -3047,7 +3085,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.23.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.24.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function appVersionLabel() {
     const m = appMeta();
@@ -3056,7 +3094,13 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.23.0', date: '11 Eylül 2026', latest: true, items: [
+    { v: '4.24.0', date: '11 Eylül 2026', latest: true, items: [
+      'Apple Guideline 3.1.2(c) Yasal Bağlantı Entegrasyonu: Onboarding Paywall ve VIP Yenileme ekranlarına tıklanabilir Kullanım Koşulları (EULA) ve Gizlilik Politikası (Privacy Policy) bağlantıları ile otomatik yenileme/iptal bilgilendirmesi eklendi.',
+      'Apple StoreKit Asıl Ürün Senkronizasyonu: App Store Connect üzerindeki gerçek abonelik kimlikleri (misil_monthly ve misil_annual) RevenueCat iOS uygulamasına ve paketlerine resmi olarak bağlanarak Sandbox ürün teslimatı garantiye alındı.',
+      'Native URL & StoreKit Köprü Güçlendirmesi: Uygulama içi yasal linklerin Safari\'de güvenle açılmasını sağlayan OPEN_URL köprüsü ve runtime API anahtarı üçlü güvenlik kalkanı tamamlandı.',
+      'Light Mod Kontrast Temizliği: Onboarding skor ve hedef kartlarındaki koyu zemin ve düşük kontrastlı metinler saf beyaz zemin ve derin lacivert (#0F172A) okunabilir renklere kavuşturuldu.',
+    ]},
+    { v: '4.23.0', date: '11 Eylül 2026', items: [
       'Light Mod Görsel & Tipografi Restorasyonu: Onboarding tıbbi feragatname, abonelik plan kartları, Apple 3.1.2 bilgilendirme, changelog ve modal kutularındaki koyu arka planlar açık temada saf beyaz zemin ve derin grafit-lacivert (#0F172A) okunaklı metin renkleriyle yenilendi.',
       'iOS App Store & RevenueCat Sunucu Entegrasyonu: RevenueCat üzerinde Mışıl Baby (App Store) için monthly ve yearly ürünleri tanımlanarak $rc_monthly ve $rc_annual paketleriyle canlı API üzerinden resmi olarak eşleştirildi.',
       'Açıklayıcı Mağaza Hata Bildirimi: Abonelik başlatma hatalarında jenerik uyarı yerine teknik kök nedeni belirten şeffaf bildirim mekanizması sağlandı.',
