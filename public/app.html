@@ -1045,7 +1045,7 @@
     .tab-label { font-size: 10px; font-weight: 600; color: #FFF; }
 
     /* =========================================================================
-       MIŞIL DADI CHAT SCREEN (PERFECT MOBILE FIT & NO SCROLLBAR)
+       MIŞIL DADI CHAT SCREEN (PERFECT MOBILE FIT, VIEWPORT & KEYBOARD SAFE)
        ========================================================================= */
     .dadi-container {
       display: flex;
@@ -1062,6 +1062,99 @@
         max-height: none;
         min-height: 340px;
       }
+    }
+
+    /* Klavye ve Tam Ekran Mışıl Dadı Odak Modu */
+    .screen-container.coach-mode-active {
+      overflow-y: hidden !important;
+      padding-bottom: 0 !important;
+      height: 100% !important;
+      display: flex !important;
+      flex-direction: column !important;
+    }
+
+    .screen-container.coach-mode-active #view-coach {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-height: 0;
+      overflow: hidden;
+    }
+
+    .screen-container.coach-mode-active .dadi-container {
+      flex: 1 1 auto;
+      height: 100% !important;
+      max-height: none !important;
+      min-height: 0 !important;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen-container.coach-mode-active .dadi-chat-card {
+      flex: 1 1 auto;
+      height: 100%;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 14px;
+      margin-bottom: 0;
+      padding-bottom: calc(74px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px)));
+    }
+
+    /* Mobilde klavye açıldığında çakışmayı önleme kuralları */
+    body.keyboard-open .tab-bar {
+      display: none !important;
+    }
+
+    body.keyboard-open .screen-container.coach-mode-active .dadi-chat-card {
+      padding-bottom: 10px !important;
+    }
+
+    /* İlk Kullanıcı Karşılama ve Keşif Kartı */
+    .welcome-guide-card {
+      background: linear-gradient(135deg, rgba(32, 42, 75, 0.95), rgba(18, 24, 44, 0.95));
+      border: 1px solid var(--accent);
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 12px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+      position: relative;
+    }
+
+    .welcome-step-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      margin-top: 6px;
+    }
+
+    .welcome-step-item:active {
+      transform: scale(0.98);
+      background: rgba(232, 168, 85, 0.15);
+      border-color: var(--accent);
+    }
+
+    /* Pediatrik Aşı Bento Kartı (Ana Sayfa) */
+    .vaccine-bento-card {
+      background: linear-gradient(135deg, rgba(26, 36, 58, 0.9), rgba(19, 26, 44, 0.85));
+      border: 1px solid rgba(46, 213, 115, 0.35);
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-top: 8px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .vaccine-bento-card:active {
+      transform: scale(0.98);
+      border-color: #2ED573;
     }
 
     .dadi-chat-card {
@@ -1857,6 +1950,41 @@
 
       <!-- SEGMENT 1: SWEETSPOT & BREATHING MOON HERO -->
       <div id="home-seg-sweetspot">
+        <!-- İLK KULLANICI KARŞILAMA VE HIZLI KEŞİF REHBERİ -->
+        <div class="welcome-guide-card" id="home-welcome-guide" style="display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+            <div>
+              <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">✨ Mışıl Baby'ye Hoş Geldiniz!</div>
+              <div style="font-size: 11px; color: var(--accent); margin-top: 1px;">Bebeğiniz için 3 kolay adımda hızlı başlangıç:</div>
+            </div>
+            <button onclick="dismissWelcomeGuide()" style="background: none; border: none; color: var(--text-muted); font-size: 14px; cursor: pointer; padding: 2px 6px;">✕</button>
+          </div>
+          <div class="welcome-step-item" onclick="toggleLiveSleep()">
+            <span style="font-size: 18px;">🌙</span>
+            <div style="flex: 1;">
+              <div style="font-size: 12px; font-weight: 600; color: #FFF;">1. Adım: Canlı Uyku Başlat</div>
+              <div style="font-size: 10px; color: var(--text-muted);">Bebeğiniz uykuya daldığında tek tıkla sayacı başlatın.</div>
+            </div>
+            <span style="font-size: 11px; color: var(--accent);">Başlat ›</span>
+          </div>
+          <div class="welcome-step-item" onclick="openVaccineQuickModal()">
+            <span style="font-size: 18px;">💉</span>
+            <div style="flex: 1;">
+              <div style="font-size: 12px; font-weight: 600; color: #FFF;">2. Adım: Aşı Takvimini İncele</div>
+              <div style="font-size: 10px; color: var(--text-muted);">Doğum tarihine göre hazırlanmış aşı defterinizi görün.</div>
+            </div>
+            <span style="font-size: 11px; color: #2ED573;">Gör ›</span>
+          </div>
+          <div class="welcome-step-item" onclick="switchTab('coach')">
+            <span style="font-size: 18px;">👵</span>
+            <div style="flex: 1;">
+              <div style="font-size: 12px; font-weight: 600; color: #FFF;">3. Adım: Mışıl Dadı'ya Danış</div>
+              <div style="font-size: 10px; color: var(--text-muted);">Uykusuzluk, gaz veya atak dönemlerini yapay zekaya sorun.</div>
+            </div>
+            <span style="font-size: 11px; color: var(--accent);">Sor ›</span>
+          </div>
+        </div>
+
         <div class="card moon-hero">
           <div class="spotlight-glow"></div>
           <div class="sweetspot-pill">
@@ -1908,6 +2036,21 @@
           </div>
           <div class="progress-bar-wrap" style="height: 4px;">
             <div class="progress-fill" id="home-leap-progress-bar" style="width: 0%; background: #A569BD;"></div>
+          </div>
+        </div>
+
+        <!-- Pediatrik Aşı Takvimi Hızlı Bento Kartı (Ana Sayfa) -->
+        <div class="card vaccine-bento-card" id="home-vaccine-card" onclick="openVaccineQuickModal()">
+          <div class="spotlight-glow"></div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 16px;">💉</span>
+              <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: #FFF;">Pediatrik Aşı Takvimi</span>
+            </div>
+            <span id="home-vaccine-badge" style="font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 700; background: rgba(46, 213, 115, 0.2); color: #2ED573;">Aşı Defteri ➔</span>
+          </div>
+          <div id="home-vaccine-subtitle" style="font-size: 11px; color: var(--text-night); line-height: 15px;">
+            Sıradaki aşı ve pediatrik takvim yükleniyor...
           </div>
         </div>
 
@@ -1971,49 +2114,65 @@
 
       <!-- PANEL 1: UYKU VE RİTİM ANALİTİĞİ -->
       <div id="analytics-sec-sleep" class="analytics-sec-panel active">
-        <!-- Dinamik Matematiksel Gelişim Skoru Kartı -->
-        <div class="card" style="border: 1px solid var(--accent); background: rgba(26, 35, 60, 0.95);">
+        <!-- Dinamik Sevimli Gelişim & Denge Kartı -->
+        <div class="card" style="border: 1px solid var(--accent); background: linear-gradient(135deg, rgba(28, 38, 68, 0.95), rgba(18, 24, 46, 0.95));">
           <div class="spotlight-glow"></div>
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <div style="font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase;">Klinik Biyolojik Skor</div>
-              <div style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: #FFF; margin: 2px 0;" id="analytics-score-val">
-                🌟 Gelişim Skoru: —
+              <div style="font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">✨ Bebeğimin Günlük Dengesi</div>
+              <div style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: #FFF; margin: 3px 0;" id="analytics-score-val">
+                🌟 Denge Skoru: —
               </div>
               <div style="font-size: 11px; color: var(--text-night); line-height: 15px;" id="analytics-score-desc">
-                Profil ve kayıt biriktikçe hesaplanır
+                Günlük uykular ve beslenmeler kaydedildikçe hesaplanır
               </div>
             </div>
-            <div class="score-circle-badge" style="width: 52px; height: 52px; border-radius: 26px;">
-              <div class="score-circle-inner" id="analytics-score-badge-val" style="font-size: 16px;">—</div>
+            <div class="score-circle-badge" style="width: 54px; height: 54px; border-radius: 27px; background: rgba(232, 168, 85, 0.15); border: 2px solid var(--accent);">
+              <div class="score-circle-inner" id="analytics-score-badge-val" style="font-size: 17px; font-weight: 800; color: var(--accent);">—</div>
             </div>
           </div>
 
-          <!-- Matematiksel Bileşen Çubukları (MHGE 4-Bileşen Modeli) -->
-          <div style="margin-top: 10px; border-top: 1px solid var(--border-night); padding-top: 8px;">
+          <!-- 3 Hızlı Görsel Durum Rozeti -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 12px; margin-bottom: 8px;">
+            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(116, 185, 255, 0.25); border-radius: 8px; padding: 6px 4px; text-align: center;">
+              <div style="font-size: 10px; color: var(--text-muted);">🌙 Uyku</div>
+              <div style="font-size: 11px; font-weight: 700; color: #74B9FF; margin-top: 2px;" id="stat-badge-sleep">Ritimde</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(46, 213, 115, 0.25); border-radius: 8px; padding: 6px 4px; text-align: center; cursor: pointer;" onclick="openVaccineQuickModal()">
+              <div style="font-size: 10px; color: var(--text-muted);">💉 Aşı</div>
+              <div style="font-size: 11px; font-weight: 700; color: #2ED573; margin-top: 2px;" id="stat-badge-vaccine">Takvimde ➔</div>
+            </div>
+            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(165, 105, 189, 0.25); border-radius: 8px; padding: 6px 4px; text-align: center;">
+              <div style="font-size: 10px; color: var(--text-muted);">🌱 Gelişim</div>
+              <div style="font-size: 11px; font-weight: 700; color: #D7BDE2; margin-top: 2px;" id="stat-badge-leap">Sakin Dönem</div>
+            </div>
+          </div>
+
+          <!-- Sevimli ve Sade Bileşen Çubukları -->
+          <div style="margin-top: 6px; border-top: 1px solid var(--border-night); padding-top: 8px;">
             <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
-              <span>🌙 Sirkadiyen Uyku Bütçesi (%40)</span>
+              <span>🌙 Uyku Düzeni & Dinlenme</span>
               <span id="score-part-sleep">— / 100</span>
             </div>
-            <div class="progress-bar-wrap" style="height: 4px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sleep-bar" style="width: 0%;"></div></div>
+            <div class="progress-bar-wrap" style="height: 5px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sleep-bar" style="width: 0%;"></div></div>
 
             <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
-              <span>🎯 SweetSpot Zamanlama Hassasiyeti (%30)</span>
+              <span>🎯 Zamanında Uykuya Dalma</span>
               <span id="score-part-sweetspot">— / 100</span>
             </div>
-            <div class="progress-bar-wrap" style="height: 4px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sweetspot-bar" style="width: 0%; background: #74B9FF;"></div></div>
+            <div class="progress-bar-wrap" style="height: 5px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sweetspot-bar" style="width: 0%; background: #74B9FF;"></div></div>
 
             <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
-              <span>🍼 Beslenme & Bez Dengesi (%15)</span>
+              <span>🍼 Beslenme & Bez Düzeni</span>
               <span id="score-part-balance">— / 100</span>
             </div>
-            <div class="progress-bar-wrap" style="height: 4px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-balance-bar" style="width: 0%; background: #2ED573;"></div></div>
+            <div class="progress-bar-wrap" style="height: 5px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-balance-bar" style="width: 0%; background: #2ED573;"></div></div>
 
             <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
-              <span>🌱 Wonder Weeks Atak Toleransı (%15)</span>
+              <span>🌱 Atak ve Büyüme Uyumu</span>
               <span id="score-part-leap">— / 100</span>
             </div>
-            <div class="progress-bar-wrap" style="height: 4px;"><div class="progress-fill" id="score-part-leap-bar" style="width: 0%; background: #A569BD;"></div></div>
+            <div class="progress-bar-wrap" style="height: 5px;"><div class="progress-fill" id="score-part-leap-bar" style="width: 0%; background: #A569BD;"></div></div>
           </div>
         </div>
 
@@ -2508,6 +2667,23 @@
     <div class="tab-item" onclick="hapticPulse(); switchTab('settings');">
       <span class="tab-icon">⚙️</span>
       <span class="tab-label">Ayarlar</span>
+    </div>
+  </div>
+<!-- MODAL: HIZLI PEDİATRİK AŞI TAKVİMİ MODALI -->
+<div class="modal-overlay" id="modal-vaccine-schedule" onclick="closeModalOnOverlay(event, 'modal-vaccine-schedule')">
+  <div class="modal-sheet no-scrollbar" style="max-height: 85vh;">
+    <div class="modal-header">
+      <div>
+        <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">💉 Pediatrik Aşı Defteri</div>
+        <div style="font-size: 11px; color: var(--text-muted);">T.C. Sağlık Bakanlığı & DSÖ Onaylı Takvim</div>
+      </div>
+      <button class="modal-close" onclick="closeVaccineQuickModal()">✕</button>
+    </div>
+    <div style="font-size: 11px; color: var(--text-night); line-height: 15px; margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 8px;">
+      Bebeğinizin aşılarını tamamlandıkça işaretleyin. Takvim anında güncellenir ve Sağlık & Gelişim skoru beslenir.
+    </div>
+    <div id="quick-vaccine-items-container" style="display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: 60vh; padding-right: 4px;" class="no-scrollbar">
+      <!-- Rendered by JS -->
     </div>
   </div>
 </div>
@@ -3085,7 +3261,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.25.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.26.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -3102,7 +3278,14 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.25.0', date: '11 Eylül 2026', latest: true, items: [
+    { v: '4.26.0', date: '13 Eylül 2026', latest: true, items: [
+      'Mışıl Dadı Mobil Klavye & Viewport Mimarisi: Mobilde sohbet girişine odaklanıldığında iç içe çift kaydırmadan kaynaklanan ekran kayması, odak kaybı ve klavyenin anında kapanması hatası kökten giderildi; visualViewport ve kilitli scroll desteği getirildi.',
+      'Yeni Ebeveyn Keşif & Karşılama Rehberi: İlk indiren anneler ve babalar için karmaşıklığı önleyen, 3 kolay adımda uyku takibi, aşı defteri ve Mışıl Dadı danışmanlığına yönlendiren sevimli keşif kartı entegre edildi.',
+      'Ana Sayfa Pediatrik Aşı Bento Kartı: Aşı takvimi derin alt menülerden kurtarıldı; ana ekranda yaklaşan aşıyı, kalan gün sayısını gösteren ve tek tıkla aşı defterini açan görsel bento kartı eklendi.',
+      'Hızlı Pediatrik Aşı Defteri Modalı: Sayfadan ayrılmadan aşıların tamamlandıkça tek dokunuşla işaretlenebileceği hızlı modal pencere sağlandı.',
+      'Analiz & Gelişim Ekranı Görselleştirilmesi: Kuru klinik metrikler ve formüller yerine anne-baba dostu sevimli durum rozetleri (Uyku Ritimde, Aşı Takvimde, Gelişim Sakin Dönem) ile görselleştirilmiş denge çubukları sunuldu.',
+    ]},
+    { v: '4.25.0', date: '11 Eylül 2026', items: [
       'Dinamik Platform İzolasyonu (Apple Guideline 2.3.10 Uyumlu): iOS ve Android mağaza mesajları, test ortamı yönlendirmeleri ve hata bildirimleri Platform.OS bazında tamamen birbirinden izole edildi.',
       'Sıfır Çapraz Mağaza Referansı: iOS üzerinde yalnızca App Store ve Apple Kimliği/TestFlight, Android üzerinde yalnızca Google Play referansları gösterilerek mağaza ret riskleri kökten ortadan kaldırıldı.',
       'Gelişmiş Mağaza Abonelik Yönetimi Köprüsü: Ayarlar ekranındaki abonelik yönetimi yönlendirmesi cihaz işletim sistemine göre native derin linkleme ile dinamikleştirildi.',
@@ -4356,6 +4539,155 @@
         summaryEl.style.color = '#2ED573';
       }
     }
+    renderHomeVaccineSummary();
+    renderQuickVaccineSchedule();
+  }
+
+  // =========================================================================
+  // HIZLI AŞI MODALI & ANA SAYFA BENTO KARTI SENKRONİZASYONU
+  // =========================================================================
+  function openVaccineQuickModal() {
+    hapticPulse();
+    renderQuickVaccineSchedule();
+    const modal = document.getElementById('modal-vaccine-schedule');
+    if (modal) modal.classList.add('active');
+  }
+
+  function closeVaccineQuickModal() {
+    const modal = document.getElementById('modal-vaccine-schedule');
+    if (modal) modal.classList.remove('active');
+  }
+
+  function renderQuickVaccineSchedule() {
+    const container = document.getElementById('quick-vaccine-items-container');
+    if (!container) return;
+    const baby = getBaby();
+    const completed = getCompletedVaccines();
+
+    let bDateObj = new Date();
+    if (baby && baby.bdate) {
+      const parsed = new Date(baby.bdate);
+      if (!isNaN(parsed.getTime())) bDateObj = parsed;
+    }
+
+    const now = new Date();
+
+    container.innerHTML = VACCINE_SCHEDULE.map(v => {
+      const isDone = !!completed[v.id];
+      const doneObj = (typeof completed[v.id] === 'object' && completed[v.id] !== null) ? completed[v.id] : null;
+      const doneLabel = doneObj && doneObj.date ? `Tamamlandı (${doneObj.date}) ✅` : 'Tamamlandı ✅';
+
+      const vacDate = new Date(bDateObj);
+      vacDate.setMonth(vacDate.getMonth() + v.month);
+      const isDue = vacDate <= now && !isDone;
+
+      const dateStr = `${vacDate.getDate()} ${['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'][vacDate.getMonth()]} ${vacDate.getFullYear()}`;
+
+      let badge = isDone
+        ? `<span style="font-size: 9px; background: rgba(46,213,115,0.2); color: #2ED573; padding: 2px 6px; border-radius: 4px; font-weight: 700;">${doneLabel}</span>`
+        : isDue
+          ? `<span style="font-size: 9px; background: rgba(255,71,87,0.2); color: #FF4757; padding: 2px 6px; border-radius: 4px; font-weight: 700;">Vakti Geldi 🔔</span>`
+          : `<span style="font-size: 9px; background: rgba(255,255,255,0.08); color: var(--text-muted); padding: 2px 6px; border-radius: 4px;">${dateStr}</span>`;
+
+      return `
+        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(255,255,255,0.04); border: 1px solid ${isDue ? 'rgba(255,71,87,0.3)' : 'var(--border-night)'}; padding: 10px 12px; border-radius: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+            <input type="checkbox" ${isDone ? 'checked' : ''} onchange="toggleVaccine('${v.id}', this.checked)" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent);" />
+            <div>
+              <div style="font-size: 12px; font-weight: 700; color: ${isDone ? 'var(--text-muted)' : '#FFF'}; text-decoration: ${isDone ? 'line-through' : 'none'};">${escapeHtml(v.name)}</div>
+              <div style="font-size: 10px; color: var(--text-muted); line-height: 14px; margin-top: 2px;">${escapeHtml(v.desc)}</div>
+            </div>
+          </div>
+          <div>${badge}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderHomeVaccineSummary() {
+    const subtitleEl = document.getElementById('home-vaccine-subtitle');
+    const badgeEl = document.getElementById('home-vaccine-badge');
+    if (!subtitleEl) return;
+
+    const baby = getBaby();
+    if (!baby || !baby.bdate) {
+      subtitleEl.textContent = 'Bebek doğum tarihi girildiğinde aşı takvimi otomatik hesaplanır.';
+      return;
+    }
+
+    const bDateObj = new Date(baby.bdate);
+    if (isNaN(bDateObj.getTime())) return;
+
+    const completed = getCompletedVaccines();
+    const now = new Date();
+
+    let nextVaccine = null;
+    let dueCount = 0;
+
+    for (const v of VACCINE_SCHEDULE) {
+      const isDone = !!completed[v.id];
+      if (isDone) continue;
+
+      const vacDate = new Date(bDateObj);
+      vacDate.setMonth(vacDate.getMonth() + v.month);
+
+      if (vacDate <= now) {
+        dueCount++;
+        if (!nextVaccine) nextVaccine = { ...v, date: vacDate, isDue: true };
+      } else {
+        if (!nextVaccine) nextVaccine = { ...v, date: vacDate, isDue: false };
+      }
+    }
+
+    if (dueCount > 0 && nextVaccine) {
+      subtitleEl.innerHTML = `⚠️ <strong>${escapeHtml(nextVaccine.name)}</strong> zamanı geldi! (Toplam ${dueCount} aşı bekliyor)`;
+      subtitleEl.style.color = '#FF4757';
+      if (badgeEl) {
+        badgeEl.textContent = 'Vakti Geldi 🔔';
+        badgeEl.style.background = 'rgba(255,71,87,0.2)';
+        badgeEl.style.color = '#FF4757';
+      }
+    } else if (nextVaccine) {
+      const diffMs = nextVaccine.date.getTime() - now.getTime();
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+      const dateStr = `${nextVaccine.date.getDate()} ${['Oca','Şub','Mar','Nis','May','Haz','Tem','Ağu','Eyl','Eki','Kas','Ara'][nextVaccine.date.getMonth()]}`;
+      subtitleEl.innerHTML = `💉 Sıradaki: <strong>${escapeHtml(nextVaccine.name)}</strong> • ${dateStr} (${diffDays} gün kaldı)`;
+      subtitleEl.style.color = 'var(--text-night)';
+      if (badgeEl) {
+        badgeEl.textContent = 'Aşı Defteri ➔';
+        badgeEl.style.background = 'rgba(46, 213, 115, 0.2)';
+        badgeEl.style.color = '#2ED573';
+      }
+    } else {
+      subtitleEl.innerHTML = `🎉 Tebrikler! Bebeğinizin tüm aşıları güncel ve tamamlanmış.`;
+      subtitleEl.style.color = '#2ED573';
+      if (badgeEl) {
+        badgeEl.textContent = 'Tamamlandı ✅';
+        badgeEl.style.background = 'rgba(46, 213, 115, 0.2)';
+        badgeEl.style.color = '#2ED573';
+      }
+    }
+  }
+
+  // =========================================================================
+  // İLK KULLANICI KARŞILAMA VE KEŞİF REHBERİ
+  // =========================================================================
+  function dismissWelcomeGuide() {
+    hapticPulse();
+    localStorage.setItem('mishil_welcome_guide_dismissed', 'true');
+    const el = document.getElementById('home-welcome-guide');
+    if (el) el.style.display = 'none';
+  }
+
+  function checkWelcomeGuideVisibility() {
+    const el = document.getElementById('home-welcome-guide');
+    if (!el) return;
+    const dismissed = localStorage.getItem('mishil_welcome_guide_dismissed');
+    if (dismissed === 'true') {
+      el.style.display = 'none';
+    } else {
+      el.style.display = 'block';
+    }
   }
   // Onboarding anketinden tamamen bağımsızdır. Abonelik açıkça pasifken
   // (mishil_subscription_active === 'false') bir Pro özelliğe dokunulduğunda
@@ -5111,7 +5443,7 @@
     const partLeap = document.getElementById('score-part-leap');
     const partLeapBar = document.getElementById('score-part-leap-bar');
 
-    if (analyticsVal) analyticsVal.textContent = `🌟 Gelişim Skoru: %${scoreData.finalScore}`;
+    if (analyticsVal) analyticsVal.textContent = `🌟 Denge Skoru: %${scoreData.finalScore}`;
     if (analyticsBadge) analyticsBadge.textContent = scoreData.finalScore;
     if (analyticsDesc) {
       analyticsDesc.textContent = scoreData.advice;
@@ -5124,6 +5456,26 @@
     if (partBalanceBar) partBalanceBar.style.width = `${scoreData.balanceScore}%`;
     if (partLeap) partLeap.textContent = `${scoreData.leapScore} / 100`;
     if (partLeapBar) partLeapBar.style.width = `${scoreData.leapScore}%`;
+
+    // 3 Hızlı Görsel Rozet Senkronu
+    const badgeSleep = document.getElementById('stat-badge-sleep');
+    const badgeVaccine = document.getElementById('stat-badge-vaccine');
+    const badgeLeap = document.getElementById('stat-badge-leap');
+
+    if (badgeSleep) {
+      if (scoreData.sleepBudgetScore >= 80) { badgeSleep.textContent = 'Harika 🟢'; badgeSleep.style.color = '#2ED573'; }
+      else if (scoreData.sleepBudgetScore >= 50) { badgeSleep.textContent = 'Dengeli 🟡'; badgeSleep.style.color = 'var(--accent)'; }
+      else { badgeSleep.textContent = 'Eksik 🔴'; badgeSleep.style.color = '#FF4757'; }
+    }
+    if (badgeLeap) {
+      badgeLeap.textContent = scoreData.isStorm ? 'Fırtına ⚡' : 'Sakin 🌸';
+      badgeLeap.style.color = scoreData.isStorm ? 'var(--accent)' : '#D7BDE2';
+    }
+    if (badgeVaccine) {
+      const completed = getCompletedVaccines();
+      const completedCount = Object.keys(completed).length;
+      badgeVaccine.textContent = `${completedCount}/${VACCINE_SCHEDULE.length} Yapıldı ➔`;
+    }
   }
 
   function calculateRoutineRollup() {
@@ -5831,16 +6183,31 @@
       document.querySelectorAll('.tab-item')[idx].classList.add('active');
     }
 
+    // Mışıl Dadı odak modunu ve mobil klavye uyumluluğunu yönet
+    const mainScreen = document.getElementById('main-app-screen') || document.querySelector('.screen-container');
+    const tabBar = document.querySelector('.tab-bar');
+    if (tabName === 'coach') {
+      if (mainScreen) mainScreen.classList.add('coach-mode-active');
+      setTimeout(() => {
+        const msgBox = document.getElementById('chat-messages-container');
+        if (msgBox) msgBox.scrollTop = msgBox.scrollHeight;
+      }, 50);
+    } else {
+      if (mainScreen) mainScreen.classList.remove('coach-mode-active');
+      document.body.classList.remove('keyboard-open');
+      if (tabBar) tabBar.style.display = 'flex';
+    }
+
     // 2. YENİ GÖRÜNÜM DOM'A OTURDUKTAN SONRA KESİN SCROLL SIFIRLAMA (Çift Katman):
     const resetScroll = () => {
       const container = document.getElementById('main-app-screen') || document.querySelector('.screen-container');
-      if (container) {
+      if (container && tabName !== 'coach') {
         container.scrollTop = 0;
       }
-      if (targetView) {
+      if (targetView && tabName !== 'coach') {
         targetView.scrollTop = 0;
       }
-      window.scrollTo(0, 0);
+      if (tabName !== 'coach') window.scrollTo(0, 0);
     };
 
     // 1. Katman: Tarayıcının sonraki frame render anı
@@ -5854,6 +6221,8 @@
       renderAnalyticsView();
     } else if (tabName === 'home') {
       renderHomeTodayTimeline();
+      renderHomeVaccineSummary();
+      checkWelcomeGuideVisibility();
     } else if (tabName === 'settings') {
       updateSettingsProfileSummary();
     } else if (tabName === 'sounds') {
@@ -6198,6 +6567,57 @@
   function closeDeleteModal() { document.getElementById('modal-delete').classList.remove('active'); }
   function confirmDeleteAccount() { localStorage.clear(); closeDeleteModal(); showToast('🗑️ Tüm verileriniz kalıcı olarak silindi'); setTimeout(() => location.reload(), 1500); }
 
+  // =========================================================================
+  // MOBİL KLAVYE VE VIEWPORT DÜZELTME MOTORU (MIŞIL DADI CHAT INPUT)
+  // =========================================================================
+  function setupKeyboardAndViewportManager() {
+    const chatInput = document.getElementById('chat-user-input');
+    const tabBar = document.querySelector('.tab-bar');
+    const msgContainer = document.getElementById('chat-messages-container');
+
+    if (chatInput) {
+      chatInput.addEventListener('focus', () => {
+        const coachView = document.getElementById('view-coach');
+        if (coachView && coachView.classList.contains('active')) {
+          document.body.classList.add('keyboard-open');
+          if (tabBar) tabBar.style.display = 'none';
+          setTimeout(() => {
+            if (msgContainer) msgContainer.scrollTop = msgContainer.scrollHeight;
+          }, 250);
+        }
+      });
+
+      chatInput.addEventListener('blur', () => {
+        setTimeout(() => {
+          if (document.activeElement !== chatInput) {
+            document.body.classList.remove('keyboard-open');
+            if (tabBar) tabBar.style.display = 'flex';
+          }
+        }, 150);
+      });
+    }
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', () => {
+        const coachView = document.getElementById('view-coach');
+        if (!coachView || !coachView.classList.contains('active')) return;
+
+        const currentHeight = window.visualViewport.height;
+        const windowHeight = window.innerHeight;
+        const isKeyboard = (windowHeight - currentHeight) > 120;
+
+        if (isKeyboard) {
+          document.body.classList.add('keyboard-open');
+          if (tabBar) tabBar.style.display = 'none';
+          if (msgContainer) msgContainer.scrollTop = msgContainer.scrollHeight;
+        } else {
+          document.body.classList.remove('keyboard-open');
+          if (tabBar) tabBar.style.display = 'flex';
+        }
+      });
+    }
+  }
+
   function renderAllViews() {
     renderAppMeta();
     updateSubscriptionStatusUI();
@@ -6208,6 +6628,9 @@
     renderBabyRhythmReport();
     renderFamilyMembers();
     loadBabyProfile();
+    renderHomeVaccineSummary();
+    renderVaccineSchedule();
+    checkWelcomeGuideVisibility();
   }
 
   // Initial renders
@@ -6223,6 +6646,10 @@
   renderAnalyticsView();
   renderBabyRhythmReport();
   loadBabyProfile();
+  renderHomeVaccineSummary();
+  renderVaccineSchedule();
+  checkWelcomeGuideVisibility();
+  setupKeyboardAndViewportManager();
 </script>
 
 </body>

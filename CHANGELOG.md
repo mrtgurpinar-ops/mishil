@@ -2,6 +2,25 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.26.0] - 2026-09-13
+### 👵 Mışıl Dadı Mobil Klavye Mimarisi, Yeni Ebeveyn Keşif Rehberi & Aşı Bento Kartı (Build 38)
+
+1. **Mışıl Dadı Mobil Klavye & Viewport Mimarisi (Klavye Kaybolması ve Ekran Zıplaması Giderildi):**
+   - Mobil sanal klavye açıldığında iç içe iki kaydırma konteyneri (`.screen-container` ve `.dadi-messages-box`) arasındaki çakışma çözüldü.
+   - `#view-coach` sekmesine geçildiğinde dış konteynere `.coach-mode-active` atanarak dış sayfa kaydırması kilitlendi (`overflow: hidden; height: 100%`).
+   - `window.visualViewport` API entegrasyonu ve dinamik klavye dinleyicisi eklenerek klavye açıldığında input formunun sanal klavyenin hemen üstünde sabit kalması sağlandı, alt menü (`.tab-bar`) geçici olarak gizlenerek odak kaybı ve klavyenin anında kapanması engellendi.
+2. **Yeni Ebeveyn Keşif & Karşılama Rehberi:**
+   - İlk kez indiren anneler ve babalar için karmaşıklığı ve bilişsel yükü önleyen, 3 kolay adımda uyku takibi başlatma, aşı takvimini inceleme ve Mışıl Dadı'ya danışmaya yönlendiren sevimli karşılama kartı (`#home-welcome-guide`) entegre edildi.
+3. **Ana Sayfa Pediatrik Aşı Bento Kartı (`#home-vaccine-card`):**
+   - Aşı takvimi derin alt menülerden (`analytics-sec-health`) kurtarılarak Ana Sayfa'ya taşındı; yaklaşan aşıyı, kalan gün sayısını ("14 gün kaldı" veya "Tüm aşılar güncel") gösteren görsel bento kartı eklendi.
+4. **Hızlı Pediatrik Aşı Defteri Modalı (`#modal-vaccine-schedule`):**
+   - Sayfadan ayrılmadan, tek dokunuşla tüm Sağlık Bakanlığı ve DSÖ onaylı aşıların listelendiği ve tamamlandıkça işaretlenebildiği hızlı modal pencere sağlandı.
+5. **Analiz & Gelişim Ekranı Görselleştirilmesi:**
+   - Kuru klinik metrikler ve formüller yerine anne-baba dostu sevimli durum rozetleri (Uyku Ritimde 🟢, Aşı Takvimde 💉, Gelişim Sakin Dönem 🌸) ile görselleştirilmiş denge çubukları sunuldu.
+6. **Sürüm & Paket Senkronu:**
+   - `app.config.ts`: `APP_VERSION = '4.26.0'`, `BUILD_NUMBER = 38`.
+   - `public/app.html` ve `features/webview/offlineHtml.generated.ts` senkronize edildi.
+
 ## [4.25.0] - 2026-09-11
 ### 📱 Dinamik Platform İzolasyonu & Çapraz Mağaza İhlali Koruması (Build 37)
 
