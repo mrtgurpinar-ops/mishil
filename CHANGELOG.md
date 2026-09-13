@@ -2,6 +2,23 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.26.1] - 2026-09-13
+### ☀️ Light Mode (Aydınlık Tema) Görsel Netlik, Yüksek Kontrast & SweetSpot / Sesler Alanı Canlandırması (Build 39)
+
+1. **SweetSpot Segment & Uyku Zamanı Aydınlık Mod Netliği:**
+   - Koyu antrasit ve silik görünen `.segmented-control` arka planı hafif süt beyazı/buzlu gri (`rgba(15,23,42,0.06)`) ve gölgeli saf beyaz butonlara dönüştürüldü.
+   - Seçili olmayan sekme butonları açık temada okunaklı grafit-lacivert tonuna (`#475569`, aktifte `#0F172A`) kavuşturuldu.
+   - `.moon-circle` alanı antrasit koyuluktan arındırılarak fildişi-amber geçişli yumuşak altın aurasına (`linear-gradient(135deg, #FFFDF7, #FEF3C7)`) uyarlandı.
+   - `.sleep-target-time` saati en üst seviye kontrastlı lacivert-siyah (`#0F172A`) rengine, alt metinler ferah arduvaz (`#475569`) tonuna taşındı.
+2. **Sesler (Sounds) Sekmesi Tipografi & Kart Kontrastı:**
+   - Kategori filtre çiplerindeki (`.cat-chip`) `#1A233A` antrasit bloklar kaldırıldı; saf beyaz zemin (`#FFFFFF`) ve okunaklı arduvaz yazı (`#334155`) ile antrasit üzeri antrasit yazı çakışması ve okunaksızlık tamamen giderildi.
+   - Ses arama kutusu (`.search-input`) saf beyaz zemin ve belirgin sınır rengine kavuşturuldu.
+   - Ses kartları (`.sound-item`) beyaz kart tasarımı, aktifken hafif bal sarısı pastel tonu (`rgba(217,119,6,0.06)`) ve koyu lacivert başlıkları (`.sound-title` `#0F172A`) ile kusursuz okunabilir kılındı.
+   - Zamanlayıcı hapları (`.timer-pill`) ve ses çubuğu aydınlık tema tasarım standartlarına uyarlandı.
+3. **Sürüm & Paket Senkronu:**
+   - `app.config.ts`: `APP_VERSION = '4.26.1'`, `BUILD_NUMBER = 39`.
+   - `public/app.html` ve `features/webview/offlineHtml.generated.ts` senkronize edildi.
+
 ## [4.26.0] - 2026-09-13
 ### 👵 Mışıl Dadı Mobil Klavye Mimarisi, Yeni Ebeveyn Keşif Rehberi & Aşı Bento Kartı (Build 38)
 
