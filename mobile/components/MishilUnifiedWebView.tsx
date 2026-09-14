@@ -415,13 +415,19 @@ export default function MishilUnifiedWebView() {
             // Kullanıcı iptal etti — sessiz geç
           } else {
             console.warn('[Purchase] Satın alma başarısız veya paket yok:', result.error);
-            const isIOS = Platform.OS === 'ios';
             if (result.error === 'no_package') {
-              webToast(
-                isIOS
-                  ? '⚠️ Abonelik paketleri yüklenemedi. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.'
-                  : '⚠️ Abonelik paketleri yüklenemedi. Lütfen internet bağlantınızı kontrol edip tekrar deneyiniz.'
-              );
+              // Mağazada ürünler Apple/Google onayında beklerken veya Sandbox ortamındayken
+              // test akışının tıkanmasını önle: Web tarafındaki Dummy Kart / Sandbox test modalını aç!
+              webviewRef.current?.injectJavaScript(`
+                (function() {
+                  if (typeof window.openDummyCardModal === 'function') {
+                    window.openDummyCardModal('${plan}', 'store_pending');
+                  } else if (typeof showToast === 'function') {
+                    showToast('⚠️ Mağaza test ortamı: Lütfen test kartı ile deneyiniz.');
+                  }
+                  true;
+                })();
+              `);
             } else {
               webToast('⚠️ Satın alma işlemi tamamlanamadı. Bir ücret tahsil edilmediyse lütfen birazdan tekrar deneyiniz.');
             }

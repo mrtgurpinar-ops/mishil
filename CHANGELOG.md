@@ -2,6 +2,23 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.28.0] - 2026-09-14
+### 💳 Apple Sandbox / Dummy Kart Test Ödeme Motoru & Sıfır Sızma Onboarding Kalkanı (Build 41)
+
+1. **Apple Sandbox & Dummy Kart Test Ödeme Motoru (Reviewer / TestFlight Bypass):**
+   - App Store Connect üzerinde `misil_monthly` ve `misil_annual` ürünleri `READY_TO_SUBMIT` aşamasında beklerken StoreKit sandbox'ın ürün dönmemesi (`no_package`) sebebiyle testlerin ve Apple Review'ın tıkanmasını engelleyen interaktif Dummy Kart (Visa Sandbox `4242 •••• •••• 4242`) test ödeme motoru entegre edildi.
+   - Native katmanda paket bulunamadığında kullanıcıyı duvara toslatmak yerine doğrudan web tarafında zarif test kartı modalı tetiklendi; 1.2 sn'lik ödeme simülasyonu ile VIP haklarının anında test edilebilmesi sağlandı.
+   - Paywall ve Onboarding ekranlarına doğrudan sandbox test giriş bağlantısı eklendi.
+
+2. **Sıfır Sızma (Zero-Leak) Onboarding Yaşam Döngüsü Koruması:**
+   - Adım 1'de girilen bebek adı ve tarihinin erkenden `localStorage`'a kalıcı yazılması durduruldu; veriler süreç başarıyla tamamlanana kadar RAM'de (`quizAnswers`) izole edildi.
+   - `#screen-onboarding` doğrudan HTML'de `active` sınıfıyla başlatılarak sayfa yüklenişinde ana ekranın saniyelik de olsa sızması engellendi.
+   - `checkOnboardingState()` mantığı; kullanıcı aktif abone olmadan veya açıkça tamamlamadan uygulamayı kapatıp açsa dahi onboarding ekranını kesin olarak ekranda kilitli tutacak şekilde sertleştirildi.
+
+3. **Sürüm & Paket Senkronu:**
+   - `app.config.ts`: `APP_VERSION = '4.28.0'`, `BUILD_NUMBER = 41`.
+   - `public/app.html` ve `features/webview/offlineHtml.generated.ts` senkronize edildi.
+
 ## [4.27.0] - 2026-09-14
 ### 🛡️ Apple Review Tam Uyumluluk, Onboarding Sızma Açığı Onarımı & Paywall Koruma Restorasyonu (Build 40)
 

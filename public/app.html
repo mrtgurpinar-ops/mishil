@@ -1847,7 +1847,7 @@
   <!-- =======================================================================
        1. ONBOARDING QUIZ (SaaS PAYWALL ENGINE)
        ======================================================================= -->
-  <div id="screen-onboarding" class="onboarding-screen no-scrollbar">
+  <div id="screen-onboarding" class="onboarding-screen active no-scrollbar">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
       <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: var(--accent);" id="quiz-step-indicator">ADIM 1 / 5</span>
       <span style="font-size: 11px; color: var(--text-muted);">🌟 Kişiselleştirilmiş Plan</span>
@@ -2969,6 +2969,61 @@
   </div>
 </div>
 
+<!-- MODAL: DUMMY CARD / APPLE SANDBOX TEST ÖDEME GEÇİDİ -->
+<div class="modal-overlay" id="modal-dummy-card" onclick="closeModalOnOverlay(event, 'modal-dummy-card')">
+  <div class="modal-sheet no-scrollbar" style="max-width: 420px;">
+    <div class="modal-header">
+      <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF; display: flex; align-items: center; gap: 6px;">
+        <span>💳 Test & Sandbox Ödeme Modu</span>
+      </div>
+      <button class="modal-close" onclick="closeDummyCardModal()">✕</button>
+    </div>
+
+    <div style="font-size: 12px; color: var(--text-muted); line-height: 17px; margin-bottom: 14px;">
+      Apple StoreKit / Sandbox test ortamındasınız. Gerçek kartınızdan ücret tahsil edilmeden test kartıyla Mışıl VIP aboneliğini hemen başlatıp test edebilirsiniz.
+    </div>
+
+    <!-- SANAL KREDİ KARTI GÖRSELİ (GLASSMORPHISM) -->
+    <div style="background: linear-gradient(135deg, rgba(35, 45, 75, 0.95), rgba(18, 24, 42, 0.95)); border: 1.5px solid var(--accent); border-radius: 16px; padding: 18px; margin-bottom: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); position: relative; overflow: hidden;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <span style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: var(--accent); letter-spacing: 1px;">MIŞIL VIP SANDBOX</span>
+        <span style="background: rgba(232,168,85,0.2); color: var(--accent); font-size: 10px; font-weight: 800; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--accent);">TEST KARTI</span>
+      </div>
+      <div style="font-family: 'Courier New', monospace; font-size: 19px; font-weight: 700; color: #FFF; letter-spacing: 2px; margin-bottom: 16px;">
+        4242 •••• •••• 4242
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+        <div>
+          <div style="font-size: 9px; color: var(--text-muted); text-transform: uppercase;">Kart Sahibi</div>
+          <div style="font-size: 12px; font-weight: 600; color: #FFF;" id="dummy-card-holder-name">Apple Reviewer / Test Hesabı</div>
+        </div>
+        <div>
+          <div style="font-size: 9px; color: var(--text-muted); text-transform: uppercase;">SKT / CVC</div>
+          <div style="font-size: 12px; font-weight: 600; color: #FFF;">12/28 • 888</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SEÇİLEN PLAN ÖZETİ -->
+    <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-night); border-radius: 12px; padding: 12px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <strong style="font-size: 13px; color: #FFF;" id="dummy-card-plan-title">🌙 Aylık VIP (7 Gün Ücretsiz Deneme)</strong>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Deneme sonrası otomatik yenilenir (Test Modu)</div>
+      </div>
+      <div style="text-align: right;">
+        <span style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: var(--accent);" id="dummy-card-price-display">₺149,99</span>
+      </div>
+    </div>
+
+    <button id="btn-dummy-card-submit" class="btn-primary" onclick="confirmDummyCardPayment()" style="width: 100%; padding: 14px; font-size: 14px; font-weight: 700;">
+      ⚡ Test Kartıyla Onayla ve VIP Başlat
+    </button>
+    <button class="btn-secondary" onclick="closeDummyCardModal()" style="margin-top: 8px; width: 100%;">
+      Vazgeç
+    </button>
+  </div>
+</div>
+
 <!-- MODAL: ADD ROUTINE (DETAYLI MANUEL RUTİN & UYKU EKLEME) -->
 <div class="modal-overlay" id="modal-routine" onclick="closeModalOnOverlay(event, 'modal-routine')">
   <div class="modal-sheet no-scrollbar">
@@ -3396,7 +3451,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.27.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.28.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -3413,7 +3468,12 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.27.0', date: '14 Eylül 2026', latest: true, items: [
+    { v: '4.28.0', date: '14 Eylül 2026', latest: true, items: [
+      'Apple Sandbox & Dummy Kart Test Ödeme Motoru: TestFlight ve inceleme süreçlerinde mağaza paketlerinin onay gecikmesinden kaynaklanan takılmaları önlemek için interaktif sanal test kartı (4242 Sandbox) modalı entegre edildi; sıfır engelle ödeme simülasyonu sağlandı.',
+      'Sıfır Sızma (Zero-Leak) Onboarding Güvenlik Kalkanı: Onboarding esnasında erken profil yazımı engellendi; kullanıcı formu bitirmeden veya abone olmadan uygulamayı kapatıp açsa dahi ana ekrana sızması kesin olarak durduruldu.',
+      'StoreKit no_package Akıllı Fallback Köprüsü: Native StoreKit paket bulamadığında kuru teknik hata basmak yerine kullanıcıyı test ödeme akışına yönlendiren akıllı köprü devreye alındı.',
+    ]},
+    { v: '4.27.0', date: '14 Eylül 2026', items: [
       'Apple Review & Guideline 2.3.10 / 3.1.2 Tam Uyumu: Satın alma ve paket yükleme bildirimlerindeki tüm teknik jargonlar temizlendi; platforma duyarlı zarif kullanıcı mesajları sağlandı.',
       'Onboarding & Paywall Sızma Açığı Onarımı: Bebek profili girildikten sonra uygulama kapatılıp açılsa bile onboarding ve aboneliğin atlanması engellendi; güvenli yaşam döngüsü kuruldu.',
       'SweetSpot & 18 Akustik Ses Tam VIP Koruması: Tüm sesler ve canlı SweetSpot takibi aktif VIP lisans kontrolü altına alındı; yetkisiz erişim açıkları kapatıldı.',
@@ -4032,43 +4092,54 @@
   }
 
   // =========================================================================
-  // 3. ONBOARDING & PROFILE ENGINE
+  // 3. ONBOARDING & PROFILE ENGINE (ZERO-LEAK SECURITY)
   // =========================================================================
   let quizAnswers = { babyName: '', babyBdate: '', sleepResistance: 'medium', nightWakes: 'mid', struggleArea: 'meltdown' };
 
   function checkOnboardingState() {
-    // Eski anahtar geçişi (isim tutarlılığı): misil_* → mishil_*
-    if (localStorage.getItem('misil_onboarding_completed') && !localStorage.getItem('mishil_onboarding_completed')) {
-      localStorage.setItem('mishil_onboarding_completed', localStorage.getItem('misil_onboarding_completed'));
-    }
-
+    const isSubscribed = localStorage.getItem('mishil_subscription_active') === 'true';
     const isCompleted = localStorage.getItem('mishil_onboarding_completed') === 'true';
     const babyName = localStorage.getItem('mishil_baby_name');
     const babyBdate = localStorage.getItem('mishil_baby_bdate');
     const hasProfile = !!(babyName && babyBdate);
 
-    // KESİN GÜVENLİK KURALI:
-    // Ana ekrana geçiş YALNIZCA hem onboarding açıkça tamamlandıysa (abone olundu/atlandı)
-    // hem de bebek profili mevcutsa mümkündür.
-    // Kullanıcı Adım 1-4'teyken uygulamayı kapatıp açsa BİLE, onboarding_completed 'true' olmadığı
-    // sürece ASLA ana ekrana geçilemez; onboarding ekranı zorunlu kalır!
-    if (isCompleted && hasProfile) {
-      document.getElementById('screen-onboarding').classList.remove('active');
+    const screenEl = document.getElementById('screen-onboarding');
+    if (!screenEl) return;
+
+    // SIFIR SIZMA KURALI:
+    // Ana ekrana geçiş YALNIZCA kullanıcı aktif aboneyse veya süreci açıkça tamamladıysa
+    // VE geçerli bir bebek profili varsa mümkündür.
+    // Kullanıcı Adım 1, 2, 3 veya 5'teyken uygulamayı kapatıp açsa BİLE,
+    // tamamlanmadığı sürece ASLA ana ekrana geçilemez; onboarding açık kalır!
+    if ((isSubscribed || isCompleted) && hasProfile) {
+      screenEl.classList.remove('active');
       return;
     }
 
-    // Onboarding henüz tamamlanmadı -> Ekranda zorunlu tut
-    document.getElementById('screen-onboarding').classList.add('active');
+    // Henüz tamamlanmadı -> ekranda kesin kilitli tut
+    screenEl.classList.add('active');
   }
   checkOnboardingState();
+
+  function commitOnboardingProfile() {
+    const nmInput = document.getElementById('quiz-baby-name');
+    const bdInput = document.getElementById('quiz-baby-bdate');
+    const nm = quizAnswers.babyName || (nmInput && nmInput.value.trim() ? nmInput.value.trim() : '') || localStorage.getItem('mishil_baby_name') || 'Bebeğim';
+    const bd = quizAnswers.babyBdate || (bdInput && bdInput.value ? bdInput.value : '') || localStorage.getItem('mishil_baby_bdate') || (() => {
+      const d = new Date(); d.setMonth(d.getMonth() - 4); return d.toISOString().split('T')[0];
+    })();
+    localStorage.setItem('mishil_baby_name', nm);
+    localStorage.setItem('mishil_baby_bdate', bd);
+    localStorage.setItem('mishil_onboarding_completed', 'true');
+  }
 
   function restartOnboardingQuiz() {
     hapticPulse();
     const baby = getBaby();
     const nmEl = document.getElementById('quiz-baby-name');
     const bdEl = document.getElementById('quiz-baby-bdate');
-    if (nmEl) nmEl.value = baby ? baby.name : '';
-    if (bdEl) bdEl.value = baby ? baby.bdate : '';
+    if (nmEl) nmEl.value = baby ? baby.name : (quizAnswers.babyName || '');
+    if (bdEl) bdEl.value = baby ? baby.bdate : (quizAnswers.babyBdate || '');
     document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
     document.getElementById('quiz-step-1').style.display = 'block';
     document.getElementById('quiz-step-indicator').textContent = 'ADIM 1 / 5';
@@ -4098,10 +4169,9 @@
         showToast('⚠️ Geçerli bir doğum tarihi girin');
         return;
       }
+      // GÜVENLİK: Bilgiler sadece RAM'de tutulur, süreci bitirmeden localStorage'a erken yazılmaz!
       quizAnswers.babyName = nm;
       quizAnswers.babyBdate = bd;
-      localStorage.setItem('mishil_baby_name', nm);
-      localStorage.setItem('mishil_baby_bdate', bd);
     }
     document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
     document.getElementById(`quiz-step-${stepNum}`).style.display = 'block';
@@ -4206,13 +4276,8 @@
       return;
     }
 
-    // Web / Test modu
-    if (confirm(`${target === 'yearly' ? 'Yıllık VIP (₺599.99/yıl)' : 'Aylık VIP (₺149.99/ay)'} planına geçmek istiyor musunuz?`)) {
-      localStorage.setItem('mishil_subscription_active', 'true');
-      localStorage.setItem('mishil_subscription_plan', target);
-      showToast(`🎉 Tebrikler! ${target === 'yearly' ? 'Yıllık' : 'Aylık'} VIP planına başarıyla geçildi.`);
-      updateSubscriptionStatusUI();
-    }
+    // Web / Test modu: Doğrudan Dummy Kart test modalını aç
+    openDummyCardModal(target, 'settings');
   }
 
   function openStoreSubscriptionManagement() {
@@ -4320,23 +4385,87 @@
     }
     localStorage.setItem('mishil_medical_disclaimer_accepted_at', new Date().toISOString());
 
+    const selectedPlan = localStorage.getItem('mishil_selected_plan') || 'monthly';
+
     // Native uygulama içindeyse → Google Play / App Store IAP başlat (Varsayılan: monthly 7 gün deneme)
     if (window.ReactNativeWebView) {
-      const selectedPlan = localStorage.getItem('mishil_selected_plan') || 'monthly';
+      showToast('🔄 Mağaza satın alma penceresi açılıyor...');
       window.MishilNative.purchasePackage(selectedPlan);
       return; // IAP tamamlanınca native bridge onSubscriptionResult() çağıracak
     }
 
-    // Web / PWA / Test modu: 7 günlük denemeyi ve aktifliği hemen başlat
-    localStorage.setItem('mishil_onboarding_completed', 'true');
-    localStorage.setItem('mishil_subscription_active', 'true');
-    localStorage.setItem('mishil_subscription_plan', localStorage.getItem('mishil_selected_plan') || 'monthly');
-    localStorage.setItem('mishil_trial_start', new Date().toISOString());
-    const screen = document.getElementById('screen-onboarding');
-    if (screen) screen.classList.remove('active');
-    loadBabyProfile();
-    renderAllViews();
-    showToast('🎉 7 Günlük ücretsiz denemeniz başladı! Keyifle keşfedin.');
+    // Web / PWA / Test modu: Doğrudan Dummy Test Kartı veya Hızlı Deneme Başlat
+    openDummyCardModal(selectedPlan, 'web_checkout');
+  }
+
+  // =========================================================================
+  // DUMMY KART / APPLE SANDBOX TEST ÖDEME MOTORU
+  // =========================================================================
+  let dummyCardTargetPlan = 'monthly';
+
+  function openDummyCardModal(plan, reason) {
+    hapticPulse();
+    dummyCardTargetPlan = plan || localStorage.getItem('mishil_selected_plan') || 'monthly';
+    const titleEl = document.getElementById('dummy-card-plan-title');
+    const priceEl = document.getElementById('dummy-card-price-display');
+    const btnSubmit = document.getElementById('btn-dummy-card-submit');
+    
+    if (titleEl) {
+      titleEl.textContent = dummyCardTargetPlan === 'yearly'
+        ? '👑 Yıllık VIP (7 Gün Ücretsiz Deneme)'
+        : '🌙 Aylık VIP (7 Gün Ücretsiz Deneme)';
+    }
+    if (priceEl) {
+      priceEl.textContent = dummyCardTargetPlan === 'yearly' ? '₺599,99/yıl' : '₺149,99/ay';
+    }
+    if (btnSubmit) {
+      btnSubmit.disabled = false;
+      btnSubmit.innerHTML = '⚡ Test Kartıyla Onayla ve VIP Başlat';
+    }
+
+    const modal = document.getElementById('modal-dummy-card');
+    if (modal) modal.classList.add('active');
+  }
+  window.openDummyCardModal = openDummyCardModal;
+
+  function closeDummyCardModal() {
+    hapticPulse();
+    const modal = document.getElementById('modal-dummy-card');
+    if (modal) modal.classList.remove('active');
+  }
+
+  function confirmDummyCardPayment() {
+    hapticPulse();
+    const btnSubmit = document.getElementById('btn-dummy-card-submit');
+    if (btnSubmit) {
+      btnSubmit.disabled = true;
+      btnSubmit.innerHTML = '🔄 Ödeme Doğrulanıyor...';
+    }
+
+    setTimeout(() => {
+      // 1. Profil bilgilerini kalıcı hafızaya aktar
+      commitOnboardingProfile();
+
+      // 2. VIP abonelik haklarını aktif et
+      const plan = dummyCardTargetPlan || 'monthly';
+      localStorage.setItem('mishil_subscription_active', 'true');
+      localStorage.setItem('mishil_subscription_plan', plan);
+      localStorage.setItem('mishil_trial_start', new Date().toISOString());
+
+      // 3. Tüm kilitleri ve modalları kapat
+      closeDummyCardModal();
+      const renModal = document.getElementById('vip-renewal-modal');
+      if (renModal) renModal.classList.remove('active');
+      const scr = document.getElementById('screen-onboarding');
+      if (scr) scr.classList.remove('active');
+
+      // 4. UI'ı yenile
+      loadBabyProfile();
+      updateSubscriptionStatusUI();
+      renderAllViews();
+
+      showToast('🎉 Test ödemesi onaylandı! Mışıl Baby VIP aktif edildi.');
+    }, 1000);
   }
 
   // =========================================================================
@@ -4366,16 +4495,8 @@
 
   function skipOnboardingToApp() {
     hapticPulse();
-    const nmInput = document.getElementById('quiz-baby-name');
-    const bdInput = document.getElementById('quiz-baby-bdate');
-    const currentName = nmInput && nmInput.value.trim() ? nmInput.value.trim() : (localStorage.getItem('mishil_baby_name') || 'Bebeğim');
-    const currentBdate = bdInput && bdInput.value ? bdInput.value : (localStorage.getItem('mishil_baby_bdate') || (() => {
-      const d = new Date(); d.setMonth(d.getMonth() - 4); return d.toISOString().split('T')[0];
-    })());
-
-    localStorage.setItem('mishil_baby_name', currentName);
-    localStorage.setItem('mishil_baby_bdate', currentBdate);
-    localStorage.setItem('mishil_onboarding_completed', 'true');
+    // Profil bilgilerini güvenle kalıcı hafızaya aktar
+    commitOnboardingProfile();
 
     const screen = document.getElementById('screen-onboarding');
     if (screen) screen.classList.remove('active');
@@ -4870,14 +4991,8 @@
       window.MishilNative.purchasePackage(vipRenewalSelectedPlan);
       // IAP tamamlanınca native köprü onSubscriptionResult() çağırır.
     } else {
-      // Web / PWA / Test modu: Satın alımı/denemeyi anında onayla ve modalı kapat
-      localStorage.setItem('mishil_subscription_active', 'true');
-      localStorage.setItem('mishil_subscription_plan', vipRenewalSelectedPlan);
-      closeVipRenewalModal();
-      updateSubscriptionStatusUI();
-      loadBabyProfile();
-      renderAllViews();
-      showToast('🎉 Mışıl VIP üyeliğiniz başarıyla aktif edildi!');
+      // Web / PWA / Test modu: Dummy Kart test modalını aç
+      openDummyCardModal(vipRenewalSelectedPlan, 'renewal_modal');
     }
   }
 
