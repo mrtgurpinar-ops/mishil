@@ -19,16 +19,16 @@ import { initRevenueCat, purchasePackage, restorePurchases, getOfferings, hasAct
 import * as nativeAudio from '../features/audio/nativeAudioPlayer';
 import { OFFLINE_HTML } from '../features/webview/offlineHtml.generated';
 
-// Railway canlı URL
-const MISHIL_WEB_ORIGIN = 'https://mishil-production.up.railway.app';
-const MISHIL_WEB_URL = `${MISHIL_WEB_ORIGIN}/app`;
-
 // Native sürüm bilgisini WebView'e sayfa yüklenmeden önce enjekte et (Settings sürüm rozeti + changelog dinamik)
 const APP_VERSION = Constants.expoConfig?.version ?? '0.0.0';
 const APP_BUILD =
   Platform.OS === 'ios'
     ? (Constants.expoConfig?.ios?.buildNumber ?? '0')
     : String(Constants.expoConfig?.android?.versionCode ?? '0');
+
+// Railway canlı URL — Versiyon parametresi (?v=...) ile iOS WKWebView agresif önbelleği (cache) kırılır!
+const MISHIL_WEB_ORIGIN = 'https://mishil-production.up.railway.app';
+const MISHIL_WEB_URL = `${MISHIL_WEB_ORIGIN}/app?v=${APP_VERSION}_b${APP_BUILD}`;
 const INJECT_APP_META = `
   window.__MISHIL_APP__ = { version: ${JSON.stringify(APP_VERSION)}, build: ${JSON.stringify(APP_BUILD)}, platform: ${JSON.stringify(Platform.OS)}, native: true };
   window.MishilNative = window.MishilNative || {};
@@ -540,8 +540,8 @@ export default function MishilUnifiedWebView() {
         domStorageEnabled
         thirdPartyCookiesEnabled
         sharedCookiesEnabled
-        cacheEnabled
-        cacheMode="LOAD_DEFAULT"
+        cacheEnabled={false}
+        cacheMode="LOAD_NO_CACHE"
         mixedContentMode="never"
 
         // Harici pencere açan bağlantılar boş popup'ta takılmasın
