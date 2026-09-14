@@ -129,18 +129,27 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
     }
 
     // 2. Yol: rawPackage yoksa (StoreKit / Google Play doğrudan çoklu ürün fallback'i)
+    const isIOS = Platform.OS === 'ios';
     const isYearly = packageId.toLowerCase().includes('year') || packageId.toLowerCase().includes('annual') || packageId.toLowerCase() === 'misil';
-    const candidateProductIds = isYearly
-      ? ['misil_annual', 'com.levitas.misilbaby.annual', 'misil', 'yearly', '$rc_annual', 'annual']
-      : ['misil_monthly', 'com.levitas.misilbaby.monthly', 'misilaylik', 'monthly', '$rc_monthly', 'misil_sub_monthly'];
+    const candidateProductIds = Array.from(new Set([
+      packageId,
+      ...(isIOS
+        ? (isYearly
+            ? ['misil_annual', '$rc_annual', 'com.levitas.misilbaby.annual', 'yearly', 'annual', 'misil']
+            : ['misil_monthly', '$rc_monthly', 'com.levitas.misilbaby.monthly', 'monthly', 'misil_sub_monthly', 'misilaylik'])
+        : (isYearly
+            ? ['misil', 'misil_annual', '$rc_annual', 'com.levitas.misilbaby.annual', 'yearly', 'annual']
+            : ['misilaylik', 'misil_monthly', '$rc_monthly', 'com.levitas.misilbaby.monthly', 'monthly', 'misil_sub_monthly'])
+      )
+    ]));
 
     if (ready && Purchases.getProducts) {
       try {
-        console.log('[RevenueCat] Mağazada aranacak olası ürün ID\'leri:', candidateProductIds);
+        console.log('[RevenueCat] Mağazada aranacak aday ürün ID\'leri:', candidateProductIds);
         const products = await Purchases.getProducts(candidateProductIds);
         if (products && products.length > 0) {
           console.log('[RevenueCat] Eşleşen mağaza ürünü bulundu:', products[0].identifier);
-          // Android Google Play Billing v5/v6/v7 subscription option (basePlan / offer) desteği
+          // Android Google Play Billing subscription option desteği
           let purchasePromise;
           if (Purchases.purchaseSubscriptionOption && products[0].defaultOption) {
             purchasePromise = Purchases.purchaseSubscriptionOption(products[0].defaultOption);
@@ -155,6 +164,7 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
       } catch (storeErr: any) {
         if (storeErr?.userCancelled) return { success: false, isActive: false, cancelled: true };
         console.warn('[RevenueCat] purchaseStoreProduct hatası:', storeErr);
+        return { success: false, isActive: false, error: storeErr?.code ? String(storeErr.code) : 'store_error' };
       }
     }
 
@@ -169,8 +179,8 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
     if (err?.userCancelled) {
       return { success: false, isActive: false, cancelled: true };
     }
-    console.log('[RevenueCat] Satın alma hatası:', err);
-    return { success: false, isActive: false, error: String(err?.message || err) };
+    console.warn('[RevenueCat] Satın alma hatası:', err);
+    return { success: false, isActive: false, error: err?.code ? String(err.code) : 'purchase_failed' };
   }
 };
 

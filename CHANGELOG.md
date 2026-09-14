@@ -2,6 +2,30 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.27.0] - 2026-09-14
+### 🛡️ Apple Review Tam Uyumluluk, Onboarding Sızma Açığı Onarımı & Paywall Koruma Restorasyonu (Build 40)
+
+1. **Apple Review & Guideline 2.3.10 / 3.1.1 Tam Mağaza İzolasyonu:**
+   - Satın alma, paket yükleme ve abonelik yönetimindeki ham hata çıktıları (`result.error`) ve tüm teknik mağaza jargonları (StoreKit, TestFlight, Google Play vb.) kullanıcı arayüzünden tamamen arındırıldı.
+   - iOS üzerinde yalnızca temiz, zarif ve Apple Kimliği / App Store odaklı hata metinleri sunuldu; Android ve çapraz platform referansları kesin olarak engellendi.
+   - Onboarding Adım 5, Ayarlar ve Geri Yükleme modallarındaki çift mağaza referansları tek tip yasal mağaza ve hesap ayarları terminolojisine geçirildi.
+
+2. **Onboarding Sızma ("Atlamadan Atlatma") Yaşam Döngüsü Açığının Kapatılması:**
+   - Adım 1'de bebek adı ve tarihi girilip Adım 2'ye geçildiğinde verilerin kalıcı kaydedilmesi ve uygulama kapatılıp açıldığında `checkOnboardingState()` fonksiyonunun kullanıcıyı onboarding'i bitirmiş sayarak ana sayfaya sokma kritik bug'ı kökten kapatıldı.
+   - `mishil_onboarding_completed` anahtarı olmadan onboarding ekranının kapanması engellendi; kullanıcı açıkça abone olmadan veya atlamadan ana ekrana sızma imkansız kılındı.
+
+3. **SweetSpot & 18 Akustik Ses Tam VIP Lisans Koruması:**
+   - Kod içine gömülmüş yetkisiz `FREE_TRACK_IDS` istisnası kaldırıldı; 18 stüdyo parçasının tamamı aktif VIP abonelik şartına (`requireActiveSubscription()`) bağlandı.
+   - Ana ekrandaki SweetSpot uyku penceresi ve canlı takip butonlarına aktif lisans bariyeri getirildi; yetkisiz erişimler kapatıldı.
+
+4. **Doğum Tarihi Formu & Responsive Layout İyileştirmesi:**
+   - İlk girişte (Adım 1) küçük ekranlı telefonlarda ve iOS Webview'de doğum tarihi alanının ekran altına ve dışına kaymasına yol açan CSS hiyerarşisi düzeltildi.
+   - Form elemanları en üste alınarak odak sağlandı; `.form-input` ve `.form-group` elemanlarına `box-sizing: border-box`, `max-width: 100%` ve safe-area boşlukları verilerek tüm ekran boyutlarında kusursuz görünüm ve erişilebilirlik sağlandı.
+
+5. **Sürüm & Paket Senkronu:**
+   - `app.config.ts`: `APP_VERSION = '4.27.0'`, `BUILD_NUMBER = 40`.
+   - `public/app.html` ve `features/webview/offlineHtml.generated.ts` senkronize edildi.
+
 ## [4.26.1] - 2026-09-13
 ### ☀️ Light Mode (Aydınlık Tema) Görsel Netlik, Yüksek Kontrast & SweetSpot / Sesler Alanı Canlandırması (Build 39)
 

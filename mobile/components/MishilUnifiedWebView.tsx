@@ -414,15 +414,17 @@ export default function MishilUnifiedWebView() {
           } else if (result.cancelled) {
             // Kullanıcı iptal etti — sessiz geç
           } else {
+            console.warn('[Purchase] Satın alma başarısız veya paket yok:', result.error);
             const isIOS = Platform.OS === 'ios';
-            const storeName = isIOS ? 'App Store' : 'Google Play';
-            const accountRef = isIOS ? 'Apple Kimliğinizi veya internet bağlantınızı' : 'Google Play test hesabınızı veya internet bağlantınızı';
-            const errDetail = result.error ? ` (${result.error})` : '';
-            webToast(
-              result.error === 'no_package'
-                ? `⚠️ Abonelik paketleri ${storeName}'dan yüklenemedi. Lütfen ${accountRef} kontrol edin.`
-                : `⚠️ Satın alma tamamlanamadı${errDetail}. Bir ücret alınmadıysa tekrar deneyebilirsiniz.`
-            );
+            if (result.error === 'no_package') {
+              webToast(
+                isIOS
+                  ? '⚠️ Abonelik paketleri yüklenemedi. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.'
+                  : '⚠️ Abonelik paketleri yüklenemedi. Lütfen internet bağlantınızı kontrol edip tekrar deneyiniz.'
+              );
+            } else {
+              webToast('⚠️ Satın alma işlemi tamamlanamadı. Bir ücret tahsil edilmediyse lütfen birazdan tekrar deneyiniz.');
+            }
           }
           break;
         }
