@@ -2,6 +2,21 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.29.0] - 2026-09-15
+### 🛡️ Apple StoreKit 2 Resmi Sandbox Entegrasyonu, Watchdog Fallback & Dummy Card Temizliği (Build 42)
+
+1. **Apple Guideline 3.1.1 Tam Uyum & Dummy Card Temizliği:**
+   - Apple İnceleme Kuralları gereğince mağaza onayını riske atabilecek sanal kredi kartı formu (`modal-dummy-card`) ve ilişkili tüm geçici test fonksiyonları kod tabanından tamamen kaldırıldı.
+2. **Kilitlenmeyi Önleyen IAP State & Watchdog Zamanlayıcısı:**
+   - "7 Gün Ücretsiz Dene" ve "Satın Al" butonlarına tıklandığında anlık yükleniyor durumu (`🔄 Mağaza Açılıyor...`) eklendi.
+   - 6 saniyelik güvenlik zamanlayıcısı (`storeWatchdogTimer`) kuruldu; mağaza penceresi yanıt vermediğinde veya bağlantı koptuğunda arayüzün askıda kalması engellendi, kullanıcıya anlaşılır bildirim verilerek buton otomatik olarak yeniden aktif hale getirildi.
+3. **Apple StoreKit 2 ve RevenueCat Optimizasyonu:**
+   - RevenueCat yapılandırmasına `usesStoreKit2IfAvailable: true` eklendi; iOS 15+ cihazlarda App Store Connect'teki `misil_monthly` ve `misil_annual` ürünlerinin TestFlight/Sandbox ortamında doğrudan ve modern StoreKit 2 motoruyla çekilmesi sağlandı.
+   - Aday ürün kimlikleri listesi resmi mağaza kimlikleriyle tam hizalandı.
+4. **Sürüm & Paket Senkronu:**
+   - `app.config.ts`: `APP_VERSION = '4.29.0'`, `BUILD_NUMBER = 42`.
+   - `public/app.html` ve `features/webview/offlineHtml.generated.ts` (308 KB) yeniden derlendi ve senkronize edildi.
+ 
 ## [4.28.0] - 2026-09-14
 ### 💳 Apple Sandbox / Dummy Kart Test Ödeme Motoru & Sıfır Sızma Onboarding Kalkanı (Build 41)
 

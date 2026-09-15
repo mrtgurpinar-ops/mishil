@@ -412,25 +412,35 @@ export default function MishilUnifiedWebView() {
             // Yalnızca GERÇEKTEN aktif hak varsa VIP'yi aç
             grantProInWebView(plan, '🎉 Mışıl VIP aktif edildi!');
           } else if (result.cancelled) {
-            // Kullanıcı iptal etti — sessiz geç
+            // Kullanıcı iptal etti — web butonunu ve durumunu sıfırla
+            webviewRef.current?.injectJavaScript(`
+              (function() {
+                if (window.MishilNative && typeof window.MishilNative.onPurchaseError === 'function') {
+                  window.MishilNative.onPurchaseError();
+                } else if (typeof resetPurchaseButtons === 'function') {
+                  resetPurchaseButtons();
+                }
+                true;
+              })();
+            `);
           } else {
             console.warn('[Purchase] Satın alma başarısız veya paket yok:', result.error);
-            if (result.error === 'no_package') {
-              // Mağazada ürünler Apple/Google onayında beklerken veya Sandbox ortamındayken
-              // test akışının tıkanmasını önle: Web tarafındaki Dummy Kart / Sandbox test modalını aç!
-              webviewRef.current?.injectJavaScript(`
-                (function() {
-                  if (typeof window.openDummyCardModal === 'function') {
-                    window.openDummyCardModal('${plan}', 'store_pending');
-                  } else if (typeof showToast === 'function') {
-                    showToast('⚠️ Mağaza test ortamı: Lütfen test kartı ile deneyiniz.');
-                  }
-                  true;
-                })();
-              `);
-            } else {
-              webToast('⚠️ Satın alma işlemi tamamlanamadı. Bir ücret tahsil edilmediyse lütfen birazdan tekrar deneyiniz.');
-            }
+            const isIOS = Platform.OS === 'ios';
+            const errorMsg = isIOS
+              ? '⚠️ Apple StoreKit bağlantısı sağlanamadı. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.'
+              : '⚠️ Mağaza satın alma işlemi tamamlanamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyiniz.';
+            
+            webviewRef.current?.injectJavaScript(`
+              (function() {
+                if (window.MishilNative && typeof window.MishilNative.onPurchaseError === 'function') {
+                  window.MishilNative.onPurchaseError('${errorMsg}');
+                } else {
+                  if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
+                  if (typeof showToast === 'function') showToast('${errorMsg}');
+                }
+                true;
+              })();
+            `);
           }
           break;
         }

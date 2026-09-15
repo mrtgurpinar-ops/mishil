@@ -64,10 +64,14 @@ export const initRevenueCat = async (userId?: string) => {
 
   try {
     const Purchases = require('react-native-purchases').default;
-    await Purchases.configure({ apiKey, appUserID: userId });
+    await Purchases.configure({
+      apiKey,
+      appUserID: userId,
+      usesStoreKit2IfAvailable: true
+    });
     isConfigured = true;
     isRealKey = true;
-    console.log('[RevenueCat] Google Play / App Store ile yapılandırıldı.');
+    console.log('[RevenueCat] Google Play / App Store (StoreKit 2) ile yapılandırıldı.');
     return true;
   } catch (e) {
     console.warn('[RevenueCat] Yapılandırma hatası:', e);
@@ -132,15 +136,15 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
     const isIOS = Platform.OS === 'ios';
     const isYearly = packageId.toLowerCase().includes('year') || packageId.toLowerCase().includes('annual') || packageId.toLowerCase() === 'misil';
     const candidateProductIds = Array.from(new Set([
-      packageId,
       ...(isIOS
         ? (isYearly
-            ? ['misil_annual', '$rc_annual', 'com.levitas.misilbaby.annual', 'yearly', 'annual', 'misil']
-            : ['misil_monthly', '$rc_monthly', 'com.levitas.misilbaby.monthly', 'monthly', 'misil_sub_monthly', 'misilaylik'])
+            ? ['misil_annual', '$rc_annual', 'com.levitas.misilbaby.annual']
+            : ['misil_monthly', '$rc_monthly', 'com.levitas.misilbaby.monthly'])
         : (isYearly
-            ? ['misil', 'misil_annual', '$rc_annual', 'com.levitas.misilbaby.annual', 'yearly', 'annual']
-            : ['misilaylik', 'misil_monthly', '$rc_monthly', 'com.levitas.misilbaby.monthly', 'monthly', 'misil_sub_monthly'])
-      )
+            ? ['misil', 'misil_annual', '$rc_annual', 'com.levitas.misilbaby.annual']
+            : ['misilaylik', 'misil_monthly', '$rc_monthly', 'com.levitas.misilbaby.monthly'])
+      ),
+      packageId
     ]));
 
     if (ready && Purchases.getProducts) {
