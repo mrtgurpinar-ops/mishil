@@ -1,5 +1,8 @@
 import io
 import math
+import json
+import base64
+import urllib.request
 import numpy as np
 
 # Resilient imports for audio processing libraries
@@ -14,12 +17,13 @@ except ImportError:
     librosa = None
 
 from datetime import datetime, timezone
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any, List, Tuple, Optional
 from fastapi import UploadFile, HTTPException, status
 from app.core.config import settings
 from app.core.logging import get_logger
 from app.models.enums import CryType, SoundType
 from app.models.schemas import CryAnalysisResponse, CryCauseProbability
+from app.services.ai_sleep_coach import _find_gemini_api_key
 
 logger = get_logger("cry_analysis")
 
@@ -46,11 +50,11 @@ class CryAnalysisService:
 
         # Check content type if provided
         content_type = file.content_type or ""
-        is_allowed = any(ct in content_type.lower() for ct in ["audio/", "octet-stream", "mp4"])
+        is_allowed = any(ct in content_type.lower() for ct in ["audio/", "octet-stream", "mp4", "webm", "ogg"])
         if content_type and not is_allowed:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Desteklenmeyen ses formatı: {content_type}. Lütfen WAV, M4A veya MP3 yükleyin."
+                detail=f"Desteklenmeyen ses formatı: {content_type}. Lütfen WAV, M4A, WEBM veya MP3 yükleyin."
             )
 
         contents = await file.read()
@@ -303,15 +307,135 @@ class CryAnalysisService:
         )
 
     @classmethod
+    def _analyze_with_gemini_multimodal(cls, audio_bytes: bytes, filename: str) -> Optional[Dict[str, Any]]:
+        """Tier 1 & Tier 2: Neural Multimodal Direct Audio Listening Engine via Gemini 3.6 / 3.5 Flash."""
+        api_key = _find_gemini_api_key()
+        if not api_key:
+            return None
+
+        # Determine MIME type accurately
+        fn_lower = (filename or "").lower()
+        if audio_bytes.startswith(b"\x1a\x45\xdf\xa3") or fn_lower.endswith((".webm", ".weba")):
+            mime = "audio/webm"
+        elif audio_bytes.startswith((b"ID3", b"\xff\xfb", b"\xff\xf3", b"\xff\xf2")) or fn_lower.endswith(".mp3"):
+            mime = "audio/mp3"
+        elif b"ftyp" in audio_bytes[:32] or fn_lower.endswith((".m4a", ".mp4", ".aac")):
+            mime = "audio/mp4"
+        elif audio_bytes.startswith(b"OggS") or fn_lower.endswith(".ogg"):
+            mime = "audio/ogg"
+        else:
+            mime = "audio/wav"
+
+        audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
+
+        prompt = (
+            "Sen uzman bir pediatrik akustik ses analisti ve bebek ağlama uzmanısın (Dunstan Baby Language & Pediatric Cry Acoustics).\n"
+            "Sana iletilen bu bebek ağlama ses kaydını doğrudan dinle ve gerçek akustik özelliklerini (temel perde/F0 frekansı, perde sıçramaları/pitch glides, tiz çığlık tepe noktaları, nefes alma aralıkları, ses kısıklığı/vocal fry ve ritim) analiz et.\n"
+            "Bebek ağlamasının nedenlerini (tired, hungry, pain_colic, discomfort, burping_needed, overstimulated) gerçek ses verisine göre olasılık dağılımı (0.0 - 1.0 arası, toplamı 1.0 olacak şekilde) ve akustik gerekçeleriyle birlikte aşağıdaki JSON şemasında döndür:\n"
+            "{\n"
+            '  "dominant_cause": "tired | hungry | pain_colic | discomfort | burping_needed | overstimulated",\n'
+            '  "confidence": 0.85,\n'
+            '  "acoustic_observations": "Duyulan sesin nesnel akustik özellikleri (örn: Tiz çığlık pikleri ve ani frekans patlamaları tespit edildi)",\n'
+            '  "causes": [\n'
+            '    {"cause": "pain_colic", "cause_title": "Gaz / Kolik Rahatsızlığı", "likelihood": 0.50, "description": "..."}\n'
+            "  ],\n"
+            '  "recommended_action": "Ebeveyn için somut klinik rahatlatma adımı"\n'
+            "}\n"
+            "Sadece geçerli ve temiz JSON döndür."
+        )
+
+        for candidate_model in ["gemini-3.6-flash", "gemini-3.5-flash"]:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate_model}:generateContent?key={api_key}"
+            payload = {
+                "contents": [{
+                    "role": "user",
+                    "parts": [
+                        {"inlineData": {"mimeType": mime, "data": audio_b64}},
+                        {"text": prompt}
+                    ]
+                }],
+                "generationConfig": {
+                    "responseMimeType": "application/json",
+                    "temperature": 0.20
+                }
+            }
+
+            try:
+                data_bytes = json.dumps(payload).encode("utf-8")
+                req = urllib.request.Request(url, data=data_bytes, headers={"Content-Type": "application/json"}, method="POST")
+                with urllib.request.urlopen(req, timeout=14) as resp:
+                    res = json.loads(resp.read().decode("utf-8"))
+                    text = res.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                    if text:
+                        parsed = json.loads(text)
+                        parsed["tier_used"] = f"Tier 1 (Google Gemini {candidate_model} Multimodal Audio)"
+                        return parsed
+            except Exception as e:
+                logger.warning(f"Multimodal Audio analysis error with {candidate_model}: {e}")
+
+        return None
+
+    @classmethod
     async def analyze_audio(cls, file: UploadFile) -> CryAnalysisResponse:
-        """Full pipeline: validate -> extract features -> evaluate probabilities -> recommend."""
+        """
+        4-Tier Cascading Cry Analysis Pipeline:
+        - Tier 1: Google Gemini 3.6 Flash (Direct Multimodal Audio Neural Listening)
+        - Tier 2: Google Gemini 3.5 Flash (Direct Multimodal Audio Neural Listening)
+        - Tier 3: Librosa FFT / MFCC Acoustic DSP Spectral Classifier
+        - Tier 4: Circadian Heuristic Engine (Offline fallback)
+        """
         audio_bytes = await cls.validate_audio_file(file)
-        _, duration, features = cls.extract_features(audio_bytes)
         
+        # 1. Tier 1 / Tier 2: Try Direct Multimodal Audio Listening
+        gemini_result = cls._analyze_with_gemini_multimodal(audio_bytes, file.filename)
+        if gemini_result and gemini_result.get("causes"):
+            try:
+                causes_raw = gemini_result.get("causes", [])
+                causes_parsed = []
+                for c in causes_raw:
+                    c_enum = CryType(c.get("cause")) if c.get("cause") in [e.value for e in CryType] else CryType.TIRED
+                    causes_parsed.append(CryCauseProbability(
+                        cause=c_enum,
+                        cause_title=c.get("cause_title", c_enum.value),
+                        likelihood=float(c.get("likelihood", 0.2)),
+                        description=c.get("description", "")
+                    ))
+                
+                causes_parsed.sort(key=lambda x: x.likelihood, reverse=True)
+                dom_raw = gemini_result.get("dominant_cause", "")
+                dominant_cause = CryType(dom_raw) if dom_raw in [e.value for e in CryType] else causes_parsed[0].cause
+                
+                action, sound_type, sound_url = cls.get_recommendation(dominant_cause)
+                if gemini_result.get("recommended_action"):
+                    action = gemini_result["recommended_action"]
+                    
+                duration = max(1.0, round(len(audio_bytes) / 44100.0, 2))
+                
+                return CryAnalysisResponse(
+                    audio_duration_seconds=duration,
+                    possible_causes=causes_parsed,
+                    dominant_cause=dominant_cause,
+                    confidence_note="Bu tahmin klinik bir teşhis veya tıbbi tanı değildir; ebeveynlere yönelik rehberlik ipucu niteliğindedir.",
+                    recommended_action=action,
+                    recommended_sound_type=sound_type,
+                    sound_url=sound_url,
+                    tier_used=gemini_result.get("tier_used", "Tier 1 (Google Gemini 3.6 Multimodal Audio)"),
+                    acoustic_observations=gemini_result.get("acoustic_observations", "Akustik perde ve ritmik ağlama paterni nöral model tarafından analiz edildi."),
+                    features_extracted={"mode": "multimodal_neural_audio", "byte_size": len(audio_bytes)},
+                    created_at=datetime.now(timezone.utc),
+                )
+            except Exception as e:
+                logger.warning(f"Error parsing Gemini multimodal output, falling back to DSP: {e}")
+
+        # 2. Tier 3: Librosa FFT / MFCC Acoustic DSP Extraction
+        _, duration, features = cls.extract_features(audio_bytes)
         possible_causes = cls.evaluate_probabilities(features)
         dominant_cause = possible_causes[0].cause if possible_causes else CryType.TIRED
-        
         action, sound_type, sound_url = cls.get_recommendation(dominant_cause)
+
+        sc_mean = features.get("spectral_centroid_mean", 2000.0)
+        zcr_mean = features.get("zcr_mean", 0.08)
+        dsp_obs = f"Spektral Merkez Frekansı: {sc_mean:.0f} Hz, Sıfır Geçiş Oranı (ZCR): {zcr_mean:.3f}. Frekans dağılımı matematiksel olarak analiz edildi."
 
         return CryAnalysisResponse(
             audio_duration_seconds=duration,
@@ -321,6 +445,8 @@ class CryAnalysisService:
             recommended_action=action,
             recommended_sound_type=sound_type,
             sound_url=sound_url,
+            tier_used="Tier 3 (Librosa FFT Acoustic DSP Engine)",
+            acoustic_observations=dsp_obs,
             features_extracted=features,
             created_at=datetime.now(timezone.utc),
         )

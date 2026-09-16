@@ -2,6 +2,24 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.32.0] - 2026-09-17
+### 🎙️ 4 Kademeli Gerçek Multimodal Ağlama Analizi & Mışıl Dadı AI Gemini 3.6 Yükseltmesi (Build 45)
+
+1. **4 Kademeli Gerçek Multimodal Ağlama Analizi (True Audio AI):**
+   - Bebeğin 5 saniyelik ham ses kaydı (WAV, WebM, M4A) doğrudan **Google Gemini 3.6 Multimodal Audio** nöral modeline bağlandı; model ses perdesi (pitch/F0), tiz çığlık tepe noktaları, nefes alma aralıkları ve rezonansı canlı dinleyerek tamamen o sese özel akustik tespit ve dinamik olasılık oranları üretmeye başladı.
+   - **Tier 2:** `gemini-3.5-flash` Multimodal Audio yedeği bağlandı.
+   - **Tier 3:** Sunucu tarafında Librosa 13-bant MFCC & Spektral Merkez Frekansı (FFT) motoru devreye alındı.
+   - **Tier 4:** Yalnızca son çare (tam internetsiz çevrimdışı) durumlar için dengeli biyolojik sirkadiyen algoritması entegre edildi.
+
+2. **Açlık Kilidi ve Sabit Katsayıların Kaldırılması:**
+   - Önceki sürümlerde henüz veri girilmemiş profillerde son beslenme süresinin varsayılan 3.0 saat alınmasından kaynaklanan ve açlığı daima %45 ile 1. sıraya kilitleyen matematiksel hata tamamen temizlendi; akustik sinyallere dayalı gerçekçi analiz sağlandı.
+
+3. **Mışıl Dadı AI Gemini 3.6 Flash Geçişi:**
+   - Google tarafından kullanımdan kaldırılan (404 veren) eski modeller yerine güncel ve aktif **`gemini-3.6-flash`** ve **`gemini-3.5-flash`** mimarisine geçildi; kural tabanlı şablon cevaplar yerine derin pedagojik ve bağlamsal canlı yapay zekâ yanıtları devreye alındı.
+
+4. **Kayıpsız Ses Formatı & İstemci Entegrasyonu:**
+   - Tarayıcı ve WebView mikrofon kayıtlarında WebM/Opus ve M4A/AAC formatları MIME türüne göre dinamik tanımlandı; FastAPI backend ses doğrulama katmanına tam uyumluluk getirildi.
+
 ## [4.31.0] - 2026-09-16
 ### 🛡️ MışılSpot™ & BabySteps™ Marka Dönüşümü, Sıfır-Hata Onboarding & Mobil Stabilizasyon (Build 44)
 

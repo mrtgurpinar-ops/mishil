@@ -152,10 +152,7 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
         "systemInstruction": {"parts": [{"text": sys_prompt}]},
         "generationConfig": {
             "temperature": 0.40,
-            "maxOutputTokens": 1000,
-            "thinkingConfig": {
-                "thinkingBudget": 0
-            }
+            "maxOutputTokens": 1000
         }
     }
 
@@ -326,16 +323,16 @@ def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history:
     tier_used = None
 
     if api_key:
-        # Tier 1: Gemini 2.0 Flash
-        reply = _call_gemini_model("gemini-2.0-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup)
+        # Tier 1: Gemini 3.6 Flash
+        reply = _call_gemini_model("gemini-3.6-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup)
         if reply:
-            tier_used = "Tier 1 (Google Gemini 2.0 Flash API)"
+            tier_used = "Tier 1 (Google Gemini 3.6 Flash API)"
 
-        # Tier 2: Gemini 1.5 Flash
+        # Tier 2: Gemini 3.5 Flash
         if not reply:
-            reply = _call_gemini_model("gemini-1.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup)
+            reply = _call_gemini_model("gemini-3.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup)
             if reply:
-                tier_used = "Tier 2 (Google Gemini 1.5 Flash API)"
+                tier_used = "Tier 2 (Google Gemini 3.5 Flash API)"
 
     # Tier 4: Clinical Sirkadiyen Heuristic Engine
     if not reply:
@@ -384,7 +381,7 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
             f"{rollup_text}"
         )
 
-        for candidate_model in ["gemini-2.0-flash", "gemini-1.5-flash"]:
+        for candidate_model in ["gemini-3.6-flash", "gemini-3.5-flash"]:
             if streamed_success:
                 break
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate_model}:streamGenerateContent?key={api_key}&alt=sse"
@@ -401,8 +398,7 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
                 "systemInstruction": {"parts": [{"text": sys_prompt}]},
                 "generationConfig": {
                     "temperature": 0.40,
-                    "maxOutputTokens": 1000,
-                    "thinkingConfig": {"thinkingBudget": 0}
+                    "maxOutputTokens": 1000
                 }
             }
 

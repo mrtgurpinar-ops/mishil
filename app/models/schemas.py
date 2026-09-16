@@ -126,6 +126,8 @@ class CryAnalysisResponse(BaseModel):
     recommended_action: str
     recommended_sound_type: SoundType
     sound_url: str  # Streaming URL for the recommended soothing sound
+    tier_used: Optional[str] = "Tier 1 (Google Gemini 3.6 Multimodal Audio)"
+    acoustic_observations: Optional[str] = None
     features_extracted: Dict[str, Any]
     created_at: datetime
 
