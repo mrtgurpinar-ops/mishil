@@ -2,6 +2,33 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.31.0] - 2026-09-16
+### 🛡️ MışılSpot™ & BabySteps™ Marka Dönüşümü, Sıfır-Hata Onboarding & Mobil Stabilizasyon (Build 44)
+
+1. **Marka & Hukuki Koruma Dönüşümü:**
+   - Huckleberry tescilli `SweetSpot®` adı menülerden, kod tabanından ve ana ekrandan tamamen kaldırıldı; özgün ve tescillenebilir **`MışılSpot™`** (Sirkadiyen Uyku Penceresi) ile değiştirildi.
+   - `WonderWeeks` ifadeleri Domus Technica telif riskini önlemek amacıyla samimi ve bilimsel **`BabySteps™`** (10 Büyüme & Gelişim Sıçraması) olarak yenilendi.
+   - Tıbbi risk taşıyan ifadeler yumuşatıldı: *"Uyku Teşhis Raporu"* ➔ **"Uyku Analiz Raporu"**, *"AI Pediatrik Danışman"* ➔ **"AI Ebeveyn Asistanı"**, *"Pediatrik Aşı Defteri"* ➔ **"Bebek Aşı Takip Defteri"**, *"Klinik Gelişim Skoru"* ➔ **"Bebek Gelişim Skoru"**.
+
+2. **Sıfır Hata Onboarding & Kalıcı Profil Güvencesi:**
+   - Adım 1'de ("Devam Et ➔") butonuna basıldığı an ve satın alma tamamlandığında bebek adı, doğum tarihi, ebeveyn adı ve rolü doğrudan `localStorage`'a kaydedildi.
+   - Kullanıcının her açılışta tekrar onboarding ve isim sorma döngüsüne düşmesi engellendi.
+   - `getBaby()` canlı veri ürettiği için **Bebek Gelişim Skoru** formülü girilen verilerle anında dinamik puan hesaplamaya başladı.
+
+3. **Modern Bottom-Sheet Aile Bağlantısı (z-index Fix):**
+   - Onboarding ekranının (`z-index: 350`) arkasında kalan aile kodu modalı `z-index: 1000` yapılarak öne alındı ve modern bir `bottom-sheet` tasarımına kavuşturuldu.
+   - `getApiBaseUrl()` tanımlanarak `/api/v1/family/join` rotasına tam URL yönlendirmesi bağlandı; hatalı kod girildiğinde "interneti kontrol edin" yerine doğru *"Aile kodu bulunamadı"* bildirimi verilmesi sağlandı.
+
+4. **Abonelik Watchdog Esnetilmesi (Satın Alma Hata Fix):**
+   - Apple StoreKit / Google Play satın alma ekranı açıkken erken hata veren 6 saniyelik agresif zamanlayıcı 20 saniyeye çıkarıldı; satın alma tamamlandığında zamanlayıcı anında sıfırlandı.
+
+5. **Mışıl Dadı Canlı Yapay Zekâ & Mobil Klavye Görünürlüğü:**
+   - Backend `CoachChatRequest` şemasındaki `birth_date` alanı esnetildi; Gemini SSE canlı token akışı `/api/v1/coach/stream` üzerinden bağlandı, yerel statik kalıplar aşıldı.
+   - Chat girdi kutusuna `scrollIntoView` ve visualViewport focus desteği eklenerek sanal klavyenin yazılan alanı örtmesi önlendi.
+
+6. **Dinamik Akustik Ağlama Analizi:**
+   - Dinleme motorundaki `async` eksiği giderildi; mikrofon izni ve yerel analiz motoru bebeğin uyanıklık ve beslenme süresine göre gerçekçi biyolojik varyasyonlar üretmeye başladı.
+
 ## [4.30.0] - 2026-09-16
 ### 💎 Dinamik Mağaza Fiyatlama, Gerçek Aile Senkronizasyonu & Ebeveyn Kimlik Mimarisi (Build 43)
 

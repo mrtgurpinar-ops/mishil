@@ -17,7 +17,7 @@ from typing import Dict, Any, List, Optional
 
 logger = logging.getLogger("mishil_dadi_ai")
 
-SYSTEM_PROMPT = """Sen 'Mışıl Dadı'sın. Mışıl Baby uygulamasında anne, baba ve dadılara 7/24 hizmet veren, şefkatli ancak SON DERECE NET, ÖZ VE HAP BİLGİ VEREN bir Pediatrik Bebek Uyku ve Gelişim Uzmanısın.
+SYSTEM_PROMPT = """Sen 'Mışıl Dadı'sın. Mışıl Baby uygulamasında anne, baba ve dadılara 7/24 hizmet veren, şefkatli ancak SON DERECE NET, ÖZ VE HAP BİLGİ VEREN bir Bebek Uyku ve Gelişim Rehberisin (AI Ebeveyn Asistanı).
 
 TEMEL PRENSİPLERİN (KESİNLİKLE UYULACAK):
 1. DOĞRUDAN CEVAP ÖNCELİĞİ: Girişte gereksiz edebiyat yapma ("derin nefes al", "omuzlarını bırak", "fırtınalar kopuyor" gibi basmakalıp lafları KESİNLİKLE KULLANMA). Yalnızca kısa ve sıcak bir selamlama ile başla (örn: "Sevgili anneciğim," veya "Sevgili babacığım,") ve İLK CÜMLEDE doğrudan ebeveynin sorusunu yanıtla.
@@ -133,7 +133,7 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
         f"Bebek Adı: {baby_name}\n"
         f"Yaş: {baby_info['age_formatted']}\n"
         f"Gelişim/Regresyon Evresi: {baby_info['leap_info']}\n"
-        f"İdeal SweetSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
+        f"İdeal MışılSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
         f"{rollup_text}"
     )
 
@@ -258,7 +258,7 @@ def _tier4_clinical_heuristic(baby_name: str, birth_date: str, message: str, use
             return (
                 f"{hitap}, {baby_name} için **{baby_info['leap_info']}** evresi çok kıymetli bir nörolojik sıçramadır.\n\n"
                 f"• Bu dönemde bebeklerin uyku mimarisi yetişkin tipi 4 evreli REM-NREM döngüsüne kalıcı olarak geçer (genellikle 2-3 hafta sürer).\n"
-                f"• En kritik kural: SweetSpot uyanıklık süresini (**{ww} dakika**) 1 dakika bile aşmadan, ilk esneme veya göz ovuşturmada uyku ortamına geçmektir."
+                f"• En kritik kural: MışılSpot uyanıklık süresini (**{ww} dakika**) 1 dakika bile aşmadan, ilk esneme veya göz ovuşturmada uyku ortamına geçmektir."
             )
 
     # 4. KATEGORİ: Uykuya Direnme, Ağlama Krizleri & Kucakta Sallanma
@@ -311,7 +311,7 @@ def _tier4_clinical_heuristic(baby_name: str, birth_date: str, message: str, use
             )
         else:
             return (
-                f"{hitap}, {baby_name} ({baby_info['age_formatted']}) için ideal SweetSpot uyanıklık penceresi **{ww} dakikadır**.\n\n"
+                f"{hitap}, {baby_name} ({baby_info['age_formatted']}) için ideal MışılSpot uyanıklık penceresi **{ww} dakikadır**.\n\n"
                 f"• Bu süreyi aşmadan, bebeğin esneme ve göz ovuşturma gibi ilk yorgunluk sinyallerinde uyku ortamını hazırlayarak krizleri %85 önleyebilirsiniz.\n"
                 f"• Aklınıza takılan spesifik konuyu (gece beslenmesi, kısa uyku, ataklar) bana dilediğiniz an sorabilirsiniz."
             )
@@ -380,7 +380,7 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
             f"Bebek Adı: {baby_name}\n"
             f"Yaş: {baby_info['age_formatted']}\n"
             f"Gelişim/Regresyon Evresi: {baby_info['leap_info']}\n"
-            f"İdeal SweetSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
+            f"İdeal MışılSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
             f"{rollup_text}"
         )
 

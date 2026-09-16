@@ -13,8 +13,8 @@ class ChatMessage(BaseModel):
 
 
 class CoachChatRequest(BaseModel):
-    baby_name: str = Field(default="Mina", description="Bebeğin adı")
-    birth_date: str = Field(default="2026-04-11", description="Bebeğin doğum tarihi (YYYY-MM-DD)")
+    baby_name: Optional[str] = Field(default="Bebeğim", description="Bebeğin adı")
+    birth_date: Optional[str] = Field(default="2026-04-11", description="Bebeğin doğum tarihi (YYYY-MM-DD)")
     user_role: str = Field(default="mother", description="Soruyu soran rol ('mother', 'father', 'nanny')")
     user_name: Optional[str] = Field(default=None, description="Soruyu soran ebeveynin adı")
     manual_leap: Optional[int] = Field(default=None, description="Manuel aktif edilmiş sıçrama numarası (1-10)")
@@ -31,7 +31,7 @@ class CoachChatResponse(BaseModel):
     timestamp: str
 
 
-@router.post("/chat", response_model=CoachChatResponse, summary="Mışıl Dadı AI Pediatrik Danışmanına Soru Sor (JSON)")
+@router.post("/chat", response_model=CoachChatResponse, summary="Mışıl Dadı AI Ebeveyn Asistanına Soru Sor (JSON)")
 async def chat_with_coach(payload: CoachChatRequest):
     """
     4 Katmanlı Gemini LLM Destekli Mışıl Dadı Servisi (Tek Parça JSON):

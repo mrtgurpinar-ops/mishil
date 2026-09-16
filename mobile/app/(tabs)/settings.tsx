@@ -129,7 +129,7 @@ export default function SettingsScreen() {
             </Text>
             <Text style={[styles.babyAge, { color: theme.colors.textMuted }]}>
               {activeBaby?.age_in_months
-                ? `${activeBaby.age_in_months} Aylık • SweetSpot Aktif`
+                ? `${activeBaby.age_in_months} Aylık • MışılSpot Aktif`
                 : 'Yaş bilgisi yok'}
             </Text>
           </View>
@@ -295,7 +295,7 @@ export default function SettingsScreen() {
       </TouchableOpacity>
 
       <Text style={[styles.legalText, { color: theme.colors.textMuted }]}>
-        Mishil Baby bir medikal teşhis aracı değildir. Pediatrik kılavuzluk sunar.
+        Mishil Baby bir medikal teşhis aracı değildir. Ebeveyn rehberliği sunar.
       </Text>
 
       {/* What's New & Changelog Modal */}

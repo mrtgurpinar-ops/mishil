@@ -19,9 +19,9 @@ import { useWakeWindow } from '../../features/wake-window/hooks/useWakeWindow';
 import { useRoutines } from '../../features/routines/hooks/useRoutines';
 import { triggerHaptic } from '../../lib/haptics';
 
-const WONDER_WEEKS_LEAPS = [
+const BABYSTEPS_LEAPS = [
   { num: 1, startWeek: 4, endWeek: 5, stormWeek: 5, title: 'Değişen Duyular', milestone: 'Dış dünyaya uyanış ve yoğun tensel temas ihtiyacı.', tip: 'Ortamı loş tutun, 432Hz ninniler açın.' },
-  { num: 2, startWeek: 7, endWeek: 9, stormWeek: 8, title: 'Desenler & Kalıplar', milestone: 'El ve ayaklarını keşfeder, ritmik vücut hareketleri başlar.', tip: 'Aşırı uyarılmayı önlemek için SweetSpot pencerelerine uyun.' },
+  { num: 2, startWeek: 7, endWeek: 9, stormWeek: 8, title: 'Desenler & Kalıplar', milestone: 'El ve ayaklarını keşfeder, ritmik vücut hareketleri başlar.', tip: 'Aşırı uyarılmayı önlemek için MışılSpot pencerelerine uyun.' },
   { num: 3, startWeek: 11, endWeek: 12, stormWeek: 12, title: 'Yumuşak Geçişler', milestone: 'Ses tonlamalarını anlar, agu sesleriyle iletişim kurar.', tip: 'Yumuşak fısıltı ve su şırıltısı sesleri açın.' },
   { num: 4, startWeek: 15, endWeek: 19, stormWeek: 19, title: 'Olaylar & 4. Ay Regresyonu', milestone: 'Uyku döngüleri yetişkin tipine geçer, gece uyanmaları artar.', tip: 'Odayı tamamen karartın, 5S Dr. Karp Doğal Pışpış çalın.' },
   { num: 5, startWeek: 23, endWeek: 26, stormWeek: 26, title: 'İlişkiler & Mesafe', milestone: 'Ayrılık kaygısı başlar; annenin odadan çıkışını fark eder.', tip: 'Ce-eee oynayın, uykuya dalarken sırtını pışpışlayın.' },
@@ -80,12 +80,12 @@ export default function HomeScreen() {
     ? format(new Date(wakeWindowData.next_sleep_time), 'HH:mm', { locale: tr })
     : '--:--';
 
-  // Wonder Weeks Leap Calculation
+  // BabySteps™ Leap Calculation
   const babyAge = activeBaby?.age_in_months || 6;
   const babyWeeks = Math.max(1, Math.round(babyAge * 4.345));
   const activeLeap =
-    WONDER_WEEKS_LEAPS.find((l) => babyWeeks <= l.endWeek) ||
-    WONDER_WEEKS_LEAPS[WONDER_WEEKS_LEAPS.length - 1];
+    BABYSTEPS_LEAPS.find((l) => babyWeeks <= l.endWeek) ||
+    BABYSTEPS_LEAPS[BABYSTEPS_LEAPS.length - 1];
   const leapProgressPercent = Math.min(100, Math.round((babyWeeks / 75) * 100));
   const isStormPeak = babyWeeks === activeLeap.stormWeek;
 
@@ -307,9 +307,9 @@ export default function HomeScreen() {
         ))}
       </View>
 
-      {/* Wonder Weeks & Klinik Gelişim Takibi Bento Kartı */}
+      {/* BabySteps™ & Bebek Gelişim Takibi Bento Kartı */}
       <Text style={[styles.sectionHeading, { color: theme.colors.heading }]}>
-        Gelişim Takibi & Wonder Weeks
+        Gelişim Takibi & BabySteps™
       </Text>
       <Card style={[styles.growthCard, { backgroundColor: theme.colors.card, borderColor: theme.colors.border }]}>
         <View style={styles.growthHeader}>

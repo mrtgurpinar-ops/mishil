@@ -113,7 +113,7 @@ export default function CoachScreen() {
       if (text.toLowerCase().includes('ağla') || text.toLowerCase().includes('ses')) {
         fallbackReply = `🌸 Ağlama bebeğinizin en doğal iletişim dilidir. Açlık, gaz, aşırı yorgunluk veya ıslak bez olabilir. Dilerseniz Ağlama Analizi sekmemizden bebeğinizin sesini 5 saniye dinleterek ihtiyacını bilimsel olarak tespit edebiliriz.`;
       } else if (text.toLowerCase().includes('atak') || text.toLowerCase().includes('gerileme')) {
-        fallbackReply = `⚡ Bu dönem zihinsel bir gelişim sıçraması (Wonder Weeks atağı) olabilir. Bebeğiniz dünyayı yeni bir algıyla deneyimlediği için daha fazla şefkat ve tensel temas arar. Uykusunu 15 dakika erkene almanız rahatlatacaktır.`;
+        fallbackReply = `⚡ Bu dönem zihinsel bir gelişim sıçraması (BabySteps™ gelişim sıçraması) olabilir. Bebeğiniz dünyayı yeni bir algıyla deneyimlediği için daha fazla şefkat ve tensel temas arar. Uykusunu 15 dakika erkene almanız rahatlatacaktır.`;
       }
 
       setMessages((prev) => [
@@ -150,7 +150,7 @@ export default function CoachScreen() {
               <View style={styles.onlineBadge} />
             </View>
             <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-              {babyName} ({babyAge} Aylık) • Pediatrik Danışman
+              {babyName} ({babyAge} Aylık) • AI Ebeveyn Asistanı
             </Text>
           </View>
         </View>

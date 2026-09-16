@@ -43,7 +43,7 @@ const CHANGELOG_HISTORY = [
   {
     version: 'v4.1.0',
     date: '15 Ağustos 2026',
-    title: 'Dinamik Wake Window & SweetSpot Motoru',
+    title: 'Dinamik Wake Window & MışılSpot Motoru',
     changes: [
       '🌙 0-36 Ay Pediatrik Uyanıklık Penceresi Algoritması',
       '⚠️ %15 Aşırı Yorgunluk (Overtired) Otomatik Süre Daraltma Koruması',

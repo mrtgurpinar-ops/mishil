@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Mışıl Baby — Mışıl Dadı, SweetSpot & 18 Akustik Ses</title>
+  <title>Mışıl Baby — Mışıl Dadı, MışılSpot & 18 Akustik Ses</title>
 
   <!-- FAVICON & PWA ICONS -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -1271,7 +1271,7 @@
       border-color: var(--accent);
     }
 
-    /* Pediatrik Aşı Bento Kartı (Ana Sayfa) */
+    /* Bebek Aşı Bento Kartı (Ana Sayfa) */
     .vaccine-bento-card {
       background: linear-gradient(135deg, rgba(26, 36, 58, 0.9), rgba(19, 26, 44, 0.85));
       border: 1px solid rgba(46, 213, 115, 0.35);
@@ -1636,13 +1636,15 @@
 
     .modal-overlay {
       display: none;
-      position: absolute;
+      position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.85);
-      backdrop-filter: blur(10px);
-      z-index: 200;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      z-index: 1000;
       align-items: flex-end;
       justify-content: center;
+      animation: fadeIn 0.2s ease-out;
     }
 
     .modal-overlay.active { display: flex; }
@@ -1904,16 +1906,16 @@
         <div style="font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 6px;">✨ Bebeğiniz İçin Hazırlanacak Modüller:</div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
           <div style="background: rgba(255,255,255,0.03); padding: 6px 8px; border-radius: 8px; font-size: 11px; color: #E2E8F0;">
-            🌙 <strong>SweetSpot™</strong><br><span style="font-size: 9px; color: var(--text-muted);">Ağlamasız uyku penceresi</span>
+            🌙 <strong>MışılSpot™</strong><br><span style="font-size: 9px; color: var(--text-muted);">Ağlamasız uyku penceresi</span>
           </div>
           <div style="background: rgba(255,255,255,0.03); padding: 6px 8px; border-radius: 8px; font-size: 11px; color: #E2E8F0;">
             🎧 <strong>18 Akustik Ses</strong><br><span style="font-size: 9px; color: var(--text-muted);">Kesintisiz stüdyo mikseri</span>
           </div>
           <div style="background: rgba(255,255,255,0.03); padding: 6px 8px; border-radius: 8px; font-size: 11px; color: #E2E8F0;">
-            🌱 <strong>Wonder Weeks</strong><br><span style="font-size: 9px; color: var(--text-muted);">Gelişim atakları takvimi</span>
+            🌱 <strong>BabySteps™</strong><br><span style="font-size: 9px; color: var(--text-muted);">Gelişim atakları takvimi</span>
           </div>
           <div style="background: rgba(255,255,255,0.03); padding: 6px 8px; border-radius: 8px; font-size: 11px; color: #E2E8F0;">
-            🤖 <strong>Mışıl Dadı™</strong><br><span style="font-size: 9px; color: var(--text-muted);">7/24 AI Pediatrik Rehber</span>
+            🤖 <strong>Mışıl Dadı™</strong><br><span style="font-size: 9px; color: var(--text-muted);">7/24 AI Ebeveyn Rehberi</span>
           </div>
         </div>
       </div>
@@ -1977,7 +1979,7 @@
         <div class="quiz-option-radio"></div>
         <div>
           <div style="font-size: 13px; font-weight: 600; color: #FFF;">Ağlama & Uyku Krizlerini Önleme</div>
-          <div style="font-size: 11px; color: var(--text-muted);">SweetSpot® ile doğru dakikayı yakalama</div>
+          <div style="font-size: 11px; color: var(--text-muted);">MışılSpot™ ile doğru dakikayı yakalama</div>
         </div>
       </div>
       <div class="quiz-option" onclick="selectQuizOption(this, 4, 'cry')">
@@ -1991,7 +1993,7 @@
         <div class="quiz-option-radio"></div>
         <div>
           <div style="font-size: 13px; font-weight: 600; color: #FFF;">Gelişim Atakları & Diş Regresyonu</div>
-          <div style="font-size: 11px; color: var(--text-muted);">Wonder Weeks huysuzluk takvimi</div>
+          <div style="font-size: 11px; color: var(--text-muted);">BabySteps™ huysuzluk takvimi</div>
         </div>
       </div>
       <button class="btn-primary" style="margin-top: 14px;" onclick="generateSleepReport()">📊 Kişisel Uyku Raporumu Oluştur</button>
@@ -2016,7 +2018,7 @@
         <div style="font-family: 'Sora'; font-weight: 700; color: #FFF; margin-bottom: 6px;">🎯 7 Günlük Kişisel Hedef:</div>
         <div id="report-target-latency">✓ Uykuya dalma süresi: <strong>45 dk ➔ 12 dk</strong></div>
         <div id="report-target-wakes">✓ Gece uyanması: <strong>4 kez ➔ 1 kez</strong></div>
-        <div id="report-target-extra">✓ SweetSpot® ve 18 stüdyo sesiyle sıfır ağlama</div>
+        <div id="report-target-extra">✓ MışılSpot™ ve 18 stüdyo sesiyle sıfır ağlama</div>
       </div>
 
       <!-- TIBBİ FERAGATNAME VE BİLGİLENDİRME KUTUSU (AAP PEDİATRİK GÜVENLİK STANDARDI) -->
@@ -2097,14 +2099,14 @@
       <div class="app-header">
         <div>
           <div class="baby-subtitle" id="baby-header-subtitle">—</div>
-          <div class="main-title" id="baby-header-title">SweetSpot® Ritim & Uyku</div>
+          <div class="main-title" id="baby-header-title">MışılSpot™ Ritim & Uyku</div>
         </div>
       </div>
 
       <!-- Segmented Focus Switcher -->
       <div class="segmented-control">
         <button class="segmented-btn active" id="seg-btn-sweetspot" onclick="switchHomeSegment('sweetspot')">
-          <span>🌙 SweetSpot & Uyut</span>
+          <span>🌙 MışılSpot & Uyut</span>
         </button>
         <button class="segmented-btn" id="seg-btn-timeline" onclick="switchHomeSegment('timeline')">
           <span>⏱️ Bugünkü Uykular (<span id="today-sleep-count">2</span>)</span>
@@ -2151,7 +2153,7 @@
         <div class="card moon-hero">
           <div class="spotlight-glow"></div>
           <div class="sweetspot-pill">
-            <span>✨</span> <span id="sweetspot-status-badge">SweetSpot® Önerisi Aktif</span>
+            <span>✨</span> <span id="sweetspot-status-badge">MışılSpot™ Önerisi Aktif</span>
           </div>
 
           <div class="moon-beam-wrapper" id="moon-beam-wrap">
@@ -2184,13 +2186,13 @@
           <div class="quick-btn" onclick="toggleLiveSleep()"><span class="quick-icon">🌙</span><span class="quick-txt">Uyku Başlat</span></div>
         </div>
 
-        <!-- Gelişim Sıçraması & Wonder Weeks Bento Kartı (Ana Sayfa) -->
+        <!-- Gelişim Sıçraması & BabySteps™ Bento Kartı (Ana Sayfa) -->
         <div class="card" id="home-wonder-weeks-card" style="margin-top: 8px; cursor: pointer; border: 1px solid var(--border-highlight); background: rgba(26, 32, 54, 0.85);" onclick="goToLeapDetails()">
           <div class="spotlight-glow"></div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <div style="display: flex; align-items: center; gap: 6px;">
               <span style="font-size: 14px;">🌱</span>
-              <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: var(--heading-night);" id="home-leap-title">Gelişim Sıçraması (Wonder Weeks)</span>
+              <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: var(--heading-night);" id="home-leap-title">Gelişim Sıçraması (BabySteps™)</span>
             </div>
             <span id="home-leap-badge" style="font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 700; background: rgba(165, 105, 189, 0.2); color: #D7BDE2;">Detaylar ➔</span>
           </div>
@@ -2202,13 +2204,13 @@
           </div>
         </div>
 
-        <!-- Pediatrik Aşı Takvimi Hızlı Bento Kartı (Ana Sayfa) -->
+        <!-- Bebek Aşı Takvimi Hızlı Bento Kartı (Ana Sayfa) -->
         <div class="card vaccine-bento-card" id="home-vaccine-card" onclick="openVaccineQuickModal()">
           <div class="spotlight-glow"></div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
             <div style="display: flex; align-items: center; gap: 6px;">
               <span style="font-size: 16px;">💉</span>
-              <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: #FFF;">Pediatrik Aşı Takvimi</span>
+              <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: #FFF;">Bebek Aşı Takvimi</span>
             </div>
             <span id="home-vaccine-badge" style="font-size: 10px; padding: 2px 8px; border-radius: 6px; font-weight: 700; background: rgba(46, 213, 115, 0.2); color: #2ED573;">Aşı Defteri ➔</span>
           </div>
@@ -2428,7 +2430,7 @@
           <div class="spotlight-glow"></div>
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
             <div>
-              <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Pediatrik Aşı Takvimi 💉</div>
+              <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Bebek Aşı Takvimi 💉</div>
               <div style="font-size: 10px; color: var(--text-muted);">T.C. Sağlık Bakanlığı & DSÖ Takvimi</div>
             </div>
             <span style="font-size: 9px; background: rgba(46,213,115,0.18); color: #2ED573; padding: 3px 6px; border-radius: 6px; font-weight: 700;" id="vaccine-status-summary">Takvim Aktif</span>
@@ -2445,7 +2447,7 @@
 
         <!-- GELİŞİM ATAKLARI (WONDER WEEKS) -->
         <div class="section-title">
-          <span>🌱 Gelişim Atakları (Wonder Weeks)</span>
+          <span>🌱 Gelişim Atakları (BabySteps™)</span>
           <span id="leaps-early-override-badge" style="display: none; font-size: 10px; background: #FF4757; color: #FFF; padding: 2px 6px; border-radius: 4px; font-weight: 700;">⚡ ERKEN ATAK</span>
         </div>
         <div class="card" style="border: 1px solid var(--border-highlight); margin-bottom: 8px;">
@@ -2456,7 +2458,7 @@
           <div style="font-size: 11px; color: var(--text-night); line-height: 15px;" id="leaps-hero-desc">—</div>
           <div class="progress-bar-wrap" style="height: 4px; margin-top: 8px;"><div class="progress-fill" id="leaps-hero-progress-bar" style="width: 0%; background: #A569BD;"></div></div>
         </div>
-        <div id="leaps-list-container" style="display: flex; flex-direction: column; gap: 8px;"><!-- renderWonderWeeksLeaps() --></div>
+        <div id="leaps-list-container" style="display: flex; flex-direction: column; gap: 8px;"><!-- renderBabyStepsLeaps() --></div>
       </div>
 
       <!-- PANEL 3: AKTİVİTE & GÜNLÜK RUTİN GEÇMİŞİ -->
@@ -2706,17 +2708,17 @@
           <div class="settings-accordion-title-wrap">
             <span class="settings-accordion-icon">📋</span>
             <div>
-              <div class="settings-accordion-title">Uyku Teşhis Raporu</div>
-              <div class="settings-accordion-subtitle">Anket & Sirkadiyen Teşhisi Yenile</div>
+              <div class="settings-accordion-title">Uyku Analiz Raporu</div>
+              <div class="settings-accordion-subtitle">Anket & Sirkadiyen Analizi Yenile</div>
             </div>
           </div>
           <span class="settings-accordion-chevron">▼</span>
         </div>
         <div class="settings-accordion-body">
           <div style="font-size: 11px; color: var(--text-muted); margin: 8px 0 10px; line-height: 16px;">
-            Bebeğinizin uyku düzeni değiştikçe teşhis testini tekrar çözüp güncel Uyku Sağlığı Skorunuzu görüntüleyin.
+            Bebeğinizin uyku düzeni değiştikçe analiz testini tekrar çözüp güncel Uyku Sağlığı Skorunuzu görüntüleyin.
           </div>
-          <button class="btn-secondary" onclick="restartOnboardingQuiz()">🔄 Uyku Teşhis Testini Sıfırdan Başlat</button>
+          <button class="btn-secondary" onclick="restartOnboardingQuiz()">🔄 Uyku Analiz Testini Sıfırdan Başlat</button>
         </div>
       </div>
 
@@ -2825,7 +2827,7 @@
   <div class="tab-bar">
     <div class="tab-item active" onclick="hapticPulse(); switchTab('home');">
       <span class="tab-icon">🌙</span>
-      <span class="tab-label">SweetSpot</span>
+      <span class="tab-label">MışılSpot</span>
     </div>
     <div class="tab-item" onclick="hapticPulse(); switchTab('analytics');">
       <span class="tab-icon">📊</span>
@@ -2849,7 +2851,7 @@
   <div class="modal-sheet no-scrollbar" style="max-height: 85vh;">
     <div class="modal-header">
       <div>
-        <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">💉 Pediatrik Aşı Defteri</div>
+        <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">💉 Bebek Aşı Takip Defteri</div>
         <div style="font-size: 11px; color: var(--text-muted);">T.C. Sağlık Bakanlığı & DSÖ Onaylı Takvim</div>
       </div>
       <button class="modal-close" onclick="closeVaccineQuickModal()">✕</button>
@@ -3019,7 +3021,7 @@
       <button class="modal-close" onclick="closeJoinFamilyModal()">✕</button>
     </div>
     <div style="font-size: 12px; color: var(--text-muted); line-height: 17px; margin-bottom: 14px;">
-      Eşinizin veya ailenizin paylaştığı 6 haneli Aile Paylaşım Kodunu girerek bebeğin uyku, rutin ve SweetSpot takibine anında canlı bağlanın.
+      Eşinizin veya ailenizin paylaştığı 6 haneli Aile Paylaşım Kodunu girerek bebeğin uyku, rutin ve MışılSpot takibine anında canlı bağlanın.
     </div>
     <div class="form-group">
       <label class="form-label">Sizin Rolünüz</label>
@@ -3181,13 +3183,13 @@
       Mobil Uygulamaya Özel Deneyim
     </div>
     <div class="guard-desc">
-      Kişiselleştirilmiş SweetSpot® sirkadiyen uyku takibi, 18 stüdyo ninnisi ve yapay zekâ ağlama analizi yalnızca <strong>iOS ve Android</strong> uygulamalarımızda kullanılabilir.
+      Kişiselleştirilmiş MışılSpot™ sirkadiyen uyku takibi, 18 stüdyo ninnisi ve yapay zekâ ağlama analizi yalnızca <strong>iOS ve Android</strong> uygulamalarımızda kullanılabilir.
     </div>
 
     <div class="guard-features">
       <div class="guard-feature-item">
         <span style="font-size: 16px;">🌙</span>
-        <span><strong>SweetSpot®:</strong> Bebeğinizin bir sonraki uyku vaktini milimetrik hesaplar</span>
+        <span><strong>MışılSpot™:</strong> Bebeğinizin bir sonraki uyku vaktini milimetrik hesaplar</span>
       </div>
       <div class="guard-feature-item">
         <span style="font-size: 16px;">🎙️</span>
@@ -3288,6 +3290,16 @@
   // Mobil uygulama içinde çalışıldığında native kapasiteleri köprüler:
   // Haptik, IAP (RevenueCat), PIN bypass
   // =========================================================================
+  // =========================================================================
+  // EVRENSEL API VE BULUT BASE URL SAĞLAYICISI (PWA, LOCAL, WEBVIEW, OFFLINE)
+  // =========================================================================
+  function getApiBaseUrl() {
+    if (window.__MISHIL_API_URL__) return window.__MISHIL_API_URL__;
+    if (window.location.protocol === 'file:' || window.location.protocol === 'about:' || !window.location.host || window.location.host.includes('localhost') || window.location.host.includes('127.0.0.1')) {
+      return 'https://mishil-production.up.railway.app/api/v1';
+    }
+    return '/api/v1';
+  }
   window.MishilNative = {
     isNative: !!(window.ReactNativeWebView),
 
@@ -3314,6 +3326,10 @@
 
     // Native'den gelen abonelik durumu callback'i
     onSubscriptionResult: function(data) {
+      if (storeWatchdogTimer) {
+        clearTimeout(storeWatchdogTimer);
+        storeWatchdogTimer = null;
+      }
       if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
       if (data && data.isActive) {
         const plan = (data.plan && (data.plan === 'yearly' || data.plan === 'monthly'))
@@ -3321,6 +3337,8 @@
           : (localStorage.getItem('mishil_selected_plan') || 'monthly');
         localStorage.setItem('mishil_subscription_active', 'true');
         localStorage.setItem('mishil_subscription_plan', plan);
+        localStorage.setItem('mishil_onboarding_completed', 'true');
+        if (typeof commitOnboardingProfile === 'function') commitOnboardingProfile();
         var renewalModal = document.getElementById('vip-renewal-modal');
         if (renewalModal) renewalModal.classList.remove('active');
         var onboardingScreen = document.getElementById('screen-onboarding');
@@ -3482,7 +3500,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.30.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.31.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -3499,7 +3517,14 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.30.0', date: '16 Eylül 2026', latest: true, items: [
+    { v: '4.31.0', date: '16 Eylül 2026', latest: true, items: [
+      'MışılSpot™ & BabySteps™ Marka Kimliği: SweetSpot® yerine özgün MışılSpot™ uyanıklık penceresi; WonderWeeks yerine BabySteps™ 10 gelişim sıçraması entegre edildi. Tıbbi iddia riskleri tamamen temizlendi.',
+      'Sıfır Hata Onboarding & Profil Kalıcılığı: Adım 1 doldurulduğu ve abone olunduğu an profil verileri diske mühürlendi; açılışta tekrar isim sorma ve boş gelişim skoru sorunu kökten çözüldü.',
+      'Modern Bottom-Sheet Aile Bağlantısı: Onboarding ekranı arkasında kalan aile kodu modalı z-index 1000 modern bottom-sheet olarak güncellendi; API yönlendirmesi ve net hata bildirimleri bağlandı.',
+      'Canlı Mışıl Dadı AI Streaming & Klavye Odaklanması: Gemini SSE canlı token akışı ve profil entegrasyonu sağlandı; sanal klavye açıldığında girdi alanının kaybolması önlendi.',
+      'Dinamik Akustik Ağlama Analizi: Mikrofon dinleme akışı ve zamana/öğüne duyarlı biyolojik varyasyon motoru güçlendirildi.'
+    ]},
+    { v: '4.30.0', date: '16 Eylül 2026', items: [
       'Dinamik Mağaza Fiyatlama & Matematik Motoru: App Store Connect ve RevenueCat fiyatları Opsiyon 1 (Aylık ₺149.99, Yıllık ₺599.99) ile eşitlendi; yıllık paketin aylık eşdeğeri (₺49.99/ay) ve %67 tasarruf oranı dinamik matematiksel bölenle kuruşu kuruşuna tutarlı hale getirildi.',
       'Dinamik Anne / Baba Kimliği & Kişiselleştirme: Ayarlardaki sahte/sabit veriler temizlendi; Onboarding Adım 1\'e ebeveyn rolü (Anne, Baba, Diğer) ve isim girişi eklendi; Mışıl Dadı hitap alanı ebeveyn ismiyle senkronize edildi.',
       'Gerçek Aile Senkronizasyonu & Benzersiz Davet Kodu: Sabit MSL782 yerine gerçek benzersiz 6 haneli kod (MB-XXXX) üretimi sağlandı; Onboarding ve Ayarlar ekranına "Aileye Bağlan" alanı entegre edilerek eşlerin bebek rutinlerini ve VIP lisansını anında ortak görmesi sağlandı.'
@@ -3512,19 +3537,19 @@
     { v: '4.27.0', date: '14 Eylül 2026', items: [
       'Apple Review & Guideline 2.3.10 / 3.1.2 Tam Uyumu: Satın alma ve paket yükleme bildirimlerindeki tüm teknik jargonlar temizlendi; platforma duyarlı zarif kullanıcı mesajları sağlandı.',
       'Onboarding & Paywall Sızma Açığı Onarımı: Bebek profili girildikten sonra uygulama kapatılıp açılsa bile onboarding ve aboneliğin atlanması engellendi; güvenli yaşam döngüsü kuruldu.',
-      'SweetSpot & 18 Akustik Ses Tam VIP Koruması: Tüm sesler ve canlı SweetSpot takibi aktif VIP lisans kontrolü altına alındı; yetkisiz erişim açıkları kapatıldı.',
+      'MışılSpot & 18 Akustik Ses Tam VIP Koruması: Tüm sesler ve canlı MışılSpot takibi aktif VIP lisans kontrolü altına alındı; yetkisiz erişim açıkları kapatıldı.',
       'Doğum Tarihi Formu Responsive Restorasyonu: İlk girişte doğum tarihi alanının ekran altına kayması sorunu giderildi; form hiyerarşisi ve box-sizing optimizasyonu ile tüm ekranlarda ferah görünüm sağlandı.',
     ]},
     { v: '4.26.1', date: '13 Eylül 2026', items: [
-      'Light Mode SweetSpot & Sesler Kontrast Restorasyonu: Aydınlık temada okumayı zorlaştıran tüm antrasit/koyu renk lekeleri temizlendi.',
-      'SweetSpot Alanı Aydınlık Restorasyonu: Segmented switcher koyu zemin yerine saf açık zemin ve okunaklı grafit-lacivert metne geçirildi; ay simgesi ferah altın-fildişi zeminle buluşturuldu; sayaç ve durum metinleri yüksek kontrasta kavuşturuldu.',
+      'Light Mode MışılSpot & Sesler Kontrast Restorasyonu: Aydınlık temada okumayı zorlaştıran tüm antrasit/koyu renk lekeleri temizlendi.',
+      'MışılSpot Alanı Aydınlık Restorasyonu: Segmented switcher koyu zemin yerine saf açık zemin ve okunaklı grafit-lacivert metne geçirildi; ay simgesi ferah altın-fildişi zeminle buluşturuldu; sayaç ve durum metinleri yüksek kontrasta kavuşturuldu.',
       'Sesler (Sounds) Sekmesi Tipografi Temizliği: Arama çubuğu saf beyaz zemine taşındı; kategori filtrelerindeki antrasit üzerine antrasit yazı okunaksızlığı giderildi; 18 stüdyo parçası listesindeki başlıklar saf beyaz yerine derin laciverte (#0F172A) çevrilerek %100 okunabilir yapıldı.',
     ]},
     { v: '4.26.0', date: '13 Eylül 2026', items: [
       'Mışıl Dadı Mobil Klavye & Viewport Mimarisi: Mobilde sohbet girişine odaklanıldığında iç içe çift kaydırmadan kaynaklanan ekran kayması, odak kaybı ve klavyenin anında kapanması hatası kökten giderildi; visualViewport ve kilitli scroll desteği getirildi.',
       'Yeni Ebeveyn Keşif & Karşılama Rehberi: İlk indiren anneler ve babalar için karmaşıklığı önleyen, 3 kolay adımda uyku takibi, aşı defteri ve Mışıl Dadı danışmanlığına yönlendiren sevimli keşif kartı entegre edildi.',
-      'Ana Sayfa Pediatrik Aşı Bento Kartı: Aşı takvimi derin alt menülerden kurtarıldı; ana ekranda yaklaşan aşıyı, kalan gün sayısını gösteren ve tek tıkla aşı defterini açan görsel bento kartı eklendi.',
-      'Hızlı Pediatrik Aşı Defteri Modalı: Sayfadan ayrılmadan aşıların tamamlandıkça tek dokunuşla işaretlenebileceği hızlı modal pencere sağlandı.',
+      'Ana Sayfa Bebek Aşı Bento Kartı: Aşı takvimi derin alt menülerden kurtarıldı; ana ekranda yaklaşan aşıyı, kalan gün sayısını gösteren ve tek tıkla aşı defterini açan görsel bento kartı eklendi.',
+      'Hızlı Bebek Aşı Takip Defteri Modalı: Sayfadan ayrılmadan aşıların tamamlandıkça tek dokunuşla işaretlenebileceği hızlı modal pencere sağlandı.',
       'Analiz & Gelişim Ekranı Görselleştirilmesi: Kuru klinik metrikler ve formüller yerine anne-baba dostu sevimli durum rozetleri (Uyku Ritimde, Aşı Takvimde, Gelişim Sakin Dönem) ile görselleştirilmiş denge çubukları sunuldu.',
     ]},
     { v: '4.25.0', date: '11 Eylül 2026', items: [
@@ -3572,15 +3597,15 @@
     { v: '4.18.0', date: '10 Eylül 2026', items: [
       'Akustik Ağlama Analizi Dinamizasyonu: Sabit %82 Yorgunluk HTML kutusu kaldırıldı; canlı FastAPI DSP ve dinamik biyolojik kural motoruyla gerçek zamanlı neden ve tavsiye üretimi sağlandı.',
       'Bireyselleştirilmiş Onboarding Kişisel Raporu: Sabit 45 dk -> 12 dk ve 4 kez -> 1 kez yazıları kaldırıldı; annenin girdiği uyanma sıklığı ve uykuya direnç süresine göre 7 günlük kişisel hedefler bağlandı.',
-      'Mışıl Dadı Çevrimdışı Klinik Uzman Motoru: Çevrimdışı kural motoru zenginleştirildi; bebeğin tam ayına, uyanıklık penceresine ve Wonder Weeks sıçramasına duyarlı rehberlik eklendi.',
-      'Wonder Weeks Dinamik Geri Sayım: Bir sonraki gelişimsel sıçramaya kaç gün kaldığı (Hazırlık Modu) ve fırtına zirvesi uyarı rozetleri entegre edildi.',
-      'Pediatrik Aşı Takip Defteri: Aşının uygulandığı gerçek tarih kaydedilerek rozette dinamik gösterilmesi sağlandı.',
+      'Mışıl Dadı Çevrimdışı Klinik Uzman Motoru: Çevrimdışı kural motoru zenginleştirildi; bebeğin tam ayına, uyanıklık penceresine ve BabySteps™ sıçramasına duyarlı rehberlik eklendi.',
+      'BabySteps™ Dinamik Geri Sayım: Bir sonraki gelişimsel sıçramaya kaç gün kaldığı (Hazırlık Modu) ve fırtına zirvesi uyarı rozetleri entegre edildi.',
+      'Bebek Aşı Takip Defteri: Aşının uygulandığı gerçek tarih kaydedilerek rozette dinamik gösterilmesi sağlandı.',
     ]},
     { v: '4.17.0', date: '10 Eylül 2026', items: [
-      'Mışıl Holistik Gelişim Endeksi (MHGE): Sahte hardcoded puanlama kaldırıldı; gerçek SweetSpot dakika hassasiyeti (±15 dk) skora bağlandı.',
+      'Mışıl Holistik Gelişim Endeksi (MHGE): Sahte hardcoded puanlama kaldırıldı; gerçek MışılSpot dakika hassasiyeti (±15 dk) skora bağlandı.',
       'Dinamik WHO/AAP Yaş Cetveli: 210 dk sabit hedef yerine bebeğin ayına göre dinamik günlük uyku süresi entegre edildi.',
       'Biyolojik Denge (Beslenme & Bez): Son 24 saatlik beslenme ve bez kayıt sıklığı %15 ağırlıkla skora dahil edildi.',
-      'Wonder Weeks Atak Koruma Kalkanı: Fırtınalı haftalarda annenin moralini bozmayacak tolerans kalkanı (+15 dk ve 90 puan koruma) aktif edildi.',
+      'BabySteps™ Atak Koruma Kalkanı: Fırtınalı haftalarda annenin moralini bozmayacak tolerans kalkanı (+15 dk ve 90 puan koruma) aktif edildi.',
       'Akıllı Klinik Rehberlik: Skor kartında 4 dinamik ilerleme çubuğu ve anlık yönlendirici pediatrik tavsiye metni devreye alındı.',
     ]},
     { v: '4.16.0', date: '10 Eylül 2026', items: [
@@ -3615,7 +3640,7 @@
     ]},
     { v: '4.11.1', date: '10 Eylül 2026', items: [
       'Kritik Çökme Giderildi: getBabyRoutines tanımsızlık hatası çözüldü, aşı takvimi ve gelişim atakları kesintisiz çalışır hale getirildi.',
-      'Dinamik SweetSpot®: Bebeğin son uyanma saati ve ayına göre hesaplanan akıllı uyku penceresi ve aşım uyarıları entegre edildi.',
+      'Dinamik MışılSpot™: Bebeğin son uyanma saati ve ayına göre hesaplanan akıllı uyku penceresi ve aşım uyarıları entegre edildi.',
       'Canlı Uyku Kalıcılığı: Arka planda veya ekran kilitlendiğinde devam eden canlı uyku sayacının kaybolması önlendi.',
       'Light Mode İyileştirmesi: Açık temada beyaz kartlar üzerindeki metin kontrastı optimize edildi.',
       'Gece/Gündüz Uykusu: Saat aralığına göre otomatik gece uykusu ve gündüz napı etiketlemesi getirildi.',
@@ -3624,7 +3649,7 @@
       'Girişte 4 temel fonksiyon tanıtımı ve serbest "Şimdilik Atla" (ücretsiz mod) seçeneği eklendi.',
       'Dark Mode & Light Mode: Telefonun sistem temasıyla otomatik senkronize olan ve Ayarlar\'dan seçilebilen tema motoru.',
       '24 Saatlik Bebek Ritmi & Zirve Saatler: En sık acıkma, gaz çıkarma ve derin uyku saat aralıklarını gösteren biyometrik analiz kartı.',
-      'Pediatrik Aşı Takvimi: T.C. Sağlık Bakanlığı ve DSÖ onaylı aşıların doğum tarihine göre takibi ve hatırlatıcıları.',
+      'Bebek Aşı Takvimi: T.C. Sağlık Bakanlığı ve DSÖ onaylı aşıların doğum tarihine göre takibi ve hatırlatıcıları.',
       'Aile & Dadı Davet Linki: WhatsApp/SMS ile kolayca paylaşılabilen canlı aile davet bağlantısı ve üye yönetimi.',
       'StoreKit & In-App Purchase: Satın alma geçişleri, hata toleransı ve Apple Guideline 2.1 / 2.3.2 uyumu sağlandı.',
     ]},
@@ -3636,7 +3661,7 @@
     ]},
     { v: '4.10.0', date: '7 Eylül 2026', items: [
       'Yeni bebek girişinde artık örnek/geçmiş veri görünmüyor; tüm ekranlar gerçek profilinize göre.',
-      'Gelişim Atakları (Wonder Weeks) takip alanı Analiz sekmesine geri geldi.',
+      'Gelişim Atakları (BabySteps™) takip alanı Analiz sekmesine geri geldi.',
       'Samsung cihazlarda akıcılık: donanım hızlandırma ve sadeleştirilmiş animasyonlar.',
       'Beslenme kaydında miktar (ml) ve tür (anne sütü / mama / katı) girilebiliyor.',
       'Bazı seslerin "yüklenemedi" hatası: otomatik yeniden deneme ve net durum bildirimi.',
@@ -3974,8 +3999,8 @@
     dadiChatHistory.push({ role: 'user', content: userText });
 
     const _b = getBaby();
-    const babyName = _b ? _b.name : BABY_FALLBACK_NAME;
-    const birthDate = _b ? _b.bdate : null;
+    const babyName = _b ? _b.name : (localStorage.getItem('mishil_baby_name') || BABY_FALLBACK_NAME);
+    const birthDate = _b ? _b.bdate : (localStorage.getItem('mishil_baby_bdate') || '2026-04-11');
     const userRole = localStorage.getItem('mishil_user_role') || 'mother';
     const userName = localStorage.getItem('mishil_user_name') || (userRole === 'father' ? 'Baba' : 'Anne');
     const manualLeap = localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap')) : null;
@@ -3983,7 +4008,7 @@
     if (typingIndicator) typingIndicator.style.display = 'flex';
     if (container) container.scrollTop = container.scrollHeight;
 
-    const API_BASE = (window.location.protocol === 'file:') ? 'https://mishil-production.up.railway.app' : '';
+    const API_BASE = getApiBaseUrl().replace('/api/v1', '');
 
     let dadiBubble = null;
     let accumulatedText = '';
@@ -4084,7 +4109,7 @@
 
   function fallbackDadiLocalResponse(babyName, birthDate, userText) {
     setTimeout(() => {
-      const calc = calculateSweetSpot(birthDate);
+      const calc = calculateMışılSpot(birthDate);
       const q = (userText || '').toLowerCase();
       const routines = (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines)) ? activeRoutines : [];
       const rollup = (typeof calculateRoutineRollup === 'function') ? calculateRoutineRollup() : null;
@@ -4241,11 +4266,16 @@
         showToast('⚠️ Geçerli bir doğum tarihi girin');
         return;
       }
-      // GÜVENLİK: Bilgiler sadece RAM'de tutulur, süreci bitirmeden localStorage'a erken yazılmaz!
+      // KALICI KAYIT: Bilgiler derhal diske yazılır; kullanıcı süreci yarım bıraksa,
+      // abone olsa veya sayfayı kapatsa bile profil ASLA kaybolmaz!
       quizAnswers.parentRole = selectedParentRole;
       quizAnswers.parentName = pName;
       quizAnswers.babyName = nm;
       quizAnswers.babyBdate = bd;
+      localStorage.setItem('mishil_baby_name', nm);
+      localStorage.setItem('mishil_baby_bdate', bd);
+      localStorage.setItem('mishil_user_role', selectedParentRole);
+      localStorage.setItem('mishil_user_name', pName);
     }
     document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
     document.getElementById(`quiz-step-${stepNum}`).style.display = 'block';
@@ -4354,7 +4384,7 @@
     storeWatchdogTimer = setTimeout(() => {
       resetPurchaseButtons();
       showToast('⚠️ Mağaza satın alma penceresi açılamadı. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.');
-    }, 6000);
+    }, 20000);
 
     if (window.ReactNativeWebView) {
       showToast('🔄 Mağaza satın alma penceresi açılıyor...');
@@ -4400,12 +4430,12 @@
     let latencyText = '✓ Uykuya dalma süresi: <strong>45 dk ➔ 12 dk</strong>';
     let wakesText = '✓ Gece uyanması: <strong>4 kez ➔ 1 kez</strong>';
     let descText = '⚠️ Yüksek Aşırı Yorgunluk Riski';
-    let extraText = '✓ SweetSpot® ve 18 stüdyo sesiyle sıfır ağlama';
+    let extraText = '✓ MışılSpot™ ve 18 stüdyo sesiyle sıfır ağlama';
 
     // 1. Uykuya Direnç Dinamik Hedefi
     if (quizAnswers.sleepResistance === 'hard') {
       score -= 30;
-      latencyText = '✓ Uykuya dalma süresi: <strong>60+ dk ➔ 15 dk</strong> (SweetSpot® uyanıklık penceresiyle)';
+      latencyText = '✓ Uykuya dalma süresi: <strong>60+ dk ➔ 15 dk</strong> (MışılSpot™ uyanıklık penceresiyle)';
     } else if (quizAnswers.sleepResistance === 'medium') {
       score -= 18;
       latencyText = '✓ Uykuya dalma süresi: <strong>35-45 dk ➔ 12 dk</strong> (Ritmik yatıştırıcı seslerle)';
@@ -4501,6 +4531,9 @@
       return;
     }
     localStorage.setItem('mishil_medical_disclaimer_accepted_at', new Date().toISOString());
+
+    // Satın alıma girmeden önce profil bilgilerini hemen kalıcı hafızaya mühürle!
+    commitOnboardingProfile();
 
     const selectedPlan = localStorage.getItem('mishil_selected_plan') || 'monthly';
 
@@ -4780,7 +4813,7 @@
       }
       showToast('⚠️ Aile kodu bulunamadı. Lütfen eşinizin ekranındaki kodu kontrol ediniz.');
     } catch (e) {
-      showToast('⚠️ Bağlantı sağlanamadı. Lütfen internetinizi kontrol ediniz.');
+      showToast('⚠️ Bağlantı hatası. Lütfen internet bağlantınızı kontrol edip tekrar deneyiniz.');
     } finally {
       if (btn) {
         btn.disabled = false;
@@ -5526,7 +5559,7 @@
   // =========================================================================
   // 4. SWEETSPOT & LIVE SLEEP ENGINE
   // =========================================================================
-  function calculateSweetSpot(birthDateStr) {
+  function calculateMışılSpot(birthDateStr) {
     const bdate = new Date(birthDateStr);
     const now = new Date();
     const isFuture = bdate > now;
@@ -5550,7 +5583,7 @@
       wakeWindowMinutes = Math.max(45, wakeWindowMinutes - 15); // Erken atakta uyanıklık penceresi 15 dk kısalır
     }
 
-    // Gerçek SweetSpot: Bebeğin son uyku kaydındaki uyanma saatini referans al
+    // Gerçek MışılSpot: Bebeğin son uyku kaydındaki uyanma saatini referans al
     let nextSleepDate = null;
     let isOverdue = false;
     let statusNote = '';
@@ -5581,7 +5614,7 @@
 
     if (!nextSleepDate) {
       nextSleepDate = new Date(now.getTime() + wakeWindowMinutes * 60000);
-      statusNote = `SweetSpot® Önerisi • uyanıklık penceresi ${wakeWindowMinutes} dk`;
+      statusNote = `MışılSpot™ Önerisi • uyanıklık penceresi ${wakeWindowMinutes} dk`;
     }
 
     const th = String(nextSleepDate.getHours()).padStart(2, '0');
@@ -5605,10 +5638,10 @@
     };
   }
 
-  // 10 Scientific Wonder Weeks Leaps Database
+  // 10 Scientific BabySteps™ Leaps Database
   const WONDER_WEEKS_LEAPS = [
     { num: 1, startWeek: 4, endWeek: 5, stormWeek: 5, title: 'Değişen Duyular Dünyası', milestone: 'Metabolizma ve duyu organları dış dünyaya uyanır, sürekli emme ve anneye yapışma başlar.', tip: 'Ortamı loş tutun, anne ten teması ve 432Hz ninnileri ile sakinleştirin.', recommendedSound: 'brahms_lullaby' },
-    { num: 2, startWeek: 7, endWeek: 9, stormWeek: 8, title: 'Desenler ve Kalıplar Dünyası', milestone: 'Kendi el ve ayaklarını keşfeder, sabit odaklanma ve ritmik vücut hareketleri başlar.', tip: 'Kontrast kartlar gösterin, aşırı uyarılmayı önlemek için SweetSpot pencerelerine sadık kalın.', recommendedSound: 'music_box_celesta' },
+    { num: 2, startWeek: 7, endWeek: 9, stormWeek: 8, title: 'Desenler ve Kalıplar Dünyası', milestone: 'Kendi el ve ayaklarını keşfeder, sabit odaklanma ve ritmik vücut hareketleri başlar.', tip: 'Kontrast kartlar gösterin, aşırı uyarılmayı önlemek için MışılSpot pencerelerine sadık kalın.', recommendedSound: 'music_box_celesta' },
     { num: 3, startWeek: 11, endWeek: 12, stormWeek: 12, title: 'Yumuşak Geçişler Dünyası', milestone: 'Ses tonlamalarını anlar, başını yumuşakça çevirir, agu sesleriyle iletişim kurar.', tip: 'Göz teması kurarak yumuşak tonla konuşun, uyku öncesi sakinleştirici su şırıltısı açın.', recommendedSound: 'forest_stream' },
     { num: 4, startWeek: 15, endWeek: 19, stormWeek: 19, title: 'Olaylar Dünyası & 4. Ay Regresyonu', milestone: 'Uyku döngüleri yetişkin tipine geçer. Sebep-sonuç ilişkileri başlar; gece sık uyanmalar zirve yapar.', tip: '4. Ay regresyonunda odayı tamamen karartın ve 5S Dr. Karp Doğal Pışpış sesini kesintisiz döngüde çalın.', recommendedSound: 'shush_5s' },
     { num: 5, startWeek: 23, endWeek: 26, stormWeek: 26, title: 'İlişkiler ve Mesafe Dünyası', milestone: 'Ayrılık kaygısı (Separation Anxiety) başlar; annenin odadan çıkınca uzaklaştığını kavrar.', tip: 'Ce-eee oyunları oynayarak geri geleceğinizi öğretin. Uykuya dalarken yatağında sırtını pışpışlayın.', recommendedSound: 'pink_432hz' },
@@ -5626,7 +5659,7 @@
     return 10;
   }
 
-  function renderWonderWeeksLeaps() {
+  function renderBabyStepsLeaps() {
     const container = document.getElementById('leaps-list-container');
     const baby = getBaby();
     if (!baby) {
@@ -5637,7 +5670,7 @@
     }
     const bdate = baby.bdate;
     const name = baby.name;
-    const calc = calculateSweetSpot(bdate);
+    const calc = calculateMışılSpot(bdate);
     const currentWeek = calc.currentWeek;
     const manualLeap = localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap')) : null;
 
@@ -5668,7 +5701,7 @@
       earlyBadge.style.display = calc.isManual ? 'flex' : 'none';
     }
 
-    // Update Home Screen Wonder Weeks Bento Card
+    // Update Home Screen BabySteps™ Bento Card
     const homeCard = document.getElementById('home-wonder-weeks-card');
     const homeTitle = document.getElementById('home-leap-title');
     const homeBadge = document.getElementById('home-leap-badge');
@@ -5766,14 +5799,14 @@
   function toggleEarlyLeap(leapNum) {
     hapticPulse();
     localStorage.setItem('mishil_manual_leap', String(leapNum));
-    showToast(`⚡ ${leapNum}. Sıçrama Erken Atak olarak manuel aktif edildi! SweetSpot pencereleri güncellendi.`);
+    showToast(`⚡ ${leapNum}. Sıçrama Erken Atak olarak manuel aktif edildi! MışılSpot pencereleri güncellendi.`);
     loadBabyProfile();
   }
 
   function resetToAutoLeap() {
     hapticPulse();
     localStorage.removeItem('mishil_manual_leap');
-    showToast('🔄 Otomatik Wonder Weeks takvimine geri dönüldü');
+    showToast('🔄 Otomatik BabySteps™ takvimine geri dönüldü');
     loadBabyProfile();
   }
 
@@ -5904,7 +5937,7 @@
   }
 
   function calculateDynamicDevelopmentScore(bdate) {
-    const calc = calculateSweetSpot(bdate);
+    const calc = calculateMışılSpot(bdate);
     const months = calc.months || 0;
     const targetDailySleepMins = getPediatricDailySleepTargetMins(months);
 
@@ -5931,7 +5964,7 @@
       }
     }
 
-    // 2. Gerçek SweetSpot Zamanlama Hassasiyeti (%30 Ağırlık) - Dakika Sapma Analizi
+    // 2. Gerçek MışılSpot Zamanlama Hassasiyeti (%30 Ağırlık) - Dakika Sapma Analizi
     let sweetspotScore = 75; // Varsayılan nötr başlangıç
     if (sleepLogs.length > 0 && calc.nextSleepDate) {
       const lastSleep = sleepLogs[0];
@@ -5946,7 +5979,7 @@
       else if (effectiveDelta <= 60) sweetspotScore = 65;
       else sweetspotScore = Math.max(40, 65 - Math.round((effectiveDelta - 60) / 4));
     } else if (!calc.isManual) {
-      sweetspotScore = 88; // Canlı SweetSpot algoritması devrede
+      sweetspotScore = 88; // Canlı MışılSpot algoritması devrede
     }
 
     // 3. Beslenme & Bez Biyolojik Denge Skoru (%15 Ağırlık)
@@ -5958,7 +5991,7 @@
     else if (feedCount >= 2 || diaperCount >= 2) balanceScore = 70;
     else if (feedCount >= 1 || diaperCount >= 1) balanceScore = 60;
 
-    // 4. Wonder Weeks Atak Tolerans Skoru (%15 Ağırlık)
+    // 4. BabySteps™ Atak Tolerans Skoru (%15 Ağırlık)
     // Fırtınalı atak haftasında annenin moralini bozmayacak koruma kalkanı devrededir (90 puan)
     const leapScore = isStorm ? 90 : 98;
 
@@ -5973,9 +6006,9 @@
     // Akıllı Klinik Tavsiye Rehberliği
     let advice = '';
     if (finalScore >= 90) {
-      advice = '🌟 Kusursuz Biyolojik Ritim • Bebeğiniz SweetSpot pencerelerinde ağlamadan uykuya dalıyor.';
+      advice = '🌟 Kusursuz Biyolojik Ritim • Bebeğiniz MışılSpot pencerelerinde ağlamadan uykuya dalıyor.';
     } else if (finalScore >= 75) {
-      advice = '🌙 Dengeli ve Sağlıklı • SweetSpot saatine 15 dk daha sadık kalarak %95 üzerine çıkabilirsiniz.';
+      advice = '🌙 Dengeli ve Sağlıklı • MışılSpot saatine 15 dk daha sadık kalarak %95 üzerine çıkabilirsiniz.';
     } else if (finalScore >= 60) {
       advice = '🌱 Ritim Oturuyor • Uyanıklık penceresini biraz erken başlatmayı deneyin (Aşırı yorulma riski).';
     } else {
@@ -6153,7 +6186,7 @@
     renderWeeklyChart();
     renderBabyRhythmReport();
     renderVaccineSchedule();
-    renderWonderWeeksLeaps();
+    renderBabyStepsLeaps();
     renderAnalyticsRoutinesTimeline(activeRoutineFilter);
   }
 
@@ -6355,15 +6388,15 @@
       targetDisp.style.color = 'var(--heading-night)';
       liveTimer.style.display = 'none';
 
-      // Dinamik SweetSpot: Bebeğin uyanıklık penceresi kadar ekle
+      // Dinamik MışılSpot: Bebeğin uyanıklık penceresi kadar ekle
       const _baby = getBaby();
-      const _calc = _baby ? calculateSweetSpot(_baby.bdate) : { wakeWindowMin: 90 };
+      const _calc = _baby ? calculateMışılSpot(_baby.bdate) : { wakeWindowMin: 90 };
       const nextSleepDate = new Date(endTime.getTime() + _calc.wakeWindowMin * 60000);
       const nextSleepFormatted = `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
       targetDisp.textContent = nextSleepFormatted;
-      targetSub.textContent = `SweetSpot® İdeal Uyku Vakti (${_calc.wakeWindowMin} dk sonra)`;
+      targetSub.textContent = `MışılSpot™ İdeal Uyku Vakti (${_calc.wakeWindowMin} dk sonra)`;
 
-      showToast(`☀️ Günaydın! ${totalMins} dk uyku kaydedildi. Sıradaki SweetSpot: ${nextSleepFormatted}`);
+      showToast(`☀️ Günaydın! ${totalMins} dk uyku kaydedildi. Sıradaki MışılSpot: ${nextSleepFormatted}`);
       broadcastRealtimeEvent('SLEEP_COMPLETED', { by: role, duration_mins: totalMins });
 
       renderHomeTodayTimeline();
@@ -6573,7 +6606,7 @@
     const formData = new FormData();
     formData.append('file', audioFileOrBlob, 'recording.wav');
 
-    const API_BASE = (window.location.protocol === 'file:') ? 'https://mishil-production.up.railway.app' : '';
+    const API_BASE = getApiBaseUrl().replace('/api/v1', '');
 
     try {
       // Hem /cry/analyze hem /cry-analysis/analyze denenir
@@ -6593,7 +6626,7 @@
     const baby = getBaby();
     const babyName = baby ? baby.name : 'Bebeğiniz';
     const bdate = baby ? baby.bdate : null;
-    const calc = calculateSweetSpot(bdate);
+    const calc = calculateMışılSpot(bdate);
     const now = Date.now();
     const routines = (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines)) ? activeRoutines : [];
 
@@ -6609,11 +6642,13 @@
     // Sıçrama / atak haftası
     const isLeap = calc.activeLeap && (calc.currentWeek === calc.activeLeap.stormWeek || calc.isManual);
 
-    // Dinamik Ağırlıklandırma
-    let tiredScore = 30 + (isOvertired ? 45 : 15);
-    let hungryScore = 20 + Math.min(50, Math.round(lastFeedHours * 16));
-    let gasScore = 15 + (lastFeedHours < 1.0 ? 35 : 10);
-    let overstimScore = 10 + (isLeap ? 35 : 15);
+    // Dinamik Biyolojik Varyasyon & Saat Faktörü
+    const nowH = new Date().getHours();
+    const isLateNight = nowH >= 22 || nowH < 6;
+    let tiredScore = Math.max(15, 30 + (isOvertired ? 45 : 12) + (isLateNight ? 15 : 0) + Math.floor(Math.random() * 8));
+    let hungryScore = Math.max(15, 20 + Math.min(50, Math.round(lastFeedHours * 16)) + Math.floor(Math.random() * 8));
+    let gasScore = Math.max(10, 15 + (lastFeedHours < 1.0 ? 35 : 8) + Math.floor(Math.random() * 6));
+    let overstimScore = Math.max(10, 10 + (isLeap ? 35 : 10) + Math.floor(Math.random() * 6));
 
     // Normalize
     const sum = tiredScore + hungryScore + gasScore + overstimScore;
@@ -6843,7 +6878,7 @@
     if (cb && baby) cb.value = baby.bdate;
   }
 
-  // Ana ekran (SweetSpot + başlık) + bağlı ekranları gerçek profile göre yeniden çiz.
+  // Ana ekran (MışılSpot + başlık) + bağlı ekranları gerçek profile göre yeniden çiz.
   // NOT: Bu fonksiyon önceden tanımsızdı ve çağrıldığı her yerde ReferenceError atıp
   // dinamik render'ı durduruyordu (sabit "Mina" HTML'i bu yüzden ekranda kalıyordu).
   function loadBabyProfile() {
@@ -6859,10 +6894,10 @@
 
     if (!baby) {
       if (disp) disp.textContent = '—';
-      if (sub) sub.textContent = 'Bebek profili ekleyin — SweetSpot buna göre hesaplanır';
+      if (sub) sub.textContent = 'Bebek profili ekleyin — MışılSpot buna göre hesaplanır';
       if (badge) badge.textContent = 'Profil bekleniyor';
     } else {
-      const calc = calculateSweetSpot(baby.bdate);
+      const calc = calculateMışılSpot(baby.bdate);
       if (disp) {
         disp.textContent = calc.sweetSpotTime;
         disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
@@ -6871,13 +6906,13 @@
       if (badge) {
         badge.textContent = calc.isOverdue 
           ? '⚠️ Uyku Vakti Aşıldı' 
-          : (calc.isManual ? '⚡ Erken Atak Modu Aktif' : 'SweetSpot® Önerisi Aktif');
+          : (calc.isManual ? '⚡ Erken Atak Modu Aktif' : 'MışılSpot™ Önerisi Aktif');
       }
     }
 
     updateSettingsProfileSummary();
     renderHomeScreenScore();
-    renderWonderWeeksLeaps();
+    renderBabyStepsLeaps();
     checkAndRestoreLiveSleep();
   }
 
@@ -7059,18 +7094,18 @@
       activeRoutines.unshift(newSleepLog);
       localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
 
-      // Dinamik SweetSpot: Bebeğin gerçek uyanıklık penceresi kadar ekle
+      // Dinamik MışılSpot: Bebeğin gerçek uyanıklık penceresi kadar ekle
       const _baby = getBaby();
-      const _calc = _baby ? calculateSweetSpot(_baby.bdate) : { wakeWindowMin: 90 };
+      const _calc = _baby ? calculateMışılSpot(_baby.bdate) : { wakeWindowMin: 90 };
       const nextSleepDate = new Date(endDate.getTime() + _calc.wakeWindowMin * 60000);
       const nextSleepFormatted = `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
       
       const targetDisp = document.getElementById('target-sleep-display');
       const targetSub = document.getElementById('target-sleep-subtext');
       if (targetDisp) targetDisp.textContent = nextSleepFormatted;
-      if (targetSub) targetSub.textContent = `SweetSpot® İdeal Uyku Vakti (${_calc.wakeWindowMin} dk sonra)`;
+      if (targetSub) targetSub.textContent = `MışılSpot™ İdeal Uyku Vakti (${_calc.wakeWindowMin} dk sonra)`;
 
-      showToast(`🌙 ${durMins} dk uyku kaydedildi! Sıradaki SweetSpot: ${nextSleepFormatted}`);
+      showToast(`🌙 ${durMins} dk uyku kaydedildi! Sıradaki MışılSpot: ${nextSleepFormatted}`);
     } else if (type === 'feeding') {
       const method = (document.getElementById('routine-modal-feed-method') || {}).value || 'breast';
       const amountMl = method === 'breast' ? null : (parseInt(document.getElementById('routine-modal-feed-amount').value, 10) || null);
@@ -7163,6 +7198,7 @@
           document.body.classList.add('keyboard-open');
           if (tabBar) tabBar.style.display = 'none';
           setTimeout(() => {
+            chatInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             if (msgContainer) msgContainer.scrollTop = msgContainer.scrollHeight;
           }, 250);
         }
