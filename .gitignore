@@ -49,6 +49,8 @@ htmlcov/
 # Video & Media generation outputs
 *.mp4
 *.jpg
+*.pptx
+*.zip
 output_*/
 generate_*_film.py
 generate_*_reels.py
@@ -57,3 +59,6 @@ render_*.py
 test_veo_*.py
 *.aab
 *.ipa
+
+# Kullanıcı varlıkları, sunumlar ve mağaza ekran görüntüleri (yerel saklanır)
+kullanici/
