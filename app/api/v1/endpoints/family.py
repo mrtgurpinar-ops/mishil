@@ -11,41 +11,22 @@ from pydantic import BaseModel, Field
 router = APIRouter()
 
 # In-memory fast persistent fallback store (and sync bridge)
-FAMILY_STORE: Dict[str, Dict[str, Any]] = {
-    "MSL782": {
-        "id": 1,
-        "name": "Mina'nın Ailesi",
-        "invite_code": "MSL782",
-        "members": [
-            {"id": 1, "role": "mother", "name": "Zeynep (Anne)", "joined_at": "2026-08-20T10:00:00Z"},
-            {"id": 2, "role": "father", "name": "Emre (Baba)", "joined_at": "2026-08-21T14:30:00Z"},
-            {"id": 3, "role": "nanny", "name": "Ayşe Hanım (Gündüz Dadısı)", "joined_at": "2026-08-22T08:15:00Z"}
-        ],
-        "baby": {
-            "name": "Mina",
-            "birth_date": "2026-04-11",
-            "gender": "female",
-            "development_score": 84,
-            "manual_leap": None,
-            "is_early_leap_active": False
-        },
-        "created_at": datetime.now(timezone.utc).isoformat()
-    }
-}
+FAMILY_STORE: Dict[str, Dict[str, Any]] = {}
 
 
 def _gen_code() -> str:
     chars = string.ascii_uppercase + string.digits
     chars = chars.replace("O", "").replace("0", "").replace("I", "").replace("1", "")
-    return "MSL" + "".join(random.choices(chars, k=3))
+    return "MB-" + "".join(random.choices(chars, k=4))
 
 
 class FamilyCreateRequest(BaseModel):
-    family_name: str = Field(default="Mina'nın Ailesi", description="Aile Grubu Adı")
+    family_name: Optional[str] = Field(None, description="Aile Grubu Adı")
     creator_role: str = Field(default="mother", description="Oluşturan kişinin rolü ('mother', 'father', 'nanny')")
     creator_name: str = Field(default="Anne", description="Oluşturan kişinin adı")
-    baby_name: str = Field(default="Mina", description="Bebek adı")
+    baby_name: str = Field(default="Bebeğim", description="Bebek adı")
     birth_date: str = Field(default="2026-04-11", description="Doğum tarihi (YYYY-MM-DD)")
+    routines: Optional[List[Dict[str, Any]]] = Field(default_factory=list, description="Bebeğin başlangıç rutinleri")
 
 
 class FamilyJoinRequest(BaseModel):
@@ -66,9 +47,10 @@ async def create_family(payload: FamilyCreateRequest):
     while code in FAMILY_STORE:
         code = _gen_code()
 
+    fam_name = payload.family_name if payload.family_name else f"{payload.baby_name}'in Ailesi"
     fam = {
         "id": len(FAMILY_STORE) + 1,
-        "name": payload.family_name,
+        "name": fam_name,
         "invite_code": code,
         "members": [
             {"id": 1, "role": payload.creator_role, "name": payload.creator_name, "joined_at": datetime.now(timezone.utc).isoformat()}
@@ -81,6 +63,7 @@ async def create_family(payload: FamilyCreateRequest):
             "manual_leap": None,
             "is_early_leap_active": False
         },
+        "routines": payload.routines or [],
         "created_at": datetime.now(timezone.utc).isoformat()
     }
     FAMILY_STORE[code] = fam

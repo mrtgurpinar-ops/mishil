@@ -2,6 +2,27 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.30.0] - 2026-09-16
+### 💎 Dinamik Mağaza Fiyatlama, Gerçek Aile Senkronizasyonu & Ebeveyn Kimlik Mimarisi (Build 43)
+
+1. **Dinamik Mağaza Fiyatlama & Matematik Motoru:**
+   - App Store Connect API üzerinden `misil_monthly` ve `misil_annual` abonelik ürünlerinin Türkiye fiyatları resmi olarak Opsiyon 1 doğrultusunda güncellendi: Aylık **₺149.99**, Yıllık **₺599.99**.
+   - Arayüzdeki kuruş ve matematik çelişkileri kökten giderildi: Yıllık paketin aylık karşılığı statik 49 TL yerine `(yearlyVal / 12)` dinamik formülüyle hesaplanarak **₺49.99/ay** olarak gösterildi.
+   - Tasarruf oranı dinamik formülle (`(1 - (yıllık / (aylık * 12))) * 100`) hesaplanarak **%67 Tasarruf** rozetiyle canlı senkronize edildi.
+
+2. **Dinamik Anne / Baba Kimliği & Kişiselleştirme:**
+   - Ayarlar ve Onboarding ekranındaki sabit/sahte ebeveyn verileri (`Zeynep` ve `Emre`) tamamen temizlendi.
+   - Onboarding 1. Adıma ebeveyn rolü seçimi (👩 Anne, 👨 Baba, 👵 Diğer) ve aktif ebeveyn adı girişi eklendi.
+   - Mışıl Dadı AI pediatrik koçunun soru-cevap motoruna ebeveyn adı ve rolü parametre olarak bağlandı.
+
+3. **Gerçek Aile Senkronizasyonu & Benzersiz Kod Paylaşımı:**
+   - Sabit `MSL782` sahte kodu yerine backend'de (`/api/v1/family/create`) ve frontend'de kriptografik benzersiz `MB-XXXX` kod üretim motoru devreye alındı.
+   - Hem Onboarding ekranına hem Ayarlar menüsüne *"Aileye Bağlan"* (Join Family) modülü eklendi; eşler veya dadılar bu kod ile bebeğin tüm rutinlerine ve VIP abonelik haklarına anında ortak olabilmektedir.
+
+4. **Sürüm & Paket Senkronu:**
+   - `app.config.ts`: `APP_VERSION = '4.30.0'`, `BUILD_NUMBER = 43`.
+   - `public/app.html` ve `features/webview/offlineHtml.generated.ts` (325 KB) yeniden derlendi ve senkronize edildi.
+ 
 ## [4.29.0] - 2026-09-15
 ### 🛡️ Apple StoreKit 2 Resmi Sandbox Entegrasyonu, Watchdog Fallback & Dummy Card Temizliği (Build 42)
 

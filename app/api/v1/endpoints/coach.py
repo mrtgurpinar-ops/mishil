@@ -16,6 +16,7 @@ class CoachChatRequest(BaseModel):
     baby_name: str = Field(default="Mina", description="Bebeğin adı")
     birth_date: str = Field(default="2026-04-11", description="Bebeğin doğum tarihi (YYYY-MM-DD)")
     user_role: str = Field(default="mother", description="Soruyu soran rol ('mother', 'father', 'nanny')")
+    user_name: Optional[str] = Field(default=None, description="Soruyu soran ebeveynin adı")
     manual_leap: Optional[int] = Field(default=None, description="Manuel aktif edilmiş sıçrama numarası (1-10)")
     routine_rollup: Optional[Dict[str, Any]] = Field(default=None, description="Bebeğin son rutin rollup özeti (uyku, beslenme ml, bez, gece uyanma)")
     message: str = Field(..., min_length=1, description="Ebeveynin/Dadının Mışıl Dadı'ya sorusu")

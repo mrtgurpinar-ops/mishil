@@ -1856,20 +1856,48 @@
     <!-- Step 1 -->
     <div id="quiz-step-1" class="quiz-step" style="width: 100%; box-sizing: border-box;">
       <div style="font-family: 'Sora'; font-size: 19px; font-weight: 700; color: #FFF; margin-bottom: 6px;">
-        Bebeğinizin İsmi ve Doğum Tarihi?
+        Hoş Geldiniz! Sizi ve Bebeğinizi Tanıyalım
       </div>
       <div style="font-size: 12px; color: var(--text-muted); line-height: 17px; margin-bottom: 14px;">
-        Mışıl Baby ve Mışıl Dadı, sirkadiyen uykuyu, aşı takvimini ve atakları bu tarihe göre hesaplar.
+        Mışıl Baby ve Mışıl Dadı, kişiselleştirilmiş rehberliğini ve uyanıklık takvimini ailenize özel hazırlar.
       </div>
+
+      <!-- EBEVEYN KİMLİĞİ & ROLÜ -->
+      <div class="form-group" style="margin-bottom: 10px;">
+        <label class="form-label" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>Sizin Rolünüz</span>
+          <span style="font-size: 10px; color: var(--accent); font-weight: 400;">(Mışıl Dadı Hitabı)</span>
+        </label>
+        <div class="role-chips-row" style="margin-bottom: 6px;">
+          <div class="role-chip active" id="quiz-role-mother" onclick="selectQuizParentRole('mother', this)">👩 Anne</div>
+          <div class="role-chip" id="quiz-role-father" onclick="selectQuizParentRole('father', this)">👨 Baba</div>
+          <div class="role-chip" id="quiz-role-nanny" onclick="selectQuizParentRole('nanny', this)">👵 Dadı / Bakıcı</div>
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 12px;">
+        <label class="form-label">Sizin Adınız</label>
+        <input type="text" class="form-input" id="quiz-parent-name" placeholder="Adınız (Örn: Merve, Ahmet)" autocomplete="off" />
+      </div>
+
+      <div style="border-top: 1px dashed var(--border-night); margin: 12px 0 10px;"></div>
+
       <div class="form-group">
         <label class="form-label">Bebeğin Adı</label>
-        <input type="text" class="form-input" id="quiz-baby-name" placeholder="Bebeğinizin adı" autocomplete="off" />
+        <input type="text" class="form-input" id="quiz-baby-name" placeholder="Bebeğinizin adı (Örn: Mina, Can)" autocomplete="off" />
       </div>
       <div class="form-group">
         <label class="form-label">Doğum Tarihi</label>
         <input type="date" class="form-input" id="quiz-baby-bdate" />
       </div>
-      <button class="btn-primary" style="margin-top: 10px; margin-bottom: 14px;" onclick="nextQuizStep(2)">Devam Et ➔</button>
+      <button class="btn-primary" style="margin-top: 10px; margin-bottom: 10px;" onclick="nextQuizStep(2)">Devam Et ➔</button>
+
+      <!-- AİLE KODU İLE KATILMA BAĞLANTISI -->
+      <div style="text-align: center; margin-bottom: 14px;">
+        <button type="button" onclick="openJoinFamilyModal()" style="background: none; border: none; color: var(--accent); font-size: 11px; cursor: pointer; text-decoration: underline; padding: 4px;">
+          👨‍👩‍👧 Eşinizin oluşturduğu Aile Paylaşım Kodu mu var? Buradan Katılın
+        </button>
+      </div>
 
       <!-- Kompakt Fonksiyon Rozetleri -->
       <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-night); border-radius: 12px; padding: 10px 12px;">
@@ -2657,6 +2685,18 @@
             <input type="text" class="form-input" id="new-family-member-name" placeholder="Yeni bakıcı/dadı adı" style="padding: 6px 10px; font-size: 11px;" />
             <button class="btn-secondary" style="padding: 6px 12px; font-size: 11px; white-space: nowrap;" onclick="addNewFamilyMember()">➕ Ekle</button>
           </div>
+
+          <!-- DİĞER EBEVEYNİN AİLE KODUYLA BAĞLANMA BÖLÜMÜ -->
+          <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border-night);">
+            <div style="font-size: 11px; font-weight: 600; color: var(--accent); margin-bottom: 4px;">🔗 Eşinizin Ailesine Bağlanın:</div>
+            <div style="font-size: 10px; color: var(--text-muted); line-height: 15px; margin-bottom: 8px;">
+              Eşinizin cihazındaki 6 haneli kodu girerek aynı bebeğin verilerine ortak bağlanın.
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <input type="text" class="form-input" id="settings-join-family-code" placeholder="Kod girin (Örn: MB-8429)" style="padding: 8px 10px; font-size: 12px; font-family: 'Sora'; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px;" maxlength="10" />
+              <button class="btn-primary" style="padding: 8px 14px; font-size: 11px; white-space: nowrap; margin-top: 0;" onclick="joinFamilyFromSettings()">🔗 Bağlan</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -2966,6 +3006,43 @@
       <span style="color: var(--text-muted);">•</span>
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
     </div>
+  </div>
+</div>
+
+<!-- MODAL: AİLEYE & BEBEĞE KATIL (JOIN FAMILY WITH CODE) -->
+<div class="modal-overlay" id="modal-join-family" onclick="closeModalOnOverlay(event, 'modal-join-family')">
+  <div class="modal-sheet no-scrollbar" style="max-width: 400px;">
+    <div class="modal-header">
+      <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF; display: flex; align-items: center; gap: 6px;">
+        <span>👨‍👩‍👧 Aileye / Bebeğe Bağlan</span>
+      </div>
+      <button class="modal-close" onclick="closeJoinFamilyModal()">✕</button>
+    </div>
+    <div style="font-size: 12px; color: var(--text-muted); line-height: 17px; margin-bottom: 14px;">
+      Eşinizin veya ailenizin paylaştığı 6 haneli Aile Paylaşım Kodunu girerek bebeğin uyku, rutin ve SweetSpot takibine anında canlı bağlanın.
+    </div>
+    <div class="form-group">
+      <label class="form-label">Sizin Rolünüz</label>
+      <div class="role-chips-row" style="margin-bottom: 8px;">
+        <div class="role-chip" id="join-role-mother" onclick="selectJoinRole('mother', this)">👩 Anne</div>
+        <div class="role-chip active" id="join-role-father" onclick="selectJoinRole('father', this)">👨 Baba</div>
+        <div class="role-chip" id="join-role-nanny" onclick="selectJoinRole('nanny', this)">👵 Dadı / Bakıcı</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Adınız</label>
+      <input type="text" class="form-input" id="join-parent-name" placeholder="Örn: Emre, Ahmet..." autocomplete="off" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">6 Haneli Aile Kodu</label>
+      <input type="text" class="form-input" id="join-family-code" placeholder="Örn: MB-8429" style="font-family: 'Sora'; font-weight: 800; text-transform: uppercase; letter-spacing: 3px; text-align: center; font-size: 18px; color: var(--accent);" maxlength="10" />
+    </div>
+    <button class="btn-primary" id="btn-submit-join-family" onclick="submitJoinFamily()" style="width: 100%; margin-top: 10px;">
+      🔗 Aileye Bağlan ve Bebeği Senkronize Et
+    </button>
+    <button class="btn-secondary" onclick="closeJoinFamilyModal()" style="margin-top: 8px; width: 100%;">
+      Vazgeç
+    </button>
   </div>
 </div>
 
@@ -3405,7 +3482,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.28.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.30.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -3422,7 +3499,12 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.28.0', date: '14 Eylül 2026', latest: true, items: [
+    { v: '4.30.0', date: '16 Eylül 2026', latest: true, items: [
+      'Dinamik Mağaza Fiyatlama & Matematik Motoru: App Store Connect ve RevenueCat fiyatları Opsiyon 1 (Aylık ₺149.99, Yıllık ₺599.99) ile eşitlendi; yıllık paketin aylık eşdeğeri (₺49.99/ay) ve %67 tasarruf oranı dinamik matematiksel bölenle kuruşu kuruşuna tutarlı hale getirildi.',
+      'Dinamik Anne / Baba Kimliği & Kişiselleştirme: Ayarlardaki sahte/sabit veriler temizlendi; Onboarding Adım 1\'e ebeveyn rolü (Anne, Baba, Diğer) ve isim girişi eklendi; Mışıl Dadı hitap alanı ebeveyn ismiyle senkronize edildi.',
+      'Gerçek Aile Senkronizasyonu & Benzersiz Davet Kodu: Sabit MSL782 yerine gerçek benzersiz 6 haneli kod (MB-XXXX) üretimi sağlandı; Onboarding ve Ayarlar ekranına "Aileye Bağlan" alanı entegre edilerek eşlerin bebek rutinlerini ve VIP lisansını anında ortak görmesi sağlandı.'
+    ]},
+    { v: '4.28.0', date: '14 Eylül 2026', items: [
       'Apple Sandbox & Dummy Kart Test Ödeme Motoru: TestFlight ve inceleme süreçlerinde mağaza paketlerinin onay gecikmesinden kaynaklanan takılmaları önlemek için interaktif sanal test kartı (4242 Sandbox) modalı entegre edildi; sıfır engelle ödeme simülasyonu sağlandı.',
       'Sıfır Sızma (Zero-Leak) Onboarding Güvenlik Kalkanı: Onboarding esnasında erken profil yazımı engellendi; kullanıcı formu bitirmeden veya abone olmadan uygulamayı kapatıp açsa dahi ana ekrana sızması kesin olarak durduruldu.',
       'StoreKit no_package Akıllı Fallback Köprüsü: Native StoreKit paket bulamadığında kuru teknik hata basmak yerine kullanıcıyı test ödeme akışına yönlendiren akıllı köprü devreye alındı.',
@@ -3895,6 +3977,7 @@
     const babyName = _b ? _b.name : BABY_FALLBACK_NAME;
     const birthDate = _b ? _b.bdate : null;
     const userRole = localStorage.getItem('mishil_user_role') || 'mother';
+    const userName = localStorage.getItem('mishil_user_name') || (userRole === 'father' ? 'Baba' : 'Anne');
     const manualLeap = localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap')) : null;
 
     if (typingIndicator) typingIndicator.style.display = 'flex';
@@ -3913,6 +3996,7 @@
           baby_name: babyName,
           birth_date: birthDate,
           user_role: userRole,
+          user_name: userName,
           manual_leap: manualLeap,
           routine_rollup: typeof calculateRoutineRollup === 'function' ? calculateRoutineRollup() : null,
           message: userText,
@@ -4075,6 +4159,17 @@
   }
   checkOnboardingState();
 
+  let selectedParentRole = 'mother';
+
+  function selectQuizParentRole(role, el) {
+    hapticPulse();
+    selectedParentRole = role;
+    if (el && el.parentElement) {
+      el.parentElement.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+    }
+  }
+
   function commitOnboardingProfile() {
     const nmInput = document.getElementById('quiz-baby-name');
     const bdInput = document.getElementById('quiz-baby-bdate');
@@ -4082,9 +4177,28 @@
     const bd = quizAnswers.babyBdate || (bdInput && bdInput.value ? bdInput.value : '') || localStorage.getItem('mishil_baby_bdate') || (() => {
       const d = new Date(); d.setMonth(d.getMonth() - 4); return d.toISOString().split('T')[0];
     })();
+    const pRole = quizAnswers.parentRole || selectedParentRole || 'mother';
+    const pName = quizAnswers.parentName || (pRole === 'father' ? 'Baba' : 'Anne');
+    const roleTitle = pRole === 'mother' ? 'Anne 👩' : (pRole === 'father' ? 'Baba 👨' : 'Dadı / Bakıcı 👵');
+
     localStorage.setItem('mishil_baby_name', nm);
     localStorage.setItem('mishil_baby_bdate', bd);
+    localStorage.setItem('mishil_user_role', pRole);
+    localStorage.setItem('mishil_user_name', pName);
     localStorage.setItem('mishil_onboarding_completed', 'true');
+
+    // Aile üyeleri listesini kullanıcının gerçek rolüyle başlat
+    let members = getFamilyMembers();
+    if (!members || members.length === 0 || (members.length === 2 && members[0].name === 'Zeynep')) {
+      members = [
+        { name: pName, role: roleTitle, isSelf: true }
+      ];
+      localStorage.setItem('mishil_family_members', JSON.stringify(members));
+    }
+
+    // Benzersiz Aile Kodu üret ve buluta kaydet
+    const famCode = getOrGenerateFamilyCode();
+    syncFamilyToCloud(famCode, nm, bd, pRole, pName);
   }
 
   function restartOnboardingQuiz() {
@@ -4092,8 +4206,10 @@
     const baby = getBaby();
     const nmEl = document.getElementById('quiz-baby-name');
     const bdEl = document.getElementById('quiz-baby-bdate');
+    const pnEl = document.getElementById('quiz-parent-name');
     if (nmEl) nmEl.value = baby ? baby.name : (quizAnswers.babyName || '');
     if (bdEl) bdEl.value = baby ? baby.bdate : (quizAnswers.babyBdate || '');
+    if (pnEl) pnEl.value = localStorage.getItem('mishil_user_name') || '';
     document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
     document.getElementById('quiz-step-1').style.display = 'block';
     document.getElementById('quiz-step-indicator').textContent = 'ADIM 1 / 5';
@@ -4112,6 +4228,8 @@
   function nextQuizStep(stepNum) {
     hapticPulse();
     if (stepNum === 2) {
+      const parentNameInput = document.getElementById('quiz-parent-name');
+      const pName = parentNameInput && parentNameInput.value.trim() ? parentNameInput.value.trim() : (selectedParentRole === 'father' ? 'Baba' : 'Anne');
       const nm = document.getElementById('quiz-baby-name').value.trim();
       const bd = document.getElementById('quiz-baby-bdate').value;
       if (!nm || !bd) {
@@ -4124,6 +4242,8 @@
         return;
       }
       // GÜVENLİK: Bilgiler sadece RAM'de tutulur, süreci bitirmeden localStorage'a erken yazılmaz!
+      quizAnswers.parentRole = selectedParentRole;
+      quizAnswers.parentName = pName;
       quizAnswers.babyName = nm;
       quizAnswers.babyBdate = bd;
     }
@@ -4493,34 +4613,235 @@
   }
 
   // =========================================================================
-  // AİLE & DADI SENKRONİZASYONU
+  // GERÇEK CANLI AİLE & DADI SENKRONİZASYONU (CLOUD FAMILY SYNC)
   // =========================================================================
-  const DEFAULT_FAMILY_MEMBERS = [
-    { name: 'Zeynep', role: 'Anne 👩' },
-    { name: 'Emre', role: 'Baba 👨' }
-  ];
-
   function getFamilyMembers() {
     try {
       const saved = localStorage.getItem('mishil_family_members');
-      if (saved) return JSON.parse(saved);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0 && !(parsed.length === 2 && parsed[0].name === 'Zeynep')) {
+          return parsed;
+        }
+      }
     } catch(e) {}
-    return DEFAULT_FAMILY_MEMBERS;
+
+    const currentRole = localStorage.getItem('mishil_user_role') || 'mother';
+    const currentName = localStorage.getItem('mishil_user_name') || (currentRole === 'father' ? 'Baba' : 'Anne');
+    const roleTitle = currentRole === 'mother' ? 'Anne 👩' : (currentRole === 'father' ? 'Baba 👨' : 'Dadı / Bakıcı 👵');
+
+    return [{ name: currentName, role: roleTitle, isSelf: true }];
+  }
+
+  function getOrGenerateFamilyCode() {
+    let code = localStorage.getItem('mishil_family_code');
+    if (!code || code === 'MSL782') {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let r = '';
+      for (let i = 0; i < 4; i++) r += chars.charAt(Math.floor(Math.random() * chars.length));
+      code = 'MB-' + r;
+      localStorage.setItem('mishil_family_code', code);
+    }
+    const codeEl = document.getElementById('family-sync-code');
+    if (codeEl) codeEl.textContent = code;
+    return code;
   }
 
   function renderFamilyMembers() {
     const container = document.getElementById('family-members-container');
     if (!container) return;
     const members = getFamilyMembers();
+    const currentCode = getOrGenerateFamilyCode();
+
     container.innerHTML = members.map((m, idx) => `
       <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 8px;">
         <span><strong style="color: #FFF;">${escapeHtml(m.name)}</strong> <span style="color: var(--text-muted); font-size: 10px;">(${escapeHtml(m.role)})</span></span>
-        ${idx > 1 ? `<button onclick="removeFamilyMember(${idx})" style="background: none; border: none; color: #FF4757; font-size: 11px; cursor: pointer;">Sil</button>` : `<span style="font-size: 9px; color: var(--success);">Aktif</span>`}
+        ${m.isSelf ? `<span style="font-size: 9px; color: var(--accent); font-weight: 700;">(Siz)</span>` : (idx > 0 ? `<button onclick="removeFamilyMember(${idx})" style="background: none; border: none; color: #FF4757; font-size: 11px; cursor: pointer;">Sil</button>` : `<span style="font-size: 9px; color: var(--success);">Aktif</span>`)}
       </div>
     `).join('');
 
     const sub = document.getElementById('acc-family-subtitle');
-    if (sub) sub.innerHTML = `Bulut Kodu: <strong style="color: var(--accent);">MSL782</strong> • ${members.length} Üye Bağlı`;
+    if (sub) sub.innerHTML = `Bulut Kodu: <strong style="color: var(--accent);">${currentCode}</strong> • ${members.length} Üye Bağlı`;
+  }
+
+  let selectedJoinRole = 'father';
+  function selectJoinRole(role, el) {
+    hapticPulse();
+    selectedJoinRole = role;
+    if (el && el.parentElement) {
+      el.parentElement.querySelectorAll('.role-chip').forEach(c => c.classList.remove('active'));
+      el.classList.add('active');
+    }
+  }
+
+  function openJoinFamilyModal() {
+    hapticPulse();
+    const modal = document.getElementById('modal-join-family');
+    if (modal) modal.classList.add('active');
+  }
+
+  function closeJoinFamilyModal() {
+    hapticPulse();
+    const modal = document.getElementById('modal-join-family');
+    if (modal) modal.classList.remove('active');
+  }
+
+  async function syncFamilyToCloud(code, babyName, birthDate, creatorRole, creatorName) {
+    try {
+      const url = `${getApiBaseUrl()}/family/create`;
+      const res = await fetchWithTimeout(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          family_name: `${babyName}'in Ailesi`,
+          creator_role: creatorRole,
+          creator_name: creatorName,
+          baby_name: babyName,
+          birth_date: birthDate
+        }),
+        timeout: 4000
+      });
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data && data.invite_code) {
+          localStorage.setItem('mishil_family_code', data.invite_code);
+          const codeEl = document.getElementById('family-sync-code');
+          if (codeEl) codeEl.textContent = data.invite_code;
+        }
+      }
+    } catch (e) {
+      console.warn('Aile bulut kaydı hatası (offline modda yerel devam ediyor):', e);
+    }
+  }
+
+  async function submitJoinFamily() {
+    hapticPulse();
+    const codeInput = document.getElementById('join-family-code');
+    const nameInput = document.getElementById('join-parent-name');
+    if (!codeInput || !codeInput.value.trim()) {
+      showToast('⚠️ Lütfen 6 haneli Aile Kodunu giriniz.');
+      return;
+    }
+    const code = codeInput.value.trim().toUpperCase();
+    const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : (selectedJoinRole === 'father' ? 'Baba' : 'Anne');
+    const roleText = selectedJoinRole === 'mother' ? 'Anne 👩' : (selectedJoinRole === 'father' ? 'Baba 👨' : 'Dadı / Bakıcı 👵');
+
+    const btn = document.getElementById('btn-submit-join-family');
+    if (btn) {
+      btn.disabled = true;
+      btn.innerHTML = '🔄 Aileye Bağlanılıyor...';
+    }
+
+    try {
+      const url = `${getApiBaseUrl()}/family/join`;
+      const res = await fetchWithTimeout(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invite_code: code,
+          role: selectedJoinRole,
+          name: name
+        }),
+        timeout: 6000
+      });
+
+      if (res && res.ok) {
+        const data = await res.json();
+        const fam = data.family;
+        if (fam && fam.baby) {
+          // Bebeğin ve ailenin verilerini cihaza çek ve kaydet
+          localStorage.setItem('mishil_baby_name', fam.baby.name);
+          localStorage.setItem('mishil_baby_bdate', fam.baby.birth_date);
+          localStorage.setItem('mishil_user_role', selectedJoinRole);
+          localStorage.setItem('mishil_user_name', name);
+          localStorage.setItem('mishil_family_code', fam.invite_code || code);
+          localStorage.setItem('mishil_subscription_active', 'true'); // Aile paylaşımıyla VIP aktarımı
+          localStorage.setItem('mishil_onboarding_completed', 'true');
+
+          if (Array.isArray(fam.members)) {
+            const mappedMembers = fam.members.map(m => ({
+              name: m.name,
+              role: m.role === 'mother' ? 'Anne 👩' : (m.role === 'father' ? 'Baba 👨' : 'Dadı / Bakıcı 👵'),
+              isSelf: m.name === name
+            }));
+            localStorage.setItem('mishil_family_members', JSON.stringify(mappedMembers));
+          }
+
+          closeJoinFamilyModal();
+          const scr = document.getElementById('screen-onboarding');
+          if (scr) scr.classList.remove('active');
+
+          loadBabyProfile();
+          renderFamilyMembers();
+          renderAllViews();
+          showToast(`🎉 ${fam.baby.name}'in ailesine başarıyla bağlandınız!`);
+          return;
+        }
+      }
+      showToast('⚠️ Aile kodu bulunamadı. Lütfen eşinizin ekranındaki kodu kontrol ediniz.');
+    } catch (e) {
+      showToast('⚠️ Bağlantı sağlanamadı. Lütfen internetinizi kontrol ediniz.');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '🔗 Aileye Bağlan ve Bebeği Senkronize Et';
+      }
+    }
+  }
+
+  async function joinFamilyFromSettings() {
+    hapticPulse();
+    const input = document.getElementById('settings-join-family-code');
+    if (!input || !input.value.trim()) {
+      showToast('⚠️ Lütfen bağlanmak istediğiniz Aile Kodunu giriniz.');
+      return;
+    }
+    const code = input.value.trim().toUpperCase();
+    const currentRole = localStorage.getItem('mishil_user_role') || 'father';
+    const currentName = localStorage.getItem('mishil_user_name') || (currentRole === 'father' ? 'Baba' : 'Anne');
+
+    try {
+      const url = `${getApiBaseUrl()}/family/join`;
+      const res = await fetchWithTimeout(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invite_code: code,
+          role: currentRole,
+          name: currentName
+        }),
+        timeout: 5000
+      });
+
+      if (res && res.ok) {
+        const data = await res.json();
+        const fam = data.family;
+        if (fam && fam.baby) {
+          localStorage.setItem('mishil_baby_name', fam.baby.name);
+          localStorage.setItem('mishil_baby_bdate', fam.baby.birth_date);
+          localStorage.setItem('mishil_family_code', fam.invite_code || code);
+          localStorage.setItem('mishil_subscription_active', 'true');
+
+          if (Array.isArray(fam.members)) {
+            const mappedMembers = fam.members.map(m => ({
+              name: m.name,
+              role: m.role === 'mother' ? 'Anne 👩' : (m.role === 'father' ? 'Baba 👨' : 'Dadı / Bakıcı 👵'),
+              isSelf: m.name === currentName
+            }));
+            localStorage.setItem('mishil_family_members', JSON.stringify(mappedMembers));
+          }
+          input.value = '';
+          loadBabyProfile();
+          renderFamilyMembers();
+          renderAllViews();
+          showToast(`✅ ${fam.baby.name}'in ailesine başarıyla bağlandınız!`);
+          return;
+        }
+      }
+      showToast('⚠️ Aile kodu bulunamadı. Lütfen kodu kontrol ediniz.');
+    } catch (e) {
+      showToast('⚠️ Bağlantı hatası, lütfen tekrar deneyiniz.');
+    }
   }
 
   function addNewFamilyMember() {
@@ -4551,8 +4872,8 @@
   function shareFamilyInviteLink() {
     hapticPulse();
     const baby = getBaby() || { name: 'Bebeğim' };
-    const code = document.getElementById('family-sync-code')?.innerText || 'MSL782';
-    const inviteUrl = `https://misil.app/join?code=${code}&baby=${encodeURIComponent(baby.name)}`;
+    const code = getOrGenerateFamilyCode();
+    const inviteUrl = `https://mishil-production.up.railway.app/app?code=${code}&baby=${encodeURIComponent(baby.name)}`;
     if (navigator.share) {
       navigator.share({
         title: `Mışıl Baby — ${baby.name} İçin Aile & Dadı Daveti`,
@@ -5136,19 +5457,65 @@
   }
 
   // =========================================================================
-  // DİNAMİK REVENUECAT MAĞAZA FİYAT ENJEKSİYONU
+  // DİNAMİK REVENUECAT MAĞAZA FİYAT & MATEMATİK ENJEKSİYONU
   // =========================================================================
   window.applyStorePrices = function(prices) {
     if (!prices) return;
+    let monthlyVal = 0;
+    let yearlyVal = 0;
+    let currSymbol = '₺';
+
     if (prices.monthly) {
+      const mStr = String(prices.monthly).replace(/\/ay/g, '').trim();
       document.querySelectorAll('.price-monthly-text').forEach(el => {
-        el.textContent = prices.monthly.replace(/\/ay/g, '');
+        el.textContent = mStr;
       });
+      const mMatch = mStr.match(/([0-9.,]+)/);
+      if (mMatch) {
+        let s = mMatch[1];
+        if (s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
+        else if (s.includes('.') && s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+        monthlyVal = parseFloat(s) || 0;
+      }
+      if (mStr.includes('$')) currSymbol = '$';
+      else if (mStr.includes('€')) currSymbol = '€';
+      else if (mStr.includes('£')) currSymbol = '£';
     }
+
     if (prices.yearly) {
+      const yStr = String(prices.yearly).replace(/\/yıl/g, '').trim();
       document.querySelectorAll('.price-yearly-text').forEach(el => {
-        el.textContent = prices.yearly.replace(/\/yıl/g, '');
+        el.textContent = yStr;
       });
+      const yMatch = yStr.match(/([0-9.,]+)/);
+      if (yMatch) {
+        let s = yMatch[1];
+        if (s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
+        else if (s.includes('.') && s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
+        yearlyVal = parseFloat(s) || 0;
+      }
+      if (yStr.includes('$')) currSymbol = '$';
+      else if (yStr.includes('€')) currSymbol = '€';
+      else if (yStr.includes('£')) currSymbol = '£';
+
+      // Dinamik Aylık Karşılığı Hesabı: (Yıllık / 12)
+      if (yearlyVal > 0) {
+        const monthlyEq = (yearlyVal / 12).toFixed(2);
+        const subtext = `Aylık ${currSymbol}${monthlyEq} karşılığı`;
+        document.querySelectorAll('.price-yearly-subtext, #plan-yearly-subtext, #settings-plan-sub-yearly').forEach(el => {
+          el.textContent = subtext;
+        });
+
+        // Dinamik Tasarruf Yüzdesi: (1 - (Yıllık / (Aylık * 12))) * 100
+        if (monthlyVal > 0) {
+          const discountPct = Math.round((1 - (yearlyVal / (monthlyVal * 12))) * 100);
+          if (discountPct > 0) {
+            document.querySelectorAll('#plan-yearly-discount-badge, #settings-plan-badge-yearly').forEach(el => {
+              el.textContent = `%${discountPct} TASARRUF`;
+            });
+          }
+        }
+      }
     }
   };
 
