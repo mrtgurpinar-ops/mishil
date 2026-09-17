@@ -2,6 +2,27 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.33.0] - 2026-09-17
+### 🛡️ Sıfır Sahte Hata, Kusursuz Profil Kalıcılığı, Pozitif Anket & Dinamik Skor Yumuşatma (Build 46)
+
+1. **Sıfır Sahte İnternet Uyarısı & Watchdog Yaşam Döngüsü (Watchdog Lifecycle):**
+   - Satın alma veya deneme başlatıldığında kurulan 6 saniyelik `storeWatchdogTimer` zamanlayıcısının ana ekrana geçilmesine rağmen arkada çalışmaya devam edip sahte *"Lütfen internet bağlantınızı kontrol edin"* uyarısı fırlatması kökten çözüldü.
+   - `clearStoreWatchdog()` fonksiyonu entegre edilerek hem web önizleme hem native IAP başarı (`grantProInWebView`), hata (`onPurchaseError`) ve iptal senaryolarında zamanlayıcı anında imha edildi.
+
+2. **Web ve Mobil Onboarding Kalıcılık Mührü (Zero-Restart Persistence):**
+   - Deneme başlatıldığı an `mishil_subscription_active`, `mishil_trial_start` ve `mishil_onboarding_completed` anahtarları eksiksiz olarak `localStorage`'a yazıldı; `commitOnboardingProfile()` ile bebek profili diske mühürlendi.
+   - Web veya mobilde uygulama kapatılıp açıldığında veya sayfa yenilendiğinde (F5) kullanıcının başa dönmesi engellendi; doğrudan ana ekrana yönlendirme garantiye alındı.
+
+3. **Pozitif ve Dengeli Anket Deneyimi (Positive UX & Constructive Phrasing):**
+   - Onboarding anketinde sadece olumsuz kriz şıkları yerine bebeği rahat uyuyan (5-10 dk), deliksiz uyuyan (0-1 kez) veya yalnızca gelişim takibi yapmak isteyen aileler için yapıcı seçenekler eklendi.
+   - 4. soru başlığı *"En çok hangi konuda çaresiz kalıyorsunuz?"* yerine yapıcı ve motive edici bir dille **"Bebeğinizin gelişiminde öncelikli odağınız nedir?"** olarak revize edildi.
+   - `generateSleepReport()` puanlama motoru pozitif şıklarla senkronize edilerek yüksek uyku sağlığı skorları ve motive edici klinik rehberlik üretmesi sağlandı.
+
+4. **Dinamik Gelişim Skoru & Kademeli Yumuşatma Protokolü (Score Blending):**
+   - Yeni bebek kaydedildiğinde rutin kaydı olmadığı için varsayılan katsayılar toplamının her yeni profilde tam sabit %77 üretmesi ve anket puanını yutması hatası giderildi.
+   - Onboarding raporunda üretilen başlangıç skoru `mishil_baseline_quiz_score` olarak saklandı; henüz rutin girilmemişken bu gerçek skor ekrana yansıtıldı.
+   - İlk 1-2 rutin girildiğinde skorun sert bir sıçrama yapmasını önlemek amacıyla **%60 anket tabanı + %40 canlı rutin** harmanlama (blending) formülü devreye alındı.
+
 ## [4.32.0] - 2026-09-17
 ### 🎙️ 4 Kademeli Gerçek Multimodal Ağlama Analizi & Mışıl Dadı AI Gemini 3.6 Yükseltmesi (Build 45)
 

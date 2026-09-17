@@ -1926,25 +1926,32 @@
       <div style="font-family: 'Sora'; font-size: 20px; font-weight: 700; color: #FFF; margin-bottom: 8px;">
         Uykuya dalarken ne kadar direniyor/ağlıyor?
       </div>
-      <div class="quiz-option" onclick="selectQuizOption(this, 2, 'fast')">
+      <div class="quiz-option" onclick="selectQuizOption(this, 2, 'easy')">
+        <div class="quiz-option-radio"></div>
+        <div>
+          <div style="font-size: 13px; font-weight: 600; color: #FFF;">Çok rahat ve huzurlu dalıyor (5-10 dk)</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Yatağına bırakınca kendi kendine sakinleşiyor</div>
+        </div>
+      </div>
+      <div class="quiz-option selected" onclick="selectQuizOption(this, 2, 'fast')">
         <div class="quiz-option-radio"></div>
         <div>
           <div style="font-size: 13px; font-weight: 600; color: #FFF;">Kolay dalıyor (10-15 dk)</div>
-          <div style="font-size: 11px; color: var(--text-muted);">Hafif pışpışlama yetiyor</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Hafif pışpışlama veya ninni yetiyor</div>
         </div>
       </div>
-      <div class="quiz-option selected" onclick="selectQuizOption(this, 2, 'medium')">
+      <div class="quiz-option" onclick="selectQuizOption(this, 2, 'medium')">
         <div class="quiz-option-radio"></div>
         <div>
           <div style="font-size: 13px; font-weight: 600; color: #FFF;">Zorlanıyor (30-45 dk)</div>
-          <div style="font-size: 11px; color: var(--text-muted);">Sürekli kucakta sallama istiyor</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Sürekli kucakta sallama ve pışpış istiyor</div>
         </div>
       </div>
       <div class="quiz-option" onclick="selectQuizOption(this, 2, 'hard')">
         <div class="quiz-option-radio"></div>
         <div>
           <div style="font-size: 13px; font-weight: 600; color: #FFF;">Ağlama krizleri (1 saat+)</div>
-          <div style="font-size: 11px; color: var(--text-muted);">Aşırı yorulup uykuya direniyor</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Aşırı yorulup uykuya şiddetle direniyor</div>
         </div>
       </div>
       <button class="btn-primary" style="margin-top: 14px;" onclick="nextQuizStep(3)">Devam Et ➔</button>
@@ -1955,17 +1962,21 @@
       <div style="font-family: 'Sora'; font-size: 20px; font-weight: 700; color: #FFF; margin-bottom: 8px;">
         Geceleri kaç kez uyanıyor?
       </div>
-      <div class="quiz-option" onclick="selectQuizOption(this, 3, 'low')">
+      <div class="quiz-option" onclick="selectQuizOption(this, 3, 'none')">
         <div class="quiz-option-radio"></div>
-        <div style="font-size: 13px; font-weight: 600; color: #FFF;">1 - 2 kez (Beslenip uyuyor)</div>
+        <div style="font-size: 13px; font-weight: 600; color: #FFF;">Deliksiz uyuyor veya en fazla 1 rüya öğünü (0 - 1 kez)</div>
       </div>
-      <div class="quiz-option selected" onclick="selectQuizOption(this, 3, 'mid')">
+      <div class="quiz-option selected" onclick="selectQuizOption(this, 3, 'low')">
         <div class="quiz-option-radio"></div>
-        <div style="font-size: 13px; font-weight: 600; color: #FFF;">3 - 4 kez (Desteksiz dalamıyor)</div>
+        <div style="font-size: 13px; font-weight: 600; color: #FFF;">1 - 2 kez (Beslenip hemen geri dalıyor)</div>
+      </div>
+      <div class="quiz-option" onclick="selectQuizOption(this, 3, 'mid')">
+        <div class="quiz-option-radio"></div>
+        <div style="font-size: 13px; font-weight: 600; color: #FFF;">3 - 4 kez (Desteksiz yeniden dalamıyor)</div>
       </div>
       <div class="quiz-option" onclick="selectQuizOption(this, 3, 'high')">
         <div class="quiz-option-radio"></div>
-        <div style="font-size: 13px; font-weight: 600; color: #FFF;">5+ kez (Saat başı uyanıyor)</div>
+        <div style="font-size: 13px; font-weight: 600; color: #FFF;">5+ kez (Saat başı uyanma / Gece nöbeti)</div>
       </div>
       <button class="btn-primary" style="margin-top: 14px;" onclick="nextQuizStep(4)">Devam Et ➔</button>
     </div>
@@ -1973,27 +1984,34 @@
     <!-- Step 4 -->
     <div id="quiz-step-4" class="quiz-step" style="display: none;">
       <div style="font-family: 'Sora'; font-size: 20px; font-weight: 700; color: #FFF; margin-bottom: 8px;">
-        En çok hangi konuda çaresiz kalıyorsunuz?
+        Bebeğinizin gelişiminde öncelikli odağınız nedir?
       </div>
-      <div class="quiz-option selected" onclick="selectQuizOption(this, 4, 'meltdown')">
+      <div class="quiz-option selected" onclick="selectQuizOption(this, 4, 'routine')">
         <div class="quiz-option-radio"></div>
         <div>
-          <div style="font-size: 13px; font-weight: 600; color: #FFF;">Ağlama & Uyku Krizlerini Önleme</div>
-          <div style="font-size: 11px; color: var(--text-muted);">MışılSpot™ ile doğru dakikayı yakalama</div>
+          <div style="font-size: 13px; font-weight: 600; color: #FFF;">Düzenli Uyku & Sağlıklı Sirkadiyen Ritim</div>
+          <div style="font-size: 11px; color: var(--text-muted);">MışılSpot™ biyolojik uyku pencerelerini yakalama</div>
+        </div>
+      </div>
+      <div class="quiz-option" onclick="selectQuizOption(this, 4, 'growth')">
+        <div class="quiz-option-radio"></div>
+        <div>
+          <div style="font-size: 13px; font-weight: 600; color: #FFF;">Gelişim Takibi & Zihinsel Sıçramalar</div>
+          <div style="font-size: 11px; color: var(--text-muted);">BabySteps™ 10 gelişim atağı ve motor beceriler</div>
+        </div>
+      </div>
+      <div class="quiz-option" onclick="selectQuizOption(this, 4, 'meltdown')">
+        <div class="quiz-option-radio"></div>
+        <div>
+          <div style="font-size: 13px; font-weight: 600; color: #FFF;">Ağlama & Uyku Direncini Azaltma</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Aşırı yorulmadan sakin ve huzurlu dalış</div>
         </div>
       </div>
       <div class="quiz-option" onclick="selectQuizOption(this, 4, 'cry')">
         <div class="quiz-option-radio"></div>
         <div>
-          <div style="font-size: 13px; font-weight: 600; color: #FFF;">Ağlama Nedenini Anlama (Açlık/Gaz)</div>
-          <div style="font-size: 11px; color: var(--text-muted);">13 bant MFCC akustik analizi</div>
-        </div>
-      </div>
-      <div class="quiz-option" onclick="selectQuizOption(this, 4, 'regression')">
-        <div class="quiz-option-radio"></div>
-        <div>
-          <div style="font-size: 13px; font-weight: 600; color: #FFF;">Gelişim Atakları & Diş Regresyonu</div>
-          <div style="font-size: 11px; color: var(--text-muted);">BabySteps™ huysuzluk takvimi</div>
+          <div style="font-size: 13px; font-weight: 600; color: #FFF;">Ağlama İpuçlarını & İhtiyaçları Anlama</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Açlık, gaz ve yorgunluk akustik analizi</div>
         </div>
       </div>
       <button class="btn-primary" style="margin-top: 14px;" onclick="generateSleepReport()">📊 Kişisel Uyku Raporumu Oluştur</button>
@@ -3505,7 +3523,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.32.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.33.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -3522,7 +3540,13 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.32.0', date: '17 Eylül 2026', latest: true, items: [
+    { v: '4.33.0', date: '17 Eylül 2026', latest: true, items: [
+      'Sıfır Sahte İnternet Uyarısı & Watchdog Yaşam Döngüsü: Satın alma ve deneme başlatıldıktan sonra arkada kalan 6 saniyelik zamanlayıcının ekrana sahte internet hatası basması kökten çözüldü; clearStoreWatchdog mimarisi entegre edildi.',
+      'Web & Mobil Onboarding Kalıcılık Mührü: Deneme başlatıldığı an profil, abonelik ve deneme başlangıç bilgileri diske mühürlendi; sayfa yenilendiğinde veya uygulama kapatılıp açıldığında başa sarma sorunu giderildi.',
+      'Pozitif & Yapıcı Anket Deneyimi: Onboarding anketindeki salt olumsuz kriz şıkları yerine rahat uyuyan, deliksiz uyuyan veya sadece gelişim takibi yapmak isteyen ebeveynler için yapıcı seçenekler eklendi; 4. soru "Bebeğinizin gelişiminde öncelikli odağınız nedir?" olarak yapılandırıldı.',
+      'Dinamik Gelişim Skoru & Anket Tabanlı Yumuşatma (Score Blending): Sabit %77 ile başlama mekanik hatası giderildi; anketten hesaplanan gerçek başlangıç skoru bebeğin profiline işlendi ve ilk 1-2 rutin kaydında kademeli harmanlama ile skor tutarlılığı sağlandı.'
+    ]},
+    { v: '4.32.0', date: '17 Eylül 2026', items: [
       '4 Kademeli Gerçek Multimodal Ağlama Analizi: Bebeğin ses kaydı doğrudan Google Gemini 3.6 Multimodal Audio nöral dinleme modeline bağlandı; ses perdesi, tiz çığlık tepe noktaları ve nefes aralıkları canlı dinlenerek sese özel nesnel akustik gözlemler üretildi.',
       'Sıfır Açlık Kilidi & Dengeli Dağılım: Sabit açlık puanı kilidi tamamen kaldırıldı; ses analizi yapılamayan son çare durumunda dahi uyku, kolik ve açlık sinyalleri dengeli varyasyonla kurgulandı.',
       'Mışıl Dadı AI Gemini 3.6 Flash Yükseltmesi: Emekliye ayrılan eski modeller yerine Google Gemini 3.6 Flash ve 3.5 Flash yedekli mimarisine geçildi; akıllı, bağlamsal ve pedagojik yanıtlar canlıya alındı.',
@@ -4168,7 +4192,7 @@
   // =========================================================================
   // 3. ONBOARDING & PROFILE ENGINE (ZERO-LEAK SECURITY)
   // =========================================================================
-  let quizAnswers = { babyName: '', babyBdate: '', sleepResistance: 'medium', nightWakes: 'mid', struggleArea: 'meltdown' };
+  let quizAnswers = { babyName: '', babyBdate: '', sleepResistance: 'fast', nightWakes: 'low', struggleArea: 'routine' };
 
   function checkOnboardingState() {
     const isSubscribed = localStorage.getItem('mishil_subscription_active') === 'true';
@@ -4391,7 +4415,7 @@
       btn.innerHTML = '🔄 Mağaza Açılıyor...';
     }
 
-    if (storeWatchdogTimer) clearTimeout(storeWatchdogTimer);
+    clearStoreWatchdog();
     storeWatchdogTimer = setTimeout(() => {
       resetPurchaseButtons();
       showToast('⚠️ Mağaza satın alma penceresi açılamadı. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.');
@@ -4405,6 +4429,7 @@
 
     // Web önizleme modu:
     setTimeout(() => {
+      clearStoreWatchdog();
       resetPurchaseButtons();
       showToast('ℹ️ Web önizleme modundasınız. Abonelik işlemleri mobil uygulamada App Store / Google Play üzerinden yürütülür.');
     }, 1000);
@@ -4437,40 +4462,58 @@
     document.getElementById('quiz-step-indicator').textContent = 'KİŞİSEL UYKU RAPORU';
     updateTrialEndDateDisplay();
 
-    let score = 78;
-    let latencyText = '✓ Uykuya dalma süresi: <strong>45 dk ➔ 12 dk</strong>';
-    let wakesText = '✓ Gece uyanması: <strong>4 kez ➔ 1 kez</strong>';
-    let descText = '⚠️ Yüksek Aşırı Yorgunluk Riski';
-    let extraText = '✓ MışılSpot™ ve 18 stüdyo sesiyle sıfır ağlama';
+    let score = 82;
+    let latencyText = '✓ Uykuya dalma süresi: <strong>15-20 dk ➔ 8-10 dk</strong> (Huzurlu yatak geçişi)';
+    let wakesText = '✓ Gece uyanması: <strong>1-2 kez ➔ 0-1 kez</strong> (Dengeli gece uykusu)';
+    let descText = '🌿 Dengeli Ritim & Koruma Modu';
+    let extraText = '✓ MışılSpot™ ve 18 stüdyo sesiyle kesintisiz sirkadiyen düzen';
 
     // 1. Uykuya Direnç Dinamik Hedefi
     if (quizAnswers.sleepResistance === 'hard') {
       score -= 30;
       latencyText = '✓ Uykuya dalma süresi: <strong>60+ dk ➔ 15 dk</strong> (MışılSpot™ uyanıklık penceresiyle)';
     } else if (quizAnswers.sleepResistance === 'medium') {
-      score -= 18;
+      score -= 16;
       latencyText = '✓ Uykuya dalma süresi: <strong>35-45 dk ➔ 12 dk</strong> (Ritmik yatıştırıcı seslerle)';
-    } else {
-      score -= 5;
-      latencyText = '✓ Uykuya dalma süresi: <strong>20 dk ➔ 8 dk</strong> (Huzurlu yatak geçişi)';
+    } else if (quizAnswers.sleepResistance === 'fast') {
+      score += 4;
+      latencyText = '✓ Uykuya dalma süresi: <strong>10-15 dk ➔ 6-8 dk</strong> (Hafif pışpış desteğiyle)';
+    } else if (quizAnswers.sleepResistance === 'easy') {
+      score += 12;
+      latencyText = '✓ Uykuya dalma süresi: <strong>5-10 dk (Harika Düzen)</strong> — Sakin kendi kendine dalış korunur';
     }
 
     // 2. Gece Uyanma Dinamik Hedefi
     if (quizAnswers.nightWakes === 'high') {
-      score -= 25;
-      wakesText = '✓ Gece uyanması: <strong>5-6 kez ➔ 1-2 kez</strong> (Kesintisiz beslenme bloku)';
-      descText = '🚨 Şiddetli Sirkadiyen Bölünme & Destek Bağımlılığı';
+      score -= 24;
+      wakesText = '✓ Gece uyanması: <strong>5+ kez ➔ 1-2 kez</strong> (Kesintisiz beslenme bloku)';
+      descText = '🚨 Şiddetli Sirkadiyen Bölünme & Destek Arayışı';
     } else if (quizAnswers.nightWakes === 'mid') {
-      score -= 15;
+      score -= 14;
       wakesText = '✓ Gece uyanması: <strong>3-4 kez ➔ 1 kez</strong> (Rüya öğünü ile)';
       descText = '⚠️ Aşırı Yorgunluk & Erken Uyanma Riski';
-    } else {
-      score -= 5;
+    } else if (quizAnswers.nightWakes === 'low') {
+      score += 4;
       wakesText = '✓ Gece uyanması: <strong>1-2 kez ➔ 0-1 kez</strong> (Deliksiz gece uykusu)';
-      descText = '🌿 Dengeli Ritim & Koruma Modu';
+      descText = '🌿 Dengeli Ritim & Sağlıklı Beslenme Aralığı';
+    } else if (quizAnswers.nightWakes === 'none') {
+      score += 14;
+      wakesText = '✓ Gece uyanması: <strong>0-1 kez (Deliksiz Ritim)</strong> — Biyolojik gece uykusu harika';
+      descText = '🌟 Güçlü Biyolojik Ritim & Mükemmel Uyku Altyapısı';
     }
 
-    // 3. Bebeğin Yaşı ve Sıçrama/Regresyon Analizi
+    // 3. Öncelikli Odak Alanı & Klinik Yönlendirme
+    if (quizAnswers.struggleArea === 'routine') {
+      extraText = '✓ MışılSpot™ sirkadiyen saatlerle biyolojik uyku penceresi koruması';
+    } else if (quizAnswers.struggleArea === 'growth') {
+      extraText = '✓ BabySteps™ ile 10 zihinsel sıçrama & motor beceri takibi';
+    } else if (quizAnswers.struggleArea === 'cry') {
+      extraText = '✓ 13 bant MFCC akustik bebek ağlama analizi ve açlık/gaz ayrımı';
+    } else {
+      extraText = '✓ MışılSpot™ ve 18 stüdyo sesiyle sıfır dirençli uyku geçişi';
+    }
+
+    // 4. Bebeğin Yaşı ve Sıçrama/Regresyon Analizi
     const bdate = quizAnswers.babyBdate || localStorage.getItem('mishil_baby_bdate');
     if (bdate) {
       const bObj = new Date(bdate);
@@ -4486,7 +4529,8 @@
       }
     }
 
-    score = Math.max(28, Math.min(score, 92));
+    score = Math.max(35, Math.min(score, 98));
+    localStorage.setItem('mishil_baseline_quiz_score', String(score));
 
     const name = quizAnswers.babyName || 'Bebeğiniz';
     const titleEl = document.getElementById('report-baby-title');
@@ -4511,11 +4555,16 @@
   // =========================================================================
   let storeWatchdogTimer = null;
 
-  function resetPurchaseButtons() {
+  function clearStoreWatchdog() {
     if (storeWatchdogTimer) {
       clearTimeout(storeWatchdogTimer);
       storeWatchdogTimer = null;
     }
+  }
+  window.clearStoreWatchdog = clearStoreWatchdog;
+
+  function resetPurchaseButtons() {
+    clearStoreWatchdog();
     const btnOnboarding = document.getElementById('btn-onboarding-pro');
     if (btnOnboarding) {
       btnOnboarding.disabled = false;
@@ -4554,7 +4603,7 @@
       btn.innerHTML = '🔄 Mağaza Açılıyor...';
     }
 
-    if (storeWatchdogTimer) clearTimeout(storeWatchdogTimer);
+    clearStoreWatchdog();
     storeWatchdogTimer = setTimeout(() => {
       resetPurchaseButtons();
       showToast('⚠️ Mağaza satın alma penceresi açılamadı. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.');
@@ -4567,11 +4616,22 @@
       return; // IAP tamamlanınca native bridge onSubscriptionResult() çağıracak
     }
 
-    // Web önizleme modu:
+    // Web / Test / Önizleme modu:
     setTimeout(() => {
+      clearStoreWatchdog();
       resetPurchaseButtons();
-      showToast('ℹ️ Web önizleme modundasınız. Abonelik işlemleri mobil uygulamada App Store / Google Play üzerinden yürütülür.');
-    }, 1000);
+      localStorage.setItem('mishil_subscription_active', 'true');
+      localStorage.setItem('mishil_trial_start', new Date().toISOString());
+      localStorage.setItem('mishil_onboarding_completed', 'true');
+
+      const screen = document.getElementById('screen-onboarding');
+      if (screen) screen.classList.remove('active');
+
+      loadBabyProfile();
+      renderAllViews();
+      updateSubscriptionStatusUI();
+      showToast('🎉 7 Günlük Ücretsiz Deneme başlatıldı! Hoş geldiniz.');
+    }, 500);
   }
 
   // =========================================================================
@@ -4601,8 +4661,10 @@
 
   function skipOnboardingToApp() {
     hapticPulse();
+    clearStoreWatchdog();
     // Profil bilgilerini güvenle kalıcı hafızaya aktar
     commitOnboardingProfile();
+    localStorage.setItem('mishil_onboarding_completed', 'true');
 
     const screen = document.getElementById('screen-onboarding');
     if (screen) screen.classList.remove('active');
@@ -5301,7 +5363,7 @@
       btn.innerHTML = '🔄 Mağaza Açılıyor...';
     }
 
-    if (storeWatchdogTimer) clearTimeout(storeWatchdogTimer);
+    clearStoreWatchdog();
     storeWatchdogTimer = setTimeout(() => {
       resetPurchaseButtons();
       showToast('⚠️ Mağaza satın alma penceresi açılamadı. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.');
@@ -5312,6 +5374,7 @@
       // IAP tamamlanınca native köprü onSubscriptionResult() veya onPurchaseError() çağırır.
     } else {
       setTimeout(() => {
+        clearStoreWatchdog();
         resetPurchaseButtons();
         showToast('ℹ️ Web önizleme modundasınız. Abonelik işlemleri mobil uygulamada App Store / Google Play üzerinden yürütülür.');
       }, 1000);
@@ -6007,16 +6070,38 @@
     const leapScore = isStorm ? 90 : 98;
 
     // Ağırlıklı Toplam Skor (MHGE)
-    const finalScore = Math.round(
+    const calculatedScore = Math.round(
       (sleepBudgetScore * 0.40) + 
       (sweetspotScore * 0.30) + 
       (balanceScore * 0.15) + 
       (leapScore * 0.15)
     );
 
+    // Kademeli Başlangıç Skoru Harmanlama Protokolü (Score Blending):
+    // 0 rutin varken %100 anket skoru temel alınır.
+    // 1-2 rutin varken sert sıçramayı önlemek için %60 anket + %40 gerçek rutinler harmanlanır.
+    // 3+ rutin girildiğinde skor tamamen gerçek biyolojik verilere bağlanır.
+    const savedBaseline = parseInt(localStorage.getItem('mishil_baseline_quiz_score') || '0', 10);
+    const baselineScore = (savedBaseline >= 35 && savedBaseline <= 100) ? savedBaseline : 85;
+
+    let finalScore = calculatedScore;
+    if (dayRoutines.length === 0) {
+      finalScore = baselineScore;
+    } else if (dayRoutines.length < 3) {
+      finalScore = Math.round((baselineScore * 0.60) + (calculatedScore * 0.40));
+    }
+
     // Akıllı Klinik Tavsiye Rehberliği
     let advice = '';
-    if (finalScore >= 90) {
+    if (dayRoutines.length === 0) {
+      if (finalScore >= 90) {
+        advice = '🌟 Harika Başlangıç • Anket verilerinize göre bebeğinizin uyku ritmi ve sirkadiyen dengesi çok sağlıklı.';
+      } else if (finalScore >= 75) {
+        advice = '🌙 Dengeli Başlangıç • İlk rutinlerinizi girdikçe MışılSpot canlı tahminleme güçlenecektir.';
+      } else {
+        advice = '🌱 İyileştirme Fırsatı • İlk uykuyu MışılSpot penceresinde kaydederek uyku direncini düşürmeye başlayın.';
+      }
+    } else if (finalScore >= 90) {
       advice = '🌟 Kusursuz Biyolojik Ritim • Bebeğiniz MışılSpot pencerelerinde ağlamadan uykuya dalıyor.';
     } else if (finalScore >= 75) {
       advice = '🌙 Dengeli ve Sağlıklı • MışılSpot saatine 15 dk daha sadık kalarak %95 üzerine çıkabilirsiniz.';

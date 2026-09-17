@@ -353,13 +353,19 @@ export default function MishilUnifiedWebView() {
     webviewRef.current?.injectJavaScript(`
       (function() {
         try {
+          if (typeof window.clearStoreWatchdog === 'function') window.clearStoreWatchdog();
+          else if (window.storeWatchdogTimer) { clearTimeout(window.storeWatchdogTimer); window.storeWatchdogTimer = null; }
+          if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
+          if (typeof commitOnboardingProfile === 'function') commitOnboardingProfile();
           localStorage.setItem('mishil_onboarding_completed', 'true');
           localStorage.setItem('mishil_subscription_active', 'true');
+          localStorage.setItem('mishil_trial_start', new Date().toISOString());
           ${planLine}
           var screen = document.getElementById('screen-onboarding');
           if (screen) screen.classList.remove('active');
           var renewalModal = document.getElementById('vip-renewal-modal');
           if (renewalModal) renewalModal.classList.remove('active');
+          if (typeof loadBabyProfile === 'function') loadBabyProfile();
           if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
           if (typeof renderAllViews === 'function') renderAllViews();
           typeof showToast === 'function' && showToast('${safe}');
@@ -415,6 +421,7 @@ export default function MishilUnifiedWebView() {
             // Kullanıcı iptal etti — web butonunu ve durumunu sıfırla
             webviewRef.current?.injectJavaScript(`
               (function() {
+                if (typeof window.clearStoreWatchdog === 'function') window.clearStoreWatchdog();
                 if (window.MishilNative && typeof window.MishilNative.onPurchaseError === 'function') {
                   window.MishilNative.onPurchaseError();
                 } else if (typeof resetPurchaseButtons === 'function') {
@@ -432,6 +439,7 @@ export default function MishilUnifiedWebView() {
             
             webviewRef.current?.injectJavaScript(`
               (function() {
+                if (typeof window.clearStoreWatchdog === 'function') window.clearStoreWatchdog();
                 if (window.MishilNative && typeof window.MishilNative.onPurchaseError === 'function') {
                   window.MishilNative.onPurchaseError('${errorMsg}');
                 } else {
