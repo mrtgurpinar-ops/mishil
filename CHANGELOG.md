@@ -2,6 +2,21 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.34.0] - 2026-09-17
+### 🛡️ iOS Kalıcı Veri & Onboarding Sıfırlanma Çözümü, WKWebsiteDataStore Kalıcı Disk & AsyncStorage Savunma Köprüsü (Build 47)
+
+1. **iOS WebKit RAM-Only nonPersistentDataStore Kilidinin Kaldırılması:**
+   - `MishilUnifiedWebView.tsx` içinde `cacheEnabled={false}` parametresinin `sharedCookiesEnabled={true}` ile birleştiğinde iOS WebKit tarafında `RNCWebViewImpl.m:1781` satırındaki `!_cacheEnabled` koşulunu tetikleyerek `websiteDataStore`'u zorla RAM-only moduna (`nonPersistentDataStore` / gizli sekme) sokması hatası giderildi.
+   - `cacheEnabled={true}` yapılarak iOS WebKit `defaultDataStore` (kalıcı disk) moduna geçirildi; sürüm önbellek yönetimi (cache-busting) zaten URL parametresi (`?v=${APP_VERSION}_b${APP_BUILD}`) ile sağlandığı için hiçbir risk doğmadan kalıcı depolama garanti altına alındı.
+   - Uygulama arka plandan kapatılıp (kill / swipe-up) saniyeler içinde tekrar açılsa dahi bebek adı ve onboarding durumunun silinmesi kökten çözüldü.
+
+2. **Native AsyncStorage Çift Katmanlı Savunma Köprüsü (Multi-Layer Storage):**
+   - Bebek profili (`babyName`, `babyBdate`, `userRole`, `userName`) ve `mishil_onboarding_completed` durumu, webview Adım 1'i geçtiği ve abonelik tamamlandığı an native köprü (`SAVE_PROFILE`, `ONBOARDING_COMPLETED`) üzerinden iPhone/Android'in yerel diski `AsyncStorage`'a yazıldı.
+   - Uygulama her açıldığında `onLoad` anında `hydrateWebViewStorage()` fonksiyonu çalışarak yerel diskteki profil bilgilerini WebView `localStorage`'ına otomatik enjekte edecek (`hydrate`) mimari kuruldu.
+
+3. **Web Onboarding Girdi Koruması (Input Hydration):**
+   - `initOnboardingInputs()` fonksiyonu eklenerek, hafızada kayıtlı bebek bilgisi varsa Adım 1 anket alanlarına otomatik basılması ve tamamlanmış profillerin doğrudan ana ekrana geçmesi sağlandı.
+
 ## [4.33.0] - 2026-09-17
 ### 🛡️ Sıfır Sahte Hata, Kusursuz Profil Kalıcılığı, Pozitif Anket & Dinamik Skor Yumuşatma (Build 46)
 

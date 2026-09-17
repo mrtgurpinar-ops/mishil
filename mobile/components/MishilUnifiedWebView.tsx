@@ -15,6 +15,7 @@ import {
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import * as Haptics from 'expo-haptics';
 import Constants from 'expo-constants';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initRevenueCat, purchasePackage, restorePurchases, getOfferings, hasActiveEntitlement, PRO_ENTITLEMENT_ID } from '../features/subscription/revenuecat';
 import * as nativeAudio from '../features/audio/nativeAudioPlayer';
 import { OFFLINE_HTML } from '../features/webview/offlineHtml.generated';
@@ -210,14 +211,57 @@ export default function MishilUnifiedWebView() {
     return () => sub.remove();
   }, [syncEntitlementToWebView]);
 
+  // AsyncStorage'dan profil ve onboarding durumunu WebView localStorage'ına hidrate et (Çift Katmanlı Koruma)
+  const hydrateWebViewStorage = useCallback(async () => {
+    try {
+      const [[, rawProfile], [, rawOnboarding], [, rawPlan]] = await AsyncStorage.multiGet([
+        '@mishil_baby_profile',
+        '@mishil_onboarding_completed',
+        '@mishil_subscription_plan',
+      ]);
+
+      if (rawProfile || rawOnboarding === 'true') {
+        let pObj: any = null;
+        try { pObj = rawProfile ? JSON.parse(rawProfile) : null; } catch {}
+        const nameVal = pObj?.babyName ? String(pObj.babyName).replace(/[`\\$]/g, '') : '';
+        const bdateVal = pObj?.babyBdate ? String(pObj.babyBdate).replace(/[`\\$]/g, '') : '';
+        const roleVal = pObj?.userRole ? String(pObj.userRole).replace(/[`\\$]/g, '') : '';
+        const uNameVal = pObj?.userName ? String(pObj.userName).replace(/[`\\$]/g, '') : '';
+        const planVal = rawPlan ? String(rawPlan).replace(/[^a-z]/gi, '') : '';
+
+        const script = `
+          (function() {
+            try {
+              var modified = false;
+              ${nameVal ? `if (!localStorage.getItem('mishil_baby_name')) { localStorage.setItem('mishil_baby_name', '${nameVal}'); modified = true; }` : ''}
+              ${bdateVal ? `if (!localStorage.getItem('mishil_baby_bdate')) { localStorage.setItem('mishil_baby_bdate', '${bdateVal}'); modified = true; }` : ''}
+              ${roleVal ? `if (!localStorage.getItem('mishil_user_role')) { localStorage.setItem('mishil_user_role', '${roleVal}'); modified = true; }` : ''}
+              ${uNameVal ? `if (!localStorage.getItem('mishil_user_name')) { localStorage.setItem('mishil_user_name', '${uNameVal}'); modified = true; }` : ''}
+              ${rawOnboarding === 'true' ? `if (!localStorage.getItem('mishil_onboarding_completed')) { localStorage.setItem('mishil_onboarding_completed', 'true'); modified = true; }` : ''}
+              ${planVal ? `if (!localStorage.getItem('mishil_subscription_plan')) { localStorage.setItem('mishil_subscription_plan', '${planVal}'); modified = true; }` : ''}
+              if (modified) {
+                if (typeof checkOnboardingState === 'function') checkOnboardingState();
+                if (typeof loadBabyProfile === 'function') loadBabyProfile();
+                if (typeof renderAllViews === 'function') renderAllViews();
+              }
+            } catch (e) {}
+            true;
+          })();
+        `;
+        webviewRef.current?.injectJavaScript(script);
+      }
+    } catch (e) {
+      // Sessiz geç
+    }
+  }, []);
+
   // Yalnızca BAŞARILI yükleme — hata sonrası tetiklenmez (onLoadEnd aksine)
   const onLoad = useCallback(() => {
     clearTimers();
     retryCountRef.current = 0;
     setStatus('ready');
-    // Native olduğumuzu web tarafına bildir.
-    // Abonelik durumu app.html içinde zaten localStorage'dan okunuyor; her açılışta
-    // SUBSCRIPTION_RESULT event'i tetiklemek gereksiz toast'a yol açtığı için kaldırıldı.
+    // Native olduğumuzu web tarafına bildir ve yerel AsyncStorage'daki verileri hidrate et
+    void hydrateWebViewStorage();
     webviewRef.current?.injectJavaScript(`
       (function() {
         if (window.MishilNative) {
@@ -350,6 +394,10 @@ export default function MishilUnifiedWebView() {
     const planLine = plan
       ? `localStorage.setItem('mishil_subscription_plan', '${String(plan).replace(/[^a-z]/gi, '')}');`
       : '';
+    // Native kalıcı depoya da yaz (Çift Katmanlı Koruma)
+    void AsyncStorage.setItem('@mishil_onboarding_completed', 'true');
+    if (plan) void AsyncStorage.setItem('@mishil_subscription_plan', String(plan));
+
     webviewRef.current?.injectJavaScript(`
       (function() {
         try {
@@ -381,6 +429,16 @@ export default function MishilUnifiedWebView() {
       const msg = JSON.parse(event.nativeEvent.data);
 
       switch (msg.type) {
+        case 'SAVE_PROFILE':
+          if (msg.payload) {
+            void AsyncStorage.setItem('@mishil_baby_profile', JSON.stringify(msg.payload));
+          }
+          break;
+
+        case 'ONBOARDING_COMPLETED':
+          void AsyncStorage.setItem('@mishil_onboarding_completed', 'true');
+          break;
+
         case 'HAPTIC':
           await triggerHaptic(msg.level || 'light');
           break;
@@ -558,7 +616,7 @@ export default function MishilUnifiedWebView() {
         domStorageEnabled
         thirdPartyCookiesEnabled
         sharedCookiesEnabled
-        cacheEnabled={false}
+        cacheEnabled={true}
         cacheMode="LOAD_NO_CACHE"
         mixedContentMode="never"
 

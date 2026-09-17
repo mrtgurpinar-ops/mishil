@@ -3523,7 +3523,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.33.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.34.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -3540,7 +3540,12 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.33.0', date: '17 Eylül 2026', latest: true, items: [
+    { v: '4.34.0', date: '17 Eylül 2026', latest: true, items: [
+      'iOS Kalıcı Veri & Onboarding Sıfırlanma Çözümü: iOS WebKit WKWebsiteDataStore RAM-only modu (nonPersistentDataStore) kalıcı diske (defaultDataStore) geçirildi; uygulama kapatılıp (kill/swipe-up) açılsa dahi bebek adı ve onboarding durumunun silinmesi kökten engellendi.',
+      'Native AsyncStorage Çift Katmanlı Savunma Köprüsü: Bebek profili ve onboarding durumu Adım 1 geçildiği ve abonelik alındığı an native diske de yazılacak şekilde güçlendirildi; açılışta web storage otomatik hidrate ediliyor.',
+      'Onboarding Girdi Koruması: Kayıtlı profil varsa anket inputları (bebek adı, doğum tarihi) otomatik doldurulacak ve abonelik varsa anket doğrudan atlanacak şekilde korundu.'
+    ]},
+    { v: '4.33.0', date: '17 Eylül 2026', items: [
       'Sıfır Sahte İnternet Uyarısı & Watchdog Yaşam Döngüsü: Satın alma ve deneme başlatıldıktan sonra arkada kalan 6 saniyelik zamanlayıcının ekrana sahte internet hatası basması kökten çözüldü; clearStoreWatchdog mimarisi entegre edildi.',
       'Web & Mobil Onboarding Kalıcılık Mührü: Deneme başlatıldığı an profil, abonelik ve deneme başlangıç bilgileri diske mühürlendi; sayfa yenilendiğinde veya uygulama kapatılıp açıldığında başa sarma sorunu giderildi.',
       'Pozitif & Yapıcı Anket Deneyimi: Onboarding anketindeki salt olumsuz kriz şıkları yerine rahat uyuyan, deliksiz uyuyan veya sadece gelişim takibi yapmak isteyen ebeveynler için yapıcı seçenekler eklendi; 4. soru "Bebeğinizin gelişiminde öncelikli odağınız nedir?" olarak yapılandırıldı.',
@@ -4194,12 +4199,37 @@
   // =========================================================================
   let quizAnswers = { babyName: '', babyBdate: '', sleepResistance: 'fast', nightWakes: 'low', struggleArea: 'routine' };
 
+  function initOnboardingInputs() {
+    try {
+      const nm = localStorage.getItem('mishil_baby_name');
+      const bd = localStorage.getItem('mishil_baby_bdate');
+      const pName = localStorage.getItem('mishil_user_name');
+      const pRole = localStorage.getItem('mishil_user_role');
+
+      const nmInput = document.getElementById('quiz-baby-name');
+      const bdInput = document.getElementById('quiz-baby-bdate');
+      const pnInput = document.getElementById('quiz-parent-name');
+
+      if (nmInput && !nmInput.value && nm) nmInput.value = nm;
+      if (bdInput && !bdInput.value && bd) bdInput.value = bd;
+      if (pnInput && !pnInput.value && pName) pnInput.value = pName;
+
+      if (pRole) {
+        selectedParentRole = pRole;
+        document.querySelectorAll('.role-chip').forEach(c => {
+          if (c.getAttribute('data-role') === pRole || (pRole === 'father' && c.textContent.includes('Baba')) || (pRole === 'mother' && c.textContent.includes('Anne'))) {
+            c.classList.add('active');
+          }
+        });
+      }
+    } catch (e) {}
+  }
+
   function checkOnboardingState() {
     const isSubscribed = localStorage.getItem('mishil_subscription_active') === 'true';
     const isCompleted = localStorage.getItem('mishil_onboarding_completed') === 'true';
     const babyName = localStorage.getItem('mishil_baby_name');
-    const babyBdate = localStorage.getItem('mishil_baby_bdate');
-    const hasProfile = !!(babyName && babyBdate);
+    const hasProfile = !!(babyName && babyName.trim().length > 0);
 
     const screenEl = document.getElementById('screen-onboarding');
     if (!screenEl) return;
@@ -4207,17 +4237,18 @@
     // SIFIR SIZMA KURALI:
     // Ana ekrana geçiş YALNIZCA kullanıcı aktif aboneyse veya süreci açıkça tamamladıysa
     // VE geçerli bir bebek profili varsa mümkündür.
-    // Kullanıcı Adım 1, 2, 3 veya 5'teyken uygulamayı kapatıp açsa BİLE,
-    // tamamlanmadığı sürece ASLA ana ekrana geçilemez; onboarding açık kalır!
     if ((isSubscribed || isCompleted) && hasProfile) {
       screenEl.classList.remove('active');
       return;
     }
 
-    // Henüz tamamlanmadı -> ekranda kesin kilitli tut
+    // Henüz tamamlanmadı -> inputları hafızadan besle ve kilitli tut
+    initOnboardingInputs();
     screenEl.classList.add('active');
   }
   checkOnboardingState();
+  window.checkOnboardingState = checkOnboardingState;
+  window.initOnboardingInputs = initOnboardingInputs;
 
   let selectedParentRole = 'mother';
 
@@ -4246,6 +4277,19 @@
     localStorage.setItem('mishil_user_role', pRole);
     localStorage.setItem('mishil_user_name', pName);
     localStorage.setItem('mishil_onboarding_completed', 'true');
+
+    // Native iOS/Android köprüsüne doğrudan bildir (Kalıcı AsyncStorage)
+    if (window.ReactNativeWebView) {
+      try {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'SAVE_PROFILE',
+          payload: { babyName: nm, babyBdate: bd, userRole: pRole, userName: pName }
+        }));
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'ONBOARDING_COMPLETED'
+        }));
+      } catch (e) {}
+    }
 
     // Aile üyeleri listesini kullanıcının gerçek rolüyle başlat
     let members = getFamilyMembers();
@@ -4311,6 +4355,16 @@
       localStorage.setItem('mishil_baby_bdate', bd);
       localStorage.setItem('mishil_user_role', selectedParentRole);
       localStorage.setItem('mishil_user_name', pName);
+
+      // Native köprüye anında gönder (Adım 1 tamamlandığı anda diske yazılır)
+      if (window.ReactNativeWebView) {
+        try {
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'SAVE_PROFILE',
+            payload: { babyName: nm, babyBdate: bd, userRole: selectedParentRole, userName: pName }
+          }));
+        } catch (e) {}
+      }
     }
     document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
     document.getElementById(`quiz-step-${stepNum}`).style.display = 'block';
