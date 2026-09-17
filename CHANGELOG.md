@@ -2,6 +2,22 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.35.0] - 2026-09-17
+### ⚡ Kör Watchdog Sayaçlarının Kaldırılması, PurchaseInFlight Mutex & Event-Driven IAP Mimarisi (Build 48)
+
+1. **Kör setTimeout Watchdog Sayaçlarının Kaldırılması:**
+   - Web tarafında (`app.html`) mağaza penceresinin açılıp açılmadığını tahmin etmeye çalışan tüm kör 6 ve 20 saniyelik `storeWatchdogTimer` sayaçları tamamen temizlendi.
+   - Mağaza durumları telefonun kendi native olaylarına (`onPurchaseStarted`, `onPurchaseSuccess`, `onPurchaseCancelled`, `onPurchaseError`) bağlandı; Face ID veya Apple ID onaylama gecikmelerinde patlayan sahte *"internet bağlantınızı kontrol edin"* uyarısı kökten yok edildi.
+
+2. **Native İşlem Kilidi (Purchase Mutex) & Sıfır Yarış Durumu:**
+   - `MishilUnifiedWebView.tsx` içine `isPurchaseInProgressRef` işlem kilidi kuruldu. Satın alma penceresi açılıp kapanırken iOS'un tetiklediği `AppState.active` olaylarının araya girip StoreKit sonucu dönmeden aboneliği geçici olarak `false` yapması ve kullanıcıyı Mışıl Dadı sekmesinden kovması engellendi.
+
+3. **Sessiz ve Zarif İptal Akışı:**
+   - Kullanıcı Apple/Google ödeme penceresini kapattığında veya vazgeçtiğinde hata mesajı basma davranışı kaldırıldı; butonlar sessizce normale dönüyor.
+
+4. **RevenueCat Reaktif Listener & Aile Eşitlemesi:**
+   - `Purchases.addCustomerInfoUpdateListener` ile lisans değişimleri reaktif bağlandı; aile eşleştirmesinde eksik kalan plan bilgisi onarıldı.
+
 ## [4.34.0] - 2026-09-17
 ### 🛡️ iOS Kalıcı Veri & Onboarding Sıfırlanma Çözümü, WKWebsiteDataStore Kalıcı Disk & AsyncStorage Savunma Köprüsü (Build 47)
 

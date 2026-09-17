@@ -70,6 +70,8 @@ export default function MishilUnifiedWebView() {
   const autoRetryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const watchdogTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Satın alma akışı devam ederken arka plan kontrollerinin araya girip lisansı ezmesini önleyen işlem kilidi
+  const isPurchaseInProgressRef = useRef(false);
 
   const clearTimers = () => {
     if (autoRetryTimer.current) { clearTimeout(autoRetryTimer.current); autoRetryTimer.current = null; }
@@ -168,9 +170,9 @@ export default function MishilUnifiedWebView() {
 
   // ADIM 4 — Native tarafta CANLI lisans doğrulaması.
   // RevenueCat customerInfo'daki gerçek hak durumunu WebView localStorage'ına yazar.
-  // Aktifse Pro açık; süresi dolmuş/iptal ise Pro kilitlenir. Bebek adı/verisine
-  // (mishil_baby_name / mishil_baby_bdate) KESİNLİKLE dokunmaz.
+  // Satın alma sheet'i açıkken veya işlem devam ederken (isPurchaseInProgressRef) KESİNLİKLE çalışmaz!
   const syncEntitlementToWebView = useCallback(async () => {
+    if (isPurchaseInProgressRef.current) return;
     try {
       const ready = await initRevenueCat();
       if (!ready) return; // anahtarsız / mock mod — abonelik bayrağını değiştirme
@@ -202,14 +204,56 @@ export default function MishilUnifiedWebView() {
     }
   }, []);
 
-  // ADIM 4 — uygulama ön plana geldiğinde canlı lisans doğrulamasını tekrarla
-  // (abonelik başka cihazda iptal/yenilenmiş olabilir).
+  // Uygulama ön plana geldiğinde canlı lisans doğrulaması (Satın alma sürerken ezmeyi engeller)
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
-      if (next === 'active') void syncEntitlementToWebView();
+      if (next === 'active' && !isPurchaseInProgressRef.current) {
+        void syncEntitlementToWebView();
+      }
     });
     return () => sub.remove();
   }, [syncEntitlementToWebView]);
+
+  // RevenueCat resmi event dinleyicisi: Dekont veya abonelik değiştiğinde reaktif senkronizasyon
+  useEffect(() => {
+    let listener: ((info: any) => void) | null = null;
+    let purchasesModule: any = null;
+
+    (async () => {
+      try {
+        const ready = await initRevenueCat();
+        if (!ready) return;
+        purchasesModule = require('react-native-purchases').default;
+        listener = (customerInfo: any) => {
+          if (isPurchaseInProgressRef.current) return;
+          const active = hasActiveEntitlement(customerInfo);
+          const detectedPlan = active ? getPlanFromCustomerInfo(customerInfo) : null;
+          const planLine = detectedPlan
+            ? `localStorage.setItem('mishil_subscription_plan', '${detectedPlan}');`
+            : '';
+          webviewRef.current?.injectJavaScript(`
+            (function() {
+              try {
+                localStorage.setItem('mishil_subscription_active', '${active ? 'true' : 'false'}');
+                ${planLine}
+                if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
+              } catch (e) {}
+              true;
+            })();
+          `);
+        };
+        purchasesModule.addCustomerInfoUpdateListener(listener);
+      } catch (e) {}
+    })();
+
+    return () => {
+      if (listener && purchasesModule && typeof purchasesModule.removeCustomerInfoUpdateListener === 'function') {
+        try {
+          purchasesModule.removeCustomerInfoUpdateListener(listener);
+        } catch (e) {}
+      }
+    };
+  }, []);
 
   // AsyncStorage'dan profil ve onboarding durumunu WebView localStorage'ına hidrate et (Çift Katmanlı Koruma)
   const hydrateWebViewStorage = useCallback(async () => {
@@ -396,6 +440,8 @@ export default function MishilUnifiedWebView() {
       : '';
     // Native kalıcı depoya da yaz (Çift Katmanlı Koruma)
     void AsyncStorage.setItem('@mishil_onboarding_completed', 'true');
+    void AsyncStorage.setItem('@mishil_subscription_active', 'true');
+    void AsyncStorage.setItem('@mishil_trial_start', new Date().toISOString());
     if (plan) void AsyncStorage.setItem('@mishil_subscription_plan', String(plan));
 
     webviewRef.current?.injectJavaScript(`
@@ -463,50 +509,86 @@ export default function MishilUnifiedWebView() {
           break;
 
         case 'PURCHASE_PACKAGE': {
-          // Google Play / App Store IAP başlat
-          const plan = msg.plan || 'monthly';
-          const offerings = await getOfferings();
-          const pkg = offerings.find(o =>
-            plan === 'yearly' ? o.packageType === 'ANNUAL' : o.packageType === 'MONTHLY'
-          );
+          isPurchaseInProgressRef.current = true;
+          // Web tarafına satın almanın native tarafta başladığını bildir
+          webviewRef.current?.injectJavaScript(`
+            (function() {
+              if (window.MishilNative && typeof window.MishilNative.onPurchaseStarted === 'function') {
+                window.MishilNative.onPurchaseStarted();
+              }
+              true;
+            })();
+          `);
 
-          const result = await purchasePackage(pkg?.identifier || plan, pkg?.rawPackage);
+          try {
+            const plan = msg.plan || 'monthly';
+            const offerings = await getOfferings();
+            const pkg = offerings.find(o =>
+              plan === 'yearly' ? o.packageType === 'ANNUAL' : o.packageType === 'MONTHLY'
+            );
 
-          if (result.success && result.isActive) {
-            // Yalnızca GERÇEKTEN aktif hak varsa VIP'yi aç
-            grantProInWebView(plan, '🎉 Mışıl VIP aktif edildi!');
-          } else if (result.cancelled) {
-            // Kullanıcı iptal etti — web butonunu ve durumunu sıfırla
-            webviewRef.current?.injectJavaScript(`
-              (function() {
-                if (typeof window.clearStoreWatchdog === 'function') window.clearStoreWatchdog();
-                if (window.MishilNative && typeof window.MishilNative.onPurchaseError === 'function') {
-                  window.MishilNative.onPurchaseError();
-                } else if (typeof resetPurchaseButtons === 'function') {
-                  resetPurchaseButtons();
+            let result = await purchasePackage(pkg?.identifier || plan, pkg?.rawPackage);
+
+            // StoreKit Sandbox gecikmesi durumunda kısa bir retry sorgulaması (1.5 sn sonra)
+            if (result.success && !result.isActive) {
+              try {
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                const Purchases = require('react-native-purchases').default;
+                const info = await Purchases.getCustomerInfo();
+                if (hasActiveEntitlement(info)) {
+                  result = { success: true, isActive: true };
                 }
-                true;
-              })();
-            `);
-          } else {
-            console.warn('[Purchase] Satın alma başarısız veya paket yok:', result.error);
-            const isIOS = Platform.OS === 'ios';
-            const errorMsg = isIOS
-              ? '⚠️ Apple StoreKit bağlantısı sağlanamadı. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.'
-              : '⚠️ Mağaza satın alma işlemi tamamlanamadı. Lütfen internet bağlantınızı kontrol edip tekrar deneyiniz.';
-            
-            webviewRef.current?.injectJavaScript(`
-              (function() {
-                if (typeof window.clearStoreWatchdog === 'function') window.clearStoreWatchdog();
-                if (window.MishilNative && typeof window.MishilNative.onPurchaseError === 'function') {
-                  window.MishilNative.onPurchaseError('${errorMsg}');
-                } else {
-                  if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
-                  if (typeof showToast === 'function') showToast('${errorMsg}');
-                }
-                true;
-              })();
-            `);
+              } catch (retryErr) {}
+            }
+
+            if (result.success && result.isActive) {
+              // Yalnızca GERÇEKTEN aktif hak varsa VIP'yi aç
+              grantProInWebView(plan, '🎉 Mışıl VIP aktif edildi!');
+              webviewRef.current?.injectJavaScript(`
+                (function() {
+                  if (window.MishilNative && typeof window.MishilNative.onPurchaseSuccess === 'function') {
+                    window.MishilNative.onPurchaseSuccess({ plan: '${plan}' });
+                  }
+                  true;
+                })();
+              `);
+            } else if (result.cancelled) {
+              // Kullanıcı ödeme penceresini kapattı veya vazgeçti — sıfır sahte hata, butonu sessizce normale döndür
+              webviewRef.current?.injectJavaScript(`
+                (function() {
+                  if (window.MishilNative && typeof window.MishilNative.onPurchaseCancelled === 'function') {
+                    window.MishilNative.onPurchaseCancelled();
+                  } else if (typeof resetPurchaseButtons === 'function') {
+                    resetPurchaseButtons();
+                  }
+                  true;
+                })();
+              `);
+            } else {
+              console.warn('[Purchase] Satın alma tamamlanamadı:', result.error);
+              const isIOS = Platform.OS === 'ios';
+              let errorMsg = '⚠️ Satın alma işlemi tamamlanamadı. Lütfen tekrar deneyiniz.';
+              if (result.error === 'no_package') {
+                errorMsg = '⚠️ Mağaza paketi hazırlanıyor, lütfen birkaç saniye sonra tekrar deneyiniz.';
+              } else if (isIOS) {
+                errorMsg = '⚠️ Apple StoreKit işlemi tamamlanamadı. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.';
+              }
+
+              webviewRef.current?.injectJavaScript(`
+                (function() {
+                  if (window.MishilNative && typeof window.MishilNative.onPurchaseError === 'function') {
+                    window.MishilNative.onPurchaseError('${errorMsg}');
+                  } else {
+                    if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
+                    if (typeof showToast === 'function') showToast('${errorMsg}');
+                  }
+                  true;
+                })();
+              `);
+            }
+          } finally {
+            // İşlem bittiğinde kilidi kaldır, AppState artık güvenle çalışabilir
+            isPurchaseInProgressRef.current = false;
           }
           break;
         }

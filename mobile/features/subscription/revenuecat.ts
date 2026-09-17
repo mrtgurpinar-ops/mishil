@@ -95,8 +95,7 @@ export const hasActiveEntitlement = (customerInfo: any): boolean => {
   const activeSubs = Array.isArray(customerInfo.activeSubscriptions)
     ? customerInfo.activeSubscriptions
     : [];
-  const nonSubs = customerInfo.nonSubscriptionTransactions?.length || 0;
-  return activeEntitlements.length > 0 || activeSubs.length > 0 || nonSubs > 0;
+  return activeEntitlements.length > 0 || activeSubs.length > 0;
 };
 
 export const getOfferings = async (): Promise<PackageOffer[]> => {
