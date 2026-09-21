@@ -2,6 +2,23 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.35.1] - 2026-09-21
+### 🤖 Google Play Billing Senkronizasyonu, RevenueCat Android Ürün Entegrasyonu & Sıfır Apple Regresyonu (v4.35.1)
+
+1. **RevenueCat Google Play Ürün & Offering Bağlantısı:**
+   - RevenueCat panelinde Google Play Store (`appba39c22ded`) için eksik olan `misil` (Yıllık Abonelik) ve `misilaylik` (Aylık Abonelik) ürünleri oluşturuldu.
+   - Her iki ürün de hem `pro` hem de `mışıl_baby_pro` entitlement'larına bağlandı.
+   - RevenueCat Default Offering paketleri (`$rc_monthly` ve `$rc_annual`) Google Play ürünleriyle resmen eşleştirildi.
+
+2. **Android Google Play Billing 5+ Ürün Kategorisi & ID Fallback Güçlendirmesi:**
+   - `features/subscription/revenuecat.ts` içinde `candidateProductIds` listesi Google Play Console'daki gerçek ürünlerle (`misilaylik`, `misilaylik:misilaylik`, `misil`, `misil:misil`) eşitlendi.
+   - `Purchases.getProducts()` çağrısına Android için zorunlu olan `PRODUCT_CATEGORY.SUBSCRIPTION` parametresi eklendi.
+   - `usesStoreKit2IfAvailable: true` parametresi platform kontrolüyle (`Platform.OS === 'ios'`) izole edilerek Android yapılandırmasından arındırıldı.
+
+3. **Sıfır Apple Regresyonu & İki Yönlü Hata İzolasyonu:**
+   - Apple iOS (`Platform.OS === 'ios'`) StoreKit 2 akışı ve ürün adayları (`misil_monthly`, `misil_annual`) dokunulmaz tutuldu.
+   - Android tarafında mağaza veya paket bağlantı hatalarında kullanıcıya doğrudan Google Play hesap ve bağlantı durumunu bildiren şeffaf hata metni eklendi.
+
 ## [4.35.0] - 2026-09-17
 ### ⚡ Kör Watchdog Sayaçlarının Kaldırılması, PurchaseInFlight Mutex & Event-Driven IAP Mimarisi (Build 48)
 

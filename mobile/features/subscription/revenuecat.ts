@@ -64,14 +64,15 @@ export const initRevenueCat = async (userId?: string) => {
 
   try {
     const Purchases = require('react-native-purchases').default;
+    const isIOS = Platform.OS === 'ios';
     await Purchases.configure({
       apiKey,
       appUserID: userId,
-      usesStoreKit2IfAvailable: true
+      ...(isIOS ? { usesStoreKit2IfAvailable: true } : {})
     });
     isConfigured = true;
     isRealKey = true;
-    console.log('[RevenueCat] Google Play / App Store (StoreKit 2) ile yapılandırıldı.');
+    console.log(`[RevenueCat] ${isIOS ? 'App Store (StoreKit 2)' : 'Google Play Store'} ile yapılandırıldı.`);
     return true;
   } catch (e) {
     console.warn('[RevenueCat] Yapılandırma hatası:', e);
@@ -140,8 +141,8 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
             ? ['misil_annual', '$rc_annual', 'com.levitas.misilbaby.annual']
             : ['misil_monthly', '$rc_monthly', 'com.levitas.misilbaby.monthly'])
         : (isYearly
-            ? ['misil', 'misil_annual', '$rc_annual', 'com.levitas.misilbaby.annual']
-            : ['misilaylik', 'misil_monthly', '$rc_monthly', 'com.levitas.misilbaby.monthly'])
+            ? ['misil', 'misil:misil', 'misil_annual', '$rc_annual', 'com.levitas.misilbaby.annual']
+            : ['misilaylik', 'misilaylik:misilaylik', 'misil_monthly', '$rc_monthly', 'com.levitas.misilbaby.monthly'])
       ),
       packageId
     ]));
@@ -149,7 +150,8 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
     if (ready && Purchases.getProducts) {
       try {
         console.log('[RevenueCat] Mağazada aranacak aday ürün ID\'leri:', candidateProductIds);
-        const products = await Purchases.getProducts(candidateProductIds);
+        const subCategory = Purchases.PRODUCT_CATEGORY?.SUBSCRIPTION || 'SUBSCRIPTION';
+        const products = await Purchases.getProducts(candidateProductIds, subCategory);
         if (products && products.length > 0) {
           console.log('[RevenueCat] Eşleşen mağaza ürünü bulundu:', products[0].identifier);
           // Android Google Play Billing subscription option desteği

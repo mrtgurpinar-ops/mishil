@@ -569,9 +569,13 @@ export default function MishilUnifiedWebView() {
               const isIOS = Platform.OS === 'ios';
               let errorMsg = '⚠️ Satın alma işlemi tamamlanamadı. Lütfen tekrar deneyiniz.';
               if (result.error === 'no_package') {
-                errorMsg = '⚠️ Mağaza paketi hazırlanıyor, lütfen birkaç saniye sonra tekrar deneyiniz.';
+                errorMsg = isIOS
+                  ? '⚠️ Mağaza paketi hazırlanıyor, lütfen birkaç saniye sonra tekrar deneyiniz.'
+                  : '⚠️ Google Play mağazasına bağlanılamadı. Lütfen cihazınızda Google Play hesabınızın açık olduğunu ve internet bağlantınızı kontrol ediniz.';
               } else if (isIOS) {
                 errorMsg = '⚠️ Apple StoreKit işlemi tamamlanamadı. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.';
+              } else {
+                errorMsg = '⚠️ Google Play ödeme işlemi tamamlanamadı. Lütfen Google Play Store uygulamasından hesabınızı kontrol edip tekrar deneyiniz.';
               }
 
               webviewRef.current?.injectJavaScript(`
