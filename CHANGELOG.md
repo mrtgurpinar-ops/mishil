@@ -2,6 +2,12 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.36.2] - 2026-09-22
+### 🌟 Modern Navigasyon Devrimi: 4 Sekmeli Ferah Alt Çubuk & Tüm Sayfalarda Kalıcı Dairesel Profil/Ayarlar (Build 51)
+1. **Modern 4 Sekmeli Alt Navigasyon:** Mükerrerliği önlemek ve başparmak hedeflerini %25 ferahlatmak için alt menüden Ayarlar kaldırıldı; 4 ana özelliğe odaklanıldı (`🌙 Mışıl Spot`, `📊 Analiz`, `👵 Mışıl Dadı`, `🎵 Sesler`).
+2. **Tüm Sayfalarda Kalıcı Dairesel Profil/Ayarlar Butonu:** Tüm ana sekmelerin (`view-home`, `view-analytics`, `view-coach`, `view-sounds`) sağ üst başlığına Apple Health / Huckleberry standardında modern 36px dairesel cam efektli buton (`⚙️`) eklendi.
+3. **Ayarlar Kapatma & Bellek Entegrasyonu:** Ayarlar ekranına tek dokunuşla ebeveynin en son baktığı sekmeye pürüzsüz dönmesini sağlayan zarif kapatma butonu (`✕`) entegre edildi.
+
 ## [4.36.1] - 2026-09-22
 ### ⚙️ Üst Başlık Ayarlar Butonu & Dark Mod Rozet Kontrast Rötuşu (Build 50)
 1. **Üst Başlık Ayarlar Butonu:** Sağ üstteki mükerrer tema değiştirici kaldırıldı; doğrudan Ayarlar ve Profil modülünü açan dokunmatik `⚙️ Ayarlar` hap butonu yerleştirildi (`switchTab('settings')`).

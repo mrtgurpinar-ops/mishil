@@ -537,28 +537,57 @@
       margin-bottom: 8px;
     }
 
-    /* Üst Başlık Ayarlar Hap Butonu (Header Settings Pill) */
-    .header-settings-pill {
+    /* Üst Başlık Dairesel Profil/Ayarlar Butonu (Header Circular Profile/Settings Button) */
+    .header-profile-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
       background: var(--card-night);
       border: 1px solid var(--border-night);
-      border-radius: 20px;
-      padding: 6px 14px;
-      font-size: 12px;
-      font-weight: 700;
-      color: var(--heading-night);
-      cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
       box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
       transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      flex-shrink: 0;
     }
-    .header-settings-pill:active {
-      transform: scale(0.96);
+    .header-profile-btn:active {
+      transform: scale(0.90);
     }
-    [data-theme="light"] .header-settings-pill {
-      background: rgba(255, 255, 255, 0.88);
+    [data-theme="light"] .header-profile-btn {
+      background: rgba(255, 255, 255, 0.9);
       border: 1px solid rgba(42, 36, 33, 0.12);
+      box-shadow: 0 2px 8px rgba(42, 36, 33, 0.06);
+    }
+
+    /* Ayarlar Sayfası Kapat / Geri Dön Butonu (Settings Close Button) */
+    .header-close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      color: #FAF5EE;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+      flex-shrink: 0;
+    }
+    .header-close-btn:active {
+      transform: scale(0.90);
+    }
+    [data-theme="light"] .header-close-btn {
+      background: rgba(42, 36, 33, 0.06);
+      border: 1px solid rgba(42, 36, 33, 0.15);
       color: #2A2421;
       box-shadow: 0 2px 8px rgba(42, 36, 33, 0.06);
     }
@@ -2412,8 +2441,8 @@
           <div class="baby-subtitle" id="baby-header-subtitle">—</div>
           <div class="main-title" id="baby-header-title">Mışıl Spot™ Ritim & Uyku</div>
         </div>
-        <button onclick="hapticPulse(); switchTab('settings');" id="header-settings-btn" class="header-settings-pill" title="Ayarlar ve Profil">
-          <span style="font-size: 14px;">⚙️</span> <span>Ayarlar</span>
+        <button onclick="openSettingsWithMemory('home')" class="header-profile-btn" title="Profil ve Ayarlar">
+          <span>⚙️</span>
         </button>
       </div>
 
@@ -2642,6 +2671,9 @@
           <div class="baby-subtitle">Gelişim Algoritması & İstatistik</div>
           <div class="main-title">Analiz & Günlük 📊</div>
         </div>
+        <button onclick="openSettingsWithMemory('analytics')" class="header-profile-btn" title="Profil ve Ayarlar">
+          <span>⚙️</span>
+        </button>
       </div>
 
       <!-- 3'lü Segment Filtre Çubuğu -->
@@ -2863,6 +2895,9 @@
           <div class="baby-subtitle" id="coach-header-subtitle">7/24 Şefkatli Uyku & Gelişim Danışmanı</div>
           <div class="main-title">Mışıl Dadı 👵</div>
         </div>
+        <button onclick="openSettingsWithMemory('coach')" class="header-profile-btn" title="Profil ve Ayarlar">
+          <span>⚙️</span>
+        </button>
       </div>
 
       <!-- Ağlama Sesi Acil Çözücü Çubuğu (Dadı İçine Entegre) -->
@@ -2916,6 +2951,9 @@
           <div class="baby-subtitle">18 Stüdyo Master Parça</div>
           <div class="main-title">Sakinleştirici Sesler</div>
         </div>
+        <button onclick="openSettingsWithMemory('sounds')" class="header-profile-btn" title="Profil ve Ayarlar">
+          <span>⚙️</span>
+        </button>
       </div>
 
       <!-- Live Search Input -->
@@ -2966,6 +3004,9 @@
           <div class="baby-subtitle">Profil, Tema, Aile & Abonelik</div>
           <div class="main-title">Ayarlar ⚙️</div>
         </div>
+        <button onclick="closeSettingsToPreviousTab()" class="header-close-btn" title="Kapat">
+          <span>✕</span>
+        </button>
       </div>
 
       <!-- MODÜL 0: GÖRÜNÜM & TEMA (DARK / LIGHT MODE) -->
@@ -3197,7 +3238,7 @@
 
   </div>
 
-  <!-- Bottom Tab Bar (5-Core Streamlined Navigation) -->
+  <!-- Bottom Tab Bar (4-Core Streamlined Navigation) -->
   <div class="tab-bar">
     <div class="tab-item active" onclick="hapticPulse(); switchTab('home');">
       <span class="tab-icon">🌙</span>
@@ -3214,10 +3255,6 @@
     <div class="tab-item" onclick="hapticPulse(); switchTab('sounds');">
       <span class="tab-icon">🎵</span>
       <span class="tab-label">Sesler</span>
-    </div>
-    <div class="tab-item" onclick="hapticPulse(); switchTab('settings');">
-      <span class="tab-icon">⚙️</span>
-      <span class="tab-label">Ayarlar</span>
     </div>
   </div>
 <!-- MODAL: HIZLI PEDİATRİK AŞI TAKVİMİ MODALI -->
@@ -3899,7 +3936,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.36.1', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.36.2', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -3916,7 +3953,12 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.36.1', date: '22 Eylül 2026', latest: true, items: [
+    { v: '4.36.2', date: '22 Eylül 2026', latest: true, items: [
+      'Modern 4 Sekmeli Alt Navigasyon: Mükerrerliği önlemek ve başparmak hedeflerini %25 ferahlatmak için alt menüden Ayarlar kaldırılarak 4 ana özelliğe odaklanıldı (Mışıl Spot, Analiz, Mışıl Dadı, Sesler).',
+      'Tüm Sayfalarda Kalıcı Dairesel Profil/Ayarlar Butonu: Tüm ana sekmelerin sağ üst köşesine Apple Health / Huckleberry standardında modern 36px dairesel cam efektli buton (⚙️) eklendi.',
+      'Ayarlar Kapatma & Bellek: Ayarlar ekranına tek dokunuşla önceki sekmeye pürüzsüz dönen zarif kapatma butonu (✕) entegre edildi.'
+    ]},
+    { v: '4.36.1', date: '22 Eylül 2026', items: [
       'Üst Başlık Ayarlar Butonu Entegrasyonu: Sağ üstteki mükerrer tema butonu kaldırılarak doğrudan Ayarlar ve Profil modülünü açan zarif dokunmatik Ayarlar butonu yerleştirildi.',
       'Dark Mod Yüksek Kontrastlı Rozetler: Gece Kaşmir modunda Mışıl Spot "Zamanında Uyut" ve Denge Skoru "Dengeli / Ritimde" rozetlerinin okunamama sorunu yüksek kontrastlı sıcak kehribar ve nane/adaçayı kapsül stilleriyle tamamen giderildi.'
     ]},
@@ -7384,9 +7426,25 @@
     }
   }
 
+  let lastActiveTabBeforeSettings = 'home';
+  function openSettingsWithMemory(fromTab) {
+    if (fromTab && fromTab !== 'settings') lastActiveTabBeforeSettings = fromTab;
+    hapticPulse();
+    switchTab('settings');
+  }
+
+  function closeSettingsToPreviousTab() {
+    hapticPulse();
+    switchTab(lastActiveTabBeforeSettings || 'home');
+  }
+
   function switchTab(tabName) {
     // Pro özellikler (Mışıl Dadı AI Koçu & Derin Analiz Sekmesi) abonelik gerektirir
     if ((tabName === 'coach' || tabName === 'analytics') && !requireActiveSubscription()) return;
+
+    if (tabName !== 'settings') {
+      lastActiveTabBeforeSettings = tabName;
+    }
 
     // 1. Önceki sekmeleri kapat, hedef sekmeyi görünür yap
     document.querySelectorAll('.tab-view').forEach(el => el.classList.remove('active'));
@@ -7395,7 +7453,7 @@
     const targetView = document.getElementById('view-' + tabName);
     if (targetView) targetView.classList.add('active');
 
-    const tabs = ['home', 'analytics', 'coach', 'sounds', 'settings'];
+    const tabs = ['home', 'analytics', 'coach', 'sounds'];
     const idx = tabs.indexOf(tabName);
     if (idx !== -1) {
       document.querySelectorAll('.tab-item')[idx].classList.add('active');
