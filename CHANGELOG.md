@@ -2,6 +2,27 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.36.0] - 2026-09-22
+### 🌸 Dual-Mode Soft Anne & Bebek Renk Paleti, Mışıl Spot™ Markalaması, Pillowy Bento Grid & Zero-Scrollbar (Build 49)
+
+1. **Dual-Mode Soft Anne & Bebek Renk Paleti:**
+   - Aşırı sert siber koyu tonlar yerine anneler ve bebekler için yatıştırıcı İskandinav Soft Krem (`#FAF6F0`, Gündüz) ve Melatonin dostu Sıcak Kaşmir / Mum Işığı Kehribar (`#13101C`, Gece) temaları entegre edildi.
+   - Yumuşak pastel anne-bebek tonları: Ilık Şeftali (`#FDE7E0` / `#8A4325`), Sakinleştirici Adaçayı (`#E0EBE3` / `#26543C`), Yumuşak Vanilya/Bal (`#FEF5E1` / `#825E12`), Fısıldayan Lavanta (`#F1ECFA` / `#543E7E`), Pudra Gül (`#FCE9ED` / `#8A394B`), Gökyüzü Mavisi (`#E7F2FC` / `#26557C`).
+   - Üst başlıkta (`app-header`) tek tıkla canlı tema değiştirme butonu (`☀️ Soft Krem` / `🌙 Sıcak Kaşmir`) eklendi.
+
+2. **4 Noktalı Organik Ambiyans Mesh Gradient & Sıfır Çubuk (Zero-Scrollbar):**
+   - Düz mat arka plan renkleri yerine 4 noktalı organik nefes alan ışık hareleri (`ambient-pulse` ve `--bg-phone`) uygulandı.
+   - Webview ve tarayıcılarda görünen çirkin dikey kaydırma çubukları evrensel CSS kuralıyla (`scrollbar-width: none; ::-webkit-scrollbar { display: none !important; }`) tamamen gizlendi.
+
+3. **Pillowy Bento Grid Dashboard (Bugün Sekmesi):**
+   - Mışıl Spot™ uyanıklık penceresi ve canlı Denge Skoru göstergesi ikili asimetrik Bento Hero blokunda buluşturuldu.
+   - Başparmak erişim bölgesine 4 büyük dokunmatik rutin kartı (`🍼 Beslenme`, `🚼 Alt Değişimi`, `🎙️ Ağlama Analizi`, `🎧 Ses Mikseri`) yerleştirildi.
+   - Wonder Weeks (BabySteps™) ve Bebek Aşı Takvimi yan yana kompakt Bento kutularına dönüştürüldü.
+   - 12 klinik/bakım özelliğinin (Denge Skoru 4 alt barı, Biyometrik Rollup, 24-Saatlik Zirve Saatler, 10 Sıçrama, Aşı Defteri, Ayarlar modülleri) tamamı %100 korundu.
+
+4. **Mışıl Spot™ Resmi Markalama:**
+   - SweetSpot® ibaresi yerine resmi tescilli **Mışıl Spot™** marka kimliği tüm buton, sekme, sayaç ve bilgilendirme metinlerine uygulandı.
+
 ## [4.35.1] - 2026-09-21
 ### 🤖 Google Play Billing Senkronizasyonu, RevenueCat Android Ürün Entegrasyonu & Sıfır Apple Regresyonu (v4.35.1)
 
