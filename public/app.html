@@ -189,9 +189,11 @@
       color: var(--heading-night) !important;
     }
     [data-theme="light"] .tab-bar {
-      background: rgba(255, 255, 255, 0.96);
-      border-top-color: rgba(15, 23, 42, 0.08);
-      box-shadow: 0 -4px 16px rgba(15, 23, 42, 0.03);
+      background: rgba(250, 246, 240, 0.76);
+      border-top-color: rgba(42, 36, 33, 0.08);
+      box-shadow: 0 -4px 20px rgba(42, 36, 33, 0.06);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
     }
     [data-theme="light"] .tab-item.active .tab-label {
       color: var(--accent) !important;
@@ -1454,10 +1456,10 @@
       max-width: 540px;
       margin: 0 auto;
       height: calc(64px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px)));
-      background: rgba(13, 18, 32, 0.92);
+      background: rgba(19, 16, 28, 0.72);
       border-top: 1px solid rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       display: flex;
       justify-content: space-around;
       align-items: center;
@@ -2589,14 +2591,14 @@
         <!-- İkili Bento Kartı: Wonder Weeks & Aşı Takvimi -->
         <div class="insight-bento-row">
           <!-- Gelişim Sıçraması & BabySteps™ Bento Kartı (Ana Sayfa) -->
-          <div class="card" id="home-wonder-weeks-card" style="margin-top: 0; margin-bottom: 0; cursor: pointer; border: 1px solid var(--border-night); background: var(--card-night); border-radius: var(--radius-lg); padding: 12px 14px;" onclick="goToLeapDetails()">
+          <div class="card" id="home-wonder-weeks-card" style="margin-top: 0; margin-bottom: 0; cursor: pointer; border: 1px solid var(--border-night); background: var(--card-night); border-radius: var(--radius-lg); padding: 12px 14px;" onclick="openLeapsQuickModal()">
             <div class="spotlight-glow"></div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
               <div style="display: flex; align-items: center; gap: 4px;">
                 <span style="font-size: 13px;">🌱</span>
                 <span style="font-family: 'Sora'; font-size: 11px; font-weight: 700; color: var(--heading-night);" id="home-leap-title">BabySteps™</span>
               </div>
-              <span id="home-leap-badge" style="font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 700; background: rgba(165, 105, 189, 0.18); color: var(--lavender-text);">Detay ➔</span>
+              <span id="home-leap-badge" style="font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 700; background: rgba(165, 105, 189, 0.18); color: var(--lavender-text);">Ataklar ➔</span>
             </div>
             <div id="home-leap-subtitle" style="font-size: 10px; color: var(--text-night); line-height: 14px; margin-bottom: 6px;">
               Zihinsel sıçrama takvimi...
@@ -3276,6 +3278,34 @@
   </div>
 </div>
 
+<!-- MODAL: HIZLI GELİŞİM ATAKLARI (BABYSTEPS™ / WONDER WEEKS) MODALI -->
+<div class="modal-overlay" id="modal-leaps-schedule" onclick="closeModalOnOverlay(event, 'modal-leaps-schedule')">
+  <div class="modal-sheet no-scrollbar" style="max-height: 85vh;">
+    <div class="modal-header">
+      <div>
+        <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;" id="quick-leaps-modal-title">🌱 Gelişim Atakları (BabySteps™)</div>
+        <div style="font-size: 11px; color: var(--text-muted);">10 Büyük Zihinsel Sıçrama & Atak Takvimi</div>
+      </div>
+      <button class="modal-close" onclick="closeLeapsQuickModal()">✕</button>
+    </div>
+    
+    <!-- Özet Bilgi Kartı -->
+    <div id="quick-leaps-summary-box" style="background: rgba(165, 105, 189, 0.12); border: 1px solid rgba(165, 105, 189, 0.25); border-radius: 12px; padding: 10px 14px; margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <span style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;" id="quick-leaps-hero-title">10 Büyük Zihinsel Sıçrama</span>
+        <span style="font-size: 11px; color: var(--accent); font-weight: 700;" id="quick-leaps-hero-overall-percent">—</span>
+      </div>
+      <div style="font-size: 11px; color: var(--text-night); line-height: 15px;" id="quick-leaps-hero-desc">—</div>
+      <div class="progress-bar-wrap" style="height: 5px; margin-top: 8px;"><div class="progress-fill" id="quick-leaps-hero-progress-bar" style="width: 0%; background: #A569BD;"></div></div>
+    </div>
+
+    <!-- 10 Sıçrama Listesi -->
+    <div id="quick-leaps-list-container" style="display: flex; flex-direction: column; gap: 8px; overflow-y: auto; max-height: 58vh; padding-right: 4px;" class="no-scrollbar">
+      <!-- Rendered by JS -->
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: CRY ANALYSIS POPUP -->
 <div class="modal-overlay" id="modal-cry" onclick="closeModalOnOverlay(event, 'modal-cry')">
   <div class="modal-sheet no-scrollbar">
@@ -3936,7 +3966,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.36.2', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.36.3', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -3953,7 +3983,11 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.36.2', date: '22 Eylül 2026', latest: true, items: [
+    { v: '4.36.3', date: '22 Eylül 2026', latest: true, items: [
+      'Yarı Saydam Alt Menübar (Frosted Glass Dock): Alt navigasyon çubuğu arkasından sayfa içeriklerinin süzüldüğü yüksek bulanıklıklı (blur 24px) şeffaf cam efektiyle ferahlatıldı.',
+      'Hızlı Gelişim Atakları Modalı: Ana sayfadaki BabySteps™ kartına basıldığında başka sayfaya yönlendirmeden doğrudan ekrana gelen 10 Zihinsel Sıçrama açılır modalı entegre edildi.'
+    ]},
+    { v: '4.36.2', date: '22 Eylül 2026', items: [
       'Modern 4 Sekmeli Alt Navigasyon: Mükerrerliği önlemek ve başparmak hedeflerini %25 ferahlatmak için alt menüden Ayarlar kaldırılarak 4 ana özelliğe odaklanıldı (Mışıl Spot, Analiz, Mışıl Dadı, Sesler).',
       'Tüm Sayfalarda Kalıcı Dairesel Profil/Ayarlar Butonu: Tüm ana sekmelerin sağ üst köşesine Apple Health / Huckleberry standardında modern 36px dairesel cam efektli buton (⚙️) eklendi.',
       'Ayarlar Kapatma & Bellek: Ayarlar ekranına tek dokunuşla önceki sekmeye pürüzsüz dönen zarif kapatma butonu (✕) entegre edildi.'
@@ -5678,6 +5712,119 @@
     if (modal) modal.classList.remove('active');
   }
 
+  // =========================================================================
+  // HIZLI GELİŞİM ATAKLARI (BABYSTEPS™ / WONDER WEEKS) MODALI
+  // =========================================================================
+  function openLeapsQuickModal() {
+    hapticPulse();
+    renderQuickLeapsModal();
+    const modal = document.getElementById('modal-leaps-schedule');
+    if (modal) modal.classList.add('active');
+  }
+
+  function closeLeapsQuickModal() {
+    const modal = document.getElementById('modal-leaps-schedule');
+    if (modal) modal.classList.remove('active');
+  }
+
+  function renderQuickLeapsModal() {
+    const baby = getBaby();
+    const container = document.getElementById('quick-leaps-list-container');
+    const heroTitle = document.getElementById('quick-leaps-hero-title');
+    const heroPercent = document.getElementById('quick-leaps-hero-overall-percent');
+    const heroDesc = document.getElementById('quick-leaps-hero-desc');
+    const heroBar = document.getElementById('quick-leaps-hero-progress-bar');
+    if (!baby) {
+      if (container) container.innerHTML = babyEmptyStateHTML('Gelişim ataklarını görmek için bebek profili ekleyin.');
+      if (heroPercent) heroPercent.textContent = '—';
+      if (heroDesc) heroDesc.textContent = 'Bebek profili bekleniyor...';
+      if (heroBar) heroBar.style.width = '0%';
+      return;
+    }
+    const bdate = baby.bdate;
+    const name = baby.name;
+    const calc = calculateMışılSpot(bdate);
+    const currentWeek = calc.currentWeek;
+    const manualLeap = localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap')) : null;
+    const overallProgress = Math.min(100, Math.round((currentWeek / 75) * 100));
+
+    const upcomingLeap = WONDER_WEEKS_LEAPS.find(l => currentWeek < l.startWeek);
+    let nextLeapInfo = '';
+    if (upcomingLeap) {
+      const daysLeft = Math.max(1, (upcomingLeap.startWeek - currentWeek) * 7);
+      nextLeapInfo = ` • Sonraki (${upcomingLeap.num}. Sıçrama): <strong>${daysLeft} gün kaldı</strong>`;
+    }
+
+    if (heroTitle) heroTitle.textContent = `${name} • ${currentWeek}. Hafta Gelişimi`;
+    if (heroPercent) heroPercent.textContent = `%${overallProgress} Tamamlandı`;
+    if (heroBar) heroBar.style.width = `${overallProgress}%`;
+    if (heroDesc) {
+      heroDesc.innerHTML = `${name} şu anda <strong>${currentWeek}. haftasında</strong>. 10 Büyük Zihinsel Sıçramadan <strong>${calc.activeLeap.num}.'si (${calc.activeLeap.title})</strong> ${calc.isManual ? '(Erken Atak Olarak Manuel Aktif)' : 'içerisindesiniz'}.${nextLeapInfo}`;
+    }
+
+    if (!container) return;
+    container.innerHTML = '';
+
+    WONDER_WEEKS_LEAPS.forEach(l => {
+      const isCompleted = currentWeek > l.endWeek;
+      const isCurrent = (manualLeap === l.num) || (!manualLeap && currentWeek >= l.startWeek && currentWeek <= l.endWeek);
+      let progressPercent = 0;
+      let statusBadge = '';
+      let actionButtons = '';
+
+      if (isCompleted) {
+        progressPercent = 100;
+        statusBadge = `<span style="font-size: 10px; color: var(--success); font-weight: 700;">✓ Tamamlandı (${l.endWeek}. Hafta)</span>`;
+      } else if (isCurrent) {
+        if (manualLeap === l.num) {
+          progressPercent = 85;
+          statusBadge = `<span style="font-size: 10px; background: #FF4757; color: #FFF; padding: 2px 6px; border-radius: 4px; font-weight: 700;">⚡ ERKEN ATAK (MANUEL AKTİF)</span>`;
+          actionButtons = `<button class="early-leap-btn" style="background: rgba(255, 71, 87, 0.2); border-color: #FF4757;" onclick="resetToAutoLeap(); renderQuickLeapsModal();">🔄 Otomatik Takvime Dön</button>`;
+        } else {
+          const span = l.endWeek - l.startWeek + 1;
+          const progInLeap = currentWeek - l.startWeek + 0.5;
+          progressPercent = Math.min(95, Math.max(15, Math.round((progInLeap / span) * 100)));
+          const isStorm = (currentWeek === l.stormWeek || currentWeek === l.stormWeek - 1);
+          statusBadge = isStorm 
+            ? `<span style="font-size: 10px; color: var(--accent); font-weight: 700;">⚡ Fırtınalı Huysuzluk Dönemi (%${progressPercent})</span>`
+            : `<span style="font-size: 10px; color: #74B9FF; font-weight: 700;">☀️ Güneşli Beceriler Dönemi (%${progressPercent})</span>`;
+        }
+      } else {
+        const weeksLeft = l.startWeek - currentWeek;
+        const daysLeft = weeksLeft * 7;
+        progressPercent = Math.max(5, Math.min(85, Math.round((currentWeek / l.startWeek) * 100)));
+        statusBadge = `<span style="font-size: 10px; color: var(--text-muted); font-weight: 600;">⏳ Yaklaşıyor: %${progressPercent} Dolum (${daysLeft} gün kaldı)</span>`;
+        actionButtons = `<button class="early-leap-btn" onclick="toggleEarlyLeap(${l.num}); renderQuickLeapsModal();">⚡ Bu Atak Erken Başladı (Manuel Aktif Et)</button>`;
+      }
+
+      const card = document.createElement('div');
+      card.className = `leap-item-card ${isCurrent ? 'active-leap' : (isCompleted ? 'completed-leap' : '')}`;
+      card.innerHTML = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+          <span class="leap-badge" style="${isCurrent ? 'background: rgba(232, 168, 85, 0.2); border-color: var(--accent); color: var(--accent);' : ''}">${l.num}. SIÇRAMA • ${l.startWeek}. - ${l.endWeek}. HAFTALAR</span>
+          ${statusBadge}
+        </div>
+        <div style="font-family: 'Sora'; font-size: 14px; font-weight: 700; color: #FFF; margin-bottom: 4px;">
+          ${l.title}
+        </div>
+        <div style="font-size: 11px; color: var(--text-night); line-height: 16px; margin-bottom: 6px;">
+          ${l.milestone}
+        </div>
+        <div class="progress-bar-wrap">
+          <div class="progress-fill" style="width: ${progressPercent}%; background: ${isCompleted ? 'var(--success)' : (isCurrent ? 'var(--accent)' : 'var(--moon-blue)')};"></div>
+        </div>
+        <div style="font-size: 11px; color: var(--text-muted); margin-top: 6px; font-style: italic;">
+          💡 <strong>Mışıl Dadı Tavsiyesi:</strong> ${l.tip}
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+          <div>${actionButtons}</div>
+          <button class="early-leap-btn" onclick="closeLeapsQuickModal(); hapticPulse(); togglePlayTrack('${l.recommendedSound}'); switchTab('sounds');">▶ Önerilen Sesi Çal</button>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+  }
+
   function renderQuickVaccineSchedule() {
     const container = document.getElementById('quick-vaccine-items-container');
     if (!container) return;
@@ -6779,12 +6926,7 @@
   }
 
   function goToLeapDetails() {
-    hapticPulse();
-    switchTab('analytics');
-    setTimeout(() => {
-      const el = document.getElementById('leaps-hero-title');
-      if (el) el.scrollIntoView({ behavior: 'smooth' });
-    }, 150);
+    openLeapsQuickModal();
   }
 
   function renderAnalyticsView() {

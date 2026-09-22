@@ -2,6 +2,11 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.36.3] - 2026-09-22
+### 🌿 Yarı Saydam Alt Menübar (Frosted Glass Dock) & Hızlı Gelişim Atakları Modalı (Build 52)
+1. **Yarı Saydam Alt Menübar:** Alt navigasyon çubuğu opaklığı düşürülerek (`0.72` dark / `0.76` light) ve `blur(24px)` artırılarak ultra-lüks, arkadaki içerik ve ışık harelerinin süzüldüğü şeffaf bir dock haline getirildi.
+2. **Hızlı Gelişim Atakları Modalı (`#modal-leaps-schedule`):** Ana sayfadaki BabySteps™ kartına basıldığında başka sayfaya gitme davranışı kaldırıldı; tıpkı Aşı Takvimi gibi doğrudan açılan şık bir modal sheet üzerinden 10 Zihinsel Sıçrama ve fırtına/güneşli dönem detayları sunuldu (`openLeapsQuickModal()`).
+
 ## [4.36.2] - 2026-09-22
 ### 🌟 Modern Navigasyon Devrimi: 4 Sekmeli Ferah Alt Çubuk & Tüm Sayfalarda Kalıcı Dairesel Profil/Ayarlar (Build 51)
 1. **Modern 4 Sekmeli Alt Navigasyon:** Mükerrerliği önlemek ve başparmak hedeflerini %25 ferahlatmak için alt menüden Ayarlar kaldırıldı; 4 ana özelliğe odaklanıldı (`🌙 Mışıl Spot`, `📊 Analiz`, `👵 Mışıl Dadı`, `🎵 Sesler`).
