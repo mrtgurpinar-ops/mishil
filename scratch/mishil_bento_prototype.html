@@ -1,0 +1,1724 @@
+<!DOCTYPE html>
+<html lang="tr" data-theme="soft-cream">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mışıl Baby — Dual Mode (Light & Dark) Soft Bento Prototipi</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    /* ==========================================================================
+       1. ÇOK KATMANLI ORGANİK AMBİYANS MESH RENK PALETİ (LIGHT & DARK)
+       ========================================================================== */
+    :root {
+      /* ☀️ GÜNDÜZ: SOFT İSKANDİNAV KREM (LIGHT MODE) */
+      --bg-canvas: radial-gradient(circle at 50% 20%, #F5EDE4 0%, #E6DBD0 100%);
+      --bg-phone: radial-gradient(circle at 12% 8%, rgba(254, 228, 220, 0.9) 0%, transparent 45%),
+                  radial-gradient(circle at 88% 18%, rgba(222, 238, 226, 0.85) 0%, transparent 42%),
+                  radial-gradient(circle at 50% 55%, rgba(243, 236, 252, 0.75) 0%, transparent 50%),
+                  radial-gradient(circle at 15% 85%, rgba(254, 246, 224, 0.8) 0%, transparent 45%),
+                  #FAF6F0;
+      
+      --bg-card: rgba(255, 255, 255, 0.85);
+      --bg-card-subtle: rgba(246, 241, 235, 0.75);
+      --border-card: rgba(180, 160, 140, 0.22);
+      --border-subtle: rgba(140, 120, 100, 0.14);
+      
+      --text-main: #2A2421;
+      --text-sub: #70655C;
+      --text-muted: #968A80;
+      
+      /* Yumuşak Pastel Anne & Bebek Renkleri */
+      --soft-peach: #FDE7E0;
+      --soft-peach-card: linear-gradient(145deg, rgba(255, 243, 238, 0.95) 0%, rgba(253, 227, 216, 0.9) 100%);
+      --peach-text: #8A4325;
+      --peach-accent: #E07A5F;
+      
+      --soft-sage: #E0EBE3;
+      --soft-sage-card: linear-gradient(145deg, rgba(235, 245, 238, 0.95) 0%, rgba(214, 232, 219, 0.9) 100%);
+      --sage-text: #26543C;
+      --sage-accent: #487A63;
+      
+      --soft-butter: #FEF5E1;
+      --soft-butter-border: #F7DFAD;
+      --butter-text: #825E12;
+      
+      --soft-blush: #FCE9ED;
+      --soft-blush-border: #F6CED3;
+      --blush-text: #8A394B;
+      
+      --soft-lavender: #F1ECFA;
+      --soft-lavender-border: #DCD0F4;
+      --lavender-text: #543E7E;
+      
+      --soft-sky: #E7F2FC;
+      --soft-sky-border: #C8E1F6;
+      --sky-text: #26557C;
+
+      --card-shadow: 0 10px 26px -6px rgba(160, 140, 120, 0.14), 0 2px 8px -2px rgba(160, 140, 120, 0.08);
+      --nav-bg: rgba(250, 246, 240, 0.92);
+      --radius-xl: 26px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+    }
+
+    /* 🌙 GECE: SICAK KAŞMİR VE MUM IŞIĞI (MELATONİN WARM DARK MODE) */
+    [data-theme="warm-night"] {
+      --bg-canvas: radial-gradient(circle at 50% 20%, #171322 0%, #09070E 100%);
+      --bg-phone: radial-gradient(circle at 18% 10%, rgba(224, 122, 95, 0.18) 0%, transparent 45%),
+                  radial-gradient(circle at 82% 22%, rgba(72, 122, 99, 0.15) 0%, transparent 42%),
+                  radial-gradient(circle at 50% 60%, rgba(168, 85, 247, 0.12) 0%, transparent 50%),
+                  radial-gradient(circle at 15% 88%, rgba(245, 158, 11, 0.14) 0%, transparent 45%),
+                  #13101C;
+      
+      --bg-card: rgba(33, 28, 44, 0.88);
+      --bg-card-subtle: rgba(24, 20, 34, 0.8);
+      --border-card: rgba(245, 230, 215, 0.12);
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      
+      --text-main: #FAF5EE;
+      --text-sub: #C7BED6;
+      --text-muted: #8F86A2;
+      
+      --soft-peach: #38241F;
+      --soft-peach-card: linear-gradient(145deg, rgba(62, 38, 32, 0.95) 0%, rgba(42, 26, 22, 0.9) 100%);
+      --peach-text: #FFD4C4;
+      --peach-accent: #F4A261;
+      
+      --soft-sage: #1C2D24;
+      --soft-sage-card: linear-gradient(145deg, rgba(32, 52, 42, 0.95) 0%, rgba(22, 36, 29, 0.9) 100%);
+      --sage-text: #C3E9D2;
+      --sage-accent: #74C69D;
+      
+      --soft-butter: #322A19;
+      --soft-butter-border: #4D3F25;
+      --butter-text: #FFE5A3;
+      
+      --soft-blush: #341F26;
+      --soft-blush-border: #502E39;
+      --blush-text: #FBC8D3;
+      
+      --soft-lavender: #29213A;
+      --soft-lavender-border: #42355D;
+      --lavender-text: #E4D8FA;
+      
+      --soft-sky: #1A2834;
+      --soft-sky-border: #2B3F52;
+      --sky-text: #CAE1FA;
+
+      --card-shadow: 0 12px 30px -6px rgba(0, 0, 0, 0.5);
+      --nav-bg: rgba(20, 16, 28, 0.94);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* ==========================================================================
+       SCROLLBAR'I TAMAMEN GİZLE (SIFIR ÇUBUK, TEMİZ MOBİL EKRAN)
+       ========================================================================== */
+    ::-webkit-scrollbar,
+    *::-webkit-scrollbar {
+      display: none !important;
+      width: 0 !important;
+      height: 0 !important;
+    }
+
+    html, body, .page-view, .modal-sheet, .soft-pill-row, .cat-chips-row {
+      -ms-overflow-style: none !important;
+      scrollbar-width: none !important;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg-canvas);
+      color: var(--text-main);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 16px;
+      transition: background 0.35s ease;
+    }
+
+    /* ÜST DIŞ SUNUM VE HIZLI TEMA GEÇİŞ KONTROLÜ */
+    .top-showcase-bar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      padding: 6px 14px;
+      border-radius: 30px;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .top-showcase-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+    }
+
+    .mode-tab-pill {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .mode-tab-pill.active {
+      background: var(--peach-accent);
+      color: #FFFFFF;
+      box-shadow: 0 4px 12px rgba(224, 122, 95, 0.3);
+    }
+
+    .mode-tab-pill:not(.active) {
+      color: var(--text-muted);
+    }
+
+    /* Telefon Gövde Simülatörü */
+    .mobile-frame {
+      width: 100%;
+      max-width: 420px;
+      height: 890px;
+      background: var(--bg-phone);
+      border-radius: 46px;
+      box-shadow: 0 30px 70px -15px rgba(0, 0, 0, 0.25), 0 0 0 1px var(--border-card);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.35s ease, box-shadow 0.35s ease;
+    }
+
+    /* Durum Çubuğu */
+    .status-bar {
+      padding: 14px 24px 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-sub);
+      z-index: 10;
+    }
+
+    /* Sayfalar Kapsayıcısı */
+    .page-container {
+      flex: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .page-view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow-y: auto;
+      padding: 6px 18px 84px;
+      display: none;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .page-view.active {
+      display: flex;
+      animation: fadeIn 0.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Üst Başlık: Bebek & Anne Bilgisi */
+    .header-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 4px 2px 6px;
+    }
+
+    .baby-badge {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+    }
+
+    .baby-avatar-wrap {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #FFE8D6 0%, #FFCAD4 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 26px;
+      box-shadow: 0 4px 14px rgba(224, 122, 95, 0.2);
+    }
+
+    .baby-info h2 {
+      font-size: 18px;
+      font-weight: 800;
+      color: var(--text-main);
+      line-height: 1.2;
+    }
+
+    .baby-info p {
+      font-size: 12px;
+      color: var(--peach-accent);
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .baby-info p::before {
+      content: '';
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--sage-accent);
+      display: inline-block;
+      box-shadow: 0 0 6px var(--sage-accent);
+    }
+
+    .header-right-btns {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      cursor: pointer;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    /* ==========================================================================
+       BENTO KARTLAR: YASTIKSI (PILLOWY), MESH IŞIKLI
+       ========================================================================== */
+    .hero-bento-row {
+      display: grid;
+      grid-template-columns: 1.45fr 1fr;
+      gap: 10px;
+    }
+
+    /* Mışıl Spot Kartı */
+    .misilspot-soft-card {
+      background: var(--soft-peach-card);
+      border: 1px solid rgba(224, 122, 95, 0.28);
+      border-radius: var(--radius-xl);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .soft-card-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--peach-text);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      margin-bottom: 4px;
+    }
+
+    .misilspot-big-time {
+      font-size: 34px;
+      font-weight: 800;
+      color: var(--peach-text);
+      letter-spacing: -0.5px;
+      line-height: 1.05;
+      margin-bottom: 6px;
+    }
+
+    .soft-countdown-pill {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 12px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      width: fit-content;
+      transition: all 0.2s ease;
+      background: rgba(224, 122, 95, 0.14);
+      color: #8C371D;
+      border: 1px solid rgba(224, 122, 95, 0.35);
+      box-shadow: 0 2px 8px rgba(140, 71, 40, 0.08);
+    }
+
+    [data-theme="warm-night"] .soft-countdown-pill {
+      background: rgba(244, 162, 97, 0.22) !important;
+      color: #FAF5EE !important;
+      border: 1px solid rgba(244, 162, 97, 0.5) !important;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      letter-spacing: 0.2px;
+    }
+
+    /* Denge Skoru Kartı */
+    .balance-soft-card {
+      background: var(--soft-sage-card);
+      border: 1px solid rgba(72, 122, 99, 0.28);
+      border-radius: var(--radius-xl);
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+    }
+
+    .balance-soft-card .label {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--sage-text);
+    }
+
+    .soft-score-dial {
+      position: relative;
+      width: 68px;
+      height: 68px;
+      margin: 2px 0;
+    }
+
+    .soft-score-dial svg {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-90deg);
+    }
+
+    .soft-score-dial circle {
+      fill: none;
+      stroke-width: 7;
+    }
+
+    .soft-circle-bg { stroke: rgba(44, 94, 67, 0.15); }
+    .soft-circle-fill {
+      stroke: var(--sage-accent);
+      stroke-dasharray: 188;
+      stroke-dashoffset: 30; /* %84 */
+      stroke-linecap: round;
+    }
+
+    .soft-score-val {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 19px;
+      font-weight: 800;
+      color: var(--sage-text);
+    }
+
+    .soft-balance-pill {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      background: rgba(72, 122, 99, 0.14);
+      color: #1B4332;
+      border: 1px solid rgba(72, 122, 99, 0.28);
+      box-shadow: 0 2px 6px rgba(42, 36, 33, 0.05);
+    }
+
+    .soft-balance-pill.state-balanced {
+      background: rgba(234, 179, 8, 0.16) !important;
+      color: #78350F !important;
+      border: 1px solid rgba(234, 179, 8, 0.4) !important;
+    }
+
+    [data-theme="warm-night"] .soft-balance-pill {
+      background: rgba(72, 122, 99, 0.28) !important;
+      color: #A3E6C5 !important;
+      border: 1px solid rgba(112, 193, 155, 0.45) !important;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    [data-theme="warm-night"] .soft-balance-pill.state-balanced {
+      background: rgba(234, 179, 8, 0.26) !important;
+      color: #FEF08A !important;
+      border: 1px solid rgba(250, 204, 21, 0.6) !important;
+      box-shadow: 0 0 10px rgba(234, 179, 8, 0.25);
+    }
+
+    /* Canlı Uyku Butonu */
+    .soft-live-sleep-btn {
+      background: var(--soft-sky);
+      border: 1px solid var(--soft-sky-border);
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--sky-text);
+      cursor: pointer;
+      box-shadow: var(--card-shadow);
+      transition: transform 0.15s;
+      backdrop-filter: blur(10px);
+    }
+
+    .soft-live-sleep-btn:active { transform: scale(0.98); }
+    .soft-live-sleep-btn h3 { font-size: 15px; font-weight: 800; }
+    .soft-live-sleep-btn p { font-size: 11px; opacity: 0.85; font-weight: 500; }
+
+    /* Hızlı 4 Rutin Kutusu */
+    .soft-bento-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-sub);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 2px;
+    }
+
+    .quick-bento-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .soft-quick-card {
+      border-radius: var(--radius-lg);
+      padding: 12px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(10px);
+      transition: all 0.15s;
+    }
+
+    .soft-quick-card:active { transform: scale(0.97); }
+
+    .card-milk { background: var(--soft-butter); border: 1px solid var(--soft-butter-border); color: var(--butter-text); }
+    .card-diaper { background: var(--soft-blush); border: 1px solid var(--soft-blush-border); color: var(--blush-text); }
+    .card-cry { background: var(--soft-lavender); border: 1px solid var(--soft-lavender-border); color: var(--lavender-text); }
+    .card-lullaby { background: var(--soft-peach); border: 1px solid rgba(224, 122, 95, 0.28); color: var(--peach-text); }
+
+    .soft-card-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+      flex-shrink: 0;
+    }
+
+    [data-theme="warm-night"] .soft-card-icon { background: rgba(255, 255, 255, 0.12); }
+
+    .soft-quick-card h4 { font-size: 13px; font-weight: 800; margin-bottom: 2px; }
+    .soft-quick-card p { font-size: 10px; opacity: 0.85; font-weight: 600; }
+
+    /* İkili Gelişim & Aşı Kartı */
+    .insight-bento-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .soft-insight-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 14px;
+      box-shadow: var(--card-shadow);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      cursor: pointer;
+      backdrop-filter: blur(12px);
+    }
+
+    .soft-insight-header { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; font-size: 13px; font-weight: 800; color: var(--text-main); }
+    .soft-insight-desc { font-size: 11px; color: var(--text-sub); line-height: 1.35; margin-bottom: 8px; }
+    .soft-progress-bar { width: 100%; height: 5px; background: var(--bg-card-subtle); border-radius: 4px; overflow: hidden; }
+
+    .soft-tag-leap { font-size: 10px; font-weight: 700; color: var(--lavender-text); background: var(--soft-lavender); padding: 3px 8px; border-radius: 6px; margin-top: 6px; width: fit-content; }
+    .soft-tag-vac  { font-size: 10px; font-weight: 700; color: var(--sage-text); background: var(--soft-sage); padding: 3px 8px; border-radius: 6px; margin-top: 6px; width: fit-content; }
+
+    /* Timeline Kartı */
+    .soft-timeline-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 14px 16px;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .soft-timeline-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      background: var(--bg-card-subtle);
+      border-radius: var(--radius-md);
+      font-size: 12px;
+      margin-top: 6px;
+    }
+
+    /* Mini Oynatıcı */
+    .soft-mini-player {
+      background: var(--bg-card);
+      border: 1px solid var(--soft-butter-border);
+      border-radius: 16px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
+      margin-top: 2px;
+    }
+
+    .soft-play-btn {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: var(--soft-butter);
+      border: 1px solid var(--soft-butter-border);
+      color: var(--butter-text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    /* ==========================================================================
+       SAYFA 2: AĞLAMA ANALİZİ
+       ========================================================================== */
+    .soft-cry-hero {
+      background: linear-gradient(180deg, var(--soft-lavender) 0%, var(--bg-card) 100%);
+      border: 1px solid var(--soft-lavender-border);
+      border-radius: var(--radius-xl);
+      padding: 24px 18px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .soft-cry-mic-btn {
+      width: 88px;
+      height: 88px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #F28482 0%, #E07A5F 100%);
+      border: 4px solid rgba(255, 255, 255, 0.9);
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(224, 122, 95, 0.35);
+      margin: 14px 0 16px;
+      transition: transform 0.15s;
+    }
+
+    .soft-cry-mic-btn:active { transform: scale(0.94); }
+
+    /* ==========================================================================
+       SAYFA 3: SESLER & MİKSER
+       ========================================================================== */
+    .soft-pill-row {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 2px;
+    }
+
+    .soft-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      color: var(--text-sub);
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      white-space: nowrap;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .soft-pill.active {
+      background: var(--soft-peach);
+      border-color: rgba(224, 122, 95, 0.4);
+      color: var(--peach-text);
+    }
+
+    .soft-sound-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .soft-sound-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-lg);
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      cursor: pointer;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .soft-sound-card.playing {
+      background: var(--soft-butter);
+      border-color: var(--soft-butter-border);
+    }
+
+    /* ==========================================================================
+       SAYFA 4: GELİŞİM & DERİN ANALİZ
+       ========================================================================== */
+    .soft-rollup-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .soft-rollup-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(12px);
+    }
+
+    .soft-rollup-card .val {
+      font-size: 16px;
+      font-weight: 800;
+      color: var(--text-main);
+      font-family: 'Sora', sans-serif;
+      margin: 2px 0;
+    }
+
+    /* ==========================================================================
+       SAYFA 5: MIŞIL DADI AI (COACH)
+       ========================================================================== */
+    .soft-dadi-bubble {
+      max-width: 85%;
+      padding: 12px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      line-height: 1.45;
+      box-shadow: var(--card-shadow);
+      backdrop-filter: blur(10px);
+    }
+
+    .dadi-msg {
+      align-self: flex-start;
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      color: var(--text-main);
+      border-bottom-left-radius: 4px;
+    }
+
+    .user-msg {
+      align-self: flex-end;
+      background: var(--peach-accent);
+      color: #FFFFFF;
+      border-bottom-right-radius: 4px;
+    }
+
+    /* ==========================================================================
+       MODAL: TÜM AYARLAR
+       ========================================================================== */
+    .modal-overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(45, 39, 35, 0.45);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+    }
+
+    .modal-overlay.active { display: flex; animation: sheetUp 0.25s ease-out; }
+
+    @keyframes sheetUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+
+    .modal-sheet {
+      width: 100%;
+      max-height: 88%;
+      background: var(--bg-phone);
+      border-top-left-radius: 28px;
+      border-top-right-radius: 28px;
+      border: 1px solid var(--border-card);
+      padding: 18px 20px 30px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      box-shadow: 0 -10px 40px rgba(0,0,0,0.15);
+    }
+
+    /* ==========================================================================
+       5 SEKMELİ SABİT ALT NAVİGASYON
+       ========================================================================== */
+    .bottom-nav {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 74px;
+      background: var(--nav-bg);
+      backdrop-filter: blur(20px);
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 4px;
+      z-index: 50;
+      transition: background 0.35s ease;
+    }
+
+    .nav-tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 6px 10px;
+      border-radius: 12px;
+      transition: all 0.15s;
+    }
+
+    .nav-tab.active { color: var(--peach-accent); }
+    .nav-tab.active .nav-icon { transform: translateY(-2px); }
+    .nav-icon { font-size: 21px; transition: transform 0.15s; }
+  </style>
+</head>
+<body>
+
+
+
+  <div class="mobile-frame">
+    <!-- Durum Çubuğu -->
+    <div class="status-bar">
+      <span>09:41</span>
+      <span>5G • %100</span>
+    </div>
+
+    <!-- Sayfalar Kapsayıcısı -->
+    <div class="page-container">
+
+      <!-- ====================================================================
+           SAYFA 1: BUGÜN (SOFT ANNE & BEBEK BENTO)
+           ==================================================================== -->
+      <div class="page-view active" id="view-today">
+        
+        <!-- Üst Başlık & Profil -->
+        <div class="header-section">
+          <div class="baby-badge" onclick="openSettingsModal()">
+            <div class="baby-avatar-wrap">👶</div>
+            <div class="baby-info">
+              <h2>Mışıl</h2>
+              <p>4 Aylık • Sakin Büyüme</p>
+            </div>
+          </div>
+          <div class="header-right-btns">
+            <div class="icon-btn" onclick="openSettingsModal()" title="Ayarlar & Aile">⚙️</div>
+          </div>
+        </div>
+
+        <!-- BENTO BLOK 1: MIŞIL SPOT™ + DENGE SKORU -->
+        <div class="hero-bento-row">
+          <!-- Sol: Mışıl Spot™ -->
+          <div class="misilspot-soft-card">
+            <div>
+              <div class="soft-card-label">🌙 Mışıl Spot™ Önerisi</div>
+              <div class="misilspot-big-time">13:45</div>
+            </div>
+            <div class="soft-countdown-pill">
+              <span>⏳</span> <span>Zamanında Uyut</span>
+            </div>
+          </div>
+
+          <!-- Sağ: Denge Skoru -->
+          <div class="balance-soft-card" onclick="switchTab(3)">
+            <div class="label">Denge Skoru</div>
+            <div class="soft-score-dial">
+              <svg viewBox="0 0 72 72">
+                <circle class="soft-circle-bg" cx="36" cy="36" r="30"/>
+                <circle class="soft-circle-fill" cx="36" cy="36" r="30"/>
+              </svg>
+              <div class="soft-score-val">%84</div>
+            </div>
+            <div class="soft-balance-pill state-balanced">🟡 Dengeli</div>
+          </div>
+        </div>
+
+        <!-- BENTO BLOK 2: TEK TIK CANLI UYKU TAKİBİ -->
+        <div class="soft-live-sleep-btn" onclick="toggleSleepTimer(this)">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 24px;">🌙</span>
+            <div>
+              <h3 id="sleep-btn-title">Şimdi Uyuyor (Canlı Takip)</h3>
+              <p id="sleep-btn-sub">Uykuyu tek dokunuşla başlat</p>
+            </div>
+          </div>
+          <div id="sleep-btn-icon" style="font-size: 18px; font-weight: 800;">▶</div>
+        </div>
+
+        <!-- BENTO BLOK 3: 4 BÜYÜK DOKUNMATİK RUTİN KUTUSU -->
+        <div class="soft-bento-title">
+          <span>Hızlı Rutin Kaydı</span>
+          <a onclick="switchTab(3)" style="color: var(--peach-accent); cursor: pointer;">+ Geçmiş</a>
+        </div>
+        <div class="quick-bento-grid">
+          <!-- Beslenme (Bal/Vanilya) -->
+          <div class="soft-quick-card card-milk" onclick="alert('🍼 Beslenme Kaydedildi (120ml Anne Sütü)')">
+            <div class="soft-card-icon">🍼</div>
+            <div>
+              <h4>Beslenme</h4>
+              <p>Son: 2s önce</p>
+            </div>
+          </div>
+
+          <!-- Alt Değişimi (Blush Gül) -->
+          <div class="soft-quick-card card-diaper" onclick="alert('🚼 Alt Değişimi Kaydedildi (Islak)')">
+            <div class="soft-card-icon">🚼</div>
+            <div>
+              <h4>Alt Değişimi</h4>
+              <p>Son: 1s önce</p>
+            </div>
+          </div>
+
+          <!-- Ağlama Analizi (Lavanta) -->
+          <div class="soft-quick-card card-cry" onclick="switchTab(1)">
+            <div class="soft-card-icon">🎙️</div>
+            <div>
+              <h4>Ağlama Analizi</h4>
+              <p>Yapay Zeka Teşhis</p>
+            </div>
+          </div>
+
+          <!-- Ninni & Sesler (Şeftali) -->
+          <div class="soft-quick-card card-lullaby" onclick="switchTab(2)">
+            <div class="soft-card-icon">🎧</div>
+            <div>
+              <h4>Ses Mikseri</h4>
+              <p>18 Melodi & Timer</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- BENTO BLOK 4: WONDER WEEKS & AŞI TAKVİMİ -->
+        <div class="insight-bento-row">
+          <div class="soft-insight-card" onclick="switchTab(3)">
+            <div class="soft-insight-header">
+              <span>🌱</span> Wonder Weeks
+            </div>
+            <div class="soft-insight-desc">5. Sıçrama: İlişkiler Dünyası</div>
+            <div class="soft-progress-bar">
+              <div style="width: 70%; height: 100%; background: var(--lavender-text);"></div>
+            </div>
+            <div class="soft-tag-leap">Güneşli Dönem ☀️</div>
+          </div>
+
+          <div class="soft-insight-card" onclick="switchTab(3)">
+            <div class="soft-insight-header">
+              <span>💉</span> Aşı Defteri
+            </div>
+            <div class="soft-insight-desc">4. Ay: Karma & KPA 2. Doz</div>
+            <div class="soft-progress-bar">
+              <div style="width: 45%; height: 100%; background: var(--sage-accent);"></div>
+            </div>
+            <div class="soft-tag-vac">14 Gün Kaldı 🗓️</div>
+          </div>
+        </div>
+
+        <!-- BENTO BLOK 5: BUGÜNKÜ UYKU ZAMAN ÇİZELGESİ -->
+        <div class="soft-timeline-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <strong style="font-size: 13px; color: var(--text-main);">📊 Bugünkü Uyku Akışı</strong>
+            <span style="font-size: 11px; font-weight: 700; color: var(--sky-text); background: var(--soft-sky); padding: 3px 8px; border-radius: 10px;">2/3 Nap Tamam</span>
+          </div>
+          <div class="soft-timeline-item">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>🌅</span>
+              <div>
+                <strong style="color: var(--text-main);">09:15 - 10:30</strong>
+                <div style="font-size: 10px; color: var(--text-muted);">Sabah Uykusu (1. Nap)</div>
+              </div>
+            </div>
+            <span style="color: var(--peach-text); font-weight: 700;">1s 15dk</span>
+          </div>
+
+          <div class="soft-timeline-item">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span>☀️</span>
+              <div>
+                <strong style="color: var(--text-main);">13:45 (Bekleniyor)</strong>
+                <div style="font-size: 10px; color: var(--text-muted);">Öğle Uykusu (Mışıl Spot™)</div>
+              </div>
+            </div>
+            <span style="color: var(--peach-accent); font-weight: 700;">40 Dk Kaldı</span>
+          </div>
+        </div>
+
+        <!-- MİNİ SES OYNATICI -->
+        <div class="soft-mini-player">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="soft-play-btn" onclick="toggleMiniPlayer(this)">▶</div>
+            <div>
+              <div style="font-size: 13px; font-weight: 800; color: var(--text-main);">🎹 Brahms Uyku Ninnisi</div>
+              <div style="font-size: 10px; color: var(--text-sub);">Kilitli ekranda kesintisiz çalar</div>
+            </div>
+          </div>
+          <span style="font-size: 11px; color: var(--peach-accent); font-weight: 700; cursor: pointer;" onclick="switchTab(2)">Mikser ➔</span>
+        </div>
+
+      </div>
+
+      <!-- ====================================================================
+           SAYFA 2: AĞLAMA ANALİZİ
+           ==================================================================== -->
+      <div class="page-view" id="view-cry">
+        <div class="header-section">
+          <div>
+            <h2 style="font-size: 19px; font-weight: 800;">🎙️ Ağlama Analizi</h2>
+            <p style="font-size: 11px; color: var(--text-sub);">Dunstan Bebek Dili & 13-Bant MFCC</p>
+          </div>
+          <div class="icon-btn" onclick="alert('Mikrofon hassasiyeti ayarları')">⚙️</div>
+        </div>
+
+        <div class="soft-cry-hero">
+          <h3 style="font-size: 17px; font-weight: 800; color: var(--text-main);" id="cry-status-text">Bebeğiniz Ağlarken Dinletin</h3>
+          <p style="font-size: 11px; color: var(--text-sub); margin-top: 4px;" id="cry-status-sub">5 saniyede ses frekansından ihtiyacı ayrıştırır</p>
+
+          <div class="soft-cry-mic-btn" onclick="simulateCryListening()">
+            <span id="mic-icon">🎙️</span>
+          </div>
+
+          <div style="font-size: 12px; font-weight: 700; color: var(--peach-accent);" id="listen-hint">
+            Dokunun ve Dinlemeyi Başlatın
+          </div>
+        </div>
+
+        <!-- Sonuç Dağılım Kartı -->
+        <div class="soft-insight-card" style="padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div>
+              <strong style="font-size: 13px;">Son Analiz Teşhisi</strong>
+              <div style="font-size: 10px; color: var(--text-muted);">Dunstan Bebek Dili</div>
+            </div>
+            <span style="font-size: 11px; font-weight: 700; background: var(--soft-peach); color: var(--peach-text); padding: 4px 10px; border-radius: 14px;">🍼 %84 Açlık ("Neh")</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600;">
+                <span>🍼 Açlık (Neh sesi)</span>
+                <span style="color: var(--peach-accent); font-weight: 800;">%84</span>
+              </div>
+              <div class="soft-progress-bar" style="margin-top: 3px;"><div style="width: 84%; height: 100%; background: var(--peach-accent);"></div></div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600;">
+                <span>💨 Gaz Sancısı (Eairh sesi)</span>
+                <span style="color: var(--text-muted);">%10</span>
+              </div>
+              <div class="soft-progress-bar" style="margin-top: 3px;"><div style="width: 10%; height: 100%; background: var(--text-muted);"></div></div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 600;">
+                <span>😴 Uyku İsteği (Owh sesi)</span>
+                <span style="color: var(--text-muted);">%4</span>
+              </div>
+              <div class="soft-progress-bar" style="margin-top: 3px;"><div style="width: 4%; height: 100%; background: var(--text-muted);"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mışıl Dadı Önerisi -->
+        <div style="background: var(--soft-butter); border: 1px solid var(--soft-butter-border); border-radius: var(--radius-lg); padding: 12px 14px; display: flex; gap: 10px; align-items: flex-start;">
+          <span style="font-size: 22px;">💡</span>
+          <div>
+            <strong style="font-size: 13px; color: var(--butter-text);">Mışıl Dadı'nın Tavsiyesi</strong>
+            <p style="font-size: 11px; color: var(--text-main); line-height: 1.4; margin-top: 2px;">
+              "Neh sesi dilin damağa vurulmasıyla emme refleksi göstergesidir. Bebeğinizi emzirmeyi veya 120ml mamayı deneyin."
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           SAYFA 3: SESLER & NİNNİLER
+           ==================================================================== -->
+      <div class="page-view" id="view-sounds">
+        <div class="header-section">
+          <div>
+            <h2 style="font-size: 19px; font-weight: 800;">🎧 Sesler & Mikser</h2>
+            <p style="font-size: 11px; color: var(--text-sub);">18 Stüdyo Master Parça • Kilitli Ekranda Kesintisiz</p>
+          </div>
+          <div class="icon-btn" onclick="alert('Zamanlayıcı ayarları')">⏱️</div>
+        </div>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 8px 12px; display: flex; align-items: center; gap: 8px; box-shadow: var(--card-shadow);">
+          <span>🔍</span>
+          <input type="text" placeholder="Ses ara (ninni, yağmur, kalp, şşşt)..." style="border: none; outline: none; background: transparent; width: 100%; font-size: 12px; font-family: inherit; color: var(--text-main);" oninput="filterSounds(this.value)">
+        </div>
+
+        <div class="soft-pill-row">
+          <div class="soft-pill active" onclick="filterCat('all', this)">Tümü (18)</div>
+          <div class="soft-pill" onclick="filterCat('lullaby', this)">🎹 Ninniler</div>
+          <div class="soft-pill" onclick="filterCat('womb', this)">🤰 Anne Karnı</div>
+          <div class="soft-pill" onclick="filterCat('noise', this)">💨 Gürültü & Şşşt</div>
+          <div class="soft-pill" onclick="filterCat('nature', this)">🌿 Doğa</div>
+        </div>
+
+        <div class="soft-bento-title">
+          <span>Kapanma Zamanlayıcısı</span>
+          <span style="color: var(--peach-accent); font-size: 11px;">45 Dk Seçildi</span>
+        </div>
+        <div class="soft-pill-row">
+          <div class="soft-pill">15 Dk</div>
+          <div class="soft-pill">30 Dk</div>
+          <div class="soft-pill active">45 Dk</div>
+          <div class="soft-pill">1 Saat</div>
+          <div class="soft-pill">Kesintisiz ♾️</div>
+        </div>
+
+        <div class="soft-sound-grid">
+          <div class="soft-sound-card playing" data-cat="noise" onclick="toggleSound(this)">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 24px;">📻</span>
+              <span style="width: 14px; height: 14px; border-radius: 50%; background: var(--peach-accent);"></span>
+            </div>
+            <div>
+              <strong style="font-size: 13px; color: var(--text-main);">Beyaz Gürültü</strong>
+              <div style="font-size: 10px; color: var(--text-sub);">Derin Anne Karnı</div>
+            </div>
+          </div>
+
+          <div class="soft-sound-card" data-cat="nature" onclick="toggleSound(this)">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 24px;">🌧️</span>
+              <span style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--text-muted);"></span>
+            </div>
+            <div>
+              <strong style="font-size: 13px; color: var(--text-main);">Ilık Yağmur</strong>
+              <div style="font-size: 10px; color: var(--text-sub);">Huzurlu Doğa</div>
+            </div>
+          </div>
+
+          <div class="soft-sound-card" data-cat="womb" onclick="toggleSound(this)">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 24px;">🫀</span>
+              <span style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--text-muted);"></span>
+            </div>
+            <div>
+              <strong style="font-size: 13px; color: var(--text-main);">Anne Nabzı</strong>
+              <div style="font-size: 10px; color: var(--text-sub);">Ritmik Kalp Atışı</div>
+            </div>
+          </div>
+
+          <div class="soft-sound-card" data-cat="noise" onclick="toggleSound(this)">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 24px;">🤫</span>
+              <span style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--text-muted);"></span>
+            </div>
+            <div>
+              <strong style="font-size: 13px; color: var(--text-main);">Mışıl Şşşt</strong>
+              <div style="font-size: 10px; color: var(--text-sub);">Kolik Sakinleştirici</div>
+            </div>
+          </div>
+
+          <div class="soft-sound-card playing" data-cat="lullaby" onclick="toggleSound(this)">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 24px;">🎹</span>
+              <span style="width: 14px; height: 14px; border-radius: 50%; background: var(--peach-accent);"></span>
+            </div>
+            <div>
+              <strong style="font-size: 13px; color: var(--text-main);">Brahms Ninnisi</strong>
+              <div style="font-size: 10px; color: var(--text-sub);">Akustik Piyano</div>
+            </div>
+          </div>
+
+          <div class="soft-sound-card" data-cat="noise" onclick="toggleSound(this)">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 24px;">💨</span>
+              <span style="width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--text-muted);"></span>
+            </div>
+            <div>
+              <strong style="font-size: 13px; color: var(--text-main);">Fön Sesi</strong>
+              <div style="font-size: 10px; color: var(--text-sub);">Sabit Ritim</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           SAYFA 4: GELİŞİM, ROLLUP & WONDER WEEKS & AŞI
+           ==================================================================== -->
+      <div class="page-view" id="view-analytics">
+        <div class="header-section">
+          <div>
+            <h2 style="font-size: 19px; font-weight: 800;">📊 Gelişim & Analiz</h2>
+            <p style="font-size: 11px; color: var(--text-sub);">Biyometrik Özet & Aşı Defteri</p>
+          </div>
+          <div class="icon-btn" onclick="alert('Pediatrik rapor PDF hazır')">📄</div>
+        </div>
+
+        <!-- 4'lü Denge Alt Bileşenleri -->
+        <div class="soft-insight-card" style="padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div>
+              <div style="font-size: 11px; font-weight: 700; color: var(--sage-text);">Ritim & Denge Analizi</div>
+              <strong style="font-size: 16px;">Genel Denge: %84 (İdeal)</strong>
+            </div>
+            <span class="soft-tag-vac" style="margin: 0;">🟢 Ritimde</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-sub);">
+                <span>🌙 Uyku Düzeni & Dinlenme</span>
+                <strong>%88</strong>
+              </div>
+              <div class="soft-progress-bar" style="margin-top: 2px;"><div style="width: 88%; height: 100%; background: var(--peach-accent);"></div></div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-sub);">
+                <span>🎯 Mışıl Spot Dalışı</span>
+                <strong>%85</strong>
+              </div>
+              <div class="soft-progress-bar" style="margin-top: 2px;"><div style="width: 85%; height: 100%; background: var(--sky-text);"></div></div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-sub);">
+                <span>🍼 Beslenme Dengesi</span>
+                <strong>%82</strong>
+              </div>
+              <div class="soft-progress-bar" style="margin-top: 2px;"><div style="width: 82%; height: 100%; background: var(--sage-accent);"></div></div>
+            </div>
+
+            <div>
+              <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-sub);">
+                <span>🌱 Sıçrama Uyumu</span>
+                <strong>%80</strong>
+              </div>
+              <div class="soft-progress-bar" style="margin-top: 2px;"><div style="width: 80%; height: 100%; background: var(--lavender-text);"></div></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Biyometrik Rollup 4'lü Bento -->
+        <div class="soft-bento-title"><span>Günün Biyometrik Özeti 📋</span></div>
+        <div class="soft-rollup-grid">
+          <div class="soft-rollup-card">
+            <div style="font-size: 11px; color: var(--text-sub);">🌙 Toplam Uyku</div>
+            <div class="val">14s 20dk</div>
+            <div style="font-size: 10px; color: var(--sky-text);">En uzun: 5s 10dk</div>
+          </div>
+          <div class="soft-rollup-card">
+            <div style="font-size: 11px; color: var(--text-sub);">🍼 Beslenme</div>
+            <div class="val">5 Kez (620ml)</div>
+            <div style="font-size: 10px; color: var(--peach-accent);">3.5s aralık</div>
+          </div>
+          <div class="soft-rollup-card">
+            <div style="font-size: 11px; color: var(--text-sub);">🚼 Alt Değişimi</div>
+            <div class="val">4 Bez</div>
+            <div style="font-size: 10px; color: var(--sage-accent);">3 Islak / 1 Kirli</div>
+          </div>
+          <div class="soft-rollup-card">
+            <div style="font-size: 11px; color: var(--text-sub);">⚡ Gece Uyanması</div>
+            <div class="val">1 Kez</div>
+            <div style="font-size: 10px; color: var(--lavender-text);">22:00 - 07:00</div>
+          </div>
+        </div>
+
+        <!-- Aşı Takip Defteri (İnteraktif) -->
+        <div class="soft-bento-title"><span>💉 Aşı Takip Defteri</span></div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <div class="soft-timeline-item" style="cursor: pointer; margin: 0;" onclick="toggleVac(this)">
+            <div>
+              <strong style="color: var(--text-main);">Doğumda: Hepatit B</strong>
+              <div style="font-size: 10px; color: var(--sage-accent);">Tamamlandı ✓</div>
+            </div>
+            <span style="font-size: 16px; color: var(--sage-accent);">✓</span>
+          </div>
+
+          <div class="soft-timeline-item" style="cursor: pointer; margin: 0;" onclick="toggleVac(this)">
+            <div>
+              <strong style="color: var(--text-main);">2. Ay: 5'li Karma + KPA + BCG</strong>
+              <div style="font-size: 10px; color: var(--sage-accent);">Tamamlandı ✓</div>
+            </div>
+            <span style="font-size: 16px; color: var(--sage-accent);">✓</span>
+          </div>
+
+          <div class="soft-timeline-item" style="cursor: pointer; margin: 0;" onclick="toggleVac(this)">
+            <div>
+              <strong style="color: var(--text-main);">4. Ay: 5'li Karma + KPA (2. Doz)</strong>
+              <div style="font-size: 10px; color: var(--peach-accent);">⏳ 14 Gün Kaldı</div>
+            </div>
+            <span style="font-size: 16px; color: var(--text-muted);">○</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           SAYFA 5: MIŞIL DADI AI (COACH)
+           ==================================================================== -->
+      <div class="page-view" id="view-dadi">
+        <div class="header-section">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <div style="width: 40px; height: 40px; border-radius: 50%; background: var(--soft-lavender); display: flex; align-items: center; justify-content: center; font-size: 22px;">👵</div>
+            <div>
+              <h3 style="font-size: 14px; font-weight: 800; color: var(--text-main);">Mışıl Dadı</h3>
+              <p style="font-size: 11px; color: var(--sage-accent); font-weight: 700;">Çevrimiçi • Şefkatli Koç</p>
+            </div>
+          </div>
+          <div class="icon-btn" onclick="clearChat()">🗑️</div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px; flex: 1;" id="dadi-chat">
+          <div class="soft-dadi-bubble dadi-msg">
+            Merhabalar anneciğim! 🌸 Mışıl bugün 4 aylık oldu. Sabah uykusunu 1s 15dk çok huzurlu tamamladı.
+          </div>
+          <div class="soft-dadi-bubble dadi-msg">
+            Günün sonraki en rahatlatıcı uyku penceresi için <strong>Mışıl Spot™ saati 13:45</strong> olarak hesaplandı. 13:35 gibi yatağa hazırlarsanız ağlamadan uyuyacaktır.
+          </div>
+          <div class="soft-dadi-bubble user-msg">
+            Teşekkürler Dadı! Gece sık uyanmalarını nasıl azaltabilirim?
+          </div>
+          <div class="soft-dadi-bubble dadi-msg">
+            4. ayda biyolojik uyku döngüsü yetişkin düzenine evrilir (4. Ay Uyku Gerilemesi). Odanın loşluğunu koruyup beyaz gürültü eşliğinde kucakta hafifçe pışpışlamayı deneyin.
+          </div>
+        </div>
+
+        <div class="soft-pill-row" style="margin-top: 4px;">
+          <div class="soft-pill" onclick="sendPrompt('4. Ay Uyku Gerilemesi ne zaman biter?')">💤 4. Ay Gerilemesi</div>
+          <div class="soft-pill" onclick="sendPrompt('Mışıl Spot nedir?')">⏰ Mışıl Spot Nedir?</div>
+          <div class="soft-pill" onclick="sendPrompt('Gece beslenmesi')">🍼 Gece Beslenmesi</div>
+        </div>
+
+        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: 24px; padding: 6px 8px 6px 14px; display: flex; align-items: center; gap: 8px; box-shadow: var(--card-shadow); margin-top: 4px;">
+          <input type="text" id="dadi-input" placeholder="Mışıl Dadı'ya sorun..." style="flex: 1; border: none; outline: none; background: transparent; font-size: 12px; font-family: inherit; color: var(--text-main);" onkeydown="if(event.key==='Enter') sendDadiMsg()">
+          <div style="width: 32px; height: 32px; border-radius: 50%; background: var(--peach-accent); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 14px; cursor: pointer;" onclick="sendDadiMsg()">➤</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ====================================================================
+         MODAL: AYARLAR, PROFİL, AİLE KODU & ABONELİK (TÜM AYARLAR %100 EKSİKSİZ)
+         ==================================================================== -->
+    <div class="modal-overlay" id="settings-modal" onclick="closeSettings(event)">
+      <div class="modal-sheet" onclick="event.stopPropagation()">
+        
+        <!-- Modal Başlık -->
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px;">
+          <div>
+            <h3 style="font-size: 17px; font-weight: 800; color: var(--text-main);">⚙️ Ayarlar & Aile Yönetimi</h3>
+            <p style="font-size: 11px; color: var(--text-sub);">Profil, Senkronizasyon, Tema & Abonelik</p>
+          </div>
+          <div class="icon-btn" onclick="closeSettings(null)">✕</div>
+        </div>
+
+        <!-- MODÜL 0: GÖRÜNÜM & TEMA (LIGHT / DARK / SİSTEM) -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--card-shadow);">
+          <div style="font-size: 11px; font-weight: 700; color: var(--peach-accent); text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <span>🎨</span> Görünüm & Tema
+          </div>
+          <p style="font-size: 11px; color: var(--text-sub); margin-bottom: 8px;">
+            Gece emzirmelerinde göz yormayan Sıcak Kaşmir Modu veya aydınlık İskandinav Krem kullanımını seçin.
+          </p>
+          <div style="display: flex; gap: 6px;">
+            <button class="mode-tab-pill active" id="btn-set-light" style="flex: 1; justify-content: center;" onclick="setMode('soft-cream')">☀️ Soft Krem</button>
+            <button class="mode-tab-pill" id="btn-set-dark" style="flex: 1; justify-content: center;" onclick="setMode('warm-night')">🌙 Sıcak Kaşmir</button>
+            <button class="mode-tab-pill" id="btn-set-auto" style="flex: 1; justify-content: center;" onclick="alert('Otomatik Sistem Modu: Gün batımında Gece Moduna geçer.')">📱 Sistem</button>
+          </div>
+        </div>
+
+        <!-- MODÜL 1: BEBEK PROFİLİ (DÜZENLEME & KAYDETME) -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--card-shadow);">
+          <div style="font-size: 11px; font-weight: 700; color: var(--peach-accent); text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <span>👶</span> Bebek Profili
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+            <div>
+              <label style="font-size: 10px; color: var(--text-muted); font-weight: 700;">BEBEĞİN ADI</label>
+              <input type="text" id="cfg-baby-name" value="Mışıl" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-card); background: var(--bg-card-subtle); color: var(--text-main); font-size: 12px; font-weight: 700; margin-top: 2px;">
+            </div>
+            <div>
+              <label style="font-size: 10px; color: var(--text-muted); font-weight: 700;">DOĞUM TARİHİ (GELİŞİM ATAĞI & AY HESABI)</label>
+              <input type="date" id="cfg-baby-bdate" value="2026-05-22" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border-card); background: var(--bg-card-subtle); color: var(--text-main); font-size: 12px; font-weight: 700; margin-top: 2px;">
+            </div>
+            <button style="background: var(--peach-accent); color: #FFF; border: none; font-weight: 800; padding: 10px; border-radius: 10px; font-size: 12px; cursor: pointer; margin-top: 2px;" onclick="alert('💾 Bebek profili başarıyla kaydedildi & Sirkadiyen ritim güncellendi!')">💾 Profili Kaydet & Güncelle</button>
+          </div>
+        </div>
+
+        <!-- MODÜL 2: AİLE & DADI SENKRONİZASYONU (KOD, ROLLER & EŞE BAĞLANMA) -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--card-shadow);">
+          <div style="font-size: 11px; font-weight: 700; color: var(--peach-accent); text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <span>👨‍👩‍👧</span> Aile & Dadı Senkronizasyonu
+          </div>
+          <p style="font-size: 11px; color: var(--text-sub); line-height: 1.4; margin-bottom: 8px;">
+            Anne, baba ve dadı aynı bebeğin uykusunu, beslenmesini, aşılarını canlı takip eder.
+          </p>
+
+          <!-- 6 Haneli Aile Kodu -->
+          <div style="background: var(--bg-card-subtle); border: 1px dashed var(--peach-accent); border-radius: 12px; padding: 10px 12px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div>
+              <div style="font-size: 10px; color: var(--text-muted); font-weight: 700;">6 HANELİ AİLE KODUNUZ</div>
+              <div style="font-size: 18px; font-weight: 800; color: var(--peach-accent); letter-spacing: 2px; font-family: 'Sora', sans-serif;">MSL782</div>
+            </div>
+            <div style="display: flex; gap: 6px;">
+              <button style="background: var(--peach-accent); color: #FFF; border: none; font-weight: 700; padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer;" onclick="alert('📋 Aile Kodu Kopyalandı: MSL782')">📋 Kopyala</button>
+              <button style="background: rgba(0,0,0,0.06); color: var(--text-main); border: 1px solid var(--border-subtle); padding: 6px 10px; border-radius: 8px; font-size: 11px; cursor: pointer;" onclick="alert('🔗 Davet linki WhatsApp ile paylaşıldı!')">🔗 Davet Et</button>
+            </div>
+          </div>
+
+          <!-- Aktif Rol Seçimi -->
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">Aktif Rolünüzü Seçin:</div>
+          <div style="display: flex; gap: 6px; margin-bottom: 10px;">
+            <div class="soft-pill active" id="role-mother" style="flex: 1; text-align: center;" onclick="setRole('mother')">👩 Anne</div>
+            <div class="soft-pill" id="role-father" style="flex: 1; text-align: center;" onclick="setRole('father')">👨 Baba</div>
+            <div class="soft-pill" id="role-nanny" style="flex: 1; text-align: center;" onclick="setRole('nanny')">👵 Dadı</div>
+          </div>
+
+          <!-- Kayıtlı Bakıcılar Listesi & Yeni Ekleme -->
+          <div style="font-size: 11px; font-weight: 700; color: var(--text-main); margin-bottom: 4px;">👥 Kayıtlı Aile & Bakıcılar:</div>
+          <div style="display: flex; flex-direction: column; gap: 4px; font-size: 11px; color: var(--text-sub); margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border-subtle);">
+              <span>👩 Ayşe Nur (Anne - Yönetici)</span>
+              <strong style="color: var(--sage-accent);">✓ Bağlı</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding: 4px 0;">
+              <span>👨 Mehmet (Baba)</span>
+              <strong style="color: var(--sage-accent);">✓ Bağlı</strong>
+            </div>
+          </div>
+
+          <div style="display: flex; gap: 6px; margin-bottom: 12px;">
+            <input type="text" placeholder="Yeni bakıcı/dadı adı..." style="flex: 1; padding: 6px 10px; font-size: 11px; border-radius: 8px; border: 1px solid var(--border-card); background: var(--bg-card-subtle); color: var(--text-main);">
+            <button style="background: var(--bg-card-subtle); border: 1px solid var(--border-card); color: var(--text-main); font-weight: 700; padding: 6px 12px; border-radius: 8px; font-size: 11px; cursor: pointer;" onclick="alert('Bakıcı eklendi')">➕ Ekle</button>
+          </div>
+
+          <!-- Eşinizin Ailesine Bağlanma -->
+          <div style="padding-top: 8px; border-top: 1px dashed var(--border-subtle);">
+            <div style="font-size: 11px; font-weight: 700; color: var(--peach-accent); margin-bottom: 2px;">🔗 Eşinizin Ailesine Bağlanın:</div>
+            <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 6px;">Eşinizin cihazındaki 6 haneli kodu girerek ortak bebeğe bağlanın.</div>
+            <div style="display: flex; gap: 6px;">
+              <input type="text" placeholder="Kod girin (Örn: MSL782)" style="flex: 1; padding: 8px 10px; font-size: 12px; font-family: 'Sora'; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; border-radius: 8px; border: 1px solid var(--border-card); background: var(--bg-card-subtle); color: var(--text-main);" maxlength="10">
+              <button style="background: var(--peach-accent); color: #FFF; border: none; font-weight: 700; padding: 8px 14px; border-radius: 8px; font-size: 11px; cursor: pointer;" onclick="alert('🔗 Aileye başarıyla bağlanıldı!')">🔗 Bağlan</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODÜL 3: UYKU TEŞHİS RAPORU & ANKETİ YENİLE (QUIZ) -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--card-shadow);">
+          <div style="font-size: 11px; font-weight: 700; color: var(--peach-accent); text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <span>📋</span> Uyku Analiz Raporu & Testi
+          </div>
+          <p style="font-size: 11px; color: var(--text-sub); line-height: 1.4; margin-bottom: 8px;">
+            Bebeğinizin uyku düzeni değiştikçe analiz testini tekrar çözüp güncel Uyku Sağlığı Skorunuzu görüntüleyin.
+          </p>
+          <button style="width: 100%; background: var(--bg-card-subtle); border: 1px solid var(--border-card); color: var(--text-main); font-weight: 700; padding: 8px; border-radius: 10px; font-size: 11px; cursor: pointer;" onclick="alert('🔄 Uyku Analiz Testi sıfırdan başlatılıyor...')">🔄 Uyku Analiz Testini Sıfırdan Başlat</button>
+        </div>
+
+        <!-- MODÜL 4: ABONELİK & VIP HAKLAR (APPLE 3.1.2 & MAĞAZA) -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--card-shadow);">
+          <div style="font-size: 11px; font-weight: 700; color: var(--peach-accent); text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <span>👑</span> Abonelik & VIP Haklar
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div>
+              <strong style="font-size: 13px; color: var(--text-main);">Mışıl Baby Pro VIP</strong>
+              <div style="font-size: 10px; color: var(--sage-accent); font-weight: 700;">✓ Yıllık VIP Plan Aktif</div>
+            </div>
+            <span style="font-size: 11px; font-weight: 800; color: var(--peach-accent); background: var(--soft-peach); padding: 3px 8px; border-radius: 10px;">%67 Tasarruf</span>
+          </div>
+
+          <!-- Plan Kartları -->
+          <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
+            <div style="border: 1px solid var(--border-subtle); background: var(--bg-card-subtle); border-radius: 10px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="font-size: 12px; color: var(--text-main);">🌙 Aylık VIP Plan</strong>
+                <div style="font-size: 10px; color: var(--peach-accent); font-weight: 700;">🎁 7 Gün Ücretsiz Deneme Dahil</div>
+              </div>
+              <span style="font-size: 13px; font-weight: 800; color: var(--peach-accent);">₺149.99<span style="font-size: 9px; color: var(--text-muted);">/ay</span></span>
+            </div>
+
+            <div style="border: 2px solid var(--peach-accent); background: var(--soft-peach); border-radius: 10px; padding: 8px 10px; display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <strong style="font-size: 12px; color: var(--peach-text);">👑 Yıllık VIP Plan (Tavsiye Edilen)</strong>
+                <div style="font-size: 10px; color: var(--peach-text);">Aylık ₺49.99 karşılığı • En avantajlı</div>
+              </div>
+              <span style="font-size: 13px; font-weight: 800; color: var(--peach-text);">₺599.99<span style="font-size: 9px;">/yıl</span></span>
+            </div>
+          </div>
+
+          <button style="width: 100%; background: var(--peach-accent); color: #FFF; border: none; font-weight: 800; padding: 10px; border-radius: 10px; font-size: 12px; cursor: pointer; margin-bottom: 8px;" onclick="alert('🎁 Seçilen VIP Plan Google Play / App Store üzerinden başlatılıyor...')">🎁 Seçilen VIP Planı Başlat</button>
+
+          <!-- Apple 3.1.2 Bilgilendirmesi -->
+          <div style="font-size: 10px; color: var(--text-sub); line-height: 1.4; background: var(--bg-card-subtle); padding: 8px 10px; border-radius: 8px; margin-bottom: 8px;">
+            ℹ️ <strong>Apple 3.1.2 Şeffaf Abonelik Kuralı:</strong> 7 günlük deneme süresi içinde ₺0 ödersiniz. Plan yükseltmelerinde mağaza kalan süreyi düşerek farkı tahsil eder.
+          </div>
+
+          <div style="display: flex; gap: 6px;">
+            <button style="flex: 1; background: var(--bg-card-subtle); border: 1px solid var(--border-card); color: var(--text-main); font-size: 11px; font-weight: 700; padding: 8px; border-radius: 8px; cursor: pointer;" onclick="alert('Abonelik yönetimi mağaza arayüzünde açılıyor...')">⚙️ Aboneliği Yönet</button>
+            <button style="flex: 1; background: var(--bg-card-subtle); border: 1px solid var(--border-card); color: var(--text-main); font-size: 11px; font-weight: 700; padding: 8px; border-radius: 8px; cursor: pointer;" onclick="alert('✅ Satın alımlar başarıyla geri yüklendi!')">🔄 Geri Yükle</button>
+          </div>
+        </div>
+
+        <!-- MODÜL 5: GİZLİLİK, YASAL & HESAP SİLME -->
+        <div style="background: var(--bg-card); border: 1px solid var(--border-card); border-radius: var(--radius-md); padding: 14px; box-shadow: var(--card-shadow);">
+          <div style="font-size: 11px; font-weight: 700; color: var(--peach-accent); text-transform: uppercase; margin-bottom: 4px; display: flex; align-items: center; gap: 6px;">
+            <span>🔒</span> Gizlilik & Hesap Yönetimi
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px; font-size: 11px; margin-top: 6px;">
+            <a style="color: var(--peach-accent); font-weight: 700; cursor: pointer;" onclick="alert('🔒 Sıfır-Depolama (Zero-Storage RAM) Gizlilik Politikası: Ses kayıtları sunucuda saklanmaz, analiz tamamlandığında RAM üzerinden kalıcı olarak silinir.')">🔒 Sıfır-Depolama (Zero-Storage RAM) Gizlilik Politikası ➔</a>
+            <a style="color: var(--peach-accent); font-weight: 700; cursor: pointer;" onclick="alert('⚖️ Kullanım Koşulları & Tıbbi Feragatname: Mışıl Baby tıbbi bir teşhis cihazı veya doktor tavsiyesi değildir.')">⚖️ Kullanım Koşulları & Tıbbi Feragatname ➔</a>
+            <a style="color: #E63946; font-weight: 800; cursor: pointer; padding-top: 4px; border-top: 1px dashed var(--border-subtle);" onclick="confirm('Hesabınızı ve tüm bebek kayıtlarınızı kalıcı olarak silmek istediğinize emin misiniz? (Apple 5.1.1 Uyarınca geri alınamaz)')">🗑️ Hesabımı ve Tüm Verilerimi Sil (Apple 5.1.1) ➔</a>
+          </div>
+        </div>
+
+        <!-- SÜRÜM NOTU & DEVRİMİ CHANGELOG -->
+        <div style="text-align: center; font-size: 11px; color: var(--text-muted); padding: 8px 0;" onclick="alert('Mışıl Baby v4.3.0 (Build #48) - 13-Bant MFCC & Dual Soft Bento Mimarisi')">
+          <strong>Mışıl Baby v4.3.0</strong> (Build #48) • Antigravity Holding
+          <div style="font-size: 10px; color: var(--peach-accent); cursor: pointer; margin-top: 2px;">Neler Yeni? (Sürüm Notlarını Gör ➔)</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 5 SEKMELİ SABİT ALT NAVİGASYON -->
+    <div class="bottom-nav">
+      <div class="nav-tab active" onclick="switchTab(0)">
+        <div class="nav-icon">🏠</div>
+        <span>Bugün</span>
+      </div>
+      <div class="nav-tab" onclick="switchTab(1)">
+        <div class="nav-icon">🎙️</div>
+        <span>Ağlama</span>
+      </div>
+      <div class="nav-tab" onclick="switchTab(2)">
+        <div class="nav-icon">🎧</div>
+        <span>Sesler</span>
+      </div>
+      <div class="nav-tab" onclick="switchTab(3)">
+        <div class="nav-icon">📊</div>
+        <span>Gelişim</span>
+      </div>
+      <div class="nav-tab" onclick="switchTab(4)">
+        <div class="nav-icon">👵</div>
+        <span>Mışıl Dadı</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Sekme Değiştirme
+    const views = ['view-today', 'view-cry', 'view-sounds', 'view-analytics', 'view-dadi'];
+    function switchTab(index) {
+      document.querySelectorAll('.nav-tab').forEach((tab, i) => {
+        if (i === index) tab.classList.add('active');
+        else tab.classList.remove('active');
+      });
+      views.forEach((vId, i) => {
+        const el = document.getElementById(vId);
+        if (i === index) el.classList.add('active');
+        else el.classList.remove('active');
+      });
+    }
+
+    // Doğrudan Mod Seçimi (Light vs Dark)
+    function setMode(mode) {
+      document.documentElement.setAttribute('data-theme', mode);
+      const btnLight = document.getElementById('btn-mode-light');
+      const btnDark = document.getElementById('btn-mode-dark');
+
+      if (mode === 'soft-cream') {
+        btnLight.classList.add('active');
+        btnDark.classList.remove('active');
+      } else {
+        btnDark.classList.add('active');
+        btnLight.classList.remove('active');
+      }
+    }
+
+    // Ayarlar Modalı
+    function openSettingsModal() { document.getElementById('settings-modal').classList.add('active'); }
+    function closeSettings(e) {
+      if (!e || e.target.id === 'settings-modal') document.getElementById('settings-modal').classList.remove('active');
+    }
+
+    // Canlı Uyku
+    let isSleeping = false;
+    let sleepSeconds = 0;
+    let sleepTimer = null;
+    function toggleSleepTimer(btn) {
+      const title = document.getElementById('sleep-btn-title');
+      const sub = document.getElementById('sleep-btn-sub');
+      const icon = document.getElementById('sleep-btn-icon');
+      if (!isSleeping) {
+        isSleeping = true;
+        sleepSeconds = 0;
+        title.textContent = 'Bebek Uyuyor... (Kayıtta)';
+        icon.textContent = '⏹';
+        sleepTimer = setInterval(() => {
+          sleepSeconds++;
+          const mins = Math.floor(sleepSeconds / 60);
+          const secs = sleepSeconds % 60;
+          sub.textContent = `Süre: ${mins} dk ${secs < 10 ? '0' : ''}${secs} sn`;
+        }, 1000);
+      } else {
+        isSleeping = false;
+        clearInterval(sleepTimer);
+        title.textContent = 'Şimdi Uyuyor (Canlı Takip)';
+        sub.textContent = 'Uykuyu tek dokunuşla başlat';
+        icon.textContent = '▶';
+        alert(`Uyku Kaydedildi! Süre: ${Math.floor(sleepSeconds / 60)} dk ${sleepSeconds % 60} sn`);
+      }
+    }
+
+    // Ağlama Dinleme
+    function simulateCryListening() {
+      const mic = document.getElementById('mic-icon');
+      const text = document.getElementById('cry-status-text');
+      const sub = document.getElementById('cry-status-sub');
+      mic.textContent = '⏳';
+      text.textContent = 'Akustik Dinleniyor...';
+      sub.textContent = 'Ses frekansından ihtiyaç ayrıştırılıyor (5 sn)';
+      setTimeout(() => {
+        mic.textContent = '✓';
+        text.textContent = 'Teşhis: %84 Açlık ("Neh")';
+        sub.textContent = 'Mışıl Dadı önerisi hazır';
+      }, 3000);
+    }
+
+    // Sesler Filtresi
+    function filterCat(cat, chip) {
+      document.querySelectorAll('.soft-pill').forEach(p => p.classList.remove('active'));
+      chip.classList.add('active');
+      document.querySelectorAll('.soft-sound-card').forEach(card => {
+        if (cat === 'all' || card.getAttribute('data-cat') === cat) card.style.display = 'flex';
+        else card.style.display = 'none';
+      });
+    }
+
+    function filterSounds(q) {
+      const query = q.toLowerCase();
+      document.querySelectorAll('.soft-sound-card').forEach(c => {
+        c.style.display = c.textContent.toLowerCase().includes(query) ? 'flex' : 'none';
+      });
+    }
+
+    function toggleSound(c) { c.classList.toggle('playing'); }
+
+    let miniPlaying = false;
+    function toggleMiniPlayer(btn) {
+      miniPlaying = !miniPlaying;
+      btn.textContent = miniPlaying ? '⏸' : '▶';
+    }
+
+    // Mışıl Dadı
+    function sendPrompt(p) {
+      document.getElementById('dadi-input').value = p;
+      sendDadiMsg();
+    }
+
+    function sendDadiMsg() {
+      const inp = document.getElementById('dadi-input');
+      const txt = inp.value.trim();
+      if (!txt) return;
+      const chat = document.getElementById('dadi-chat');
+      
+      const userBubble = document.createElement('div');
+      userBubble.className = 'soft-dadi-bubble user-msg';
+      userBubble.textContent = txt;
+      chat.appendChild(userBubble);
+      inp.value = '';
+
+      setTimeout(() => {
+        const dBubble = document.createElement('div');
+        dBubble.className = 'soft-dadi-bubble dadi-msg';
+        if (txt.toLowerCase().includes('mışıl spot')) {
+          dBubble.innerHTML = "<strong>Mışıl Spot™</strong>, bebeğinizin uyanıklık penceresine göre en huzurlu uykuya dalma anıdır. Bugün için sonraki Mışıl Spot saati <strong>13:45</strong>'tir.";
+        } else {
+          dBubble.innerHTML = `Sizi çok iyi anlıyorum. "${txt}" konusu bu ayda çok doğaldır. Bebeğinizin uyku pencerelerini 2 saat civarında tutarak sakinleştirmeyi deneyebilirsiniz.`;
+        }
+        chat.appendChild(dBubble);
+      }, 600);
+    }
+
+    function clearChat() {
+      document.getElementById('dadi-chat').innerHTML = '<div class="soft-dadi-bubble dadi-msg">Sohbet sıfırlandı. Merhaba sevgili anneciğim! Ne danışmak istersiniz?</div>';
+    }
+
+    function toggleVac(el) {
+      const s = el.querySelector('span:last-child');
+      if (s.textContent === '✓') { s.textContent = '○'; s.style.color = 'var(--text-muted)'; }
+      else { s.textContent = '✓'; s.style.color = 'var(--sage-accent)'; }
+    }
+  </script>
+</body>
+</html>

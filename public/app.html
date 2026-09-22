@@ -537,6 +537,147 @@
       margin-bottom: 8px;
     }
 
+    /* Üst Başlık Ayarlar Hap Butonu (Header Settings Pill) */
+    .header-settings-pill {
+      background: var(--card-night);
+      border: 1px solid var(--border-night);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--heading-night);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      box-shadow: var(--card-shadow);
+      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .header-settings-pill:active {
+      transform: scale(0.96);
+    }
+    [data-theme="light"] .header-settings-pill {
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid rgba(42, 36, 33, 0.12);
+      color: #2A2421;
+      box-shadow: 0 2px 8px rgba(42, 36, 33, 0.06);
+    }
+
+    /* Mışıl Spot™ Kart Tipografisi - Dual Mode */
+    .misilspot-soft-card .soft-card-label {
+      color: #F4A261;
+    }
+    .misilspot-soft-card .sleep-target-time {
+      color: #FAF5EE;
+    }
+    .misilspot-soft-card .sleep-subtext {
+      color: #E6DCCD;
+    }
+    [data-theme="light"] .misilspot-soft-card .soft-card-label {
+      color: #9C4127;
+    }
+    [data-theme="light"] .misilspot-soft-card .sleep-target-time {
+      color: #2A2421;
+    }
+    [data-theme="light"] .misilspot-soft-card .sleep-subtext {
+      color: #4A3E38;
+    }
+
+    /* Denge Skoru Kart Tipografisi - Dual Mode */
+    .balance-soft-card .balance-card-label {
+      color: #A3E6C5;
+    }
+    .balance-soft-card #home-bento-score-val {
+      color: #FAF5EE;
+    }
+    [data-theme="light"] .balance-soft-card .balance-card-label {
+      color: #23533E;
+    }
+    [data-theme="light"] .balance-soft-card #home-bento-score-val {
+      color: #2A2421;
+    }
+
+    /* Mışıl Spot "Zamanında Uyut" Rozeti (Soft Countdown Pill) - Yüksek Kontrast */
+    .soft-countdown-pill {
+      font-size: 11px;
+      font-weight: 800;
+      padding: 5px 12px;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      width: fit-content;
+      transition: all 0.2s ease;
+      background: rgba(244, 162, 97, 0.22);
+      color: #FAF5EE;
+      border: 1px solid rgba(244, 162, 97, 0.5);
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      letter-spacing: 0.2px;
+    }
+    [data-theme="light"] .soft-countdown-pill {
+      background: rgba(224, 122, 95, 0.14);
+      color: #8C371D;
+      border: 1px solid rgba(224, 122, 95, 0.35);
+      box-shadow: 0 2px 8px rgba(140, 71, 40, 0.08);
+    }
+
+    /* Denge Skoru "Dengeli / Ritimde" Rozeti (Soft Balance Pill) - Yüksek Kontrast */
+    .soft-balance-pill {
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 12px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: all 0.2s ease;
+      background: rgba(72, 122, 99, 0.28);
+      color: #A3E6C5;
+      border: 1px solid rgba(112, 193, 155, 0.45);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .soft-balance-pill.state-balanced {
+      background: rgba(234, 179, 8, 0.26) !important;
+      color: #FEF08A !important;
+      border: 1px solid rgba(250, 204, 21, 0.6) !important;
+      box-shadow: 0 0 10px rgba(234, 179, 8, 0.25);
+    }
+    .soft-balance-pill.state-in-rhythm {
+      background: rgba(34, 197, 94, 0.26) !important;
+      color: #86EFAC !important;
+      border: 1px solid rgba(34, 197, 94, 0.6) !important;
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.25);
+    }
+    .soft-balance-pill.state-needs-care {
+      background: rgba(249, 115, 22, 0.26) !important;
+      color: #FDBA74 !important;
+      border: 1px solid rgba(249, 115, 22, 0.6) !important;
+      box-shadow: 0 0 10px rgba(249, 115, 22, 0.25);
+    }
+
+    [data-theme="light"] .soft-balance-pill {
+      background: rgba(72, 122, 99, 0.14);
+      color: #1B4332;
+      border: 1px solid rgba(72, 122, 99, 0.28);
+      box-shadow: 0 2px 6px rgba(42, 36, 33, 0.05);
+    }
+    [data-theme="light"] .soft-balance-pill.state-balanced {
+      background: rgba(234, 179, 8, 0.16) !important;
+      color: #78350F !important;
+      border: 1px solid rgba(234, 179, 8, 0.4) !important;
+    }
+    [data-theme="light"] .soft-balance-pill.state-in-rhythm {
+      background: rgba(34, 197, 94, 0.16) !important;
+      color: #14532D !important;
+      border: 1px solid rgba(34, 197, 94, 0.4) !important;
+    }
+    [data-theme="light"] .soft-balance-pill.state-needs-care {
+      background: rgba(249, 115, 22, 0.16) !important;
+      color: #7C2D12 !important;
+      border: 1px solid rgba(249, 115, 22, 0.4) !important;
+    }
+
     /* Donanım çentiği ve sahte durum çubuğu tüm platformlarda gizlenir */
     .device-notch, .status-bar {
       display: none !important;
@@ -2271,8 +2412,8 @@
           <div class="baby-subtitle" id="baby-header-subtitle">—</div>
           <div class="main-title" id="baby-header-title">Mışıl Spot™ Ritim & Uyku</div>
         </div>
-        <button onclick="toggleQuickTheme()" id="header-theme-toggle-btn" style="background: var(--card-night); border: 1px solid var(--border-night); border-radius: 20px; padding: 6px 12px; font-size: 11px; font-weight: 700; color: var(--heading-night); cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: var(--card-shadow); transition: all 0.2s ease;">
-          <span id="header-theme-icon">☀️</span> <span id="header-theme-text">Soft Krem</span>
+        <button onclick="hapticPulse(); switchTab('settings');" id="header-settings-btn" class="header-settings-pill" title="Ayarlar ve Profil">
+          <span style="font-size: 14px;">⚙️</span> <span>Ayarlar</span>
         </button>
       </div>
 
@@ -2328,36 +2469,36 @@
           <!-- Sol: Mışıl Spot™ Kartı -->
           <div class="misilspot-soft-card" onclick="toggleLiveSleep()">
             <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <div class="soft-card-label" style="font-size: 11px; font-weight: 700; color: var(--peach-text); display: flex; align-items: center; gap: 4px;">
+              <div class="soft-card-label" style="font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
                 <span>✨</span> <span id="sweetspot-status-badge">Mışıl Spot™ Önerisi Aktif</span>
               </div>
               <span style="font-size: 16px;">🌙</span>
             </div>
             
             <div style="margin: 6px 0;">
-              <div class="sleep-target-time" id="target-sleep-display" style="font-family: 'Sora'; font-size: 32px; font-weight: 800; color: var(--peach-text); letter-spacing: -0.5px; line-height: 1.05;">11:45</div>
-              <div class="sleep-subtext" id="target-sleep-subtext" style="font-size: 10px; color: var(--peach-text); opacity: 0.85; font-weight: 600; margin-top: 3px; line-height: 14px;">Sonraki En İdeal Uyku Vakti (1 saat 15 dk kaldı)</div>
+              <div class="sleep-target-time" id="target-sleep-display" style="font-family: 'Sora'; font-size: 32px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.05;">11:45</div>
+              <div class="sleep-subtext" id="target-sleep-subtext" style="font-size: 10px; opacity: 0.85; font-weight: 600; margin-top: 3px; line-height: 14px;">Sonraki En İdeal Uyku Vakti (1 saat 15 dk kaldı)</div>
               <div id="live-sleep-timer" style="display: none; font-size: 12px; font-weight: 800; color: var(--moon-blue); margin-top: 4px;">
                 💤 Canlı Uyku: 00:00:00
               </div>
             </div>
 
-            <div class="soft-countdown-pill" style="background: rgba(255, 255, 255, 0.9); color: var(--peach-text); font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 16px; display: inline-flex; align-items: center; gap: 4px; width: fit-content; box-shadow: 0 2px 8px rgba(140, 71, 40, 0.1);">
+            <div class="soft-countdown-pill" id="bento-countdown-pill">
               <span>⏳</span> <span>Zamanında Uyut</span>
             </div>
           </div>
 
           <!-- Sağ: Canlı Denge Skoru Kartı -->
           <div class="balance-soft-card" onclick="switchTab('analytics')">
-            <div style="font-size: 11px; font-weight: 700; color: var(--sage-text);">Denge Skoru</div>
+            <div style="font-size: 11px; font-weight: 700;" class="balance-card-label">Denge Skoru</div>
             <div class="soft-score-dial" style="position: relative; width: 62px; height: 62px; margin: 2px 0;">
               <svg viewBox="0 0 72 72" style="width: 100%; height: 100%; transform: rotate(-90deg);">
                 <circle cx="36" cy="36" r="30" fill="none" stroke="rgba(72, 122, 99, 0.18)" stroke-width="7" />
                 <circle id="home-bento-score-fill" cx="36" cy="36" r="30" fill="none" stroke="var(--sage-accent)" stroke-width="7" stroke-dasharray="188" stroke-dashoffset="30" stroke-linecap="round" />
               </svg>
-              <div id="home-bento-score-val" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 17px; font-weight: 800; color: var(--sage-text);">%84</div>
+              <div id="home-bento-score-val" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 17px; font-weight: 800;">%84</div>
             </div>
-            <div id="home-bento-score-badge" style="font-size: 9px; font-weight: 700; color: var(--sage-text); background: rgba(255, 255, 255, 0.9); padding: 2px 8px; border-radius: 10px;">🟢 Ritimde</div>
+            <div id="home-bento-score-badge" class="soft-balance-pill state-in-rhythm">🟢 Ritimde</div>
           </div>
         </div>
 
@@ -3758,7 +3899,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.35.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.36.1', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -3775,7 +3916,11 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.36.0', date: '22 Eylül 2026', latest: true, items: [
+    { v: '4.36.1', date: '22 Eylül 2026', latest: true, items: [
+      'Üst Başlık Ayarlar Butonu Entegrasyonu: Sağ üstteki mükerrer tema butonu kaldırılarak doğrudan Ayarlar ve Profil modülünü açan zarif dokunmatik Ayarlar butonu yerleştirildi.',
+      'Dark Mod Yüksek Kontrastlı Rozetler: Gece Kaşmir modunda Mışıl Spot "Zamanında Uyut" ve Denge Skoru "Dengeli / Ritimde" rozetlerinin okunamama sorunu yüksek kontrastlı sıcak kehribar ve nane/adaçayı kapsül stilleriyle tamamen giderildi.'
+    ]},
+    { v: '4.36.0', date: '22 Eylül 2026', items: [
       'Dual-Mode Soft Anne & Bebek Renk Paleti: Göz yormayan İskandinav Soft Krem (Gündüz) ve Melatonin dostu Sıcak Kaşmir / Mum Işığı Kehribar (Gece) modları entegre edildi. Üst barda anlık tek tıkla geçiş desteği sağlandı.',
       '4 Noktalı Organik Ambiyans Mesh Gradient & Sıfır Çubuk (Zero-Scrollbar): Düz mat arka planlar organik nefes alan ışık hareleriyle yenilendi; mobil webview ve tarayıcılardaki çirkin kaydırma çubukları tamamen gizlendi.',
       'Pillowy Bento Grid Dashboard: Mışıl Spot™ uyanıklık penceresi, Denge Skoru göstergesi ve 4 dokunmatik rutin kartı (Beslenme, Alt Değişimi, Ağlama Analizi, Ses Mikseri) ergonomik Bento mimarisinde buluşturuldu.',
@@ -6451,12 +6596,16 @@
       homeBentoFill.style.strokeDashoffset = offset;
     }
     if (homeBentoBadge) {
+      homeBentoBadge.classList.remove('state-in-rhythm', 'state-balanced', 'state-needs-care');
       if (scoreData.finalScore >= 80) {
         homeBentoBadge.textContent = '🟢 Ritimde';
+        homeBentoBadge.classList.add('state-in-rhythm');
       } else if (scoreData.finalScore >= 60) {
         homeBentoBadge.textContent = '🟡 Dengeli';
+        homeBentoBadge.classList.add('state-balanced');
       } else {
         homeBentoBadge.textContent = '🟠 Gelişmeli';
+        homeBentoBadge.classList.add('state-needs-care');
       }
     }
 

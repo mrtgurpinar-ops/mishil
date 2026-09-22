@@ -2,6 +2,14 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.36.1] - 2026-09-22
+### ⚙️ Üst Başlık Ayarlar Butonu & Dark Mod Rozet Kontrast Rötuşu (Build 50)
+1. **Üst Başlık Ayarlar Butonu:** Sağ üstteki mükerrer tema değiştirici kaldırıldı; doğrudan Ayarlar ve Profil modülünü açan dokunmatik `⚙️ Ayarlar` hap butonu yerleştirildi (`switchTab('settings')`).
+2. **Dark Mod Yüksek Kontrastlı Rozetler:**
+   - Mışıl Spot öneri kartındaki "⏳ Zamanında Uyut" (`.soft-countdown-pill`) rozetinin arka planı ve metni gece modunda yüksek kontrastlı sıcak kehribar (`rgba(244, 162, 97, 0.22)`), `#FAF5EE` metin ve belirgin bordür ile güncellendi.
+   - Denge Skoru kartındaki "🟡 Dengeli" (`.soft-balance-pill.state-balanced`) rozetinin karanlık modda kaybolması engellendi; `#FEF08A` canlı sarı metin ve yarı saydam amber kapsül ile netleştirildi.
+   - `renderHomeScreenScore` fonksiyonu skor değiştikçe rozet sınıflarını dinamik yönetecek şekilde güncellendi.
+
 ## [4.36.0] - 2026-09-22
 ### 🌸 Dual-Mode Soft Anne & Bebek Renk Paleti, Mışıl Spot™ Markalaması, Pillowy Bento Grid & Zero-Scrollbar (Build 49)
 
