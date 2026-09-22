@@ -186,17 +186,23 @@
       color: var(--heading-night) !important;
     }
     [data-theme="light"] .tab-item .tab-label {
-      color: var(--heading-night) !important;
+      color: #2D231E !important;
+      font-weight: 700 !important;
+      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9) !important;
     }
     [data-theme="light"] .tab-bar {
-      background: rgba(250, 246, 240, 0.76);
-      border-top-color: rgba(42, 36, 33, 0.08);
-      box-shadow: 0 -4px 20px rgba(42, 36, 33, 0.06);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+      background: rgba(255, 255, 255, 0.45) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
+      box-shadow: 0 -8px 32px rgba(42, 36, 33, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+      backdrop-filter: blur(20px) saturate(190%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+    }
+    [data-theme="light"] .tab-item.active {
+      background: rgba(232, 168, 85, 0.12) !important;
     }
     [data-theme="light"] .tab-item.active .tab-label {
       color: var(--accent) !important;
+      text-shadow: 0 1px 3px rgba(232, 168, 85, 0.4) !important;
     }
     [data-theme="light"] .btn-primary {
       color: #FFFFFF !important;
@@ -1447,7 +1453,7 @@
       font-weight: 700;
     }
 
-    /* Bottom Dock Navigation */
+    /* Bottom Dock Navigation - Apple Liquid Glassmorphism Dock */
     .tab-bar {
       position: absolute;
       bottom: 0;
@@ -1456,10 +1462,11 @@
       max-width: 540px;
       margin: 0 auto;
       height: calc(64px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px)));
-      background: rgba(19, 16, 28, 0.72);
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
+      background: rgba(19, 16, 28, 0.40) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.16) !important;
+      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+      backdrop-filter: blur(20px) saturate(190%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
       display: flex;
       justify-content: space-around;
       align-items: center;
@@ -1474,14 +1481,32 @@
       flex-direction: column;
       align-items: center;
       cursor: pointer;
-      opacity: 0.55;
+      opacity: 0.65;
       transition: all 0.2s cubic-bezier(0.2, 0.6, 0.2, 1);
       position: relative;
+      padding: 4px 10px;
+      border-radius: var(--radius-pill);
     }
 
     .tab-item.active {
       opacity: 1;
       transform: translateY(-2px);
+      background: rgba(255, 255, 255, 0.08);
+    }
+
+    .tab-item .tab-label {
+      color: #FAF5EE;
+      font-size: 10px;
+      font-weight: 600;
+      margin-top: 2px;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
+      transition: color 0.2s;
+    }
+
+    .tab-item.active .tab-label {
+      color: var(--accent);
+      font-weight: 700;
+      text-shadow: 0 1px 4px rgba(232, 168, 85, 0.4);
     }
 
     .tab-item.active::after {
@@ -3966,7 +3991,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.36.3', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.36.4', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -3983,7 +4008,10 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.36.3', date: '22 Eylül 2026', latest: true, items: [
+    { v: '4.36.4', date: '22 Eylül 2026', latest: true, items: [
+      'Belirgin Sıvı Cam (Liquid Glassmorphism) Dock: Alt menü çubuğu hem açık (%45 saydam) hem koyu (%40 saydam) modda arkasından geçen kart ve renkleri canlı yansıtan saturate(190%) ve prizmatik speküler ışık bordürleriyle gerçek bir iOS yüzen cam dock haline getirildi.'
+    ]},
+    { v: '4.36.3', date: '22 Eylül 2026', items: [
       'Yarı Saydam Alt Menübar (Frosted Glass Dock): Alt navigasyon çubuğu arkasından sayfa içeriklerinin süzüldüğü yüksek bulanıklıklı (blur 24px) şeffaf cam efektiyle ferahlatıldı.',
       'Hızlı Gelişim Atakları Modalı: Ana sayfadaki BabySteps™ kartına basıldığında başka sayfaya yönlendirmeden doğrudan ekrana gelen 10 Zihinsel Sıçrama açılır modalı entegre edildi.'
     ]},

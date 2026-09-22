@@ -2,6 +2,11 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.36.4] - 2026-09-22
+### 💎 Belirgin Sıvı Cam (Liquid Glassmorphism) Dock & Apple Speküler Prizma (Build 53)
+1. **Belirgin Sıvı Cam (Liquid Glassmorphism) Dock:** Alt navigasyon çubuğu hem açık (%45 saydam) hem koyu (%40 saydam) modda arkasından geçen kart ve renkleri canlı yansıtan `saturate(190%)`, `inset 0 1px 0` iç ışık yansıması ve prizmatik speküler üst bordür ile gerçek bir Apple iOS yüzen cam dock haline getirildi.
+2. **Kristal Okunurluk:** Sayfa kaydırılırken şeffaf camın altından renkli kartlar geçse dahi etiketlerin net kalması için ince kontrast metin gölgesi (`text-shadow`) ve aktif sekme ışıldama kapsülü eklendi.
+
 ## [4.36.3] - 2026-09-22
 ### 🌿 Yarı Saydam Alt Menübar (Frosted Glass Dock) & Hızlı Gelişim Atakları Modalı (Build 52)
 1. **Yarı Saydam Alt Menübar:** Alt navigasyon çubuğu opaklığı düşürülerek (`0.72` dark / `0.76` light) ve `blur(24px)` artırılarak ultra-lüks, arkadaki içerik ve ışık harelerinin süzüldüğü şeffaf bir dock haline getirildi.
