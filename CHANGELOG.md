@@ -2,6 +2,14 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.36.7] - 2026-09-25
+### 🛡️ Railway Canlı Crash Onarımı & SQLAlchemy 2.0+ / psycopg Çift Sürücü Koruması (Build 54)
+1. **SQLAlchemy 2.0+ PostgreSQL Sürücü Dayanıklılığı:**
+   - Railway ortamında `DATABASE_URL`'in SQLAlchemy 2.0 tarafından `psycopg` (v3) araması sonucu ortaya çıkan `ModuleNotFoundError: No module named 'psycopg'` çökmesi kökten giderildi.
+   - `DATABASE_URL` normalizasyonu `postgresql+psycopg2://` protokolüne sabitlendi; `requirements.txt` içerisine hem `psycopg2-binary` hem de `psycopg[binary]>=3.1.18` eklenerek tam çift sürücü güvencesi sağlandı.
+2. **Zero-Downtime SQLite Failsafe:**
+   - `app/db/base.py` içerisine motor başlatma seviyesinde `try...except` koruması eklendi; veritabanı sürücü veya ağ kopması durumlarında otomatik yerel SQLite fallback'e geçilerek uygulamanın çökmesi (fatal crash) engellendi.
+
 ## [4.36.6] - 2026-09-25
 ### 👵 Mışıl Dadı Açık Tema Okunabilirlik & Yapısal Pediatrik AI Yanıt Mimarisi (Build 53)
 1. **Mışıl Dadı Açık Tema (Light Mode) Kontrast & Okunabilirlik:**

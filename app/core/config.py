@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # General App Config
     APP_NAME: str = "mishil"
     APP_TITLE: str = "Mishil API - Baby Sleep & Routines"
-    APP_VERSION: str = "1.5.0"
+    APP_VERSION: str = "4.36.7"
     ENVIRONMENT: str = "development"
     DEBUG: bool = False  # Default False — production-safe. Set DEBUG=True in .env for local dev.
     PORT: int = 8000
@@ -41,8 +41,11 @@ class Settings(BaseSettings):
     @field_validator("DATABASE_URL", mode="before")
     @classmethod
     def assemble_db_connection(cls, v: str) -> str:
-        if isinstance(v, str) and v.startswith("postgres://"):
-            return v.replace("postgres://", "postgresql://", 1)
+        if isinstance(v, str):
+            if v.startswith("postgres://"):
+                return v.replace("postgres://", "postgresql+psycopg2://", 1)
+            if v.startswith("postgresql://") and not v.startswith("postgresql+"):
+                return v.replace("postgresql://", "postgresql+psycopg2://", 1)
         return v
 
     @model_validator(mode="after")
