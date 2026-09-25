@@ -2,6 +2,24 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.36.6] - 2026-09-25
+### 👵 Mışıl Dadı Açık Tema Okunabilirlik & Yapısal Pediatrik AI Yanıt Mimarisi (Build 53)
+1. **Mışıl Dadı Açık Tema (Light Mode) Kontrast & Okunabilirlik:**
+   - Açık tema aktifken `.chat-bubble-user` kullanıcı mesaj baloncuğundaki beyaz üstüne açık şeftali renk görünmezlik sorunu kökten giderildi; yüksek kontrastlı sıcak Terracotta degrade (`linear-gradient(135deg, #E07A5F, #D86A4E)`), derinlikli gölge ve net beyaz metin (`#FFFFFF`) uygulandı.
+   - Hızlı soru çipleri (`.ai-chip`) açık modda koyu lacivert yerine zarif beyaz kart zemin, yumuşak sınır çizgisi ve okunaklı `#2A2421` antrasit metin rengine kavuşturuldu.
+   - Entegre ağlama analiz çubuğu (`.card[onclick*="openCryModal"]`) açık temada yumuşak kaşmir zemin ve net koyu başlıkla zenginleştirildi.
+2. **Yapısal Pediatrik Şablonlama & Kesintisiz Yanıt Bütünlüğü:**
+   - Gemini AI yanıtlarının yarım kalma sorunu, yapay ve boğucu token/kelime giyotinleri yerine 3 bloklu klinik pedagojik iskelet (Teşhis, Acil Eylem Adımları, Sonraki Önlem) ile yapısal olarak çözüldü.
+   - Modelin klinik akıl yürütme (reasoning/thinking) kapasitesi tam korunarak `maxOutputTokens` emniyet tavanı 2500'e çıkarıldı.
+   - Olası harici ağ veya soket kopmalarında yanıtın yarım kalmasını önleyen otonom akış içi tamamlama kalkanı (`_is_text_incomplete` sentinel) devreye alındı.
+ 
+## [4.36.5] - 2026-09-24
+### 🎨 v4.36 Arayüzüne Tam Uyumlu HD Mağaza & Vitrin Görselleri Paketi
+1. **Google Play Store Ekran Görüntüleri (1080x1920 Full HD):** v4.36 Soft Krem & Sıcak Kaşmir, Pillowy Bento Grid, Mışıl Spot™ ve Liquid Glassmorphism dock tasarımına sahip 5 yeni vitrin kartı (`01_misilspot_uyku_sayaci.png`, `02_akustik_aglama_analizi.png`, `03_biyometrik_uyku_analizi.png`, `04_kesintisiz_sesler_ninni.png`, `05_misil_dadi_ai_danisman.png`) üretildi.
+2. **Apple App Store Ekran Görüntüleri (1290x2796 Super Retina XDR):** iPhone 16 Pro Max / 15 Pro Max 6.7" standardında, Dynamic Island ve lüks titanyum çerçeveli 5 dikey mağaza afişi hazırlandı.
+3. **Google Play Vitrin Afişi (Feature Graphic 1024x500):** Tescilli Mışıl Spot™ kimliği, 4 bento özellik rozeti, master altın hilal ikonu ve açılı 3D telefon yerleşimi ile sıfır emoji kutusu (`□`) hatasıyla baştan render edildi.
+4. **Etkileşimli Vitrin Galerisi (`preview.html`):** Android ve iOS sekmeleriyle tüm varlıkların canlı önizlenebildiği vitrin sayfası güncellendi.
+ 
 ## [4.36.4] - 2026-09-22
 ### 💎 Belirgin Sıvı Cam (Liquid Glassmorphism) Dock & Apple Speküler Prizma (Build 53)
 1. **Belirgin Sıvı Cam (Liquid Glassmorphism) Dock:** Alt navigasyon çubuğu hem açık (%45 saydam) hem koyu (%40 saydam) modda arkasından geçen kart ve renkleri canlı yansıtan `saturate(190%)`, `inset 0 1px 0` iç ışık yansıması ve prizmatik speküler üst bordür ile gerçek bir Apple iOS yüzen cam dock haline getirildi.

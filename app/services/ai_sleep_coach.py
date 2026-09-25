@@ -21,7 +21,11 @@ SYSTEM_PROMPT = """Sen 'Mışıl Dadı'sın. Mışıl Baby uygulamasında anne, 
 
 TEMEL PRENSİPLERİN (KESİNLİKLE UYULACAK):
 1. DOĞRUDAN CEVAP ÖNCELİĞİ: Girişte gereksiz edebiyat yapma ("derin nefes al", "omuzlarını bırak", "fırtınalar kopuyor" gibi basmakalıp lafları KESİNLİKLE KULLANMA). Yalnızca kısa ve sıcak bir selamlama ile başla (örn: "Sevgili anneciğim," veya "Sevgili babacığım,") ve İLK CÜMLEDE doğrudan ebeveynin sorusunu yanıtla.
-2. KISA VE ÖZ YANIT SINIRI: Cevabın toplamda en fazla 2 kısa paragraf veya en fazla 2-3 somut hap madde olsun (toplam 60-110 kelime). Gece uykusuz ebeveyni uzun makalelerle yorma.
+2. YAPISAL VE EKSİKSİZ KLİNİK FORMAT: Yanıtını yapay kelime sınırlarıyla değil, daima şu 3 net pedagojik blokla kur:
+   • 1. Kısa Teşhis (1-2 cümle): Bebeğin ayına / uyanıklık penceresine göre bu durumun pediatrik nedeni.
+   • 2. Acil Eylem Adımları (2 somut hap madde): Ebeveynin şu an yapacağı doğrudan, pratik ve şefkatli müdahale.
+   • 3. Sonraki Adım / Önlem (1 cümle): Sakinleşmezse ne yapılacağı ve sonraki uyanıklık penceresi kalibrasyonu.
+   Başladığın her cümleyi ve adımı daima eksiksiz bir fiil ve nokta ile bitir. Yanıtını '🌸 Mışıl uykular dilerim.' ile tamamla.
 3. EZBER ŞABLON YASAĞI: Kullanıcı sormadıkça veya bebek akut krizde değilse ezbere "5S kundak, beyaz gürültü, 3 adımlı plan" dökme. Soru neyse SADECE o konuya odaklan.
 4. BAĞLAM İZOLASYONU: Bebeğin yaşı ve sıçrama bilgisi sadece arkadaki tıbbi mantığın içindir. Soruyla doğrudan ilgisi yoksa (örn: oda sıcaklığı, gaz masajı veya beslenme sorulduğunda) cevaba zorla sıçrama veya regresyon dersi ekleme.
 5. ASLA TIBBİ TEŞHİS KOYMA: İlaç veya kesin tıbbi teşhis koyma.
@@ -59,6 +63,25 @@ def _find_gemini_api_key() -> Optional[str]:
             except Exception:
                 pass
     return direct_key
+
+
+def _is_text_incomplete(text: str) -> bool:
+    """Proactively detects if a generated response was truncated mid-sentence or lacks terminal punctuation."""
+    import re
+    cleaned = text.strip()
+    if not cleaned:
+        return False
+    cleaned = re.sub(r'[*_`]+$', '', cleaned).strip()
+    if not cleaned:
+        return False
+    terminal_punct = ('.', '!', '?', '…', '"', '”', '’', ')', ':)')
+    if not cleaned.endswith(terminal_punct):
+        return True
+    last_word = cleaned.split()[-1].lower().rstrip('.,!?:;')
+    dangling = {'ve', 'veya', 'ile', 'için', 'çünkü', 'ama', 'fakat', 'ancak', 'alıp', 'edip', 'yapıp', 'ise', 'gibi'}
+    if last_word in dangling:
+        return True
+    return False
 
 
 def _calc_baby_details(birth_date_str: str, manual_leap: Optional[int] = None) -> Dict[str, Any]:
@@ -152,7 +175,7 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
         "systemInstruction": {"parts": [{"text": sys_prompt}]},
         "generationConfig": {
             "temperature": 0.40,
-            "maxOutputTokens": 1000
+            "maxOutputTokens": 2500
         }
     }
 
@@ -381,7 +404,7 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
             f"{rollup_text}"
         )
 
-        for candidate_model in ["gemini-3.6-flash", "gemini-3.5-flash"]:
+        for candidate_model in ["gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash"]:
             if streamed_success:
                 break
             url = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate_model}:streamGenerateContent?key={api_key}&alt=sse"
@@ -398,9 +421,12 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
                 "systemInstruction": {"parts": [{"text": sys_prompt}]},
                 "generationConfig": {
                     "temperature": 0.40,
-                    "maxOutputTokens": 1000
+                    "maxOutputTokens": 2500
                 }
             }
+
+            accumulated_text = ""
+            last_finish_reason = None
 
             try:
                 data_bytes = json.dumps(payload).encode("utf-8")
@@ -413,14 +439,57 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
                             if data_str:
                                 try:
                                     obj = json.loads(data_str)
-                                    parts = obj.get("candidates", [{}])[0].get("content", {}).get("parts", [])
-                                    for p in parts:
-                                        chunk = p.get("text", "")
-                                        if chunk:
-                                            streamed_success = True
-                                            yield f"data: {json.dumps({'text': chunk, 'tier': f'Tier 1 ({candidate_model} Streaming)'})}\n\n"
+                                    cands = obj.get("candidates", [])
+                                    if cands:
+                                        cand = cands[0]
+                                        if "finishReason" in cand:
+                                            last_finish_reason = cand["finishReason"]
+                                        parts = cand.get("content", {}).get("parts", [])
+                                        for p in parts:
+                                            chunk = p.get("text", "")
+                                            if chunk:
+                                                accumulated_text += chunk
+                                                yield f"data: {json.dumps({'text': chunk, 'tier': f'Tier 1 ({candidate_model} Streaming)'})}\n\n"
                                 except Exception:
                                     pass
+
+                # Proactive in-stream self-completion: if cut off mid-sentence, auto-complete before closing
+                if accumulated_text and (_is_text_incomplete(accumulated_text) or last_finish_reason == "MAX_TOKENS"):
+                    try:
+                        cont_contents = list(contents)
+                        cont_contents.append({"role": "model", "parts": [{"text": accumulated_text}]})
+                        cont_contents.append({"role": "user", "parts": [{"text": "Yarım kalan cümleni kaldığın yerden eksiksiz tamamla ve '🌸 Mışıl uykular dilerim.' ile noktayı koy."}]})
+                        cont_payload = {
+                            "contents": cont_contents,
+                            "systemInstruction": {"parts": [{"text": sys_prompt}]},
+                            "generationConfig": {"temperature": 0.35, "maxOutputTokens": 1000}
+                        }
+                        cont_req = urllib.request.Request(url, data=json.dumps(cont_payload).encode("utf-8"), headers={"Content-Type": "application/json"}, method="POST")
+                        with urllib.request.urlopen(cont_req, timeout=10) as cont_resp:
+                            for raw_line in cont_resp:
+                                line = raw_line.decode("utf-8").strip()
+                                if line.startswith("data:"):
+                                    data_str = line[5:].strip()
+                                    if data_str:
+                                        try:
+                                            obj = json.loads(data_str)
+                                            cands = obj.get("candidates", [])
+                                            if cands:
+                                                parts = cands[0].get("content", {}).get("parts", [])
+                                                for p in parts:
+                                                    chunk = p.get("text", "")
+                                                    if chunk:
+                                                        accumulated_text += chunk
+                                                        yield f"data: {json.dumps({'text': chunk, 'tier': f'Tier 1 ({candidate_model} Continuation)'})}\n\n"
+                                        except Exception:
+                                            pass
+                    except Exception as cont_err:
+                        logger.warning(f"In-stream continuation error: {cont_err}")
+
+                # Minimum viable response length gate: only mark success if at least 25 words received
+                if len(accumulated_text.split()) >= 25:
+                    streamed_success = True
+
             except Exception as err:
                 logger.warning(f"Live Gemini SSE streaming error with {candidate_model}: {err}")
 

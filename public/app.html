@@ -152,6 +152,30 @@
       color: var(--heading-night) !important;
       box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
     }
+    [data-theme="light"] .chat-bubble-user {
+      background: linear-gradient(135deg, #E07A5F 0%, #D86A4E 100%) !important;
+      color: #FFFFFF !important;
+      border: 1px solid #CF5E42 !important;
+      box-shadow: 0 3px 10px rgba(224, 122, 95, 0.22) !important;
+      font-weight: 500 !important;
+    }
+    [data-theme="light"] .ai-chip {
+      background: #FFFFFF !important;
+      border: 1px solid rgba(224, 122, 95, 0.3) !important;
+      color: #2A2421 !important;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03) !important;
+    }
+    [data-theme="light"] .ai-chip:active {
+      background: var(--accent) !important;
+      color: #FFFFFF !important;
+    }
+    [data-theme="light"] .card[onclick*="openCryModal"] {
+      background: linear-gradient(135deg, #FFF7F4 0%, #FFEEE8 100%) !important;
+      border-color: rgba(224, 122, 95, 0.4) !important;
+    }
+    [data-theme="light"] .card[onclick*="openCryModal"] div[style*="#FFF"] {
+      color: #2A2421 !important;
+    }
     [data-theme="light"] .onboarding-plan-card {
       background: #FFFFFF !important;
       border-color: rgba(15, 23, 42, 0.12) !important;
@@ -3991,7 +4015,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.36.4', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.36.6', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -4008,7 +4032,11 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.36.4', date: '22 Eylül 2026', latest: true, items: [
+    { v: '4.36.6', date: '25 Eylül 2026', latest: true, items: [
+      'Mışıl Dadı Açık Tema Okunabilirlik: Açık modda kullanıcı mesaj baloncukları yüksek kontrastlı sıcak terracotta degrade ve net beyaz metinle donatıldı; hızlı şablon butonları açık kart stiline kavuşturuldu.',
+      'Yapısal Pediatrik Şablonlama & Kesintisiz AI Yanıtları: Gemini AI yanıtlarının yarım kalma sorunu; yapay kelime/token giyotinleri yerine 3 bloklu klinik iskelet (Teşhis, Acil Müdahale, Sonraki Önlem), 2500 token emniyet tavanı ve otonom akış tamamlama kalkanı ile çözüldü.'
+    ]},
+    { v: '4.36.4', date: '22 Eylül 2026', items: [
       'Belirgin Sıvı Cam (Liquid Glassmorphism) Dock: Alt menü çubuğu hem açık (%45 saydam) hem koyu (%40 saydam) modda arkasından geçen kart ve renkleri canlı yansıtan saturate(190%) ve prizmatik speküler ışık bordürleriyle gerçek bir iOS yüzen cam dock haline getirildi.'
     ]},
     { v: '4.36.3', date: '22 Eylül 2026', items: [
