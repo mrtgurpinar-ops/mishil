@@ -2,6 +2,13 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.36.7] - 2026-10-02
+### 🚀 Google Play Üretim (Production) Sürümü & EAS Build 55 Dağıtımı
+1. **Google Play Store Üretim Sürümü (Build 55):**
+   - Android targetSdkVersion 36 (Android 16) ve modern Google Play Billing AAR uyumlu yeni `.aab` paketi EAS Cloud üzerinde üretildi.
+   - Google Play Console üzerinde Üretim (Production) kanalında 178 ülke için tam kullanıma sunuldu ve resmi Google Play inceleme kuyruğuna girdi.
+   - Çevrimdışı paket (`offlineHtml.generated.ts`) ve TypeScript kod bütünlüğü %100 yeşil doğrulandı.
+
 ## [4.36.7] - 2026-09-25
 ### 🛡️ Railway Canlı Crash Onarımı & SQLAlchemy 2.0+ / psycopg Çift Sürücü Koruması (Build 54)
 1. **SQLAlchemy 2.0+ PostgreSQL Sürücü Dayanıklılığı:**
