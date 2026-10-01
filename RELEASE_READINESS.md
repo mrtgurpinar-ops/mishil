@@ -16,7 +16,7 @@
 | 18 Stüdyo Master Parça & Akustik Mikser (CBR 192k) | ✅ kodda & pakette |
 | Klinik Akustik Ağlama Analizi (13-Bant MFCC Spektrogram) | ✅ kodda |
 | Şefkatli Mışıl Dadı AI Koçu & Biyometrik Rollup | ✅ kodda |
-| Android `minSdk 26` / `targetSdk 36` (Build 18) | ✅ Build 18 AAB üretildi & Play Store'a yüklendi |
+| Android `minSdk 26` / `targetSdk 36` (Build 55) | ✅ Build 55 AAB üretildi & yerel arşive indirildi (`MisilBaby_v4.36.7_b55.aab`) |
 | iOS `buildNumber 18`, `ITSAppUsesNonExemptEncryption` | ✅ Build 18 IPA üretildi & **Apple Review'a Gönderildi** |
 | Production build guard (mock RevenueCat anahtarıyla derleme engellenir) | ✅ geçildi |
 | jest yeşil (`*.test.ts`), compliance PASS | ✅ yeşil (100%) |
@@ -24,8 +24,8 @@
 | Offline fallback (`offlineHtml.generated.ts`) | ✅ pakete gömüldü |
 | RevenueCat `pro` entitlement + `default` offering | ✅ panelde bağlı, kod hizalandı |
 | Canlı uçlar (`/app`, `/privacy`, `/terms`, `/sounds`, `/coach/chat`) | ✅ 200 OK — canlıda doğrulandı |
-| Google Play Kapalı & Dahili Test Dağıtımı | ✅ Build 18 `.aab` yüklendi ve yayına gönderildi |
-| Apple App Store Connect Dağıtımı | ✅ Build 18 `.ipa` yüklendi ve **İncelemeye (In Review) Gönderildi** |
+| Google Play Kapalı & Dahili Test Dağıtımı | ✅ Build 18 yayında, Build 55 `.aab` hazır |
+| Apple App Store Connect Dağıtımı | ✅ Build 36 ekli ve **Waiting for Review** aşamasında |
 
 ---
 
