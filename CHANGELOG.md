@@ -2,6 +2,16 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.36.8] - 2026-10-06
+### 🍏 Apple App Store Guideline 2.1(b) & 3.1.2(c) Çözümü & Yeniden İnceleme Gönderimi (Waiting for Review)
+1. **Guideline 3.1.2(c) - 7 Günlük Ücretsiz Deneme (Free Trial) Uyumlaştırması:**
+   - App Store Connect REST API üzerinden hem `misil_annual` (Yıllık VIP) hem de `misil_monthly` (Aylık VIP) ürünlerine 175 storefront'un tamamında resmi 1 Hafta (`ONE_WEEK` / 7 Gün) Ücretsiz Deneme (Introductory Offer) tanımlandı.
+   - Paywall ve onboarding arayüzündeki "7 Gün Ücretsiz Dene" vaadi ile StoreKit teklif modeli %100 eşitlendi.
+2. **Guideline 2.1(b) - In-App Purchases (Abonelikler) Paket Gönderimi:**
+   - Önceki ret alan gönderim kapatılarak yeni temiz inceleme gönderimi (`297262b0-7909-4e23-9ae2-45b5fe380e3a`) oluşturuldu.
+   - `iOS App 1.0` (Build 36), `misil_annual` ve `misil_monthly` abonelikleri, ekran görüntüleri ve tüm üstverileriyle birlikte tek birleşik inceleme paketine bağlandı.
+   - App Review Information notlarına düzeltmelerin resmi teknik dökümü eklendi ve sürüm başarıyla **`WAITING_FOR_REVIEW`** aşamasına geçirildi.
+
 ## [4.36.7] - 2026-10-02
 ### 🚀 Google Play Üretim (Production) Sürümü & EAS Build 55 Dağıtımı
 1. **Google Play Store Üretim Sürümü (Build 55):**
