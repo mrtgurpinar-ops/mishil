@@ -9,6 +9,8 @@ Notifications.setNotificationHandler({
     shouldShowAlert: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
   }),
 });
 
@@ -63,7 +65,7 @@ export const scheduleSleepNotification = async ({
         sound: true,
         data: { type: 'WAKE_WINDOW_REMINDER', babyName },
       },
-      trigger: notifDate,
+      trigger: { date: notifDate } as any,
     });
     return id;
   } catch (err) {

@@ -2,6 +2,15 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.37.0] - 2026-10-12
+### ⚡ Google Play Android 15+ 16 KB Bellek Sayfası Uyumu & Expo SDK 54 Yükseltmesi (Build 56)
+1. **16 KB Bellek Sayfası Desteği (ELF 16384 Alignment):**
+   - Google Play'in Android 15+ cihazlar için zorunlu kıldığı 16 KB bellek sayfası boyutu standardına uyum sağlamak üzere Expo SDK 54 ve React Native 0.81'e geçiş tamamlandı.
+   - Hermes JavaScript motoru ve tüm yerel C/C++ ikilileri (`.so` kütüphaneleri) modern 16 KB bellek sınırına hizalandı.
+2. **Paket ve Bağımlılık Modernizasyonu:**
+   - React 19.1.0, React Native 0.81.5, Expo Router 6.0.24, Reanimated 4.1.1, React Native Webview 13.15.0 ve worklets çekirdek kütüphaneleri güncellendi.
+   - Bildirim işleyicileri (`expo-notifications`) ve pre-flight doğrulama kapıları (`mobile_compliance_checker.py`, Jest, TypeScript) %100 yeşil doğrulandı.
+
 ## [4.36.8] - 2026-10-06
 ### 🍏 Apple App Store Guideline 2.1(b) & 3.1.2(c) Çözümü & Yeniden İnceleme Gönderimi (Waiting for Review)
 1. **Guideline 3.1.2(c) - 7 Günlük Ücretsiz Deneme (Free Trial) Uyumlaştırması:**
