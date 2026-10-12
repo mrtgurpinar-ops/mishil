@@ -65,7 +65,10 @@ export const scheduleSleepNotification = async ({
         sound: true,
         data: { type: 'WAKE_WINDOW_REMINDER', babyName },
       },
-      trigger: { date: notifDate } as any,
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: notifDate,
+      },
     });
     return id;
   } catch (err) {
