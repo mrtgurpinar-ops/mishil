@@ -77,6 +77,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           minSdkVersion: 26,
           targetSdkVersion: 36,
           compileSdkVersion: 36,
+          enableProguardInReleaseBuilds: true,
           extraGradleProperties: {
             'android.suppressUnsupportedCompileSdk': '36'
           }
