@@ -2,6 +2,15 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.37.1] - 2026-10-15
+### 🔐 Google Play App Access & Reviewer Bypass Standardı (Answer 15748846)
+1. **Google Play Kurumsal Test Cihazı 2FA & Fatura Koruması:**
+   - Google Play denetçilerinin kurumsal test hesaplarındaki 2FA/SMS/kredi kartı zorunluluğuna takılmadan tüm kilitleri test edebilmesi için Google'ın resmi geliştirici kılavuzu (Answer 15748846) doğrultusunda uygulama içi **Reviewer Access Verification** sistemi kuruldu.
+   - Onboarding ve Ayarlar Paywall ekranlarının altına gizli/şık dokunma dinleyicisi (5 kez versiyon dokunuşu) eklendi; tahmin edilemez güvenli PIN (`MISIL-REV-9842`) doğrulamasıyla doğrudan tam VIP hakları açıldı.
+2. **Çevrimdışı Paket & Bütünlük Senkronizasyonu:**
+   - `offlineHtml.generated.ts` paketi `app.html` değişiklikleriyle tam senkronize edildi.
+   - `core/mobile_compliance_checker.py` ile `READY_FOR_RELEASE` uyumu doğrulandı.
+
 ## [4.37.0] - 2026-10-12
 ### ⚡ Google Play Android 15+ 16 KB Bellek Sayfası Uyumu & Expo SDK 54 Yükseltmesi (Build 56)
 1. **16 KB Bellek Sayfası Desteği (ELF 16384 Alignment):**

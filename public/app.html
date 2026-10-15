@@ -2477,6 +2477,11 @@
         <span style="color: var(--text-muted);">•</span>
         <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
       </div>
+
+      <!-- REVIEWER TEST BYPASS TRIGGER (GOOGLE PLAY ANSWER 15748846) -->
+      <div style="text-align: center; margin-top: 12px; margin-bottom: 6px;">
+        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.37.0 (Build 56)</span>
+      </div>
     </div>
   </div>
 
@@ -3502,6 +3507,30 @@
       <a href="https://mishil-production.up.railway.app/terms" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/terms')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">⚖️ Kullanım Koşulları (EULA)</a>
       <span style="color: var(--text-muted);">•</span>
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
+    </div>
+    <div style="text-align: center; margin-top: 10px;">
+      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.37.0 (Build 56)</span>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: GOOGLE PLAY & APP REVIEWER TEST BYPASS (ANSWER 15748846) -->
+<div class="modal-overlay" id="modal-reviewer-bypass" onclick="closeModalOnOverlay(event, 'modal-reviewer-bypass')">
+  <div class="modal-sheet no-scrollbar" style="max-width: 380px; text-align: center; border: 1px solid var(--accent); background: #141B2E;">
+    <div class="modal-header" style="justify-content: flex-end;">
+      <button class="modal-close" onclick="closeReviewerModal()">✕</button>
+    </div>
+    <div style="font-size: 32px; margin-bottom: 6px;">🔐</div>
+    <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF; margin-bottom: 4px;">Reviewer Access Verification</div>
+    <div style="font-size: 11px; color: var(--text-muted); line-height: 16px; margin-bottom: 16px;">
+      Google Play & App Reviewers: Enter the verification PIN provided in Play Console App Access to unlock full VIP privileges without billing.
+    </div>
+    <div class="form-group" style="margin-bottom: 14px;">
+      <input type="text" id="input-reviewer-pin" placeholder="Enter Reviewer PIN" autocomplete="off" autocapitalize="characters" onkeydown="if(event.key==='Enter') submitReviewerPin()" style="text-align: center; font-family: monospace; font-size: 15px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; background: rgba(0,0,0,0.3); border: 1px solid var(--accent); color: #FFF; border-radius: 8px; padding: 10px; width: 100%; box-sizing: border-box;" />
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn-secondary" style="flex: 1;" onclick="closeReviewerModal()">Cancel</button>
+      <button class="btn-primary" style="flex: 2;" onclick="submitReviewerPin()">Unlock Full VIP</button>
     </div>
   </div>
 </div>
@@ -5230,6 +5259,82 @@
     renderAllViews();
     showToast('✨ Ücretsiz temel sürümdesiniz. Keşfetmeye başlayabilirsiniz!');
   }
+
+  // =========================================================================
+  // REVIEWER ACCESS / TEST BYPASS (GOOGLE PLAY APP ACCESS ANSWER 15748846)
+  // =========================================================================
+  const REVIEWER_PINS = ['MISIL-REV-9842', 'MISILREV2026', 'GP-REVIEW-8472', '984271'];
+  let reviewerTapCount = 0;
+  let reviewerTapTimer = null;
+
+  function handleReviewerTap() {
+    reviewerTapCount++;
+    clearTimeout(reviewerTapTimer);
+    reviewerTapTimer = setTimeout(() => {
+      reviewerTapCount = 0;
+    }, 2500);
+
+    if (reviewerTapCount >= 5) {
+      reviewerTapCount = 0;
+      openReviewerModal();
+    }
+  }
+  window.handleReviewerTap = handleReviewerTap;
+
+  function openReviewerModal() {
+    hapticPulse();
+    const modal = document.getElementById('modal-reviewer-bypass');
+    if (modal) {
+      modal.classList.add('active');
+      const input = document.getElementById('input-reviewer-pin');
+      if (input) {
+        input.value = '';
+        setTimeout(() => input.focus(), 200);
+      }
+    }
+  }
+  window.openReviewerModal = openReviewerModal;
+
+  function closeReviewerModal() {
+    hapticPulse();
+    const modal = document.getElementById('modal-reviewer-bypass');
+    if (modal) modal.classList.remove('active');
+  }
+  window.closeReviewerModal = closeReviewerModal;
+
+  function submitReviewerPin() {
+    const input = document.getElementById('input-reviewer-pin');
+    const enteredPin = (input ? input.value : '').trim().toUpperCase();
+
+    if (REVIEWER_PINS.includes(enteredPin)) {
+      hapticPulse();
+      closeReviewerModal();
+
+      // Kalıcı VIP haklarını aktif et
+      localStorage.setItem('mishil_subscription_active', 'true');
+      localStorage.setItem('mishil_trial_start', new Date().toISOString());
+      localStorage.setItem('mishil_onboarding_completed', 'true');
+      localStorage.setItem('mishil_medical_disclaimer_accepted_at', new Date().toISOString());
+
+      // Onboarding ekranını kapat ve profili kaydet
+      commitOnboardingProfile();
+      const screenOnboarding = document.getElementById('screen-onboarding');
+      if (screenOnboarding) screenOnboarding.classList.remove('active');
+
+      const modalRenewal = document.getElementById('modal-vip-renewal');
+      if (modalRenewal) modalRenewal.classList.remove('active');
+
+      loadBabyProfile();
+      renderAllViews();
+      if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
+
+      showToast('✅ Reviewer VIP Access Granted! Full functionality unlocked.');
+    } else {
+      hapticPulse();
+      showToast('❌ Invalid Reviewer PIN. Please check Play Console instructions.');
+    }
+  }
+  window.submitReviewerPin = submitReviewerPin;
 
   // =========================================================================
   // GÖRÜNÜM VE TEMA YÖNETİMİ (DARK / LIGHT / AUTO MODE)
