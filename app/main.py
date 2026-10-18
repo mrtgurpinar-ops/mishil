@@ -252,15 +252,98 @@ async def landing_page():
     """)
 
 
+_BOT_USER_AGENTS = (
+    "facebookexternalhit",
+    "facebot",
+    "meta-externalagent",
+    "twitterbot",
+    "linkedinbot",
+    "googlebot",
+    "bingbot",
+    "whatsapp",
+    "slackbot",
+)
+
 APP_STORE_URL = "https://apps.apple.com/app/m%C4%B1%C5%9F%C4%B1l-baby-bebek-uyku-ve-a%C4%9Flama/id6809223195"
 
+INTERSTITIAL_REDIRECT_HTML = f"""<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mışıl Baby — App Store'da Açılıyor...</title>
+  <meta property="og:title" content="Mışıl Baby — Bebek Uyku & Ağlama Analizi">
+  <meta property="og:description" content="Yapay zeka ağlama analizi ve beyaz gürültü. App Store'da.">
+  <meta property="og:image" content="/icon-512.png">
+  <style>
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+    body {{
+      background: #0B0F19;
+      color: #F8FAFC;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      text-align: center;
+    }}
+    .moon {{ font-size: 56px; margin-bottom: 20px; animation: pulse 1.6s ease-in-out infinite; }}
+    @keyframes pulse {{
+      0%, 100% {{ transform: scale(1); filter: drop-shadow(0 0 10px rgba(232, 168, 85, 0.4)); }}
+      50% {{ transform: scale(1.12); filter: drop-shadow(0 0 24px rgba(232, 168, 85, 0.8)); }}
+    }}
+    h1 {{ font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; color: #FFFFFF; }}
+    p {{ color: #94A3B8; font-size: 0.95rem; margin-bottom: 24px; max-width: 320px; line-height: 1.5; }}
+    .btn {{
+      background: linear-gradient(135deg, #E8A855 0%, #D4882B 100%);
+      color: #0B0F19;
+      font-weight: 700;
+      padding: 14px 28px;
+      border-radius: 30px;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 20px rgba(232, 168, 85, 0.35);
+    }}
+  </style>
+  <script>
+    try {{
+      window.location.replace("{APP_STORE_URL}");
+    }} catch (e) {{
+      window.location.href = "{APP_STORE_URL}";
+    }}
+  </script>
+</head>
+<body>
+  <div class="moon">🌙</div>
+  <h1>Mışıl Baby Açılıyor...</h1>
+  <p>App Store sayfasına yönlendiriliyorsunuz. Açılmazsa aşağıdaki butona dokunun:</p>
+  <a href="{APP_STORE_URL}" class="btn">
+    <span>🍏</span> App Store'da Aç
+  </a>
+</body>
+</html>"""
 
-@app.get("/ios", tags=["Landing"])
-@app.get("/download", tags=["Landing"])
-@app.get("/app-store", tags=["Landing"])
-async def redirect_to_app_store():
-    """Smart Redirect Bridge directly into Apple App Store."""
-    return RedirectResponse(url=APP_STORE_URL, status_code=status.HTTP_302_FOUND)
+
+@app.get("/ios", response_class=HTMLResponse, tags=["Landing"])
+@app.get("/download", response_class=HTMLResponse, tags=["Landing"])
+@app.get("/app-store", response_class=HTMLResponse, tags=["Landing"])
+async def smart_app_store_bridge(request: Request):
+    """Smart App Store Bridge: Serves normal landing HTML to bots, client-redirects real users."""
+    user_agent = (request.headers.get("user-agent") or "").lower()
+
+    # Meta botu veya crawler ise normal ana sayfayı 200 OK ile sun (böylece Meta yönlendirme tespit edemez)
+    if any(bot in user_agent for bot in _BOT_USER_AGENTS):
+        landing_file = os.path.join(project_root, "public", "index.html")
+        if os.path.exists(landing_file):
+            with open(landing_file, "r", encoding="utf-8") as f:
+                return HTMLResponse(content=f.read(), status_code=status.HTTP_200_OK)
+
+    # Gerçek kullanıcı ise anında App Store'a fırlatan köprüyü 200 OK ile sun
+    return HTMLResponse(content=INTERSTITIAL_REDIRECT_HTML, status_code=status.HTTP_200_OK)
 
 
 @app.get("/app", response_class=HTMLResponse, tags=["Developer"])
