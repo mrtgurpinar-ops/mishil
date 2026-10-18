@@ -10,7 +10,7 @@ if project_root not in sys.path:
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
-from fastapi.responses import JSONResponse, HTMLResponse, PlainTextResponse, FileResponse
+from fastapi.responses import JSONResponse, HTMLResponse, PlainTextResponse, FileResponse, RedirectResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
@@ -86,6 +86,9 @@ _RATE_LIMIT_BYPASS_PREFIXES = (
     "/openapi.json",
     "/sounds",
     "/assets",
+    "/ios",
+    "/download",
+    "/app-store",
 )
 
 
@@ -247,6 +250,17 @@ async def landing_page():
     <body><h1>Mışıl Baby</h1><p>App Store ve Google Play'de.</p></body>
     </html>
     """)
+
+
+APP_STORE_URL = "https://apps.apple.com/app/m%C4%B1%C5%9F%C4%B1l-baby-bebek-uyku-ve-a%C4%9Flama/id6809223195"
+
+
+@app.get("/ios", tags=["Landing"])
+@app.get("/download", tags=["Landing"])
+@app.get("/app-store", tags=["Landing"])
+async def redirect_to_app_store():
+    """Smart Redirect Bridge directly into Apple App Store."""
+    return RedirectResponse(url=APP_STORE_URL, status_code=status.HTTP_302_FOUND)
 
 
 @app.get("/app", response_class=HTMLResponse, tags=["Developer"])

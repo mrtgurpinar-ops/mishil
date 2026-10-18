@@ -25,7 +25,7 @@
 | RevenueCat `pro` entitlement + `default` offering | ✅ panelde bağlı, kod hizalandı |
 | Canlı uçlar (`/app`, `/privacy`, `/terms`, `/sounds`, `/coach/chat`) | ✅ 200 OK — canlıda doğrulandı |
 | Google Play Kapalı & Dahili Test Dağıtımı | ✅ Build 18 yayında, Build 55 `.aab` hazır |
-| Apple App Store Connect Dağıtımı | ✅ Build 36 ekli ve **Waiting for Review** aşamasında |
+| Apple App Store Connect Dağıtımı | ✅ **Onaylandı & Yayına Alındı (Approved & Released 🎉)** |
 
 ---
 

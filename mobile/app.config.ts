@@ -46,6 +46,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: 'com.levitas.misilbaby',
     buildNumber: String(BUILD_NUMBER),
     infoPlist: {
+      CFBundleDevelopmentRegion: 'tr',
+      CFBundleLocalizations: ['tr'],
       NSMicrophoneUsageDescription: 'Mışıl Baby, bebeğinizin ağlama sesindeki akustik özellikleri analiz etmek için mikrofonunuza erişir. Sesler yalnızca yerel analiz amaçlı işlenir ve kaydedilmez.',
       UIBackgroundModes: ['audio'],
       // İhracat uyumluluğu: standart HTTPS dışında şifreleme kullanılmıyor →

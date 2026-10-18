@@ -2,6 +2,14 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.37.2] - 2026-10-18
+### 📲 Canlı Apple App Store İndirme Köprüsü & Landing Page Entegrasyonu
+1. **Canlı App Store Bağlantısı:**
+   - Resmi web sitesi (`public/index.html`) ana sayfa ve modal indirme butonları, Apple tarafından onaylanan canlı mağaza adresimize (`https://apps.apple.com/app/m%C4%B1%C5%9F%C4%B1l-baby-bebek-uyku-ve-a%C4%9Flama/id6809223195`) bağlandı.
+2. **Akıllı Yönlendirme Köprüsü (`/ios`, `/download`, `/app-store`):**
+   - FastAPI backend çekirdeğine (`app/main.py`) HTTP 302 yönlendirmesi eklendi.
+   - Meta ve diğer reklam platformlarının trafik kampanyalarında domain doğrulamasını geçen ve tıklayan kullanıcıyı anında telefonundaki App Store mağaza sayfasına yönlendiren köprü aktif edildi.
+
 ## [4.37.1] - 2026-10-15
 ### 🔐 Google Play App Access & Reviewer Bypass Standardı (Answer 15748846)
 1. **Google Play Kurumsal Test Cihazı 2FA & Fatura Koruması:**
