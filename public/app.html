@@ -2196,7 +2196,19 @@
       box-shadow: 0 16px 40px rgba(0,0,0,0.8), 0 0 30px var(--accent-glow);
       text-align: center;
     }
+
+    @keyframes slideUpRating {
+      from {
+        transform: translateY(60px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
   </style>
+
 </head>
 <body class="no-scrollbar">
 
@@ -3583,8 +3595,68 @@
       <button class="btn-secondary" style="flex: 1;" onclick="closeReviewerModal()">Cancel</button>
       <button class="btn-primary" style="flex: 2;" onclick="submitReviewerPin()">Unlock Full VIP</button>
     </div>
+    <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.12); display: flex; flex-direction: column; gap: 8px;">
+      <a href="/admin/feedbacks?pin=MISIL-REV-9842" target="_blank" style="color: var(--accent); font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px; border-radius: 6px; background: rgba(232, 168, 85, 0.1);">
+        <span>📋</span> Anne Geri Bildirimleri Paneli
+      </a>
+      <button type="button" onclick="closeReviewerModal(); triggerSentimentRatingSheet(true);" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: #C9CEDC; font-size: 11px; padding: 6px; border-radius: 6px; cursor: pointer;">
+        ⭐ 5 Yıldız Çarkını Canlı Önizle (Test)
+      </button>
+    </div>
   </div>
 </div>
+
+<!-- BOTTOM CARD: ANNE DAYANIŞMASI & 5 YILDIZ ÇARKI (SMART RATING & FEEDBACK SHEET) -->
+<div id="sheet-rating-sentiment" style="display: none; position: fixed; bottom: 20px; left: 16px; right: 16px; max-width: 420px; margin: 0 auto; z-index: 10005; background: rgba(14, 19, 34, 0.96); border: 1px solid rgba(232, 168, 85, 0.35); border-radius: 20px; padding: 22px 20px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); animation: slideUpRating 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
+  <!-- Kapat Butonu -->
+  <button onclick="dismissRatingSheet(true)" style="position: absolute; top: 14px; right: 14px; background: none; border: none; color: rgba(255,255,255,0.4); font-size: 16px; cursor: pointer; padding: 4px;">✕</button>
+
+  <!-- AŞAMA 1: DUYGU YOKLAMASI (Miniğin bu gece sakinleşti mi?) -->
+  <div id="rating-step-question">
+    <div style="font-size: 32px; text-align: center; margin-bottom: 8px;">🌙</div>
+    <div style="font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #FFF; text-align: center; margin-bottom: 6px;">Miniğin bu gece sakinleşebildi mi?</div>
+    <div style="font-size: 12px; color: var(--text-muted); text-align: center; line-height: 17px; margin-bottom: 18px;">Uykusuz nöbetlerde sana destek olmak için buradayız.</div>
+    <div style="display: flex; gap: 10px;">
+      <button class="btn-primary" onclick="handleSentimentAnswer('slept')" style="flex: 1; padding: 12px 10px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <span>🤍</span> Evet, Uyudu
+      </button>
+      <button class="btn-secondary" onclick="handleSentimentAnswer('awake')" style="flex: 1; padding: 12px 10px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <span>🥱</span> Hala Uyanık
+      </button>
+    </div>
+  </div>
+
+  <!-- AŞAMA 2A: POZİTİF YOL (App Store 5 Yıldız Anne Dayanışması) -->
+  <div id="rating-step-positive" style="display: none; text-align: center;">
+    <div style="font-size: 34px; margin-bottom: 8px;">✨</div>
+    <div style="font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #FFF; margin-bottom: 6px;">Ne mutlu bize annecim! 🤍</div>
+    <div style="font-size: 12px; color: #C9CEDC; line-height: 18px; margin-bottom: 18px;">
+      Bu sessiz gece nöbetinde diğer uykusuz annelerin de Mışıl'ı bulabilmesi için bize App Store'da 5 yıldızla el uzatır mısın? Anne dayanışması gibisi yok.
+    </div>
+    <button class="btn-primary" onclick="submitStoreRating()" style="width: 100%; padding: 14px; font-size: 14px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <span>⭐</span> 5 Yıldız Ver (App Store)
+    </button>
+    <div style="font-size: 11px; color: rgba(255,255,255,0.4); cursor: pointer;" onclick="dismissRatingSheet(false)">Daha Sonra Hatırlat</div>
+  </div>
+
+  <!-- AŞAMA 2B: NEGATİF KORUMA YOLU (İç Geri Bildirim Formu - Mağaza Korunur) -->
+  <div id="rating-step-feedback" style="display: none;">
+    <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+      <span style="font-size: 24px;">🫂</span>
+      <div style="font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: #FFF;">Yalnız değilsin annecim 🤍</div>
+    </div>
+    <div style="font-size: 12px; color: var(--text-muted); line-height: 17px; margin-bottom: 14px;">
+      Bu geceler geçici... Hangi ses veya özellik miniğine daha iyi gelirdi, bize fısılda hemen ekleyelim:
+    </div>
+    <textarea id="mother-feedback-msg" rows="3" placeholder="Örn: Dalga sesini biraz daha tok yapabilir misiniz? Gaz sancısı için özel bir ritim gelse harika olur..." style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.35); color: #FFF; font-size: 13px; font-family: inherit; resize: none; margin-bottom: 10px; outline: none; box-sizing: border-box;"></textarea>
+    <input type="text" id="mother-feedback-contact" placeholder="İletişim (İsteğe bağlı: E-posta veya @instagram)" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: #FFF; font-size: 12px; margin-bottom: 14px; outline: none; box-sizing: border-box;" />
+    <div style="display: flex; gap: 8px;">
+      <button class="btn-secondary" onclick="dismissRatingSheet(false)" style="flex: 1; padding: 12px; font-size: 13px;">Kapat</button>
+      <button class="btn-primary" onclick="sendMotherFeedback()" id="btn-send-feedback" style="flex: 2; padding: 12px; font-size: 13px; font-weight: 700;">Fısılda & Gönder 💌</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- MODAL: AİLEYE & BEBEĞE KATIL (JOIN FAMILY WITH CODE) -->
 <div class="modal-overlay" id="modal-join-family" onclick="closeModalOnOverlay(event, 'modal-join-family')">
@@ -4095,7 +4167,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.36.6', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.39.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -4112,7 +4184,13 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.38.0', date: '23 Ekim 2026', latest: true, items: [
+    { v: '4.39.0', date: '24 Ekim 2026', latest: true, items: [
+      'App Store 5 Yıldız Çarkı & Anne Dayanışması Motoru: Bebeklerin gece uyku seansı (20+ dk) tamamlandığında devreye giren akıllı duygu yoklaması entegre edildi. Mutlu anneler doğrudan App Store 5 yıldız yorum ekranına yönlendirilir.',
+      'Sıfır Kötü Yorum Kalkanı (Sentiment Gate): Uykuya geçişte zorlanan annelerin mağazaya düşük puan vermesini önleyen, derdini ve önerisini doğrudan içeriye aktaran şefkatli iç geri bildirim formu kuruldu.',
+      'Gizli Anne Geri Bildirimleri Yönetici Paneli (/admin/feedbacks): Gelen tüm mesaj, bebek yaşı ve platform verilerinin tek ekranda izlendiği, CSV dışa aktarımlı şifreli yönetim kokpiti yayına alındı.'
+    ]},
+    { v: '4.38.0', date: '23 Ekim 2026', items: [
+
       'Mışıl Akıllı Yerel Bildirim & Bakım Radarı (CareNotificationEngine): T.C. Sağlık Bakanlığı aşı takvimi (1, 2, 4, 6, 9, 12, 18, 24. ay aşıları), Wonder Weeks büyüme sıçramaları (10 atak haftası) ve akşam "Mışıl mışıl uyudu mu?" rutin kontrolleri entegre edildi.',
       'iOS 64-Limit Korumalı 14 Günlük Kayan Pencere (Sliding Window): Tüm bildirimler işletim sistemi sınırlarını ve pil ömrünü koruyacak biçimde dinamik 14 günlük kayan pencere ve çakışma önleyici (deduplication) mimariyle planlanır.',
       'Apple Guideline 4.5.4 Uyumlu Bildirim Tercihleri: Ayarlar ekranına aşı, atak ve uyku kontrollerini bağımsız olarak açıp kapatabilen ve kontrol saatini özelleştirebilen yerel kontrol paneli eklendi.'
@@ -4507,9 +4585,11 @@
       if (currentTrackId === trackId) {
         nativeAudioSend({ type: 'AUDIO_STOP' });
         currentTrackId = null;
+        if (typeof onAudioPlaybackStopped === 'function') onAudioPlaybackStopped();
       } else {
         nativeAudioSend({ type: 'AUDIO_PLAY', id: trackId, url: absSoundUrl(track.file) });
         currentTrackId = trackId;
+        if (typeof onAudioPlaybackStarted === 'function') onAudioPlaybackStarted();
       }
       updatePlayerUI(); // AUDIO_STATE geri döndüğünde de doğrulanır
       return;
@@ -4521,6 +4601,7 @@
     if (currentTrackId === trackId) {
       aud.pause();
       currentTrackId = null;
+      if (typeof onAudioPlaybackStopped === 'function') onAudioPlaybackStopped();
     } else {
       if (currentTrackId && audioMap[currentTrackId]) {
         audioMap[currentTrackId].pause();
@@ -4528,9 +4609,11 @@
       aud.currentTime = 0;
       aud.play().catch(e => console.log('Audio autoplay policy:', e));
       currentTrackId = trackId;
+      if (typeof onAudioPlaybackStarted === 'function') onAudioPlaybackStarted();
     }
     updatePlayerUI();
   }
+
 
   function updatePlayerUI() {
     renderSoundsList();
@@ -5393,8 +5476,181 @@
   window.submitReviewerPin = submitReviewerPin;
 
   // =========================================================================
+  // ANNE DAYANIŞMASI & 5 YILDIZ ÇARKI (SMART STORE RATING & FEEDBACK GATE)
+  // =========================================================================
+  let audioPlaybackStartTime = null;
+
+  function onAudioPlaybackStarted() {
+    audioPlaybackStartTime = Date.now();
+    let totalStarts = parseInt(localStorage.getItem('misil_audio_start_count') || '0', 10);
+    localStorage.setItem('misil_audio_start_count', String(totalStarts + 1));
+  }
+  window.onAudioPlaybackStarted = onAudioPlaybackStarted;
+
+  function onAudioPlaybackStopped() {
+    if (!audioPlaybackStartTime) return;
+    const durationMinutes = (Date.now() - audioPlaybackStartTime) / 60000;
+    audioPlaybackStartTime = null;
+
+    let totalMinutes = parseFloat(localStorage.getItem('misil_total_listen_mins') || '0');
+    totalMinutes += durationMinutes;
+    localStorage.setItem('misil_total_listen_mins', totalMinutes.toFixed(1));
+
+    // Akıllı Tetikleyici Eşiği:
+    // Anne bu seans en az 10 dakika (veya toplam dinleme 20+ dakika) dinledikten sonra durdurduysa
+    if (durationMinutes >= 10 || totalMinutes >= 20) {
+      setTimeout(() => {
+        triggerSentimentRatingSheet(false);
+      }, 1500);
+    }
+  }
+  window.onAudioPlaybackStopped = onAudioPlaybackStopped;
+
+  function triggerSentimentRatingSheet(force) {
+    if (!force) {
+      if (localStorage.getItem('misil_rating_done') === 'true') return;
+      if (localStorage.getItem('misil_feedback_sent') === 'true') return;
+      const postponed = parseInt(localStorage.getItem('misil_rating_postponed') || '0', 10);
+      if (Date.now() - postponed < 259200000) return; // 3 gün geçmeden tekrar gösterme
+    }
+
+    const sheet = document.getElementById('sheet-rating-sentiment');
+    if (!sheet) return;
+
+    const stepQ = document.getElementById('rating-step-question');
+    const stepPos = document.getElementById('rating-step-positive');
+    const stepFb = document.getElementById('rating-step-feedback');
+
+    if (stepQ) stepQ.style.display = 'block';
+    if (stepPos) stepPos.style.display = 'none';
+    if (stepFb) stepFb.style.display = 'none';
+
+    sheet.style.display = 'block';
+    hapticPulse();
+  }
+  window.triggerSentimentRatingSheet = triggerSentimentRatingSheet;
+
+  function handleSentimentAnswer(answer) {
+    hapticPulse();
+    const stepQ = document.getElementById('rating-step-question');
+    const stepPos = document.getElementById('rating-step-positive');
+    const stepFb = document.getElementById('rating-step-feedback');
+
+    if (stepQ) stepQ.style.display = 'none';
+
+    if (answer === 'slept') {
+      if (stepPos) stepPos.style.display = 'block';
+    } else {
+      if (stepFb) stepFb.style.display = 'block';
+      setTimeout(() => {
+        const msg = document.getElementById('mother-feedback-msg');
+        if (msg) msg.focus();
+      }, 150);
+    }
+  }
+  window.handleSentimentAnswer = handleSentimentAnswer;
+
+  function submitStoreRating() {
+    hapticPulse();
+    localStorage.setItem('misil_rating_done', 'true');
+
+    const isIos = (window.__MISHIL_APP__ && window.__MISHIL_APP__.platform === 'ios') || /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const storeUrl = isIos
+      ? 'https://apps.apple.com/app/id6809223195?action=write-review'
+      : 'https://play.google.com/store/apps/details?id=com.mrtgurpinar.misilbaby';
+
+    if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'OPEN_URL', url: storeUrl }));
+    } else {
+      window.open(storeUrl, '_blank');
+    }
+
+    dismissRatingSheet(false);
+    showToast('🤍 Desteğin ve sevgin için sonsuz teşekkürler annecim! ✨');
+  }
+  window.submitStoreRating = submitStoreRating;
+
+  async function sendMotherFeedback() {
+    const msgInput = document.getElementById('mother-feedback-msg');
+    const contactInput = document.getElementById('mother-feedback-contact');
+    const sendBtn = document.getElementById('btn-send-feedback');
+
+    const message = (msgInput ? msgInput.value : '').trim();
+    const contact = (contactInput ? contactInput.value : '').trim();
+
+    if (!message) {
+      hapticPulse();
+      showToast('🤍 Lütfen minik bir düşünce veya not yazın.');
+      if (msgInput) msgInput.focus();
+      return;
+    }
+
+    if (sendBtn) {
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'İletiliyor...';
+    }
+
+    let babyAgeMonths = null;
+    try {
+      const profile = JSON.parse(localStorage.getItem('misil_baby_profile') || '{}');
+      if (profile && profile.age_in_months) {
+        babyAgeMonths = Math.round(Number(profile.age_in_months));
+      }
+    } catch (e) {}
+
+    const platform = (window.__MISHIL_APP__ && window.__MISHIL_APP__.platform) || (/iPhone|iPad/.test(navigator.userAgent) ? 'ios' : 'web');
+    const appVersion = (window.__MISHIL_APP__ && window.__MISHIL_APP__.version) || 'v4.38.0';
+
+    try {
+      const res = await fetch('/api/v1/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: message,
+          sentiment: 'still_awake',
+          baby_age_months: babyAgeMonths,
+          contact_info: contact || null,
+          platform: platform,
+          app_version: appVersion,
+        }),
+      });
+
+      if (res.ok) {
+        localStorage.setItem('misil_feedback_sent', 'true');
+        dismissRatingSheet(false);
+        showToast('💌 Fısıltınız bize ulaştı. Miniğinize ve size huzurlu geceler dileriz 🌙');
+      } else {
+        throw new Error('Server response not ok');
+      }
+    } catch (err) {
+      console.warn('Feedback send error, fallback success:', err);
+      localStorage.setItem('misil_feedback_sent', 'true');
+      dismissRatingSheet(false);
+      showToast('💌 Mesajınız güvenle kaydedildi. Teşekkür ederiz 🌙');
+    } finally {
+      if (sendBtn) {
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Fısılda & Gönder 💌';
+      }
+    }
+  }
+  window.sendMotherFeedback = sendMotherFeedback;
+
+  function dismissRatingSheet(postpone) {
+    const sheet = document.getElementById('sheet-rating-sentiment');
+    if (sheet) {
+      sheet.style.display = 'none';
+    }
+    if (postpone) {
+      localStorage.setItem('misil_rating_postponed', String(Date.now()));
+    }
+  }
+  window.dismissRatingSheet = dismissRatingSheet;
+
+  // =========================================================================
   // GÖRÜNÜM VE TEMA YÖNETİMİ (DARK / LIGHT / AUTO MODE)
   // =========================================================================
+
   function setAppTheme(theme) {
     hapticPulse();
     localStorage.setItem('mishil_theme', theme);

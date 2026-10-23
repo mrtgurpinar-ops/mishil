@@ -196,3 +196,28 @@ class SubscriptionResponse(BaseModel):
 class RevenueCatWebhookEvent(BaseModel):
     api_version: Optional[str] = "1.0"
     event: Dict[str, Any]
+
+
+# ==========================================
+# 8. Feedback Schemas (5-Star & Mother Feedback)
+# ==========================================
+class FeedbackCreate(BaseModel):
+    message: str = Field(..., min_length=1, max_length=2000)
+    sentiment: Optional[str] = Field("needs_improvement", max_length=50)
+    baby_age_months: Optional[int] = Field(None, ge=0, le=48)
+    contact_info: Optional[str] = Field(None, max_length=255)
+    platform: Optional[str] = Field("ios", max_length=50)
+    app_version: Optional[str] = Field(None, max_length=50)
+
+
+class FeedbackResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    message: str
+    sentiment: str
+    baby_age_months: Optional[int] = None
+    contact_info: Optional[str] = None
+    platform: Optional[str] = "ios"
+    app_version: Optional[str] = None
+    created_at: datetime
+

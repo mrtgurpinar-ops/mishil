@@ -8,8 +8,10 @@ project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
+from typing import Optional
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
+
 from fastapi.responses import JSONResponse, HTMLResponse, PlainTextResponse, FileResponse, RedirectResponse
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -362,6 +364,14 @@ async def developer_preview():
         with open(app_file, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read(), headers=headers)
     return HTMLResponse("<h2>Uygulama dosyası bulunamadı.</h2>", status_code=404, headers=headers)
+
+
+@app.get("/admin/feedbacks", response_class=HTMLResponse, tags=["Admin"])
+async def admin_feedbacks_shortcut(request: Request, pin: Optional[str] = None):
+    """Direct shortcut for Admin Feedback Dashboard."""
+    pin_param = f"?pin={pin}" if pin else ""
+    return RedirectResponse(url=f"/api/v1/feedback/dashboard{pin_param}")
+
 
 
 @app.get("/health", tags=["Health"])

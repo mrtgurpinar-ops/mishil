@@ -265,3 +265,22 @@ class Subscription(Base):
 
     # Relationships
     user = relationship("User", back_populates="subscriptions")
+
+
+class Feedback(Base):
+    __tablename__ = "feedbacks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    message = Column(Text, nullable=False)
+    sentiment = Column(String(50), default="needs_improvement", nullable=False)  # "still_awake", "needs_improvement", "feature_request"
+    baby_age_months = Column(Integer, nullable=True)
+    contact_info = Column(String(255), nullable=True)
+    platform = Column(String(50), default="ios", nullable=True)  # "ios", "android", "web"
+    app_version = Column(String(50), nullable=True)
+    ip_address = Column(String(100), nullable=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+

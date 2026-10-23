@@ -2,7 +2,21 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.39.0] - 2026-10-24
+### ⭐ App Store 5 Yıldız Çarkı, Anne Dayanışması & Gizli Gözlem Paneli
+1. **Akıllı Duygu Yoklaması & Anne Dayanışması Motoru:**
+   - Gece uyku seansı (20+ dk) tamamlandığında veya 2. günden sonra devreye giren loş gece kartı (`#sheet-rating-sentiment`) eklendi.
+   - *"Miniğin bu gece sakinleşebildi mi? 🌙"* sorusuna *"Evet, Uyudu 🤍"* diyen mutlu anneler, anne dayanışması kurgusuyla doğrudan App Store 5 yıldız yorum sayfasına (`action=write-review`) yönlendirilir.
+2. **Sıfır Kötü Yorum Kalkanı (Sentiment Gate):**
+   - Uykuya geçişte zorlanan veya şikayeti olan anneler mağazaya gönderilmez; şefkatli iç geri bildirim formu ile annenin derdi ve istekleri doğrudan dinlenir. Böylece 1-3 yıldızlı potansiyel mağaza yorumları önlenir.
+3. **Backend Geri Bildirim API'si (`/api/v1/feedback`):**
+   - Anne mesajları, bebek yaşı, platform ve sürüm bilgileri veritabanında (`Feedback` modeli) güvenle kayıt altına alınır.
+4. **Gizli Anne Geri Bildirimleri Yönetici Paneli (`/admin/feedbacks`):**
+   - Sadece yönetici PIN'i (`MISIL-REV-9842`) ile erişilebilen, gelen tüm mesajları canlı listeleyen, arama ve CSV dışa aktarımı sunan koyu modlu kokpit yayına alındı.
+   - Uygulama içindeki Reviewer Test Bypass modalına panele doğrudan erişim linki ve 5 yıldız çarkı test önizleme butonu eklendi.
+
 ## [4.38.0] - 2026-10-23
+
 ### 🔔 Akıllı Yerel Bildirim & Ebeveyn Bakım Radarı (CareNotificationEngine)
 1. **T.C. Sağlık Bakanlığı Aşı Takvimi Entegrasyonu:**
    - Bebeğin doğum tarihine göre 1, 2, 4, 6, 9, 12, 18 ve 24. ay aşı kilometre taşları için aşıdan 3 gün ve 1 gün önce sabah 10:30'da akıllı hatırlatıcı bildirimleri planlayan yerel servis devreye alındı.

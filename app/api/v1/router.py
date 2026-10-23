@@ -10,6 +10,7 @@ from app.api.v1.endpoints import (
     family,
     baby,
     sleep,
+    feedback,
 )
 
 api_router = APIRouter()
@@ -25,4 +26,6 @@ api_router.include_router(coach.router, prefix="/coach", tags=["Mışıl Dadı A
 api_router.include_router(family.router, prefix="/family", tags=["Family & Nanny Sync"])
 api_router.include_router(baby.router, prefix="/baby", tags=["Baby Profile Sync"])
 api_router.include_router(sleep.router, prefix="/sleep", tags=["Live Sleep Logs"])
+api_router.include_router(feedback.router)
+
 
