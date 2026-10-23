@@ -2,6 +2,30 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.38.0] - 2026-10-23
+### 🔔 Akıllı Yerel Bildirim & Ebeveyn Bakım Radarı (CareNotificationEngine)
+1. **T.C. Sağlık Bakanlığı Aşı Takvimi Entegrasyonu:**
+   - Bebeğin doğum tarihine göre 1, 2, 4, 6, 9, 12, 18 ve 24. ay aşı kilometre taşları için aşıdan 3 gün ve 1 gün önce sabah 10:30'da akıllı hatırlatıcı bildirimleri planlayan yerel servis devreye alındı.
+2. **Akşam Re-Engagement & Uyku Kontrolü ("Mışıl mışıl uyudu mu?"):**
+   - Ebeveynin belirlediği saatte (varsayılan 20:30) uykuya dalmakta zorlanan bebekler için tek dokunuşla sakinleştirici ses mikserini açmaya yönlendiren şefkat bildirimi entegre edildi.
+3. **Wonder Weeks (Büyüme Sıçraması / Atak Haftaları) Radarı:**
+   - 10 gelişimsel sıçrama haftası (özellikle 4. ay uyku gerilemesi dönemi) tespit edilerek uyku direnci ve huysuzluk yaşanan günlerde ebeveyne rehberlik eden bildirimler eklendi.
+4. **iOS 64-Limit Korumalı 14 Günlük Kayan Pencere (Sliding Window):**
+   - Cihaz ve işletim sistemi sınırlarını korumak için ileriye dönük en fazla 14 günlük bildirim rezerve eden, her açılışta güncellenen ve aynı güne denk gelen bildirimlerde çakışmayı önleyen (Deduplication: Aşı > Atak > Rutin) mimari kuruldu.
+5. **Apple Guideline 4.5.4 Uyumlu Yerel Tercih Paneli:**
+   - Ayarlar ekranına (`app.html`) aşı, atak ve uyku kontrollerini bağımsız olarak açıp kapatabilen ve kontrol saatini özelleştirebilen yerel kontrol paneli ve native köprü (`UPDATE_NOTIFICATION_SETTINGS`) eklendi.
+
+## [4.37.3] - 2026-10-21
+### 📊 VIP Promosyon Kodu Dağıtım Mimarisi, Outreach & Yanıt Yönetimi
+1. **VIP Promosyon Kodu Dağıtımı & Master Excel Takip Sistemi:**
+   - Apple App Store üzerinden üretilen 500 adet 1 yıllık VIP promosyon kodunun dağıtımı segmentlere ayrıldı: Mega Influencerlar (%100 tamamlandı), Batch 1 Sertifikalı Uyku Koçları (%100 tamamlandı), Batch 2 Çocuk Hekimleri & Pediatri Profesörleri (%100 tamamlandı).
+   - 281 doğrulanmış alıcı, verilen 18 haneli tekil Apple kodları, App Store aktivasyon linkleri ve e-posta durumları içeren 3 sekmeli Master Excel takip tablosu (`MISIL_BABY_VIP_PROMO_DISTRIBUTION_MASTER.xlsx`) oluşturuldu.
+2. **Geri Dönüşlerin Otonom Yönetimi & Resmi Yanıtlar:**
+   - Kampanyaya geri dönüş sağlayan uzman hekim ve uyku danışmanlarının (Tatlı Rüyalar Akademisi Elifcan Güner, Psk. Ezel Kırıcı, Seride Samurkaş ve Esin Önemli) talepleri işlendi.
+   - Android inceleme süreci, bilimsel akustik frekans dayanakları (Calming Reflex / 45-50 dB amniyotik sesler / spektrogram ağlama analizi) ve kurumsal Instagram kimliği hazırlığına ilişkin resmi yanıtlar iletildi.
+3. **Merkezi Yayılım Hafızası & Strateji Anayasası:**
+   - `01_Features/Misil_Baby_Bebek_Yayilim_ve_Outreach_Stratejisi.md` ve `00_HAFIZA_VE_SISTEM.md` kalıcı hafıza dokümanları oluşturularak sıradaki aşama olan Faz 5 (Batch 3 Anne Forumları 150 Kodluk Seeding Paketleri) sisteme entegre edildi.
+
 ## [4.37.2] - 2026-10-18
 ### 📲 Canlı Apple App Store İndirme Köprüsü & Landing Page Entegrasyonu
 1. **Canlı App Store Bağlantısı:**

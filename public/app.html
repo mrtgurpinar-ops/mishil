@@ -2480,7 +2480,7 @@
 
       <!-- REVIEWER TEST BYPASS TRIGGER (GOOGLE PLAY ANSWER 15748846) -->
       <div style="text-align: center; margin-top: 12px; margin-bottom: 6px;">
-        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.37.0 (Build 56)</span>
+        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.38.0 (Build 56)</span>
       </div>
     </div>
   </div>
@@ -3114,6 +3114,57 @@
         </div>
       </div>
 
+      <!-- MODÜL 1.5: BİLDİRİM TERCİHLERİ (AKILLI BAKIM & AŞI RADARI) -->
+      <div class="settings-accordion-card" id="acc-notifications" style="margin-bottom: 10px;">
+        <div class="settings-accordion-header" onclick="toggleSettingsAccordion('acc-notifications')">
+          <div class="settings-accordion-title-wrap">
+            <span class="settings-accordion-icon">🔔</span>
+            <div>
+              <div class="settings-accordion-title">Akıllı Bildirimler & Bakım Radarı</div>
+              <div class="settings-accordion-subtitle" id="acc-notif-summary">Aşı, Atak ve Uyku Bildirimleri Aktif</div>
+            </div>
+          </div>
+          <span class="settings-accordion-chevron">▼</span>
+        </div>
+        <div class="settings-accordion-body">
+          <div style="font-size: 11px; color: var(--text-muted); margin: 6px 0 12px; line-height: 1.4;">
+            T.C. Sağlık Bakanlığı aşı takvimi, büyüme sıçramaları ve akşam uyku kontrolü bildirimleri tamamen cihazınızda yerel ve gizli olarak planlanır.
+          </div>
+          
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: #FFF;">💉 Aşı Takvimi Hatırlatıcıları</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Aşı gününden 3 gün ve 1 gün önce sabah 10:30'da uyarır</div>
+            </div>
+            <input type="checkbox" id="notif-toggle-vaccine" onchange="updateCareNotificationSettings()" checked style="transform: scale(1.2); accent-color: #E8A855;" />
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: #FFF;">🌙 Akşam Uyku Rutini ("Uyudu mu?")</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Her akşam sakinleştirici ses ve uyku kontrol bildirimi</div>
+            </div>
+            <input type="checkbox" id="notif-toggle-routine" onchange="updateCareNotificationSettings()" checked style="transform: scale(1.2); accent-color: #E8A855;" />
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06);">
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: #FFF;">⚡ Büyüme Sıçraması (Atak Haftası)</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Uyku gerilemesi ve huysuzluk dönemlerinde şefkat desteği</div>
+            </div>
+            <input type="checkbox" id="notif-toggle-leap" onchange="updateCareNotificationSettings()" checked style="transform: scale(1.2); accent-color: #E8A855;" />
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0 6px;">
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: #FFF;">⏰ Akşam Kontrol Saati</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Rutin kontrol bildiriminin geleceği saat</div>
+            </div>
+            <input type="time" id="notif-time-routine" onchange="updateCareNotificationSettings()" value="20:30" class="form-input" style="width: 100px; padding: 6px; text-align: center; border-radius: 8px;" />
+          </div>
+        </div>
+      </div>
+
       <!-- MODÜL 2: AİLE & DADI SENKRONİZASYONU -->
       <div class="settings-accordion-card" id="acc-family">
         <div class="settings-accordion-header" onclick="toggleSettingsAccordion('acc-family')">
@@ -3509,7 +3560,7 @@
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
     </div>
     <div style="text-align: center; margin-top: 10px;">
-      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.37.0 (Build 56)</span>
+      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.38.0 (Build 56)</span>
     </div>
   </div>
 </div>
@@ -4061,7 +4112,12 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.36.6', date: '25 Eylül 2026', latest: true, items: [
+    { v: '4.38.0', date: '23 Ekim 2026', latest: true, items: [
+      'Mışıl Akıllı Yerel Bildirim & Bakım Radarı (CareNotificationEngine): T.C. Sağlık Bakanlığı aşı takvimi (1, 2, 4, 6, 9, 12, 18, 24. ay aşıları), Wonder Weeks büyüme sıçramaları (10 atak haftası) ve akşam "Mışıl mışıl uyudu mu?" rutin kontrolleri entegre edildi.',
+      'iOS 64-Limit Korumalı 14 Günlük Kayan Pencere (Sliding Window): Tüm bildirimler işletim sistemi sınırlarını ve pil ömrünü koruyacak biçimde dinamik 14 günlük kayan pencere ve çakışma önleyici (deduplication) mimariyle planlanır.',
+      'Apple Guideline 4.5.4 Uyumlu Bildirim Tercihleri: Ayarlar ekranına aşı, atak ve uyku kontrollerini bağımsız olarak açıp kapatabilen ve kontrol saatini özelleştirebilen yerel kontrol paneli eklendi.'
+    ]},
+    { v: '4.36.6', date: '25 Eylül 2026', items: [
       'Mışıl Dadı Açık Tema Okunabilirlik: Açık modda kullanıcı mesaj baloncukları yüksek kontrastlı sıcak terracotta degrade ve net beyaz metinle donatıldı; hızlı şablon butonları açık kart stiline kavuşturuldu.',
       'Yapısal Pediatrik Şablonlama & Kesintisiz AI Yanıtları: Gemini AI yanıtlarının yarım kalma sorunu; yapay kelime/token giyotinleri yerine 3 bloklu klinik iskelet (Teşhis, Acil Müdahale, Sonraki Önlem), 2500 token emniyet tavanı ve otonom akış tamamlama kalkanı ile çözüldü.'
     ]},
@@ -7877,6 +7933,7 @@
     renderHomeScreenScore();
     renderBabyStepsLeaps();
     checkAndRestoreLiveSleep();
+    loadStoredNotificationSettings();
   }
 
   // Ayarlar > Bebek Profili kaydet (önceden tanımsızdı — buton hiçbir şey yapmıyordu)
@@ -7889,11 +7946,94 @@
     if (isNaN(t) || t > Date.now()) { showToast('⚠️ Geçerli bir doğum tarihi girin'); return; }
     localStorage.setItem('mishil_baby_name', nm);
     localStorage.setItem('mishil_baby_bdate', bd);
+
+    // Native katmana profili ve bildirim senkronizasyonunu ilet
+    if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+      try {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'SAVE_PROFILE',
+          payload: { babyName: nm, babyBdate: bd }
+        }));
+      } catch (err) {}
+    }
+
     loadBabyProfile();
     renderHomeTodayTimeline();
     renderAnalyticsView();
     showToast('💾 Bebek profili güncellendi');
   }
+
+  // =========================================================================
+  // AKILLI YEREL BİLDİRİM & BAKIM RADARI YÖNETİMİ
+  // =========================================================================
+  function applyNotificationSettings(settings) {
+    if (!settings) return;
+    try {
+      const vToggle = document.getElementById('notif-toggle-vaccine');
+      const rToggle = document.getElementById('notif-toggle-routine');
+      const lToggle = document.getElementById('notif-toggle-leap');
+      const tInput = document.getElementById('notif-time-routine');
+
+      if (vToggle && typeof settings.vaccineEnabled === 'boolean') vToggle.checked = settings.vaccineEnabled;
+      if (rToggle && typeof settings.routineSleepEnabled === 'boolean') rToggle.checked = settings.routineSleepEnabled;
+      if (lToggle && typeof settings.leapWeeksEnabled === 'boolean') lToggle.checked = settings.leapWeeksEnabled;
+      if (tInput && settings.routineTime) tInput.value = settings.routineTime;
+
+      updateNotificationSummaryBadge(settings);
+    } catch (e) {
+      console.warn('applyNotificationSettings error:', e);
+    }
+  }
+  window.applyNotificationSettings = applyNotificationSettings;
+
+  function updateNotificationSummaryBadge(settings) {
+    const summary = document.getElementById('acc-notif-summary');
+    if (!summary) return;
+    const activeList = [];
+    if (settings.vaccineEnabled) activeList.push('Aşı');
+    if (settings.leapWeeksEnabled) activeList.push('Atak');
+    if (settings.routineSleepEnabled) activeList.push('Uyku');
+    summary.textContent = activeList.length > 0 ? activeList.join(', ') + ' Bildirimleri Aktif' : 'Bildirimler Kapalı';
+  }
+
+  function updateCareNotificationSettings() {
+    hapticPulse();
+    const vToggle = document.getElementById('notif-toggle-vaccine');
+    const rToggle = document.getElementById('notif-toggle-routine');
+    const lToggle = document.getElementById('notif-toggle-leap');
+    const tInput = document.getElementById('notif-time-routine');
+
+    const settings = {
+      vaccineEnabled: vToggle ? vToggle.checked : true,
+      routineSleepEnabled: rToggle ? rToggle.checked : true,
+      leapWeeksEnabled: lToggle ? lToggle.checked : true,
+      routineTime: (tInput && tInput.value) || '20:30',
+    };
+
+    localStorage.setItem('mishil_notification_settings', JSON.stringify(settings));
+    updateNotificationSummaryBadge(settings);
+
+    if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+      try {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'UPDATE_NOTIFICATION_SETTINGS',
+          payload: settings
+        }));
+      } catch (err) {}
+    }
+  }
+  window.updateCareNotificationSettings = updateCareNotificationSettings;
+
+  function loadStoredNotificationSettings() {
+    try {
+      const raw = localStorage.getItem('mishil_notification_settings');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        applyNotificationSettings(parsed);
+      }
+    } catch (e) {}
+  }
+
 
   function openChangelogModal() {
     hapticPulse();

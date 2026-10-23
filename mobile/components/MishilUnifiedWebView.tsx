@@ -19,6 +19,11 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initRevenueCat, purchasePackage, restorePurchases, getOfferings, hasActiveEntitlement, PRO_ENTITLEMENT_ID } from '../features/subscription/revenuecat';
 import * as nativeAudio from '../features/audio/nativeAudioPlayer';
 import { OFFLINE_HTML } from '../features/webview/offlineHtml.generated';
+import {
+  syncCareNotifications,
+  getStoredNotificationSettings,
+  saveStoredNotificationSettings,
+} from '../features/notifications/careNotificationEngine';
 
 // Native sürüm bilgisini WebView'e sayfa yüklenmeden önce enjekte et (Settings sürüm rozeti + changelog dinamik)
 const APP_VERSION = Constants.expoConfig?.version ?? '0.0.0';
@@ -341,6 +346,28 @@ export default function MishilUnifiedWebView() {
         `);
       } catch (e) {}
     })();
+
+    // Bildirim ayarlarını ve 14 günlük bakım bildirimlerini OS kuyruğuna senkronize et
+    (async () => {
+      try {
+        const rawProfile = await AsyncStorage.getItem('@mishil_baby_profile');
+        let pObj: any = null;
+        try { pObj = rawProfile ? JSON.parse(rawProfile) : null; } catch {}
+        const notifSettings = await getStoredNotificationSettings();
+        if (pObj?.babyName) {
+          await syncCareNotifications({ babyName: pObj.babyName, babyBdate: pObj.babyBdate }, notifSettings);
+        }
+        webviewRef.current?.injectJavaScript(`
+          (function() {
+            window.__MISHIL_NOTIFICATION_SETTINGS__ = ${JSON.stringify(notifSettings)};
+            if (typeof window.applyNotificationSettings === 'function') {
+              window.applyNotificationSettings(window.__MISHIL_NOTIFICATION_SETTINGS__);
+            }
+            true;
+          })();
+        `);
+      } catch (e) {}
+    })();
   }, [syncEntitlementToWebView]);
 
   // Ana çerçeve hatası (TLS, DNS, 5xx, timeout) → cold-start için sessiz retry,
@@ -478,6 +505,25 @@ export default function MishilUnifiedWebView() {
         case 'SAVE_PROFILE':
           if (msg.payload) {
             void AsyncStorage.setItem('@mishil_baby_profile', JSON.stringify(msg.payload));
+            void syncCareNotifications({
+              babyName: msg.payload.babyName,
+              babyBdate: msg.payload.babyBdate,
+            });
+          }
+          break;
+
+        case 'UPDATE_NOTIFICATION_SETTINGS':
+          if (msg.payload) {
+            void saveStoredNotificationSettings(msg.payload).then(async (updatedSettings) => {
+              const rawProfile = await AsyncStorage.getItem('@mishil_baby_profile');
+              let pObj: any = null;
+              try { pObj = rawProfile ? JSON.parse(rawProfile) : null; } catch {}
+              await syncCareNotifications(
+                { babyName: pObj?.babyName, babyBdate: pObj?.babyBdate },
+                updatedSettings
+              );
+              webToast('✅ Bildirim tercihleri güncellendi.');
+            });
           }
           break;
 
