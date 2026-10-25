@@ -2,6 +2,15 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.39.0 - Build 57] - 2026-10-25
+### 🍏 iOS Native Production Derlemesi (Build 57)
+1. **Xcode 16 / iOS 15.1 + Swift 5.0 Uyumluluk Motoru:**
+   - CocoaPods alt hedeflerinin (AsyncStorage, RNSVG, RevenueCat) Xcode 16 ile uyumsuzluğunu önleyen `withMinDeploymentTarget` Expo Config Plugin'i entegre edildi. Tüm podlar iOS 15.1 ve Swift 5.0 seviyesine sabitlendi.
+2. **EAS SDK 54 İmajı:**
+   - `eas.json` iOS üretim profili `sdk-54` resmi imajına kilitlendi.
+3. **Yeni Native IPA:**
+   - CareNotificationEngine (Aşı ve uyku bildirimleri) ve 5-Yıldız Anne Dayanışması Çarkı native katmana mühürlenerek Build 57 IPA paketi üretildi.
+
 ## [4.39.0] - 2026-10-24
 ### ⭐ App Store 5 Yıldız Çarkı, Anne Dayanışması & Gizli Gözlem Paneli
 1. **Akıllı Duygu Yoklaması & Anne Dayanışması Motoru:**
