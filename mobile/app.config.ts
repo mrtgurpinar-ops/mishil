@@ -103,7 +103,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         icon: './assets/notification-icon.png',
         color: '#E8A855'
       }
-    ]
+    ],
+    './plugins/withMinDeploymentTarget'
   ],
   extra: {
     eas: {
