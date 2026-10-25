@@ -5,9 +5,11 @@ const path = require('path');
 /**
  * Expo Config Plugin: withMinDeploymentTarget
  * 
- * Enforces a minimum IPHONEOS_DEPLOYMENT_TARGET across all CocoaPods targets
- * (including third-party resource bundles like AsyncStorage, RNSVG, RevenueCat)
- * to comply with Xcode 16+ strict iOS 15.0+ requirement.
+ * Enforces:
+ * 1. Minimum IPHONEOS_DEPLOYMENT_TARGET (15.1) across all CocoaPods targets
+ *    (including third-party resource bundles like AsyncStorage, RNSVG, RevenueCat).
+ * 2. SWIFT_VERSION = '5.0' to prevent Swift 6 memberwise initializer collision
+ *    in RevenueCat (PaywallColor.swift ambiguous init error).
  */
 const withMinDeploymentTarget = (config) => {
   return withDangerousMod(config, [
@@ -21,13 +23,14 @@ const withMinDeploymentTarget = (config) => {
       let podfileContent = fs.readFileSync(podfilePath, 'utf8');
 
       const postInstallSnippet = `
-    # --- [withMinDeploymentTarget] Enforce iOS 15.1 on all Pod targets & resource bundles ---
+    # --- [withMinDeploymentTarget] Enforce iOS 15.1 & Swift 5.0 on all Pod targets ---
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         current_target = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
         if current_target.nil? || current_target.to_f < 15.1
           config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
         end
+        config.build_settings['SWIFT_VERSION'] = '5.0'
       end
     end
 `;
