@@ -2,6 +2,21 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.43.0 - Build 61] - 2026-10-26
+### 🎨 Organic Pediatric Hub: C'nin Zekâsı & B'nin Sade Sıcaklığı (Aşama 3)
+1. **Sade ve Organik Denge Kartı (`.analytics-organic-card`):**
+   - Analiz ekranının üst kısmı, 26px yumuşak adaçayı zeminli derin kaşmir cam kartla yenilendi.
+   - Denge Skoru (%88), 3 sade durum rozeti (Uyku, Aşı, Atak) ve pedagojik uyku bileşen barları loş odada gözü yormayan şefkatli bir göstergeye dönüştürüldü.
+2. **7 Günlük Sadeleşmiş Çubuk Trendi (`#weekly-sleep-bento-chart`):**
+   - Karmaşık teknik tablolardan arındırılmış, pastel tonlu yumuşak sütunlar ve dinamik haftalık ortalama uyku süresi (`#weekly-avg-sleep-val`) korundu.
+3. **2 Sütunlu Akustik Stüdyo Ses Kartları (`.sound-studio-card`):**
+   - 18 stüdyo parçası, loş gece ışığında kolay dokunulan 2 sütunlu bento stüdyo kartları olarak yeniden tasarlandı.
+   - Çalan parça üzerinde yavaşça nefes alan kehribar ses aurası, kategori ikonları ve `🎁 ÜCRETSİZ` / `👑 VIP` etiketleri entegre edildi.
+4. **Ergonomik Kapanma Zamanlayıcısı:**
+   - Kapanma zamanlayıcısı hapları (*Sürekli, 15m, 30m, 45m, 60m*) dokunması keyifli pürüzsüz butonlara dönüştürüldü.
+5. **Sıfır Regresyon & %100 Bütünlük:**
+   - Tüm analitik ve ses çalma DOM ID'leri korunarak testler yeşil mühürlendi.
+
 ## [4.42.0 - Build 60] - 2026-10-26
 ### 🎨 Organic Warm Bento Grid Mimarisi & Ana Sayfa Restorasyonu (Aşama 2)
 1. **Panoramik Mum Işığı Hero Bento Kartı (`#home-organic-hero`):**

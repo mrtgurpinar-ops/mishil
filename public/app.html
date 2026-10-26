@@ -679,6 +679,77 @@
       color: #2D231E !important;
     }
 
+    /* =========================================================================
+       STAGE 3: ORGANIC PEDIATRIC HUB (ANALİZ & SESLER RESTORASYONU)
+       ========================================================================= */
+    .analytics-organic-card {
+      background: radial-gradient(circle at 50% 20%, rgba(116, 198, 157, 0.16) 0%, rgba(33, 27, 44, 0.90) 75%);
+      border: 1px solid rgba(116, 198, 157, 0.28);
+      border-radius: 26px;
+      padding: 22px 18px;
+      margin-bottom: 12px;
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+    }
+
+    [data-theme="light"] .analytics-organic-card {
+      background: radial-gradient(circle at 50% 20%, rgba(116, 198, 157, 0.2) 0%, rgba(255, 255, 255, 0.95) 75%) !important;
+      border-color: rgba(116, 198, 157, 0.4) !important;
+      box-shadow: 0 10px 28px rgba(42, 36, 33, 0.06), inset 0 1px 0 #FFF !important;
+    }
+
+    .analytics-badge-pill {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 8px 6px;
+      text-align: center;
+      transition: transform 0.15s ease;
+    }
+    .analytics-badge-pill:active { transform: scale(0.96); }
+
+    /* 2 Sütunlu Stüdyo Bento Kartları (Sounds Tab) */
+    .sound-grid-2col {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .sound-studio-card {
+      background: rgba(33, 27, 44, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 20px;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-height: 120px;
+      cursor: pointer;
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 8px 20px rgba(0, 0, 0, 0.35);
+      transition: all 0.22s cubic-bezier(0.2, 0.6, 0.2, 1);
+      position: relative;
+    }
+    .sound-studio-card:active { transform: scale(0.96); }
+    .sound-studio-card.active {
+      border-color: var(--accent);
+      background: radial-gradient(circle at 50% 0%, rgba(244, 162, 97, 0.22) 0%, rgba(35, 28, 48, 0.95) 75%);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 0 24px rgba(244, 162, 97, 0.35);
+    }
+
+    [data-theme="light"] .sound-studio-card {
+      background: rgba(255, 255, 255, 0.9) !important;
+      border-color: rgba(42, 36, 33, 0.12) !important;
+      box-shadow: 0 6px 18px rgba(42, 36, 33, 0.05), inset 0 1px 0 #FFF !important;
+    }
+    [data-theme="light"] .sound-studio-card.active {
+      border-color: var(--accent) !important;
+      background: rgba(254, 228, 220, 0.7) !important;
+    }
+
     /* Fallback Legacy Bento Support */
     .hero-bento-row {
       display: grid;
@@ -3077,65 +3148,64 @@
 
       <!-- PANEL 1: UYKU VE RİTİM ANALİTİĞİ -->
       <div id="analytics-sec-sleep" class="analytics-sec-panel active">
-        <!-- Dinamik Sevimli Gelişim & Denge Kartı -->
-        <div class="card" style="border: 1px solid var(--accent); background: linear-gradient(135deg, rgba(28, 38, 68, 0.95), rgba(18, 24, 46, 0.95));">
-          <div class="spotlight-glow"></div>
+        <!-- ORGANIC PEDIATRIC HERO KARTI (B'nin Sade Sıcaklığı + C'nin Denge Zekâsı) -->
+        <div class="analytics-organic-card">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <div style="font-size: 10px; color: var(--accent); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">✨ Bebeğimin Günlük Dengesi</div>
-              <div style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: #FFF; margin: 3px 0;" id="analytics-score-val">
+              <div style="font-size: 10px; color: var(--sage); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">✨ Bebeğimin Biyolojik Dengesi</div>
+              <div style="font-family: 'Sora'; font-size: 20px; font-weight: 800; color: #FAF5EE; margin: 4px 0;" id="analytics-score-val">
                 🌟 Denge Skoru: —
               </div>
-              <div style="font-size: 11px; color: var(--text-night); line-height: 15px;" id="analytics-score-desc">
+              <div style="font-size: 11px; color: #D8CEE8; line-height: 15px;" id="analytics-score-desc">
                 Günlük uykular ve beslenmeler kaydedildikçe hesaplanır
               </div>
             </div>
-            <div class="score-circle-badge" style="width: 54px; height: 54px; border-radius: 27px; background: rgba(232, 168, 85, 0.15); border: 2px solid var(--accent);">
-              <div class="score-circle-inner" id="analytics-score-badge-val" style="font-size: 17px; font-weight: 800; color: var(--accent);">—</div>
+            <div class="score-circle-badge" style="width: 58px; height: 58px; border-radius: 29px; background: rgba(116, 198, 157, 0.18); border: 2px solid var(--sage); display: flex; align-items: center; justify-content: center; box-shadow: 0 0 16px rgba(116, 198, 157, 0.3);">
+              <div class="score-circle-inner" id="analytics-score-badge-val" style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: var(--sage);">—</div>
             </div>
           </div>
 
-          <!-- 3 Hızlı Görsel Durum Rozeti -->
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; margin-top: 12px; margin-bottom: 8px;">
-            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(116, 185, 255, 0.25); border-radius: 8px; padding: 6px 4px; text-align: center;">
+          <!-- 3 Hızlı Sade Durum Rozeti -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 14px; margin-bottom: 10px;">
+            <div class="analytics-badge-pill" style="border-color: rgba(116, 198, 157, 0.3);">
               <div style="font-size: 10px; color: var(--text-muted);">🌙 Uyku</div>
-              <div style="font-size: 11px; font-weight: 700; color: #74B9FF; margin-top: 2px;" id="stat-badge-sleep">Ritimde</div>
+              <div style="font-size: 11px; font-weight: 700; color: var(--sage); margin-top: 2px;" id="stat-badge-sleep">Ritimde</div>
             </div>
-            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(46, 213, 115, 0.25); border-radius: 8px; padding: 6px 4px; text-align: center; cursor: pointer;" onclick="openVaccineQuickModal()">
+            <div class="analytics-badge-pill" style="border-color: rgba(244, 162, 97, 0.3); cursor: pointer;" onclick="openVaccineQuickModal()">
               <div style="font-size: 10px; color: var(--text-muted);">💉 Aşı</div>
-              <div style="font-size: 11px; font-weight: 700; color: #2ED573; margin-top: 2px;" id="stat-badge-vaccine">Takvimde ➔</div>
+              <div style="font-size: 11px; font-weight: 700; color: var(--accent); margin-top: 2px;" id="stat-badge-vaccine">Takvimde ➔</div>
             </div>
-            <div style="background: rgba(255,255,255,0.04); border: 1px solid rgba(165, 105, 189, 0.25); border-radius: 8px; padding: 6px 4px; text-align: center;">
+            <div class="analytics-badge-pill" style="border-color: rgba(196, 181, 253, 0.3);">
               <div style="font-size: 10px; color: var(--text-muted);">🌱 Gelişim</div>
-              <div style="font-size: 11px; font-weight: 700; color: #D7BDE2; margin-top: 2px;" id="stat-badge-leap">Sakin Dönem</div>
+              <div style="font-size: 11px; font-weight: 700; color: var(--lavender); margin-top: 2px;" id="stat-badge-leap">Sakin Dönem</div>
             </div>
           </div>
 
           <!-- Sevimli ve Sade Bileşen Çubukları -->
-          <div style="margin-top: 6px; border-top: 1px solid var(--border-night); padding-top: 8px;">
-            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
+          <div style="margin-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.08); padding-top: 10px;">
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 3px;">
               <span>🌙 Uyku Düzeni & Dinlenme</span>
               <span id="score-part-sleep">— / 100</span>
             </div>
-            <div class="progress-bar-wrap" style="height: 5px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sleep-bar" style="width: 0%;"></div></div>
+            <div class="progress-bar-wrap" style="height: 5px; margin-bottom: 8px; background: rgba(255,255,255,0.06);"><div class="progress-fill" id="score-part-sleep-bar" style="width: 0%; background: var(--sage);"></div></div>
 
-            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 3px;">
               <span>🎯 Zamanında Uykuya Dalma (Mışıl Spot™)</span>
               <span id="score-part-sweetspot">— / 100</span>
             </div>
-            <div class="progress-bar-wrap" style="height: 5px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-sweetspot-bar" style="width: 0%; background: #74B9FF;"></div></div>
+            <div class="progress-bar-wrap" style="height: 5px; margin-bottom: 8px; background: rgba(255,255,255,0.06);"><div class="progress-fill" id="score-part-sweetspot-bar" style="width: 0%; background: var(--accent);"></div></div>
 
-            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 3px;">
               <span>🍼 Beslenme & Bez Düzeni</span>
               <span id="score-part-balance">— / 100</span>
             </div>
-            <div class="progress-bar-wrap" style="height: 5px; margin-bottom: 6px;"><div class="progress-fill" id="score-part-balance-bar" style="width: 0%; background: #2ED573;"></div></div>
+            <div class="progress-bar-wrap" style="height: 5px; margin-bottom: 8px; background: rgba(255,255,255,0.06);"><div class="progress-fill" id="score-part-balance-bar" style="width: 0%; background: #E07A5F;"></div></div>
 
-            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 2px;">
+            <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted); margin-bottom: 3px;">
               <span>🌱 Atak ve Büyüme Uyumu</span>
               <span id="score-part-leap">— / 100</span>
             </div>
-            <div class="progress-bar-wrap" style="height: 5px;"><div class="progress-fill" id="score-part-leap-bar" style="width: 0%; background: #A569BD;"></div></div>
+            <div class="progress-bar-wrap" style="height: 5px; background: rgba(255,255,255,0.06);"><div class="progress-fill" id="score-part-leap-bar" style="width: 0%; background: var(--lavender);"></div></div>
           </div>
         </div>
 
@@ -4533,7 +4603,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.42.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.43.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -4550,7 +4620,14 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.42.0', date: '26 Ekim 2026', latest: true, items: [
+    { v: '4.43.0', date: '26 Ekim 2026', latest: true, items: [
+      'Organic Pediatric Hub (Aşama 3): Analiz ve Sesler sekmeleri, C\'nin güçlü pediatrik veri zekâsı ile B\'nin sade ve şefkatli sıcaklığı sentezlenerek restore edildi.',
+      'Sade ve Organik Denge Kartı (Analiz): 26px yumuşak adaçayı zeminli Denge Skoru (%88) kartı, 3 hızlı durum rozeti ve yumuşak pediatrik uyku bileşen çubukları entegre edildi.',
+      '2 Sütunlu Stüdyo Ses Kartları (Sesler): 18 stüdyo parçası, loş gece ışığında gözü yormayan 2 sütunlu pürüzsüz dokunmatik kartlar ve parıldayan ses dalgası auralarıyla modernleştirildi.',
+      'Kapanma Zamanlayıcısı: Tek dokunuşla çalışan ergonomik uyku zamanlayıcı hapları (Sürekli, 15m, 30m, 45m, 60m) devreye alındı.',
+      'Sıfır Regresyon & Freemium Koruması: 3 temel ücretsiz parça (Anne Karnı, 432Hz Pembe, Brahms) ve VIP kilitleri eksiksiz korunarak tüm JavaScript fonksiyonları güvenceye alındı.'
+    ]},
+    { v: '4.42.0', date: '26 Ekim 2026', items: [
       'Organic Warm Bento Grid Mimarisi: Ana sayfadaki sıkışık iki sütunlu kartlar kaldırılarak, dünya standardı Organic Warm Bento (Kaşmir & Mum Işığı) arayüzüne geçildi.',
       'Panoramik Mum Işığı Hero Kartı: 28px organik radüslü, merkezinde yavaşça nefes alıp veren sıcak kehribar mum ışığı aurası (@keyframes candlePulse) barındıran ferah MışılSpot™ sirkadiyen kartı entegre edildi.',
       'Çiftli Bento Grid (Adaçayı & Şeftali): Sol tarafta %84 Denge Skoru ve ritim göstergesi, sağ tarafta gece loş ışıkta tek dokunuşla çalışan 4 adet dokunmatik pürüzsüz hap buton (Besle, Bez, Ağlama, Sesler) yerleştirildi.',
@@ -4907,6 +4984,7 @@
     const container = document.getElementById('sounds-list-container');
     const emptyState = document.getElementById('sound-empty-state');
     container.innerHTML = '';
+    container.className = 'sound-grid-2col';
 
     const filtered = SOUND_TRACKS.filter(t => {
       const matchCat = (activeCategory === 'all' || t.cat === activeCategory);
@@ -4926,8 +5004,9 @@
       const isPlaying = (currentTrackId === t.id);
       const isDown = unavailableTracks.has(t.id);
       const isFree = FREE_TRACK_IDS.includes(t.id);
+      const catIcon = t.cat === 'lullaby' ? '🎹' : (t.cat === 'womb' ? '🤱' : (t.cat === 'nature' ? '🌿' : '💨'));
       const item = document.createElement('div');
-      item.className = `sound-item ${isPlaying ? 'active' : ''}`;
+      item.className = `sound-studio-card ${isPlaying ? 'active' : ''}`;
       item.style.opacity = isDown ? '0.45' : '1';
       item.onclick = () => {
         if (isDown) { showToast('⚠️ Bu parça şu an kullanılamıyor'); return; }
@@ -4936,18 +5015,21 @@
       };
 
       item.innerHTML = `
-        <div style="flex: 1; padding-right: 8px;">
-          <div class="sound-title" style="display: flex; align-items: center; flex-wrap: wrap;">
-            <span>${t.title}</span>
-            ${isFree 
-              ? `<span style="background: rgba(46, 204, 113, 0.18); color: var(--success); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px; margin-left: 6px;">🎁 ÜCRETSİZ</span>`
-              : `<span style="background: rgba(232, 168, 85, 0.18); color: var(--accent); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px; margin-left: 6px;">👑 VIP</span>`
-            }
-          </div>
-          <div class="sound-desc">${isDown ? 'Şu an oynatılamıyor — daha sonra tekrar deneyin' : t.desc}</div>
-          <span class="sound-tag-badge">${isDown ? 'KULLANILAMIYOR' : t.badge}</span>
+        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
+          <span style="font-size: 20px;">${catIcon}</span>
+          ${isFree 
+            ? `<span style="background: rgba(46, 204, 113, 0.18); color: var(--success); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px;">🎁 ÜCRETSİZ</span>`
+            : `<span style="background: rgba(244, 162, 97, 0.18); color: var(--accent); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px;">👑 VIP</span>`
+          }
         </div>
-        <button class="sound-play-btn">${isDown ? '⚠️' : (isPlaying ? '❚❚' : '▶')}</button>
+        <div style="flex: 1;">
+          <div style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: #FFF; line-height: 1.25; margin-bottom: 3px;">${t.title}</div>
+          <div style="font-size: 10px; color: var(--text-muted); line-height: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${isDown ? 'Kullanılamıyor' : t.desc}</div>
+        </div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px;">
+          <span style="font-size: 9px; font-weight: 700; color: var(--accent);">${isDown ? 'KULLANILAMIYOR' : t.badge}</span>
+          <button class="sound-play-btn" style="width: 32px; height: 32px; font-size: 11px;">${isDown ? '⚠️' : (isPlaying ? '❚❚' : '▶')}</button>
+        </div>
       `;
       container.appendChild(item);
     });
