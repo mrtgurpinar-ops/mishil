@@ -442,11 +442,13 @@ export default function MishilUnifiedWebView() {
     }
   }, [armWatchdog, useOffline]);
 
-  // Haptik yardımcı
+  // Haptik yardımcı (Haptics 2.0)
   const triggerHaptic = async (level: string) => {
     try {
       if (level === 'heavy') await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       else if (level === 'medium') await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      else if (level === 'success') await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      else if (level === 'selection') await Haptics.selectionAsync();
       else await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     } catch {}
   };

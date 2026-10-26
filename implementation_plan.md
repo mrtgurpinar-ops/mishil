@@ -1,69 +1,74 @@
-# Mışıl Baby — Aşama 3: Organic Pediatric Hub (C'nin Zekâsı & B'nin Sade Sıcaklığı) Uygulama Planı
+# Mışıl Baby — Aşama 4: Full Sensory Suite (Haptics 2.0, Akustik Crossfade & Gece Beşiği Modu) Uygulama Planı
 
 | Metrik | Değer |
 | :--- | :--- |
-| **Tahmini Efor** | ~45 - 60 Dakika |
-| **Kalan Kapasite Kullanımı** | Yaklaşık %12 - 15 |
+| **Tahmini Efor** | ~40 - 50 Dakika |
+| **Kalan Kapasite Kullanımı** | Yaklaşık %10 - 14 |
 | **Risk Seviyesi** | **Seviye 2 (Orta Risk / Standart UI Modülü - Çift Kontrol)** |
-| **Hedef Sürüm** | `v4.43.0` (Build 61) — Holding: `v8.60.0` |
-| **Etkilenecek Dosyalar** | `projects/mishil/public/app.html`, `projects/mishil/mobile/app.config.ts`, `projects/mishil/CHANGELOG.md` |
+| **Hedef Sürüm** | `v4.44.0` (Build 62) — Holding: `v8.61.0` |
+| **Etkilenecek Dosyalar** | `projects/mishil/public/app.html`, `projects/mishil/mobile/components/MishilUnifiedWebView.tsx`, `projects/mishil/mobile/app.config.ts`, `projects/mishil/CHANGELOG.md` |
 
 ---
 
 ## 🎯 1. Netleştirilmiş Hedef & Kapsam (Refined Prompt)
-Kullanıcının *"C olsun ama B'nin basitliğini sevmiştim"* yönlendirmesi doğrultusunda, **C'nin güçlü veri zekâsı ve pediatrik analitiği**, **B'nin gözü yormayan sade, organik ve şefkatli arayüz felsefesiyle** sentezlenecektir:
+Kullanıcının tercihi doğrultusunda **Öneri 4C (Full Sensory Suite)** hayata geçirilecek; uygulamanın webview tabanlı olduğunu unutturan saf yerel mekanik dokunuşlar, pürüzsüz ses geçişleri ve gece nöbetinde anneyi rahatlatan komodin saati deneyimi entegre edilecektir:
 
-1. **Analiz Sekmesi (`view-analytics` — Sade Biyometrik Hub):**
-   - **Üstte Şefkatli Denge Kartı (B'den):** 26px yumuşak köşe radüslü, adaçayı/kaşmir zeminli organik kart. Tek bakışta *"Denge Skoru: %88 • 9 sa 49 dk"* özetini ve sakinleştirici pedagojik geri bildirimi sunar.
-   - **Orta Kısımda 7 Günlük Çubuk Trendi (C'den):** Karmaşık teknik tablolardan arındırılmış, pastel tonlu sütunlar (Pt-Pz) ve ortalama uyku süresi göstergesi (`#weekly-avg-sleep-val`).
-   - **24 Saatlik Bebek Ritmi & Zirve Saatler:** Acıkma, gaz ve en derin uyku bloklarını sade, net şeritler halinde gösteren pediatrik zirve kartı.
-   - **%100 DOM ID Güvencesi:** Mevcut tüm DOM ID'leri (`analytics-score-val`, `analytics-score-badge-val`, `stat-badge-sleep`, `weekly-sleep-bento-chart`, `rollup-sleep-val`, `peak-feeding-hours` vb.) korunacak, JS hesaplamaları sıfır hatayla çalışacaktır.
+1. **Haptics 2.0 (Çok Katmanlı Apple Dokunsal Geri Bildirim):**
+   - `hapticSelection()`: Sekme geçişlerinde, filtre çipleri ve zamanlayıcı haplarında mikroskobik mekanik tık dokusu.
+   - `hapticImpact('medium')`: Merkezi altın FAB butonuna (`#dock-center-fab`), canlı uyku başlat/bitir ve modal tetikleyicilerinde tok mekanik darbe.
+   - `hapticSuccess()`: Canlı uyku tamamlandığında ve rutin kaydedildiğinde çift ritmik onay titreşimi.
+   - React Native köprüsünde (`MishilUnifiedWebView.tsx`) `selection` ve `success` tipleri yerel olarak desteklenecektir.
 
-2. **Sesler Sekmesi (`view-sounds` — Sade Akustik Stüdyo & Loş Gece Çaları):**
-   - Gece uykusuz ve loş odadaki anneyi yoracak karmaşık DJ mikserleri yerine, B'nin 2 sütunlu sıcak stüdyo ses kartları mimarisi.
-   - Çalan parça üzerinde yavaşça nefes alan amber ses dalgası aurası.
-   - **Kapanma Zamanlayıcısı Hapları:** Tek dokunuşla seçilen sade zamanlayıcı butonları (*Sürekli, 15 dk, 30 dk, 45 dk, 60 dk*).
-   - Freemium kurallarına tam uyum: 3 temel parça (`womb_amniotic`, `pink_432hz`, `brahms_lullaby`) için `🎁 ÜCRETSİZ` rozetleri, diğer 15 parça için `🔒 VIP` kilitleri.
+2. **Akustik Crossfade (0.8s Sinüzoidal Ses Geçişi):**
+   - Parça değiştirildiğinde veya durdurulduğunda ani patlama ve kesinti olmadan 0.8 saniyelik yumuşak ses kısılarak geçiş (smooth fade-in / fade-out) sağlanacak; bebek ani ses değişimleriyle irkilmeyecektir.
+
+3. **Gece Beşiği Modu (Melatonin Gece Koruması & Ambient Screen Saver):**
+   - Ana başlıkta tek dokunuşla açılan zarif 🌙 butonuyla aktive olan tam ekran loş komodin modu (`#night-ambient-overlay`).
+   - Ekranı %10 loşluğa çeker, göz yoran tüm butonları gizler; yavaşça nefes alan sıcak kehribar bir hilal ve büyük dijital saat (`#ambient-clock-val`) gösterir.
+   - Ekrana herhangi bir yere dokunulduğunda pürüzsüzce normal ekrana döner.
+
+4. **Spring Physics & Mikro Dokunma Yaylanması:**
+   - Kartlara ve butonlara `cubic-bezier(0.34, 1.56, 0.64, 1)` mikro yaylanma dokunuşu kazandırılacaktır.
 
 ---
 
 ## 🏎️ 2. Ajan Şerit Dağılımı (Tri-Agent Roles)
-* **Claude Şeridi (Mimari & Tasarım Sentezi):** C'nin veri yoğunluğu ile B'nin dinginliğini birleştiren CSS mimarisi, pastel adaçayı/şeftali/lavanta renk paleti, 26px organik radüsler.
-* **Codex Şeridi (DOM Restorasyonu, Grafik Çizimi & Testler):** `renderWeeklyChart()` çubuk stilleri, `renderSoundsList()` 2 sütunlu bento stüdyo kartı şablonu, TypeScript (`tsc`) ve Jest birim testleri (10/10 test).
-* **Antigravity Şeridi (Orkestrasyon, Doğrulama & Sürüm Yönetimi):** DOM ID ve onclick audit taraması (`audit_app_html.py`), offline paket derlemesi (`bundle:offline`), CHANGELOG ve versiyonlama (`4.43.0`).
+* **Claude Şeridi (Ses Motoru & Crossfade Mimarisi):** Akustik sinüzoidal gain ramp algoritması, `togglePlayTrack` pürüzsüz geçiş motoru.
+* **Codex Şeridi (Haptics 2.0 & Bridge Entegrasyonu):** `hapticSelection`, `hapticImpact`, `hapticSuccess` fonksiyonları, React Native `MishilUnifiedWebView.tsx` haptik handler genişletmesi, TypeScript ve Jest testleri.
+* **Antigravity Şeridi (Gece Beşiği UI, Orkestrasyon & Sürüm Yönetimi):** `#night-ambient-overlay` DOM elemanı, header butonu, offline paket derlemesi (`bundle:offline`), DOM audit (`audit_app_html.py`) ve versiyonlama (`4.44.0`).
 
 ---
 
 ## 📋 3. Yapılacak İşler ve İcra Adımları
 
-### Adım 1: CSS Altyapısı & Sade Organik Hub Stilleri (`app.html`)
-- [ ] Analiz ve Sesler ekranları için organik kart (`.analytics-organic-card`), 7 günlük çubuk grafiği ve 2 sütunlu stüdyo ses kartı (`.sound-studio-card`) stillerini tanımlama.
-- [ ] Dark Mode Kaşmir (#13101C) ve Light Mode Sıcak Krem (#FAF6F0) uyumlu renk değişkenlerini bağlama.
+### Adım 1: Haptics 2.0 & React Native Köprüsü (`MishilUnifiedWebView.tsx` & `app.html`)
+- [ ] `MishilUnifiedWebView.tsx` içindeki `triggerHaptic` fonksiyonuna `selection` (`Haptics.selectionAsync()`) ve `success` (`Haptics.notificationAsync()`) desteği ekleme.
+- [ ] `app.html` içinde `hapticSelection()`, `hapticImpact()` ve `hapticSuccess()` fonksiyonlarını tanımlama.
 
-### Adım 2: Analiz Ekranı Restorasyonu (`view-analytics` — `app.html`)
-- [ ] `analytics-sec-sleep` panelindeki Denge Skoru ve Haftalık Çubuk Grafiği bloklarını sade, ferah ve şefkatli tasarıma dönüştürme.
-- [ ] Tüm analitik DOM ID'lerinin eksiksiz kaldığını doğrulama.
+### Adım 2: Akustik Crossfade Motoru (`app.html`)
+- [ ] `togglePlayTrack` içine parça değişimlerinde 0.8 saniyelik yumuşak ses fade-in/fade-out mekanizmasını entegre etme.
 
-### Adım 3: Sesler Ekranı & Akustik Stüdyo Restorasyonu (`view-sounds` — `app.html`)
-- [ ] `renderSoundsList()` JavaScript fonksiyonunda parça kartlarını 2 sütunlu, dokunması keyifli stüdyo bento kartları olarak render etme.
-- [ ] Kapanma zamanlayıcısı haplarını ergonomik hale getirme.
+### Adım 3: Gece Beşiği Modu (Melatonin Ambient Screen Saver — `app.html`)
+- [ ] `#night-ambient-overlay` tam ekran loş gece ekranı HTML ve CSS stillerini ekleme.
+- [ ] Ana başlığa (`.app-header`) tek dokunuşluk 🌙 Gece Lambası butonu yerleştirme.
+- [ ] `openNightAmbient()` ve `closeNightAmbient()` kontrol fonksiyonlarını bağlama.
 
 ### Adım 4: Doğrulama ve Test Kapısı
 - [ ] `npm run bundle:offline` ile `offlineHtml.generated.ts` dosyasını derleme.
 - [ ] `npx tsc --noEmit -p tsconfig.json` ile tip denetimi.
 - [ ] `node node_modules/jest/bin/jest.js` ile birim testleri (10/10 PASS).
 - [ ] `python scratch/audit_app_html.py` ile DOM ID ve onclick bütünlük taraması.
-- [ ] Versiyon güncelleme (`APP_VERSION = 4.43.0`, `BUILD_NUMBER = 61`).
+- [ ] Versiyon güncelleme (`APP_VERSION = 4.44.0`, `BUILD_NUMBER = 62`).
 
 ---
 
 ## 🛡️ 4. Risk Seviyesi & Kademeli Doğrulama Kapısı (Tiered Review Gate)
 * **Risk Seviyesi:** **Seviye 2 (Orta Risk - Dual Check)**.
-* **Denetim Odağı:** 18 ses parçasının ses çalma motoruyla (`togglePlayTrack`), zamanlayıcıyla (`setTimer`) ve analitik grafikleriyle tam uyumlu kalması.
+* **Denetim Odağı:** React Native WebView köprüsünde haptik mesajlarının çökme üretmemesi, Web Audio ve HTML Audio'da crossfade'in bellek sızıntısı yapmaması.
 * **Onay Şartı:** Kod yazımına başlamadan önce bu planın kullanıcı tarafından onaylanması zorunludur.
 
 ---
 
 ## ⚠️ 5. Kısıtlar ve Önleyici Tedbirler
 - **Kesin Yerel Öncelik:** Tüm geliştirmeler yalnızca yerel test ortamında koşturulacak; kullanıcıdan yazılı canlıya alma onayı gelmedikçe `git push` yapılmayacaktır.
-- **Native Build Kısıtlaması:** Webview katmanında kalındığı için native EAS derlemesi tetiklenmeyecektir.
+- **Native Build Kısıtlaması:** Webview ve köprü katmanında kalındığı için native EAS derlemesi tetiklenmeyecektir.

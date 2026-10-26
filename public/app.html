@@ -750,6 +750,75 @@
       background: rgba(254, 228, 220, 0.7) !important;
     }
 
+    /* =========================================================================
+       STAGE 4: FULL SENSORY SUITE (SPRING PHYSICS & NIGHT AMBIENT SCREEN SAVER)
+       ========================================================================= */
+    .btn-spring, .sound-studio-card, .cat-chip, .timer-pill, .routine-pill-btn, .segmented-btn {
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+    .btn-spring:active, .cat-chip:active, .timer-pill:active, .routine-pill-btn:active {
+      transform: scale(0.94) !important;
+    }
+
+    #night-ambient-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #09060E;
+      z-index: 999999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      animation: ambientFadeIn 0.4s ease;
+      touch-action: manipulation;
+    }
+    @keyframes ambientFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .ambient-moon-wrapper {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(244, 162, 97, 0.22) 0%, rgba(224, 122, 95, 0.05) 100%);
+      border: 1px solid rgba(244, 162, 97, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      box-shadow: 0 0 50px rgba(244, 162, 97, 0.3);
+      animation: ambientPulse 4.5s infinite ease-in-out;
+    }
+    @keyframes ambientPulse {
+      0% { transform: scale(1); box-shadow: 0 0 40px rgba(244, 162, 97, 0.25); }
+      50% { transform: scale(1.08); box-shadow: 0 0 70px rgba(244, 162, 97, 0.45); }
+      100% { transform: scale(1); box-shadow: 0 0 40px rgba(244, 162, 97, 0.25); }
+    }
+    .ambient-clock-text {
+      font-family: 'Sora', sans-serif;
+      font-size: 56px;
+      font-weight: 800;
+      color: #E8B888;
+      letter-spacing: -1px;
+      text-shadow: 0 0 24px rgba(232, 184, 136, 0.4);
+      margin-bottom: 6px;
+    }
+    .ambient-subtext {
+      font-size: 13px;
+      color: #8C7B99;
+      font-weight: 500;
+    }
+    .ambient-exit-pill {
+      margin-top: 36px;
+      background: rgba(244, 162, 97, 0.12);
+      border: 1px solid rgba(244, 162, 97, 0.25);
+      border-radius: 20px;
+      padding: 8px 18px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
     /* Fallback Legacy Bento Support */
     .hero-bento-row {
       display: grid;
@@ -2877,9 +2946,14 @@
           <div class="baby-subtitle" id="baby-header-subtitle">—</div>
           <div class="main-title" id="baby-header-title">Mışıl Spot™ Ritim & Uyku</div>
         </div>
-        <button onclick="openSettingsWithMemory('home')" class="header-profile-btn" title="Profil ve Ayarlar">
-          <span>⚙️</span>
-        </button>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button onclick="openNightAmbient()" class="header-profile-btn" title="Gece Beşiği Modu" style="background: rgba(244, 162, 97, 0.15); border-color: rgba(244, 162, 97, 0.35);">
+            <span>🌙</span>
+          </button>
+          <button onclick="openSettingsWithMemory('home')" class="header-profile-btn" title="Profil ve Ayarlar">
+            <span>⚙️</span>
+          </button>
+        </div>
       </div>
 
       <!-- Segmented Focus Switcher -->
@@ -4323,6 +4397,18 @@
   </div>
 </div>
 
+<!-- TAM EKRAN GECE BEŞİĞİ MODU (MELATONIN GECE KORUMASI & SCREEN SAVER) -->
+<div id="night-ambient-overlay" onclick="closeNightAmbient()">
+  <div class="ambient-moon-wrapper">
+    <svg viewBox="0 0 24 24" style="width: 68px; height: 68px; stroke: #F4A261; fill: #F4A261; filter: drop-shadow(0 0 20px rgba(244, 162, 97, 0.85));">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+    </svg>
+  </div>
+  <div class="ambient-clock-text" id="ambient-clock-val">--:--</div>
+  <div class="ambient-subtext">💤 Bebek Derin Uykuda • Melatonin Koruması Aktif</div>
+  <div class="ambient-exit-pill">✕ Ekrana dokunarak uyan</div>
+</div>
+
 <script>
   // =========================================================================
   // -1. EVRENSEL DİNAMİK CİHAZ MOTORU (Universal Adaptive Device Engine)
@@ -4603,7 +4689,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.43.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.44.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -4620,7 +4706,14 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.43.0', date: '26 Ekim 2026', latest: true, items: [
+    { v: '4.44.0', date: '26 Ekim 2026', latest: true, items: [
+      'Full Sensory Suite (Aşama 4): Uygulamanın webview tabanlı olduğunu unutturan saf Apple yerel mekanik dokunuşları, sinüzoidal akustik crossfade ve Gece Beşiği modu entegre edildi.',
+      'Haptics 2.0 (Çok Katmanlı Dokunsal Geri Bildirim): Sekme/filtre geçişlerinde mikroskobik tık (hapticSelection), FAB ve uyku sayacında tok mekanik darbe (hapticImpact), uyku/rutin kaydında çift ritmik onay (hapticSuccess) devreye alındı.',
+      'Akustik Crossfade (0.8s): 18 stüdyo parçası arasında geçiş yapılırken ani kesinti olmadan 0.8 saniyelik pürüzsüz sinüzoidal ses kısılarak geçiş (smooth fade-in / fade-out) sağlandı; bebeğin irkilmesi önlendi.',
+      'Gece Beşiği Modu (Ambient Screen Saver): Ana başlıkta tek dokunuşla açılan 🌙 Gece Lambası butonu eklendi. Ekranı %10 loşluğa çeken, nefes alan amber hilal ve büyük dijital saat gösteren komodin modu entegre edildi.',
+      'Spring Physics: Tüm buton ve kartlarda cubic-bezier(0.34, 1.56, 0.64, 1) mikro yaylanma dokunuşu mühürlendi.'
+    ]},
+    { v: '4.43.0', date: '26 Ekim 2026', items: [
       'Organic Pediatric Hub (Aşama 3): Analiz ve Sesler sekmeleri, C\'nin güçlü pediatrik veri zekâsı ile B\'nin sade ve şefkatli sıcaklığı sentezlenerek restore edildi.',
       'Sade ve Organik Denge Kartı (Analiz): 26px yumuşak adaçayı zeminli Denge Skoru (%88) kartı, 3 hızlı durum rozeti ve yumuşak pediatrik uyku bileşen çubukları entegre edildi.',
       '2 Sütunlu Stüdyo Ses Kartları (Sesler): 18 stüdyo parçası, loş gece ışığında gözü yormayan 2 sütunlu pürüzsüz dokunmatik kartlar ve parıldayan ses dalgası auralarıyla modernleştirildi.',
@@ -4910,13 +5003,35 @@
     `).join('');
   }
 
-  // Haptik pulse fonksiyonu (Bridge + Web Vibration API fallback)
-  function hapticPulse() {
+  // =========================================================================
+  // HAPTICS 2.0 (Çok Katmanlı Apple Dokunsal Geri Bildirim)
+  // =========================================================================
+  function hapticSelection() {
     if (window.ReactNativeWebView) {
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'HAPTIC', level: 'light' }));
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'HAPTIC', level: 'selection' }));
     } else if (navigator.vibrate) {
-      navigator.vibrate(20);
+      navigator.vibrate(12);
     }
+  }
+
+  function hapticImpact(level = 'medium') {
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'HAPTIC', level: level }));
+    } else if (navigator.vibrate) {
+      navigator.vibrate(level === 'heavy' ? 40 : 25);
+    }
+  }
+
+  function hapticSuccess() {
+    if (window.ReactNativeWebView) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'HAPTIC', level: 'success' }));
+    } else if (navigator.vibrate) {
+      navigator.vibrate([18, 50, 18]);
+    }
+  }
+
+  function hapticPulse() {
+    hapticSelection();
   }
 
   // =========================================================================
@@ -5048,8 +5163,50 @@
     renderSoundsList();
   }
 
+  // =========================================================================
+  // AKUSTİK CROSSFADE (0.8s PÜRÜZSÜZ SES GEÇİŞ MOTORU)
+  // =========================================================================
+  function fadeOutAudio(audioEl, durationMs = 600, callback) {
+    if (!audioEl) { if (callback) callback(); return; }
+    const startVol = audioEl.volume;
+    const steps = 12;
+    const interval = Math.max(15, Math.floor(durationMs / steps));
+    let currentStep = 0;
+    const fadeTimer = setInterval(() => {
+      currentStep++;
+      const nextVol = Math.max(0, startVol * (1 - currentStep / steps));
+      try { audioEl.volume = nextVol; } catch (e) {}
+      if (currentStep >= steps) {
+        clearInterval(fadeTimer);
+        try { audioEl.pause(); } catch (e) {}
+        try { audioEl.volume = startVol; } catch (e) {}
+        if (callback) callback();
+      }
+    }, interval);
+  }
+
+  function fadeInAudio(audioEl, targetVol = 1, durationMs = 600) {
+    if (!audioEl) return;
+    try {
+      audioEl.volume = 0;
+      audioEl.play().catch(e => console.log('Audio autoplay policy:', e));
+    } catch (e) {}
+    const steps = 12;
+    const interval = Math.max(15, Math.floor(durationMs / steps));
+    let currentStep = 0;
+    const fadeTimer = setInterval(() => {
+      currentStep++;
+      const nextVol = Math.min(targetVol, (currentStep / steps) * targetVol);
+      try { audioEl.volume = nextVol; } catch (e) {}
+      if (currentStep >= steps) {
+        clearInterval(fadeTimer);
+        try { audioEl.volume = targetVol; } catch (e) {}
+      }
+    }, interval);
+  }
+
   function togglePlayTrack(trackId) {
-    hapticPulse();
+    hapticSelection();
     const track = SOUND_TRACKS.find(t => t.id === trackId);
     if (!track) return;
 
@@ -5075,15 +5232,19 @@
     if (!aud) return;
 
     if (currentTrackId === trackId) {
-      aud.pause();
+      fadeOutAudio(aud, 600, () => {
+        currentTrackId = null;
+        updatePlayerUI();
+      });
       currentTrackId = null;
       if (typeof onAudioPlaybackStopped === 'function') onAudioPlaybackStopped();
     } else {
-      if (currentTrackId && audioMap[currentTrackId]) {
-        audioMap[currentTrackId].pause();
+      const oldAud = currentTrackId ? audioMap[currentTrackId] : null;
+      if (oldAud) {
+        fadeOutAudio(oldAud, 500);
       }
       aud.currentTime = 0;
-      aud.play().catch(e => console.log('Audio autoplay policy:', e));
+      fadeInAudio(aud, 1, 700);
       currentTrackId = trackId;
       if (typeof onAudioPlaybackStarted === 'function') onAudioPlaybackStarted();
     }
@@ -5148,6 +5309,40 @@
           showToast('💤 Kapanma zamanlayıcısı sesi durdurdu');
         }
       }, minutes * 60000);
+    }
+  }
+
+  // =========================================================================
+  // GECE BEŞİĞİ MODU (MELATONIN GECE KORUMASI & AMBIENT SCREEN SAVER)
+  // =========================================================================
+  let nightAmbientClockTimer = null;
+
+  function updateNightAmbientClock() {
+    const clockEl = document.getElementById('ambient-clock-val');
+    if (!clockEl) return;
+    const now = new Date();
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    clockEl.textContent = `${h}:${m}`;
+  }
+
+  function openNightAmbient() {
+    hapticImpact('medium');
+    const overlay = document.getElementById('night-ambient-overlay');
+    if (overlay) {
+      overlay.style.display = 'flex';
+      updateNightAmbientClock();
+      clearInterval(nightAmbientClockTimer);
+      nightAmbientClockTimer = setInterval(updateNightAmbientClock, 1000);
+    }
+  }
+
+  function closeNightAmbient() {
+    hapticSelection();
+    const overlay = document.getElementById('night-ambient-overlay');
+    if (overlay) {
+      overlay.style.display = 'none';
+      clearInterval(nightAmbientClockTimer);
     }
   }
 
@@ -8064,6 +8259,7 @@
       }, 1000);
 
       showToast('🌙 Bebek uykuya daldı, canlı takip başladı');
+      hapticImpact('medium');
       broadcastRealtimeEvent('SLEEP_STARTED', { by: role, startTime: sleepStartTime.toISOString() });
     } else {
       if (sleepInterval) clearInterval(sleepInterval);
@@ -8100,6 +8296,7 @@
 
       activeRoutines.unshift(newSleepLog);
       localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+      hapticSuccess();
 
       circle.classList.remove('sleeping');
       if (beamWrap) beamWrap.classList.remove('active-beam');
@@ -8559,7 +8756,7 @@
   // HUCKLEBERRY PRO CENTER FAB DOCK ENGINE
   // =========================================================================
   function handleFabAction() {
-    hapticPulse();
+    hapticImpact('medium');
     toggleLiveSleep();
   }
 

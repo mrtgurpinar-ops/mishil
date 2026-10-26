@@ -2,6 +2,19 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.44.0 - Build 62] - 2026-10-26
+### 🎨 Full Sensory Suite: Haptics 2.0, Akustik Crossfade & Gece Beşiği Modu (Aşama 4)
+1. **Haptics 2.0 (Çok Katmanlı Apple Dokunsal Geri Bildirim):**
+   - Sekme ve filtre seçimlerinde mikroskobik tık (`hapticSelection`), FAB butonu ve uyku sayacında tok mekanik darbe (`hapticImpact`), uyku/rutin kaydında çift ritmik onay (`hapticSuccess`) entegre edildi.
+   - React Native köprüsünde (`MishilUnifiedWebView.tsx`) `selection` ve `success` haptik tipleri yerel olarak desteklendi.
+2. **Akustik Crossfade (0.8s Sinüzoidal Ses Geçişi):**
+   - 18 stüdyo parçası arasında geçiş yapılırken ani ses patlaması olmadan 0.8 saniyelik pürüzsüz sinüzoidal ses kısılarak geçiş (`fadeOutAudio` / `fadeInAudio`) sağlandı; bebeğin irkilmesi önlendi.
+3. **Gece Beşiği Modu (Melatonin Gece Koruması & Ambient Screen Saver):**
+   - Ana başlıkta tek dokunuşla açılan 🌙 Gece Lambası butonu konumlandırıldı.
+   - Ekranı %10 loşluğa çeken, nefes alan sıcak kehribar hilal ve büyük dijital saat gösteren tam ekran komodin modu (`#night-ambient-overlay`) eklendi. Ekrana herhangi bir yere dokunarak normal arayüze döner.
+4. **Spring Physics & Mikro Yaylanma:**
+   - Kartlara ve butonlara `cubic-bezier(0.34, 1.56, 0.64, 1)` mikro yaylanma dokunuşu kazandırıldı.
+
 ## [4.43.0 - Build 61] - 2026-10-26
 ### 🎨 Organic Pediatric Hub: C'nin Zekâsı & B'nin Sade Sıcaklığı (Aşama 3)
 1. **Sade ve Organik Denge Kartı (`.analytics-organic-card`):**

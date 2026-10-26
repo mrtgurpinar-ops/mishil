@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Mışıl Baby — Aşama 4: Haptik, Crossfade & Gece Laboratuvarı</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #13101C;
+      --card-bg: rgba(33, 27, 44, 0.85);
+      --accent: #F4A261;
+      --sage: #74C69D;
+      --lavender: #C4B5FD;
+      --text: #FAF5EE;
+      --text-muted: #8F86A2;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 20px 16px 140px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container { max-width: 420px; width: 100%; }
+    header { text-align: center; margin-bottom: 20px; }
+    h1 { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 800; color: #FFF; margin-bottom: 6px; }
+    p.subtitle { font-size: 13px; color: var(--text-muted); line-height: 18px; }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 20px 18px;
+      margin-bottom: 14px;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), 0 12px 32px rgba(0,0,0,0.4);
+    }
+
+    .btn-spring {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      border-radius: 16px;
+      padding: 14px;
+      color: #FFF;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .btn-spring:active {
+      transform: scale(0.94);
+      background: rgba(244, 162, 97, 0.2);
+      border-color: var(--accent);
+    }
+
+    /* Gece Beşiği Ambient Ekranı (Overlay) */
+    #night-ambient-overlay {
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #09060E;
+      z-index: 99999;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      cursor: pointer;
+      animation: fadeIn 0.4s ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .ambient-moon {
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(244, 162, 97, 0.2) 0%, rgba(224, 122, 95, 0.05) 100%);
+      border: 1px solid rgba(244, 162, 97, 0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 24px;
+      box-shadow: 0 0 50px rgba(244, 162, 97, 0.3);
+      animation: ambientPulse 4s infinite ease-in-out;
+    }
+    @keyframes ambientPulse {
+      0% { transform: scale(1); box-shadow: 0 0 40px rgba(244, 162, 97, 0.25); }
+      50% { transform: scale(1.08); box-shadow: 0 0 70px rgba(244, 162, 97, 0.45); }
+      100% { transform: scale(1); box-shadow: 0 0 40px rgba(244, 162, 97, 0.25); }
+    }
+    .ambient-clock {
+      font-family: 'Sora', sans-serif;
+      font-size: 54px;
+      font-weight: 800;
+      color: #E8B888;
+      letter-spacing: -1px;
+      text-shadow: 0 0 20px rgba(232, 184, 136, 0.4);
+    }
+    .ambient-subtext {
+      font-size: 13px;
+      color: #8C7B99;
+      margin-top: 8px;
+    }
+    .ambient-exit-hint {
+      margin-top: 36px;
+      background: rgba(244, 162, 97, 0.12);
+      border: 1px solid rgba(244, 162, 97, 0.25);
+      border-radius: 20px;
+      padding: 8px 18px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Aşama 4: Haptik, Crossfade & Gece Deneyimi</h1>
+      <p class="subtitle">Çok katmanlı Apple haptikleri, 0.8s yumuşak ses geçişi ve Gece Beşiği modunu test edin.</p>
+    </header>
+
+    <!-- 1. ÇOK KATMANLI HAPTİK TEST KARTI -->
+    <div class="card">
+      <div style="font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">📳 Haptics 2.0 (Apple Native Dokunuşlar)</div>
+      <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Butonlara basıldığında parmağınızdaki mikro dokunsal geri bildirimi test edin:</div>
+
+      <button class="btn-spring" onclick="testHaptic('selection')">
+        <span>🔘 Seçim Tıkı (Haptic Selection)</span>
+        <span style="font-size: 11px; color: var(--text-muted);">Sekme & Filtre Değişimi ›</span>
+      </button>
+
+      <button class="btn-spring" onclick="testHaptic('impact')">
+        <span>⚡ Mekanik Tok Darbe (Impact Medium)</span>
+        <span style="font-size: 11px; color: var(--accent);">FAB Altın Hilal Butonu ›</span>
+      </button>
+
+      <button class="btn-spring" onclick="testHaptic('success')">
+        <span>🎉 Çift Onay Ritmi (Notification Success)</span>
+        <span style="font-size: 11px; color: var(--sage);">Uyku & Rutin Kaydedildi ›</span>
+      </button>
+    </div>
+
+    <!-- 2. AKUSTİK CROSSFADE (YUMUŞAK SES GEÇİŞİ) -->
+    <div class="card">
+      <div style="font-size: 11px; font-weight: 700; color: var(--sage); text-transform: uppercase; margin-bottom: 4px;">🎧 Akustik Crossfade (0.8s Pürüzsüz Geçiş)</div>
+      <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Parça değiştirirken ani kesilme olmadan sinüzoidal ses geçişi:</div>
+
+      <div style="display: flex; gap: 8px;">
+        <button class="btn-spring" style="flex: 1;" onclick="demoCrossfade('Anne Karnı')">
+          <span>🤱 Anne Karnı</span>
+        </button>
+        <button class="btn-spring" style="flex: 1;" onclick="demoCrossfade('432Hz Pembe')">
+          <span>🌸 432Hz Pembe</span>
+        </button>
+      </div>
+      <div id="crossfade-status" style="font-size: 11px; color: var(--accent); text-align: center; margin-top: 6px;">Durum: Beklemede</div>
+    </div>
+
+    <!-- 3. GECE BEŞİĞİ MODU (MELATONIN GECE KORUMASI) -->
+    <div class="card" style="border-color: rgba(244, 162, 97, 0.4); background: radial-gradient(circle at 50% 20%, rgba(244, 162, 97, 0.15) 0%, rgba(33, 27, 44, 0.95) 75%);">
+      <div style="font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 4px;">🌙 Gece Beşiği Modu (Ambient Screen Saver)</div>
+      <div style="font-size: 12px; color: #D8CEE8; line-height: 16px; margin-bottom: 12px;">Gece nöbetinde anne/babanın gözünü kamaştırmayan %10 loşlukta komodin saati:</div>
+
+      <button class="btn-spring" style="background: linear-gradient(135deg, var(--accent) 0%, #E07A5F 100%); color: #13101C; border: none; justify-content: center; font-size: 14px;" onclick="openNightAmbient()">
+        <span>🌙 Gece Beşiği Modunu Başlat</span>
+      </button>
+    </div>
+
+  </div>
+
+  <!-- TAM EKRAN GECE BEŞİĞİ MODU OVERLAY -->
+  <div id="night-ambient-overlay" onclick="closeNightAmbient()">
+    <div class="ambient-moon">
+      <svg viewBox="0 0 24 24" style="width: 64px; height: 64px; stroke: #F4A261; fill: #F4A261; filter: drop-shadow(0 0 16px rgba(244, 162, 97, 0.8));">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+    </div>
+    <div class="ambient-clock" id="ambient-clock-val">03:42</div>
+    <div class="ambient-subtext">💤 Bebek derin uykuda • Melatonin Koruması Aktif</div>
+    <div class="ambient-exit-hint">✕ Ekrana dokunarak uyan</div>
+  </div>
+
+  <script>
+    function testHaptic(type) {
+      if (type === 'selection') {
+        if (navigator.vibrate) navigator.vibrate(12);
+        console.log('[HAPTIC] Selection Light Click');
+      } else if (type === 'impact') {
+        if (navigator.vibrate) navigator.vibrate(28);
+        console.log('[HAPTIC] Impact Medium');
+      } else if (type === 'success') {
+        if (navigator.vibrate) navigator.vibrate([18, 50, 18]);
+        console.log('[HAPTIC] Notification Success Double');
+      }
+    }
+
+    function demoCrossfade(name) {
+      testHaptic('selection');
+      const status = document.getElementById('crossfade-status');
+      status.textContent = `⏳ 0.8s Crossfade uygulanıyor... (${name})`;
+      setTimeout(() => {
+        status.textContent = `🎵 Şimdi Çalıyor: ${name} (Pürüzsüz geçiş tamamlandı)`;
+      }, 800);
+    }
+
+    function openNightAmbient() {
+      testHaptic('impact');
+      const overlay = document.getElementById('night-ambient-overlay');
+      overlay.style.display = 'flex';
+      updateClock();
+    }
+
+    function closeNightAmbient() {
+      testHaptic('selection');
+      document.getElementById('night-ambient-overlay').style.display = 'none';
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('ambient-clock-val').textContent = `${h}:${m}`;
+    }
+    setInterval(updateClock, 1000);
+  </script>
+</body>
+</html>
