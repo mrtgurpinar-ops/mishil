@@ -1,132 +1,68 @@
-# Implementation Plan: Mışıl Baby Dönüşüm (CRO), Freemium Sınırları & Satın Alma Psikolojisi Optimizasyonu
+# Mışıl Baby — Aşama 1: Huckleberry Pro FAB Dock & Vektörel İkonografi Uygulama Planı
 
-- **Tahmini Efor:** ~25-30 Dakika (Kodlama, UI Entegrasyonu & Yerel Doğrulama)
-- **Kapasite Kullanımı:** Kalan bağlam limitinin yaklaşık %6-8'i
-
----
-
-## 🎯 Netleştirilmiş Hedef & Kapsam (Refined Scope)
-Mışıl Baby’nin yüksek indirme hacmini gerçek gelire (Trial ve VIP Abonelik) dönüştürmek amacıyla; kullanıcının stratejik geri bildirimleri doğrultusunda **fiyat sabitliği korunan**, **uygulamayı basit bir ses çalar yerine bir 'Bebek Uyku & Ağlama Mühendisliği Ekosistemi' olarak konumlandıran**, **ücretsiz ve VIP sınırları milimetrik olarak çizilmiş** derinlemesine bir dönüşüm sistemi kurulacaktır.
-
-- **Hedef Proje:** `projects/mishil`
-- **Etkilenen Katman:** `public/app.html` (Onboarding Adım 1–5, Paywall, Freemium Kapıları, VIP Modalları)
-- **Kapsam Dışı Bırakılanlar:** Fiyat değişikliği yapılmayacak; gereksiz iptal uyarıları (Blinkist hatırlatma bildirimleri) iptal tetikleme riski nedeniyle tamamen plan dışı bırakılmıştır.
+| Metrik | Değer |
+| :--- | :--- |
+| **Tahmini Efor** | ~45 - 60 Dakika |
+| **Kalan Kapasite Kullanımı** | Yaklaşık %12 - 15 |
+| **Risk Seviyesi** | **Seviye 2 (Orta Risk / Standart UI Modülü - Çift Kontrol)** |
+| **Hedef Sürüm** | `v4.41.0` (Build 59) |
+| **Etkilenecek Dosyalar** | `projects/mishil/public/app.html`, `projects/mishil/mobile/app.config.ts`, `projects/mishil/CHANGELOG.md` |
 
 ---
 
-## 🏎️ 3 Ajanlı Görev Dağılımı (Tri-Agent Protocol)
-- **Claude Şeridi (Mimari, Değer Konumlandırma & Algı):**
-  - "Sadece Müzik Değil, Tam Ekosistem" paywall metin ve değer hiyerarşisi (MışılSpot™ Algoritması + Akustik DSP Ağlama Analizi + Mışıl Dadı™ 7/24 AI + 18 Stüdyo Mikseri).
-  - Freemium sınırlarının matematiksel ve fonksiyonel ayrımı (Feature-Gating).
-- **Codex Şeridi (Teknik İcra, Sürtünme Analizi & Testler):**
-  - Adım 5 Paywall'da gecikmeli (2.5 sn) `skipOnboardingToApp()` bağlantısının bağlanması.
-  - `requireActiveSubscription()` fonksiyonunun freemium matrisine göre güncellenmesi (Hangi fonksiyonların serbest geçeceği, hangilerinin `openVipRenewalModal()` açacağı).
-  - Tıbbi feragatnamenin sürtünmesizleştirilmesi (`checked` otomatik onay ve buton kilidinin açılması).
-- **Antigravity Şeridi (Tasarım, Güven Rozetleri, Mağaza Uyumu & Orkestrasyon):**
-  - Apple Guideline 3.1.2(c) ve Google Play Answer 15748846 uyumluluğunun korunması (Reviewer bypass `MISIL-REV-9842` ve EULA bağlantıları).
-  - VIP rozetlerinin ve dönüşüm tetikleyicilerinin modern Glassmorphic arayüzle giydirilmesi.
+## 🎯 1. Netleştirilmiş Hedef & Kapsam (Refined Prompt)
+Mışıl Baby mobil webview arayüzünde amatör ve eski bir görüntü yaratan sistem emojili Tab Bar (`🌙`, `📊`, `👵`, `🎵`) tamamen kaldırılarak yerine kullanıcının seçtiği **Öneri 1C: Huckleberry Pro FAB Dock** mimarisi entegre edilecektir:
+1. **Merkezi Dairesel FAB (Floating Action Button):** Dock'un ortasında hafifçe yukarı taşan, altın gradyanlı ve parlayan bir canlı eylem butonu (`#dock-center-fab`). Canlı uyku kapalıyken tek tıkla uyku başlatır, canlı uyku açıkken nabız gibi atan altın bir aura (`golden-pulse`) ile sayacı ve bitir butonunu temsil eder.
+2. **4 Kanatlı Minimalist SVG İkonografi:** Emojiler yerine 1.5px strok kalınlığına sahip, retina uyumlu saf vektörel SVG ikonlar (*Mışıl Spot Hilali, Analiz Nabız Çizgisi, Mışıl Dadı AI Kıvılcımı, Stüdyo Ses Dalgası*).
+3. **Derin Cam Morfolojisi & Ergonomi:** `backdrop-filter: blur(28px) saturate(190%)`, 1px saten üst kenar ışığı, iOS Home Bar güvenli alan (`env(safe-area-inset-bottom)`) entegrasyonu ve dokunma fiziği (`scale(0.92)`).
+4. **Çift Yönlü Durum Senkronizasyonu:** `switchTab()` çağrıları ve `toggleLiveSleep()` durumları FAB ve sekme ikonlarıyla gerçek zamanlı reaktif bağlanacaktır.
 
 ---
 
-## 🛡️ Risk Seviyesi & Kademeli Doğrulama Kapısı
-- **Seviye 2 (Orta Risk / Standart Modüller - Dual Check):**
-  - Ödeme akışları ve onboarding yaşam döngüsü doğrudan etkilendiği için ikili denetim uygulanır.
-  - Claude ekosistem değer metinlerini ve yasal uyumu denetler; Codex yerel depolama (`localStorage`) ve yetkilendirme kapılarını test eder.
-  - Geliştirmeler yalnızca yerel ortamda kalır; yazılı insan onayı olmadan canlıya (`git push`) push edilmez.
+## 🏎️ 2. Ajan Şerit Dağılımı (Tri-Agent Roles)
+* **Claude Şeridi (Mimari & Tasarım Sistemi):** SVG sembol kütüphanesinin kurulması, CSS token uyumu, `safe-area` boşluk matematiği ve ekran yüksekliği çakışmalarının önlenmesi.
+* **Codex Şeridi (Hızlı Kodlama, Render & Test):** CSS animasyonlarının GPU hızlandırması (`will-change: transform`, 60fps), `switchTab` ve `updateFabSleepState` fonksiyonlarının entegrasyonu, TypeScript ve Jest birim testlerinin yeşile çekilmesi.
+* **Antigravity Şeridi (Orkestrasyon, Doğrulama & Dokümantasyon):** `app.html` DOM ID ve onclick bütünlüğü, mobil compliance pre-flight denetimi, CHANGELOG ve versiyonlama yönetimi.
 
 ---
 
-## ⚠️ Kısıtlar ve Önleyici Tedbirler
-1. **Fiyat Sabitleme Kuralı:** App Store ve Google Play'de tanımlı ₺149.99/ay ve ₺599.99/yıl fiyatları sabit kalır; fiyat karmaşası yaratılmaz.
-2. **İptal Tetikleme Yasağı:** Kullanıcıya "Aboneliğiniz bitmek üzere, unutmayın iptal edin" şeklinde hatırlatmalar konulmayacak; düşük fiyatlı SaaS modellerinde bu tip bildirimler churn'ü gereksiz yere artırır.
-3. **Canlıya Alma Yasağı:** Kullanıcı açıkça "canlıya al" demedikçe `git push origin main` çalıştırılmaz.
-4. **Native Build Gereksizliği (Yeşil Durum):** Değişiklikler Webview (`public/app.html`) katmanında kalacağından yeni bir EAS build gerekmez.
+## 📋 3. Yapılacak İşler ve İcra Adımları
+
+### Adım 1: CSS & Vektörel SVG İkon Altyapısı (`app.html`)
+- [ ] Tab Bar CSS kurallarını `.tab-bar` yerine modern `.huckleberry-dock` ve `.fab-center-btn` sınıflarıyla güncelleme.
+- [ ] Her sekmeye dokunulduğunda yaylanma sağlayan `transform: scale(0.92)` mikro dokunma fiziği ekleme.
+- [ ] Canlı uyku sırasında altın düğmenin etrafında parıldayan `@keyframes fabPulse` animasyonunu tanımlama.
+- [ ] Hem Dark Mode (#13101C) hem de Light Mode (#FAF6F0) için renk ve kontrast değişkenlerini bağlama.
+
+### Adım 2: HTML Tab Bar Markup Restorasyonu (`app.html`)
+- [ ] Satır 3389-3406 arasındaki eski emoji tab bar markup'ını 5 elemanlı yeni yapıya dönüştürme:
+  1. Sol Dış: `tab-item-home` (Mışıl Spot SVG + Başlık)
+  2. Sol İç: `tab-item-analytics` (Analiz Grafiği SVG + Başlık)
+  3. **Merkez: `#dock-center-fab`** (58px Altın Hilal / Canlı Uyku FAB Butonu)
+  4. Sağ İç: `tab-item-coach` (Mışıl Dadı AI SVG + Başlık)
+  5. Sağ Dış: `tab-item-sounds` (Sesler Stüdyo SVG + Başlık)
+
+### Adım 3: JavaScript Durum & Senkronizasyon Mantığı (`app.html`)
+- [ ] `switchTab(tabId)` fonksiyonunda SVG ikonlarının `active` durumlarını ve renklerini dinamik güncelleyecek mantığı kurma.
+- [ ] `updateFabSleepState()` fonksiyonu yazarak, `isSleeping` değişkeni değiştikçe (`toggleLiveSleep` içinde) FAB butonunun ikonunu (Hilal ➔ Canlı Uyku / Bitir karesi) ve nabız aurasını senkronize etme.
+- [ ] Uygulama açılışında (`DOMContentLoaded`) mevcut sekme ve uyku durumuna göre FAB'ı başlatma.
+
+### Adım 4: Doğrulama ve Test Kapısı
+- [ ] `npm run bundle:offline` ile `offlineHtml.generated.ts` dosyasını derleme.
+- [ ] `npx tsc --noEmit -p tsconfig.json` ile tip denetimi.
+- [ ] `node node_modules/jest/bin/jest.js` ile birim testleri (10/10 PASS).
+- [ ] `python scratch/audit_app_html.py` ile DOM ID ve onclick bütünlük taraması.
+- [ ] Versiyon güncelleme (`APP_VERSION = 4.41.0`, `BUILD_NUMBER = 59`).
 
 ---
 
-## 🧭 1. ÜCRETSİZ ATLA DURUMUNDA HANGİ KISIMLAR ÜCRETSİZ, HANGİLERİ VIP OLACAK? (FREEMIUM MATRİSİ)
-
-Kullanıcı Adım 5 Paywall ekranında *"Şimdilik Sınırlı Modda Devam Et"* dediğinde uygulama içine alınır. Bu durumda modüller arasındaki sınırlar şu şekilde kesin olarak belirlenmiştir:
-
-| Modül / Özellik | Ücretsiz Sürüm (Free Tier) | VIP Sürüm (Abonelikli) | Neden Bu Şekilde Sınırlandırıldı? |
-| :--- | :--- | :--- | :--- |
-| **Bebek Profili & Yaş Hesabı** | 🟢 **Tam Açık:** Bebeğin adı, doğum tarihi, düzeltilmiş haftası ve rol hafızaya kaydedilir. | 🟢 **Tam Açık** | Ebeveynin uygulamaya bağlanması (Personalization Lock-in) için profil açık olmalıdır. |
-| **MışılSpot™ Uyku Penceresi** | 🟢 **Bugünkü 1 Uyku Tahmini Açık:** Bebeğin sıradaki biyolojik uyku saati ve kalan dakikası gösterilir. | 🟢 **Sınırsız 7/24 Dinamik Takvim:** Gün boyu değişen tüm şekerleme ve gece uykusu pencereleri + 15 dk kala bildirim. | Huckleberry'nin dünyadaki 1 numaralı taktiği: Ebeveyne sıradaki uykuyu gösterip doğruluğu ispatlanır; günün kalanını ve bildirimleri VIP kilitler. |
-| **Canlı Hilal Uyku Sayacı** | 🟢 **Açık (Temel Sayaç):** Hilal butonuna basarak uyku başlatılır, süre sayılır ve yerel günlüğe kaydedilir. | 🟢 **Gelişmiş Uyku Analizi:** Uyku verimliliği skoru, aşırı yorgunluk tespiti ve grafik trendleri. | Ebeveyn bebeğini uyuturken uygulamayı her gün açmalıdır (Daily Active User). Temel sayaç engellenirse ebeveyn başka sayaç indirir. |
-| **Akustik Uyku Sesleri** | 🟡 **3 Temel Ses Açık (15 Dk Seans):** Anne Karnı/Rahim İçi, 432Hz Pembe Gürültü ve Klasik Ninni. | 🟢 **18 Stüdyo Sesi + Sınırsız Çalma:** Fön, Yağmur, Okyanus, Rüzgar, Süpürge, Araba vb. + Sabaha kadar kesintisiz döngü + Kilit ekranında arka planda çalma. | 3 sesle bebeğin sakinleştiği kanıtlanır; ancak sabaha kadar kesintisiz çalma ve zengin mikser kütüphanesi VIP'ye yönlendirir. |
-| **Akustik Ağlama Analizi (DSP)** | 🔴 **Kilitli (VIP Özelliği):** Açılışta 5 saniyelik tanıtım demosu gösterilir, "Dinle ve Analiz Et"e basınca VIP Modal açılır. | 🟢 **Sınırsız Akustik Dinleme:** Librosa 13-bant MFCC & Spectral frekans analiziyle Açlık, Gaz, Yorgunluk ve Ağrı ayrımı. | Çok yüksek algılanan değere (Perceived Value) sahip donanım katmanı; doğrudan satın alma tetikleyicisidir. |
-| **Mışıl Dadı™ 7/24 AI Koç** | 🔴 **Kilitli (VIP Özelliği):** Sekmeye basıldığında veya soru kutusu açıldığında VIP Modal açılır. | 🟢 **Sınırsız AI Soru-Cevap:** Bebeğin ayına, kilosuna ve uyku geçmişine göre kişiselleştirilmiş 7/24 rehberlik. | Gemini AI token maliyeti olan ve ebeveynin tüm sorularına yanıt veren amiral gemisi özellik. |
-| **BabySteps™ Gelişim Atakları** | 🟡 **Temel Hafta Özeti:** Bebeğin o an hangi haftada olduğu ve atak durumunun adı görünür. | 🟢 **Derin Atak Rehberi:** Huysuzluk belirtileri, yeni kazanılacak motor beceriler ve atağı atlatma ebeveyn stratejileri. | Wonder Weeks kurgusu: Atağın geldiğini söyleyip panik/merak uyandırılır, nasıl çözüleceği VIP arkasında tutulur. |
-| **Çoklu Ebeveyn / Aile Kodu** | 🔴 **Kilitli:** "Eşinle Eşitle" seçeneği VIP gerektirir. | 🟢 **Sınırsız Bulut Eşitleme:** Anne ve babanın telefonlarında eşzamanlı veri takibi. | Aile için ikinci telefonun eklenmesi net bir ödeme noktasıdır. |
+## 🛡️ 4. Risk Seviyesi & Kademeli Doğrulama Kapısı (Tiered Review Gate)
+* **Risk Seviyesi:** **Seviye 2 (Orta Risk - Dual Check)**.
+* **Denetim Odağı:** Alt dock yüksekliği ve FAB çıkıntısının ana sayfa içeriği veya modal pencerelerin alt butonlarıyla çakışmaması (z-index ve scroll padding-bottom denetimi).
+* **Onay Şartı:** Kod yazımına başlamadan önce bu planın kullanıcı tarafından onaylanması zorunludur.
 
 ---
 
-## 💡 2. "AHA! MOMENT" (İLK DEĞER KANITI) NASIL KURULACAK? (DETAYLI DENEYİM TASARIMI)
-
-Bir ebeveyn için "Aha!" anı sadece ses dinlemek değildir. Uykusuz bir anne/baba için gerçek dönüşüm şudur:
-**"Bu uygulama benim bebeğimi anlıyor ve bana sihirli bir rehberlik sunuyor!"**
-
-### İlk 60 Saniyedeki 3 Kademeli Değer Zirvesi:
-1. **Kişiselleştirilmiş Sirkadiyen Şok (0-15. Saniye):**
-   - Onboarding Adım 4'ten Adım 5'e geçerken ekranda 1.8 saniyelik bir analiz animasyonu çalışacak:
-     `"Pediatrik Sirkadiyen Ritim Hesaplanıyor..."`
-   - Adım 5 açıldığında: *"Mina için Mevcut Uyku Riski: Yüksek Aşırı Yorgunluk. Hedef: 45 dakikalık dalma süresini 12 dakikaya düşürmek."* Ebeveyn ilk kez veriye dayalı bir analizle karşılaşır.
-2. **Uygulamaya Girildiği Anki Karşılama (15-30. Saniye):**
-   - Kullanıcı sınırlı modla ana ekrana girdiğinde, Home ekranında bebeğin adı ve fotoğrafı/avatarı ile birlikte dev bir kart parlar:
-     `"🌙 Mina İçin Sıradaki MışılSpot™ Penceresi: 14:20 (Kalan: 24 Dk). Bu saatte odayı karartıp Anne Karnı sesini açın."`
-   - Ebeveyn saatine bakar ve şunu der: *"Evet, tam da bu saatlerde huysuzlanmaya başlıyordu!"* İşte güvenin kazanıldığı an burasıdır.
-3. **Acil Yatıştırma Deneyimi (30-60. Saniye):**
-   - Kullanıcı "Anne Karnı" sesine dokunduğunda 432Hz tıbbi frekanstaki stetoskopik kalp atışı ve rahim sıvısı sesi çalmaya başlar.
-   - 15 dakikalık seans geri sayımı başlar: *"Mina'nın kalp ritmi dengeleniyor..."*
-
----
-
-## 💰 3. DEĞER KONUMLANDIRMA & FİYAT ÇERÇEVELEME (PRICING FRAMING)
-
-Fiyatlar değiştirilmeyecek; ancak uygulamanın algısı **"Müzik Uygulaması"** kalıbından tamamen koparılıp **"Tam Donanımlı Akıllı Bebek Bakım Asistanı"** seviyesine taşınacaktır.
-
-### A. Fiyat Çerçevelemesi (No-Brainer Framing)
-* **Mevcut Yanlış Algı:** *"Birkaç ninni dinlemek için ayda ₺149 verilir mi?"* (Kullanıcı Spotify ile kıyaslıyor).
-* **Yeni Çerçeve:**
-  * **Yıllık VIP (Öne Çıkarılan Plan):** ₺599.99/yıl ➔ **`Ayda Sadece ₺49.99`**
-  * **Mikro-Bilişsel Kıyaslama:** *"Günde sadece ₺1.64 — Bir fincan çaydan daha ucuza; 7/24 AI Uyku Danışmanı, Akustik Ağlama Teşhisi ve Deliksiz Geceler."*
-  * **Alternatif Maliyet Çıpası:** *"Özel Uyku Danışmanlığı: ₺3.500 - ₺7.500 / Ay | Mışıl Baby VIP: Ayda ₺49.99"*
-* **Aylık Plan:** ₺149.99/ay ("Esnek, taahhütsüz seçenek" olarak yanında tutulur, yıllık planın değerini katlar).
-
-### B. Paywall Değer Rozetleri (Müzik Değil, Ekosistem)
-Adım 5 Paywall ve uygulama içi VIP pencerelerinde sadece sesler değil, 4 sütunlu ekosistem açıkça sergilenecektir:
-1. `🧠 MışılSpot™ AI Sirkadiyen Takvim (Ağlamasız Uyku Saati)`
-2. `🎙️ Librosa Nöral Ağlama Analizi (Açlık, Gaz, Uyku Teşhisi)`
-3. `🤖 Mışıl Dadı™ 7/24 Pediatrik AI Uyku Koçu`
-4. `🎧 18 Stüdyo Akustik Mikseri & Sabaha Kadar Kesintisiz Çalma`
-
----
-
-## 🛠️ 4. TEKNİK İCRA PLANI (`public/app.html`)
-
-### Adım 1: Adım 5 Paywall Ekranının Dönüştürülmesi
-1. **Tıbbi Feragatname:** Checkbox varsayılan `checked` yapılır. Buton üzerindeki engel kaldırılır; yasal metin şık bir AAP rozetiyle buton altına bağlanır.
-2. **Yıllık Planın Varsayılan Yapılması:** `onboarding-plan-yearly` seçili (`selected`) hale getirilir; `Ayda Sadece ₺49.99` tasarruf rozeti parlatılır.
-3. **Ekosistem Özellik Kartları:** 4'lü fonksiyon matrisi eklenir (MışılSpot, Ağlama Analizi, Mışıl Dadı, 18 Ses).
-4. **2.5 Saniye Gecikmeli "Sınırlı Modda Devam Et" Bağlantısı:**
-   - Butonun altına soluk, minimal bir link:
-     ```html
-     <div id="onboarding-skip-wrap" style="text-align: center; margin-top: 12px; opacity: 0; transition: opacity 0.6s ease;">
-       <button type="button" onclick="skipOnboardingToApp()" style="background: none; border: none; color: var(--text-muted); font-size: 11px; cursor: pointer; text-decoration: underline;">
-         Şimdilik Sınırlı Modda Keşfet ➔
-       </button>
-     </div>
-     ```
-   - Adım 5 açıldığında `setTimeout(() => skipWrap.style.opacity = '0.7', 2500)` ile dürtüsel kaçış engellenir.
-
-### Adım 2: `requireActiveSubscription()` ve Freemium Kapılarının Ayrılması
-Mevcut kodda her şeyi kilitleyen satırlar freemium kuralına göre güncellenir:
-1. **Canlı Uyku Hilali (`toggleLiveSleep`):** Temel sayaç ücretsiz kullanıcıya açılır.
-2. **Ses Listesi (`renderSoundsList` / `togglePlayTrack`):** İlk 3 ses (`anne_karni`, `pembe_gurultu`, `ninni_brahms`) ücretsiz çalabilir; diğer 15 ses tıklandığında `openVipRenewalModal()` açılır.
-3. **Mışıl Dadı (`view-coach`) ve Ağlama Analizi:** Tıklandığında değer odaklı `openVipRenewalModal()` açılır.
-
-### Adım 3: Yerel Test & Doğrulama
-1. Sıfır hafıza ile onboarding başlatılıp Adım 1'den 5'e test edilecek.
-2. "Sınırlı Modda Keşfet" tıklandığında profilin başarıyla kaydedilip Home ekranına geçtiği doğrulanacak.
-3. Home ekranında SweetSpot'un çalıştığı, hilal sayacının uyku saydığı, ilk 3 sesin çaldığı teyit edilecek.
-4. Ağlama Analizine veya Mışıl Dadı'ya tıklandığında VIP modalın doğru açıldığı ve fiyatların doğru göründüğü kontrol edilecek.
+## ⚠️ 5. Kısıtlar ve Önleyici Tedbirler
+- **Kesin Yerel Öncelik:** Tüm geliştirmeler yalnızca yerel test ortamında koşturulacak; kullanıcıdan yazılı canlıya alma onayı gelmedikçe `git push` yapılmayacaktır.
+- **Native Build Kısıtlaması:** Webview katmanında kalındığı için native EAS derlemesi tetiklenmeyecektir.

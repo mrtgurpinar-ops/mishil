@@ -2,6 +2,21 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.41.0 - Build 59] - 2026-10-26
+### 🎨 Huckleberry Pro FAB Dock Mimarisi & Retina SVG İkonografi Devrimi (Aşama 1)
+1. **Merkezi Altın Hilal FAB Butonu (`#dock-center-fab`):**
+   - Alt gezinme çubuğunun ortasına, kavisli cam sınırlarından 16px yukarı taşan 56px çapında asılı dairesel **Merkezi Eylem Butonu (Floating Action Button)** entegre edildi.
+   - Tek dokunuşla canlı uyku seansını başlatır (`toggleLiveSleep()`); bebek uyurken parıldayan altın/yeşil bir aura (`@keyframes fabPulse`) ile sayacı ve bitir eylemini yönetir.
+2. **Retina Vektörel SVG İkon Seti (Sıfır Emoji Kuralı):**
+   - Gezinme çubuğunda amatör görüntü yaratan ham sistem emojileri (`🌙`, `📊`, `👵`, `🎵`) tamamen kaldırıldı.
+   - Yerine 1.5px ince stroklu, retina uyumlu, modern vektörel SVG ikonlar (*Mışıl Spot Hilali, Analiz Nabız Çizgisi, Mışıl Dadı AI Kıvılcımı, Akustik Ses Dalgaları*) yerleştirildi.
+3. **Derin Cam Morfolojisi & Mikro Dokunma Fiziği:**
+   - Dock yüzeyine `backdrop-filter: blur(28px) saturate(200%)`, 1px saten üst kenar ışığı (`inset 0 1px 0 rgba(255,255,255,0.16)`) ve dokunulduğunda yaylanan `scale(0.92)` mikro yaylanma fiziği (spring physics) kazandırıldı.
+4. **Ergonomi & Safe Area Güvencesi:**
+   - Ekran kaydırma alt boşluğu (`padding-bottom`) 92px + `env(safe-area-inset-bottom)` olarak revize edilerek hiçbir sayfa içeriğinin veya modal butonunun dock arkasında kalması engellendi.
+5. **Reaktif State Senkronu:**
+   - `switchTab(tabName)` ve `updateFabSleepState(sleeping)` fonksiyonları `data-tab` özniteliğiyle bağlandı; sayfa yenilemelerinde veya canlı uyku geçişlerinde FAB ikonu ve nabız durumu çift yönlü reaktif senkronize edildi.
+
 ## [4.40.0 - Build 58] - 2026-10-26
 ### 🚀 Freemium & Dönüşüm (CRO) Mimarisi, "Aha! Moment" ve Ekosistem Konumlandırması
 1. **Zorunlu Kilit (Hard Gate Trap) İptali & Sınırlı Keşif Geçişi:**

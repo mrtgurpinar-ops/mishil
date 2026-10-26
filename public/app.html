@@ -210,23 +210,33 @@
       color: var(--heading-night) !important;
     }
     [data-theme="light"] .tab-item .tab-label {
-      color: #2D231E !important;
-      font-weight: 700 !important;
-      text-shadow: 0 1px 2px rgba(255, 255, 255, 0.9) !important;
+      color: #70655C !important;
+      font-weight: 600 !important;
+      text-shadow: none !important;
+    }
+    [data-theme="light"] .tab-item .tab-icon-svg {
+      stroke: #70655C !important;
     }
     [data-theme="light"] .tab-bar {
-      background: rgba(255, 255, 255, 0.45) !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.8) !important;
+      background: rgba(255, 255, 255, 0.92) !important;
+      border-top: 1px solid rgba(224, 122, 95, 0.22) !important;
       box-shadow: 0 -8px 32px rgba(42, 36, 33, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
-      backdrop-filter: blur(20px) saturate(190%) !important;
-      -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+      backdrop-filter: blur(28px) saturate(200%) !important;
+      -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
     }
     [data-theme="light"] .tab-item.active {
-      background: rgba(232, 168, 85, 0.12) !important;
+      background: rgba(224, 122, 95, 0.12) !important;
+    }
+    [data-theme="light"] .tab-item.active .tab-icon-svg {
+      stroke: var(--accent) !important;
     }
     [data-theme="light"] .tab-item.active .tab-label {
       color: var(--accent) !important;
-      text-shadow: 0 1px 3px rgba(232, 168, 85, 0.4) !important;
+      font-weight: 700 !important;
+      text-shadow: none !important;
+    }
+    [data-theme="light"] .dock-fab-btn {
+      box-shadow: 0 10px 28px rgba(224, 122, 95, 0.40), 0 0 0 5px #FAF6F0 !important;
     }
     [data-theme="light"] .btn-primary {
       color: #FFFFFF !important;
@@ -753,7 +763,7 @@
       padding-top: var(--device-safe-top, env(safe-area-inset-top, 6px)) !important;
       padding-left: max(16px, env(safe-area-inset-left));
       padding-right: max(16px, env(safe-area-inset-right));
-      padding-bottom: calc(76px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px)));
+      padding-bottom: calc(92px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px)));
       max-width: 540px;
       margin: 0 auto;
       width: 100%;
@@ -1477,7 +1487,9 @@
       font-weight: 700;
     }
 
-    /* Bottom Dock Navigation - Apple Liquid Glassmorphism Dock */
+    /* =========================================================================
+       HUCKLEBERRY PRO TIER-1 DOCK NAVIGATION & CENTER FAB BUTTON
+       ========================================================================= */
     .tab-bar {
       position: absolute;
       bottom: 0;
@@ -1485,67 +1497,157 @@
       right: 0;
       max-width: 540px;
       margin: 0 auto;
-      height: calc(64px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px)));
-      background: rgba(19, 16, 28, 0.40) !important;
-      border-top: 1px solid rgba(255, 255, 255, 0.16) !important;
-      box-shadow: 0 -8px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
-      backdrop-filter: blur(20px) saturate(190%) !important;
-      -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
+      height: calc(68px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px)));
+      background: rgba(20, 16, 30, 0.88) !important;
+      border-top: 1px solid rgba(255, 255, 255, 0.14) !important;
+      box-shadow: 0 -12px 36px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+      backdrop-filter: blur(28px) saturate(200%) !important;
+      -webkit-backdrop-filter: blur(28px) saturate(200%) !important;
       display: flex;
       justify-content: space-around;
       align-items: center;
       padding-bottom: var(--device-safe-bottom, env(safe-area-inset-bottom, 0px));
-      padding-left: max(8px, env(safe-area-inset-left));
-      padding-right: max(8px, env(safe-area-inset-right));
-      z-index: 100;
+      padding-left: max(6px, env(safe-area-inset-left));
+      padding-right: max(6px, env(safe-area-inset-right));
+      z-index: 1000;
     }
 
     .tab-item {
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
+      width: 62px;
+      height: 52px;
       cursor: pointer;
-      opacity: 0.65;
-      transition: all 0.2s cubic-bezier(0.2, 0.6, 0.2, 1);
+      opacity: 0.60;
+      transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
       position: relative;
-      padding: 4px 10px;
-      border-radius: var(--radius-pill);
+      border-radius: 16px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .tab-item:active {
+      transform: scale(0.92);
+      opacity: 0.9;
     }
 
     .tab-item.active {
       opacity: 1;
-      transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.08);
+      transform: translateY(-1px);
+      background: rgba(244, 162, 97, 0.12);
+    }
+
+    .tab-icon-svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--text-muted);
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      transition: stroke 0.22s, transform 0.22s;
+    }
+
+    .tab-item.active .tab-icon-svg {
+      stroke: var(--accent);
+      stroke-width: 2;
+      transform: scale(1.08);
+      filter: drop-shadow(0 2px 8px var(--accent-glow));
     }
 
     .tab-item .tab-label {
       color: #FAF5EE;
       font-size: 10px;
       font-weight: 600;
-      margin-top: 2px;
+      margin-top: 3px;
+      letter-spacing: -0.1px;
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.85);
-      transition: color 0.2s;
+      transition: color 0.22s, font-weight 0.22s;
     }
 
     .tab-item.active .tab-label {
       color: var(--accent);
       font-weight: 700;
-      text-shadow: 0 1px 4px rgba(232, 168, 85, 0.4);
+      text-shadow: 0 1px 6px rgba(244, 162, 97, 0.45);
     }
 
     .tab-item.active::after {
       content: "";
       position: absolute;
-      bottom: -6px;
-      width: 16px;
-      height: 3px;
+      bottom: 3px;
+      width: 5px;
+      height: 5px;
       background: var(--accent);
-      border-radius: 2px;
+      border-radius: 50%;
       box-shadow: 0 0 8px var(--accent);
     }
 
-    .tab-icon { font-size: 18px; margin-bottom: 2px; }
-    .tab-label { font-size: 10px; font-weight: 600; color: #FFF; }
+    /* CENTER ELEVATED FAB ACTION BUTTON */
+    .dock-fab-btn {
+      position: relative;
+      top: -16px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #F4A261 0%, #E07A5F 100%);
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 10px 28px rgba(244, 162, 97, 0.45), 0 0 0 5px rgba(20, 16, 30, 0.95);
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background 0.3s ease;
+      z-index: 1005;
+      flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent;
+      will-change: transform, box-shadow;
+    }
+
+    .dock-fab-btn:active {
+      transform: translateY(-16px) scale(0.90);
+    }
+
+    .dock-fab-btn .fab-icon-svg {
+      width: 24px;
+      height: 24px;
+      stroke: #13101C;
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      transition: all 0.25s ease;
+    }
+
+    .dock-fab-btn .fab-label {
+      font-size: 8px;
+      font-weight: 800;
+      color: #13101C;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      margin-top: 1px;
+      line-height: 1;
+    }
+
+    /* FAB Sleeping Mode (Aktif Canlı Uyku Sırasında) */
+    .dock-fab-btn.sleeping {
+      background: linear-gradient(135deg, #2ED573 0%, #10AC84 100%) !important;
+      box-shadow: 0 10px 28px rgba(46, 213, 115, 0.55), 0 0 0 5px rgba(20, 16, 30, 0.95) !important;
+      animation: fabPulse 2.4s infinite ease-in-out;
+    }
+
+    @keyframes fabPulse {
+      0% {
+        box-shadow: 0 8px 22px rgba(46, 213, 115, 0.45), 0 0 0 5px rgba(20, 16, 30, 0.95);
+      }
+      50% {
+        box-shadow: 0 12px 34px rgba(46, 213, 115, 0.75), 0 0 0 8px rgba(46, 213, 115, 0.25);
+      }
+      100% {
+        box-shadow: 0 8px 22px rgba(46, 213, 115, 0.45), 0 0 0 5px rgba(20, 16, 30, 0.95);
+      }
+    }
 
     /* =========================================================================
        MIŞIL DADI CHAT SCREEN (PERFECT MOBILE FIT, VIEWPORT & KEYBOARD SAFE)
@@ -3385,22 +3487,48 @@
 
   </div>
 
-  <!-- Bottom Tab Bar (4-Core Streamlined Navigation) -->
-  <div class="tab-bar">
-    <div class="tab-item active" onclick="hapticPulse(); switchTab('home');">
-      <span class="tab-icon">🌙</span>
+  <!-- HUCKLEBERRY PRO TIER-1 DOCK (5-ELEMENT RETINA SVG & CENTER FAB) -->
+  <div class="tab-bar" id="app-bottom-dock">
+    <!-- 1. Mışıl Spot (Home) -->
+    <div class="tab-item active" data-tab="home" onclick="hapticPulse(); switchTab('home');">
+      <svg class="tab-icon-svg" viewBox="0 0 24 24">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
       <span class="tab-label">Mışıl Spot</span>
     </div>
-    <div class="tab-item" onclick="hapticPulse(); switchTab('analytics');">
-      <span class="tab-icon">📊</span>
+
+    <!-- 2. Analiz & Denge Skoru -->
+    <div class="tab-item" data-tab="analytics" onclick="hapticPulse(); switchTab('analytics');">
+      <svg class="tab-icon-svg" viewBox="0 0 24 24">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+      </svg>
       <span class="tab-label">Analiz</span>
     </div>
-    <div class="tab-item" onclick="hapticPulse(); switchTab('coach');">
-      <span class="tab-icon">👵</span>
+
+    <!-- 3. MERKEZİ ALTIN HİLAL CANLI UYKU FAB BUTONU -->
+    <button type="button" id="dock-center-fab" class="dock-fab-btn" onclick="handleFabAction()" title="Canlı Uyku Takibi">
+      <svg id="dock-fab-icon" class="fab-icon-svg" viewBox="0 0 24 24">
+        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+      </svg>
+      <span id="dock-fab-label" class="fab-label">Uyut</span>
+    </button>
+
+    <!-- 4. Mışıl Dadı AI Koçu -->
+    <div class="tab-item" data-tab="coach" onclick="hapticPulse(); switchTab('coach');">
+      <svg class="tab-icon-svg" viewBox="0 0 24 24">
+        <path d="M12 2l2.4 5.6L20 10l-4.2 4.1 1 5.9-4.8-2.8-4.8 2.8 1-5.9L4 10l5.6-2.4L12 2z"></path>
+        <circle cx="19" cy="4" r="1.5"></circle>
+      </svg>
       <span class="tab-label">Mışıl Dadı</span>
     </div>
-    <div class="tab-item" onclick="hapticPulse(); switchTab('sounds');">
-      <span class="tab-icon">🎵</span>
+
+    <!-- 5. Akustik Sesler & Ninniler -->
+    <div class="tab-item" data-tab="sounds" onclick="hapticPulse(); switchTab('sounds');">
+      <svg class="tab-icon-svg" viewBox="0 0 24 24">
+        <path d="M9 18V5l12-2v13"></path>
+        <circle cx="6" cy="18" r="3"></circle>
+        <circle cx="18" cy="16" r="3"></circle>
+      </svg>
       <span class="tab-label">Sesler</span>
     </div>
   </div>
@@ -4211,7 +4339,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.40.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.41.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -4228,7 +4356,14 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.40.0', date: '26 Ekim 2026', latest: true, items: [
+    { v: '4.41.0', date: '26 Ekim 2026', latest: true, items: [
+      'Huckleberry Pro FAB Dock Mimarisi: Eski sistem emojili gezinme çubuğu tamamen kaldırılarak, modern kavisli cam morfolojili Huckleberry Pro alt dock entegre edildi.',
+      'Merkezi Altın Hilal FAB Butonu: Dock\'un ortasında hafifçe yukarı taşan, tek dokunuşla canlı uyku başlatan ve aktif uykuda nabız gibi parıldayan altın aura efektli akıllı eylem butonu eklendi.',
+      'Retina Vektörel SVG İkon Seti: Mışıl Spot, Analiz, Mışıl Dadı ve Sesler sekmeleri için 1.5px ince stroklu, retina uyumlu saf vektörel SVG ikonografisine geçildi.',
+      'Mikro Dokunma Fiziği: Sekmeler ve FAB butonu için dokunulduğunda yaylanan (scale 0.92 spring physics) natürel dokunmatik geri bildirimler devreye alındı.',
+      'Ergonomi & Safe Area Güvencesi: Ekran alt boşluğu 92px + safe-area-inset-bottom olarak güncellenerek hiçbir içeriğin dock altında kalmaması sağlandı.'
+    ]},
+    { v: '4.40.0', date: '26 Ekim 2026', items: [
       'Freemium & Dönüşüm (CRO) Mimarisi: Kullanıcıyı kitleyen sert ödeme duvarı kaldırılarak, bilinçli keşif sağlayan gecikmeli "Şimdilik Sınırlı Modda Keşfet" geçişi entegre edildi.',
       'Aha! Moment & Ücretsiz Deneyim Matrisi: Bebeğe özel bugünkü ilk MışılSpot™ uykusu, canlı hilal uyku sayacı ve 3 temel rahatlatıcı ses (Anne Karnı, 432Hz Pembe Gürültü, Brahms Ninni) ücretsiz kullanıma açıldı.',
       'Ekosistem Değer Konumlandırması: Uygulama basit bir ses çalar yerine 4 sütunlu (MışılSpot™ AI, Librosa DSP Ağlama Analizi, Mışıl Dadı™ 7/24 ve 18 Stüdyo Mikseri) akıllı bebek bakım ekosistemi olarak konumlandırıldı; Yıllık VIP plan ayda ₺49.99 (günde ₺1.64) çerçevelemesiyle öne çıkarıldı.',
@@ -7610,6 +7745,7 @@
     // Canlı Hilal Uyku Sayacı Temel Takip için ücretsiz kullanıcıya açıktır (Freemium Hook)
     hapticPulse();
     isSleeping = !isSleeping;
+    updateFabSleepState(isSleeping);
 
     const circle = document.getElementById('moon-aura-circle');
     const beamWrap = document.getElementById('moon-beam-wrap');
@@ -7720,6 +7856,7 @@
 
     isSleeping = true;
     sleepStartTime = parsedStart;
+    updateFabSleepState(true);
 
     const circle = document.getElementById('moon-aura-circle');
     const beamWrap = document.getElementById('moon-beam-wrap');
@@ -8129,6 +8266,33 @@
     switchTab(lastActiveTabBeforeSettings || 'home');
   }
 
+  // =========================================================================
+  // HUCKLEBERRY PRO CENTER FAB DOCK ENGINE
+  // =========================================================================
+  function handleFabAction() {
+    hapticPulse();
+    toggleLiveSleep();
+  }
+
+  function updateFabSleepState(sleeping) {
+    const fabBtn = document.getElementById('dock-center-fab');
+    const fabIcon = document.getElementById('dock-fab-icon');
+    const fabLabel = document.getElementById('dock-fab-label');
+    if (!fabBtn || !fabIcon) return;
+
+    if (sleeping) {
+      fabBtn.classList.add('sleeping');
+      // Bebek uyurken: Canlı Uyku Bitir / Güneş ve Uyanış İkonu
+      fabIcon.innerHTML = '<path d="M12 2v2m0 16v2m10-10h-2M4 12H2m15.07-7.07l-1.41 1.41M5.34 18.66l-1.41 1.41m14.14 0l-1.41-1.41M5.34 5.34L3.93 6.75"></path><circle cx="12" cy="12" r="4"></circle>';
+      if (fabLabel) fabLabel.textContent = 'Uyuyor';
+    } else {
+      fabBtn.classList.remove('sleeping');
+      // Bebek uyanıkken: Altın Hilal Uyut İkonu
+      fabIcon.innerHTML = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+      if (fabLabel) fabLabel.textContent = 'Uyut';
+    }
+  }
+
   function switchTab(tabName) {
     // Pro özellikler (Mışıl Dadı AI Koçu & Derin Analiz Sekmesi) abonelik gerektirir
     if ((tabName === 'coach' || tabName === 'analytics') && !requireActiveSubscription()) return;
@@ -8144,10 +8308,16 @@
     const targetView = document.getElementById('view-' + tabName);
     if (targetView) targetView.classList.add('active');
 
-    const tabs = ['home', 'analytics', 'coach', 'sounds'];
-    const idx = tabs.indexOf(tabName);
-    if (idx !== -1) {
-      document.querySelectorAll('.tab-item')[idx].classList.add('active');
+    // Hedef sekme butonunu hem data-tab hem index fallback ile aktif yap
+    const targetItem = document.querySelector(`.tab-item[data-tab="${tabName}"]`);
+    if (targetItem) {
+      targetItem.classList.add('active');
+    } else {
+      const tabs = ['home', 'analytics', 'coach', 'sounds'];
+      const idx = tabs.indexOf(tabName);
+      if (idx !== -1 && document.querySelectorAll('.tab-item')[idx]) {
+        document.querySelectorAll('.tab-item')[idx].classList.add('active');
+      }
     }
 
     // Mışıl Dadı odak modunu ve mobil klavye uyumluluğunu yönet

@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Mışıl Baby — Aşama 1 Dock Önizleme & Test Laboratuvarı</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #13101C;
+      --card-bg: rgba(33, 28, 44, 0.88);
+      --accent: #F4A261;
+      --accent-glow: rgba(244, 162, 97, 0.35);
+      --moon-blue: #74C69D;
+      --text: #FAF5EE;
+      --text-muted: #8F86A2;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      padding: 20px 16px 160px;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .container { max-width: 420px; width: 100%; }
+    header { text-align: center; margin-bottom: 24px; }
+    h1 { font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 800; color: #FFF; margin-bottom: 6px; }
+    p.subtitle { font-size: 13px; color: var(--text-muted); line-height: 18px; }
+    
+    .selector-bar {
+      display: flex;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 24px;
+      gap: 4px;
+    }
+    .selector-btn {
+      flex: 1;
+      padding: 10px 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .selector-btn.active {
+      background: var(--accent);
+      color: #13101C;
+      box-shadow: 0 4px 14px rgba(244, 162, 97, 0.3);
+    }
+
+    .mockup-body {
+      background: radial-gradient(circle at 50% 20%, rgba(244, 162, 97, 0.12) 0%, transparent 60%), #181424;
+      border: 1px solid rgba(245, 230, 215, 0.12);
+      border-radius: 28px;
+      padding: 24px 18px 80px;
+      min-height: 480px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+      position: relative;
+      overflow: hidden;
+    }
+    .mock-card {
+      background: rgba(44, 38, 58, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      padding: 18px;
+      margin-bottom: 14px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+    .mock-tag { font-size: 11px; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+    .mock-time { font-family: 'Sora'; font-size: 32px; font-weight: 800; color: #FFF; line-height: 1; margin-bottom: 6px; }
+    .mock-desc { font-size: 12px; color: var(--text-muted); }
+
+    /* =========================================================================
+       ÖNERİ 1A: IOS DYNAMIC FLOATING ISLAND
+       ========================================================================= */
+    .dock-1a {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      max-width: 380px;
+      margin: 0 auto;
+      height: 64px;
+      background: rgba(26, 21, 38, 0.85);
+      backdrop-filter: blur(28px) saturate(200%);
+      -webkit-backdrop-filter: blur(28px) saturate(200%);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 8px;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+      z-index: 1000;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .dock-1a .item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 60px;
+      height: 48px;
+      border-radius: 20px;
+      cursor: pointer;
+      position: relative;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .dock-1a .item:active { transform: scale(0.92); }
+    .dock-1a .item svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--text-muted);
+      stroke-width: 1.6;
+      fill: none;
+      transition: stroke 0.25s, transform 0.25s;
+    }
+    .dock-1a .item span {
+      font-size: 9px;
+      font-weight: 700;
+      color: var(--text-muted);
+      margin-top: 3px;
+      transition: color 0.25s;
+    }
+    .dock-1a .item.active {
+      background: rgba(244, 162, 97, 0.16);
+    }
+    .dock-1a .item.active svg {
+      stroke: var(--accent);
+      transform: translateY(-1px);
+    }
+    .dock-1a .item.active span {
+      color: #FFF;
+    }
+    .dock-1a .item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    /* =========================================================================
+       ÖNERİ 1B: SOFT PASTEL CARE DOCK
+       ========================================================================= */
+    .dock-1b {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 420px;
+      margin: 0 auto;
+      height: 72px;
+      background: rgba(24, 19, 34, 0.94);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(244, 162, 97, 0.35);
+      border-radius: 24px 24px 0 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 12px;
+      box-shadow: 0 -8px 30px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      z-index: 1000;
+    }
+    .dock-1b .item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: 14px;
+      transition: all 0.25s ease;
+    }
+    .dock-1b .item svg {
+      width: 24px;
+      height: 24px;
+      stroke: var(--text-muted);
+      stroke-width: 1.6;
+      transition: all 0.25s;
+    }
+    .dock-1b .item span {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .dock-1b .item.active svg {
+      transform: scale(1.12);
+    }
+    .dock-1b .item:nth-child(1).active svg { stroke: #F4A261; fill: rgba(244, 162, 97, 0.2); }
+    .dock-1b .item:nth-child(2).active svg { stroke: #74C69D; fill: rgba(116, 198, 157, 0.2); }
+    .dock-1b .item:nth-child(3).active svg { stroke: #E4D8FA; fill: rgba(228, 216, 250, 0.2); }
+    .dock-1b .item:nth-child(4).active svg { stroke: #CAE1FA; fill: rgba(202, 225, 250, 0.2); }
+    .dock-1b .item.active span { color: #FFF; font-weight: 700; }
+
+    /* =========================================================================
+       ÖNERİ 1C: HUCKLEBERRY PRO FAB DOCK
+       ========================================================================= */
+    .dock-1c {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      max-width: 420px;
+      margin: 0 auto;
+      height: 68px;
+      background: rgba(22, 18, 32, 0.96);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      padding: 0 10px;
+      z-index: 1000;
+    }
+    .dock-1c .item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      cursor: pointer;
+      width: 56px;
+    }
+    .dock-1c .item svg {
+      width: 22px;
+      height: 22px;
+      stroke: var(--text-muted);
+      stroke-width: 1.6;
+      fill: none;
+    }
+    .dock-1c .item span {
+      font-size: 9px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+    .dock-1c .item.active svg { stroke: var(--accent); }
+    .dock-1c .item.active span { color: var(--accent); font-weight: 700; }
+    
+    .dock-1c .fab-btn {
+      position: relative;
+      top: -18px;
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #F4A261 0%, #E07A5F 100%);
+      box-shadow: 0 8px 24px rgba(244, 162, 97, 0.45), 0 0 0 5px rgba(22, 18, 32, 0.96);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .dock-1c .fab-btn:active { transform: scale(0.92); }
+    .dock-1c .fab-btn svg { width: 26px; height: 26px; stroke: #13101C; stroke-width: 2; fill: none; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <h1>Aşama 1: Dock Test Laboratuvarı</h1>
+      <p class="subtitle">Her üç dock tasarımını canlı etkileşimle inceleyin ve dokunarak test edin.</p>
+    </header>
+
+    <div class="selector-bar">
+      <button class="selector-btn active" onclick="setMode('1a')">1A: Floating Island</button>
+      <button class="selector-btn" onclick="setMode('1b')">1B: Pastel Care</button>
+      <button class="selector-btn" onclick="setMode('1c')">1C: Center FAB</button>
+    </div>
+
+    <div class="mockup-body">
+      <div class="mock-card">
+        <div class="mock-tag">✨ SIRKADİYEN UYKU PENCERESİ</div>
+        <div class="mock-time">11:45</div>
+        <div class="mock-desc">Sonraki en ideal uyku vakti (1 sa 15 dk kaldı)</div>
+      </div>
+      <div class="mock-card" style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div class="mock-tag" style="color: var(--moon-blue);">🟢 RİTİMDE</div>
+          <div style="font-size: 15px; font-weight: 700; color: #FFF;">Denge Skoru: %84</div>
+        </div>
+        <div style="font-size: 28px;">🌙</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DOCK 1A -->
+  <div id="dock-view-1a" class="dock-1a">
+    <div class="item active" onclick="activateItem(this, '1a')">
+      <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      <span>Mışıl Spot</span>
+    </div>
+    <div class="item" onclick="activateItem(this, '1a')">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+      <span>Analiz</span>
+    </div>
+    <div class="item" onclick="activateItem(this, '1a')">
+      <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+      <span>Mışıl Dadı</span>
+    </div>
+    <div class="item" onclick="activateItem(this, '1a')">
+      <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+      <span>Sesler</span>
+    </div>
+  </div>
+
+  <!-- DOCK 1B -->
+  <div id="dock-view-1b" class="dock-1b" style="display: none;">
+    <div class="item active" onclick="activateItem(this, '1b')">
+      <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      <span>Mışıl Spot</span>
+    </div>
+    <div class="item" onclick="activateItem(this, '1b')">
+      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+      <span>Denge</span>
+    </div>
+    <div class="item" onclick="activateItem(this, '1b')">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v4l3 3"></path></svg>
+      <span>Mışıl Dadı</span>
+    </div>
+    <div class="item" onclick="activateItem(this, '1b')">
+      <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+      <span>Sesler</span>
+    </div>
+  </div>
+
+  <!-- DOCK 1C -->
+  <div id="dock-view-1c" class="dock-1c" style="display: none;">
+    <div class="item active" onclick="activateItem(this, '1c')">
+      <svg viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+      <span>Mışıl Spot</span>
+    </div>
+    <div class="item" onclick="activateItem(this, '1c')">
+      <svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+      <span>Analiz</span>
+    </div>
+    <button class="fab-btn" onclick="alert('⚡ Canlı Uyku veya Ağlama Analizi Tetiklendi!')">
+      <svg viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+    </button>
+    <div class="item" onclick="activateItem(this, '1c')">
+      <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+      <span>Mışıl Dadı</span>
+    </div>
+    <div class="item" onclick="activateItem(this, '1c')">
+      <svg viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></svg>
+      <span>Sesler</span>
+    </div>
+  </div>
+
+  <script>
+    function setMode(mode) {
+      document.querySelectorAll('.selector-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+
+      document.getElementById('dock-view-1a').style.display = (mode === '1a') ? 'flex' : 'none';
+      document.getElementById('dock-view-1b').style.display = (mode === '1b') ? 'flex' : 'none';
+      document.getElementById('dock-view-1c').style.display = (mode === '1c') ? 'flex' : 'none';
+    }
+
+    function activateItem(el, dockId) {
+      const parent = document.getElementById('dock-view-' + dockId);
+      parent.querySelectorAll('.item').forEach(i => i.classList.remove('active'));
+      el.classList.add('active');
+    }
+  </script>
+</body>
+</html>
