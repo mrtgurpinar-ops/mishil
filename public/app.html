@@ -2011,11 +2011,12 @@
       flex-direction: column;
       padding: 12px 14px;
       margin-bottom: 0;
-      padding-bottom: calc(74px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px)));
+      padding-bottom: calc(92px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px)));
     }
 
     /* Mobilde klavye açıldığında çakışmayı önleme kuralları */
-    body.keyboard-open .tab-bar {
+    body.keyboard-open .tab-bar,
+    body.keyboard-open .dock-fab-btn {
       display: none !important;
     }
 
@@ -2144,7 +2145,7 @@
       position: absolute;
       inset: 0;
       background: #0B0E17;
-      z-index: 350;
+      z-index: 12000;
       display: none;
       flex-direction: column;
       padding-top: calc(var(--device-safe-top, env(safe-area-inset-top, 6px)) + 12px);
@@ -2160,6 +2161,11 @@
     }
 
     .onboarding-screen.active { display: flex; animation: fadeIn 0.3s ease-out; }
+
+    body:has(#screen-onboarding.active) .tab-bar,
+    body:has(#screen-onboarding.active) .dock-fab-btn {
+      display: none !important;
+    }
 
     .quiz-option {
       background: var(--card-night);
@@ -2220,7 +2226,7 @@
     }
 
     .toast-msg {
-      position: absolute;
+      position: fixed;
       top: 60px;
       left: 50%;
       transform: translateX(-50%) translateY(-20px);
@@ -2236,7 +2242,7 @@
       opacity: 0;
       pointer-events: none;
       transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-      z-index: 400;
+      z-index: 20000;
       white-space: nowrap;
     }
 
@@ -2423,7 +2429,7 @@
       background: rgba(0, 0, 0, 0.88);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
-      z-index: 1000;
+      z-index: 10000;
       align-items: flex-end;
       justify-content: center;
       animation: fadeIn 0.2s ease-out;
@@ -9280,6 +9286,7 @@
   function setupKeyboardAndViewportManager() {
     const chatInput = document.getElementById('chat-user-input');
     const tabBar = document.querySelector('.tab-bar');
+    const fabBtn = document.getElementById('dock-center-fab');
     const msgContainer = document.getElementById('chat-messages-container');
 
     if (chatInput) {
@@ -9288,6 +9295,7 @@
         if (coachView && coachView.classList.contains('active')) {
           document.body.classList.add('keyboard-open');
           if (tabBar) tabBar.style.display = 'none';
+          if (fabBtn) fabBtn.style.display = 'none';
           setTimeout(() => {
             chatInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             if (msgContainer) msgContainer.scrollTop = msgContainer.scrollHeight;
@@ -9300,6 +9308,7 @@
           if (document.activeElement !== chatInput) {
             document.body.classList.remove('keyboard-open');
             if (tabBar) tabBar.style.display = 'flex';
+            if (fabBtn) fabBtn.style.display = 'flex';
           }
         }, 150);
       });
@@ -9317,10 +9326,12 @@
         if (isKeyboard) {
           document.body.classList.add('keyboard-open');
           if (tabBar) tabBar.style.display = 'none';
+          if (fabBtn) fabBtn.style.display = 'none';
           if (msgContainer) msgContainer.scrollTop = msgContainer.scrollHeight;
         } else {
           document.body.classList.remove('keyboard-open');
           if (tabBar) tabBar.style.display = 'flex';
+          if (fabBtn) fabBtn.style.display = 'flex';
         }
       });
     }
