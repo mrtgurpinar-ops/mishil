@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mışıl Bebek & Işıl Anne — Karakter Görsel Tasarımı</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-dark: #0A0D14;
+      --card-bg: #141724;
+      --border-color: rgba(255, 255, 255, 0.1);
+      --cream: #FDE68A;
+      --mint: #A7F3D0;
+      --lavender: #E9D5FF;
+      --text-main: #F8FAFC;
+      --text-sub: #94A3B8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      font-family: 'Fredoka', 'Nunito', sans-serif;
+      padding: 36px 20px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(253, 230, 138, 0.14);
+      border: 1px solid rgba(253, 230, 138, 0.35);
+      color: var(--cream);
+      padding: 6px 20px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 12px;
+    }
+
+    .header h1 {
+      font-size: 38px;
+      font-weight: 700;
+      background: linear-gradient(135deg, #FFFFFF 0%, #FDE68A 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .header p {
+      font-family: 'Nunito', sans-serif;
+      font-size: 17px;
+      color: var(--text-sub);
+    }
+
+    /* HERO CARD: IŞIL & MIŞIL BİRLİKTE */
+    .hero-stage {
+      background: var(--card-bg);
+      border: 2px solid var(--cream);
+      border-radius: 28px;
+      padding: 32px;
+      margin-bottom: 48px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+    }
+
+    .hero-img-wrap {
+      width: 100%;
+      max-width: 720px;
+      aspect-ratio: 1 / 1;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .hero-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .hero-details {
+      text-align: center;
+      max-width: 800px;
+    }
+
+    .hero-details h2 {
+      font-size: 28px;
+      color: var(--cream);
+      margin-bottom: 8px;
+    }
+
+    .hero-details p {
+      font-family: 'Nunito', sans-serif;
+      font-size: 16px;
+      color: rgba(255, 255, 255, 0.85);
+      line-height: 1.5;
+    }
+
+    /* 2 COLUMNS: MIŞIL MODEL SHEET & IŞIL MODEL SHEET */
+    .sheets-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      margin-bottom: 48px;
+    }
+
+    @media (max-width: 860px) {
+      .sheets-grid { grid-template-columns: 1fr; }
+    }
+
+    .sheet-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 24px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+    }
+
+    .sheet-card h3 {
+      font-size: 22px;
+      color: #FFF;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .sheet-img-wrap {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .sheet-img-wrap img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .sheet-desc {
+      font-family: 'Nunito', sans-serif;
+      font-size: 14px;
+      color: var(--text-sub);
+      line-height: 1.45;
+    }
+
+    /* FOOTER */
+    .footer-bar {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 20px;
+      padding: 24px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .action-btn {
+      background: var(--cream);
+      color: #1E2333;
+      border: none;
+      padding: 12px 28px;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      background: #FCD34D;
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <!-- HEADER -->
+    <div class="header">
+      <div class="badge">✨ Canlı Görselleştirme Hazır</div>
+      <h1>Mışıl Bebek & Işıl Anne Karakter Dünyası</h1>
+      <p>"Geceleri mışıl mışıl, gündüzleri ışıl ışıl!" • Pixar/Disney masal kitabı tarzında çizilmiş resmi karakter modellerimiz.</p>
+    </div>
+
+    <!-- 1. HERO MASTER GÖRSEL -->
+    <div class="hero-stage">
+      <div class="hero-img-wrap">
+        <img src="../kullanici/instagram/karakterler/misil_ve_isil_ana_gorsel.jpg" alt="Mışıl ve Işıl Ana Karakter Görseli">
+      </div>
+      <div class="hero-details">
+        <h2>Işıl Anne & Mışıl Bebek (Ana Görsel)</h2>
+        <p>
+          Işıl Anne'nin yumuşacık leylak oversize hırkası ve samimi dağınık ev topuzu; Mışıl Bebek'in ponponlu nane yeşili uyku beresi ve elindeki sarı yıldız oyuncağıyla (Yıldızcık) odasındaki sıcak anı.
+        </p>
+      </div>
+    </div>
+
+    <!-- 2. MODEL SHEETS (MIŞIL & IŞIL) -->
+    <div class="sheets-grid">
+
+      <!-- MIŞIL BEBEK MODEL SHEET -->
+      <div class="sheet-card">
+        <h3>
+          <span>👶 Mışıl Bebek</span>
+          <span style="font-size: 13px; color: var(--mint);">4 İfade Modeli</span>
+        </h3>
+        <div class="sheet-img-wrap">
+          <img src="../kullanici/instagram/karakterler/misil_bebek_ifade_sayfasi.jpg" alt="Mışıl Bebek İfade Sayfası">
+        </div>
+        <div class="sheet-desc">
+          1) Meraklı & Gülümseyen (Gündüz) • 2) Esneyen Uykucu (Uyku Penceresi Sinyali) • 3) Bulut Üzerinde Mışıl Mışıl Uyuyan • 4) Ponpon Bereli & Yıldızcığa Sarılan
+        </div>
+      </div>
+
+      <!-- IŞIL ANNE MODEL SHEET -->
+      <div class="sheet-card">
+        <h3>
+          <span>👱‍♀️ Işıl Anne</span>
+          <span style="font-size: 13px; color: var(--lavender);">Duygu & Rol Modeli</span>
+        </h3>
+        <div class="sheet-img-wrap">
+          <img src="../kullanici/instagram/karakterler/isil_anne_karakter_sayfasi.jpg" alt="Işıl Anne Karakter Sayfası">
+        </div>
+        <div class="sheet-desc">
+          1) Gece Nöbeti & Sıcak Kahve Kupası (Yorgun ama Şefkatli) • 2) Bebeğini Kalbinde Pışpışlayan Kucaklama • 3) Mışıl Baby ile Rahatlamış & Huzurlu Anne Tebessümü
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="footer-bar">
+      <div>
+        <h3 style="font-size: 18px; color: #FFF; margin-bottom: 4px;">Karakter Tasarımı ve Çizim Dili Tamamlandı</h3>
+        <p style="font-size: 14px; color: var(--text-sub);">Görseller <code>projects/mishil/kullanici/instagram/karakterler/</code> klasörüne kaydedilmiştir.</p>
+      </div>
+      <div>
+        <button class="action-btn" onclick="alert('Karakter görsel tasarımı onaylandı!')">
+          Harika, Bu Çizimlerle İlerleyelim! ✨
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</body>
+</html>
