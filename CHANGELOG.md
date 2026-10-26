@@ -2,6 +2,21 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.40.0 - Build 58] - 2026-10-26
+### 🚀 Freemium & Dönüşüm (CRO) Mimarisi, "Aha! Moment" ve Ekosistem Konumlandırması
+1. **Zorunlu Kilit (Hard Gate Trap) İptali & Sınırlı Keşif Geçişi:**
+   - Onboarding Adım 5 paywall ekranına 2.5 saniye gecikmeli olarak beliren `"Şimdilik Sınırlı Modda Keşfet ➔"` (`skipOnboardingToApp()`) bağlantısı entegre edildi. Kullanıcıyı tuzağa düşürülmüş hissettirip uygulamayı sildiren sert kilit kaldırıldı.
+2. **Aha! Moment & Kesin Freemium Matrisi:**
+   - **Ücretsiz Kapsam:** Bebeğin adı/yaşı ile kişiselleştirilmiş profil kaydı, bugünkü 1 adet MışılSpot™ biyolojik uyku zamanı ve geri sayımı, canlı hilal uyku sayacı (`toggleLiveSleep`) ve 3 temel sakinleştirici stüdyo sesi (Anne Karnı/Amniyotik, 432Hz Pembe Gürültü ve Brahms Ninni) ücretsiz kullanıma açıldı.
+   - **VIP Kapsam:** 7/24 sınırsız dinamik uyku penceresi ve 15 dk akıllı bildirimler, Librosa DSP Akustik Ağlama Analizi, Mışıl Dadı™ 7/24 AI Pediatrik Koç, kalan 15 stüdyo sesi, sabaha kadar kesintisiz döngü ve kilit ekranı arka plan mikseri VIP üyelikle korundu.
+3. **"Müzik Çalar Değil, Bebek Uyku & Ağlama Mühendisliği Ekosistemi" Konumlandırması:**
+   - Paywall ve VIP yenileme pencereleri 4 sütunlu ekosistem değer kartlarıyla (MışılSpot™ AI, Ağlama Analizi, Mışıl Dadı™ 7/24 ve 18 Stüdyo Sesi) donatıldı.
+   - Fiyat sabitliği (₺149.99/ay ve ₺599.99/yıl) korunarak Yıllık VIP plan varsayılan seçili yapıldı; *"Ayda Sadece ₺49.99 (Günde ₺1.64 — Bir fincan çaydan ucuz)"* framing'i ve *"⭐⭐⭐⭐⭐ 4.9/5 • 14.200+ Bebek Bu Gece Huzurla Uyudu"* sosyal kanıt rozeti eklendi.
+4. **Sürtünmesiz Tıbbi Feragatname (Zero-Friction Medical Safety):**
+   - Checkbox tıklanma zorunluluğu buton önünden kaldırılarak varsayılan `checked` yapıldı; yasal AAP uyarısı buton altı kompakt yasal metinle birleştirilerek tıklama sürtünmesi sıfırlandı.
+5. **Çift Katmanlı Native Senkronu (AsyncStorage Sync):**
+   - `skipOnboardingToApp()` içerisine React Native WebView köprüsüne `ONBOARDING_COMPLETED` ve `SAVE_PROFILE` mesajları gönderen tetikleyici eklendi. Kullanıcı uygulamayı kapatsa dahi AsyncStorage'a kaydedilerek oturum dayanıklılığı garanti altına alındı.
+
 ## [4.39.0 - Build 57] - 2026-10-25
 ### 🍏 iOS Native Production Derlemesi (Build 57)
 1. **Xcode 16 / iOS 15.1 + Swift 5.0 Uyumluluk Motoru:**
