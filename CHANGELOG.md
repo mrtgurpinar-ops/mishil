@@ -2,6 +2,19 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.42.0 - Build 60] - 2026-10-26
+### 🎨 Organic Warm Bento Grid Mimarisi & Ana Sayfa Restorasyonu (Aşama 2)
+1. **Panoramik Mum Işığı Hero Bento Kartı (`#home-organic-hero`):**
+   - Ana sayfadaki sıkışık iki sütunlu görünüm kaldırılarak, üstte tam genişlikte 28px organik radüslü, derin kaşmir cam kart konumlandırıldı.
+   - Merkezinde yavaşça nefes alıp veren sıcak kehribar mum ışığı aurası (`.warm-moon-aura` / `@keyframes candlePulse`), 40px cesur saat (`#target-sleep-display`) ve dinamik geri sayım göstergesi entegre edildi.
+2. **Çiftli Organik Bento Grid (`.grid-organic-duo`):**
+   - **Sol Kart (Denge & Ritim - Adaçayı Yeşili):** `%84` Denge Skoru dairesel SVG kadranı (`#home-bento-score-fill`), `#home-bento-score-val` ve dinamik durum rozeti (`#home-bento-score-badge`) korundu.
+   - **Sağ Kart (Hızlı Rutinler - Sıcak Şeftali):** Gece loş ışıkta tek dokunuşla çalışan 4 adet pürüzsüz dokunmatik hap buton (*Besle, Bez, Ağlama, Sesler*) yerleştirildi.
+3. **Canlı Uyku Görsel Senkronu (`.sleeping-hero`):**
+   - Bebek uykuya daldığında Hero kartı ve mum ışığı aurası zümrüt/gece dinlenme moduna geçecek şekilde JavaScript (`toggleLiveSleep` ve `checkAndRestoreLiveSleep`) üzerinden reaktif bağlandı.
+4. **Sıfır Regresyon & Bütünlük:**
+   - Mevcut tüm 10 kritik DOM ID'si ve JavaScript referansları %100 korunarak kesintisiz geriye dönük uyumluluk mühürlendi.
+
 ## [4.41.0 - Build 59] - 2026-10-26
 ### 🎨 Huckleberry Pro FAB Dock Mimarisi & Retina SVG İkonografi Devrimi (Aşama 1)
 1. **Merkezi Altın Hilal FAB Butonu (`#dock-center-fab`):**

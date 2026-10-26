@@ -1,64 +1,66 @@
-# Mışıl Baby — Aşama 1: Huckleberry Pro FAB Dock & Vektörel İkonografi Uygulama Planı
+# Mışıl Baby — Aşama 2: Organic Warm Bento Grid & Ana Sayfa Restorasyonu Uygulama Planı
 
 | Metrik | Değer |
 | :--- | :--- |
 | **Tahmini Efor** | ~45 - 60 Dakika |
-| **Kalan Kapasite Kullanımı** | Yaklaşık %12 - 15 |
+| **Kalan Kapasite Kullanımı** | Yaklaşık %10 - 14 |
 | **Risk Seviyesi** | **Seviye 2 (Orta Risk / Standart UI Modülü - Çift Kontrol)** |
-| **Hedef Sürüm** | `v4.41.0` (Build 59) |
+| **Hedef Sürüm** | `v4.42.0` (Build 60) — Holding: `v8.59.0` |
 | **Etkilenecek Dosyalar** | `projects/mishil/public/app.html`, `projects/mishil/mobile/app.config.ts`, `projects/mishil/CHANGELOG.md` |
 
 ---
 
 ## 🎯 1. Netleştirilmiş Hedef & Kapsam (Refined Prompt)
-Mışıl Baby mobil webview arayüzünde amatör ve eski bir görüntü yaratan sistem emojili Tab Bar (`🌙`, `📊`, `👵`, `🎵`) tamamen kaldırılarak yerine kullanıcının seçtiği **Öneri 1C: Huckleberry Pro FAB Dock** mimarisi entegre edilecektir:
-1. **Merkezi Dairesel FAB (Floating Action Button):** Dock'un ortasında hafifçe yukarı taşan, altın gradyanlı ve parlayan bir canlı eylem butonu (`#dock-center-fab`). Canlı uyku kapalıyken tek tıkla uyku başlatır, canlı uyku açıkken nabız gibi atan altın bir aura (`golden-pulse`) ile sayacı ve bitir butonunu temsil eder.
-2. **4 Kanatlı Minimalist SVG İkonografi:** Emojiler yerine 1.5px strok kalınlığına sahip, retina uyumlu saf vektörel SVG ikonlar (*Mışıl Spot Hilali, Analiz Nabız Çizgisi, Mışıl Dadı AI Kıvılcımı, Stüdyo Ses Dalgası*).
-3. **Derin Cam Morfolojisi & Ergonomi:** `backdrop-filter: blur(28px) saturate(190%)`, 1px saten üst kenar ışığı, iOS Home Bar güvenli alan (`env(safe-area-inset-bottom)`) entegrasyonu ve dokunma fiziği (`scale(0.92)`).
-4. **Çift Yönlü Durum Senkronizasyonu:** `switchTab()` çağrıları ve `toggleLiveSleep()` durumları FAB ve sekme ikonlarıyla gerçek zamanlı reaktif bağlanacaktır.
+Mışıl Baby ana ekranındaki sıkışık, derinliksiz ve kontrastı zayıf kart blokları kaldırılarak, kullanıcının seçtiği **Öneri 2B: Organic Warm Bento (Kaşmir & Mum Işığı Anne-Bebek Dünyası)** mimarisine dönüştürülecektir:
+1. **Panoramik Hero Bento Kartı (`.hero-organic-card`):**
+   - Üstte tam genişlikte ferah, 26px organik köşe radüslü, sıcak kaşmir cam kart.
+   - Merkezde yavaşça nefes alıp veren sıcak kehribar mum ışığı aurası (`.warm-moon-aura`) ve büyük altın hilal.
+   - 38px cesur saat tipografisi (`#target-sleep-display`), dinamik geri sayım (`#target-sleep-subtext`) ve canlı uyku sayacı (`#live-sleep-timer`).
+2. **İkincil Çiftli Organik Bento Grid (`.grid-organic-duo`):**
+   - **Sol Kart (Uyku Kalitesi & Ritim - Adaçayı Yeşili):** `%84` Denge Skoru SVG kadranı (`#home-bento-score-fill`), ritim rozeti (`#home-bento-score-badge`) ve toplam uyku süresi göstergesi.
+   - **Sağ Kart (Hızlı Rutinler - Sıcak Şeftali):** Gece loş ışıkta tek dokunuşla çalışan 4 adet pürüzsüz dokunmatik hap buton (*Besle, Bez, Masaj, Ninni*).
+3. **%100 DOM ID ve State Güvencesi:**
+   - Mevcut tüm DOM ID'leri (`target-sleep-display`, `target-sleep-subtext`, `live-sleep-timer`, `btn-toggle-sleep`, `home-bento-score-val`, `home-bento-score-fill`, `home-bento-score-badge`, `sweetspot-status-badge`, `moon-aura-circle`, `moon-shape`) korunacak; JavaScript'teki canlı uyku ve rutin fonksiyonları sıfır kırılmayla çalışacaktır.
+4. **Çift Tema Desteği:**
+   - Hem Koyu Kaşmir (#13101C) hem de Sıcak Krem (#FAF6F0) temaları için organik pastel kontrast değişkenleri bağlanacaktır.
 
 ---
 
 ## 🏎️ 2. Ajan Şerit Dağılımı (Tri-Agent Roles)
-* **Claude Şeridi (Mimari & Tasarım Sistemi):** SVG sembol kütüphanesinin kurulması, CSS token uyumu, `safe-area` boşluk matematiği ve ekran yüksekliği çakışmalarının önlenmesi.
-* **Codex Şeridi (Hızlı Kodlama, Render & Test):** CSS animasyonlarının GPU hızlandırması (`will-change: transform`, 60fps), `switchTab` ve `updateFabSleepState` fonksiyonlarının entegrasyonu, TypeScript ve Jest birim testlerinin yeşile çekilmesi.
-* **Antigravity Şeridi (Orkestrasyon, Doğrulama & Dokümantasyon):** `app.html` DOM ID ve onclick bütünlüğü, mobil compliance pre-flight denetimi, CHANGELOG ve versiyonlama yönetimi.
+* **Claude Şeridi (Mimari & Grid Sistemi):** Bento Grid CSS kütüphanesi, CSS Grid esnekliği, 26px organik radüs tokenları ve Dark/Light mode renk geçişleri.
+* **Codex Şeridi (DOM Restorasyonu, GPU Animasyonları & Testler):** Mum ışığı nefes alma animasyonu (`@keyframes candlePulse`, 60fps GPU), hızlı rutin buton işleyicileri, TypeScript (`tsc`) ve Jest birim testleri (10/10 test).
+* **Antigravity Şeridi (Orkestrasyon, Doğrulama & Sürüm Yönetimi):** DOM ID ve onclick audit taraması (`audit_app_html.py`), offline paket derlemesi (`bundle:offline`), CHANGELOG ve versiyonlama (`4.42.0`).
 
 ---
 
 ## 📋 3. Yapılacak İşler ve İcra Adımları
 
-### Adım 1: CSS & Vektörel SVG İkon Altyapısı (`app.html`)
-- [ ] Tab Bar CSS kurallarını `.tab-bar` yerine modern `.huckleberry-dock` ve `.fab-center-btn` sınıflarıyla güncelleme.
-- [ ] Her sekmeye dokunulduğunda yaylanma sağlayan `transform: scale(0.92)` mikro dokunma fiziği ekleme.
-- [ ] Canlı uyku sırasında altın düğmenin etrafında parıldayan `@keyframes fabPulse` animasyonunu tanımlama.
-- [ ] Hem Dark Mode (#13101C) hem de Light Mode (#FAF6F0) için renk ve kontrast değişkenlerini bağlama.
+### Adım 1: CSS Altyapısı & Organik Bento Stilleri (`app.html`)
+- [ ] `.hero-organic-card`, `.grid-organic-duo`, `.bento-card-sage`, `.bento-card-peach` ve `.routine-pill-btn` sınıflarını tanımlama.
+- [ ] Mum ışığı aurası için `@keyframes candlePulse` nefes alma animasyonunu ekleme.
+- [ ] Light Mode için yumuşak adaçayı ve şeftali pastel renk tonlarını bağlama.
 
-### Adım 2: HTML Tab Bar Markup Restorasyonu (`app.html`)
-- [ ] Satır 3389-3406 arasındaki eski emoji tab bar markup'ını 5 elemanlı yeni yapıya dönüştürme:
-  1. Sol Dış: `tab-item-home` (Mışıl Spot SVG + Başlık)
-  2. Sol İç: `tab-item-analytics` (Analiz Grafiği SVG + Başlık)
-  3. **Merkez: `#dock-center-fab`** (58px Altın Hilal / Canlı Uyku FAB Butonu)
-  4. Sağ İç: `tab-item-coach` (Mışıl Dadı AI SVG + Başlık)
-  5. Sağ Dış: `tab-item-sounds` (Sesler Stüdyo SVG + Başlık)
+### Adım 2: HTML Ana Sayfa Markup Restorasyonu (`app.html`)
+- [ ] Satır 2695-2745 arasındaki `.hero-bento-row` yapısını yeni panoramik Hero + Çiftli Bento Grid mimarisine dönüştürme.
+- [ ] Tüm kritik DOM ID'lerinin korunduğunu teyit etme.
+- [ ] Hızlı rutin butonlarını `openAddRoutineModal('feed')`, `openAddRoutineModal('diaper')` vb. fonksiyonlara bağlama.
 
-### Adım 3: JavaScript Durum & Senkronizasyon Mantığı (`app.html`)
-- [ ] `switchTab(tabId)` fonksiyonunda SVG ikonlarının `active` durumlarını ve renklerini dinamik güncelleyecek mantığı kurma.
-- [ ] `updateFabSleepState()` fonksiyonu yazarak, `isSleeping` değişkeni değiştikçe (`toggleLiveSleep` içinde) FAB butonunun ikonunu (Hilal ➔ Canlı Uyku / Bitir karesi) ve nabız aurasını senkronize etme.
-- [ ] Uygulama açılışında (`DOMContentLoaded`) mevcut sekme ve uyku durumuna göre FAB'ı başlatma.
+### Adım 3: JavaScript Etkileşim ve State Senkronizasyonu (`app.html`)
+- [ ] `toggleLiveSleep()` fonksiyonunun yeni mum ışığı aurasıyla görsel uyumunu sağlama.
+- [ ] Canlı sayaç çalışırken Hero kartının arka plan gradyanını yeşil/mor uyku moduna geçirme.
 
 ### Adım 4: Doğrulama ve Test Kapısı
 - [ ] `npm run bundle:offline` ile `offlineHtml.generated.ts` dosyasını derleme.
 - [ ] `npx tsc --noEmit -p tsconfig.json` ile tip denetimi.
 - [ ] `node node_modules/jest/bin/jest.js` ile birim testleri (10/10 PASS).
 - [ ] `python scratch/audit_app_html.py` ile DOM ID ve onclick bütünlük taraması.
-- [ ] Versiyon güncelleme (`APP_VERSION = 4.41.0`, `BUILD_NUMBER = 59`).
+- [ ] Versiyon güncelleme (`APP_VERSION = 4.42.0`, `BUILD_NUMBER = 60`).
 
 ---
 
 ## 🛡️ 4. Risk Seviyesi & Kademeli Doğrulama Kapısı (Tiered Review Gate)
 * **Risk Seviyesi:** **Seviye 2 (Orta Risk - Dual Check)**.
-* **Denetim Odağı:** Alt dock yüksekliği ve FAB çıkıntısının ana sayfa içeriği veya modal pencerelerin alt butonlarıyla çakışmaması (z-index ve scroll padding-bottom denetimi).
+* **Denetim Odağı:** Ana sayfa DOM ID'lerinin eksiksiz kalması, uykuda/uyanık durum geçişlerinin görsel doğruluğu ve ekran taşmalarının önlenmesi.
 * **Onay Şartı:** Kod yazımına başlamadan önce bu planın kullanıcı tarafından onaylanması zorunludur.
 
 ---

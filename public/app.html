@@ -505,15 +505,187 @@
     }
 
     /* =========================================================================
-       BENTO GRID, YASTIKSI (PILLOWY) VE PASTEL ANNE-BEBEK KARTLARI
+       PROPOSAL 2B: ORGANIC WARM BENTO (KAŞMİR & MUM IŞIĞI ANNE-BEBEK DÜNYASI)
        ========================================================================= */
+    .hero-organic-card {
+      background: radial-gradient(circle at 50% 20%, rgba(244, 162, 97, 0.18) 0%, rgba(33, 27, 44, 0.90) 75%);
+      border: 1px solid rgba(244, 162, 97, 0.30);
+      border-radius: 28px;
+      padding: 24px 20px 20px;
+      margin-bottom: 12px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      transition: background 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+      cursor: pointer;
+    }
+    .hero-organic-card:active {
+      transform: scale(0.99);
+    }
+    .hero-organic-card.sleeping-hero {
+      background: radial-gradient(circle at 50% 20%, rgba(46, 213, 115, 0.20) 0%, rgba(20, 32, 28, 0.92) 75%) !important;
+      border-color: rgba(46, 213, 115, 0.40) !important;
+      box-shadow: 0 14px 36px rgba(16, 172, 132, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    }
+
+    .warm-moon-aura {
+      width: 76px;
+      height: 76px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(244, 162, 97, 0.25) 0%, rgba(224, 122, 95, 0.15) 100%);
+      border: 1px solid rgba(244, 162, 97, 0.45);
+      margin: 0 auto 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 0 32px rgba(244, 162, 97, 0.45);
+      animation: candlePulse 3.6s infinite ease-in-out;
+      will-change: transform, box-shadow;
+    }
+    .hero-organic-card.sleeping-hero .warm-moon-aura {
+      background: linear-gradient(135deg, rgba(46, 213, 115, 0.3) 0%, rgba(16, 172, 132, 0.18) 100%) !important;
+      border-color: rgba(46, 213, 115, 0.5) !important;
+      box-shadow: 0 0 32px rgba(46, 213, 115, 0.55) !important;
+    }
+
+    @keyframes candlePulse {
+      0% {
+        transform: scale(1);
+        box-shadow: 0 0 28px rgba(244, 162, 97, 0.35);
+      }
+      50% {
+        transform: scale(1.06);
+        box-shadow: 0 0 46px rgba(244, 162, 97, 0.65), 0 0 14px rgba(244, 162, 97, 0.4);
+      }
+      100% {
+        transform: scale(1);
+        box-shadow: 0 0 28px rgba(244, 162, 97, 0.35);
+      }
+    }
+
+    .organic-hero-time {
+      font-family: 'Sora', sans-serif;
+      font-size: 40px;
+      font-weight: 800;
+      color: #FAF5EE;
+      line-height: 1.05;
+      letter-spacing: -0.8px;
+      text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+    }
+
+    .organic-hero-subtext {
+      font-size: 12px;
+      font-weight: 600;
+      color: #D8CEE8;
+      margin-top: 6px;
+      letter-spacing: 0.1px;
+    }
+
+    /* ÇİFTLİ ORGANİK BENTO GRID */
+    .grid-organic-duo {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .bento-card-sage {
+      background: rgba(116, 198, 157, 0.12);
+      border: 1px solid rgba(116, 198, 157, 0.28);
+      border-radius: 24px;
+      padding: 16px 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(16px);
+      cursor: pointer;
+      transition: transform 0.18s ease;
+    }
+    .bento-card-sage:active { transform: scale(0.98); }
+
+    .bento-card-peach {
+      background: rgba(244, 162, 97, 0.12);
+      border: 1px solid rgba(244, 162, 97, 0.28);
+      border-radius: 24px;
+      padding: 14px 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(16px);
+    }
+
+    .routine-pill-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      width: 100%;
+      margin-top: 6px;
+    }
+
+    .routine-pill-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 8px 6px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #FAF5EE;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      cursor: pointer;
+      transition: all 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+      -webkit-tap-highlight-color: transparent;
+    }
+    .routine-pill-btn:active {
+      transform: scale(0.92);
+      background: rgba(244, 162, 97, 0.25);
+    }
+
+    /* Light Theme Overrides */
+    [data-theme="light"] .hero-organic-card {
+      background: radial-gradient(circle at 50% 20%, rgba(254, 228, 220, 0.8) 0%, rgba(255, 255, 255, 0.95) 75%) !important;
+      border-color: rgba(224, 122, 95, 0.35) !important;
+      box-shadow: 0 12px 32px rgba(42, 36, 33, 0.08), inset 0 1px 0 #FFF !important;
+    }
+    [data-theme="light"] .organic-hero-time {
+      color: #2D231E !important;
+      text-shadow: none !important;
+    }
+    [data-theme="light"] .organic-hero-subtext {
+      color: #70655C !important;
+    }
+    [data-theme="light"] .bento-card-sage {
+      background: rgba(116, 198, 157, 0.18) !important;
+      border-color: rgba(116, 198, 157, 0.4) !important;
+      box-shadow: 0 6px 20px rgba(42, 36, 33, 0.05), inset 0 1px 0 #FFF !important;
+    }
+    [data-theme="light"] .bento-card-peach {
+      background: rgba(244, 162, 97, 0.18) !important;
+      border-color: rgba(244, 162, 97, 0.4) !important;
+      box-shadow: 0 6px 20px rgba(42, 36, 33, 0.05), inset 0 1px 0 #FFF !important;
+    }
+    [data-theme="light"] .routine-pill-btn {
+      background: rgba(255, 255, 255, 0.9) !important;
+      border-color: rgba(42, 36, 33, 0.12) !important;
+      color: #2D231E !important;
+    }
+
+    /* Fallback Legacy Bento Support */
     .hero-bento-row {
       display: grid;
       grid-template-columns: 1.4fr 1fr;
       gap: 10px;
       margin-bottom: 10px;
     }
-
     .misilspot-soft-card {
       background: var(--soft-peach-card);
       border: 1px solid rgba(224, 122, 95, 0.28);
@@ -525,10 +697,7 @@
       box-shadow: var(--card-shadow);
       backdrop-filter: blur(12px);
       cursor: pointer;
-      transition: transform 0.15s ease;
     }
-    .misilspot-soft-card:active { transform: scale(0.98); }
-
     .balance-soft-card {
       background: var(--soft-sage-card);
       border: 1px solid rgba(72, 122, 99, 0.28);
@@ -542,9 +711,7 @@
       box-shadow: var(--card-shadow);
       backdrop-filter: blur(12px);
       cursor: pointer;
-      transition: transform 0.15s ease;
     }
-    .balance-soft-card:active { transform: scale(0.98); }
 
     .quick-bento-grid {
       display: grid;
@@ -2691,41 +2858,68 @@
           </div>
         </div>
 
-        <!-- BENTO HERO BLOK: MIŞIL SPOT™ + DENGE SKORU -->
-        <div class="hero-bento-row">
-          <!-- Sol: Mışıl Spot™ Kartı -->
-          <div class="misilspot-soft-card" onclick="toggleLiveSleep()">
-            <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-              <div class="soft-card-label" style="font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px;">
-                <span>✨</span> <span id="sweetspot-status-badge">Mışıl Spot™ Önerisi Aktif</span>
-              </div>
-              <span style="font-size: 16px;">🌙</span>
+        <!-- PROPOSAL 2B: ORGANIC WARM BENTO (HERO HİLAL + ÇİFTLİ BENTO GRID) -->
+        <!-- 1. PANORAMİK HERO HİLAL BENTO KARTI -->
+        <div class="hero-organic-card" id="home-organic-hero" onclick="toggleLiveSleep()">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div class="soft-card-label" style="font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; color: var(--accent);">
+              <span>✨</span> <span id="sweetspot-status-badge">Mışıl Spot™ Biyolojik Ritim</span>
             </div>
-            
-            <div style="margin: 6px 0;">
-              <div class="sleep-target-time" id="target-sleep-display" style="font-family: 'Sora'; font-size: 32px; font-weight: 800; letter-spacing: -0.5px; line-height: 1.05;">11:45</div>
-              <div class="sleep-subtext" id="target-sleep-subtext" style="font-size: 10px; opacity: 0.85; font-weight: 600; margin-top: 3px; line-height: 14px;">Sonraki En İdeal Uyku Vakti (1 saat 15 dk kaldı)</div>
-              <div id="live-sleep-timer" style="display: none; font-size: 12px; font-weight: 800; color: var(--moon-blue); margin-top: 4px;">
-                💤 Canlı Uyku: 00:00:00
-              </div>
-            </div>
-
-            <div class="soft-countdown-pill" id="bento-countdown-pill">
+            <div class="soft-countdown-pill" id="bento-countdown-pill" style="margin: 0; padding: 4px 10px; font-size: 10px;">
               <span>⏳</span> <span>Zamanında Uyut</span>
             </div>
           </div>
 
-          <!-- Sağ: Canlı Denge Skoru Kartı -->
-          <div class="balance-soft-card" onclick="switchTab('analytics')">
-            <div style="font-size: 11px; font-weight: 700;" class="balance-card-label">Denge Skoru</div>
-            <div class="soft-score-dial" style="position: relative; width: 62px; height: 62px; margin: 2px 0;">
+          <!-- Yavaşça Nefes Alan Mum Işığı Kehribar Aurası & Hilal -->
+          <div class="warm-moon-aura" id="home-candle-aura">
+            <svg viewBox="0 0 24 24" style="width: 38px; height: 38px; stroke: #F4A261; fill: #F4A261; filter: drop-shadow(0 2px 10px rgba(244, 162, 97, 0.65));">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </div>
+
+          <div class="organic-hero-time" id="target-sleep-display">11:45</div>
+          <div class="organic-hero-subtext" id="target-sleep-subtext">Sonraki En İdeal Uyku Vakti (1 saat 15 dk kaldı)</div>
+          
+          <div id="live-sleep-timer" style="display: none; font-size: 13px; font-weight: 800; color: #2ED573; margin-top: 8px; text-shadow: 0 0 12px rgba(46, 213, 115, 0.4);">
+            💤 Canlı Uyku: 00:00:00
+          </div>
+        </div>
+
+        <!-- 2. ÇİFTLİ ORGANİK BENTO GRID -->
+        <div class="grid-organic-duo">
+          <!-- Sol: Denge & Ritim (Adaçayı Yeşili) -->
+          <div class="bento-card-sage" onclick="switchTab('analytics')">
+            <div style="font-size: 11px; font-weight: 700; color: var(--sage); letter-spacing: 0.3px; text-transform: uppercase;">Denge & Ritim</div>
+            <div class="soft-score-dial" style="position: relative; width: 66px; height: 66px; margin: 4px 0;">
               <svg viewBox="0 0 72 72" style="width: 100%; height: 100%; transform: rotate(-90deg);">
-                <circle cx="36" cy="36" r="30" fill="none" stroke="rgba(72, 122, 99, 0.18)" stroke-width="7" />
-                <circle id="home-bento-score-fill" cx="36" cy="36" r="30" fill="none" stroke="var(--sage-accent)" stroke-width="7" stroke-dasharray="188" stroke-dashoffset="30" stroke-linecap="round" />
+                <circle cx="36" cy="36" r="30" fill="none" stroke="rgba(116, 198, 157, 0.18)" stroke-width="7" />
+                <circle id="home-bento-score-fill" cx="36" cy="36" r="30" fill="none" stroke="var(--sage)" stroke-width="7" stroke-dasharray="188" stroke-dashoffset="30" stroke-linecap="round" />
               </svg>
-              <div id="home-bento-score-val" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 17px; font-weight: 800;">%84</div>
+              <div id="home-bento-score-val" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Sora'; font-size: 18px; font-weight: 800; color: var(--sage);">%84</div>
             </div>
-            <div id="home-bento-score-badge" class="soft-balance-pill state-in-rhythm">🟢 Ritimde</div>
+            <div id="home-bento-score-badge" class="soft-balance-pill state-in-rhythm" style="background: rgba(116, 198, 157, 0.2); color: var(--sage); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px;">🟢 Ritimde</div>
+          </div>
+
+          <!-- Sağ: Hızlı Rutinler (Sıcak Şeftali) -->
+          <div class="bento-card-peach">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.3px; text-transform: uppercase;">Hızlı Rutin</span>
+              <span style="font-size: 10px; color: var(--text-muted); cursor: pointer;" onclick="openAddRoutineModal()">+Ekle</span>
+            </div>
+            <div class="routine-pill-grid">
+              <div class="routine-pill-btn" onclick="openRoutineModalFor('feeding')" title="Beslenme Kaydı">
+                <span>🍼</span> <span>Besle</span>
+              </div>
+              <div class="routine-pill-btn" onclick="openRoutineModalFor('diaper')" title="Alt Değişimi">
+                <span>🚼</span> <span>Bez</span>
+              </div>
+              <div class="routine-pill-btn" onclick="openCryModal()" title="Ağlama Teşhisi">
+                <span>🎙️</span> <span>Ağlama</span>
+              </div>
+              <div class="routine-pill-btn" onclick="switchTab('sounds')" title="Ninni ve Sesler">
+                <span>🎧</span> <span>Sesler</span>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -4339,7 +4533,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.41.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.42.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -4356,7 +4550,14 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.41.0', date: '26 Ekim 2026', latest: true, items: [
+    { v: '4.42.0', date: '26 Ekim 2026', latest: true, items: [
+      'Organic Warm Bento Grid Mimarisi: Ana sayfadaki sıkışık iki sütunlu kartlar kaldırılarak, dünya standardı Organic Warm Bento (Kaşmir & Mum Işığı) arayüzüne geçildi.',
+      'Panoramik Mum Işığı Hero Kartı: 28px organik radüslü, merkezinde yavaşça nefes alıp veren sıcak kehribar mum ışığı aurası (@keyframes candlePulse) barındıran ferah MışılSpot™ sirkadiyen kartı entegre edildi.',
+      'Çiftli Bento Grid (Adaçayı & Şeftali): Sol tarafta %84 Denge Skoru ve ritim göstergesi, sağ tarafta gece loş ışıkta tek dokunuşla çalışan 4 adet dokunmatik pürüzsüz hap buton (Besle, Bez, Ağlama, Sesler) yerleştirildi.',
+      'Canlı Uyku Görsel Senkronu: Bebek uykuya daldığında Hero kartı ve mum ışığı aurası yumuşak bir zümrüt/gece dinlenme moduna (sleeping-hero) geçecek şekilde çift yönlü reaktif bağlandı.',
+      'Sıfır Regresyon Güvencesi: Tüm 10 kritik ana sayfa DOM ID\'si ve JavaScript fonksiyonları %100 korunarak kesintisiz stabilite sağlandı.'
+    ]},
+    { v: '4.41.0', date: '26 Ekim 2026', items: [
       'Huckleberry Pro FAB Dock Mimarisi: Eski sistem emojili gezinme çubuğu tamamen kaldırılarak, modern kavisli cam morfolojili Huckleberry Pro alt dock entegre edildi.',
       'Merkezi Altın Hilal FAB Butonu: Dock\'un ortasında hafifçe yukarı taşan, tek dokunuşla canlı uyku başlatan ve aktif uykuda nabız gibi parıldayan altın aura efektli akıllı eylem butonu eklendi.',
       'Retina Vektörel SVG İkon Seti: Mışıl Spot, Analiz, Mışıl Dadı ve Sesler sekmeleri için 1.5px ince stroklu, retina uyumlu saf vektörel SVG ikonografisine geçildi.',
@@ -7759,6 +7960,8 @@
     if (isSleeping) {
       sleepStartTime = new Date();
       localStorage.setItem('mishil_live_sleep_start', sleepStartTime.toISOString());
+      const organicHero = document.getElementById('home-organic-hero');
+      if (organicHero) organicHero.classList.add('sleeping-hero');
       circle.classList.add('sleeping');
       if (beamWrap) beamWrap.classList.add('active-beam');
       shape.setAttribute('fill', '#A569BD');
@@ -7783,6 +7986,8 @@
     } else {
       if (sleepInterval) clearInterval(sleepInterval);
       localStorage.removeItem('mishil_live_sleep_start');
+      const organicHero = document.getElementById('home-organic-hero');
+      if (organicHero) organicHero.classList.remove('sleeping-hero');
       const endTime = new Date();
       const totalSecs = Math.floor((endTime - sleepStartTime) / 1000);
       const totalMins = Math.max(1, Math.round(totalSecs / 60));
@@ -7857,6 +8062,8 @@
     isSleeping = true;
     sleepStartTime = parsedStart;
     updateFabSleepState(true);
+    const organicHero = document.getElementById('home-organic-hero');
+    if (organicHero) organicHero.classList.add('sleeping-hero');
 
     const circle = document.getElementById('moon-aura-circle');
     const beamWrap = document.getElementById('moon-beam-wrap');
