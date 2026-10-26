@@ -5217,7 +5217,7 @@
     }
 
     // Google Play / App Store satın alma veya yükseltme (Upgrade) IAP başlat (Event-driven, kör sayaç yok!)
-    const btn = document.getElementById('btn-settings-subscribe');
+    const btn = document.getElementById('btn-settings-sub-action');
     if (btn) {
       btn.disabled = true;
       btn.innerHTML = '🔄 Mağaza Açılıyor...';
@@ -5383,7 +5383,7 @@
       btnRenewal.disabled = false;
       btnRenewal.innerHTML = '🎁 7 Gün Ücretsiz Dene ve Başlat';
     }
-    const btnSettings = document.getElementById('btn-settings-subscribe');
+    const btnSettings = document.getElementById('btn-settings-sub-action');
     if (btnSettings) {
       btnSettings.disabled = false;
       btnSettings.innerHTML = '👑 Mışıl Baby VIP Başlat';
@@ -5551,7 +5551,7 @@
       const screenOnboarding = document.getElementById('screen-onboarding');
       if (screenOnboarding) screenOnboarding.classList.remove('active');
 
-      const modalRenewal = document.getElementById('modal-vip-renewal');
+      const modalRenewal = document.getElementById('vip-renewal-modal');
       if (modalRenewal) modalRenewal.classList.remove('active');
 
       loadBabyProfile();
@@ -5768,18 +5768,6 @@
     } else {
       document.documentElement.removeAttribute('data-theme');
       document.body.removeAttribute('data-theme');
-    }
-
-    const headerIcon = document.getElementById('header-theme-icon');
-    const headerText = document.getElementById('header-theme-text');
-    if (headerIcon && headerText) {
-      if (effective === 'light') {
-        headerIcon.textContent = '🌙';
-        headerText.textContent = 'Sıcak Kaşmir';
-      } else {
-        headerIcon.textContent = '☀️';
-        headerText.textContent = 'Soft Krem';
-      }
     }
 
     ['auto', 'dark', 'light'].forEach(t => {
