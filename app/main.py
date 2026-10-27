@@ -267,15 +267,22 @@ _BOT_USER_AGENTS = (
 )
 
 APP_STORE_URL = "https://apps.apple.com/app/m%C4%B1%C5%9F%C4%B1l-baby-bebek-uyku-ve-a%C4%9Flama/id6809223195"
+GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=com.levitas.misilbaby"
 
-INTERSTITIAL_REDIRECT_HTML = f"""<!DOCTYPE html>
+
+def generate_interstitial_html(is_android: bool) -> str:
+    store_name = "Google Play" if is_android else "App Store"
+    target_url = GOOGLE_PLAY_URL if is_android else APP_STORE_URL
+    store_icon = "🤖" if is_android else "🍏"
+
+    return f"""<!DOCTYPE html>
 <html lang="tr">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mışıl Baby — App Store'da Açılıyor...</title>
+  <title>Mışıl Baby — {store_name}'de Açılıyor...</title>
   <meta property="og:title" content="Mışıl Baby — Bebek Uyku & Ağlama Analizi">
-  <meta property="og:description" content="Yapay zeka ağlama analizi ve beyaz gürültü. App Store'da.">
+  <meta property="og:description" content="Yapay zeka ağlama analizi ve beyaz gürültü. {store_name}'de.">
   <meta property="og:image" content="/icon-512.png">
   <style>
     * {{ margin: 0; padding: 0; box-sizing: border-box; }}
@@ -312,19 +319,28 @@ INTERSTITIAL_REDIRECT_HTML = f"""<!DOCTYPE html>
     }}
   </style>
   <script>
-    try {{
-      window.location.replace("{APP_STORE_URL}");
-    }} catch (e) {{
-      window.location.href = "{APP_STORE_URL}";
-    }}
+    (function() {{
+      var ua = navigator.userAgent.toLowerCase();
+      var target = "{target_url}";
+      if (ua.indexOf("android") > -1) {{
+        target = "{GOOGLE_PLAY_URL}";
+      }} else if (/iphone|ipad|ipod/.test(ua)) {{
+        target = "{APP_STORE_URL}";
+      }}
+      try {{
+        window.location.replace(target);
+      }} catch (e) {{
+        window.location.href = target;
+      }}
+    }})();
   </script>
 </head>
 <body>
   <div class="moon">🌙</div>
   <h1>Mışıl Baby Açılıyor...</h1>
-  <p>App Store sayfasına yönlendiriliyorsunuz. Açılmazsa aşağıdaki butona dokunun:</p>
-  <a href="{APP_STORE_URL}" class="btn">
-    <span>🍏</span> App Store'da Aç
+  <p>{store_name} sayfasına yönlendiriliyorsunuz. Açılmazsa aşağıdaki butona dokunun:</p>
+  <a href="{target_url}" class="btn">
+    <span>{store_icon}</span> {store_name}'de Aç
   </a>
 </body>
 </html>"""
@@ -333,8 +349,10 @@ INTERSTITIAL_REDIRECT_HTML = f"""<!DOCTYPE html>
 @app.get("/ios", response_class=HTMLResponse, tags=["Landing"])
 @app.get("/download", response_class=HTMLResponse, tags=["Landing"])
 @app.get("/app-store", response_class=HTMLResponse, tags=["Landing"])
+@app.get("/android", response_class=HTMLResponse, tags=["Landing"])
+@app.get("/play-store", response_class=HTMLResponse, tags=["Landing"])
 async def smart_app_store_bridge(request: Request):
-    """Smart App Store Bridge: Serves normal landing HTML to bots, client-redirects real users."""
+    """Universal Smart Store Bridge: Serves normal landing HTML to bots, client-redirects real users by OS."""
     user_agent = (request.headers.get("user-agent") or "").lower()
 
     # Meta botu veya crawler ise normal ana sayfayı 200 OK ile sun (böylece Meta yönlendirme tespit edemez)
@@ -344,8 +362,10 @@ async def smart_app_store_bridge(request: Request):
             with open(landing_file, "r", encoding="utf-8") as f:
                 return HTMLResponse(content=f.read(), status_code=status.HTTP_200_OK)
 
-    # Gerçek kullanıcı ise anında App Store'a fırlatan köprüyü 200 OK ile sun
-    return HTMLResponse(content=INTERSTITIAL_REDIRECT_HTML, status_code=status.HTTP_200_OK)
+    # Cihaz tespiti: Android mi yoksa iOS/Diğer mi?
+    is_android = "android" in user_agent
+    interstitial_html = generate_interstitial_html(is_android)
+    return HTMLResponse(content=interstitial_html, status_code=status.HTTP_200_OK)
 
 
 @app.get("/app", response_class=HTMLResponse, tags=["Developer"])

@@ -2,6 +2,16 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.44.2 - Build 63] - 2026-10-27
+### 🌐 Universal Smart Store Bridge: Meta Reklamları İçin Çift Yönlü Akıllı Mağaza Köprüsü
+1. **Dinamik OS Yönlendirmesi (`/ios`, `/download`, `/app-store`, `/android`, `/play-store`):**
+   - Reklam linki değiştirilmeden (böylece Meta öğrenim süreci ve onayı bozulmadan), gelen kullanıcı cihazına göre akıllı yönlendirme devreye alındı.
+   - **Android Kullanıcıları:** Otomatik olarak Google Play Store sayfasına yönlendirilir.
+   - **iOS / iPhone Kullanıcıları:** Otomatik olarak Apple App Store sayfasına yönlendirilir.
+   - **Meta / Sosyal Medya İnceleme Botları:** Meşru landing page (`index.html`) HTTP 200 OK ile sunulur; yönlendirme engeline takılmaz.
+2. **İstemci JS & Ara Yönlendirme Sayfası:**
+   - Dinamik başlık, ikon ve doğrudan mağaza açma butonu ile çift katmanlı istemci tespiti sağlandı.
+
 ## [4.44.1 - Build 63] - 2026-10-27
 ### 🚀 Google Play Store Canlı Yayın Entegrasyonu & Mağaza Bağlantıları
 1. **Web Sitesi Google Play Linki:**
