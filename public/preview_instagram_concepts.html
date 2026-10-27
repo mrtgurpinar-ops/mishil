@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mışıl Bebek & Işıl Anne — Post 01 Masal Karuseli & Karakter Dünyası</title>
+  <title>Mışıl Comics • Sayı #2: Büyülü 4. Ay Fırtınası (Büyük Punto Mobil Tasarım)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
   
   <style>
     :root {
@@ -43,7 +43,7 @@
     /* HEADER */
     .header {
       text-align: center;
-      margin-bottom: 32px;
+      margin-bottom: 30px;
     }
 
     .badge-bar {
@@ -77,10 +77,19 @@
       color: var(--mint);
     }
 
+    .badge-comic {
+      background: #EF4444;
+      border: 1px solid #FFF;
+      color: #FFF;
+      text-transform: uppercase;
+      font-weight: 800;
+      box-shadow: 2px 2px 0px #000;
+    }
+
     .header h1 {
-      font-size: 36px;
-      font-weight: 700;
-      background: linear-gradient(135deg, #FFFFFF 0%, #FDE68A 60%, #A7F3D0 100%);
+      font-size: 38px;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFFFFF 0%, #FDE68A 60%, #38BDF8 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       margin-bottom: 8px;
@@ -90,7 +99,7 @@
       font-family: 'Nunito', sans-serif;
       font-size: 17px;
       color: var(--text-sub);
-      max-width: 780px;
+      max-width: 820px;
       margin: 0 auto;
     }
 
@@ -103,24 +112,26 @@
       background: rgba(255, 255, 255, 0.04);
       padding: 6px;
       border-radius: 16px;
-      max-width: 620px;
+      max-width: 780px;
       margin-left: auto;
       margin-right: auto;
       border: 1px solid var(--border-color);
+      flex-wrap: wrap;
     }
 
     .tab-btn {
       flex: 1;
-      padding: 10px 16px;
+      padding: 10px 14px;
       border-radius: 12px;
       border: none;
       background: transparent;
       color: var(--text-sub);
       font-family: 'Fredoka', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
+      font-size: 14px;
+      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s ease;
+      white-space: nowrap;
     }
 
     .tab-btn.active {
@@ -141,30 +152,6 @@
     @keyframes fadeIn {
       from { opacity: 0; transform: translateY(6px); }
       to { opacity: 1; transform: translateY(0); }
-    }
-
-    /* SECTION TITLE */
-    .section-head {
-      margin-bottom: 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-end;
-      flex-wrap: wrap;
-      gap: 12px;
-    }
-
-    .section-head h2 {
-      font-size: 26px;
-      color: #FFF;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .section-head p {
-      font-family: 'Nunito', sans-serif;
-      font-size: 14px;
-      color: var(--text-sub);
     }
 
     /* CAROUSEL VIEWER CARD */
@@ -205,7 +192,7 @@
       height: 100%;
       object-fit: contain;
       display: block;
-      transition: opacity 0.25s ease;
+      transition: opacity 0.2s ease;
     }
 
     .nav-arrow {
@@ -256,21 +243,23 @@
     .viewer-info {
       display: flex;
       flex-direction: column;
-      gap: 18px;
+      gap: 16px;
     }
 
-    .slide-badge {
-      display: inline-block;
-      align-self: flex-start;
-      padding: 4px 12px;
-      background: rgba(167, 243, 208, 0.15);
-      border: 1px solid var(--mint);
-      color: var(--mint);
-      font-size: 12px;
-      font-weight: 700;
+    .comic-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #FEF08A;
+      border: 2px solid #1E293B;
+      color: #713F12;
+      font-family: 'Fredoka', sans-serif;
+      font-size: 14px;
+      font-weight: 800;
+      padding: 4px 14px;
       border-radius: 8px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
+      box-shadow: 2px 2px 0px #000;
+      align-self: flex-start;
     }
 
     .viewer-info h3 {
@@ -279,20 +268,20 @@
       line-height: 1.25;
     }
 
-    .dialogue-box {
-      background: var(--card-inner);
-      border-left: 4px solid var(--cream);
+    .comic-preview-box {
+      background: #1C2232;
+      border-left: 4px solid #38BDF8;
       border-radius: 0 14px 14px 0;
       padding: 16px 20px;
       font-family: 'Nunito', sans-serif;
-      font-size: 15px;
+      font-size: 16px;
       color: #E2E8F0;
       line-height: 1.55;
     }
 
-    .tip-box {
+    .comic-tip-box {
       background: rgba(253, 230, 138, 0.08);
-      border: 1px dashed rgba(253, 230, 138, 0.35);
+      border: 1px dashed rgba(253, 230, 138, 0.4);
       border-radius: 12px;
       padding: 12px 18px;
       font-family: 'Nunito', sans-serif;
@@ -300,7 +289,7 @@
       color: var(--cream);
     }
 
-    /* THUMBNAIL ROW */
+    /* THUMB STRIP */
     .thumb-strip {
       display: grid;
       grid-template-columns: repeat(6, 1fr);
@@ -338,6 +327,29 @@
     }
 
     /* 6 SLIDES GRID */
+    .section-head {
+      margin-bottom: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .section-head h2 {
+      font-size: 26px;
+      color: #FFF;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-head p {
+      font-family: 'Nunito', sans-serif;
+      font-size: 14px;
+      color: var(--text-sub);
+    }
+
     .slides-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -375,7 +387,6 @@
       aspect-ratio: 1 / 1;
       overflow: hidden;
       background: #000;
-      position: relative;
     }
 
     .grid-slide-img-wrap img {
@@ -425,222 +436,6 @@
       background: rgba(253, 230, 138, 0.2);
     }
 
-    /* CHARACTERS SHOWCASE */
-    .char-hero {
-      background: var(--card-bg);
-      border: 2px solid var(--cream);
-      border-radius: var(--radius-lg);
-      padding: 32px;
-      margin-bottom: 40px;
-      display: grid;
-      grid-template-columns: 500px 1fr;
-      gap: 36px;
-      align-items: center;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
-    }
-
-    @media (max-width: 920px) {
-      .char-hero { grid-template-columns: 1fr; }
-    }
-
-    .char-hero-img {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      border-radius: var(--radius-md);
-      overflow: hidden;
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.15);
-    }
-
-    .char-hero-img img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .char-details h3 {
-      font-size: 30px;
-      color: var(--cream);
-      margin-bottom: 12px;
-    }
-
-    .char-details p {
-      font-family: 'Nunito', sans-serif;
-      font-size: 16px;
-      color: #E2E8F0;
-      line-height: 1.6;
-      margin-bottom: 16px;
-    }
-
-    .char-spec-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      font-family: 'Nunito', sans-serif;
-      font-size: 14px;
-    }
-
-    .char-spec-item {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      color: var(--mint);
-    }
-
-    .char-spec-item span { color: #FFF; font-weight: 700; }
-
-    /* 3 CHAR CARDS GRID */
-    .char-cards-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 24px;
-      margin-bottom: 40px;
-    }
-
-    @media (max-width: 860px) {
-      .char-cards-grid { grid-template-columns: 1fr; }
-    }
-
-    .char-mini-card {
-      background: var(--card-bg);
-      border: 1px solid var(--border-color);
-      border-radius: var(--radius-md);
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .char-mini-img {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    .char-mini-img img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    /* INSTAGRAM FEED SIMULATOR */
-    .feed-simulator {
-      max-width: 600px;
-      margin: 0 auto;
-      background: #000;
-      border: 1px solid rgba(255, 255, 255, 0.15);
-      border-radius: 20px;
-      overflow: hidden;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7);
-    }
-
-    .feed-header {
-      padding: 14px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-    }
-
-    .feed-avatar {
-      width: 38px;
-      height: 38px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #FDE68A, #A7F3D0);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-    }
-
-    .feed-user {
-      flex: 1;
-    }
-
-    .feed-user-name {
-      font-size: 14px;
-      font-weight: 700;
-      color: #FFF;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .feed-user-tag {
-      font-family: 'Nunito', sans-serif;
-      font-size: 12px;
-      color: var(--text-sub);
-    }
-
-    .feed-image-box {
-      width: 100%;
-      aspect-ratio: 1 / 1;
-      background: #111;
-      overflow: hidden;
-    }
-
-    .feed-image-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .feed-actions {
-      padding: 12px 16px 8px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 20px;
-      color: #FFF;
-    }
-
-    .feed-actions-left {
-      display: flex;
-      gap: 16px;
-    }
-
-    .feed-body {
-      padding: 0 16px 16px;
-      font-family: 'Nunito', sans-serif;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .feed-likes {
-      font-weight: 700;
-      color: #FFF;
-      margin-bottom: 6px;
-    }
-
-    .feed-caption {
-      color: #E2E8F0;
-      margin-bottom: 10px;
-      white-space: pre-line;
-    }
-
-    .feed-caption strong { color: #FFF; }
-
-    .feed-comments {
-      color: var(--text-sub);
-      font-size: 13px;
-      margin-bottom: 8px;
-    }
-
-    .feed-comment-pinned {
-      background: rgba(253, 230, 138, 0.08);
-      border-left: 2px solid var(--cream);
-      padding: 8px 12px;
-      border-radius: 0 8px 8px 0;
-      font-size: 13px;
-      color: #E2E8F0;
-      margin-bottom: 12px;
-    }
-
     /* FOOTER */
     .footer-bar {
       background: var(--card-bg);
@@ -680,25 +475,26 @@
     <!-- HEADER -->
     <div class="header">
       <div class="badge-bar">
-        <span class="badge badge-cream">✨ Masal Kitabı Karuseli</span>
-        <span class="badge badge-mint">👶 Mışıl 2A/2B & 👱‍♀️ Işıl 3</span>
-        <span class="badge badge-cream">🎯 DM Tetikleyicisi: "MASAL"</span>
+        <span class="badge badge-comic">⚡ Mışıl Comics • Sayı #2</span>
+        <span class="badge badge-mint">📱 Büyük Punto Mobil Okuma</span>
+        <span class="badge badge-cream">🎯 DM Tetikleyicisi: "FIRTINA"</span>
       </div>
-      <h1>Mışıl Bebek & Işıl Anne Masal Dünyası</h1>
-      <p>"Geceleri mışıl mışıl, gündüzleri ışıl ışıl!" • Biyolojik uyku pencerelerini annelere suçluluk hissettirmeden, masal diliyle anlatan 1:1 Instagram içerik serisi.</p>
+      <h1>Mışıl Comics: Büyülü 4. Ay Fırtınası</h1>
+      <p>Küçük telefon ekranlarında tek dokunuşla ve gözü yormadan okunacak dev puntolarla (32-36px diyaloglar) tasarlanmış haftalık çizgi roman serimiz.</p>
     </div>
 
     <!-- TABS -->
     <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('carousel')">📖 Masal Karuseli (Post 01)</button>
+      <button class="tab-btn active" onclick="switchTab('comic02')">⚡ Çizgi Roman #2 (Büyük Punto)</button>
+      <button class="tab-btn" onclick="switchTab('carousel01')">📖 Masal Karuseli #1 (Paylaşıldı)</button>
       <button class="tab-btn" onclick="switchTab('characters')">🎨 Resmi Karakterler</button>
       <button class="tab-btn" onclick="switchTab('feed')">📱 Instagram Feed Simülatörü</button>
     </div>
 
-    <!-- ========================================== -->
-    <!-- TAB 1: MASAL KARUSELİ (POST 01) -->
-    <!-- ========================================== -->
-    <div id="tab-carousel" class="tab-pane active">
+    <!-- ======================================================== -->
+    <!-- TAB 1: ÇİZGİ ROMAN #2 (BÜYÜK PUNTO) -->
+    <!-- ======================================================== -->
+    <div id="tab-comic02" class="tab-pane active">
 
       <!-- INTERACTIVE CAROUSEL VIEWER -->
       <div class="carousel-viewer-box">
@@ -706,35 +502,35 @@
           
           <!-- SLIDE STAGE -->
           <div class="slide-stage-wrap">
-            <img id="stageImg" class="slide-stage-img" src="../kullanici/instagram/postlar/post_01_slaytlar/slide_1_kapak.png?v=storybook_bubbles" alt="Slayt Görünümü">
-            <button class="nav-arrow prev" onclick="changeSlide(-1)" title="Önceki Slayt">‹</button>
-            <button class="nav-arrow next" onclick="changeSlide(1)" title="Sonraki Slayt">›</button>
-            <div id="stageCounter" class="stage-counter">1 / 6</div>
+            <img id="comicStageImg" class="slide-stage-img" src="../kullanici/instagram/postlar/post_02_slaytlar/comic_1_kapak.png?v=comic_large" alt="Çizgi Roman Görünümü">
+            <button class="nav-arrow prev" onclick="changeComicSlide(-1)" title="Önceki Slayt">‹</button>
+            <button class="nav-arrow next" onclick="changeComicSlide(1)" title="Sonraki Slayt">›</button>
+            <div id="comicStageCounter" class="stage-counter">1 / 6</div>
           </div>
 
           <!-- SLIDE INFO -->
           <div class="viewer-info">
-            <span id="slideBadge" class="slide-badge">KAPAK & HALKA KANCA</span>
-            <h3 id="slideTitle">Bir Varmış, Bir Yokmuş... Uykusuz Bir Gece Varmış</h3>
+            <span id="comicBadge" class="comic-badge-pill">⚡ KAPAK: BÜYÜK GİZEM</span>
+            <h3 id="comicTitle">Büyülü 4. Ay Fırtınası: Ne Oldu Bu Bebeğe?!</h3>
             
-            <div class="dialogue-box">
-              <strong style="color: var(--cream);">Mışıl & Işıl Masalı:</strong><br>
-              <span id="slideDialogue">"Işıl Anne kucağında ağlayan Mışıl'a baktı: 'Çok uykun var biliyorum ama neden gözlerini kapatamıyorsun birtanem?' Mışıl gülümsedi ve annesine uykunun büyük sırrını fısıldadı..."</span>
+            <div class="comic-preview-box">
+              <strong style="color: var(--cream);">Çizgi Roman Diyaloğu:</strong><br>
+              <span id="comicDialogue">«5 saat deliksiz uyuyan melek gitti... Yerine 45 dakikada bir çalan alarm geldi!»</span>
             </div>
 
-            <div class="tip-box">
-              <strong style="color: #FFF;">Pediatrik Bilgi & Eylem:</strong><br>
-              <span id="slideTip">Bebekler yoruldukça daha kolay uyumazlar; biyolojik uyku penceresi kaçtığında aşırı yorulurlar (overtired) ve stres hormonu kortizol yüzünden uykuya direnmeye başlarlar.</span>
+            <div class="comic-tip-box">
+              <strong style="color: #FFF;">Mobil Okunabilirlik & Pediatrik Teşhis:</strong><br>
+              <span id="comicTip">32-36px dev baloncuk puntosu sayesinde telefon ekranında sıfır zorlanma. 4. ayda yenidoğan uykusu biter; yetişkin 45 dakikalık döngü başlar.</span>
             </div>
 
             <!-- THUMB STRIP -->
             <div class="thumb-strip">
-              <div class="thumb-item active" onclick="goToSlide(0)"><img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_1_kapak.png?v=storybook_bubbles" alt="1"></div>
-              <div class="thumb-item" onclick="goToSlide(1)"><img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_2_0_3_ay.png?v=storybook_bubbles" alt="2"></div>
-              <div class="thumb-item" onclick="goToSlide(2)"><img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_3_4_6_ay.png?v=storybook_bubbles" alt="3"></div>
-              <div class="thumb-item" onclick="goToSlide(3)"><img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_4_7_9_ay.png?v=storybook_bubbles" alt="4"></div>
-              <div class="thumb-item" onclick="goToSlide(4)"><img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_5_10_12_ay.png?v=storybook_bubbles" alt="5"></div>
-              <div class="thumb-item" onclick="goToSlide(5)"><img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_6_ozet_cta.png?v=storybook_bubbles" alt="6"></div>
+              <div class="thumb-item active" onclick="goToComicSlide(0)"><img src="../kullanici/instagram/postlar/post_02_slaytlar/comic_1_kapak.png?v=comic_large" alt="1"></div>
+              <div class="thumb-item" onclick="goToComicSlide(1)"><img src="../kullanici/instagram/postlar/post_02_slaytlar/comic_2_kriz.png?v=comic_large" alt="2"></div>
+              <div class="thumb-item" onclick="goToComicSlide(2)"><img src="../kullanici/instagram/postlar/post_02_slaytlar/comic_3_biyoloji.png?v=comic_large" alt="3"></div>
+              <div class="thumb-item" onclick="goToComicSlide(3)"><img src="../kullanici/instagram/postlar/post_02_slaytlar/comic_4_tuzak.png?v=comic_large" alt="4"></div>
+              <div class="thumb-item" onclick="goToComicSlide(4)"><img src="../kullanici/instagram/postlar/post_02_slaytlar/comic_5_super_guc.png?v=comic_large" alt="5"></div>
+              <div class="thumb-item" onclick="goToComicSlide(5)"><img src="../kullanici/instagram/postlar/post_02_slaytlar/comic_6_ozet_cta.png?v=comic_large" alt="6"></div>
             </div>
 
           </div>
@@ -745,82 +541,76 @@
       <!-- 6-SLIDE GRID GALLERY -->
       <div class="section-head">
         <div>
-          <h2>🖼️ 6 Slayt Masal Serisi (Tek Bakışta 1080x1080)</h2>
-          <p>Tüm slaytlar Instagram kare ızgarasında tam hizalı, dev rakamlı ve yüksek kontrastlı tasarlanmıştır.</p>
+          <h2>⚡ 6 Slayt Çizgi Roman Serisi (Tek Bakışta 1080x1080)</h2>
+          <p>Tüm paneller dev mobil puntolarla, yüksek kontrastlı ve sıfır atıl boşlukla tasarlanmıştır.</p>
         </div>
       </div>
 
       <div class="slides-grid">
         
-        <!-- SLIDE 1 -->
         <div class="grid-slide-card">
           <div class="grid-slide-img-wrap">
-            <img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_1_kapak.png?v=storybook_bubbles" alt="Slayt 1">
+            <img src="../kullanici/instagram/postlar/post_02_slaytlar/comic_1_kapak.png?v=comic_large" alt="Slayt 1">
           </div>
           <div class="grid-slide-meta">
-            <h4>1. Slayt: Masal Başlıyor</h4>
-            <p>"Bir Varmış, Bir Yokmuş... Uykusuz Bir Gece Varmış"</p>
-            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_01_slaytlar/slide_1_kapak.png" target="_blank">🔍 Tam Boy Aç (1080x1080)</a>
+            <h4>1. Sayfa: Kapak (4. Ay Fırtınası)</h4>
+            <p>5 saat deliksiz uyuyan melek gitti, çalar saat geldi!</p>
+            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_02_slaytlar/comic_1_kapak.png" target="_blank">🔍 Tam Boy Aç (1080x1080)</a>
           </div>
         </div>
 
-        <!-- SLIDE 2 -->
         <div class="grid-slide-card">
           <div class="grid-slide-img-wrap">
-            <img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_2_0_3_ay.png?v=storybook_bubbles" alt="Slayt 2">
+            <img src="../kullanici/instagram/postlar/post_02_slaytlar/comic_2_kriz.png?v=comic_large" alt="Slayt 2">
           </div>
           <div class="grid-slide-meta">
-            <h4>2. Slayt: 0-3 Ay Masalı</h4>
-            <p><strong>45 - 60 DAKİKA</strong> • Kum Saati dolmadan yatağa al!</p>
-            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_01_slaytlar/slide_2_0_3_ay.png" target="_blank">🔍 Tam Boy Aç (1080x1080)</a>
+            <h4>2. Sayfa: Neden 45 Dk'da Bir Uyanır?</h4>
+            <p>Işıl Anne Çaresiz vs Mışıl Bebek Şaşkın (İkili Dev Panel)</p>
+            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_02_slaytlar/comic_2_kriz.png" target="_blank">🔍 Tam Boy Aç (1080x1080)</a>
           </div>
         </div>
 
-        <!-- SLIDE 3 -->
         <div class="grid-slide-card">
           <div class="grid-slide-img-wrap">
-            <img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_3_4_6_ay.png?v=storybook_bubbles" alt="Slayt 3">
+            <img src="../kullanici/instagram/postlar/post_02_slaytlar/comic_3_biyoloji.png?v=comic_large" alt="Slayt 3">
           </div>
           <div class="grid-slide-meta">
-            <h4>3. Slayt: 4-6 Ay Masalı</h4>
-            <p><strong>1.5 - 2.5 SAAT</strong> • 4. Ay Fırtınası bir arıza değil büyüme adımıdır.</p>
-            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_01_slaytlar/slide_3_4_6_ay.png" target="_blank">🔍 Tam Boy Aç (1080x1080)</a>
+            <h4>3. Sayfa: 45 Dk Rüyalar Treni</h4>
+            <p>Hafif Uyku (0-15m) • Derin Uyku (15-35m) • Kritik Köprü</p>
+            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_02_slaytlar/comic_3_biyoloji.png" target="_blank">🔍 Tam Boy Aç (1080x1080)</a>
           </div>
         </div>
 
-        <!-- SLIDE 4 -->
         <div class="grid-slide-card">
           <div class="grid-slide-img-wrap">
-            <img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_4_7_9_ay.png?v=storybook_bubbles" alt="Slayt 4">
+            <img src="../kullanici/instagram/postlar/post_02_slaytlar/comic_4_tuzak.png?v=comic_large" alt="Slayt 4">
           </div>
           <div class="grid-slide-meta">
-            <h4>4. Slayt: 7-9 Ay Masalı</h4>
-            <p><strong>2.5 - 3.5 SAAT</strong> • Küçük Kaşifin Uyku Savaşı & Sakinleştirici Köprü.</p>
-            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_01_slaytlar/slide_4_7_9_ay.png" target="_blank">🔍 Tam Boy Aç (1080x1080)</a>
+            <h4>4. Sayfa: En Büyük Annelik Tuzağı</h4>
+            <p>Her mıkırdanmada kucağa alıp sallamak döngüyü kilitler!</p>
+            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_02_slaytlar/comic_4_tuzak.png" target="_blank">🔍 Tam Boy Aç (1080x1080)</a>
           </div>
         </div>
 
-        <!-- SLIDE 5 -->
         <div class="grid-slide-card">
           <div class="grid-slide-img-wrap">
-            <img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_5_10_12_ay.png?v=storybook_bubbles" alt="Slayt 5">
+            <img src="../kullanici/instagram/postlar/post_02_slaytlar/comic_5_super_guc.png?v=comic_large" alt="Slayt 5">
           </div>
           <div class="grid-slide-meta">
-            <h4>5. Slayt: 10-12 Ay Masalı</h4>
-            <p><strong>3 - 4 SAAT</strong> • Gece Nöbetinin Sırrı & Melatonin Aydınlatması.</p>
-            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_01_slaytlar/slide_5_10_12_ay.png" target="_blank">🔍 Tam Boy Aç (1080x1080)</a>
+            <h4>5. Sayfa: Süper Güç (Akustik Kalkan)</h4>
+            <p>Mışıl Baby anne karnı sesiyle 3 adımda döngüyü bağla!</p>
+            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_02_slaytlar/comic_5_super_guc.png" target="_blank">🔍 Tam Boy Aç (1080x1080)</a>
           </div>
         </div>
 
-        <!-- SLIDE 6 -->
         <div class="grid-slide-card">
           <div class="grid-slide-img-wrap">
-            <img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_6_ozet_cta.png?v=storybook_bubbles" alt="Slayt 6">
+            <img src="../kullanici/instagram/postlar/post_02_slaytlar/comic_6_ozet_cta.png?v=comic_large" alt="Slayt 6">
           </div>
           <div class="grid-slide-meta">
-            <h4>6. Slayt: Masal Cetveli & CTA</h4>
-            <p>Ve Mışıl Mışıl Uyudular... 💤 • Yoruma "MASAL" Yaz Hediye Rehberini Al!</p>
-            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_01_slaytlar/slide_6_ozet_cta.png" target="_blank">🔍 Tam Boy Aç (1080x1080)</a>
+            <h4>6. Sayfa: Zafer & "FIRTINA" DM Hediyesi</h4>
+            <p>4. Ay Fırtınası Dindi, Mışıl Uyudu! 💤 (DM Kılavuzu)</p>
+            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_02_slaytlar/comic_6_ozet_cta.png" target="_blank">🔍 Tam Boy Aç (1080x1080)</a>
           </div>
         </div>
 
@@ -828,135 +618,84 @@
 
     </div>
 
-    <!-- ========================================== -->
-    <!-- TAB 2: RESMİ KARAKTERLER -->
-    <!-- ========================================== -->
+    <!-- ======================================================== -->
+    <!-- TAB 2: POST 01 MASAL KARUSELİ (PAYLAŞILDI) -->
+    <!-- ======================================================== -->
+    <div id="tab-carousel01" class="tab-pane">
+
+      <div class="section-head">
+        <div>
+          <h2>📖 Masal Karuseli #1: Ay Ay Uyku Pencereleri (Paylaşıldı)</h2>
+          <p>Instagram hesabında başarıyla yayına alınan ilk masal karuselimiz.</p>
+        </div>
+      </div>
+
+      <div class="slides-grid">
+        <div class="grid-slide-card"><div class="grid-slide-img-wrap"><img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_1_kapak.png?v=storybook_bubbles" alt="S1"></div><div class="grid-slide-meta"><h4>1. Kapak</h4></div></div>
+        <div class="grid-slide-card"><div class="grid-slide-img-wrap"><img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_2_0_3_ay.png?v=storybook_bubbles" alt="S2"></div><div class="grid-slide-meta"><h4>2. 0-3 Ay</h4></div></div>
+        <div class="grid-slide-card"><div class="grid-slide-img-wrap"><img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_3_4_6_ay.png?v=storybook_bubbles" alt="S3"></div><div class="grid-slide-meta"><h4>3. 4-6 Ay</h4></div></div>
+        <div class="grid-slide-card"><div class="grid-slide-img-wrap"><img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_4_7_9_ay.png?v=storybook_bubbles" alt="S4"></div><div class="grid-slide-meta"><h4>4. 7-9 Ay</h4></div></div>
+        <div class="grid-slide-card"><div class="grid-slide-img-wrap"><img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_5_10_12_ay.png?v=storybook_bubbles" alt="S5"></div><div class="grid-slide-meta"><h4>5. 10-12 Ay</h4></div></div>
+        <div class="grid-slide-card"><div class="grid-slide-img-wrap"><img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_6_ozet_cta.png?v=storybook_bubbles" alt="S6"></div><div class="grid-slide-meta"><h4>6. Özet & CTA</h4></div></div>
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 3: RESMİ KARAKTERLER -->
+    <!-- ======================================================== -->
     <div id="tab-characters" class="tab-pane">
 
-      <!-- HERO MASTER PORTRAIT -->
-      <div class="char-hero">
-        <div class="char-hero-img">
-          <img src="../kullanici/instagram/karakterler/isil_3_ve_misil_2_birlikte_master.jpg" alt="Işıl Anne ve Mışıl Bebek Birlikte Master">
+      <div class="char-hero" style="background: var(--card-bg); border: 2px solid var(--cream); border-radius: var(--radius-lg); padding: 32px; display: grid; grid-template-columns: 460px 1fr; gap: 32px; align-items: center; margin-bottom: 40px;">
+        <div style="width: 100%; aspect-ratio: 1/1; border-radius: 16px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.15);">
+          <img src="../kullanici/instagram/karakterler/isil_3_ve_misil_2_birlikte_master.jpg" alt="Master Duo" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
-        <div class="char-details">
-          <span class="badge badge-cream" style="margin-bottom: 10px;">⭐ Resmi Marka Karakterlerimiz</span>
-          <h3>Işıl Anne & Mışıl Bebek (Master İkili)</h3>
-          <p>
-            Pixar/Disney 3D masal kitabı tarzında, İskandinav pastel estetiğiyle çizilmiş resmi marka yüzlerimiz. Işıl Anne'nin papatya bandanalı modern saç stili ve adaçayı hırkası; Mışıl Bebek'in pelüş tavşan kulaklı tulumu ve sarı uyku yıldızı Yıldızcık.
+        <div>
+          <span class="badge badge-cream" style="margin-bottom: 12px;">⭐ Resmi Marka Yüzlerimiz</span>
+          <h3 style="font-size: 30px; color: var(--cream); margin-bottom: 12px;">Işıl Anne & Mışıl Bebek</h3>
+          <p style="font-family: 'Nunito'; font-size: 16px; color: #E2E8F0; line-height: 1.6; margin-bottom: 16px;">
+            Pixar/Disney 3D tarzında, İskandinav pastel estetiğiyle çizilmiş resmi marka karakterlerimiz. Işıl Anne'nin papatya bandanalı modern saç stili; Mışıl Bebek'in pelüş tavşan kulaklı tulumu ve sarı pelüş uyku yıldızı Yıldızcık.
           </p>
-          <div class="char-spec-list">
-            <div class="char-spec-item">✨ <span>Işıl Anne:</span> 28-30 yaş, sıcak kestane saçlar, adaçayı örgü hırka, beyaz tişört.</div>
-            <div class="char-spec-item">👶 <span>Mışıl Bebek:</span> 7 aylık, tombiş yanaklı, krem rengi tavşan kulaklı tulum, sarı pelüş yıldız.</div>
-            <div class="char-spec-item">🌙 <span>Slogan:</span> "Geceleri mışıl mışıl, gündüzleri ışıl ışıl!"</div>
+          <div style="display: flex; flex-direction: column; gap: 8px; font-family: 'Nunito'; font-size: 15px;">
+            <div>👱‍♀️ <strong>Işıl Anne:</strong> 28-30 yaş, modern saç bandanası, adaçayı hırka.</div>
+            <div>👶 <strong>Mışıl Bebek:</strong> 7 aylık tombiş bebek, tavşan kulaklı tulum.</div>
+            <div>🌙 <strong>Slogan:</strong> "Geceleri mışıl mışıl, gündüzleri ışıl ışıl!"</div>
           </div>
         </div>
-      </div>
-
-      <!-- 3 MINI CARDS -->
-      <div class="char-cards-grid">
-        
-        <div class="char-mini-card">
-          <div class="char-mini-img">
-            <img src="../kullanici/instagram/karakterler/misil_2_rotus_a_gozler_acik.jpg" alt="Mışıl 2A">
-          </div>
-          <h4 style="color: var(--cream);">Mışıl 2A (Meraklı & Gülen)</h4>
-          <p style="font-family: 'Nunito'; font-size: 14px; color: var(--text-sub);">
-            Gözleri açık, tatlı gülümsemesi ve sarı yıldızına sarılışıyla gündüz keşif ve oyun sahnelerinin modeli.
-          </p>
-        </div>
-
-        <div class="char-mini-card">
-          <div class="char-mini-img">
-            <img src="../kullanici/instagram/karakterler/misil_2_rotus_b_esneyen.jpg" alt="Mışıl 2B">
-          </div>
-          <h4 style="color: var(--mint);">Mışıl 2B (Uykucu & Esneyen)</h4>
-          <p style="font-family: 'Nunito'; font-size: 14px; color: var(--text-sub);">
-            Bulut yastık üzerinde gözleri süzülen, tatlı tatlı esneyen ve uyku penceresi sinyalini temsil eden modeli.
-          </p>
-        </div>
-
-        <div class="char-mini-card">
-          <div class="char-mini-img">
-            <img src="../kullanici/instagram/karakterler/isil_oneri_3_bandanali_modern.jpg" alt="Işıl 3">
-          </div>
-          <h4 style="color: var(--lavender);">Işıl Anne 3 (Modern Anne)</h4>
-          <p style="font-family: 'Nunito'; font-size: 14px; color: var(--text-sub);">
-            Papatya bandanalı, elinde telefonuyla Mışıl Baby uygulamasını güvenle kullanan modern ebeveyn modeli.
-          </p>
-        </div>
-
       </div>
 
     </div>
 
-    <!-- ========================================== -->
-    <!-- TAB 3: INSTAGRAM FEED SIMULATOR -->
-    <!-- ========================================== -->
+    <!-- ======================================================== -->
+    <!-- TAB 4: INSTAGRAM FEED SIMULATOR -->
+    <!-- ======================================================== -->
     <div id="tab-feed" class="tab-pane">
 
-      <div class="section-head" style="text-align: center; justify-content: center;">
-        <div>
-          <h2>📱 Instagram Gönderi ve Etkileşim Görünümü</h2>
-          <p>Kullanıcının akışında gönderinin nasıl görüneceğini, açıklama metnini ve sabit yorumu önizleyin.</p>
-        </div>
-      </div>
-
-      <div class="feed-simulator">
-        
-        <!-- FEED HEADER -->
-        <div class="feed-header">
-          <div class="feed-avatar">🌙</div>
-          <div class="feed-user">
-            <div class="feed-user-name">misilbaby <span style="color: var(--blue-accent);">✓</span></div>
-            <div class="feed-user-tag">Mışıl Bebek & Işıl Anne • Orijinal Ses</div>
-          </div>
-          <div style="color: var(--text-sub); font-size: 18px; cursor: pointer;">•••</div>
-        </div>
-
-        <!-- FEED IMAGE -->
-        <div class="feed-image-box">
-          <img src="../kullanici/instagram/postlar/post_01_slaytlar/slide_1_kapak.png?v=storybook_bubbles" alt="Feed Kapak">
-        </div>
-
-        <!-- ACTIONS -->
-        <div class="feed-actions">
-          <div class="feed-actions-left">
-            <span>❤️</span>
-            <span>💬</span>
-            <span>🚀</span>
-          </div>
-          <div>
-            <span>🔖</span>
+      <div class="feed-simulator" style="max-width: 600px; margin: 0 auto; background: #000; border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 20px; overflow: hidden;">
+        <div style="padding: 14px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid rgba(255, 255, 255, 0.08);">
+          <div style="width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, #FDE68A, #A7F3D0); display: flex; align-items: center; justify-content: center; font-size: 18px;">🌙</div>
+          <div style="flex: 1;">
+            <div style="font-size: 14px; font-weight: 700; color: #FFF;">misilbaby <span style="color: var(--blue-accent);">✓</span></div>
+            <div style="font-family: 'Nunito'; font-size: 12px; color: var(--text-sub);">Mışıl Comics • Bölüm #2</div>
           </div>
         </div>
 
-        <!-- BODY -->
-        <div class="feed-body">
-          <div class="feed-likes">2.418 beğenme</div>
-          
-          <div class="feed-caption">
-            <strong>misilbaby</strong> Bir varmış, bir yokmuş... Uykusuz bir gece varmış. 🌙✨
-
-Işıl Anne kucağında ağlayan bebeği Mışıl'a şefkatle sarılmış ve sormuş:
-"— Çok uykun var biliyorum birtanem, gözlerin küçücük kaldı... Ama neden uykuya bu kadar direniyorsun?"
-
-Mışıl başını annesinin omzuna yaslamış ve kulağına uykunun en büyük biyolojik sırrını fısıldamış:
-"— Annecim, ben sana inat olsun diye ağlamıyorum. Sadece benim minik bedenimin bir 'Uyanıklık Kum Saati' var..." ⏳
-
-Sola kaydırarak ay ay uyku masalını okuyabilir, bebeğinizin yaşına en uygun uyku saatini öğrenebilirsiniz! 📖💛
-
-🎁 HEDİYE MASAL REHBERİ:
-Yoruma <strong>"MASAL"</strong> yazan tüm annelerimize; "0-12 Ay Uyku Pencereleri & Günlük Rutin Şablonu"nu DM kutunuza hediye gönderiyoruz! 💌
-          </div>
-
-          <div class="feed-comments">Tüm 184 yorumu gör</div>
-
-          <div class="feed-comment-pinned">
-            📌 <strong>misilbaby:</strong> Bebeğiniz şu an kaç aylık ve gün içindeki uykuları ne durumda? Yorumlarda buluşalım! 👇 Ayrıca hediye uyku tablonuz için yoruma <strong>"MASAL"</strong> yazabilirsiniz! 🌙
-          </div>
-
+        <div style="width: 100%; aspect-ratio: 1/1; background: #111;">
+          <img src="../kullanici/instagram/postlar/post_02_slaytlar/comic_1_kapak.png?v=comic_large" alt="Feed Kapak" style="width: 100%; height: 100%; object-fit: cover;">
         </div>
 
+        <div style="padding: 16px; font-family: 'Nunito'; font-size: 14px; line-height: 1.5; color: #E2E8F0;">
+          <div style="font-weight: 700; color: #FFF; margin-bottom: 6px;">2.940 beğenme</div>
+          <div style="margin-bottom: 12px;">
+            <strong>misilbaby</strong> ⚡ MIŞIL COMICS • Sayı #2: "Büyülü 4. Ay Fırtınası!" 🌪️👶<br><br>
+            "Daha geçen hafta 5 saat deliksiz uyuyan bebeğime ne oldu da şimdi 45 dakikada bir çalar saat gibi uyanıyor?!" ⏰😭<br><br>
+            Derin bir nefes alın... Bebeğiniz uyumayı unutmadı. 4. ayda yenidoğan uykusu biter ve yetişkin tipi evreli uyku başlar! 🧠✨<br><br>
+            🎁 <strong>HEDİYE:</strong> Yoruma <strong>"FIRTINA"</strong> yazan tüm annelere «4. Ay Uyku Gerilemesi Hayatta Kalma Kılavuzu»nu DM'den gönderiyoruz! 💌
+          </div>
+          <div style="background: rgba(253, 230, 138, 0.08); border-left: 2px solid var(--cream); padding: 8px 12px; border-radius: 0 8px 8px 0; font-size: 13px;">
+            📌 <strong>misilbaby:</strong> 4. ay fırtınasını siz nasıl atlattınız veya geceleriniz nasıl gidiyor? Yorumlarda buluşalım! 👇 Ayrıca hediye rehberiniz için yoruma <strong>"FIRTINA"</strong> yazabilirsiniz! 🌙
+          </div>
+        </div>
       </div>
 
     </div>
@@ -964,12 +703,12 @@ Yoruma <strong>"MASAL"</strong> yazan tüm annelerimize; "0-12 Ay Uyku Pencerele
     <!-- FOOTER -->
     <div class="footer-bar">
       <div>
-        <h3 style="font-size: 18px; color: #FFF; margin-bottom: 4px;">Post 01 Masal Karuseli & Karakter Varlıkları Hazır</h3>
+        <h3 style="font-size: 18px; color: #FFF; margin-bottom: 4px;">Mışıl Comics #2 (Büyük Punto) Hazır</h3>
         <p style="font-size: 14px; color: var(--text-sub);">Tüm görseller 1080x1080 Ultra HD PNG formatında yerel diskte saklanmaktadır.</p>
       </div>
       <div>
-        <button class="action-btn" onclick="alert('Instagram Post 01 paketi yayına hazır!')">
-          ✨ Tüm Masal Karuseli Onaylandı!
+        <button class="action-btn" onclick="alert('Mışıl Comics #2 yayına hazır!')">
+          ⚡ 2. Bölüm Onaylandı!
         </button>
       </div>
     </div>
@@ -977,97 +716,100 @@ Yoruma <strong>"MASAL"</strong> yazan tüm annelerimize; "0-12 Ay Uyku Pencerele
   </div>
 
   <script>
-    const slidesData = [
+    const comicData = [
       {
-        src: "../kullanici/instagram/postlar/post_01_slaytlar/slide_1_kapak.png?v=storybook_bubbles",
-        badge: "KAPAK & HALKA KANCA",
-        title: "Bir Varmış, Bir Yokmuş... Uykusuz Bir Gece Varmış",
-        dialogue: "\"Işıl Anne kucağında ağlayan Mışıl'a baktı: 'Çok uykun var biliyorum ama neden gözlerini kapatamıyorsun birtanem?' Mışıl gülümsedi ve annesine uykunun büyük sırrını fısıldadı...\"",
-        tip: "Bebekler yoruldukça daha kolay uyumazlar; biyolojik uyku penceresi kaçtığında aşırı yorulurlar (overtired) ve stres hormonu kortizol yüzünden uykuya direnmeye başlarlar."
+        src: "../kullanici/instagram/postlar/post_02_slaytlar/comic_1_kapak.png?v=comic_large",
+        badge: "⚡ KAPAK: BÜYÜK GİZEM",
+        title: "Büyülü 4. Ay Fırtınası: Ne Oldu Bu Bebeğe?!",
+        dialogue: "«5 saat deliksiz uyuyan melek gitti... Yerine 45 dakikada bir çalan alarm geldi!»",
+        tip: "32-36px dev baloncuk puntosu sayesinde telefon ekranında sıfır zorlanma. 4. ayda yenidoğan uykusu biter; yetişkin 45 dakikalık döngü başlar."
       },
       {
-        src: "../kullanici/instagram/postlar/post_01_slaytlar/slide_2_0_3_ay.png?v=storybook_bubbles",
-        badge: "1. MASAL • 0 - 3 AY",
-        title: "45 Dakikalık Kum Saati (45 - 60 DAKİKA)",
-        dialogue: "\"— Annecim, benim uyanıklık kum saatim sadece 45-60 dakikalık! Bu süre dolduğunda beynim yorulur, stres hormonu salgılar ve uyumak istesem de gözlerimi kapatamam...\"",
-        tip: "💡 Esnemesini bekleme! Bakışlarını kaçırdığı, hareketleri yavaşladığı veya kaşları hafifçe kızardığı ilk an beni yatağıma yatır annecim."
+        src: "../kullanici/instagram/postlar/post_02_slaytlar/comic_2_kriz.png?v=comic_large",
+        badge: "⏰ KRİZ: 45 DK ALARMI",
+        title: "Neden 45 Dakikada Bir Uyanıyor?",
+        dialogue: "Işıl: «Yatağına koyuyorum... Tam 40 dakika sonra gözler fal taşı!» — Mışıl: «Beynimde gizli bir devrim başladı annecim!»",
+        tip: "Bebek her 45 dakikada bir hafif uykuya geçer ve odayı kontrol eder. Tek başına dönmeyi bilmiyorsa ağlar."
       },
       {
-        src: "../kullanici/instagram/postlar/post_01_slaytlar/slide_3_4_6_ay.png?v=storybook_bubbles",
-        badge: "2. MASAL • 4 - 6 AY",
-        title: "Büyülü 4. Ay Fırtınası (1.5 - 2.5 SAAT)",
-        dialogue: "\"— Annecim, 4. ayda beynim büyüdü! Artık senin gibi derin ve hafif uyku evrelerim var. 45 dakikada bir uyanmam bir arıza değil, büyüme mucizem!\"",
-        tip: "💡 Her uyandığımda beni hemen kucağına alma. Mışıl Baby'deki ritmik anne karnı sesimle kendi kendime yeniden uykuya dalmamı bekle."
+        src: "../kullanici/instagram/postlar/post_02_slaytlar/comic_3_biyoloji.png?v=comic_large",
+        badge: "🧬 BİYOLOJİK SIR",
+        title: "45 Dakikalık Rüyalar Treni!",
+        dialogue: "«Uykum artık duraklı bir tren! 45. dakikada durağa gelince seni göremezsem panikliyorum!»",
+        tip: "Hafif Uyku (0-15m) -> Derin Uyku (15-35m) -> Kritik Köprü (35-45m). Bebek uyumayı unutmadı, döngü bağlamayı bilmiyor!"
       },
       {
-        src: "../kullanici/instagram/postlar/post_01_slaytlar/slide_4_7_9_ay.png?v=storybook_bubbles",
-        badge: "3. MASAL • 7 - 9 AY",
-        title: "Küçük Kaşifin Uyku Savaşı (2.5 - 3.5 SAAT)",
-        dialogue: "\"— Annecim, artık emekliyorum, dünyayı keşfediyorum! Uykuya dalarsam bu harika dünyayı kaçırırım diye korkuyorum. Yorgunluktan bitsem bile direniyorum!\"",
-        tip: "💡 Gündüz uykumu 2'ye sabitle. Uykudan 20 dakika önce ışıkları kıs, hareketli oyuncaklarımı topla ve 'Sakin Uyku Köprümüzü' kur."
+        src: "../kullanici/instagram/postlar/post_02_slaytlar/comic_4_tuzak.png?v=comic_large",
+        badge: "⚠️ DİKKAT: UYKU KİLİDİ",
+        title: "Her Mıkırdanmada Kucakta Sallamak!",
+        dialogue: "Işıl: «Belim koptu sallamaktan!» — Mışıl: «Kucakta dalıp yatakta uyanırsam korkarım annecim!»",
+        tip: "Kucakta sallayarak uyutmak bebeğe 'Ben ancak sallanarak uyuyabilirim' şartlanması yaratır."
       },
       {
-        src: "../kullanici/instagram/postlar/post_01_slaytlar/slide_5_10_12_ay.png?v=storybook_bubbles",
-        badge: "4. MASAL • 10 - 12 AY",
-        title: "Gece Nöbetinin Sırrı (3 - 4 SAAT)",
-        dialogue: "\"— Annecim, gece uykusundan önceki son uyanıklık pencerem günün en uzunu! Beni çok erken yatırırsan gece 03:00'te oyun oynamak için uyanırım!\"",
-        tip: "💡 Akşam uykusundan 45 dakika önce mavi ekranları kapat. Kehribar gece lambasını yak ve melatonin perisini odaya davet et."
+        src: "../kullanici/instagram/postlar/post_02_slaytlar/comic_5_super_guc.png?v=comic_large",
+        badge: "🛡️ AKUSTİK KALKAN",
+        title: "Döngüleri Bağlayan Anne Karnı Sesi!",
+        dialogue: "«Mıkırdandığı ilk an kucağa almıyorum. Mışıl Baby anne karnı sesini açıp bekliyorum!»",
+        tip: "1. Yatakta Sakinleştir • 2. Akustik Kalkan Aç • 3. 90 Saniye Bekle. 3 gecede blok uykular geri gelir!"
       },
       {
-        src: "../kullanici/instagram/postlar/post_01_slaytlar/slide_6_ozet_cta.png?v=storybook_bubbles",
-        badge: "MASAL CETVELİ & HEDİYE REHBER",
-        title: "Ve Mışıl Mışıl Uyudular... 💤",
-        dialogue: "\"Işıl Anne uykunun sırlarını çözdü, Mışıl pelüş yıldızına sarılıp deliksiz bir uykuya daldı...\"",
-        tip: "🎁 Yoruma 'MASAL' yazan tüm annelere '0-12 Ay Ayarlanabilir Rutin Tablosu' DM'den hediye gönderilir. Beşik başında bakmak için kaydetmeyi unutmayın!"
+        src: "../kullanici/instagram/postlar/post_02_slaytlar/comic_6_ozet_cta.png?v=comic_large",
+        badge: "🎉 ZAFER HARİTASI & HEDİYE",
+        title: "4. Ay Fırtınası Dindi, Mışıl Uyudu! 💤",
+        dialogue: "«4. ay gerileme değil, beynin büyülü zaferidir! Doğru sesle fırtına diner.»",
+        tip: "Yoruma 'FIRTINA' yazan tüm annelere '4. Ay Hayatta Kalma Kılavuzu' DM'den anında hediye gönderilir!"
       }
     ];
 
-    let currentSlide = 0;
+    let currentComicSlide = 0;
 
-    function renderSlide(index) {
-      currentSlide = (index + slidesData.length) % slidesData.length;
-      const data = slidesData[currentSlide];
+    function renderComicSlide(index) {
+      currentComicSlide = (index + comicData.length) % comicData.length;
+      const data = comicData[currentComicSlide];
 
-      const stageImg = document.getElementById('stageImg');
+      const stageImg = document.getElementById('comicStageImg');
       stageImg.style.opacity = '0';
       setTimeout(() => {
         stageImg.src = data.src;
         stageImg.style.opacity = '1';
       }, 150);
 
-      document.getElementById('stageCounter').textContent = (currentSlide + 1) + ' / ' + slidesData.length;
-      document.getElementById('slideBadge').textContent = data.badge;
-      document.getElementById('slideTitle').textContent = data.title;
-      document.getElementById('slideDialogue').textContent = data.dialogue;
-      document.getElementById('slideTip').textContent = data.tip;
+      document.getElementById('comicStageCounter').textContent = (currentComicSlide + 1) + ' / ' + comicData.length;
+      document.getElementById('comicBadge').textContent = data.badge;
+      document.getElementById('comicTitle').textContent = data.title;
+      document.getElementById('comicDialogue').textContent = data.dialogue;
+      document.getElementById('comicTip').textContent = data.tip;
 
-      const thumbs = document.querySelectorAll('.thumb-item');
+      const thumbs = document.querySelectorAll('#tab-comic02 .thumb-item');
       thumbs.forEach((t, i) => {
-        if (i === currentSlide) t.classList.add('active');
+        if (i === currentComicSlide) t.classList.add('active');
         else t.classList.remove('active');
       });
     }
 
-    function changeSlide(delta) {
-      renderSlide(currentSlide + delta);
+    function changeComicSlide(delta) {
+      renderComicSlide(currentComicSlide + delta);
     }
 
-    function goToSlide(index) {
-      renderSlide(index);
+    function goToComicSlide(index) {
+      renderComicSlide(index);
     }
 
     function switchTab(tabId) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
 
-      if (tabId === 'carousel') {
+      if (tabId === 'comic02') {
         document.querySelectorAll('.tab-btn')[0].classList.add('active');
-        document.getElementById('tab-carousel').classList.add('active');
-      } else if (tabId === 'characters') {
+        document.getElementById('tab-comic02').classList.add('active');
+      } else if (tabId === 'carousel01') {
         document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('tab-carousel01').classList.add('active');
+      } else if (tabId === 'characters') {
+        document.querySelectorAll('.tab-btn')[2].classList.add('active');
         document.getElementById('tab-characters').classList.add('active');
       } else if (tabId === 'feed') {
-        document.querySelectorAll('.tab-btn')[2].classList.add('active');
+        document.querySelectorAll('.tab-btn')[3].classList.add('active');
         document.getElementById('tab-feed').classList.add('active');
       }
     }

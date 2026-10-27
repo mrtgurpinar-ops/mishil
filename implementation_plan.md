@@ -1,66 +1,70 @@
-# 📜 Uygulama Planı: Işıl & Mışıl ile "Masalsı Uyku Pencereleri" Karuseli
+# 📐 Implementation Plan: Işıl & Mışıl Çizgi Roman Serisi (Post 02: 4. Ay Fırtınası)
 
-> **Üst Göstergeler:**  
-> ⏱️ **Tahmini Efor:** ~15 Dakika  
-> 🔋 **Kapasite & Token Kullanımı:** Kalan oturumun yaklaşık **%4**'ü  
-> 🛡️ **Risk & İnceleme Seviyesi:** Seviye 1 (Fast Lane / İçerik & Görsel Motoru)
-
----
-
-## 🎯 Netleştirilmiş Hedef & Kapsam
-Onaylanan resmi karakterlerimiz **Işıl Anne (Papatyalı Bandana)** ve **Mışıl Bebek (Tavşan Kulaklı Tulum)** merkezinde; kuru bir tıbbi tablo yerine **çocuk masalı tadında anlatılan**, ancak her slaytında annelere hayat kurtarıcı pediatrik uyku penceresi tüyoları veren **6 slaytlık 1:1 Kare (1080x1080 px)** gönderi seti üretmek.
+### 📊 Üst Gösterge Alanı:
+* **Tahmini Efor:** Orta (1.5 - 2 saat)
+* **Kalan Kapasite (Context / Turn Kullanımı):** Yaklaşık %12 - %15
 
 ---
 
-## 🏎️ Tri-Agent Görev Dağılımı
-* **Claude (Anlatı & Metin Mimarisi):** Masal tonunda diyalog kurgusu (*"Bir Varmış Bir Yokmuş..."*), anne-bebek şefkat bağı ve bilimsel verilerin masal içine organik yedirilmesi.
-* **Codex (1:1 Görsel Render Motoru):** Playwright motorunu güncelleyip onaylanan karakter görselleri (`isil_3_ve_misil_2_birlikte_master.jpg`, `misil_2_rotus_a_gozler_acik.jpg`, `misil_2_rotus_b_esneyen.jpg`), Nordic Pastel zemin ve dev masalsı tipografiyle Ultra HD PNG çıktısı almak.
-* **Antigravity (Orkestrasyon & Yerel Önizleme):** Sol paneldeki interaktif inceleme sayfasını güncellemek, hafıza dokümanlarını senkronize etmek ve kullanıcı onayına sunmak.
+## 🎯 Kullanıcı İstek Analizi & Netleştirilmiş Kapsam (Prompt Refinement & Expansion)
+
+* **🎯 Netleştirilmiş Hedef & Kapsam:**
+  - Kullanıcı Post 01'i Instagram'da başarıyla paylaştı. İki kritik tasarım geri bildirimi verdi:
+    1. *"Bir sonrakinde daha az boşluklu yapalım"* (Fazla negatif boşluklardan arındırılmış, dolu dolu ve zengin görsel kompozisyon).
+    2. *"Çizgi roman serisi gibi olsun istiyorum"* (Resimli masal kitabından dinamik **Instagram Çizgi Roman Serisi / Webcomic Episode** formatına geçiş).
+  - Bu doğrultuda **Bölüm 2 (Post 02)**: *"Işıl & Mışıl'ın Uyku Maceraları • Sayı #2: Büyülü 4. Ay Fırtınası (4. Ay Uyku Gerilemesi ve Çözüm Haritası)"* temasıyla; klasik çizgi roman kapak masthead'i, anlatıcı kutuları (*"Saat 03:15... Işıl Anne'nin yatak odası"*), dinamik çizgi roman panelleri, ses efekti balonları (*"ESNEEE!", "Zzzz...", "PIŞŞŞ!"*), çizgi roman konuşma kuyrukları ve dolgun bento panel mimarisiyle 6 slaytlık 1:1 kare (1080x1080) karusel olarak üretilecektir.
+
+* **🏎️ 3 Ajanlı Görev Dağılımı (Tri-Agent Roles):**
+  - **Antigravity Şeridi (Tasarım & Orkestrasyon):** Çizgi roman görsel panel mimarisini, CSS grid panel motorunu, masthead/sayı rozetlerini, interaktif önizleme panelini ve Instagram metin/DM kurgusunu tasarlar.
+  - **Codex Şeridi (Hızlı Kodlama & Render Motoru):** `projects/mishil/scripts/render_instagram_comic_02.py` betiğini sıfır boşluklu, tam dolgulu çizgi roman panelleri ve Playwright otomasyonu ile optimize eder.
+  - **Claude Şeridi (Pediatrik Hikaye & İletişim Mantığı):** 4. ay gerilemesi biyolojik evrelerini çizgi roman diyaloglarına (Işıl vs Mışıl empati akışına) dönüştürür.
+
+* **🛡️ Risk Seviyesi & Kademeli Doğrulama:**
+  - **Seviye 1 (Düşük Risk / Tasarım & Pazarlama Varlıkları):** Kodlama yalnızca pazarlama scriptleri ve CSS panel şablonundadır. Mobil native derleme gerekmez (🟢 Yeşil: Build Gerekmez).
+
+* **⚠️ Kısıtlar ve Önleyici Tedbirler:**
+  - **Daha Az Boşluk Kuralı:** Atıl siyah/koyu boşluklar kaldırılacak; karakterler daha büyük (160-200px), paneller ekranın %90'ını dolduracak, çizgi roman çıkartmaları ve anlatıcı kutuları boşlukları dinamik olarak dolduracak.
+  - **1:1 Profil Izgara Hizası:** 1080x1080 px kare korunarak profilde kırpılma önlenecek.
+  - **Tek Kaynak Hafızası:** Çizgi roman serisi kuralları `INSTAGRAM_BUYUME_HAFIZASI.md` içine işlenecek.
+  - **Canlıya Alma Kapısı:** Yerel render ve test sonrası kullanıcı onayı alınmadan canlı dağıtım yapılmayacak.
 
 ---
 
-## 📖 6 Slaytlık Masal Kurgusu & Pediatrik İçerik
+## 🎨 Çizgi Roman Serisi Görsel & Panel Mimarisi (Comic Style Guide)
 
-### 🌙 Slayt 1 (Kapak): *"Bir Varmış, Bir Yokmuş... Uykusuz Bir Gece Varmış"*
-* **Görsel:** `isil_3_ve_misil_2_birlikte_master.jpg` (Işıl Anne kucağında tavşan tulumlu Mışıl ile)
-* **Masal Metni:**  
-  *"Işıl Anne saatlerdir kucağında tavşan tulumlu Mışıl'ı pışpışlıyordu. Mışıl esniyor ama uyuyamıyordu. Işıl 'Nerede hata yapıyorum?' diye fısıldadı. Ta ki Mışıl dile gelene kadar..."*
-* **Kanca:** *"Sola kaydırın, Mışıl'ın uyku masalını dinleyin 👉"*
+### 1. Çizgi Roman Kapak Başlığı (Masthead)
+* Üstte retro/modern çizgi roman künyesi:
+  `⚡ MIŞIL COMICS • SAYI: #2 • HER PAZARTESİ YENİ BÖLÜM ⚡`
+* Kapak Başlığı: **"Büyülü 4. Ay Fırtınası!"** / *"Her Şey Harika Giderken Gece Neden Çığlıklarla Bölündü?"*
+* Çizgi Roman Kapağı: Odasında şaşkınlıkla telefona bakan Işıl Anne + tulumunun tavşan kulaklarını kaşıyan sevimli Mışıl Bebek.
 
-### ⏰ Slayt 2 (0-3 Ay): *"1. Masal: 45 Dakikalık Kum Saati"*
-* **Görsel:** `misil_2_rotus_a_gozler_acik.jpg` (Mışıl Bebek pırıl pırıl gözleriyle anlatıyor)
-* **Masal Metni:**  
-  *"- Annecim, benim uyanıklık kum saatim sadece 45-60 dakikalık! Bu süre bittiğinde beynim kortizol alarmı çalar, istesem de dalamam. Gözlerimi ilk ovuşturduğum an beni yatağa al..."*
-* **Bilgi Rozeti:** ⏳ **0 — 3 AY: 45 — 60 DAKİKA**
-
-### 🌸 Slayt 3 (4-6 Ay): *"2. Masal: Büyülü 4. Ay Fırtınası"*
-* **Görsel:** `misil_2_rotus_b_esneyen.jpg` (Mışıl Bebek bulutta tatlı tatlı esniyor)
-* **Masal Metni:**  
-  *"- Annecim, 4. ayda rüyalarım yetişkinler gibi olgunlaştı! Her 45 dakikada bir uyanıyorum. Beni sallamak yerine Mışıl Baby ninni melodisiyle döngüme geri bağla..."*
-* **Bilgi Rozeti:** ⏳ **4 — 6 AY: 1.5 — 2.5 SAAT**
-
-### 🧸 Slayt 4 (7-9 Ay): *"3. Masal: Küçük Kaşifin Uyku Savaşı"*
-* **Görsel:** Mışıl'ın keşif ve oyun hali
-* **Masal Metni:**  
-  *"- Artık emekliyorum, dünyayı keşfetmek çok eğlenceli! Yorgunluktan bitsem de uykuya direniyorum. Uykudan 20 dakika önce ışıkları kısarsan kucağına teslim olurum..."*
-* **Bilgi Rozeti:** ⏳ **7 — 9 AY: 2.5 — 3.5 SAAT**
-
-### 🌙 Slayt 5 (10-12 Ay): *"4. Masal: Gece Nöbetinin Büyük Sırrı"*
-* **Görsel:** Işıl Anne'nin gece lambası ve Mışıl'ın uykuya geçişi
-* **Masal Metni:**  
-  *"- Gece uykusundan önceki son pencerem günün en uzunu. Beni çok erken yatırırsan gece 03:00'te uyanırım. Kehribar ışıkla melatoninimi çağır..."*
-* **Bilgi Rozeti:** ⏳ **10 — 12 AY: 3 — 4 SAAT**
-
-### ✨ Slayt 6 (Kapanış & Mutlu Son): *"Ve Mışıl Mışıl Uyudular... 💤"*
-* **Görsel:** İkili huzur içinde uyurken
-* **Masal Metni:**  
-  *"Işıl Anne doğru pencereleri öğrendi, ninniyi açtı ve Mışıl mışıl daldılar. Tüm anneler bu gece deliksiz uyusun diye masalımızın tablosunu hazırladık."*
-* **Hediye / DM Çağrısı:**  
-  *"Yoruma **'MASAL'** yazın; 0-12 Ay Masalsı Uyku Cetveli'ni DM'den anında ücretsiz gönderelim! 💌"*
+### 2. Çizgi Roman Panel Düzeni (Sıfır Boşluk - Dense Comic Panels)
+* **Sarı/Krem Anlatıcı Kutuları (Narration Boxes):**
+  Sol üst köşede çizgi romanlara özgü dikdörtgen parşömen kutusu:
+  `📍 SAAT 02:40 • IŞIL ANNE'NİN ODASI` veya `📍 O SIRADA MIŞIL'IN BEYNİNDE...`
+* **Dinamik Çizgi Roman Konuşma Balonları (Comic Bubbles):**
+  Koyu 3px siyah/arduvaz konturlu beyaz/krem dolgulu puf balonlar; karakterin ağzına doğru incelen keskin çizgi roman kuyrukları.
+* **Ses Efektleri & Çıkartmalar (Comic SFX & Stickers):**
+  `💥 ESNEME KRİZİ!` • `⚡ KORTİZOL ALARMI!` • `🎵 PIŞ PIŞ PIŞ!` • `💤 DERİN UYKU DÖNGÜSÜ!`
+* **İkili / Üçlü Panel Akışı (Multi-Panel Strip):**
+  Her slaytta tek bir düz metin yerine; üstte *"Problem Anı"* (Işıl Anne paneli), ortada devasa metrik/reaksiyon, altta *"Mışıl'ın Biyolojik Sırrı ve Çözüm"* paneli. Çerçeve dopdolu, eğlenceli ve akıcı!
 
 ---
 
-## 🛠️ İcra Adımları
-1. `projects/mishil/scripts/render_instagram_carousel_01.py` dosyasını bu masalsı şablon ve yeni karakter görselleriyle güncellemek.
-2. Playwright motoru ile 6 slaytlık Ultra HD PNG setini (`post_01_slaytlar/`) üretmek.
-3. Sol paneldeki interaktif inceleme dosyasını güncelleyerek kullanıcının canlı test etmesini sağlamak.
+## 📋 6 Slaytlık Çizgi Roman Bölüm Planı (Bölüm 2: 4. Ay Fırtınası)
+
+1. **Slayt 1 (Kapak):** *MIŞIL COMICS #2: Büyülü 4. Ay Fırtınası! (Ne Oldu Bu Bebeğe?!)*
+2. **Slayt 2 (Kriz Anı):** *Panel 1: "3. ayda 5 saat uyuyan bebek gitti, 45 dakikada bir uyanan alarm geldi!"* Anlatıcı: *Beyindeki gizli devrim başladı!*
+3. **Slayt 3 (Biyolojik Sır):** *Mışıl'ın Rüyalar Dünyası:* 45 dakikalık yetişkin uyku evrelerine geçiş şeması.
+4. **Slayt 4 (Yanlış Hamle):** *"Her mıkırdanmada kucağa almak neden uyku döngüsünü kilitler?"*
+5. **Slayt 5 (Süper Güç / Çözüm):** *Işıl Anne Mışıl Baby'nin Akustik Kalkanını Devreye Sokuyor! (Anne Karnı & Beyaz Gürültü)*
+6. **Slayt 6 (Zafer & Özet):** *Çizgi Roman Kurtuluş Tablosu & Yoruma "FIRTINA" yazana 4. Ay Hayatta Kalma Rehberi DM!*
+
+---
+
+## 🚦 İcra Adımları & Onay Kapısı
+1. **Adım 1:** Çizgi roman panel render motorunun (`render_instagram_comic_02.py`) hazırlanması.
+2. **Adım 2:** 6 slaytlık çizgi roman karuselinin 1080x1080 Ultra HD render edilmesi.
+3. **Adım 3:** İnteraktif önizleme sayfasına `preview_instagram_concepts.html` "Çizgi Roman Bölüm 2" sekmesinin eklenmesi.
+4. **Adım 4:** Paylaşım metni (caption), sabit yorum ve "FIRTINA" DM otomasyonunun hazırlanması.
+5. **Adım 5:** Kullanıcı incelemesine sunulması.
