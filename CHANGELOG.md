@@ -2,6 +2,17 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
  
+## [4.44.1 - Build 63] - 2026-10-27
+### 🚀 Google Play Store Canlı Yayın Entegrasyonu & Mağaza Bağlantıları
+1. **Web Sitesi Google Play Linki:**
+   - Web ana sayfası (`public/index.html`) ve önizleme sayfasındaki (`mobile/web-preview/index.html`) "Çok Yakında" ibaresi kaldırılarak "Hemen İndirin" ve doğrudan canlı Google Play linki (`https://play.google.com/store/apps/details?id=com.levitas.misilbaby`) entegre edildi.
+2. **İndirme Modalı (Modal Prompt):**
+   - Açılır pencerelerde App Store'un yanına doğrudan Google Play indirme butonu eklendi.
+3. **Uygulama İçi Değerlendirme & Koruma Ekranı:**
+   - `public/app.html` içinde `submitStoreRating()` ve `guard-store-btn` bağlantıları resmi `com.levitas.misilbaby` paket kimliği ile senkronize edildi.
+4. **Offline Bundle:**
+   - `offlineHtml.generated.ts` başarıyla yeniden üretildi.
+
 ## [4.44.0 - Build 62] - 2026-10-26
 ### 🎨 Full Sensory Suite: Haptics 2.0, Akustik Crossfade & Gece Beşiği Modu (Aşama 4)
 1. **Haptics 2.0 (Çok Katmanlı Apple Dokunsal Geri Bildirim):**

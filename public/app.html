@@ -4365,14 +4365,14 @@
     </div>
 
     <div class="guard-btn-row">
-      <a href="https://apps.apple.com" target="_blank" class="guard-store-btn">
+      <a href="https://apps.apple.com/app/m%C4%B1%C5%9F%C4%B1l-baby-bebek-uyku-ve-a%C4%9Flama/id6809223195" target="_blank" class="guard-store-btn">
         <span style="font-size: 18px;">🍎</span>
         <div style="text-align: left;">
           <div style="font-size: 9px; color: var(--text-muted); line-height: 10px;">İndirin</div>
           <div style="font-size: 12px; font-weight: 700;">App Store</div>
         </div>
       </a>
-      <a href="https://play.google.com" target="_blank" class="guard-store-btn">
+      <a href="https://play.google.com/store/apps/details?id=com.levitas.misilbaby" target="_blank" class="guard-store-btn">
         <span style="font-size: 18px;">🤖</span>
         <div style="text-align: left;">
           <div style="font-size: 9px; color: var(--text-muted); line-height: 10px;">İndirin</div>
@@ -4695,7 +4695,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.44.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.44.1', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -6263,7 +6263,7 @@
     const isIos = (window.__MISHIL_APP__ && window.__MISHIL_APP__.platform === 'ios') || /iPad|iPhone|iPod/.test(navigator.userAgent);
     const storeUrl = isIos
       ? 'https://apps.apple.com/app/id6809223195?action=write-review'
-      : 'https://play.google.com/store/apps/details?id=com.mrtgurpinar.misilbaby';
+      : 'https://play.google.com/store/apps/details?id=com.levitas.misilbaby';
 
     if (window.ReactNativeWebView && window.ReactNativeWebView.postMessage) {
       window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'OPEN_URL', url: storeUrl }));
