@@ -187,6 +187,16 @@
       box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
     }
 
+    .slide-stage-wrap.vertical-45 {
+      aspect-ratio: 4 / 5;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .grid-slide-img-wrap.vertical-45 {
+      aspect-ratio: 4 / 5;
+    }
+
     .slide-stage-img {
       width: 100%;
       height: 100%;
@@ -475,26 +485,166 @@
     <!-- HEADER -->
     <div class="header">
       <div class="badge-bar">
-        <span class="badge badge-comic">⚡ Mışıl Comics • Sayı #2</span>
-        <span class="badge badge-mint">📱 Büyük Punto Mobil Okuma</span>
-        <span class="badge badge-cream">🎯 DM Tetikleyicisi: "FIRTINA"</span>
+        <span class="badge badge-comic">✨ Mışıl Comics • Sayı #3</span>
+        <span class="badge badge-mint">📱 4:5 Dikey Format (1080×1350)</span>
+        <span class="badge badge-cream">🌿 Nordic Ferahlık & Sıfır Göz Yorgunluğu</span>
       </div>
-      <h1>Mışıl Comics: Büyülü 4. Ay Fırtınası</h1>
-      <p>Küçük telefon ekranlarında tek dokunuşla ve gözü yormadan okunacak dev puntolarla (32-36px diyaloglar) tasarlanmış haftalık çizgi roman serimiz.</p>
+      <h1>Mışıl Comics: Kucaktan Yatağa Geçiş Sırrı</h1>
+      <p>Telefonda %25 daha fazla dikey alan kaplayan 4:5 formatında, gözü asla yormayan ferah Nordic gece estetiği ve 1080×1080 profil güvenli alanı (Safe Zone) ile hazırlandı.</p>
     </div>
 
     <!-- TABS -->
     <div class="tab-bar">
-      <button class="tab-btn active" onclick="switchTab('comic02')">⚡ Çizgi Roman #2 (Büyük Punto)</button>
-      <button class="tab-btn" onclick="switchTab('carousel01')">📖 Masal Karuseli #1 (Paylaşıldı)</button>
-      <button class="tab-btn" onclick="switchTab('characters')">🎨 Resmi Karakterler</button>
-      <button class="tab-btn" onclick="switchTab('feed')">📱 Instagram Feed Simülatörü</button>
+      <button class="tab-btn active" onclick="switchTab('comic03')">✨ Çizgi Roman #3 (4:5 Dikey)</button>
+      <button class="tab-btn" onclick="switchTab('comic02')">⚡ Çizgi Roman #2 (Kare)</button>
+      <button class="tab-btn" onclick="switchTab('carousel01')">📖 Masal #1 (Paylaşıldı)</button>
+      <button class="tab-btn" onclick="switchTab('characters')">🎨 Karakterler</button>
+      <button class="tab-btn" onclick="switchTab('feed')">📱 Feed Simülatörü</button>
     </div>
 
     <!-- ======================================================== -->
-    <!-- TAB 1: ÇİZGİ ROMAN #2 (BÜYÜK PUNTO) -->
+    <!-- TAB 1: ÇİZGİ ROMAN #3 (4:5 DİKEY NORDIC FORMAT) -->
     <!-- ======================================================== -->
-    <div id="tab-comic02" class="tab-pane active">
+    <div id="tab-comic03" class="tab-pane active">
+
+      <!-- INTERACTIVE CAROUSEL VIEWER -->
+      <div class="carousel-viewer-box">
+        <div class="viewer-layout">
+          
+          <!-- SLIDE STAGE -->
+          <div class="slide-stage-wrap vertical-45">
+            <img id="comic03StageImg" class="slide-stage-img" src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_1_kapak.png?v=comic3_v1" alt="Çizgi Roman #3">
+            <button class="nav-arrow prev" onclick="changeComic03Slide(-1)" title="Önceki Slayt">‹</button>
+            <button class="nav-arrow next" onclick="changeComic03Slide(1)" title="Sonraki Slayt">›</button>
+            <div id="comic03StageCounter" class="stage-counter">1 / 7</div>
+          </div>
+
+          <!-- SLIDE INFO -->
+          <div class="viewer-info">
+            <span id="comic03Badge" class="comic-badge-pill">🌙 KAPAK: NİNJA TRANSFERİ</span>
+            <h3 id="comic03Title">Kucaktan Yatağa Geçiş Sırrı!</h3>
+            
+            <div class="comic-preview-box">
+              <strong style="color: var(--cream);">Çizgi Roman Diyaloğu:</strong><br>
+              <span id="comic03Dialogue">«Kucağımda 40 dakika mışıl mışıl uyudu... Yatağa değdiği milisaniyede radar gibi açıldı!»</span>
+            </div>
+
+            <div class="comic-tip-box">
+              <strong style="color: #FFF;">4:5 Dikey Format & Nordic Ferahlık:</strong><br>
+              <span id="comic03Tip">1080x1350 px ebat ile ekranda %25 daha fazla alan; sıfır kalabalık, sakin gece renkleri ve 1080x1080 profil güvenli alanı (Safe Zone).</span>
+            </div>
+
+            <!-- THUMB STRIP -->
+            <div class="thumb-strip">
+              <div class="thumb-item active" onclick="goToComic03Slide(0)"><img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_1_kapak.png?v=comic3_v1" alt="1"></div>
+              <div class="thumb-item" onclick="goToComic03Slide(1)"><img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_2_kanca.png?v=comic3_v1" alt="2"></div>
+              <div class="thumb-item" onclick="goToComic03Slide(2)"><img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_3_tuzak1.png?v=comic3_v1" alt="3"></div>
+              <div class="thumb-item" onclick="goToComic03Slide(3)"><img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_4_tuzak2.png?v=comic3_v1" alt="4"></div>
+              <div class="thumb-item" onclick="goToComic03Slide(4)"><img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_5_tuzak3.png?v=comic3_v1" alt="5"></div>
+              <div class="thumb-item" onclick="goToComic03Slide(5)"><img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_6_recete.png?v=comic3_v1" alt="6"></div>
+              <div class="thumb-item" onclick="goToComic03Slide(6)"><img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_7_zafer.png?v=comic3_v1" alt="7"></div>
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+
+      <!-- 7-SLIDE GRID GALLERY (4:5 VERTICAL) -->
+      <div class="section-head">
+        <div>
+          <h2>✨ 7 Slayt Çizgi Roman Serisi (1080×1350 • 4:5 Dikey)</h2>
+          <p>Ekranda %25 daha fazla alan kaplayan, gözü yormayan Nordic ferahlık mimarisiyle tasarlandı.</p>
+        </div>
+      </div>
+
+      <div class="slides-grid">
+        
+        <div class="grid-slide-card">
+          <div class="grid-slide-img-wrap vertical-45">
+            <img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_1_kapak.png?v=comic3_v1" alt="S1">
+          </div>
+          <div class="grid-slide-meta">
+            <h4>1. Sayfa: Kapak (Ninja Transferi)</h4>
+            <p>Gece 02:40 • Kucaktan yatağa koyarken radar gibi açılan gözler!</p>
+            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_1_kapak.png" target="_blank">🔍 Tam Boy Aç (1080x1350)</a>
+          </div>
+        </div>
+
+        <div class="grid-slide-card">
+          <div class="grid-slide-img-wrap vertical-45">
+            <img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_2_kanca.png?v=comic3_v1" alt="S2">
+          </div>
+          <div class="grid-slide-meta">
+            <h4>2. Sayfa: Moro Refleksi Şoku</h4>
+            <p>«Annecim bilerek yapmıyorum, düşüyorum sandım!» (2. Slayt Kancası)</p>
+            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_2_kanca.png" target="_blank">🔍 Tam Boy Aç (1080x1350)</a>
+          </div>
+        </div>
+
+        <div class="grid-slide-card">
+          <div class="grid-slide-img-wrap vertical-45">
+            <img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_3_tuzak1.png?v=comic3_v1" alt="S3">
+          </div>
+          <div class="grid-slide-meta">
+            <h4>3. Sayfa: 1. Tuzak (Önce Baş)</h4>
+            <p>İç kulak denge sıvısı kayar • Önce popo, en son baş!</p>
+            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_3_tuzak1.png" target="_blank">🔍 Tam Boy Aç (1080x1350)</a>
+          </div>
+        </div>
+
+        <div class="grid-slide-card">
+          <div class="grid-slide-img-wrap vertical-45">
+            <img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_4_tuzak2.png?v=comic3_v1" alt="S4">
+          </div>
+          <div class="grid-slide-meta">
+            <h4>4. Sayfa: 2. Tuzak (Isı Şoku)</h4>
+            <p>36.5°C'den 21°C soğuk çarşafa geçiş • Sıcaklık köprüsü</p>
+            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_4_tuzak2.png" target="_blank">🔍 Tam Boy Aç (1080x1350)</a>
+          </div>
+        </div>
+
+        <div class="grid-slide-card">
+          <div class="grid-slide-img-wrap vertical-45">
+            <img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_5_tuzak3.png?v=comic3_v1" alt="S5">
+          </div>
+          <div class="grid-slide-meta">
+            <h4>5. Sayfa: 3. Tuzak (Sessizlik)</h4>
+            <p>Çıt çıkmayan oda terk edilmiş hissettirir • Akustik kalkan</p>
+            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_5_tuzak3.png" target="_blank">🔍 Tam Boy Aç (1080x1350)</a>
+          </div>
+        </div>
+
+        <div class="grid-slide-card">
+          <div class="grid-slide-img-wrap vertical-45">
+            <img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_6_recete.png?v=comic3_v1" alt="S6">
+          </div>
+          <div class="grid-slide-meta">
+            <h4>6. Sayfa: 3 Adımlı Ninja Reçetesi</h4>
+            <p>1. Önce Popo • 2. 60 Sn Elini Çekme • 3. Akustik Kalkan</p>
+            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_6_recete.png" target="_blank">🔍 Tam Boy Aç (1080x1350)</a>
+          </div>
+        </div>
+
+        <div class="grid-slide-card">
+          <div class="grid-slide-img-wrap vertical-45">
+            <img src="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_7_zafer.png?v=comic3_v1" alt="S7">
+          </div>
+          <div class="grid-slide-meta">
+            <h4>7. Sayfa: Zafer & Beşikte Mışıl Uyku</h4>
+            <p>Kucaktaki gibi güvende • Gece nöbeti için saf kaydetme!</p>
+            <a class="slide-dl-btn" href="../kullanici/instagram/postlar/post_03_slaytlar/comic_3_7_zafer.png" target="_blank">🔍 Tam Boy Aç (1080x1350)</a>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- TAB 2: ÇİZGİ ROMAN #2 (KARE FORMAT) -->
+    <!-- ======================================================== -->
+    <div id="tab-comic02" class="tab-pane">
 
       <!-- INTERACTIVE CAROUSEL VIEWER -->
       <div class="carousel-viewer-box">
@@ -712,10 +862,95 @@
         </button>
       </div>
     </div>
-
   </div>
 
   <script>
+    const comic03Data = [
+      {
+        src: "../kullanici/instagram/postlar/post_03_slaytlar/comic_3_1_kapak.png?v=comic3_v1",
+        badge: "🌙 KAPAK: NİNJA TRANSFERİ",
+        title: "Kucaktan Yatağa Geçiş Sırrı!",
+        dialogue: "«Kucağımda 40 dakika mışıl mışıl uyudu... Yatağa değdiği milisaniyede radar gibi açıldı!»",
+        tip: "1080x1350 px (4:5 dikey format) ile ekranda %25 daha fazla alan; sıfır kalabalık, sakin gece renkleri ve 1080x1080 profil güvenli alanı (Safe Zone)."
+      },
+      {
+        src: "../kullanici/instagram/postlar/post_03_slaytlar/comic_3_2_kanca.png?v=comic3_v1",
+        badge: "⚡ 2. SLAYT KANCASI: MORO ŞOKU",
+        title: "«Annecim Bilerek Yapmıyorum!»",
+        dialogue: "«Kollarımla boşluğa düşüyorum sandım! Vücudum otomatik alarm çaldı...»",
+        tip: "Algoritmanın 24 saat sonra yeniden önerdiği bağımsız kanca. Bebeğin istemsiz düşme korkusu (Moro Refleksi) açıklanıyor."
+      },
+      {
+        src: "../kullanici/instagram/postlar/post_03_slaytlar/comic_3_3_tuzak1.png?v=comic3_v1",
+        badge: "⚠️ 1. TUZAK: ÖNCE BAŞ",
+        title: "İç Kulak Denge Sıvısı Boşluğa Düşer!",
+        dialogue: "«Beşiğe önce başımı indirirsen, iç kulağımdaki yerçekimi sensörleri anında uyanır!»",
+        tip: "Çözüm: Önce ayaklar ve popo yatağa temas etmeli, en son baş bırakılmalıdır."
+      },
+      {
+        src: "../kullanici/instagram/postlar/post_03_slaytlar/comic_3_4_tuzak2.png?v=comic3_v1",
+        badge: "❄️ 2. TUZAK: ISI ŞOKU",
+        title: "36.5°C Kucaktan 21°C Soğuk Çarşafa!",
+        dialogue: "«Kucağın sıcacık bir fırındı annecim... Yatak buz gibi mermer etkisi yaptı!»",
+        tip: "Çözüm: Yatağa koymadan 5 dakika önce sıcak su torbasıyla çarşaf ılıtılır ve bebek konulurken torba alınır."
+      },
+      {
+        src: "../kullanici/instagram/postlar/post_03_slaytlar/comic_3_5_tuzak3.png?v=comic3_v1",
+        badge: "🤫 3. TUZAK: ÇIT ÇIKMAYAN ODA",
+        title: "Sessizlik Bir Güvenlik Tehdididir!",
+        dialogue: "«Anne karnında elektrik süpürgesi gibi ses vardı! Odanın çıt çıkmayan sessizliği beni korkutuyor!»",
+        tip: "Çözüm: Mışıl Baby pembe gürültü / anne karnı sesi transfer anında açık olmalı, akustik süreklilik sağlanmalıdır."
+      },
+      {
+        src: "../kullanici/instagram/postlar/post_03_slaytlar/comic_3_6_recete.png?v=comic3_v1",
+        badge: "🧪 KUSURSUZ TRANSFER REÇETESİ",
+        title: "3 Adımda Beşikte Uykuyu Sürdürme",
+        dialogue: "«1. Popodan Başla • 2. Çarşafı Ilıt • 3. Akustik Kalkanı Aç!»",
+        tip: "3 bilimsel adımı uygulayan ebeveynlerde kucaktan yatağa geçiş başarı oranı %87 artmaktadır."
+      },
+      {
+        src: "../kullanici/instagram/postlar/post_03_slaytlar/comic_3_7_zafer.png?v=comic3_v1",
+        badge: "🌟 ZAFER & BEŞİKTE HUZURLA UYKU",
+        title: "Mışıl Mışıl Gece, Işıl Işıl Anne!",
+        dialogue: "«Artık yatağımı da kucağın kadar güvenli hissediyorum annecim... İyi geceler.»",
+        tip: "Saf kaydetme ve paylaşma çağrısı: 'Gece nöbetindeki bir anneye göndermeyi ve bu gece denemek için kaydetmeyi unutma!'"
+      }
+    ];
+
+    let currentComic03Slide = 0;
+
+    function renderComic03Slide(index) {
+      currentComic03Slide = (index + comic03Data.length) % comic03Data.length;
+      const data = comic03Data[currentComic03Slide];
+
+      const stageImg = document.getElementById('comic03StageImg');
+      stageImg.style.opacity = '0';
+      setTimeout(() => {
+        stageImg.src = data.src;
+        stageImg.style.opacity = '1';
+      }, 150);
+
+      document.getElementById('comic03StageCounter').textContent = (currentComic03Slide + 1) + ' / ' + comic03Data.length;
+      document.getElementById('comic03Badge').textContent = data.badge;
+      document.getElementById('comic03Title').textContent = data.title;
+      document.getElementById('comic03Dialogue').textContent = data.dialogue;
+      document.getElementById('comic03Tip').textContent = data.tip;
+
+      const thumbs = document.querySelectorAll('#tab-comic03 .thumb-item');
+      thumbs.forEach((t, i) => {
+        if (i === currentComic03Slide) t.classList.add('active');
+        else t.classList.remove('active');
+      });
+    }
+
+    function changeComic03Slide(delta) {
+      renderComic03Slide(currentComic03Slide + delta);
+    }
+
+    function goToComic03Slide(index) {
+      renderComic03Slide(index);
+    }
+
     const comicData = [
       {
         src: "../kullanici/instagram/postlar/post_02_slaytlar/comic_1_kapak.png?v=hybrid_v3",
@@ -799,20 +1034,28 @@
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
 
-      if (tabId === 'comic02') {
+      if (tabId === 'comic03') {
         document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('tab-comic03').classList.add('active');
+      } else if (tabId === 'comic02') {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
         document.getElementById('tab-comic02').classList.add('active');
       } else if (tabId === 'carousel01') {
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.querySelectorAll('.tab-btn')[2].classList.add('active');
         document.getElementById('tab-carousel01').classList.add('active');
       } else if (tabId === 'characters') {
-        document.querySelectorAll('.tab-btn')[2].classList.add('active');
+        document.querySelectorAll('.tab-btn')[3].classList.add('active');
         document.getElementById('tab-characters').classList.add('active');
       } else if (tabId === 'feed') {
-        document.querySelectorAll('.tab-btn')[3].classList.add('active');
+        document.querySelectorAll('.tab-btn')[4].classList.add('active');
         document.getElementById('tab-feed').classList.add('active');
       }
     }
+
+    // Initialize Comic 03 on load
+    document.addEventListener('DOMContentLoaded', () => {
+      renderComic03Slide(0);
+    });
   </script>
 
 </body>
