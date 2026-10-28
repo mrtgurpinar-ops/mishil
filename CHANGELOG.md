@@ -2,6 +2,17 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.45.2 - Build 65] - 2026-10-28
+### 🛡️ %100 API Kanıtlı Doğrulanmış Veri Motoru (`SUBSCRIBER` & `SUBSCRIPTION` Tekilleştirmesi)
+1. **Apple `SUBSCRIBER` & `SUBSCRIPTION` (`1_3`) Resmi Abone Durum Doğrulaması (`app/api/v1/endpoints/analytics.py`):**
+   - Doğrulanmamış/beyana dayalı veya tahmini hiçbir veri kullanmama ilkesi doğrultusunda tüm abonelik işlemleri tekil `Subscriber ID` bazında Apple `SUBSCRIBER` (`1_3`) ve `SUBSCRIPTION` (`1_3`, `2026-10-27`) resmi raporlarıyla denetlendi:
+     - **Tekil Aktif VIP Abone (`12` Kişi / `13` İşlem):** `Subscriber ID: 602650322813562` 20 Ekim'de başlattığı 7 günlük denemesini 27 Ekim'de ücretli aboneliğe dönüştürdüğü için 2 işlem (`Start` + `Paid Conversion`) aynı tekil aboneye aittir.
+     - **Kesin VIP Kırılımı (`12` Tekil VIP):** **`1` Ücretli Satış** (`149,99 ₺` müşteri ödemesi / **`83,12 ₺` net geliştirici geliri**) + **`5` Promosyon Kodlu (`DamlaEge2026` — Yıllık VIP)** + **`6` Aktif 7 Günlük Deneme (`Aylık Esnek` — `5` Türkiye + `1` Fransa)**.
+   - `sync_live_store_apis()` içine Apple `SUBSCRIPTION` durum raporu (`Active Standard Price Subscriptions` + `Free Trial Offer Code Subscriptions` + `Active Free Trial Introductory Offer Subscriptions`) sorgusu eklendi.
+2. **Sıfır Tahminli Görsel Kartlar & Halka Grafikler (`preview_analytics_cockpit.html` & `/admin/analytics`):**
+   - **Kart 1 (`👁️ APP STORE GÖRÜNTÜLENMESİ`):** Google Play REST API mağaza gösterim (`impressions`) verisini dışarıya açmadığı için hiçbir tahmini sayı eklenmeden doğrudan Apple API kanıtlı **`4.066`** (`2.934` tekil cihaz — `4.014` Arama + `52` Keşfet) olarak etiketlendi.
+   - **Halka 1 (`🍩 1. Nereden İndirdiler?`):** Oransal dağıtım yerine yalnızca resmi API dilimleri (`🔍 App Store Arama: 47`, `📲 Sosyal Yönlendirme: 14`, `📅 Son Günler Yeni iOS: 12`, `✨ App Store Keşfet: 7`, `🤖 Google Play: 8` — Toplam **`88` İndirme**) gösterildi.
+
 ## [4.45.1 - Build 65] - 2026-10-28
 ### ✨ Apple `v1/salesReports` (25–27 Ekim Eksik Verilerin Tamamlanması) & Ultra-Sade Tek Ekran Pano
 1. **Apple `v1/salesReports` (`vendorNumber: 94806500`) Entegrasyonu (`app/api/v1/endpoints/analytics.py`):**

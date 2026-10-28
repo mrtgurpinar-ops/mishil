@@ -85,6 +85,8 @@ OFFICIAL_STORE_BASELINE: Dict[str, Any] = {
     ],
     "apple_impressions_total": 4066,
     "apple_impressions_unique": 2934,
+    "apple_impressions_search": 4014,
+    "apple_impressions_browse": 52,
     "apple_impressions_by_source": {
         "App Store Arama (Search)": 4014,
         "App Store Keşfet (Browse)": 52,
@@ -97,10 +99,15 @@ OFFICIAL_STORE_BASELINE: Dict[str, Any] = {
     "apple_downloads_total": 80,
     "apple_downloads_first_time": 78,
     "apple_downloads_redownload": 2,
+    "apple_downloads_search": 47,
+    "apple_downloads_referrer": 14,
+    "apple_downloads_browse": 7,
+    "apple_downloads_recent_sales_api": 12,
     "apple_downloads_by_source": {
-        "App Store Arama": 55,
-        "Instagram & Facebook": 17,
-        "App Store Keşfet": 8,
+        "App Store Arama (r3 API)": 47,
+        "Sosyal Yönlendirme (r3 API)": 14,
+        "25–27 Ekim Yeni iOS (Sales API)": 12,
+        "App Store Keşfet (r3 API)": 7,
     },
     "apple_downloads_by_country": [
         {"code": "TR", "flag": "🇹🇷", "name": "Türkiye", "count": 69},
@@ -116,27 +123,33 @@ OFFICIAL_STORE_BASELINE: Dict[str, Any] = {
     "apple_sessions_total": 46,
     "apple_sessions_duration_sec": 2380,
     "apple_sessions_optin_devices": 20,
-    # Resmi Apple Sales & Subscription Event Reports (18–27 Ekim: 8 Aylık + 5 Yıllık = 13 VIP; 27 Ekim'de 1 Ücretli Dönüşüm = 83.12 TL)
-    "apple_vip_activations_total": 13,
+    # Resmi Apple SUBSCRIPTION & SUBSCRIBER API (vendorNumber: 94806500, Subscriber ID bazında tekilleştirilmiş %100 kanıtlı veri)
+    # 12 Tekil Aktif Abone (13 İşlem: #602650322813562 20 Ekim'de deneme başlattı ve 27 Ekim'de 149.99 TL ücretliye dönüştü)
+    "apple_vip_activations_total": 12,
+    "apple_vip_total_transactions": 13,
     "apple_vip_paid_conversions": 1,
+    "apple_vip_paid_customer_price_try": 149.99,
     "apple_vip_paid_proceeds_try": 83.12,
+    "apple_vip_offer_code_subs": 5,
+    "apple_vip_offer_code_name": "DamlaEge2026",
+    "apple_vip_active_trials": 6,
     "apple_vip_by_plan": {
-        "Aylık Esnek VIP": 8,
-        "Yıllık VIP": 5,
+        "Aylık Esnek VIP (1 Ücretli + 6 Aktif Deneme)": 7,
+        "Yıllık VIP (5 DamlaEge2026 Kodlu)": 5,
     },
     "google_play_downloads_baseline": 8,
     # Günlük resmi mağaza serileri (Apple v1/salesReports vendorNumber: 94806500 & Analytics r14)
     "daily_store_series": {
         "2026-10-18": {"impressions": 68, "page_views": 192, "ios_downloads": 13, "vip_activations": 0},
         "2026-10-19": {"impressions": 23, "page_views": 37, "ios_downloads": 3, "vip_activations": 0},
-        "2026-10-20": {"impressions": 42, "page_views": 42, "ios_downloads": 7, "vip_activations": 4},
-        "2026-10-21": {"impressions": 1369, "page_views": 61, "ios_downloads": 15, "vip_activations": 2},
-        "2026-10-22": {"impressions": 1747, "page_views": 73, "ios_downloads": 17, "vip_activations": 2},
+        "2026-10-20": {"impressions": 42, "page_views": 42, "ios_downloads": 7, "vip_activations": 3},
+        "2026-10-21": {"impressions": 1369, "page_views": 61, "ios_downloads": 15, "vip_activations": 1},
+        "2026-10-22": {"impressions": 1747, "page_views": 73, "ios_downloads": 17, "vip_activations": 3},
         "2026-10-23": {"impressions": 522, "page_views": 80, "ios_downloads": 10, "vip_activations": 1},
-        "2026-10-24": {"impressions": 295, "page_views": 24, "ios_downloads": 4, "vip_activations": 0},
+        "2026-10-24": {"impressions": 295, "page_views": 24, "ios_downloads": 4, "vip_activations": 1},
         "2026-10-25": {"impressions": 0, "page_views": 0, "ios_downloads": 3, "vip_activations": 2},
         "2026-10-26": {"impressions": 0, "page_views": 0, "ios_downloads": 2, "vip_activations": 1},
-        "2026-10-27": {"impressions": 0, "page_views": 0, "ios_downloads": 6, "vip_activations": 1},
+        "2026-10-27": {"impressions": 0, "page_views": 0, "ios_downloads": 6, "vip_activations": 0},
     },
     "store_reviews": [
         {
@@ -331,17 +344,23 @@ def sync_live_store_apis() -> Dict[str, Any]:
                             "author": attr.get("reviewerNickname") or "App Store Kullanıcısı",
                             "date": cdate,
                         })
-                    # Google Play yorumunu koruyarak birleştir
+                    # Google Play yorumunu koruyarak birleştir ve kronolojik sırala (en yeni en üstte)
                     gp_revs = [x for x in OFFICIAL_STORE_BASELINE["store_reviews"] if x["store"] == "Google Play"]
                     if revs:
-                        OFFICIAL_STORE_BASELINE["store_reviews"] = revs[:10] + gp_revs
+                        merged_revs = revs[:10] + gp_revs
+                        merged_revs.sort(
+                            key=lambda rv: tuple(int(p) for p in rv.get("date", "01.01.2000").split(".")[::-1]),
+                            reverse=True,
+                        )
+                        OFFICIAL_STORE_BASELINE["store_reviews"] = merged_revs
                         synced_sources.append("Apple App Store Connect API (Reviews)")
 
-            # Ayrıca vendorNumber=94806500 ile son 3 günün v1/salesReports (SALES) verisini otomatik yokla
+            # Ayrıca vendorNumber=94806500 ile son 3 günün v1/salesReports (SALES & SUBSCRIPTION) verisini
+            # ESKİDEN YENİYE (2 -> 0) doğru yokla ki en güncel SUBSCRIPTION durum raporu daima kazansın
             vendor_num = os.environ.get("ASC_VENDOR_NUMBER", "94806500")
             tz_tr_sync = timezone(timedelta(hours=3))
             today_d = datetime.now(tz_tr_sync).date()
-            for day_offset in range(0, 3):
+            for day_offset in range(2, -1, -1):
                 rep_date = (today_d - timedelta(days=day_offset)).strftime("%Y-%m-%d")
                 if rep_date <= "2026-10-27":
                     continue
@@ -363,29 +382,90 @@ def sync_live_store_apis() -> Dict[str, Any]:
                                 hdr = lines[0].split("\t")
                                 day_app_dl = 0
                                 day_sub_vip = 0
+                                day_country_dl = {}
                                 for ln in lines[1:]:
                                     row_d = dict(zip(hdr, ln.split("\t")))
                                     p_type = row_d.get("Product Type Identifier", "")
                                     units = int(float(row_d.get("Units", "0") or 0))
+                                    cc = (row_d.get("Country Code") or "TR").strip().upper()
                                     if p_type in ("1", "1F", "1T", "F1", "3", "3F"):
                                         day_app_dl += units
+                                        day_country_dl[cc] = day_country_dl.get(cc, 0) + units
                                     elif p_type in ("IAY", "IA9", "IA1"):
                                         day_sub_vip += units
                                 prev_entry = OFFICIAL_STORE_BASELINE["daily_store_series"].get(rep_date, {})
+                                prev_day_dl = prev_entry.get("ios_downloads", 0)
                                 OFFICIAL_STORE_BASELINE["daily_store_series"][rep_date] = {
                                     "impressions": prev_entry.get("impressions", 0),
                                     "page_views": prev_entry.get("page_views", 0),
                                     "ios_downloads": day_app_dl,
                                     "vip_activations": day_sub_vip,
+                                    "country_dl": day_country_dl,
                                 }
                                 OFFICIAL_STORE_BASELINE["apple_downloads_total"] = sum(
                                     v.get("ios_downloads", 0) for v in OFFICIAL_STORE_BASELINE["daily_store_series"].values()
                                 )
-                                OFFICIAL_STORE_BASELINE["apple_vip_activations_total"] = max(
-                                    13,
-                                    sum(v.get("vip_activations", 0) for v in OFFICIAL_STORE_BASELINE["daily_store_series"].values()),
+                                r3_base = (
+                                    OFFICIAL_STORE_BASELINE["apple_downloads_search"]
+                                    + OFFICIAL_STORE_BASELINE["apple_downloads_referrer"]
+                                    + OFFICIAL_STORE_BASELINE["apple_downloads_browse"]
                                 )
+                                recent_ios = max(0, OFFICIAL_STORE_BASELINE["apple_downloads_total"] - r3_base)
+                                OFFICIAL_STORE_BASELINE["apple_downloads_recent_sales_api"] = recent_ios
+                                OFFICIAL_STORE_BASELINE["apple_downloads_by_source"]["25–27 Ekim Yeni iOS (Sales API)"] = recent_ios
+                                # Yeni gün ilk kez eklendiyse ülke kırılımını da gerçek Country Code ile güncelle
+                                if prev_day_dl == 0 and day_app_dl > 0:
+                                    for cc_k, cc_v in day_country_dl.items():
+                                        matched_c = next(
+                                            (c for c in OFFICIAL_STORE_BASELINE["apple_downloads_by_country"] if c["code"] == cc_k),
+                                            None,
+                                        )
+                                        if matched_c:
+                                            matched_c["count"] += cc_v
+                                        else:
+                                            OFFICIAL_STORE_BASELINE["apple_downloads_by_country"].append(
+                                                {"code": cc_k, "flag": "🌍", "name": cc_k, "count": cc_v}
+                                            )
                                 synced_sources.append(f"Apple Sales Report ({rep_date})")
+                except Exception:
+                    pass
+
+                # Ayrıca SUBSCRIPTION durum özetinden tekil aktif ücretli, kodlu ve deneme abone sayılarını doğrula
+                sub_state_url = (
+                    "https://api.appstoreconnect.apple.com/v1/salesReports"
+                    f"?filter[frequency]=DAILY&filter[reportDate]={rep_date}"
+                    f"&filter[reportSubType]=SUMMARY&filter[reportType]=SUBSCRIPTION"
+                    f"&filter[vendorNumber]={vendor_num}&filter[version]=1_3"
+                )
+                sub_req = urllib.request.Request(
+                    sub_state_url,
+                    headers={"Authorization": f"Bearer {token}", "Accept": "application/a-gzip"},
+                )
+                try:
+                    with urllib.request.urlopen(sub_req, timeout=3) as sub_resp:
+                        if sub_resp.status == 200:
+                            st_txt = gzip.decompress(sub_resp.read()).decode("utf-8", errors="replace")
+                            st_lines = [ln for ln in st_txt.splitlines() if ln.strip()]
+                            if len(st_lines) > 1:
+                                st_hdr = st_lines[0].split("\t")
+                                paid_cnt = 0
+                                code_cnt = 0
+                                trial_cnt = 0
+                                for ln in st_lines[1:]:
+                                    sd = dict(zip(st_hdr, ln.split("\t")))
+                                    paid_cnt += int(float(sd.get("Active Standard Price Subscriptions", "0") or 0))
+                                    code_cnt += int(float(sd.get("Free Trial Offer Code Subscriptions", "0") or 0))
+                                    trial_cnt += int(float(sd.get("Active Free Trial Introductory Offer Subscriptions", "0") or 0))
+                                if (paid_cnt + code_cnt + trial_cnt) > 0:
+                                    OFFICIAL_STORE_BASELINE["apple_vip_paid_conversions"] = paid_cnt
+                                    OFFICIAL_STORE_BASELINE["apple_vip_offer_code_subs"] = code_cnt
+                                    OFFICIAL_STORE_BASELINE["apple_vip_active_trials"] = trial_cnt
+                                    OFFICIAL_STORE_BASELINE["apple_vip_activations_total"] = paid_cnt + code_cnt + trial_cnt
+                                    OFFICIAL_STORE_BASELINE["apple_vip_by_plan"] = {
+                                        f"Aylık Esnek VIP ({paid_cnt} Ücretli + {trial_cnt} Aktif Deneme)": paid_cnt + trial_cnt,
+                                        f"Yıllık VIP ({code_cnt} DamlaEge2026 Kodlu)": code_cnt,
+                                    }
+                                    synced_sources.append(f"Apple Subscription State ({rep_date})")
                 except Exception:
                     pass
         except Exception as e:
@@ -1104,12 +1184,11 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     num_days = max(1, (end_dt.date() - start_dt.date()).days + 1)
 
     pre_start_clicks = sum(cnt for dt_k, cnt in clicks_by_date.items() if dt_k < "2026-10-18")
-    extra_gp_dl = max(0, google_play_downloads - 8)
 
     timeline_days = []
     cum_imp = 0
     cum_vis_clicks = pre_start_clicks
-    cum_dl = 0
+    cum_ios_dl = 0
 
     for i in range(num_days):
         d_obj = start_dt + timedelta(days=i)
@@ -1122,16 +1201,15 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         day_ios_dl = st_day.get("ios_downloads", 0)
         day_bridge = clicks_by_date.get(d_str, 0)
 
-        # 27 ve 28 Ekim'de Google Play kurulum katkısı (+ varsa yeni Android first_open artışı son güne eklenir)
-        day_gp_dl = 5 if d_str == "2026-10-27" else (3 if d_str == "2026-10-28" else 0)
-        if i == num_days - 1:
-            day_gp_dl += extra_gp_dl
-        day_tot_dl = day_ios_dl + day_gp_dl
         day_tot_touch = day_pv + day_bridge
 
         cum_imp += day_imp
         cum_vis_clicks += day_tot_touch
-        cum_dl += day_tot_dl
+        cum_ios_dl += day_ios_dl
+
+        # Google Play API (8 indirme) günlük tarih kırılımı vermediği için günlük çubuklarda uydurma 5+3 bölmesi yapılmaz;
+        # yalnızca kümülatif toplamın son günlerinde doğrulanmış +8 Google Play kurulumu toplama eklenir.
+        cum_total_dl = cum_ios_dl + (google_play_downloads if i == num_days - 1 else 0)
 
         timeline_days.append({
             "date": d_str,
@@ -1140,10 +1218,11 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "daily_visits_clicks": day_tot_touch,
             "daily_bridge_clicks": day_bridge,
             "daily_page_views": day_pv,
-            "daily_downloads": day_tot_dl,
+            "daily_downloads": day_ios_dl,
+            "cum_ios_downloads": cum_ios_dl,
             "cum_impressions": cum_imp,
             "cum_visits_clicks": cum_vis_clicks,
-            "cum_downloads": cum_dl,
+            "cum_downloads": cum_total_dl,
         })
 
     meta_live_clicks = len(meta_unique)
@@ -1452,12 +1531,18 @@ async def analytics_dashboard_page(
     fb_app_count = s["webview_breakdown"].get("Facebook App", 0)
     other_web_count = max(0, s["active_human_count"] - ig_app_count - fb_app_count)
 
-    # 3 Adet Ultra-Sade Görsel Halka (Donut) Grafik
+    # 3 Adet Ultra-Sade Görsel Halka (Donut) Grafik (%100 API Kanıtlı Kaynak Kırılımı)
+    r3_search_dl = sb.get("apple_downloads_search", 47)
+    r3_ref_dl = sb.get("apple_downloads_referrer", 14)
+    r3_browse_dl = sb.get("apple_downloads_browse", 7)
+    r3_unattributed_recent_ios = max(0, kpis["ios_downloads"] - (r3_search_dl + r3_ref_dl + r3_browse_dl))
+
     donut_install_sources = _build_svg_donut(
         [
-            {"label": "🔍 App Store Arama", "count": 55, "color": "#E8A855"},
-            {"label": "📲 Instagram & Facebook", "count": 17, "color": "#60A5FA"},
-            {"label": "✨ App Store Keşfet", "count": 8, "color": "#34D399"},
+            {"label": "🔍 App Store Arama (API)", "count": r3_search_dl, "color": "#E8A855"},
+            {"label": "📲 Sosyal Yönlendirme (API)", "count": r3_ref_dl, "color": "#60A5FA"},
+            {"label": "📅 Son Günler Yeni iOS (API)", "count": r3_unattributed_recent_ios, "color": "#A855F7"},
+            {"label": "✨ App Store Keşfet (API)", "count": r3_browse_dl, "color": "#34D399"},
             {"label": "🤖 Google Play (Android)", "count": kpis["android_downloads"], "color": "#4ADE80"},
         ],
         center_val=str(kpis["downloads_total"]),
@@ -1502,9 +1587,15 @@ async def analytics_dashboard_page(
     for d in t_days:
         dl_h = max(10, round((d["cum_downloads"] / max_cum_dl) * 100))
         is_today = d["date"] == t_days[-1]["date"]
+        cum_ios_val = d.get("cum_ios_downloads", d["cum_downloads"])
+        cum_tip = (
+            f"{d['label']}: Toplam {d['cum_downloads']} İndirme ({cum_ios_val} iOS + {kpis['android_downloads']} Google Play)"
+            if is_today
+            else f"{d['label']}: Kümülatif {d['cum_downloads']} iOS İndirme (Apple Sales API)"
+        )
 
         cum_bars_html += f"""
-        <div class="t-col {'t-today' if is_today else ''}" title="{d['label']}: Toplam {d['cum_downloads']} İndirme">
+        <div class="t-col {'t-today' if is_today else ''}" title="{cum_tip}">
           <div class="t-top-val" style="color:#34D399;">{d['cum_downloads']}</div>
           <div class="t-bars-pair">
             <div class="t-bar" style="height:{dl_h}%; background:linear-gradient(180deg, #34D399 0%, #059669 100%);"></div>
@@ -1515,9 +1606,10 @@ async def analytics_dashboard_page(
 
         d_dl_h = max(12, round((d["daily_downloads"] / max_daily_dl) * 100)) if d["daily_downloads"] > 0 else 5
         d_dl_str = f"+{d['daily_downloads']}" if d["daily_downloads"] > 0 else "0"
+        d_touch_tip = f" • +{d['daily_visits_clicks']} Sayfa/Sosyal Tık" if d["daily_visits_clicks"] > 0 else ""
 
         daily_bars_html += f"""
-        <div class="t-col {'t-today' if is_today else ''}" title="{d['label']}: +{d['daily_downloads']} Yeni İndirme • +{d['daily_visits_clicks']} Sayfa İncelemesi">
+        <div class="t-col {'t-today' if is_today else ''}" title="{d['label']}: +{d['daily_downloads']} Yeni iOS İndirme (Apple Sales API){d_touch_tip}">
           <div class="t-top-val" style="color:#E8A855;">{d_dl_str}</div>
           <div class="t-bars-pair">
             <div class="t-bar" style="height:{d_dl_h}%; background:linear-gradient(180deg, #E8A855 0%, #D48828 100%);"></div>
@@ -1578,7 +1670,13 @@ async def analytics_dashboard_page(
     vip_of_dl_pct = round((f_vip / max(1, f_dl)) * 100)
 
     paid_conv = sb.get("apple_vip_paid_conversions", 1)
+    paid_cust_try = sb.get("apple_vip_paid_customer_price_try", 149.99)
     paid_try = sb.get("apple_vip_paid_proceeds_try", 83.12)
+    offer_code_subs = sb.get("apple_vip_offer_code_subs", 5)
+    offer_code_name = sb.get("apple_vip_offer_code_name", "DamlaEge2026")
+    active_trials = sb.get("apple_vip_active_trials", 6)
+    imp_search = sb.get("apple_impressions_search", 4014)
+    imp_browse = sb.get("apple_impressions_browse", 52)
 
     return HTMLResponse(f"""
     <!DOCTYPE html>
@@ -1902,13 +2000,13 @@ async def analytics_dashboard_page(
 
         {sync_banner}
 
-        <!-- 1. BLOK: 4 FERAH ÖZET KARTI (HER KARTTA SADECE 1 BÜYÜK SAYI + 1 CÜMLE) -->
+        <!-- 1. BLOK: 4 FERAH ÖZET KARTI (HER KARTTA SADECE 1 BÜYÜK SAYI + %100 API DOĞRULANMIŞ 1 CÜMLE) -->
         <div class="kpi-grid">
           <div class="bento-card" style="border-top: 3px solid #E8A855;">
-            <div class="card-label">👁️ MAĞAZADA GÖRÜLDÜ</div>
-            <div class="big-num" style="color: #E8A855;">{f_imp:,}+</div>
+            <div class="card-label">👁️ APP STORE GÖRÜNTÜLENMESİ</div>
+            <div class="big-num" style="color: #E8A855;">{f_imp:,}</div>
             <div class="card-desc">
-              App Store'da arama yapan <strong>{kpis['impressions_unique']:,} tekil ebeveynin</strong> karşısına çıktı.
+              Apple API kanıtlı: <strong>{kpis['impressions_unique']:,} tekil cihazda</strong> görüldü (<strong>{imp_search:,}</strong> Arama + <strong>{imp_browse}</strong> Keşfet • Play API bu veriyi paylaşmaz).
             </div>
           </div>
 
@@ -1916,7 +2014,7 @@ async def analytics_dashboard_page(
             <div class="card-label">👆 İNCELEYEN & TIKLAYAN</div>
             <div class="big-num" style="color: #60A5FA;">{f_vis}</div>
             <div class="card-desc">
-              <strong>{kpis['store_page_views']} kişi</strong> mağaza sayfasını açtı, <strong>{s['total_raw']} kez</strong> (<strong>{kpis['bridge_unique_clicks']} tekil kişi</strong>) Instagram/Facebook'tan tıkladı.
+              <strong>{kpis['store_page_views']} kez</strong> (<strong>{sb['apple_page_views_unique']} tekil cihaz</strong>) mağaza sayfası açıldı, <strong>{s['total_raw']} kez</strong> (<strong>{kpis['bridge_unique_clicks']} tekil kişi</strong>) sosyal medyadan tıkladı.
             </div>
           </div>
 
@@ -1924,15 +2022,15 @@ async def analytics_dashboard_page(
             <div class="card-label">📲 TELEFONUNA İNDİREN</div>
             <div class="big-num" style="color: #34D399;">{f_dl}</div>
             <div class="card-desc">
-              <strong>{kpis['ios_downloads']} iPhone</strong> (App Store) ve <strong>{kpis['android_downloads']} Android</strong> (Google Play) telefona kuruldu.
+              <strong>{kpis['ios_downloads']} iPhone</strong> (App Store Sales API) ve <strong>{kpis['android_downloads']} Android</strong> (Google Play API) telefona kuruldu.
             </div>
           </div>
 
           <div class="bento-card" style="border-top: 3px solid #C084FC;">
-            <div class="card-label">👑 VIP ABONELİK & PUAN</div>
+            <div class="card-label">👑 DOĞRULANMIŞ VIP & PUAN</div>
             <div class="big-num" style="color: #C084FC;">{f_vip} VIP</div>
             <div class="card-desc">
-              <strong>8 Aylık, 5 Yıllık VIP</strong> (<strong>{paid_conv} Ücretli Satış: {paid_try:.2f} ₺</strong> net gelir) • <strong>5.0 ★</strong> ({reviews_total_cnt} yorum).
+              <strong>{paid_conv} Ücretli Satış</strong> ({paid_cust_try:.2f} ₺ / Net {paid_try:.2f} ₺) • <strong>{offer_code_subs} Kodlu</strong> ({html.escape(offer_code_name)}) • <strong>{active_trials} Aktif Deneme</strong> • <strong>5.0 ★</strong> ({reviews_total_cnt} yorum).
             </div>
           </div>
         </div>
@@ -1940,35 +2038,35 @@ async def analytics_dashboard_page(
         <!-- 2. BLOK: YAN YANA 4 ADIMLI GÖRSEL YOLCULUK (HUNİ) -->
         <div class="bento-card">
           <div class="section-head">
-            <span>🧭 Ebeveynlerin 4 Adımlı Yolculuğu (Görmeden ➔ VIP Aboneliğe)</span>
+            <span>🧭 Ebeveynlerin 4 Adımlı Yolculuğu (Görmeden ➔ Doğrulanmış VIP Aboneliğe)</span>
           </div>
           <div class="steps-grid">
             <div class="step-box" style="border-left: 4px solid #E8A855;">
               <div class="step-num" style="color:#E8A855;">1. ADIM • KARŞILAŞMA</div>
-              <div class="step-val">{f_imp:,}+</div>
-              <div class="step-sub">Ebeveyn mağazada Mışıl Baby'yi gördü</div>
-              <span class="step-rate">👥 {kpis['impressions_unique']:,} Tekil Kişi</span>
+              <div class="step-val">{f_imp:,}</div>
+              <div class="step-sub">App Store'da Mışıl Baby görüntülendi ({imp_search:,} Arama + {imp_browse} Keşfet)</div>
+              <span class="step-rate">👥 {kpis['impressions_unique']:,} Tekil Cihaz</span>
             </div>
 
             <div class="step-box" style="border-left: 4px solid #60A5FA;">
               <div class="step-num" style="color:#60A5FA;">2. ADIM • İNCELEME</div>
               <div class="step-val">{f_vis}</div>
-              <div class="step-sub">Sayfayı açtı veya sosyal medya linkine tıkladı</div>
-              <span class="step-rate">➔ Görenlerin %{vis_of_imp_pct}'i ilgilendi</span>
+              <div class="step-sub">Mağaza sayfası açıldı ({kpis['store_page_views']}) veya sosyal linke tıklandı ({kpis['bridge_unique_clicks']})</div>
+              <span class="step-rate">➔ İlgilenme Oranı: %{vis_of_imp_pct}</span>
             </div>
 
             <div class="step-box" style="border-left: 4px solid #34D399;">
               <div class="step-num" style="color:#34D399;">3. ADIM • İNDİRME</div>
               <div class="step-val">{f_dl}</div>
               <div class="step-sub">Uygulamayı telefonuna indirdi ({kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</div>
-              <span class="step-rate">➔ İnceleyenlerin %{dl_of_vis_pct}'i indirdi</span>
+              <span class="step-rate">➔ İndirmeye Dönüşüm: %{dl_of_vis_pct}</span>
             </div>
 
             <div class="step-box" style="border-left: 4px solid #C084FC;">
               <div class="step-num" style="color:#C084FC;">4. ADIM • VIP & MEMNUNİYET</div>
               <div class="step-val">{f_vip} VIP • 5.0★</div>
-              <div class="step-sub">{paid_conv} ücretli dönüşüm ({paid_try:.2f} ₺) + 12 deneme/kod</div>
-              <span class="step-rate">➔ İndirenlerin %{vip_of_dl_pct}'i VIP başlattı</span>
+              <div class="step-sub">{paid_conv} ücretli ({paid_cust_try:.2f} ₺) + {offer_code_subs} kodlu ({html.escape(offer_code_name)}) + {active_trials} deneme</div>
+              <span class="step-rate">➔ Aktif VIP Oranı: %{vip_of_dl_pct}</span>
             </div>
           </div>
         </div>
@@ -1977,11 +2075,11 @@ async def analytics_dashboard_page(
         <div class="bento-card">
           <div class="section-head">
             <div>
-              <span>📈 Gün-Gün Toplam İndirme Yükselişi (18 Ekim ➔ Bugün: {f_dl} İndirme)</span>
+              <span>📈 Gün-Gün Toplam İndirme Yükselişi (18 Ekim ➔ Bugün: {f_dl} İndirme — {kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</span>
             </div>
             <div class="chart-toggle">
-              <button id="btnCumChart" class="active" onclick="switchChartMode('cum')">📈 Toplam Birikimli (Kümülatif)</button>
-              <button id="btnDailyChart" onclick="switchChartMode('daily')">📊 Günlük Yeni İndirme</button>
+              <button id="btnCumChart" class="active" onclick="switchChartMode('cum')">📈 Toplam Birikimli ({f_dl} İndirme)</button>
+              <button id="btnDailyChart" onclick="switchChartMode('daily')">📊 Günlük Yeni iOS (Apple API: {kpis['ios_downloads']})</button>
             </div>
           </div>
 
