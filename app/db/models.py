@@ -313,3 +313,48 @@ class BridgeClick(Base):
     )
 
 
+class AppInstallSignal(Base):
+    __tablename__ = "app_install_signals"
+
+    id = Column(Integer, primary_key=True, index=True)
+    device_uid = Column(String(128), index=True, nullable=False)
+    event_type = Column(String(50), index=True, nullable=False, default="first_open")  # 'first_open', 'store_jump', 'baby_created', 'cry_analyzed'
+    os_family = Column(String(32), index=True, nullable=False)  # 'ios', 'android', 'desktop'
+    platform = Column(String(50), nullable=True)  # 'ios_native', 'android_native', 'web_pwa'
+    app_version = Column(String(32), nullable=True)
+    ip_masked = Column(String(64), index=True, nullable=True)
+    country = Column(String(16), nullable=True)
+    matched_click_id = Column(Integer, nullable=True, index=True)
+    matched_channel = Column(String(50), index=True, nullable=True)  # 'meta_ads', 'instagram_bio', 'organic_or_asa'
+    match_confidence = Column(String(32), index=True, nullable=False, default="unmatched")  # 'high', 'medium', 'unmatched'
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+        nullable=False,
+    )
+
+
+class CampaignConfig(Base):
+    __tablename__ = "campaign_configs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    channel_key = Column(String(64), unique=True, index=True, nullable=False)  # 'apple_search_ads', 'meta_ads', 'instagram_bio', 'google_play_organic'
+    display_name = Column(String(100), nullable=False)
+    spend_usd = Column(Float, default=0.0, nullable=False)
+    cpt_bid_usd = Column(Float, default=0.0, nullable=False)
+    reported_impressions = Column(Integer, default=0, nullable=False)
+    reported_clicks = Column(Integer, default=0, nullable=False)
+    reported_installs = Column(Integer, default=0, nullable=False)
+    store_rating = Column(Float, default=5.0, nullable=False)
+    store_reviews_count = Column(Integer, default=5, nullable=False)
+    notes = Column(String(255), nullable=True)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+
+

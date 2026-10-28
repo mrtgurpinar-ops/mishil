@@ -94,6 +94,7 @@ _RATE_LIMIT_BYPASS_PREFIXES = (
     "/app-store",
     "/android",
     "/play-store",
+    "/api/v1/analytics/app-open-signal",
 )
 
 
@@ -325,11 +326,32 @@ def generate_interstitial_html(is_android: bool) -> str:
     (function() {{
       var ua = navigator.userAgent.toLowerCase();
       var target = "{target_url}";
-      if (ua.indexOf("android") > -1) {{
+      var isAnd = ua.indexOf("android") > -1;
+      if (isAnd) {{
         target = "{GOOGLE_PLAY_URL}";
       }} else if (/iphone|ipad|ipod/.test(ua)) {{
         target = "{APP_STORE_URL}";
       }}
+      try {{
+        var payload = JSON.stringify({{
+          device_uid: "jump_" + Math.random().toString(36).slice(2, 10),
+          event_type: "store_jump",
+          os_family: isAnd ? "android" : "ios",
+          platform: "bridge_interstitial",
+          app_version: "4.44.9"
+        }});
+        if (navigator.sendBeacon) {{
+          var blob = new Blob([payload], {{ type: "application/json" }});
+          navigator.sendBeacon("/api/v1/analytics/app-open-signal", blob);
+        }} else {{
+          fetch("/api/v1/analytics/app-open-signal", {{
+            method: "POST",
+            headers: {{ "Content-Type": "application/json" }},
+            body: payload,
+            keepalive: true
+          }}).catch(function(){{}});
+        }}
+      }} catch (err) {{}}
       try {{
         window.location.replace(target);
       }} catch (e) {{

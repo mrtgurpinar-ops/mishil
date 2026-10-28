@@ -9376,6 +9376,35 @@
   renderVaccineSchedule();
   checkWelcomeGuideVisibility();
   setupKeyboardAndViewportManager();
+
+  // Olasılıksal İndirme Atıf Sinyali (First-Open Install Attribution — v4.44.9)
+  (function sendFirstOpenAttributionSignal() {
+    try {
+      if (localStorage.getItem('mishil_first_open_v1') === '1') return;
+      var devUid = localStorage.getItem('mishil_device_uid');
+      if (!devUid) {
+        devUid = 'msl_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now().toString(36);
+        localStorage.setItem('mishil_device_uid', devUid);
+      }
+      var ua = (navigator.userAgent || '').toLowerCase();
+      var osFam = ua.indexOf('android') > -1 ? 'android' : (/iphone|ipad|ipod/.test(ua) ? 'ios' : 'desktop');
+      var isNative = !!(window.ReactNativeWebView || window.__MISHIL_APP__);
+      var plat = isNative ? (osFam + '_native') : 'web_pwa';
+      fetch('/api/v1/analytics/app-open-signal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          device_uid: devUid,
+          event_type: 'first_open',
+          os_family: osFam,
+          platform: plat,
+          app_version: '4.44.9'
+        })
+      }).then(function(r) {
+        if (r && r.ok) localStorage.setItem('mishil_first_open_v1', '1');
+      }).catch(function() {});
+    } catch (e) {}
+  })();
 </script>
 
 </body>

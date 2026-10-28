@@ -2,6 +2,16 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.44.9 - Build 65] - 2026-10-28
+### 🚀 Tam Huni İndirme Atıf (Install Attribution), Birim Ekonomi (CPI) ve 3'lü Konsensüs Karar Destek Kokpiti
+1. **Olasılıksal İndirme Atıf Motoru (`AppInstallSignal` & `POST /api/v1/analytics/app-open-signal`):**
+   - `public/app.html` ilk açılışında (`first_open`) ve köprü ara sayfasında (`store_jump`) çalışan tekil cihaz sinyali entegre edildi.
+   - Son 30 dakika (`high` güven) ve 24 saat (`medium` güven) içinde aynı IP bloğu ve işletim sisteminden (`ios` / `android`) `/ios` veya `/download` köprüsüne tıklayan ebeveynleri gerçek uygulama açılışıyla eşleştiren Olasılıksal Atıf algoritması devreye alındı.
+2. **Kanal Bazlı İndirme & Birim Ekonomi (CPI) Tablosu (`CampaignConfig` & `POST /api/v1/analytics/campaign-config`):**
+   - Apple Search Ads (`$77` harcama, `37` gerçek indirme, `$2.08 CPI`, `$0.75 CPT` tavan teklif projeksiyonu), Meta Ads (`/ios` köprüsü), Instagram Bio (`/download`) ve Google Play kanalları yan yana birim ekonomi tablosunda birleştirildi; kokpit içinden bütçe/indirme güncelleme formu eklendi.
+3. **3'lü Ajan Konsensüs Karar Destek & Otomatik Teşhis Motoru (Claude + Codex + Antigravity):**
+   - Meta Ads `/ios` linkindeki `%27` Android hedefleme sızıntısı teşhisi, Apple Search Ads `$0.75 CPT` sonrası yeni CPI projeksiyonu, Codex Beta-Binom yumuşatmalı Log-Odds **Altın Saatler ($z_h$) Anomali Skoru** (`00:00` ve `23:00` TSİ zirveleri), 5 aşamalı Edinim & Aktivasyon Hunisi (`User`, `Baby`, `CryEvent`, `SleepLog`, `Feedback`) ve 15 saniyelik canlı oto-yenileme sayacı eklendi.
+
 ## [4.44.8 - Build 65] - 2026-10-28
 ### 📊 Canlı Trafik, Meta Ads (`/ios`) & Instagram (`/download`) Köprü Analitik Kokpiti
 1. **Gerçek Zamanlı Köprü Telemetrisi (`BridgeClick` & `app/api/v1/endpoints/analytics.py`):**
