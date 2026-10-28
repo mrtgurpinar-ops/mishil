@@ -1,7 +1,78 @@
 # Changelog - Mışıl Baby
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
+
+## [4.44.8 - Build 65] - 2026-10-28
+### 📊 Canlı Trafik, Meta Ads (`/ios`) & Instagram (`/download`) Köprü Analitik Kokpiti
+1. **Gerçek Zamanlı Köprü Telemetrisi (`BridgeClick` & `app/api/v1/endpoints/analytics.py`):**
+   - `/ios` (Meta Ads), `/download` (Instagram Bio), `/android`, `/app-store` ve `/play-store` köprü linklerine gelen her tıklamayı sıfır yönlendirme gecikmesiyle veritabanına kaydeden telemetri motoru kuruldu.
+   - `Instagram App`, `Facebook App`, `WhatsApp`, `Safari/Chrome` uygulama içi tarayıcı (WebView) tespiti, `iPhone` vs `Android` cihaz ayrımı, `fbclid` / `UTM` parametre yakalayıcısı, `facebookexternalhit` bot filtresi ve 15 saniyelik tekil tıklama (prefetch deduplication) algoritması entegre edildi.
+2. **Geçmiş Railway Loglarının Tohumlanması (Historical Backfill):**
+   - 27 Ekim 22:31 TSİ'den itibaren Railway canlı loglarında biriken 143 gerçek köprü tıklaması (`120 /ios`, `21 /download`, `2 /android`) veri kaybı yaşanmaması için otomatik tohumlama (`ensure_historical_seed`) ile tabloya aktarıldı.
+3. **Yönetici Analitik Kokpiti (`/admin/analytics` & `/api/v1/analytics/dashboard`):**
+   - PIN korumalı (`MISIL-REV-9842`) koyu modlu Bento Analitik Kokpiti; 4 üst KPI kartı, 24 saatlik TSİ yoğunluk çubuk grafiği, iOS/Android ve Instagram/Facebook uygulama içi kaynak yüzdeleri, saniye bazlı canlı akış tablosu ve Excel/CSV dışa aktarım (`/api/v1/analytics/export.csv`) özelliğiyle devreye alındı.
+   - Google Play Console Production kanalına **Build 63 (`.aab`)** ve yeni `mishil_header_poster_21x9` / `mishil_search_banner_poster_3x2` vitrin görselleri Google Play Developer API üzerinden yüklendi.
  
+## [4.44.7 - Build 65] - 2026-10-28
+### 🌅 Mışıl Lifestyle: "Sabah Kıkırdaması" Tekil Gönderi (Single Feed Post)
+1. **Duygusal Bağ & Lifestyle Konsepti (`post_sabah_kikirdamasi.md`):**
+   - Eğitici çizgi roman serileri arasına nefes aldırmak ve annelerle şefkatli bir bağ kurmak amacıyla 1. Konsept ("Gece Nöbetini Unutturan O Sabah Kıkırdaması") tasarlandı.
+   - 4:5 Dikey formatında (1080×1350 px, orta 1080×1080 Safe Zone) Işıl ve Mışıl'ın sabah güneşi altındaki neşeli portresi merkez alındı.
+2. **Playwright Lifestyle Render Motoru (`render_instagram_single_morning.py`):**
+   - Sıcak amber/altın ışık tonları, dergi kapağı mizanpajı ve alıntı kartı içeren render motoru kodlandı; `post_single_sabah_kikirdamasi.png` görseli üretildi.
+3. **Web Önizleme Vitrini Entegrasyonu (`preview_instagram_concepts.html`):**
+   - Yeni "Sabah Kıkırdaması (Tekil Post)" sekmesi vitrine eklendi; kopyalanabilir yüksek etkileşimli Instagram caption'ı bağlandı.
+ 
+## [4.44.6 - Build 64] - 2026-10-28
+### 🎨 Mışıl Comics • Sayı #5: Gerçek Çizgi Roman (Webcomic) Sahne Mimarisine Geçiş
+1. **İnfografik/Kutu Yapısının Kaldırılması & Çizgi Roman Ruhuna Dönüş:**
+   - Kullanıcı geri bildirimi ve konsensüs doğrultusunda, tasarımı broşürleştiren küçük avatar ve kutucuklu bento düzeni tamamen terk edildi.
+   - Her slaytta 430-520px yüksekliğinde büyük, canlı ve duygu aktaran görsel çizgi roman sahneleri (Hero Stage) merkez alındı.
+2. **Kuyruklu Konuşma Balonları (Tail Speech Bubbles) & Dinamik SFX:**
+   - Konuşan karaktere doğrudan işaret eden CSS üçgen kuyruklu organik çizgi roman balonları entegre edildi.
+   - Sahnelerde `⚡ DUYU FAZLALIĞI!`, `📺 MAVİ IŞIK ŞOKU!`, `📢 85 DESİBEL KRİZ!`, `✨ 10 DK ÇÖZÜM!` dinamik çizgi roman patlama etiketleri uygulandı.
+3. **Kompakt Çizgi Roman Rehber Şeridi:**
+   - Sahne altında tek bakışta okunan 2'li net çizgi roman kılavuz şeridi (❌ Hata vs ✅ Çözüm) ve altın kural dipnotu ile dolgunluk ve ferahlık dengelendi.
+4. **Render & Vitrin:**
+   - `render_instagram_comic_05.py` Playwright ile 7 slaytı yeniden derledi; `preview_instagram_concepts.html` vitrini `?v=comic5_webcomic_v4` ile güncellendi.
+ 
+## [4.44.5 - Build 63] - 2026-10-28
+### 🎨 Mışıl Comics • Sayı #5: "Cadı Saati (Witching Hour) Krizleri!" Büyük Puntolu Karusel Paketi
+1. **İçerik Şartnamesi & Kancalar (`post_05_cadi_saati_witching_hour.md`):**
+   - 4:5 Dikey Karusel formatında (1080×1350 px, orta 1080×1080 px Güvenli Alan / Safe Zone).
+   - Akşam 18:00 - 22:00 arası yaşanan duyusal aşırı yükleme (sensory overload) krizleri, 3 kritik ebeveyn tuzağı (sürekli emzirmek, parlak ışık/TV, fısıltıyla sakinleştirmeye çalışmak) ve «3 Adımlı Akşam Regülasyon Kalkanı» hazırlandı.
+   - Algoritma dostu çift kanca, yüksek etkileşimli Instagram caption metni ve niş hashtag kütüphanesi oluşturuldu.
+2. **Büyük Punto & Dolgun Alan Render Motoru (`render_instagram_comic_05.py`):**
+   - Yazıların küçük kalmaması ve boş alanların değerlendirilmesi yönündeki kullanıcı direktifi doğrultusunda; fontlar %25-35 büyütüldü (Başlıklar 58px, Konuşma Balonları 28-32px, Kart Metinleri 26-28px, Adım Numaraları 34px).
+   - Playwright ile 7 adet ultra yüksek çözünürlüklü slayt PNG'si (`post_05_slaytlar/`) derlendi.
+3. **İnteraktif Web Önizleme Vitrini (`preview_instagram_concepts.html`):**
+   - Sayı #5 sekmesi varsayılan aktif vitrin olarak entegre edildi.
+4. **Büyüme & İçerik Hafızası:**
+   - `01_Features/Misil_Baby_Instagram_Buyume_ve_Icerik_Hafizasi.md` ve `INSTAGRAM_BUYUME_HAFIZASI.md` güncellendi.
+
+### 🎨 Mışıl Comics • Sayı #4: "30 Dakika Kedi Uykusu Kapanı!" Instagram Karusel Paketi
+1. **İçerik Şartnamesi & Kancalar (`post_04_kedi_uykusu_dongu_birlestirme.md`):**
+   - 4:5 Dikey Karusel formatında (1080×1350 px, orta 1080×1080 px Güvenli Alan / Safe Zone).
+   - Bebeklerde 30-45 dakikalık REM-NREM uyku döngüsü geçişi, sahte uyanma (partial arousal) teşhisi, 3 kritik tuzak (erken müdahale, aydınlık oda, sesin kesilmesi) ve «25. Dakika Dokunuş Köprüsü» çözümü hazırlandı.
+   - Algoritma dostu çift kanca (Slayt 1 + Slayt 2 Re-serve), yüksek etkileşimli Instagram caption metni ve niş hashtag kütüphanesi oluşturuldu.
+2. **Ultra HD Render Motoru (`render_instagram_comic_04.py`):**
+   - Playwright tabanlı Python render betiği ile Nordic Ferahlık & Sıfır Göz Yorgunluğu standartlarında 7 adet ultra yüksek çözünürlüklü slayt PNG'si (`post_04_slaytlar/`) derlendi.
+3. **İnteraktif Web Önizleme Vitrini (`preview_instagram_concepts.html`):**
+   - Mışıl Comics #4 interaktif slayt göstericisi, canlı küçük resim gezintisi, diyalog panelleri ve metin kartları entegre edildi.
+4. **Büyüme & İçerik Hafızası:**
+   - `01_Features/Misil_Baby_Instagram_Buyume_ve_Icerik_Hafizasi.md` ve `INSTAGRAM_BUYUME_HAFIZASI.md` güncellendi.
+
+### 🎨 Meta Reklam Görselleri & Çift Mağaza (App Store + Google Play) Rozet Güncellemesi
+1. **Klasör Temizliği (`kullanici/reklamlar/`):**
+   - Kullanılmayan 3 reklam taslağı (`01_Misil_Ses_Mikseri_Reklam.jpg`, `02_Misil_SweetSpot_Uyku_Penceresi_Reklam.jpg`, `03_Misil_Aglama_Analizi_Atak_Haftasi_Reklam.jpg`) silindi.
+   - Yalnızca canlı arayüzü temsil eden 3 gerçek reklam görseli (`01_Misil_Gercek_App_MisilSpot_Uyku_Sayaci.jpg`, `02_Misil_Gercek_App_Aglama_Analizi.jpg`, `03_Misil_Gercek_App_18_Studyo_Sesleri.jpg`) korundu.
+2. **Çift Mağaza Rozet Entegrasyonu (Dual Store Badges):**
+   - Google Play yayını tamamlandığı için eski tekil "Download on the App Store" rozeti kaldırıldı.
+   - Resmi vektörel App Store ve Google Play rozetleri yan yana, dengeli, yüksek DPI çözünürlük ve gölge derinliğiyle 3 gerçek görselin alt bandına işlendi.
+3. **Reklam Metinleri ve Kılavuz Revizyonu:**
+   - `INSTAGRAM_KILAVUZU_VE_METINLERI.md`: Bio metni, öne çıkan kapaklar, post açıklamaları ve Meta Ads hedefleme parametrelerindeki tekil iOS kısıtları çift mağaza (`iOS + Android`) olarak güncellendi.
+   - Karusel post açıklamalarındaki mağaza indirme bağlantıları evrensel akıllı köprüye (`https://misilbaby.com/app`) bağlandı.
+
 ## [4.44.2 - Build 63] - 2026-10-27
 ### 🌐 Universal Smart Store Bridge: Meta Reklamları İçin Çift Yönlü Akıllı Mağaza Köprüsü
 1. **Dinamik OS Yönlendirmesi (`/ios`, `/download`, `/app-store`, `/android`, `/play-store`):**

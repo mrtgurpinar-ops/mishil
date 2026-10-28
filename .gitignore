@@ -62,3 +62,12 @@ test_veo_*.py
 
 # Kullanıcı varlıkları, sunumlar ve mağaza ekran görüntüleri (yerel saklanır)
 kullanici/
+
+# Promosyon kodları ve geçici test çıktıları — ASLA commit edilmez
+mobile/OfferCodeOneTimeUseCodes_*.csv
+mobile/promo_batches/
+scratch/
+public/preview_bio.html
+public/preview_instagram_concepts.html
+public/preview_analytics_cockpit.html
+implementation_plan.md

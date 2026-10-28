@@ -22,6 +22,7 @@ from app.core.logging import setup_logging, get_logger, request_id_ctx
 from app.db.base import Base, engine
 import app.db.models  # Ensures all SQLAlchemy models are registered in Base.metadata
 from app.api.v1.router import api_router
+from app.api.v1.endpoints.analytics import record_bridge_click
 
 # Setup structured logging
 setup_logging(debug=settings.DEBUG)
@@ -91,6 +92,8 @@ _RATE_LIMIT_BYPASS_PREFIXES = (
     "/ios",
     "/download",
     "/app-store",
+    "/android",
+    "/play-store",
 )
 
 
@@ -354,9 +357,30 @@ def generate_interstitial_html(is_android: bool) -> str:
 async def smart_app_store_bridge(request: Request):
     """Universal Smart Store Bridge: Serves normal landing HTML to bots, client-redirects real users by OS."""
     user_agent = (request.headers.get("user-agent") or "").lower()
+    route_path = request.url.path or "/ios"
+    is_mobile_os = any(os_tok in user_agent for os_tok in ("iphone", "ipad", "ipod", "android"))
 
     # Meta botu veya crawler ise normal ana sayfayı 200 OK ile sun (böylece Meta yönlendirme tespit edemez)
-    if any(bot in user_agent for bot in _BOT_USER_AGENTS):
+    # Not: Gerçek iPhone/Android WhatsApp uygulama içi tarayıcısı mobil OS imzası taşır; sadece önizleme botu taşımız.
+    is_crawler = any(
+        bot in user_agent
+        for bot in (
+            "facebookexternalhit",
+            "facebot",
+            "meta-externalagent",
+            "twitterbot",
+            "linkedinbot",
+            "googlebot",
+            "bingbot",
+            "slackbot",
+        )
+    ) or ("whatsapp" in user_agent and not is_mobile_os)
+
+    if is_crawler:
+        try:
+            record_bridge_click(request, route_path=route_path, target_store="landing_bot")
+        except Exception as exc:
+            logger.warning(f"Bridge click telemetry warning (bot): {exc}")
         landing_file = os.path.join(project_root, "public", "index.html")
         if os.path.exists(landing_file):
             with open(landing_file, "r", encoding="utf-8") as f:
@@ -364,6 +388,14 @@ async def smart_app_store_bridge(request: Request):
 
     # Cihaz tespiti: Android mi yoksa iOS/Diğer mi?
     is_android = "android" in user_agent
+    try:
+        record_bridge_click(
+            request,
+            route_path=route_path,
+            target_store="google_play" if is_android else "app_store",
+        )
+    except Exception as exc:
+        logger.warning(f"Bridge click telemetry warning (user): {exc}")
     interstitial_html = generate_interstitial_html(is_android)
     return HTMLResponse(content=interstitial_html, status_code=status.HTTP_200_OK)
 
@@ -391,6 +423,14 @@ async def admin_feedbacks_shortcut(request: Request, pin: Optional[str] = None):
     """Direct shortcut for Admin Feedback Dashboard."""
     pin_param = f"?pin={pin}" if pin else ""
     return RedirectResponse(url=f"/api/v1/feedback/dashboard{pin_param}")
+
+
+@app.get("/admin/analytics", response_class=HTMLResponse, tags=["Admin"])
+@app.get("/admin/clicks", response_class=HTMLResponse, tags=["Admin"])
+async def admin_analytics_shortcut(request: Request, pin: Optional[str] = None):
+    """Direct shortcut for Live Ad & Store Bridge Analytics Cockpit."""
+    pin_param = f"?pin={pin}" if pin else ""
+    return RedirectResponse(url=f"/api/v1/analytics/dashboard{pin_param}")
 
 
 
@@ -482,17 +522,6 @@ if os.path.exists(web_preview_dir):
     assets_dir = os.path.join(project_root, "mobile", "assets")
     if os.path.exists(assets_dir):
         app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
-
-
-# Single unified GET / route — serves web preview if available, otherwise API info
-@app.get("/", response_class=HTMLResponse, tags=["Web App"])
-async def root_app():
-    """Serves the live interactive Mishil Mobile Web Application."""
-    index_path = os.path.join(web_preview_dir if os.path.exists(web_preview_dir) else "", "index.html")
-    if os.path.exists(index_path):
-        with open(index_path, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
-    return HTMLResponse("<h2>Mishil API is running. Visit <a href='/docs'>/docs</a></h2>")
 
 
 if __name__ == "__main__":

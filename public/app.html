@@ -4112,6 +4112,9 @@
       <button class="btn-primary" style="flex: 2;" onclick="submitReviewerPin()">Unlock Full VIP</button>
     </div>
     <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed rgba(255,255,255,0.12); display: flex; flex-direction: column; gap: 8px;">
+      <a href="/admin/analytics?pin=MISIL-REV-9842" target="_blank" style="color: #60A5FA; font-size: 12px; font-weight: 700; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 7px; border-radius: 6px; background: rgba(59, 130, 246, 0.14); border: 1px solid rgba(59, 130, 246, 0.3);">
+        <span>📊</span> Reklam & Köprü Analitik Kokpiti (/ios & /download)
+      </a>
       <a href="/admin/feedbacks?pin=MISIL-REV-9842" target="_blank" style="color: var(--accent); font-size: 12px; font-weight: 600; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px; border-radius: 6px; background: rgba(232, 168, 85, 0.1);">
         <span>📋</span> Anne Geri Bildirimleri Paneli
       </a>
@@ -4712,7 +4715,11 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.44.0', date: '26 Ekim 2026', latest: true, items: [
+    { v: '4.44.1', date: '28 Ekim 2026', latest: true, items: [
+      'Google Play Store & Apple App Store Çift Mağaza Senkronizasyonu (Build 63): Resmi Google Play mağaza bağlantıları, akıllı cihaz yönlendirme köprüsü ve çevrimdışı yedek paket senkronize edildi.',
+      'Akıllı Yerel Bildirim & Bakım Radarı (CareNotificationEngine): T.C. Sağlık Bakanlığı aşı takvimi, Wonder Weeks büyüme sıçramaları ve akşam uyku kontrolleri Android & iOS native katmanına mühürlendi.'
+    ]},
+    { v: '4.44.0', date: '26 Ekim 2026', items: [
       'Full Sensory Suite (Aşama 4): Uygulamanın webview tabanlı olduğunu unutturan saf Apple yerel mekanik dokunuşları, sinüzoidal akustik crossfade ve Gece Beşiği modu entegre edildi.',
       'Haptics 2.0 (Çok Katmanlı Dokunsal Geri Bildirim): Sekme/filtre geçişlerinde mikroskobik tık (hapticSelection), FAB ve uyku sayacında tok mekanik darbe (hapticImpact), uyku/rutin kaydında çift ritmik onay (hapticSuccess) devreye alındı.',
       'Akustik Crossfade (0.8s): 18 stüdyo parçası arasında geçiş yapılırken ani kesinti olmadan 0.8 saniyelik pürüzsüz sinüzoidal ses kısılarak geçiş (smooth fade-in / fade-out) sağlandı; bebeğin irkilmesi önlendi.',

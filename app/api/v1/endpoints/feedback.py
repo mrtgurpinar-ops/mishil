@@ -502,7 +502,8 @@ async def feedback_dashboard_page(
               <p>5 Yıldız Koruma & Gece Nöbeti Gözlem Paneli</p>
             </div>
           </div>
-          <div class="actions">
+          <div class="actions" style="display:flex; gap:8px; flex-wrap:wrap;">
+            <a href="/api/v1/analytics/dashboard?pin={pin}" class="btn" style="background:rgba(59,130,246,0.18); color:#60A5FA; border:1px solid rgba(59,130,246,0.35); text-decoration:none; padding:10px 14px; border-radius:10px; font-size:13px; font-weight:700;">📊 Reklam & Tıklama Kokpiti</a>
             <a href="/api/v1/feedback/export.csv?pin={pin}" class="btn btn-export">📥 CSV Olarak İndir</a>
           </div>
         </div>

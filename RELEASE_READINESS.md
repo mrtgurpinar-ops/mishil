@@ -1,30 +1,30 @@
-# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.10.0 / build 18)
+# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.44.1 / Build 63)
 
 > Amaç: Google Play **ve** Apple App Store'a, "bazı telefonlarda açılmıyor" ve
 > "satın alma çalışmıyor" sınıfı sürprizler olmadan çıkmak.
-> Durum: Build 18 her iki platform için EAS Cloud'da başarıyla derlendi, iOS Apple Review'a,
-> Android ise Google Play Dahili/Kapalı Test kanallarına başarıyla gönderildi!
+> Durum: Android Build 63 (`.aab`) Google Play Production kanalına ve yeni mağaza vitrinine API ile yüklendi;
+> iOS v1.0 yayında, v1.1 (Build 57) Apple Review aşamasında!
 
 ---
 
-## 0. Mevcut Durum (v4.10.0 Build 18)
+## 0. Mevcut Durum (v4.44.1 Build 63)
 
 | Alan | Durum |
 | :-- | :-- |
-| WebView açılış dayanıklılığı (render-crash kurtarma, retry, watchdog, `androidLayerType: software`) | ✅ kodda |
-| Wonder Weeks (10 Zihinsel Sıçrama) & Sirkadiyen SweetSpot | ✅ kodda & mağazada |
-| 18 Stüdyo Master Parça & Akustik Mikser (CBR 192k) | ✅ kodda & pakette |
+| WebView açılış dayanıklılığı (render-crash kurtarma, retry, watchdog, `androidLayerType: software`) | ✅ kodda & canlıda |
+| Wonder Weeks (10 Zihinsel Sıçrama) & Mışıl Spot™ Sirkadiyen Sayaç | ✅ kodda & mağazada |
+| 18 Stüdyo Master Parça & Akustik Crossfade Mikser (CBR 192k) | ✅ kodda & pakette |
 | Klinik Akustik Ağlama Analizi (13-Bant MFCC Spektrogram) | ✅ kodda |
 | Şefkatli Mışıl Dadı AI Koçu & Biyometrik Rollup | ✅ kodda |
-| Android `minSdk 26` / `targetSdk 36` (Build 55) | ✅ Build 55 AAB üretildi & yerel arşive indirildi (`MisilBaby_v4.36.7_b55.aab`) |
-| iOS `buildNumber 18`, `ITSAppUsesNonExemptEncryption` | ✅ Build 18 IPA üretildi & **Apple Review'a Gönderildi** |
+| Android `minSdk 26` / `targetSdk 36` / 16KB Bellek (Build 63) | ✅ Build 63 AAB üretildi, yerel arşive indirildi & Google Play Production'a API ile yüklendi |
+| iOS `buildNumber 57`, `ITSAppUsesNonExemptEncryption` | ✅ v1.0 Yayında, v1.1 (Build 57) **Apple Review'da (`WAITING_FOR_REVIEW`)** |
 | Production build guard (mock RevenueCat anahtarıyla derleme engellenir) | ✅ geçildi |
-| jest yeşil (`*.test.ts`), compliance PASS | ✅ yeşil (100%) |
-| Native arka plan ses motoru (kilitli ekranda ninni) | ✅ pakete gömüldü |
-| Offline fallback (`offlineHtml.generated.ts`) | ✅ pakete gömüldü |
+| jest yeşil (`*.test.ts` - 3 suite / 10 test), compliance PASS | ✅ yeşil (100%) |
+| Native arka plan ses motoru + `CareNotificationEngine` + Haptics 2.0 | ✅ pakete gömüldü |
+| Offline fallback (`offlineHtml.generated.ts` - v4.44.1) | ✅ pakete gömüldü |
 | RevenueCat `pro` entitlement + `default` offering | ✅ panelde bağlı, kod hizalandı |
-| Canlı uçlar (`/app`, `/privacy`, `/terms`, `/sounds`, `/coach/chat`) | ✅ 200 OK — canlıda doğrulandı |
-| Google Play Kapalı & Dahili Test Dağıtımı | ✅ Build 18 yayında, Build 55 `.aab` hazır |
+| Canlı uçlar (`/app`, `/privacy`, `/terms`, `/ios`, `/android`, `/sounds`, `/coach/chat`) | ✅ 200 OK — canlıda doğrulandı |
+| Google Play Production & Mağaza Vitrini (API Otomasyonu) | ✅ Build 63 & Yeni Poster/Açıklamalar API ile yüklendi (`google-play-service-account.json` aktif) |
 | Apple App Store Connect Dağıtımı | ✅ **Onaylandı & Yayına Alındı (Approved & Released 🎉)** |
 
 ---

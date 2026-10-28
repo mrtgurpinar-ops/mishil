@@ -284,3 +284,32 @@ class Feedback(Base):
         nullable=False,
     )
 
+
+class BridgeClick(Base):
+    __tablename__ = "bridge_clicks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    route_path = Column(String(64), index=True, nullable=False)  # '/ios', '/download', '/android', etc.
+    channel = Column(String(50), index=True, nullable=False)  # 'meta_ads', 'instagram_bio', 'google_play_direct', 'landing'
+    os_family = Column(String(32), index=True, nullable=False)  # 'ios', 'android', 'desktop', 'bot'
+    device_detail = Column(String(100), nullable=True)  # 'iPhone', 'Android Phone', 'Meta Crawler', etc.
+    app_webview = Column(String(64), index=True, nullable=True)  # 'Instagram App', 'Facebook App', 'WhatsApp', 'Safari/Chrome'
+    target_store = Column(String(32), nullable=True)  # 'app_store', 'google_play', 'landing_bot'
+    is_bot = Column(Boolean, default=False, index=True, nullable=False)
+    is_unique = Column(Boolean, default=True, index=True, nullable=False)
+    has_fbclid = Column(Boolean, default=False, nullable=False)
+    fbclid = Column(String(255), nullable=True)
+    utm_source = Column(String(100), nullable=True)
+    utm_campaign = Column(String(100), nullable=True)
+    referrer = Column(String(255), nullable=True)
+    country = Column(String(16), nullable=True)
+    ip_masked = Column(String(64), index=True, nullable=True)
+    user_agent = Column(String(512), nullable=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+        nullable=False,
+    )
+
+

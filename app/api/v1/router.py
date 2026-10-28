@@ -11,6 +11,7 @@ from app.api.v1.endpoints import (
     baby,
     sleep,
     feedback,
+    analytics,
 )
 
 api_router = APIRouter()
@@ -27,5 +28,6 @@ api_router.include_router(family.router, prefix="/family", tags=["Family & Nanny
 api_router.include_router(baby.router, prefix="/baby", tags=["Baby Profile Sync"])
 api_router.include_router(sleep.router, prefix="/sleep", tags=["Live Sleep Logs"])
 api_router.include_router(feedback.router)
+api_router.include_router(analytics.router)
 
 

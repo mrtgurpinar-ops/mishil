@@ -1,67 +1,83 @@
-# Implementation Plan - Mışıl Baby Evrensel Akıllı Mağaza Köprüsü (Universal Smart Store Bridge)
+# Implementation Plan - Meta Reklam Görselleri ve Metinlerinin Güncellenmesi (Çift Mağaza: App Store & Google Play)
 
-**Tahmini Efor:** ~10-15 Dakika  
-**Tahmini Kapasite Kullanımı:** %2 - %3
+**Tahmini Efor:** ~15-20 Dakika  
+**Tahmini Kapasite Kullanımı:** %3 - %4
+
+---
+
+### 🎯 Netleştirilmiş Hedef & Kapsam (Refined Prompt)
+- **Hedef Proje:** `projects/mishil` (Mışıl Baby)
+- **Hedef Modüller & Varlıklar:**
+  1. `projects/mishil/kullanici/reklamlar/` dizinindeki Meta reklam görsellerinin temizliği: Kullanılmayan 3 dosyanın (`01_Misil_Ses_Mikseri_Reklam.jpg`, `02_Misil_SweetSpot_Uyku_Penceresi_Reklam.jpg`, `03_Misil_Aglama_Analizi_Atak_Haftasi_Reklam.jpg`) silinmesi; yalnızca "Gercek" adını taşıyan 3 ana reklam görselinin tutulması.
+  2. Tutulan 3 "Gerçek" görseldeki (`01_Misil_Gercek_App_MisilSpot_Uyku_Sayaci.jpg`, `02_Misil_Gercek_App_Aglama_Analizi.jpg`, `03_Misil_Gercek_App_18_Studyo_Sesleri.jpg`) tekil **"Download on the App Store"** rozetinin yerine, Android Google Play yayınımız da canlıda olduğu için **App Store + Google Play (Çift Mağaza Rozeti)** yerleştirilmesi.
+  3. Metinlerdeki tek taraflı iOS referanslarının ("iOS için indir", "Yalnızca iOS", "App Store üzerinden indirin" vb.) taranarak hem iOS hem Android'i kapsayacak çift mağaza formatına güncellenmesi (`INSTAGRAM_KILAVUZU_VE_METINLERI.md`, `preview_bio.html`, post karusel açıklamaları).
+
+### 🏎️ Ajan Uzmanlık Şeritleri ve Görev Dağılımı (Tri-Agent Roles)
+- **Claude Şeridi:** Reklam metinleri ve CTA stratejisinde dönüşüm optimizasyonu, tek taraflı platform kısıtlarının kaldırılması, marka anayasasına uygun çift mağaza metin revizyonu.
+- **Codex Şeridi:** Yüksek kaliteli görsel işleme ve kompozitleme scriptinin (`scripts/update_meta_ad_badges.py` - Pillow / OpenCV) kodlanması; 1024x1024 kayıpsız formatta orijinal arka plan gölge ve ışık dengesini bozmadan App Store & Google Play rozetlerinin piksel seviyesinde yerleştirilmesi.
+- **Antigravity Şeridi (Orkestrasyon, UI & Varlık Yönetimi):**
+  - Dosya temizliğinin icrası (kullanılmayan 3 dosyanın güvenle kaldırılması).
+  - Görsel rozet güncellemelerinin yerel ortamda üretilip teyit edilmesi.
+  - İlgili dokümantasyonların ve metin kılavuzlarının senkronize edilmesi.
+
+### 🛡️ Risk Seviyesi & Kademeli Doğrulama (Tiered Review Gate)
+- **Risk Seviyesi:** **Seviye 1 (Düşük Risk / Rutin Pazarlama & Görsel Varlık Revizyonu - Fast Lane)**
+- Core uygulama mimarisine veya native koda dokunulmaz. Yerel görsel işleme ve markdown/kılavuz metin revizyonudur. Görseller üretildikten sonra yerel görsel önizleme aracıyla piksel kalitesi doğrulanacaktır.
+
+### ⚠️ Kısıtlar ve Önleyici Tedbirler
+- Yalnızca "Gercek" etiketli 3 dosya korunacak, diğerleri temizlenecektir.
+- Orijinal mockupların (iPhone ekranındaki arayüzün) netliği bozulmayacak, yalnızca alt rozet bandı profesyonel çift rozet (Apple + Google Play) olarak yenilenecektir.
+- Canlı ortama izinsiz push yapılmayacak, tüm çalışmalar yerel ortamda tamamlanıp kullanıcı onayına sunulacaktır.
 
 ---
 
 ### 1. Ajan Uzmanlık Şeritleri ve Görev Dağılımı (Tri-Agent Roles)
-- **Claude Şeridi:** Backend mimari kontrolü (`app/main.py` routing & User-Agent regex ayrıştırması).
-- **Codex Şeridi:** Python sözdizimi, birim testleri ve User-Agent simülasyon testleri.
-- **Antigravity Şeridi (Birincil İcra):**
-  - `projects/mishil/app/main.py` dosyasındaki `/ios`, `/download`, `/app-store` (ve yeni `/android`) uç noktalarının güncellenmesi.
-  - Cihaz tespiti ile hem Python seviyesinde hem istemci JS seviyesinde dinamik yönlendirme (`Google Play` vs `App Store`).
-  - Meta/Crawler bot korumasının (`_BOT_USER_AGENTS`) eksiksiz muhafaza edilmesi.
-  - Sürüm ve Changelog senkronizasyonu (`projects/mishil/CHANGELOG.md`, `CHANGELOG.md`, `MASTER_DOCUMENT.md`).
+- **Claude Şeridi:** Metin revizyonu, CTA dili ve reklam hedefleme stratejisi denetimi.
+- **Codex Şeridi:** Python PIL ile piksel hassasiyetinde çift rozet yerleştirme scripti.
+- **Antigravity Şeridi:** Orkestrasyon, dosya temizliği ve görsel önizleme.
 
 ---
 
 ### 2. Aktarım ve İcra Yöntemi (Execution Strategy)
-- Düzenleme yerel ortamda `projects/mishil/app/main.py` üzerinde yapılacak.
-- Python ile simüle edilmiş User-Agent testleri (Android, iPhone, Facebook Bot, Desktop) koşturulacak.
+1. **Adım 1 - Dosya Temizliği:** `projects/mishil/kullanici/reklamlar/` altındaki kullanılmayan 3 dosya silinecek, yalnızca 3 "Gerçek" görsel bırakılacak.
+2. **Adım 2 - Çift Rozet Tasarımı & Kompozit Scripti:**
+   - Resmi App Store ve Google Play rozetleri vektörel/yüksek çözünürlüklü olarak hazırlanacak.
+   - 3 görselin altındaki eski tekli rozet alanı arka plan dokusuna uygun olarak temizlenecek ve yan yana ortalanmış App Store + Google Play rozetleri yerleştirilecek.
+3. **Adım 3 - Reklam & Tanıtım Metinlerinin Güncellenmesi:**
+   - `INSTAGRAM_KILAVUZU_VE_METINLERI.md`: Bio, post ve Meta Ads filtreleri güncellenecek (Cihaz filtresi: iOS + Android; CTA: App Store & Google Play).
+   - `post_01_uyku_pencereleri_karusel.md` ve `post_03_kucaktan_yataga_gecis.md` içerisindeki tekil App Store bağlantıları güncellenecek.
+   - `public/preview_bio.html` içerisindeki "iPhone ve iPad için ücretsiz" ifadesi "iOS ve Android için ücretsiz" olarak revize edilecek.
 
 ---
 
 ### 3. Kademeli Çapraz Doğrulama Kapısı (Tiered Review Gate)
-- **Risk Seviyesi:** **Seviye 2 (Orta Risk / Standart Modül - Dual Check)**
-- Backend endpoint davranışı yerel python mock istekleriyle hem Android hem iOS hem Bot senaryolarında test edilecek.
+- **Seviye 1 (Rutin Fast Lane):** Görsel kompozitleri ve metin güncellemeleri yerel ortamda üretilip doğrulanacak. Harici token/CLI israfı yapılmayacak.
 
 ---
 
 ### 4. Limit/Kota Aşımı Durum Planı (Fallback Protocol)
-- Değişiklik yerel FastAPI katmanında yürütülecektir; harici CLI kotası harcanmaz.
+- Tüm adımlar yerel ortamda Python Pillow ve metin düzenleme araçlarıyla yürütülecektir; harici kota riski bulunmamaktadır.
 
 ---
 
 ## Yapılacak İşler Listesi (Proposed Changes)
 
-#### [projects/mishil/app/main.py](file:///c:/Users/MSI-NB/OneDrive/Desktop/antigravity_core/projects/mishil/app/main.py)
-- `GOOGLE_PLAY_URL` ve `APP_STORE_URL` sabitlerini tanımla:
-  - `GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=com.levitas.misilbaby"`
-  - `APP_STORE_URL = "https://apps.apple.com/app/m%C4%B1%C5%9F%C4%B1l-baby-bebek-uyku-ve-a%C4%9Flama/id6809223195"`
-- `smart_app_store_bridge` fonksiyonunu güncelle:
-  - Meta / arama motoru botları için: `public/index.html` (200 OK) dönmeye devam et.
-  - Android cihazlar için (`"android" in user_agent`):
-    - Başlık: `Mışıl Baby — Google Play'de Açılıyor...`
-    - Buton: `🤖 Google Play'de Aç`
-    - Yönlendirme JS: `GOOGLE_PLAY_URL`
-  - iOS / Apple cihazlar için (`"iphone" in user_agent or "ipad" in user_agent or "ipod" in user_agent`):
-    - Başlık: `Mışıl Baby — App Store'da Açılıyor...`
-    - Buton: `🍏 App Store'da Aç`
-    - Yönlendirme JS: `APP_STORE_URL`
-  - Masaüstü / Diğer cihazlar için:
-    - İki butonu yan yana sun ve ana sayfaya yönlendir.
-- Endpoint decorator listesine `@app.get("/android", ...)` ekle.
+#### 1. `kullanici/reklamlar/` Klasör Temizliği
+- [ ] Silinecekler: `01_Misil_Ses_Mikseri_Reklam.jpg`, `02_Misil_SweetSpot_Uyku_Penceresi_Reklam.jpg`, `03_Misil_Aglama_Analizi_Atak_Haftasi_Reklam.jpg`
+- [ ] Tutulacaklar: `01_Misil_Gercek_App_MisilSpot_Uyku_Sayaci.jpg`, `02_Misil_Gercek_App_Aglama_Analizi.jpg`, `03_Misil_Gercek_App_18_Studyo_Sesleri.jpg`
+
+#### 2. Çift Rozet (App Store & Google Play) Kompozitleme
+- [ ] `01_Misil_Gercek_App_MisilSpot_Uyku_Sayaci.jpg` rozet bandı güncellemesi
+- [ ] `02_Misil_Gercek_App_Aglama_Analizi.jpg` rozet bandı güncellemesi
+- [ ] `03_Misil_Gercek_App_18_Studyo_Sesleri.jpg` rozet bandı güncellemesi
+
+#### 3. Metin & Kılavuz Revizyonları
+- [ ] `INSTAGRAM_KILAVUZU_VE_METINLERI.md`: "Yalnızca iOS" cihaz filtresi ve tekli App Store indirme çağrıları çift mağaza olarak güncellenecek.
+- [ ] `public/preview_bio.html`: "iPhone ve iPad için" ibaresi güncellenecek.
+- [ ] İlgili post karusel metinlerindeki mağaza bağlantıları güncellenecek.
 
 ---
 
 ## Doğrulama Planı (Verification Plan)
-
-### Otomatik & Yerel Testler
-1. `python -m py_compile app/main.py` sözdizimi denetimi.
-2. Yerel Python test scripti:
-   - Android User-Agent simülasyonu -> `play.google.com` çıktısı.
-   - iPhone User-Agent simülasyonu -> `apps.apple.com` çıktısı.
-   - Facebook Bot User-Agent simülasyonu -> `public/index.html` içeriği.
-3. Submodule ve ana repo commit/push senkronizasyonu.
-4. Canlı Railway endpoint testi.
+- [ ] 3 güncellenmiş reklam görseli `view_file` ile açılarak rozetlerin netliği, simetrisi ve okunabilirliği gözle kontrol edilecek.
+- [ ] Metin dosyalarında grep yapılarak tek taraflı "iOS için" veya "Yalnızca iOS" kalıntısı olup olmadığı teyit edilecek.
