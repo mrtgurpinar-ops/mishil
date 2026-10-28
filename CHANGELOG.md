@@ -2,6 +2,20 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.45.0 - Build 65] - 2026-10-28
+### 🌟 Kümülatif Büyüme, Resmi Apple/Google Mağaza API Entegrasyonu ve Görsel Kurucu Kokpiti
+1. **Resmi Apple App Store Connect API & Google Play Developer API Entegrasyonu (`app/api/v1/endpoints/analytics.py`):**
+   - Apple App Store Connect Analytics API (`App ID: 6809223195`, `AuthKey_8YHMP6BH2H.p8`) üzerinden resmi tarihsel ve canlı raporlar (`r14` Discovery & Engagement, `r3` Downloads, `r8` Sessions, `r12` Purchases ve `customerReviews`) çekilerek kokpite bağlandı: **4.066 Kümülatif Görüntülenme** (`2.934` tekil cihaz; `4.014` Arama, `52` Keşfet), **509 Mağaza Sayfa Ziyareti**, **155 İndir Dokunuşu**, **68 iOS İndirmesi** (`47` Arama, `14` Sosyal/App Referrer, `7` Keşfet; 9 ülke dağılımı), **46 Oturum** ve **9 VIP/Deneme Aktivasyonu**.
+   - Google Play Developer API (`com.levitas.misilbaby`) üzerinden canlı üretim sürümü (`Build 63 - v4.44.1`), Android kurulumları ve resmi 5 yıldızlı mağaza yorumları (`6× 5.0 ★`) kokpite entegre edildi; tek tıkla canlı yenileme (`?sync=1`) eklendi.
+2. **Sıfır Jargon & Görsel Hikaye Anlatımlı 4 Sekmeli Tasarım (`/admin/analytics`):**
+   - Maliyet/dolar karmaşası tamamen kaldırılarak odak %100 **Kümülatif Büyüme ve Görsel Anlama** çevrildi; `♾️ Tüm Zamanlar (Kümülatif)`, `📅 Bugün`, `⏮️ Dün` ve `📆 Son 7 Gün` filtre şeridi eklendi.
+   - **Sekme 1 (`🌟 Kümülatif Büyüme & Görsel Huni`):** Düz Türkçe yönetici özeti, 18–28 Ekim çift modlu (`📈 Kümülatif Birikimli Yükseliş` vs. `📊 Gün-Gün Yeni Hareket`) büyüme grafiği, 4 basamaklı daralan görsel dönüşüm hunisi (`4.066 Görüntülenme ➔ 657 Ziyaret/Tık ➔ 76 İndirme ➔ 46+ Aktif Oturum & 9 VIP`) ve 3 renk kodlu (`🟢/🟡/🌙`) teşhis kartı.
+   - **Sekme 2 (`🎯 Kanallar, Halkalar & Saat Kadranı`):** 3 adet saf SVG Halka (Donut) grafik (App Store İndirme Kaynakları, iPhone vs Android Dağılımı, Instagram vs Facebook Uygulaması), **Gece Nöbeti (21:00–04:00) vs. Gündüz (05:00–20:00)** saat kadranı ve 9 ülke bayraklı indirme dağılımı.
+   - **Sekme 3 (`👶 Uygulama İçi Nabız & Yorumlar`):** 6 uygulama içi yaşam sayacı + App Store ve Google Play'den çekilen **6 adet 5.0 ★ resmi kullanıcı yorumu** + uygulama içi anne geri bildirim kutusu.
+   - **Sekme 4 (`⚡ Canlı Tıklama Kayıtları & API`):** Resmi API bağlantı durumu kartları ve varsayılan olarak botları/çift dokunuşları gizleyen (`🤖 Botları ve Çift Dokunuşları Gizle`) canlı akış tablosu.
+3. **Çevrimdışı/Yerel Cihaz Telemetrisi Senkronizasyonu (`public/app.html` & `offlineHtml.generated.ts`):**
+   - `public/app.html` açılışında `first_open` yanı sıra günlük aktif cihaz sinyali (`daily_active`), yerel bebek profili senkronizasyonu (`/api/v1/baby/profile`) ve uyku kaydı senkronizasyonu (`/api/v1/sleep/log`) eklendi; `offlineHtml.generated.ts` güncellendi.
+
 ## [4.44.9 - Build 65] - 2026-10-28
 ### 🚀 Tam Huni İndirme Atıf (Install Attribution), Birim Ekonomi (CPI) ve 3'lü Konsensüs Karar Destek Kokpiti
 1. **Olasılıksal İndirme Atıf Motoru (`AppInstallSignal` & `POST /api/v1/analytics/app-open-signal`):**

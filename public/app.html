@@ -8329,6 +8329,18 @@
 
       showToast(`☀️ Günaydın! ${totalMins} dk uyku kaydedildi. Sıradaki MışılSpot: ${nextSleepFormatted}`);
       broadcastRealtimeEvent('SLEEP_COMPLETED', { by: role, duration_mins: totalMins });
+      try {
+        var _sBase = (window.location && window.location.origin && window.location.origin.indexOf('http') === 0) ? '' : 'https://mishil-production.up.railway.app';
+        fetch(_sBase + '/api/v1/sleep/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            family_code: localStorage.getItem('mishil_family_code') || undefined,
+            duration_minutes: totalMins,
+            sleep_type: totalMins >= 180 ? 'night' : 'nap'
+          })
+        }).catch(function() {});
+      } catch (_se) {}
 
       renderHomeTodayTimeline();
       renderHomeScreenScore();
@@ -8962,6 +8974,7 @@
     renderHomeTodayTimeline();
     renderAnalyticsView();
     showToast('💾 Bebek profili güncellendi');
+    if (typeof window.syncBabyProfileToBackend === 'function') window.syncBabyProfileToBackend(true);
   }
 
   // =========================================================================
@@ -9210,6 +9223,14 @@
       if (targetSub) targetSub.textContent = `MışılSpot™ İdeal Uyku Vakti (${_calc.wakeWindowMin} dk sonra)`;
 
       showToast(`🌙 ${durMins} dk uyku kaydedildi! Sıradaki MışılSpot: ${nextSleepFormatted}`);
+      try {
+        var _apiBase = (window.location && window.location.origin && window.location.origin.indexOf('http') === 0) ? '' : 'https://mishil-production.up.railway.app';
+        fetch(_apiBase + '/api/v1/sleep/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ family_code: localStorage.getItem('mishil_family_code') || undefined, duration_minutes: durMins, sleep_type: durMins >= 180 ? 'night' : 'nap' })
+        }).catch(function() {});
+      } catch (_e) {}
     } else if (type === 'feeding') {
       const method = (document.getElementById('routine-modal-feed-method') || {}).value || 'breast';
       const amountMl = method === 'breast' ? null : (parseInt(document.getElementById('routine-modal-feed-amount').value, 10) || null);
@@ -9380,7 +9401,26 @@
   // Olasılıksal İndirme Atıf Sinyali (First-Open Install Attribution — v4.44.9)
   (function sendFirstOpenAttributionSignal() {
     try {
-      if (localStorage.getItem('mishil_first_open_v1') === '1') return;
+      var apiBase = (window.location && window.location.origin && window.location.origin.indexOf('http') === 0) ? '' : 'https://mishil-production.up.railway.app';
+      window.syncBabyProfileToBackend = function(forceUpdate) {
+        try {
+          var _bObj = typeof getBaby === 'function' ? getBaby() : null;
+          if (!_bObj || !_bObj.bdate) return;
+          var _fCode = (typeof getOrGenerateFamilyCode === 'function') ? getOrGenerateFamilyCode() : (localStorage.getItem('mishil_family_code') || undefined);
+          var _bKey = 'mishil_bsync_v2_' + (_fCode || '') + '_' + _bObj.name + '_' + _bObj.bdate;
+          if (!forceUpdate && localStorage.getItem(_bKey) === '1') return;
+          fetch(apiBase + '/api/v1/baby/profile', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ family_code: _fCode, name: _bObj.name, birth_date: _bObj.bdate.slice(0, 10) })
+          }).then(function(rb) { if (rb && rb.ok) localStorage.setItem(_bKey, '1'); }).catch(function() {});
+        } catch (_be) {}
+      };
+      window.syncBabyProfileToBackend(false);
+      var _todayActiveKey = 'mishil_active_' + new Date().toISOString().slice(0, 10);
+      var _alreadyFirstOpen = (localStorage.getItem('mishil_first_open_v1') === '1');
+      if (_alreadyFirstOpen && localStorage.getItem(_todayActiveKey) === '1') return;
+      // _todayActiveKey set after successful response below
       var devUid = localStorage.getItem('mishil_device_uid');
       if (!devUid) {
         devUid = 'msl_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now().toString(36);
@@ -9390,18 +9430,30 @@
       var osFam = ua.indexOf('android') > -1 ? 'android' : (/iphone|ipad|ipod/.test(ua) ? 'ios' : 'desktop');
       var isNative = !!(window.ReactNativeWebView || window.__MISHIL_APP__);
       var plat = isNative ? (osFam + '_native') : 'web_pwa';
-      fetch('/api/v1/analytics/app-open-signal', {
+      fetch(apiBase + '/api/v1/analytics/app-open-signal', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           device_uid: devUid,
-          event_type: 'first_open',
+          event_type: _alreadyFirstOpen ? 'daily_active' : 'first_open',
           os_family: osFam,
           platform: plat,
-          app_version: '4.44.9'
+          app_version: '4.45.0'
         })
       }).then(function(r) {
-        if (r && r.ok) localStorage.setItem('mishil_first_open_v1', '1');
+        if (r && r.ok) { localStorage.setItem('mishil_first_open_v1', '1'); localStorage.setItem(_todayActiveKey, '1'); }
+        if (typeof window.syncBabyProfileToBackend === 'function') window.syncBabyProfileToBackend(false);
+        var _bObj = null;
+        if (_bObj && _bObj.bdate) {
+          var _bKey = 'mishil_bsync_' + _bObj.name + '_' + _bObj.bdate;
+          if (localStorage.getItem(_bKey) !== '1') {
+            fetch(apiBase + '/api/v1/baby/profile', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ name: _bObj.name + ' (' + devUid.slice(-4) + ')', birth_date: _bObj.bdate.slice(0, 10) })
+            }).then(function(rb) { if (rb && rb.ok) localStorage.setItem(_bKey, '1'); }).catch(function() {});
+          }
+        }
       }).catch(function() {});
     } catch (e) {}
   })();

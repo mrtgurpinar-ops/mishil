@@ -39,27 +39,41 @@ def save_or_update_baby_profile(req: BabyProfileRequest, db: Session = Depends(g
         diff_days = max(1, (today - bdate.date()).days)
         current_week = max(1, diff_days // 7)
 
-        # Look up by family code or create default user & family
+        # Ensure at least one user exists
+        user = db.query(User).first()
+        if not user:
+            user = User(email="parent@mishil.app", hashed_password="default_hash", full_name="Ebeveyn")
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+
+        # Look up by family code or create family group for this code
         family = None
         if req.family_code:
-            family = db.query(FamilyGroup).filter(FamilyGroup.invite_code == req.family_code.upper()).first()
+            clean_fcode = req.family_code.strip().upper()[:20]
+            family = db.query(FamilyGroup).filter(FamilyGroup.invite_code == clean_fcode).first()
+            if not family and clean_fcode:
+                family = FamilyGroup(
+                    name=f"{req.name} Ailesi",
+                    invite_code=clean_fcode,
+                    created_by_user_id=user.id,
+                )
+                db.add(family)
+                db.commit()
+                db.refresh(family)
 
         baby = None
         if family and family.babies:
             baby = family.babies[0]
 
-        if not baby:
-            baby = db.query(Baby).filter(Baby.name == req.name).first()
+        if not baby and not family:
+            baby = (
+                db.query(Baby)
+                .filter(Baby.name == req.name, Baby.birth_date == bdate, Baby.family_id.is_(None))
+                .first()
+            )
 
         if not baby:
-            # Ensure at least one user exists
-            user = db.query(User).first()
-            if not user:
-                user = User(email="parent@mishil.app", hashed_password="default_hash", full_name="Ebeveyn")
-                db.add(user)
-                db.commit()
-                db.refresh(user)
-
             baby = Baby(
                 user_id=user.id,
                 family_id=family.id if family else None,
