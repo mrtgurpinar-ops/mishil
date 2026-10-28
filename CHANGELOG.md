@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.45.1 - Build 65] - 2026-10-28
+### ✨ Apple `v1/salesReports` (25–27 Ekim Eksik Verilerin Tamamlanması) & Ultra-Sade Tek Ekran Pano
+1. **Apple `v1/salesReports` (`vendorNumber: 94806500`) Entegrasyonu (`app/api/v1/endpoints/analytics.py`):**
+   - 24 Ekim'de kesilen `ONE_TIME_SNAPSHOT` raporunun eksik bıraktığı **25, 26 ve 27 Ekim** resmi Apple satış ve abonelik verileri `v1/salesReports` (`SALES` ve `SUBSCRIPTION_EVENT`) uç noktasından çekilerek tamamlandı:
+     - **🍎 iOS İndirmesi:** `68` ➔ **`80` İndirme** (`78` ilk kurulum + `2` yeniden indirme; `25 Ekim: +3`, `26 Ekim: +2`, `27 Ekim: +6` eklendi; ülke dağılımı: `TR: 69, DE: 3, US: 2, Diğer 6 Ülke: 6`). Android (`8`) ile birlikte kümülatif toplam **`88` İndirme**.
+     - **👑 VIP Abonelik:** `9` ➔ **`13` VIP Abonelik** (`8` Aylık Esnek + `5` Yıllık VIP) ve **27 Ekim'de gerçekleşen `1` Ücretli Dönüşüm (`83,12 ₺` net geliştirici geliri)**.
+     - **👆 Sosyal Medya Tıklaması:** Canlı Railway veritabanındaki **`215` toplam tıklama (`184` tekil kişi)** yerel önizlemeye senkronize edildi.
+   - `sync_live_store_apis()` içine günlük otomatik `v1/salesReports` sorgusu eklendi.
+2. **"3 Saniyede Anlaşılan" Ultra-Sade Tek Ekran Tasarımı (`preview_analytics_cockpit.html` & `/admin/analytics`):**
+   - Sekmeler (4 sekme), parantez içi çift sayılar (`76 (628)`), 24 sütunlu karmaşık saat grafiği ve teknik terimler (`/ios`, `r14`, `Impressions`, `Opt-in`, `Telemetri`, `Köprü`) tamamen kaldırıldı.
+   - Tek ekranda **5 ferah görsel blok** sunuldu: (1) 4 Büyük Özet Kartı, (2) Yan Yana 4 Adımlı Görsel Yolculuk, (3) Tek Çubuklu Kümülatif İndirme Grafiği (`18 Ekim ➔ Bugün: 88 İndirme`), (4) 3 Görsel Halka (`Nereden İndirdiler?`, `Hangi Ülkelerden?`, `Ne Zaman Geliyorlar?`), (5) Annelerin 6 Resmi Yorumu (`5.0 ★`) ve en altta isteğe bağlı kapalı kayıt çekmecesi (`<details>`).
+
 ## [4.45.0 - Build 65] - 2026-10-28
 ### 🌟 Kümülatif Büyüme, Resmi Apple/Google Mağaza API Entegrasyonu ve Görsel Kurucu Kokpiti
 1. **Resmi Apple App Store Connect API & Google Play Developer API Entegrasyonu (`app/api/v1/endpoints/analytics.py`):**

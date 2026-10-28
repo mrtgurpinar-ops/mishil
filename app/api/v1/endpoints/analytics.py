@@ -73,8 +73,8 @@ BOT_SIGNATURES = (
 # (App ID: 6809223195 & Package: com.levitas.misilbaby üzerinden çekilen resmi geçmiş seriler)
 # ============================================================================
 OFFICIAL_STORE_BASELINE: Dict[str, Any] = {
-    "last_synced_at": "28.10.2026 20:21 TSİ",
-    "apple_sync_status": "CONNECTED (App ID: 6809223195 • AuthKey_8YHMP6BH2H)",
+    "last_synced_at": "28.10.2026 22:30 TSİ",
+    "apple_sync_status": "CONNECTED (App ID: 6809223195 • Vendor: 94806500 • AuthKey_8YHMP6BH2H)",
     "google_sync_status": "CONNECTED (com.levitas.misilbaby • Build 63 Production)",
     "ios_versions": [
         {"version": "1.0", "state": "Yayında (READY_FOR_SALE)", "date": "06.09.2026"},
@@ -93,17 +93,18 @@ OFFICIAL_STORE_BASELINE: Dict[str, Any] = {
     "apple_page_views_unique": 271,
     "apple_taps_total": 155,
     "apple_taps_unique": 120,
-    "apple_downloads_total": 68,
-    "apple_downloads_first_time": 66,
+    # Resmi Apple Sales Reports (vendorNumber: 94806500, 18–27 Ekim 2026 doğrulanmış toplam)
+    "apple_downloads_total": 80,
+    "apple_downloads_first_time": 78,
     "apple_downloads_redownload": 2,
     "apple_downloads_by_source": {
-        "App Store Arama (Search)": 47,
-        "Sosyal & Uygulama Yönlendirmesi (App Referrer)": 14,
-        "App Store Keşfet (Browse)": 7,
+        "App Store Arama": 55,
+        "Instagram & Facebook": 17,
+        "App Store Keşfet": 8,
     },
     "apple_downloads_by_country": [
-        {"code": "TR", "flag": "🇹🇷", "name": "Türkiye", "count": 58},
-        {"code": "DE", "flag": "🇩🇪", "name": "Almanya", "count": 2},
+        {"code": "TR", "flag": "🇹🇷", "name": "Türkiye", "count": 69},
+        {"code": "DE", "flag": "🇩🇪", "name": "Almanya", "count": 3},
         {"code": "US", "flag": "🇺🇸", "name": "ABD", "count": 2},
         {"code": "UZ", "flag": "🇺🇿", "name": "Özbekistan", "count": 1},
         {"code": "AZ", "flag": "🇦🇿", "name": "Azerbaycan", "count": 1},
@@ -115,21 +116,27 @@ OFFICIAL_STORE_BASELINE: Dict[str, Any] = {
     "apple_sessions_total": 46,
     "apple_sessions_duration_sec": 2380,
     "apple_sessions_optin_devices": 20,
-    "apple_vip_activations_total": 9,
+    # Resmi Apple Sales & Subscription Event Reports (18–27 Ekim: 8 Aylık + 5 Yıllık = 13 VIP; 27 Ekim'de 1 Ücretli Dönüşüm = 83.12 TL)
+    "apple_vip_activations_total": 13,
+    "apple_vip_paid_conversions": 1,
+    "apple_vip_paid_proceeds_try": 83.12,
     "apple_vip_by_plan": {
-        "Aylık Esnek VIP": 5,
-        "Yıllık VIP": 4,
+        "Aylık Esnek VIP": 8,
+        "Yıllık VIP": 5,
     },
     "google_play_downloads_baseline": 8,
-    # Günlük resmi mağaza serileri (Apple Analytics API r3 & r14)
+    # Günlük resmi mağaza serileri (Apple v1/salesReports vendorNumber: 94806500 & Analytics r14)
     "daily_store_series": {
         "2026-10-18": {"impressions": 68, "page_views": 192, "ios_downloads": 13, "vip_activations": 0},
-        "2026-10-19": {"impressions": 23, "page_views": 37, "ios_downloads": 2, "vip_activations": 0},
-        "2026-10-20": {"impressions": 42, "page_views": 42, "ios_downloads": 8, "vip_activations": 3},
-        "2026-10-21": {"impressions": 1369, "page_views": 61, "ios_downloads": 16, "vip_activations": 2},
-        "2026-10-22": {"impressions": 1747, "page_views": 73, "ios_downloads": 16, "vip_activations": 2},
-        "2026-10-23": {"impressions": 522, "page_views": 80, "ios_downloads": 9, "vip_activations": 1},
-        "2026-10-24": {"impressions": 295, "page_views": 24, "ios_downloads": 4, "vip_activations": 1},
+        "2026-10-19": {"impressions": 23, "page_views": 37, "ios_downloads": 3, "vip_activations": 0},
+        "2026-10-20": {"impressions": 42, "page_views": 42, "ios_downloads": 7, "vip_activations": 4},
+        "2026-10-21": {"impressions": 1369, "page_views": 61, "ios_downloads": 15, "vip_activations": 2},
+        "2026-10-22": {"impressions": 1747, "page_views": 73, "ios_downloads": 17, "vip_activations": 2},
+        "2026-10-23": {"impressions": 522, "page_views": 80, "ios_downloads": 10, "vip_activations": 1},
+        "2026-10-24": {"impressions": 295, "page_views": 24, "ios_downloads": 4, "vip_activations": 0},
+        "2026-10-25": {"impressions": 0, "page_views": 0, "ios_downloads": 3, "vip_activations": 2},
+        "2026-10-26": {"impressions": 0, "page_views": 0, "ios_downloads": 2, "vip_activations": 1},
+        "2026-10-27": {"impressions": 0, "page_views": 0, "ios_downloads": 6, "vip_activations": 1},
     },
     "store_reviews": [
         {
@@ -328,7 +335,59 @@ def sync_live_store_apis() -> Dict[str, Any]:
                     gp_revs = [x for x in OFFICIAL_STORE_BASELINE["store_reviews"] if x["store"] == "Google Play"]
                     if revs:
                         OFFICIAL_STORE_BASELINE["store_reviews"] = revs[:10] + gp_revs
-                        synced_sources.append("Apple App Store Connect API")
+                        synced_sources.append("Apple App Store Connect API (Reviews)")
+
+            # Ayrıca vendorNumber=94806500 ile son 3 günün v1/salesReports (SALES) verisini otomatik yokla
+            vendor_num = os.environ.get("ASC_VENDOR_NUMBER", "94806500")
+            tz_tr_sync = timezone(timedelta(hours=3))
+            today_d = datetime.now(tz_tr_sync).date()
+            for day_offset in range(0, 3):
+                rep_date = (today_d - timedelta(days=day_offset)).strftime("%Y-%m-%d")
+                if rep_date <= "2026-10-27":
+                    continue
+                sales_url = (
+                    "https://api.appstoreconnect.apple.com/v1/salesReports"
+                    f"?filter[frequency]=DAILY&filter[reportDate]={rep_date}"
+                    f"&filter[reportSubType]=SUMMARY&filter[reportType]=SALES&filter[vendorNumber]={vendor_num}"
+                )
+                s_req = urllib.request.Request(
+                    sales_url,
+                    headers={"Authorization": f"Bearer {token}", "Accept": "application/a-gzip"},
+                )
+                try:
+                    with urllib.request.urlopen(s_req, timeout=3) as s_resp:
+                        if s_resp.status == 200:
+                            tsv_txt = gzip.decompress(s_resp.read()).decode("utf-8", errors="replace")
+                            lines = [ln for ln in tsv_txt.splitlines() if ln.strip()]
+                            if len(lines) > 1:
+                                hdr = lines[0].split("\t")
+                                day_app_dl = 0
+                                day_sub_vip = 0
+                                for ln in lines[1:]:
+                                    row_d = dict(zip(hdr, ln.split("\t")))
+                                    p_type = row_d.get("Product Type Identifier", "")
+                                    units = int(float(row_d.get("Units", "0") or 0))
+                                    if p_type in ("1", "1F", "1T", "F1", "3", "3F"):
+                                        day_app_dl += units
+                                    elif p_type in ("IAY", "IA9", "IA1"):
+                                        day_sub_vip += units
+                                prev_entry = OFFICIAL_STORE_BASELINE["daily_store_series"].get(rep_date, {})
+                                OFFICIAL_STORE_BASELINE["daily_store_series"][rep_date] = {
+                                    "impressions": prev_entry.get("impressions", 0),
+                                    "page_views": prev_entry.get("page_views", 0),
+                                    "ios_downloads": day_app_dl,
+                                    "vip_activations": day_sub_vip,
+                                }
+                                OFFICIAL_STORE_BASELINE["apple_downloads_total"] = sum(
+                                    v.get("ios_downloads", 0) for v in OFFICIAL_STORE_BASELINE["daily_store_series"].values()
+                                )
+                                OFFICIAL_STORE_BASELINE["apple_vip_activations_total"] = max(
+                                    13,
+                                    sum(v.get("vip_activations", 0) for v in OFFICIAL_STORE_BASELINE["daily_store_series"].values()),
+                                )
+                                synced_sources.append(f"Apple Sales Report ({rep_date})")
+                except Exception:
+                    pass
         except Exception as e:
             logger.warning(f"Live Apple API sync skipped/warn: {e}")
 
@@ -1393,117 +1452,81 @@ async def analytics_dashboard_page(
     fb_app_count = s["webview_breakdown"].get("Facebook App", 0)
     other_web_count = max(0, s["active_human_count"] - ig_app_count - fb_app_count)
 
-    # 3 Adet SVG Halka (Donut) Grafik
-    donut_apple_sources = _build_svg_donut(
+    # 3 Adet Ultra-Sade Görsel Halka (Donut) Grafik
+    donut_install_sources = _build_svg_donut(
         [
-            {"label": "🔍 App Store Arama", "count": 47, "color": "#E8A855"},
-            {"label": "📲 Sosyal / Referrer", "count": 14, "color": "#60A5FA"},
-            {"label": "✨ Mağaza Keşfet", "count": 7, "color": "#34D399"},
+            {"label": "🔍 App Store Arama", "count": 55, "color": "#E8A855"},
+            {"label": "📲 Instagram & Facebook", "count": 17, "color": "#60A5FA"},
+            {"label": "✨ App Store Keşfet", "count": 8, "color": "#34D399"},
+            {"label": "🤖 Google Play (Android)", "count": kpis["android_downloads"], "color": "#4ADE80"},
         ],
-        center_val="68",
-        center_lbl="iOS İNDİRME",
+        center_val=str(kpis["downloads_total"]),
+        center_lbl="İNDİRME",
     )
 
-    donut_os = _build_svg_donut(
+    tr_dl = next((c["count"] for c in sb["apple_downloads_by_country"] if c["code"] == "TR"), 69)
+    de_dl = next((c["count"] for c in sb["apple_downloads_by_country"] if c["code"] == "DE"), 3)
+    us_dl = next((c["count"] for c in sb["apple_downloads_by_country"] if c["code"] == "US"), 2)
+    other_country_dl = max(0, kpis["ios_downloads"] - tr_dl - de_dl - us_dl)
+
+    donut_countries = _build_svg_donut(
         [
-            {"label": "🍏 Apple iPhone / iOS", "count": ios_total, "color": "#E8A855"},
-            {"label": "🤖 Android Telefonlar", "count": android_total, "color": "#4ADE80"},
+            {"label": "🇹🇷 Türkiye", "count": tr_dl, "color": "#34D399"},
+            {"label": "🇩🇪 Almanya", "count": de_dl, "color": "#E8A855"},
+            {"label": "🇺🇸 ABD", "count": us_dl, "color": "#60A5FA"},
+            {"label": "🌍 Diğer 6 Ülke", "count": other_country_dl, "color": "#A855F7"},
         ],
-        center_val=str(s["active_human_count"]),
-        center_lbl="TEKİL KİŞİ",
+        center_val="9 Ülke",
+        center_lbl=f"{kpis['ios_downloads']} iOS",
     )
 
-    donut_social_app = _build_svg_donut(
+    top_h1 = s["golden_hours"][0]["hour"] if s["golden_hours"] else "23:00"
+    top_h2 = s["golden_hours"][1]["hour"] if len(s["golden_hours"]) > 1 else "00:00"
+
+    donut_night_day = _build_svg_donut(
         [
-            {"label": "📸 Instagram Uygulaması", "count": ig_app_count, "color": "#F472B6"},
-            {"label": "📘 Facebook Uygulaması", "count": fb_app_count, "color": "#60A5FA"},
-            {"label": "🌐 Safari / Chrome", "count": other_web_count, "color": "#94A3B8"},
+            {"label": "🌙 Gece (21:00–04:00)", "count": nvd["night_clicks"], "color": "#A855F7"},
+            {"label": "☀️ Gündüz (05:00–20:00)", "count": nvd["day_clicks"], "color": "#E8A855"},
         ],
-        center_val=str(s["active_human_count"]),
-        center_lbl="SOSYAL TIK",
+        center_val=f"%{nvd['night_pct']}",
+        center_lbl="GECE NÖBETİ",
     )
 
-    # 11 Günlük Kümülatif ve Günlük Grafik HTML (Sekme 1)
+    # Tek Çubuklu Ultra-Sade Kümülatif & Günlük İndirme Grafiği (18 Ekim -> Bugün)
     t_days = s["timeline_days"]
     max_cum_dl = max(1, max((d["cum_downloads"] for d in t_days), default=1))
-    max_cum_vis = max(1, max((d["cum_visits_clicks"] for d in t_days), default=1))
-    max_daily_vis = max(1, max((d["daily_visits_clicks"] for d in t_days), default=1))
     max_daily_dl = max(1, max((d["daily_downloads"] for d in t_days), default=1))
 
     cum_bars_html = ""
     daily_bars_html = ""
     for d in t_days:
-        dl_h = max(8, round((d["cum_downloads"] / max_cum_dl) * 100))
-        vis_h = max(8, round((d["cum_visits_clicks"] / max_cum_vis) * 100))
+        dl_h = max(10, round((d["cum_downloads"] / max_cum_dl) * 100))
         is_today = d["date"] == t_days[-1]["date"]
 
         cum_bars_html += f"""
-        <div class="t-col {'t-today' if is_today else ''}" title="{d['label']}: Kümülatif {d['cum_downloads']} İndirme • {d['cum_visits_clicks']} Ziyaret & Tıklama • {d['cum_impressions']} Görüntülenme">
-          <div class="t-top-val" style="color:#34D399;">{d['cum_downloads']} <span style="font-size:10px; color:#60A5FA;">({d['cum_visits_clicks']})</span></div>
+        <div class="t-col {'t-today' if is_today else ''}" title="{d['label']}: Toplam {d['cum_downloads']} İndirme">
+          <div class="t-top-val" style="color:#34D399;">{d['cum_downloads']}</div>
           <div class="t-bars-pair">
-            <div class="t-bar" style="height:{vis_h}%; background:linear-gradient(180deg, rgba(96,165,250,0.85), rgba(59,130,246,0.35));" title="Kümülatif Ziyaret & Tıklama: {d['cum_visits_clicks']}"></div>
-            <div class="t-bar" style="height:{dl_h}%; background:linear-gradient(180deg, #34D399, #059669);" title="Kümülatif İndirme: {d['cum_downloads']}"></div>
+            <div class="t-bar" style="height:{dl_h}%; background:linear-gradient(180deg, #34D399 0%, #059669 100%);"></div>
           </div>
           <div class="t-lbl">{d['label']}</div>
         </div>
         """
 
-        d_vis_h = max(6, round((d["daily_visits_clicks"] / max_daily_vis) * 100)) if d["daily_visits_clicks"] > 0 else 4
-        d_dl_h = max(10, round((d["daily_downloads"] / max_daily_dl) * 100)) if d["daily_downloads"] > 0 else 4
+        d_dl_h = max(12, round((d["daily_downloads"] / max_daily_dl) * 100)) if d["daily_downloads"] > 0 else 5
         d_dl_str = f"+{d['daily_downloads']}" if d["daily_downloads"] > 0 else "0"
 
         daily_bars_html += f"""
-        <div class="t-col {'t-today' if is_today else ''}" title="{d['label']} Günlük: +{d['daily_visits_clicks']} Ziyaret/Tık ({d['daily_page_views']} Mağaza + {d['daily_bridge_clicks']} Köprü) • +{d['daily_downloads']} İndirme">
-          <div class="t-top-val" style="color:#60A5FA;">+{d['daily_visits_clicks']} <span style="font-size:10px; color:#34D399;">({d_dl_str})</span></div>
+        <div class="t-col {'t-today' if is_today else ''}" title="{d['label']}: +{d['daily_downloads']} Yeni İndirme • +{d['daily_visits_clicks']} Sayfa İncelemesi">
+          <div class="t-top-val" style="color:#E8A855;">{d_dl_str}</div>
           <div class="t-bars-pair">
-            <div class="t-bar" style="height:{d_vis_h}%; background:linear-gradient(180deg, #60A5FA, #2563EB);"></div>
-            <div class="t-bar" style="height:{d_dl_h}%; background:linear-gradient(180deg, #E8A855, #D48828);"></div>
+            <div class="t-bar" style="height:{d_dl_h}%; background:linear-gradient(180deg, #E8A855 0%, #D48828 100%);"></div>
           </div>
           <div class="t-lbl">{d['label']}</div>
         </div>
         """
 
-    # 24 Saatlik Gece/Gündüz Kadranı Sütunları (Sekme 2)
-    hours_list = [f"{h:02d}:00" for h in range(24)]
-    max_hour_val = max(1, max((s["hourly_all_tr"].get(hk, 0) for hk in hours_list), default=1))
-    golden_set = {g["hour"] for g in s["golden_hours"] if g["clicks"] > 0}
-
-    hours_bars_html = ""
-    for h in range(24):
-        hk = f"{h:02d}:00"
-        tot_v = s["hourly_all_tr"].get(hk, 0)
-        h_pct = max(6, round((tot_v / max_hour_val) * 100)) if tot_v > 0 else 4
-        is_night = (h >= 21 or h <= 4)
-        if hk in golden_set:
-            bar_color = "linear-gradient(180deg, #34D399 0%, #059669 100%)"
-        elif is_night and tot_v > 0:
-            bar_color = "linear-gradient(180deg, #A855F7 0%, #6366F1 100%)"
-        elif tot_v > 0:
-            bar_color = "linear-gradient(180deg, #E8A855 0%, #D48828 100%)"
-        else:
-            bar_color = "rgba(255,255,255,0.06)"
-
-        hours_bars_html += f"""
-        <div class="hour-col" title="Saat {hk} (TSİ): {tot_v} Tekil Tıklama ({'🌙 Gece Nöbeti Kuşağı' if is_night else '☀️ Gündüz Kuşağı'})">
-          <div class="hour-val" style="color:{'#34D399' if hk in golden_set else ('#C084FC' if is_night else '#E8A855')};">{f'🔥{tot_v}' if hk in golden_set else (tot_v if tot_v > 0 else '')}</div>
-          <div class="hour-bar-wrap">
-            <div class="hour-bar" style="height: {h_pct}%; background: {bar_color};"></div>
-          </div>
-          <div class="hour-lbl">{hk[:2]}</div>
-        </div>
-        """
-
-    # Ülke Dağılımı Hapları (Sekme 2)
-    countries_html = ""
-    for c_item in sb["apple_downloads_by_country"]:
-        countries_html += f"""
-        <div class="country-pill">
-          <span>{c_item['flag']} {html.escape(c_item['name'])}</span>
-          <strong>{c_item['count']} İndirme</strong>
-        </div>
-        """
-
-    # Mağaza Yorumları Balonları (Sekme 3)
+    # Mağaza Yorumları Balonları (6 Resmi 5 Yıldızlı Yorum)
     reviews_html = ""
     for rv in sb["store_reviews"]:
         stars = "⭐" * int(rv.get("rating", 5))
@@ -1514,104 +1537,48 @@ async def analytics_dashboard_page(
               <span class="badge {'badge-meta' if 'iOS' in rv['badge'] else 'badge-gp'}">{html.escape(rv['badge'])}</span>
               <strong style="color:#FFF; margin-left:6px;">{html.escape(rv['title'])}</strong>
             </div>
-            <span style="font-size:11px; color:#94A3B8;">{stars} • {html.escape(rv['date'])}</span>
+            <span style="font-size:11.5px; color:#FBBF24; font-weight:700;">{stars} • {html.escape(rv['date'])}</span>
           </div>
           <p class="review-body">“{html.escape(rv['body'])}”</p>
-          <div class="review-foot">👤 {html.escape(rv['author'])} — Resmi {html.escape(rv['store'])} Yorumu</div>
+          <div class="review-foot">👤 {html.escape(rv['author'])} — {html.escape(rv['store'])}</div>
         </div>
         """
 
-    # Uygulama İçi Anne Geri Bildirimleri (Sekme 3)
-    feedbacks_html = ""
-    for fb in pf["feedbacks_list"]:
-        dt_str = fb.created_at.strftime("%d.%m.%Y %H:%M") if fb.created_at else "—"
-        age_str = f"👶 {fb.baby_age_months} Aylık" if fb.baby_age_months is not None else "👶 Ebeveyn"
-        feedbacks_html += f"""
-        <div class="review-bubble" style="border-color: rgba(244, 114, 182, 0.35);">
-          <div class="review-head">
-            <div>
-              <span class="badge badge-ig">💌 Uygulama İçi Mesaj</span>
-              <strong style="color:#FFF; margin-left:6px;">{age_str}</strong>
-            </div>
-            <span style="font-size:11px; color:#94A3B8;">{dt_str}</span>
-          </div>
-          <p class="review-body">“{html.escape(fb.message)}”</p>
-        </div>
-        """
-    if not feedbacks_html:
-        feedbacks_html = """
-        <div style="padding:18px; border-radius:14px; background:rgba(255,255,255,0.03); border:1px dashed rgba(255,255,255,0.1); color:#94A3B8; font-size:12.5px; text-align:center;">
-          🌙 Uygulama içinden henüz bir şikayet/zorlanma mesajı gelmedi (Mutlu anneler doğrudan 5 yıldızlı mağaza yorumuna yönlendiriliyor).
-        </div>
-        """
-
-    # Canlı Tıklama Akışı Tablosu (Sekme 4)
+    # İsteğe Bağlı Gizli Çekmece İçin Son Tıklama Kayıtları
     tz_tr = timezone(timedelta(hours=3))
     rows_html = ""
-    for c in s["recent_clicks"][:80]:
+    for c in s["recent_clicks"][:60]:
+        if c.is_bot or not c.is_unique:
+            continue
         dt_utc = c.created_at.replace(tzinfo=timezone.utc) if c.created_at.tzinfo is None else c.created_at
-        dt_tr = dt_utc.astimezone(tz_tr).strftime("%d.%m %H:%M:%S")
-        safe_route = html.escape(c.route_path or "/")
-        safe_detail = html.escape(c.device_detail or "")
-        safe_webview = html.escape(c.app_webview or "—")
-        safe_ip = html.escape(c.ip_masked or "—")
+        dt_tr = dt_utc.astimezone(tz_tr).strftime("%d.%m %H:%M")
+        safe_detail = html.escape(c.device_detail or "Telefon")
+        safe_webview = html.escape(c.app_webview or "Tarayıcı")
         safe_country = html.escape(c.country or "TR")
-
-        is_human_uniq = (c.is_unique and not c.is_bot)
-        row_class = "row-human" if is_human_uniq else "row-bot-dup"
-
-        if c.route_path == "/ios":
-            route_badge = '<span class="badge badge-meta">🎯 Meta Reklamı (/ios)</span>'
-        elif c.route_path == "/download":
-            route_badge = '<span class="badge badge-ig">📸 Instagram Bio (/download)</span>'
-        elif c.route_path in ("/android", "/play-store"):
-            route_badge = '<span class="badge badge-gp">🤖 Android Köprü</span>'
-        else:
-            route_badge = f'<span class="badge badge-web">🌐 {safe_route}</span>'
-
-        if c.is_bot:
-            status_badge = '<span class="badge badge-bot">🤖 Bot / Önizleme</span>'
-        elif c.is_unique:
-            status_badge = '<span class="badge badge-uniq">🟢 Gerçek Kişi</span>'
-        else:
-            status_badge = '<span class="badge badge-dup">⚡ Çift Dokunuş</span>'
-
-        if c.os_family == "ios":
-            os_badge = f'🍏 {safe_detail or "iPhone"}'
-        elif c.os_family == "android":
-            os_badge = f'🤖 {safe_detail or "Android"}'
-        elif c.os_family == "bot":
-            os_badge = f'🕷️ {safe_detail or "Bot"}'
-        else:
-            os_badge = f'💻 {safe_detail or "Masaüstü"}'
-
-        store_str = "App Store ↗" if c.target_store == "app_store" else ("Google Play ↗" if c.target_store == "google_play" else "Tanıtım Sayfası")
+        store_str = "App Store (iPhone)" if c.target_store == "app_store" else "Google Play (Android)"
 
         rows_html += f"""
-        <tr class="{row_class}" style="{'display:none;' if not is_human_uniq else ''}">
-          <td style="font-family: monospace; color: #CBD5E1;">{dt_tr}</td>
-          <td>{route_badge}</td>
-          <td>{status_badge}</td>
-          <td>{os_badge}</td>
-          <td><span style="color: #E2E8F0; font-weight: 600;">{safe_webview}</span></td>
-          <td style="color: #94A3B8;">{store_str}</td>
-          <td style="font-family: monospace; font-size: 11px; color: #64748B;">{safe_ip} ({safe_country})</td>
+        <tr>
+          <td style="color:#CBD5E1; font-weight:600;">{dt_tr}</td>
+          <td>{'🍏 ' + safe_detail if c.os_family == 'ios' else '🤖 ' + safe_detail}</td>
+          <td>{safe_webview}</td>
+          <td style="color:#34D399; font-weight:700;">{store_str}</td>
+          <td style="color:#94A3B8;">{safe_country}</td>
         </tr>
         """
 
-    # Görsel Huni Oranları
     f_imp = kpis["impressions_total"]
     f_vis = kpis["visits_and_clicks_total"]
     f_dl = kpis["downloads_total"]
-    f_act = kpis["active_sessions"]
-
-    vis_of_imp_pct = round((f_vis / max(1, f_imp)) * 100, 1)
-    dl_of_vis_pct = round((f_dl / max(1, f_vis)) * 100, 1)
-    act_of_dl_pct = min(100.0, round((f_act / max(1, f_dl)) * 100, 1))
+    f_vip = kpis["vip_activations"]
     reviews_total_cnt = len(sb["store_reviews"])
 
-    top_h1 = s["golden_hours"][0]["hour"] if s["golden_hours"] else "00:00"
-    top_h2 = s["golden_hours"][1]["hour"] if len(s["golden_hours"]) > 1 else "23:00"
+    vis_of_imp_pct = round((f_vis / max(1, f_imp)) * 100)
+    dl_of_vis_pct = round((f_dl / max(1, f_vis)) * 100)
+    vip_of_dl_pct = round((f_vip / max(1, f_dl)) * 100)
+
+    paid_conv = sb.get("apple_vip_paid_conversions", 1)
+    paid_try = sb.get("apple_vip_paid_proceeds_try", 83.12)
 
     return HTMLResponse(f"""
     <!DOCTYPE html>
@@ -1620,45 +1587,45 @@ async def analytics_dashboard_page(
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="referrer" content="no-referrer">
-      <title>Mışıl Baby — Kümülatif Büyüme & Görsel Kurucu Kokpiti (v4.45.0)</title>
+      <title>Mışıl Baby — Tek Bakışta Büyüme Özeti</title>
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
       <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
         body {{
-          background: #07090E radial-gradient(circle at 50% 0%, #161F38 0%, #07090E 70%);
+          background: #07090E radial-gradient(circle at 50% 0%, #151E36 0%, #07090E 70%);
           color: #F8FAFC;
           font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
           min-height: 100vh;
-          padding: 20px 18px 80px;
+          padding: 24px 18px 80px;
         }}
-        .container {{ max-width: 1260px; margin: 0 auto; }}
+        .container {{ max-width: 1180px; margin: 0 auto; }}
 
-        /* ÜST KOMUTA BARI */
+        /* ÜST BAŞLIK */
         .topbar {{
           display: flex;
           flex-wrap: wrap;
           justify-content: space-between;
           align-items: center;
           gap: 14px;
-          margin-bottom: 16px;
-          padding-bottom: 16px;
+          margin-bottom: 22px;
+          padding-bottom: 18px;
           border-bottom: 1px solid rgba(255,255,255,0.08);
         }}
-        .brand {{ display: flex; align-items: center; gap: 12px; }}
+        .brand {{ display: flex; align-items: center; gap: 14px; }}
         .brand-icon {{
-          width: 48px; height: 48px; border-radius: 15px;
-          background: linear-gradient(135deg, rgba(232, 168, 85, 0.22), rgba(52, 211, 153, 0.15));
-          border: 1px solid rgba(232, 168, 85, 0.4);
+          width: 52px; height: 52px; border-radius: 16px;
+          background: linear-gradient(135deg, rgba(232, 168, 85, 0.25), rgba(52, 211, 153, 0.18));
+          border: 1px solid rgba(232, 168, 85, 0.45);
           display: flex; align-items: center; justify-content: center;
-          font-size: 24px;
+          font-size: 26px;
         }}
-        .brand h1 {{ font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 800; color: #FFF; }}
-        .brand p {{ font-size: 12px; color: #94A3B8; margin-top: 3px; }}
-        .actions {{ display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }}
+        .brand h1 {{ font-family: 'Sora', sans-serif; font-size: 22px; font-weight: 800; color: #FFF; }}
+        .brand p {{ font-size: 13px; color: #94A3B8; margin-top: 3px; }}
+        .actions {{ display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }}
         .btn {{
-          padding: 9px 13px;
-          border-radius: 11px;
-          font-size: 12px;
+          padding: 10px 15px;
+          border-radius: 12px;
+          font-size: 12.5px;
           font-weight: 700;
           text-decoration: none;
           display: inline-flex;
@@ -1668,24 +1635,18 @@ async def analytics_dashboard_page(
           background: rgba(255,255,255,0.05);
           color: #F8FAFC;
           cursor: pointer;
-          transition: all 0.15s;
         }}
         .btn:hover {{ background: rgba(255,255,255,0.12); }}
-        .btn-gold {{
-          background: linear-gradient(135deg, #E8A855 0%, #D48828 100%);
-          color: #07090E;
-          border: none;
-        }}
         .live-pill {{
           display: inline-flex;
           align-items: center;
           gap: 7px;
-          padding: 8px 12px;
+          padding: 9px 14px;
           border-radius: 99px;
           background: rgba(16, 185, 129, 0.14);
           border: 1px solid rgba(16, 185, 129, 0.35);
           color: #34D399;
-          font-size: 12px;
+          font-size: 12.5px;
           font-weight: 700;
           cursor: pointer;
         }}
@@ -1693,180 +1654,108 @@ async def analytics_dashboard_page(
           width: 8px; height: 8px; border-radius: 50%;
           background: #34D399;
           box-shadow: 0 0 10px #34D399;
-          animation: blink 1.4s infinite;
-        }}
-        @keyframes blink {{ 0%, 100% {{ opacity: 1; }} 50% {{ opacity: 0.35; }} }}
-
-        /* ZAMAN FİLTRESİ & SEKME ŞERİDİ */
-        .control-strip {{
-          display: flex;
-          flex-wrap: wrap;
-          justify-content: space-between;
-          align-items: center;
-          gap: 12px;
-          margin-bottom: 18px;
-          background: rgba(18, 24, 41, 0.75);
-          border: 1px solid rgba(255,255,255,0.08);
-          padding: 10px 14px;
-          border-radius: 16px;
-        }}
-        .period-group {{ display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }}
-        .period-pill {{
-          padding: 7px 13px;
-          border-radius: 10px;
-          font-size: 12px;
-          font-weight: 700;
-          text-decoration: none;
-          color: #94A3B8;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid transparent;
-          transition: all 0.15s;
-        }}
-        .period-pill:hover {{ color: #FFF; background: rgba(255,255,255,0.07); }}
-        .period-pill.active {{
-          color: #07090E;
-          background: linear-gradient(135deg, #E8A855 0%, #F4A261 100%);
-          font-weight: 800;
         }}
 
-        /* 4 BÜYÜK KÜMÜLATİF KPI KARTI */
+        /* 1. BLOK: 4 FERAH ÖZET KARTI (1 BÜYÜK RAKAM + 1 CÜMLE) */
         .kpi-grid {{
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(265px, 1fr));
-          gap: 14px;
-          margin-bottom: 20px;
+          grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
+          gap: 16px;
+          margin-bottom: 22px;
         }}
         .bento-card {{
-          background: rgba(18, 24, 41, 0.88);
+          background: rgba(18, 24, 41, 0.9);
           border: 1px solid rgba(255,255,255,0.09);
-          border-radius: 20px;
-          padding: 20px;
-          box-shadow: 0 12px 32px rgba(0,0,0,0.35);
-          margin-bottom: 18px;
+          border-radius: 22px;
+          padding: 24px 22px;
+          box-shadow: 0 12px 32px rgba(0,0,0,0.32);
+          margin-bottom: 22px;
         }}
         .kpi-grid .bento-card {{ margin-bottom: 0; }}
-        .card-tag {{
-          font-size: 11px;
-          font-weight: 800;
-          text-transform: uppercase;
-          letter-spacing: 0.6px;
-          color: #94A3B8;
-          margin-bottom: 8px;
+        .card-label {{
+          font-size: 13px;
+          font-weight: 700;
+          color: #CBD5E1;
+          margin-bottom: 10px;
           display: flex;
-          justify-content: space-between;
           align-items: center;
+          gap: 8px;
         }}
         .big-num {{
           font-family: 'Sora', sans-serif;
-          font-size: 34px;
+          font-size: 42px;
           font-weight: 800;
           color: #FFF;
-          line-height: 1.1;
-          margin-bottom: 6px;
-          display: flex;
-          align-items: baseline;
-          gap: 8px;
+          line-height: 1.05;
+          margin-bottom: 10px;
         }}
-        .delta-badge {{
-          font-family: 'Plus Jakarta Sans', sans-serif;
-          font-size: 11.5px;
-          font-weight: 700;
-          padding: 3px 8px;
-          border-radius: 99px;
-          background: rgba(16, 185, 129, 0.16);
-          color: #34D399;
-          border: 1px solid rgba(16, 185, 129, 0.35);
-        }}
-        .mini-bar-track {{
-          height: 6px;
-          background: rgba(255,255,255,0.07);
-          border-radius: 99px;
-          overflow: hidden;
-          margin: 10px 0;
-          display: flex;
-        }}
-        .mini-bar-fill {{ height: 100%; }}
-        .sub-metrics {{
-          font-size: 11px;
+        .card-desc {{
+          font-size: 13.5px;
           color: #94A3B8;
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-          margin-top: 8px;
+          line-height: 1.5;
         }}
-        .sub-pill {{
-          background: rgba(255,255,255,0.05);
-          padding: 4px 8px;
-          border-radius: 7px;
-          font-weight: 600;
-          color: #E2E8F0;
-        }}
+        .card-desc strong {{ color: #F8FAFC; }}
 
-        /* 4 SEKME GEZİNTİ ÇUBUĞU */
-        .tabs-nav {{
-          display: grid;
-          grid-template-columns: repeat(4, 1fr);
-          gap: 10px;
-          margin-bottom: 20px;
-        }}
-        @media (max-width: 820px) {{ .tabs-nav {{ grid-template-columns: repeat(2, 1fr); }} }}
-        .tab-btn {{
-          padding: 13px 14px;
-          border-radius: 14px;
-          border: 1px solid rgba(255,255,255,0.09);
-          background: rgba(18, 24, 41, 0.75);
-          color: #94A3B8;
-          font-family: 'Sora', sans-serif;
-          font-size: 13px;
-          font-weight: 700;
-          cursor: pointer;
-          text-align: center;
-          transition: all 0.18s;
-        }}
-        .tab-btn:hover {{ color: #FFF; background: rgba(255,255,255,0.07); }}
-        .tab-btn.active {{
-          background: linear-gradient(135deg, rgba(232, 168, 85, 0.22), rgba(59, 130, 246, 0.18));
-          border-color: #E8A855;
-          color: #FFF;
-          box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-        }}
-        .tab-pane {{ display: none; }}
-        .tab-pane.active {{ display: block; }}
-
-        /* HİKAYE ÖZET KUTUSU */
-        .story-box {{
-          background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(59, 130, 246, 0.10) 100%);
-          border: 1px solid rgba(52, 211, 153, 0.35);
-          border-radius: 18px;
-          padding: 18px 20px;
-          margin-bottom: 18px;
-          line-height: 1.65;
-          font-size: 14px;
-          color: #E2E8F0;
-        }}
-        .story-box strong {{ color: #FFF; }}
-
-        /* KÜMÜLATİF & GÜNLÜK GRAFİK */
+        /* 2. BLOK: YAN YANA 4 ADIMLI GÖRSEL YOLCULUK */
         .section-head {{
           font-family: 'Sora', sans-serif;
-          font-size: 16px;
+          font-size: 17px;
           font-weight: 700;
           color: #FFF;
-          margin-bottom: 14px;
+          margin-bottom: 16px;
           display: flex;
           justify-content: space-between;
           align-items: center;
           flex-wrap: wrap;
           gap: 10px;
         }}
-        .chart-toggle {{ display: flex; gap: 6px; }}
+        .steps-grid {{
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 14px;
+        }}
+        .step-box {{
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 18px;
+          padding: 18px;
+          position: relative;
+        }}
+        .step-num {{
+          font-size: 11.5px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+          margin-bottom: 6px;
+        }}
+        .step-val {{
+          font-family: 'Sora', sans-serif;
+          font-size: 28px;
+          font-weight: 800;
+          color: #FFF;
+          margin-bottom: 4px;
+        }}
+        .step-sub {{ font-size: 12.5px; color: #94A3B8; line-height: 1.45; }}
+        .step-rate {{
+          display: inline-block;
+          margin-top: 10px;
+          padding: 4px 10px;
+          border-radius: 99px;
+          font-size: 11.5px;
+          font-weight: 700;
+          background: rgba(255,255,255,0.06);
+          color: #E2E8F0;
+        }}
+
+        /* 3. BLOK: TEK ÇUBUKLU KÜMÜLATİF İNDİRME GRAFİĞİ */
+        .chart-toggle {{ display: flex; gap: 8px; }}
         .chart-toggle button {{
-          padding: 6px 12px;
-          border-radius: 9px;
+          padding: 8px 14px;
+          border-radius: 10px;
           border: 1px solid rgba(255,255,255,0.14);
           background: rgba(255,255,255,0.04);
           color: #CBD5E1;
-          font-size: 11.5px;
+          font-size: 12px;
           font-weight: 700;
           cursor: pointer;
         }}
@@ -1878,204 +1767,78 @@ async def analytics_dashboard_page(
         .timeline-grid {{
           display: grid;
           grid-template-columns: repeat({len(t_days)}, 1fr);
-          gap: 8px;
-          height: 195px;
+          gap: 10px;
+          height: 210px;
           align-items: end;
-          padding-top: 22px;
+          padding-top: 26px;
         }}
         .t-col {{
           display: flex;
           flex-direction: column;
           align-items: center;
           height: 100%;
-          padding: 6px 4px;
-          border-radius: 12px;
+          padding: 8px 4px;
+          border-radius: 14px;
         }}
         .t-today {{
-          background: rgba(52, 211, 153, 0.08);
-          border: 1px dashed rgba(52, 211, 153, 0.4);
+          background: rgba(52, 211, 153, 0.09);
+          border: 1px dashed rgba(52, 211, 153, 0.45);
         }}
-        .t-top-val {{ font-size: 11px; font-weight: 800; margin-bottom: 4px; white-space: nowrap; }}
+        .t-top-val {{ font-family: 'Sora', sans-serif; font-size: 14px; font-weight: 800; margin-bottom: 6px; }}
         .t-bars-pair {{
           flex: 1;
           width: 100%;
           display: flex;
           align-items: flex-end;
           justify-content: center;
-          gap: 4px;
         }}
-        .t-bar {{ width: 42%; max-width: 20px; border-radius: 6px 6px 2px 2px; transition: height 0.3s; }}
-        .t-lbl {{ font-size: 11px; color: #94A3B8; margin-top: 7px; font-weight: 700; }}
+        .t-bar {{ width: 65%; max-width: 34px; border-radius: 8px 8px 3px 3px; }}
+        .t-lbl {{ font-size: 12px; color: #CBD5E1; margin-top: 8px; font-weight: 700; }}
 
-        /* DARALAN GÖRSEL DÖNÜŞÜM HUNİSİ */
-        .v-funnel {{ display: flex; flex-direction: column; gap: 10px; }}
-        .vf-row {{
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 14px;
-          padding: 14px 16px;
-        }}
-        .vf-head {{
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin-bottom: 8px;
-        }}
-        .vf-title {{ font-family: 'Sora', sans-serif; font-size: 13.5px; font-weight: 700; color: #FFF; }}
-        .vf-nums {{ font-size: 13px; font-weight: 800; }}
-        .vf-bar-bg {{
-          height: 18px;
-          background: rgba(255,255,255,0.04);
-          border-radius: 99px;
-          overflow: hidden;
-          display: flex;
-          align-items: center;
-        }}
-        .vf-bar-fill {{
-          height: 100%;
-          border-radius: 99px;
-          display: flex;
-          align-items: center;
-          padding-left: 10px;
-          font-size: 11px;
-          font-weight: 800;
-          color: #FFFFFF;
-          text-shadow: 0 1px 4px rgba(0,0,0,0.88);
-          white-space: nowrap;
-        }}
-        .vf-arrow {{
-          text-align: center;
-          font-size: 12px;
-          font-weight: 700;
-          color: #E8A855;
-          margin: -2px 0;
-        }}
-
-        /* 3 GÖRSEL KARAR KARTI */
-        .diag-grid {{
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
-          gap: 14px;
-        }}
-        .diag-card {{
-          background: rgba(13, 18, 31, 0.92);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 16px;
-          padding: 18px;
-        }}
-        .diag-title {{ font-family: 'Sora', sans-serif; font-size: 14.5px; font-weight: 700; color: #FFF; margin: 8px 0 6px; }}
-        .diag-body {{ font-size: 12.5px; color: #CBD5E1; line-height: 1.55; margin-bottom: 12px; }}
-        .diag-action {{
-          font-size: 12px;
-          color: #F8FAFC;
-          background: rgba(255,255,255,0.04);
-          padding: 10px 12px;
-          border-radius: 10px;
-          border: 1px dashed rgba(232,168,85,0.4);
-          line-height: 1.45;
-        }}
-
-        /* SVG HALKA (DONUT) GRAFİKLER */
+        /* 4. BLOK: 3 YAN YANA GÖRSEL HALKA (DONUT) */
         .donuts-grid {{
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
           gap: 16px;
-          margin-bottom: 18px;
+          margin-bottom: 22px;
         }}
+        .donuts-grid .bento-card {{ margin-bottom: 0; }}
         .donut-wrap {{
           display: flex;
           align-items: center;
           gap: 18px;
           flex-wrap: wrap;
         }}
-        .donut-legend {{ flex: 1; min-width: 155px; display: flex; flex-direction: column; gap: 8px; }}
+        .donut-legend {{ flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 8px; }}
         .donut-leg-row {{
           display: flex;
           justify-content: space-between;
           align-items: center;
-          font-size: 12.5px;
-          padding: 6px 8px;
-          border-radius: 8px;
+          font-size: 13px;
+          padding: 7px 10px;
+          border-radius: 10px;
           background: rgba(255,255,255,0.03);
         }}
         .donut-leg-left {{ display: flex; align-items: center; gap: 8px; }}
         .donut-dot {{ width: 10px; height: 10px; border-radius: 50%; display: inline-block; }}
-        .donut-pct {{ color: #94A3B8; font-size: 11px; margin-left: 3px; }}
+        .donut-pct {{ color: #94A3B8; font-size: 11.5px; margin-left: 3px; }}
 
-        /* 24 SAATLİK GECE / GÜNDÜZ KADRANI */
-        .hours-grid {{
-          display: grid;
-          grid-template-columns: repeat(24, 1fr);
-          gap: 4px;
-          height: 155px;
-          align-items: end;
-          padding-top: 20px;
-        }}
-        .hour-col {{ display: flex; flex-direction: column; align-items: center; height: 100%; }}
-        .hour-val {{ font-size: 10px; font-weight: 800; height: 15px; margin-bottom: 2px; white-space: nowrap; }}
-        .hour-bar-wrap {{ flex: 1; width: 100%; display: flex; align-items: flex-end; justify-content: center; }}
-        .hour-bar {{ width: 100%; max-width: 18px; border-radius: 5px 5px 2px 2px; }}
-        .hour-lbl {{ font-size: 10px; color: #64748B; margin-top: 6px; font-weight: 600; }}
-
-        .countries-wrap {{ display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }}
-        .country-pill {{
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 8px 12px;
-          border-radius: 12px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(255,255,255,0.08);
-          font-size: 12.5px;
-        }}
-        .country-pill strong {{ color: #34D399; }}
-
-        /* UYGULAMA İÇİ YAŞAM & YORUM BALONLARI */
-        .pulse-grid {{
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(185px, 1fr));
-          gap: 12px;
-          margin-bottom: 18px;
-        }}
-        .pulse-item {{
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 16px;
-          padding: 16px;
-          text-align: center;
-        }}
-        .pulse-num {{ font-family: 'Sora', sans-serif; font-size: 26px; font-weight: 800; color: #FFF; margin: 6px 0 4px; }}
+        /* 5. BLOK: 6 RESMİ YORUM & İSTEĞE BAĞLI GİZLİ ÇEKMECE */
         .reviews-grid {{
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
           gap: 14px;
         }}
         .review-bubble {{
-          background: rgba(13, 18, 31, 0.9);
-          border: 1px solid rgba(232, 168, 85, 0.3);
+          background: rgba(13, 18, 31, 0.92);
+          border: 1px solid rgba(232, 168, 85, 0.28);
           border-radius: 16px;
-          padding: 16px;
+          padding: 18px;
         }}
         .review-head {{ display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }}
-        .review-body {{ font-size: 13.5px; color: #F8FAFC; line-height: 1.55; font-style: italic; margin-bottom: 8px; }}
-        .review-foot {{ font-size: 11px; color: #94A3B8; font-weight: 600; }}
+        .review-body {{ font-size: 14px; color: #F8FAFC; line-height: 1.55; margin-bottom: 8px; }}
+        .review-foot {{ font-size: 11.5px; color: #94A3B8; font-weight: 600; }}
 
-        /* TABLO & ROZETLER */
-        .table-wrap {{ overflow-x: auto; margin-top: 6px; }}
-        table {{ width: 100%; border-collapse: collapse; font-size: 12.5px; }}
-        th {{
-          text-align: left;
-          padding: 11px 10px;
-          color: #94A3B8;
-          font-weight: 700;
-          font-size: 11px;
-          text-transform: uppercase;
-          border-bottom: 1px solid rgba(255,255,255,0.08);
-        }}
-        td {{ padding: 11px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); white-space: nowrap; }}
-        tr:hover td {{ background: rgba(255,255,255,0.02); }}
         .badge {{
           display: inline-flex;
           align-items: center;
@@ -2084,469 +1847,203 @@ async def analytics_dashboard_page(
           font-size: 11px;
           font-weight: 700;
         }}
-        .badge-meta {{ background: rgba(59, 130, 246, 0.18); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.35); }}
-        .badge-ig {{ background: rgba(236, 72, 153, 0.18); color: #F472B6; border: 1px solid rgba(236, 72, 153, 0.35); }}
-        .badge-gp {{ background: rgba(34, 197, 94, 0.18); color: #4ADE80; border: 1px solid rgba(34, 197, 94, 0.35); }}
-        .badge-web {{ background: rgba(148, 163, 184, 0.18); color: #CBD5E1; }}
-        .badge-uniq {{ background: rgba(16, 185, 129, 0.18); color: #34D399; }}
-        .badge-dup {{ background: rgba(245, 158, 11, 0.16); color: #FBBF24; }}
-        .badge-bot {{ background: rgba(148, 163, 184, 0.15); color: #94A3B8; }}
+        .badge-meta {{ background: rgba(59, 130, 246, 0.18); color: #60A5FA; }}
+        .badge-gp {{ background: rgba(34, 197, 94, 0.18); color: #4ADE80; }}
         .toast-banner {{
           background: rgba(16,185,129,0.16);
           border: 1px solid rgba(16,185,129,0.4);
           color: #34D399;
-          padding: 12px 16px;
-          border-radius: 14px;
-          margin-bottom: 16px;
-          font-size: 13px;
+          padding: 14px 18px;
+          border-radius: 16px;
+          margin-bottom: 18px;
+          font-size: 13.5px;
           font-weight: 600;
         }}
+        details.drawer {{
+          background: rgba(18, 24, 41, 0.65);
+          border: 1px solid rgba(255,255,255,0.08);
+          border-radius: 18px;
+          padding: 16px 20px;
+        }}
+        details.drawer summary {{
+          cursor: pointer;
+          font-family: 'Sora', sans-serif;
+          font-size: 14px;
+          font-weight: 700;
+          color: #94A3B8;
+          list-style: none;
+        }}
+        details.drawer summary:hover {{ color: #FFF; }}
+        .table-wrap {{ overflow-x: auto; margin-top: 14px; }}
+        table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
+        th {{ text-align: left; padding: 10px; color: #94A3B8; border-bottom: 1px solid rgba(255,255,255,0.08); }}
+        td {{ padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }}
       </style>
     </head>
     <body>
       <div class="container">
-        <!-- ÜST KOMUTA BARI -->
+        <!-- ÜST BAŞLIK -->
         <div class="topbar">
           <div class="brand">
             <div class="brand-icon">🌙</div>
             <div>
-              <h1>Mışıl Baby — Kümülatif Büyüme & Görsel Kurucu Kokpiti</h1>
-              <p>🍏 Apple App Store API • 🤖 Google Play API • 🎯 Canlı Sosyal Köprü (<code>/ios</code> & <code>/download</code>) • 📱 Uygulama İçi Telemetri</p>
+              <h1>Mışıl Baby — Tek Bakışta Büyüme Özeti</h1>
+              <p>Resmi Apple App Store + Google Play + Canlı Sosyal Medya Verileri ({html.escape(sb['last_synced_at'])})</p>
             </div>
           </div>
           <div class="actions">
-            <div class="live-pill" onclick="toggleAutoRefresh()" id="liveToggleBtn" title="Otomatik yenilemeyi aç/kapat">
+            <div class="live-pill" onclick="toggleAutoRefresh()" id="liveToggleBtn">
               <span class="pulse-dot" id="liveDot"></span>
               <span id="liveCountdown">Canlı: 15s</span>
             </div>
-            <a href="/api/v1/analytics/dashboard?pin={safe_pin}&period={clean_period}&sync=1" class="btn">🔄 Mağaza API Senkronla</a>
-            <a href="/api/v1/analytics/export.csv?pin={safe_pin}" class="btn btn-gold">📥 CSV İndir</a>
+            <a href="/api/v1/analytics/dashboard?pin={safe_pin}&sync=1" class="btn">🔄 Mağazaları Güncelle</a>
           </div>
         </div>
 
         {sync_banner}
 
-        <!-- ZAMAN FİLTRESİ ŞERİDİ -->
-        <div class="control-strip">
-          <div class="period-group">
-            <span style="font-size:12px; font-weight:700; color:#CBD5E1; margin-right:4px;">📅 Zaman Görünümü:</span>
-            <a href="/api/v1/analytics/dashboard?pin={safe_pin}&period=all" class="period-pill {'active' if clean_period == 'all' else ''}">♾️ Tüm Zamanlar (Kümülatif)</a>
-            <a href="/api/v1/analytics/dashboard?pin={safe_pin}&period=today" class="period-pill {'active' if clean_period == 'today' else ''}">📅 Bugün (+{s['today_unique_clicks']} Tık)</a>
-            <a href="/api/v1/analytics/dashboard?pin={safe_pin}&period=yesterday" class="period-pill {'active' if clean_period == 'yesterday' else ''}">⏮️ Dün ({s['yesterday_unique_clicks']} Tık)</a>
-            <a href="/api/v1/analytics/dashboard?pin={safe_pin}&period=7d" class="period-pill {'active' if clean_period == '7d' else ''}">📆 Son 7 Gün</a>
-          </div>
-          <div style="font-size:11.5px; color:#94A3B8;">
-            📡 Son API & Canlı Veri Güncellemesi: <strong style="color:#34D399;">{html.escape(sb['last_synced_at'])}</strong>
-          </div>
-        </div>
-
-        <!-- ÜST 4 BÜYÜK KÜMÜLATİF GÖSTERGE KARTI (1 SANİYEDE DURUM) -->
+        <!-- 1. BLOK: 4 FERAH ÖZET KARTI (HER KARTTA SADECE 1 BÜYÜK SAYI + 1 CÜMLE) -->
         <div class="kpi-grid">
-          <!-- KART 1: KÜMÜLATİF GÖRÜNTÜLENME -->
-          <div class="bento-card" style="border-color: rgba(232, 168, 85, 0.4);">
-            <div class="card-tag">
-              <span>👁️ 1. KÜMÜLATİF GÖRÜNTÜLENME</span>
-              <span class="badge badge-web">🍏 APPLE API</span>
-            </div>
-            <div class="big-num" style="color: #E8A855;">
-              {kpis['impressions_total']:,}
-              <span class="delta-badge">👥 {kpis['impressions_unique']:,} Tekil Kişi</span>
-            </div>
-            <div style="font-size: 12px; color: #CBD5E1;">App Store Arama ve Keşfet listelerinde Mışıl Baby'nin görülme sayısı</div>
-            <div class="mini-bar-track">
-              <div class="mini-bar-fill" style="width:98%; background:#E8A855;"></div>
-              <div class="mini-bar-fill" style="width:2%; background:#34D399;"></div>
-            </div>
-            <div class="sub-metrics">
-              <span class="sub-pill">🔍 Arama: 4.014 (%98.7)</span>
-              <span class="sub-pill">✨ Keşfet: 52 (%1.3)</span>
+          <div class="bento-card" style="border-top: 3px solid #E8A855;">
+            <div class="card-label">👁️ MAĞAZADA GÖRÜLDÜ</div>
+            <div class="big-num" style="color: #E8A855;">{f_imp:,}+</div>
+            <div class="card-desc">
+              App Store'da arama yapan <strong>{kpis['impressions_unique']:,} tekil ebeveynin</strong> karşısına çıktı.
             </div>
           </div>
 
-          <!-- KART 2: KÜMÜLATİF TIKLAMA & MAĞAZA ZİYARETİ -->
-          <div class="bento-card" style="border-color: rgba(59, 130, 246, 0.45);">
-            <div class="card-tag">
-              <span>👆 2. KÜMÜLATİF ZİYARET & TIKLAMA</span>
-              <span class="badge badge-meta">📡 CANLI + API</span>
-            </div>
-            <div class="big-num" style="color: #60A5FA;">
-              {kpis['visits_and_clicks_total']}
-              <span class="delta-badge">{s['period_label']}: +{s['period_clicks_count']} Köprü Tıkı</span>
-            </div>
-            <div style="font-size: 12px; color: #CBD5E1;">Mağaza ürün sayfası ziyaretleri ({kpis['store_page_views']}) + Sosyal link tıklamaları ({kpis['bridge_unique_clicks']})</div>
-            <div class="mini-bar-track">
-              <div class="mini-bar-fill" style="width:77%; background:#60A5FA;"></div>
-              <div class="mini-bar-fill" style="width:23%; background:#F472B6;"></div>
-            </div>
-            <div class="sub-metrics">
-              <span class="sub-pill">🍏 Mağaza Sayfası: {kpis['store_page_views']}</span>
-              <span class="sub-pill">🎯 Meta (/ios): {meta['unique_clicks']}</span>
-              <span class="sub-pill">📸 IG Bio (/download): {ig['unique_clicks']}</span>
+          <div class="bento-card" style="border-top: 3px solid #60A5FA;">
+            <div class="card-label">👆 İNCELEYEN & TIKLAYAN</div>
+            <div class="big-num" style="color: #60A5FA;">{f_vis}</div>
+            <div class="card-desc">
+              <strong>{kpis['store_page_views']} kişi</strong> mağaza sayfasını açtı, <strong>{s['total_raw']} kez</strong> (<strong>{kpis['bridge_unique_clicks']} tekil kişi</strong>) Instagram/Facebook'tan tıkladı.
             </div>
           </div>
 
-          <!-- KART 3: KÜMÜLATİF İNDİRME & KURULUM -->
-          <div class="bento-card" style="border-color: rgba(16, 185, 129, 0.45);">
-            <div class="card-tag">
-              <span>📲 3. KÜMÜLATİF GERÇEK İNDİRME</span>
-              <span class="badge badge-uniq">🍏 iOS + 🤖 PLAY</span>
-            </div>
-            <div class="big-num" style="color: #34D399;">
-              {kpis['downloads_total']}
-              <span class="delta-badge">👑 {kpis['vip_activations']} VIP / Deneme</span>
-            </div>
-            <div style="font-size: 12px; color: #CBD5E1;">Resmi mağaza indirmeleri ({kpis['ios_downloads']} App Store + {kpis['android_downloads']} Google Play)</div>
-            <div class="mini-bar-track">
-              <div class="mini-bar-fill" style="width:89%; background:#34D399;"></div>
-              <div class="mini-bar-fill" style="width:11%; background:#60A5FA;"></div>
-            </div>
-            <div class="sub-metrics">
-              <span class="sub-pill">🔍 Arama İndirmesi: 47</span>
-              <span class="sub-pill">📲 Sosyal Yönlendirme: 14</span>
-              <span class="sub-pill">✨ Keşfet: 7</span>
-              <span class="sub-pill">🤖 Android: {kpis['android_downloads']}</span>
+          <div class="bento-card" style="border-top: 3px solid #34D399;">
+            <div class="card-label">📲 TELEFONUNA İNDİREN</div>
+            <div class="big-num" style="color: #34D399;">{f_dl}</div>
+            <div class="card-desc">
+              <strong>{kpis['ios_downloads']} iPhone</strong> (App Store) ve <strong>{kpis['android_downloads']} Android</strong> (Google Play) telefona kuruldu.
             </div>
           </div>
 
-          <!-- KART 4: UYGULAMA İÇİ YAŞAM & MEMNUNİYET -->
-          <div class="bento-card" style="border-color: rgba(168, 85, 247, 0.45);">
-            <div class="card-tag">
-              <span>⭐ 4. UYGULAMA İÇİ YAŞAM & PUAN</span>
-              <span class="badge" style="background:rgba(168,85,247,0.2); color:#C084FC;">%100 BEŞ YILDIZ</span>
-            </div>
-            <div class="big-num" style="color: #C084FC;">
-              5.0 ⭐
-              <span class="delta-badge">6 Resmi Yorum</span>
-            </div>
-            <div style="font-size: 12px; color: #CBD5E1;">{kpis['active_sessions']} Uygulama Oturumu • {kpis['distinct_live_devices']} Aktif Cihaz • 9 VIP Deneme</div>
-            <div class="mini-bar-track">
-              <div class="mini-bar-fill" style="width:83%; background:#E8A855;"></div>
-              <div class="mini-bar-fill" style="width:17%; background:#4ADE80;"></div>
-            </div>
-            <div class="sub-metrics">
-              <span class="sub-pill">🍏 App Store: 5★ (5 Yorum)</span>
-              <span class="sub-pill">🤖 Google Play: 5★ (1 Yorum)</span>
+          <div class="bento-card" style="border-top: 3px solid #C084FC;">
+            <div class="card-label">👑 VIP ABONELİK & PUAN</div>
+            <div class="big-num" style="color: #C084FC;">{f_vip} VIP</div>
+            <div class="card-desc">
+              <strong>8 Aylık, 5 Yıllık VIP</strong> (<strong>{paid_conv} Ücretli Satış: {paid_try:.2f} ₺</strong> net gelir) • <strong>5.0 ★</strong> ({reviews_total_cnt} yorum).
             </div>
           </div>
         </div>
 
-        <!-- 4 TEMİZ SEKME BUTONU -->
-        <div class="tabs-nav">
-          <button class="tab-btn active" onclick="openTab('tab-overview', this)">🌟 1. Kümülatif Büyüme & Görsel Huni</button>
-          <button class="tab-btn" onclick="openTab('tab-channels', this)">🎯 2. Kanallar, Halkalar & Saat Kadranı</button>
-          <button class="tab-btn" onclick="openTab('tab-product', this)">👶 3. Uygulama İçi Nabız & Yorumlar (6★)</button>
-          <button class="tab-btn" onclick="openTab('tab-stream', this)">⚡ 4. Canlı Tıklama Kayıtları & API</button>
-        </div>
-
-        <!-- ================================================================== -->
-        <!-- SEKME 1: KÜMÜLATİF BÜYÜME GRAFİĞİ, GÖRSEL HUNİ & ÖZET              -->
-        <!-- ================================================================== -->
-        <div id="tab-overview" class="tab-pane active">
-          <!-- DÜZ TÜRKÇE HİKAYE ÖZETİ -->
-          <div class="story-box">
-            <strong>📖 Tek Bakışta Kümülatif Durum Özeti (Sıfır Jargon):</strong><br>
-            Başlangıçtan bugüne Mışıl Baby mağazada <strong>{kpis['impressions_total']:,} kez görüntülendi</strong> ({kpis['impressions_unique']:,} tekil ebeveyn gördü).
-            İlgilenip mağaza sayfasını açan veya sosyal medya linklerimize (<code>/ios</code> ve <code>/download</code>) tıklayan toplam <strong>{kpis['visits_and_clicks_total']} kişi</strong> oldu.
-            Bu ziyaretlerin sonucunda <strong>{kpis['downloads_total']} gerçek mağaza indirmesi</strong> ({kpis['ios_downloads']} iPhone + {kpis['android_downloads']} Android) ve <strong>{kpis['vip_activations']} VIP/Deneme başlangıcı</strong> gerçekleşti.
-            Hem App Store hem Google Play'deki tüm yorumlarımız (toplam {reviews_total_cnt} yorum) <strong>5.0 ⭐ tam puandır</strong>.
+        <!-- 2. BLOK: YAN YANA 4 ADIMLI GÖRSEL YOLCULUK (HUNİ) -->
+        <div class="bento-card">
+          <div class="section-head">
+            <span>🧭 Ebeveynlerin 4 Adımlı Yolculuğu (Görmeden ➔ VIP Aboneliğe)</span>
           </div>
-
-          <!-- KÜMÜLATİF & GÜNLÜK BÜYÜME GRAFİĞİ -->
-          <div class="bento-card">
-            <div class="section-head">
-              <div>
-                <span>📈 18 Ekim – 28 Ekim Kümülatif Büyüme & Günlük Giriş Grafiği</span>
-                <div style="font-size:12px; color:#94A3B8; font-weight:500; margin-top:2px;">
-                  Yeşil Sütun = Kümülatif İndirme ({kpis['downloads_total']}) • Mavi Sütun = Kümülatif Ziyaret & Tıklama ({kpis['visits_and_clicks_total']})
-                </div>
-              </div>
-              <div class="chart-toggle">
-                <button id="btnCumChart" class="active" onclick="switchChartMode('cum')">📈 Kümülatif Birikimli Yükseliş</button>
-                <button id="btnDailyChart" onclick="switchChartMode('daily')">📊 Gün-Gün Yeni Hareket</button>
-              </div>
+          <div class="steps-grid">
+            <div class="step-box" style="border-left: 4px solid #E8A855;">
+              <div class="step-num" style="color:#E8A855;">1. ADIM • KARŞILAŞMA</div>
+              <div class="step-val">{f_imp:,}+</div>
+              <div class="step-sub">Ebeveyn mağazada Mışıl Baby'yi gördü</div>
+              <span class="step-rate">👥 {kpis['impressions_unique']:,} Tekil Kişi</span>
             </div>
 
-            <div id="chartCumWrap" class="timeline-grid">
-              {cum_bars_html}
+            <div class="step-box" style="border-left: 4px solid #60A5FA;">
+              <div class="step-num" style="color:#60A5FA;">2. ADIM • İNCELEME</div>
+              <div class="step-val">{f_vis}</div>
+              <div class="step-sub">Sayfayı açtı veya sosyal medya linkine tıkladı</div>
+              <span class="step-rate">➔ Görenlerin %{vis_of_imp_pct}'i ilgilendi</span>
             </div>
-            <div id="chartDailyWrap" class="timeline-grid" style="display:none;">
-              {daily_bars_html}
+
+            <div class="step-box" style="border-left: 4px solid #34D399;">
+              <div class="step-num" style="color:#34D399;">3. ADIM • İNDİRME</div>
+              <div class="step-val">{f_dl}</div>
+              <div class="step-sub">Uygulamayı telefonuna indirdi ({kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</div>
+              <span class="step-rate">➔ İnceleyenlerin %{dl_of_vis_pct}'i indirdi</span>
             </div>
-          </div>
 
-          <!-- 4 ADIMLI DARALAN GÖRSEL DÖNÜŞÜM HUNİSİ -->
-          <div class="bento-card">
-            <div class="section-head">
-              <span>🔻 Uçtan Uca Kümülatif Dönüşüm Hunisi (Görüntülenme ➔ Ziyaret/Tıklama ➔ İndirme ➔ Aktif Kullanım)</span>
-              <span style="font-size:12px; color:#94A3B8;">Çubukların genişliği her adımdaki geçiş oranını görsel olarak temsil eder</span>
-            </div>
-            <div class="v-funnel">
-              <div class="vf-row">
-                <div class="vf-head">
-                  <span class="vf-title">👁️ 1. ADIM: Mağaza & Arama Görüntülenmesi (Impressions)</span>
-                  <span class="vf-nums" style="color:#E8A855;">{f_imp:,} Görüntülenme ({kpis['impressions_unique']:,} Tekil Kişi)</span>
-                </div>
-                <div class="vf-bar-bg">
-                  <div class="vf-bar-fill" style="width:100%; background:linear-gradient(90deg, #D48828, #B45309);">%100 Başlangıç Kitlesi</div>
-                </div>
-              </div>
-
-              <div class="vf-arrow">⬇ ➔ Görüntüleyenlerin <strong>%{vis_of_imp_pct}'i</strong> İlgilenip Mağaza Sayfasını Açtı veya Linke Tıkladı</div>
-
-              <div class="vf-row">
-                <div class="vf-head">
-                  <span class="vf-title">👆 2. ADIM: Mağaza Sayfa Ziyareti & Sosyal Köprü Tıklaması</span>
-                  <span class="vf-nums" style="color:#60A5FA;">{f_vis} Ziyaret & Tekil Tık ({kpis['store_page_views']} Mağaza Sayfası + {kpis['bridge_unique_clicks']} Sosyal Köprü)</span>
-                </div>
-                <div class="vf-bar-bg">
-                  <div class="vf-bar-fill" style="width:52%; background:linear-gradient(90deg, #2563EB, #1D4ED8);">%{vis_of_imp_pct} Ziyaret Dönüşümü ({kpis['store_taps']} 'İndir' Butonu Dokunuşu)</div>
-                </div>
-              </div>
-
-              <div class="vf-arrow">⬇ ➔ Ziyaret Edenlerin <strong>%{dl_of_vis_pct}'i</strong> Uygulamayı Telefonuna İndirdi</div>
-
-              <div class="vf-row">
-                <div class="vf-head">
-                  <span class="vf-title">📲 3. ADIM: Gerçekleşen Mağaza İndirmesi (App Store + Google Play)</span>
-                  <span class="vf-nums" style="color:#34D399;">{f_dl} Gerçek İndirme ({kpis['ios_downloads']} iPhone + {kpis['android_downloads']} Android)</span>
-                </div>
-                <div class="vf-bar-bg">
-                  <div class="vf-bar-fill" style="width:28%; background:linear-gradient(90deg, #059669, #047857);">%{dl_of_vis_pct} İndirme</div>
-                </div>
-              </div>
-
-              <div class="vf-arrow">⬇ ➔ İndirenlerin <strong>%{act_of_dl_pct}'i</strong> Aktif Oturum Açtı & <strong>{kpis['vip_activations']} Aile</strong> VIP Deneme Başlattı</div>
-
-              <div class="vf-row">
-                <div class="vf-head">
-                  <span class="vf-title">👶 4. ADIM: Uygulama İçi Aktif Oturum, VIP Deneme & 5★ Memnuniyet</span>
-                  <span class="vf-nums" style="color:#C084FC;">{f_act} Oturum • {kpis['vip_activations']} VIP/Deneme • {reviews_total_cnt}× 5.0★ Yorum</span>
-                </div>
-                <div class="vf-bar-bg">
-                  <div class="vf-bar-fill" style="width:18%; background:linear-gradient(90deg, #7C3AED, #6D28D9); color:#FFF;">{kpis['vip_activations']} VIP • 5.0★</div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- 3 GÖRSEL ANLAM & ÖNERİ KARTI -->
-          <div class="bento-card">
-            <div class="section-head">
-              <span>🧭 3'lü Konsensüs Görsel Durum Teşhisi (Ne İyi Gidiyor, Neye Dikkat Etmeli?)</span>
-            </div>
-            <div class="diag-grid">
-              <div class="diag-card" style="border-left: 4px solid #34D399;">
-                <span class="badge badge-uniq">🟢 ÇOK GÜÇLÜ • APPLE ARAMA</span>
-                <div class="diag-title">İndirmelerin %69'u Doğrudan App Store Aramasından Geliyor</div>
-                <p class="diag-body">
-                  Resmi Apple verilerine göre 68 App Store indirmesinin <strong>47 tanesi</strong> doğrudan arama sonuçlarından (<code>4.014</code> görüntülenme), <strong>14 tanesi</strong> sosyal medya/uygulama yönlendirmesinden (App Referrer) geldi.
-                </p>
-                <div class="diag-action">👉 <strong>Anlamı:</strong> Uygulamanın mağaza vitrini ve 5.0★ puanı arayan ebeveynleri yüksek oranda ikna ediyor.</div>
-              </div>
-
-              <div class="diag-card" style="border-left: 4px solid #FBBF24;">
-                <span class="badge badge-dup">🟡 DİKKAT • SOSYAL REKLAM CİHAZLARI</span>
-                <div class="diag-title">Sosyal Reklama Tıklayanların %{android_pct}'i Android Telefon Kullanıyor</div>
-                <p class="diag-body">
-                  <code>/ios</code> ve <code>/download</code> linklerine tıklayan {s['total_unique_human']} gerçek kişinin <strong>{ios_total} tanesi iPhone (%{ios_pct})</strong>, <strong>{android_total} tanesi Android (%{android_pct})</strong> kullanıyor. Akıllı köprümüz Android kullanıcılarını otomatik olarak Google Play'e yönlendiriyor.
-                </p>
-                <div class="diag-action">👉 <strong>Anlamı:</strong> Çift mağaza rozetli yeni görseller sayesinde Android trafiği boşa gitmiyor ve Google Play indirmesine dönüşüyor.</div>
-              </div>
-
-              <div class="diag-card" style="border-left: 4px solid #C084FC;">
-                <span class="badge" style="background:rgba(168,85,247,0.2); color:#C084FC;">🌙 GECE NÖBETİ • ZİRVE SAATLER</span>
-                <div class="diag-title">Anneler En Çok Gece {top_h1} ve {top_h2} Saatlerinde Geliyor</div>
-                <p class="diag-body">
-                  Tıklamaların zaman dağılımında bebeklerin uyanıp ağladığı akşam ve gece saatleri (özellikle <strong>{top_h1}</strong> ve <strong>{top_h2} TSİ</strong>) açık ara zirvede yer alıyor.
-                </p>
-                <div class="diag-action">👉 <strong>Anlamı:</strong> Akşam 20:00 sonrası yapılan Instagram paylaşımları ve hikayeler uykusuz anneleri tam ihtiyaç anında yakalıyor.</div>
-              </div>
+            <div class="step-box" style="border-left: 4px solid #C084FC;">
+              <div class="step-num" style="color:#C084FC;">4. ADIM • VIP & MEMNUNİYET</div>
+              <div class="step-val">{f_vip} VIP • 5.0★</div>
+              <div class="step-sub">{paid_conv} ücretli dönüşüm ({paid_try:.2f} ₺) + 12 deneme/kod</div>
+              <span class="step-rate">➔ İndirenlerin %{vip_of_dl_pct}'i VIP başlattı</span>
             </div>
           </div>
         </div>
 
-        <!-- ================================================================== -->
-        <!-- SEKME 2: KANALLAR, 3x SVG HALKA GRAFİK & GECE/GÜNDÜZ KADRANI       -->
-        <!-- ================================================================== -->
-        <div id="tab-channels" class="tab-pane">
-          <div class="donuts-grid">
-            <div class="bento-card" style="margin-bottom:0;">
-              <div class="section-head"><span>🍩 1. App Store İndirmeleri Nereden Geldi?</span></div>
-              {donut_apple_sources}
+        <!-- 3. BLOK: TEK ÇUBUKLU KÜMÜLATİF İNDİRME GRAFİĞİ -->
+        <div class="bento-card">
+          <div class="section-head">
+            <div>
+              <span>📈 Gün-Gün Toplam İndirme Yükselişi (18 Ekim ➔ Bugün: {f_dl} İndirme)</span>
             </div>
-
-            <div class="bento-card" style="margin-bottom:0;">
-              <div class="section-head"><span>🍩 2. Tıklayanlar Hangi Telefonu Kullanıyor?</span></div>
-              {donut_os}
-            </div>
-
-            <div class="bento-card" style="margin-bottom:0;">
-              <div class="section-head"><span>🍩 3. Hangi Sosyal Uygulamadan Geldiler?</span></div>
-              {donut_social_app}
+            <div class="chart-toggle">
+              <button id="btnCumChart" class="active" onclick="switchChartMode('cum')">📈 Toplam Birikimli (Kümülatif)</button>
+              <button id="btnDailyChart" onclick="switchChartMode('daily')">📊 Günlük Yeni İndirme</button>
             </div>
           </div>
 
-          <!-- GECE NÖBETİ VS GÜNDÜZ SAAT KADRANI -->
-          <div class="bento-card">
-            <div class="section-head">
-              <span>🌗 Gece Nöbeti (21:00–04:00) vs. Gündüz (05:00–20:00) Tıklama Kadranı (TSİ)</span>
-              <span style="font-size:12px; color:#34D399;">🔥 Yeşil Sütunlar = En Yoğun 3 Zirve Saat</span>
-            </div>
-
-            <div style="margin-bottom: 16px;">
-              <div style="display:flex; justify-content:space-between; font-size:12.5px; font-weight:700; margin-bottom:6px;">
-                <span style="color:#C084FC;">🌙 Gece Uykusuzluk Kuşağı (21:00–04:00): {nvd['night_clicks']} Tık (%{nvd['night_pct']})</span>
-                <span style="color:#E8A855;">☀️ Gündüz Kuşağı (05:00–20:00): {nvd['day_clicks']} Tık (%{nvd['day_pct']})</span>
-              </div>
-              <div class="mini-bar-track" style="height:12px;">
-                <div class="mini-bar-fill" style="width:{nvd['night_pct']}%; background:linear-gradient(90deg, #A855F7, #6366F1);"></div>
-                <div class="mini-bar-fill" style="width:{nvd['day_pct']}%; background:linear-gradient(90deg, #E8A855, #F4A261);"></div>
-              </div>
-            </div>
-
-            <div class="hours-grid">
-              {hours_bars_html}
-            </div>
+          <div id="chartCumWrap" class="timeline-grid">
+            {cum_bars_html}
           </div>
-
-          <!-- 9 ÜLKE KÜMÜLATİF İNDİRME DAĞILIMI -->
-          <div class="bento-card">
-            <div class="section-head">
-              <span>🌍 Ülke Bazlı Kümülatif İndirme Dağılımı (Apple App Store Resmi Verisi)</span>
-              <span style="font-size:12px; color:#94A3B8;">Toplam 9 farklı ülkeden Türk ve global ebeveyn indirmesi</span>
-            </div>
-            <div class="countries-wrap">
-              {countries_html}
-            </div>
+          <div id="chartDailyWrap" class="timeline-grid" style="display:none;">
+            {daily_bars_html}
           </div>
         </div>
 
-        <!-- ================================================================== -->
-        <!-- SEKME 3: UYGULAMA İÇİ NABIZ & 6 RESMİ MAĞAZA YORUMU                -->
-        <!-- ================================================================== -->
-        <div id="tab-product" class="tab-pane">
-          <div class="pulse-grid">
-            <div class="pulse-item">
-              <div style="font-size:24px;">📱</div>
-              <div class="pulse-num" style="color:#34D399;">{kpis['active_sessions']}</div>
-              <div style="font-size:12px; font-weight:700; color:#FFF;">Kümülatif Oturum</div>
-              <div style="font-size:11px; color:#94A3B8; margin-top:2px;">Toplam ~40 dk süre</div>
-            </div>
-            <div class="pulse-item">
-              <div style="font-size:24px;">👑</div>
-              <div class="pulse-num" style="color:#E8A855;">{kpis['vip_activations']}</div>
-              <div style="font-size:12px; font-weight:700; color:#FFF;">VIP & Deneme Başlatan</div>
-              <div style="font-size:11px; color:#94A3B8; margin-top:2px;">5 Aylık • 4 Yıllık VIP</div>
-            </div>
-            <div class="pulse-item">
-              <div style="font-size:24px;">👶</div>
-              <div class="pulse-num" style="color:#60A5FA;">{max(pf['babies_created'], kpis['distinct_live_devices'])}</div>
-              <div style="font-size:12px; font-weight:700; color:#FFF;">Aktif Bebek / Cihaz</div>
-              <div style="font-size:11px; color:#94A3B8; margin-top:2px;">DB Kayıtlı: {pf['babies_created']}</div>
-            </div>
-            <div class="pulse-item">
-              <div style="font-size:24px;">🌙</div>
-              <div class="pulse-num" style="color:#C084FC;">{pf['sleep_logs']}</div>
-              <div style="font-size:12px; font-weight:700; color:#FFF;">Canlı Uyku Kaydı</div>
-              <div style="font-size:11px; color:#94A3B8; margin-top:2px;">MışılSpot™ Senkron</div>
-            </div>
-            <div class="pulse-item">
-              <div style="font-size:24px;">😭</div>
-              <div class="pulse-num" style="color:#F472B6;">{pf['cry_analyses']}</div>
-              <div style="font-size:12px; font-weight:700; color:#FFF;">Ağlama Analizi</div>
-              <div style="font-size:11px; color:#94A3B8; margin-top:2px;">Akustik DSP Motoru</div>
-            </div>
-            <div class="pulse-item">
-              <div style="font-size:24px;">👵</div>
-              <div class="pulse-num" style="color:#4ADE80;">{pf['dadi_chats']}</div>
-              <div style="font-size:12px; font-weight:700; color:#FFF;">Mışıl Dadı Sohbeti</div>
-              <div style="font-size:11px; color:#94A3B8; margin-top:2px;">7/24 AI Pediatrik Koç</div>
-            </div>
+        <!-- 4. BLOK: YAN YANA 3 BASİT GÖRSEL HALKA (DONUT) -->
+        <div class="donuts-grid">
+          <div class="bento-card">
+            <div class="section-head"><span>🍩 1. Nereden İndirdiler?</span></div>
+            {donut_install_sources}
           </div>
 
           <div class="bento-card">
-            <div class="section-head">
-              <span>⭐ App Store & Google Play Resmi Mağaza Yorumları (API'den Çekilen 6 Yorum — 5.0 ★)</span>
-              <span style="font-size:12px; color:#34D399;">%100 5 Yıldız Memnuniyet</span>
-            </div>
-            <div class="reviews-grid">
-              {reviews_html}
-            </div>
+            <div class="section-head"><span>🍩 2. Hangi Ülkelerden?</span></div>
+            {donut_countries}
           </div>
 
           <div class="bento-card">
-            <div class="section-head">
-              <span>💌 Uygulama İçi Anne Geri Bildirim & İstek Kutusu ({pf['feedbacks_count']})</span>
-              <span style="font-size:12px; color:#94A3B8;">Uykuya geçişte zorlanan annelerin uygulama içinden bıraktığı özel mesajlar</span>
-            </div>
-            {feedbacks_html}
+            <div class="section-head"><span>🍩 3. Ne Zaman Geliyorlar? (Zirve: {top_h1})</span></div>
+            {donut_night_day}
           </div>
         </div>
 
-        <!-- ================================================================== -->
-        <!-- SEKME 4: CANLI TIKLAMA AKIŞI & API BAĞLANTI DURUMU                 -->
-        <!-- ================================================================== -->
-        <div id="tab-stream" class="tab-pane">
-          <div class="diag-grid" style="margin-bottom:18px;">
-            <div class="diag-card" style="border-left: 4px solid #34D399;">
-              <span class="badge badge-uniq">🟢 BAĞLI • 200 OK</span>
-              <div class="diag-title">🍏 Apple App Store Connect API</div>
-              <p class="diag-body">App ID: <code>6809223195</code> • Raporlar: <code>r3</code> (Downloads), <code>r14</code> (Impressions & Page Views), <code>r8</code> (Sessions), <code>r12</code> (Purchases) ve <code>customerReviews</code> aktif.</p>
-            </div>
-            <div class="diag-card" style="border-left: 4px solid #34D399;">
-              <span class="badge badge-uniq">🟢 BAĞLI • 200 OK</span>
-              <div class="diag-title">🤖 Google Play Developer API</div>
-              <p class="diag-body">Paket: <code>com.levitas.misilbaby</code> • Üretim Kanalı: <strong>Build 63 (v4.44.1) Yayında</strong> • Mağaza yorumları ve sürüm takibi senkronize.</p>
-            </div>
-            <div class="diag-card" style="border-left: 4px solid #60A5FA;">
-              <span class="badge badge-meta">📡 GERÇEK ZAMANLI</span>
-              <div class="diag-title">⚡ Mışıl Akıllı Köprü & Cihaz Telemetrisi</div>
-              <p class="diag-body"><code>/ios</code>, <code>/download</code>, <code>/android</code> yönlendirmeleri ve <code>app.html</code> cihaz açılış sinyalleri sıfır gecikmeyle kaydediliyor.</p>
-            </div>
+        <!-- 5. BLOK: ANNELERİN 6 RESMİ YORUMU (5.0 ★) -->
+        <div class="bento-card">
+          <div class="section-head">
+            <span>⭐ Annelerin Resmi Mağaza Yorumları ({reviews_total_cnt} Yorumun Tamamı 5 Yıldız)</span>
           </div>
-
-          <div class="bento-card">
-            <div class="section-head">
-              <span>⚡ Saniye Bazlı Canlı Tıklama & Mağaza Yönlendirme Kayıtları</span>
-              <label style="display:inline-flex; align-items:center; gap:8px; font-size:12px; color:#34D399; cursor:pointer;">
-                <input type="checkbox" id="hideBotsChk" checked onchange="toggleBotRows(this.checked)" />
-                <strong>🤖 Botları ve Çift Dokunuşları Gizle (Sadece Gerçek İnsanları Göster)</strong>
-              </label>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Tarih / Saat (TSİ)</th>
-                    <th>Tıklanan Link</th>
-                    <th>Durum</th>
-                    <th>Telefon / Cihaz</th>
-                    <th>Geldiği Uygulama</th>
-                    <th>Yönlendirilen Mağaza</th>
-                    <th>Maskeli IP & Ülke</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {rows_html}
-                </tbody>
-              </table>
-            </div>
+          <div class="reviews-grid">
+            {reviews_html}
           </div>
         </div>
+
+        <!-- İSTEĞE BAĞLI GİZLİ DETAY ÇEKMECESİ -->
+        <details class="drawer">
+          <summary>➕ Son Sosyal Medya Tıklama Kayıtlarını Göster ({s['total_unique_human']} Tekil Kişi / {s['total_raw']} Toplam Tıklama — İsteğe Bağlı)</summary>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Saat (TSİ)</th>
+                  <th>Telefon</th>
+                  <th>Geldiği Uygulama</th>
+                  <th>Yönlendirilen Mağaza</th>
+                  <th>Ülke</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows_html}
+              </tbody>
+            </table>
+          </div>
+        </details>
       </div>
 
       <script>
-        function openTab(tabId, btnEl) {{
-          var panes = document.querySelectorAll('.tab-pane');
-          for (var i = 0; i < panes.length; i++) panes[i].classList.remove('active');
-          var btns = document.querySelectorAll('.tab-btn');
-          for (var j = 0; j < btns.length; j++) btns[j].classList.remove('active');
-          var target = document.getElementById(tabId);
-          if (target) target.classList.add('active');
-          if (btnEl) btnEl.classList.add('active');
-          localStorage.setItem('mishil_active_dash_tab', tabId);
-        }}
-
         function switchChartMode(mode) {{
           var cumW = document.getElementById('chartCumWrap');
           var dailyW = document.getElementById('chartDailyWrap');
@@ -2566,14 +2063,6 @@ async def analytics_dashboard_page(
           localStorage.setItem('mishil_dash_chart_mode', mode);
         }}
 
-        function toggleBotRows(hideBots) {{
-          var rows = document.querySelectorAll('.row-bot-dup');
-          for (var i = 0; i < rows.length; i++) {{
-            rows[i].style.display = hideBots ? 'none' : 'table-row';
-          }}
-          localStorage.setItem('mishil_dash_hide_bots', hideBots ? '1' : '0');
-        }}
-
         (function() {{
           try {{
             if (window.history && window.history.replaceState && window.location.search.indexOf('sync=1') > -1) {{
@@ -2582,25 +2071,9 @@ async def analytics_dashboard_page(
             }}
           }} catch (_he) {{}}
 
-          var savedTab = localStorage.getItem('mishil_active_dash_tab');
-          if (savedTab && document.getElementById(savedTab)) {{
-            var btns = document.querySelectorAll('.tab-btn');
-            var mapIdx = {{'tab-overview': 0, 'tab-channels': 1, 'tab-product': 2, 'tab-stream': 3}};
-            if (mapIdx[savedTab] !== undefined && btns[mapIdx[savedTab]]) {{
-              openTab(savedTab, btns[mapIdx[savedTab]]);
-            }}
-          }}
-
           var savedChartMode = localStorage.getItem('mishil_dash_chart_mode');
           if (savedChartMode === 'daily' || savedChartMode === 'cum') {{
             switchChartMode(savedChartMode);
-          }}
-
-          var savedHideBots = localStorage.getItem('mishil_dash_hide_bots');
-          if (savedHideBots === '0') {{
-            var chk = document.getElementById('hideBotsChk');
-            if (chk) chk.checked = false;
-            toggleBotRows(false);
           }}
 
           var savedScrollY = sessionStorage.getItem('mishil_dash_scroll_y');
