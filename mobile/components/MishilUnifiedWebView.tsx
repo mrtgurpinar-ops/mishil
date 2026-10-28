@@ -549,7 +549,7 @@ export default function MishilUnifiedWebView() {
           break;
 
         case 'AUDIO_TIMER':
-          nativeAudio.startTimer(Number(msg.minutes) || 0, sendAudioState);
+          nativeAudio.startTimer(Number(msg.minutes) || 0, sendAudioState, msg.fadeOut !== false);
           break;
 
         case 'AUDIO_VOLUME':

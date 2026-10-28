@@ -1794,6 +1794,86 @@
       font-weight: 700;
     }
 
+    .timer-fadeout-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 8px;
+      padding-top: 9px;
+      border-top: 1px solid rgba(255, 255, 255, 0.07);
+      cursor: pointer;
+      gap: 10px;
+    }
+
+    .timer-fadeout-title {
+      font-size: 11.5px;
+      font-weight: 700;
+      color: #F8FAFC;
+      line-height: 1.25;
+    }
+
+    .timer-fadeout-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.3;
+      margin-top: 1px;
+    }
+
+    .timer-fadeout-switch {
+      width: 40px;
+      height: 22px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.16);
+      position: relative;
+      flex-shrink: 0;
+      transition: all 0.22s ease;
+    }
+
+    .timer-fadeout-switch.active {
+      background: linear-gradient(135deg, #F4A261 0%, #E8A855 100%);
+      border-color: rgba(244, 162, 97, 0.6);
+      box-shadow: 0 2px 10px rgba(244, 162, 97, 0.35);
+    }
+
+    .timer-fadeout-knob {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .timer-fadeout-switch.active .timer-fadeout-knob {
+      transform: translateX(18px);
+      background: #141B2E;
+    }
+
+    [data-theme="light"] .timer-fadeout-row {
+      border-top-color: rgba(15, 23, 42, 0.08);
+    }
+
+    [data-theme="light"] .timer-fadeout-title {
+      color: #1E293B;
+    }
+
+    [data-theme="light"] .timer-fadeout-switch {
+      background: rgba(15, 23, 42, 0.12);
+      border-color: rgba(15, 23, 42, 0.15);
+    }
+
+    [data-theme="light"] .timer-fadeout-switch.active {
+      background: var(--accent);
+    }
+
+    [data-theme="light"] .timer-fadeout-switch.active .timer-fadeout-knob {
+      background: #FFFFFF;
+    }
+
     /* =========================================================================
        HUCKLEBERRY PRO TIER-1 DOCK NAVIGATION & CENTER FAB BUTTON
        ========================================================================= */
@@ -3527,6 +3607,18 @@
           <div class="timer-pill" onclick="setTimer(45, this)">45 dk</div>
           <div class="timer-pill" onclick="setTimer(60, this)">60 dk</div>
         </div>
+        <div class="timer-fadeout-row" onclick="toggleTimerFadeOut()">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 14px;" id="timer-fadeout-icon">🔉</span>
+            <div>
+              <div class="timer-fadeout-title">Kademeli Kısarak Kapat (Fade-Out)</div>
+              <div class="timer-fadeout-sub" id="timer-fadeout-subtext">Süre biterken son 30 sn'de sesi yavaşça azaltır</div>
+            </div>
+          </div>
+          <div class="timer-fadeout-switch active" id="timer-fadeout-switch" role="switch" aria-checked="true">
+            <div class="timer-fadeout-knob"></div>
+          </div>
+        </div>
       </div>
 
       <!-- 18 Tracks List Container -->
@@ -4671,11 +4763,19 @@
         window.MishilNative.onSubscriptionResult(msg.data);
       } else if (msg && msg.type === 'AUDIO_STATE') {
         // Native ses motoru durum bildirimi → mini player UI senkronu
+        if (!msg.playing && msg.reason === 'timer' && typeof lastTrackStartAt === 'number' && (Date.now() - lastTrackStartAt < 1000)) {
+          return; // Yeni parça başlatıldıktan hemen sonra gelen gecikmiş eski timer mesajını yoksay
+        }
         var erroredId = (!msg.playing && msg.reason === 'error') ? currentTrackId : null;
         currentTrackId = msg.playing ? msg.id : null;
         if (erroredId) markTrackUnavailable(erroredId);
         updatePlayerUI();
-        if (!msg.playing && msg.reason === 'timer') showToast('💤 Kapanma zamanlayıcısı sesi durdurdu');
+        if (!msg.playing && msg.reason === 'timer') {
+          if (typeof resetActiveTimerUI === 'function') resetActiveTimerUI(true);
+          if (typeof notifyTimerStoppedOnce === 'function') {
+            notifyTimerStoppedOnce((typeof timerFadeOutEnabled !== 'undefined' && timerFadeOutEnabled) ? '💤 Ses kademeli kısılarak kapatıldı' : '💤 Kapanma zamanlayıcısı sesi durdurdu');
+          }
+        }
         if (!msg.playing && msg.reason === 'error') showToast('⚠️ Bu ses şu an oynatılamadı, başka bir parça deneyin');
       }
     } catch(e) {}
@@ -4715,7 +4815,8 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.44.1', date: '28 Ekim 2026', latest: true, items: [
+    { v: '4.44.1', date: '29 Ekim 2026', latest: true, items: [
+      'Kademeli Kısarak Kapat (Smart Fade-Out) Seçeneği: Kapanma Zamanlayıcısına (15/30/45/60 dk) isteğe bağlı açılıp kapatılabilen "🔉 Kademeli Kısarak Kapat (Fade-Out)" anahtarı eklendi; süre biterken son 30 saniyede sesi yavaşça azaltarak bebeğin ani sessizlik şokuyla uyanmasını önler.',
       'Google Play Store & Apple App Store Çift Mağaza Senkronizasyonu (Build 63): Resmi Google Play mağaza bağlantıları, akıllı cihaz yönlendirme köprüsü ve çevrimdışı yedek paket senkronize edildi.',
       'Akıllı Yerel Bildirim & Bakım Radarı (CareNotificationEngine): T.C. Sağlık Bakanlığı aşı takvimi, Wonder Weeks büyüme sıçramaları ve akşam uyku kontrolleri Android & iOS native katmanına mühürlendi.'
     ]},
@@ -5179,18 +5280,32 @@
   // =========================================================================
   // AKUSTİK CROSSFADE (0.8s PÜRÜZSÜZ SES GEÇİŞ MOTORU)
   // =========================================================================
+  function cancelElementFade(audioEl, restoreVol = true) {
+    if (!audioEl) return;
+    if (audioEl._fadeTimer) {
+      clearInterval(audioEl._fadeTimer);
+      audioEl._fadeTimer = null;
+    }
+    if (restoreVol) {
+      try { audioEl.volume = typeof audioEl._baseVolume === 'number' ? audioEl._baseVolume : 1.0; } catch (e) {}
+    }
+  }
+
   function fadeOutAudio(audioEl, durationMs = 600, callback) {
     if (!audioEl) { if (callback) callback(); return; }
-    const startVol = audioEl.volume;
-    const steps = 12;
+    cancelElementFade(audioEl, false);
+    const startVol = audioEl.volume > 0.05 ? audioEl.volume : 1.0;
+    audioEl._baseVolume = startVol;
+    const steps = Math.max(12, Math.min(30, Math.round(durationMs / 1000) || 12));
     const interval = Math.max(15, Math.floor(durationMs / steps));
     let currentStep = 0;
-    const fadeTimer = setInterval(() => {
+    audioEl._fadeTimer = setInterval(() => {
       currentStep++;
       const nextVol = Math.max(0, startVol * (1 - currentStep / steps));
       try { audioEl.volume = nextVol; } catch (e) {}
       if (currentStep >= steps) {
-        clearInterval(fadeTimer);
+        clearInterval(audioEl._fadeTimer);
+        audioEl._fadeTimer = null;
         try { audioEl.pause(); } catch (e) {}
         try { audioEl.volume = startVol; } catch (e) {}
         if (callback) callback();
@@ -5200,6 +5315,8 @@
 
   function fadeInAudio(audioEl, targetVol = 1, durationMs = 600) {
     if (!audioEl) return;
+    cancelElementFade(audioEl, false);
+    audioEl._baseVolume = targetVol;
     try {
       audioEl.volume = 0;
       audioEl.play().catch(e => console.log('Audio autoplay policy:', e));
@@ -5207,15 +5324,63 @@
     const steps = 12;
     const interval = Math.max(15, Math.floor(durationMs / steps));
     let currentStep = 0;
-    const fadeTimer = setInterval(() => {
+    audioEl._fadeTimer = setInterval(() => {
       currentStep++;
       const nextVol = Math.min(targetVol, (currentStep / steps) * targetVol);
       try { audioEl.volume = nextVol; } catch (e) {}
       if (currentStep >= steps) {
-        clearInterval(fadeTimer);
+        clearInterval(audioEl._fadeTimer);
+        audioEl._fadeTimer = null;
         try { audioEl.volume = targetVol; } catch (e) {}
       }
     }, interval);
+  }
+
+  let activeTimerMinutes = 0;
+  let timerEndTimeMs = 0;
+  let timerGeneration = 0;
+  let timerFadeStartTimeout = null;
+  let timerFadeInterval = null;
+  let isTimerVolumeFading = false;
+  let lastTimerStopToastAt = 0;
+  let lastTrackStartAt = 0;
+  let timerFadeOutEnabled = (function() {
+    try { return localStorage.getItem('mishil_timer_fadeout') !== 'false'; } catch (e) { return true; }
+  })();
+
+  function notifyTimerStoppedOnce(message) {
+    const now = Date.now();
+    if (now - lastTimerStopToastAt < 2500) return;
+    lastTimerStopToastAt = now;
+    showToast(message);
+  }
+
+  function clearTimerFadeSchedules(restoreVolume = true) {
+    timerGeneration++;
+    if (timerTimeout) { clearTimeout(timerTimeout); timerTimeout = null; }
+    if (timerFadeStartTimeout) { clearTimeout(timerFadeStartTimeout); timerFadeStartTimeout = null; }
+    if (timerFadeInterval) { clearInterval(timerFadeInterval); timerFadeInterval = null; }
+    if (currentTrackId && audioMap[currentTrackId]) {
+      cancelElementFade(audioMap[currentTrackId], restoreVolume);
+    }
+    if (restoreVolume && isTimerVolumeFading) {
+      isTimerVolumeFading = false;
+      if (isNativeAudio()) {
+        try { nativeAudioSend({ type: 'AUDIO_VOLUME', value: 1.0 }); } catch (e) {}
+      }
+    } else {
+      isTimerVolumeFading = false;
+    }
+  }
+
+  function resetActiveTimerUI(restoreVolume = true) {
+    clearTimerFadeSchedules(restoreVolume);
+    activeTimerMinutes = 0;
+    timerEndTimeMs = 0;
+    const pills = document.querySelectorAll('.timer-pill');
+    pills.forEach((p, idx) => p.classList.toggle('active', idx === 0));
+    const disp = document.getElementById('timer-display');
+    if (disp) disp.textContent = 'Sürekli Çal';
   }
 
   function togglePlayTrack(trackId) {
@@ -5229,12 +5394,22 @@
     // Native mod: ses çalma arka planda/kilitli ekranda çalışsın diye native tarafta
     if (isNativeAudio()) {
       if (currentTrackId === trackId) {
+        resetActiveTimerUI(true);
+        nativeAudioSend({ type: 'AUDIO_TIMER', minutes: 0, fadeOut: timerFadeOutEnabled });
         nativeAudioSend({ type: 'AUDIO_STOP' });
         currentTrackId = null;
         if (typeof onAudioPlaybackStopped === 'function') onAudioPlaybackStopped();
       } else {
+        lastTrackStartAt = Date.now();
+        if (isTimerVolumeFading) {
+          isTimerVolumeFading = false;
+          nativeAudioSend({ type: 'AUDIO_VOLUME', value: 1.0 });
+        }
         nativeAudioSend({ type: 'AUDIO_PLAY', id: trackId, url: absSoundUrl(track.file) });
         currentTrackId = trackId;
+        if (activeTimerMinutes > 0 && timerEndTimeMs > Date.now()) {
+          scheduleTimerWithRemainingMs(Math.max(1000, timerEndTimeMs - Date.now()), false);
+        }
         if (typeof onAudioPlaybackStarted === 'function') onAudioPlaybackStarted();
       }
       updatePlayerUI(); // AUDIO_STATE geri döndüğünde de doğrulanır
@@ -5245,6 +5420,7 @@
     if (!aud) return;
 
     if (currentTrackId === trackId) {
+      resetActiveTimerUI(false);
       fadeOutAudio(aud, 600, () => {
         currentTrackId = null;
         updatePlayerUI();
@@ -5252,6 +5428,7 @@
       currentTrackId = null;
       if (typeof onAudioPlaybackStopped === 'function') onAudioPlaybackStopped();
     } else {
+      lastTrackStartAt = Date.now();
       const oldAud = currentTrackId ? audioMap[currentTrackId] : null;
       if (oldAud) {
         fadeOutAudio(oldAud, 500);
@@ -5259,6 +5436,9 @@
       aud.currentTime = 0;
       fadeInAudio(aud, 1, 700);
       currentTrackId = trackId;
+      if (activeTimerMinutes > 0 && timerEndTimeMs > Date.now()) {
+        scheduleTimerWithRemainingMs(Math.max(1000, timerEndTimeMs - Date.now()), false);
+      }
       if (typeof onAudioPlaybackStarted === 'function') onAudioPlaybackStarted();
     }
     updatePlayerUI();
@@ -5293,36 +5473,155 @@
     }
   }
 
-  function setTimer(minutes, pillEl) {
-    hapticPulse();
+  function syncTimerFadeOutUI() {
+    const sw = document.getElementById('timer-fadeout-switch');
+    const sub = document.getElementById('timer-fadeout-subtext');
+    const icon = document.getElementById('timer-fadeout-icon');
+    const disp = document.getElementById('timer-display');
+    if (sw) {
+      sw.classList.toggle('active', timerFadeOutEnabled);
+      sw.setAttribute('aria-checked', timerFadeOutEnabled ? 'true' : 'false');
+    }
+    if (sub) {
+      sub.textContent = timerFadeOutEnabled
+        ? "Süre biterken son 30 sn'de sesi yavaşça azaltır"
+        : "Süre dolduğunda sesi azaltmadan doğrudan kapatır";
+    }
+    if (icon) {
+      icon.textContent = timerFadeOutEnabled ? '🔉' : '⏱️';
+    }
+    if (disp && activeTimerMinutes > 0) {
+      disp.textContent = timerFadeOutEnabled
+        ? `${activeTimerMinutes} dk • Kademeli Kapanış`
+        : `${activeTimerMinutes} dk sonra kapanacak`;
+    }
+  }
+
+  function scheduleTimerWithRemainingMs(remainingMs, updateNativeTimer = true) {
+    clearTimerFadeSchedules(true);
+    const gen = timerGeneration;
+    const fadeDurationMs = Math.min(30000, Math.floor(remainingMs * 0.5));
+    const fadeStartDelayMs = Math.max(0, remainingMs - fadeDurationMs);
+    const remainingMinutesDecimal = Number((remainingMs / 60000).toFixed(3));
+
+    if (isNativeAudio()) {
+      if (updateNativeTimer) {
+        nativeAudioSend({ type: 'AUDIO_TIMER', minutes: remainingMinutesDecimal, fadeOut: timerFadeOutEnabled });
+      }
+      if (timerFadeOutEnabled) {
+        timerFadeStartTimeout = setTimeout(() => {
+          if (gen !== timerGeneration || !currentTrackId) return;
+          isTimerVolumeFading = true;
+          const steps = 20;
+          const stepMs = Math.max(250, Math.floor(fadeDurationMs / steps));
+          let step = 0;
+          timerFadeInterval = setInterval(() => {
+            if (gen !== timerGeneration || !currentTrackId) {
+              clearTimerFadeSchedules(true);
+              return;
+            }
+            step++;
+            const nextVol = Math.max(0.03, Number((1 - step / steps).toFixed(2)));
+            nativeAudioSend({ type: 'AUDIO_VOLUME', value: nextVol });
+            if (step >= steps) {
+              clearInterval(timerFadeInterval);
+              timerFadeInterval = null;
+              isTimerVolumeFading = false;
+              nativeAudioSend({ type: 'AUDIO_STOP' });
+              nativeAudioSend({ type: 'AUDIO_VOLUME', value: 1.0 });
+              currentTrackId = null;
+              resetActiveTimerUI(false);
+              updatePlayerUI();
+              notifyTimerStoppedOnce('💤 Ses kademeli kısılarak kapatıldı');
+            }
+          }, stepMs);
+        }, fadeStartDelayMs);
+      }
+      return;
+    }
+
+    if (timerFadeOutEnabled) {
+      timerFadeStartTimeout = setTimeout(() => {
+        if (gen !== timerGeneration) return;
+        if (currentTrackId && audioMap[currentTrackId]) {
+          isTimerVolumeFading = true;
+          fadeOutAudio(audioMap[currentTrackId], fadeDurationMs, () => {
+            if (gen !== timerGeneration) return;
+            isTimerVolumeFading = false;
+            currentTrackId = null;
+            resetActiveTimerUI(false);
+            updatePlayerUI();
+            notifyTimerStoppedOnce('💤 Ses kademeli kısılarak kapatıldı');
+          });
+        } else {
+          resetActiveTimerUI(false);
+        }
+      }, fadeStartDelayMs);
+    } else {
+      timerTimeout = setTimeout(() => {
+        if (gen !== timerGeneration) return;
+        if (currentTrackId && audioMap[currentTrackId]) {
+          cancelElementFade(audioMap[currentTrackId], true);
+          audioMap[currentTrackId].pause();
+          currentTrackId = null;
+          resetActiveTimerUI(false);
+          updatePlayerUI();
+          notifyTimerStoppedOnce('💤 Kapanma zamanlayıcısı sesi durdurdu');
+        } else {
+          resetActiveTimerUI(false);
+        }
+      }, remainingMs);
+    }
+  }
+
+  function toggleTimerFadeOut() {
+    hapticSelection();
+    timerFadeOutEnabled = !timerFadeOutEnabled;
+    try { localStorage.setItem('mishil_timer_fadeout', timerFadeOutEnabled ? 'true' : 'false'); } catch (e) {}
+    syncTimerFadeOutUI();
+    if (activeTimerMinutes > 0 && timerEndTimeMs > Date.now()) {
+      const remainingMs = Math.max(1000, timerEndTimeMs - Date.now());
+      scheduleTimerWithRemainingMs(remainingMs, true);
+    }
+    showToast(timerFadeOutEnabled
+      ? '🔉 Kademeli kısarak kapatma aktif (son 30 sn)'
+      : '⏱️ Kademeli kısma kapatıldı (doğrudan kapanış)');
+  }
+
+  setTimeout(syncTimerFadeOutUI, 50);
+
+  function setTimer(minutes, pillEl, silent = false) {
+    if (!silent) hapticPulse();
+    activeTimerMinutes = Number(minutes) || 0;
     document.querySelectorAll('.timer-pill').forEach(p => p.classList.remove('active'));
     if (pillEl) pillEl.classList.add('active');
 
     const disp = document.getElementById('timer-display');
-    if (timerTimeout) clearTimeout(timerTimeout);
+    clearTimerFadeSchedules(true);
 
-    // Native mod: zamanlayıcı da native tarafta çalışsın (arka planda güvenilir)
-    if (isNativeAudio()) {
-      nativeAudioSend({ type: 'AUDIO_TIMER', minutes: minutes });
-      disp.textContent = minutes === 0 ? 'Sürekli Çal' : `${minutes} dk sonra kapanacak`;
-      if (minutes !== 0) showToast(`⏱️ Ses ${minutes} dakika sonra otomatik kapanacak`);
+    const labelText = activeTimerMinutes === 0
+      ? 'Sürekli Çal'
+      : (timerFadeOutEnabled ? `${activeTimerMinutes} dk • Kademeli Kapanış` : `${activeTimerMinutes} dk sonra kapanacak`);
+    if (disp) disp.textContent = labelText;
+
+    if (activeTimerMinutes === 0) {
+      timerEndTimeMs = 0;
+      if (isNativeAudio()) {
+        nativeAudioSend({ type: 'AUDIO_TIMER', minutes: 0, fadeOut: timerFadeOutEnabled });
+      }
       return;
     }
 
-    if (minutes === 0) {
-      disp.textContent = 'Sürekli Çal';
-    } else {
-      disp.textContent = `${minutes} dk sonra kapanacak`;
-      showToast(`⏱️ Ses ${minutes} dakika sonra otomatik kapanacak`);
-      timerTimeout = setTimeout(() => {
-        if (currentTrackId && audioMap[currentTrackId]) {
-          audioMap[currentTrackId].pause();
-          currentTrackId = null;
-          updatePlayerUI();
-          showToast('💤 Kapanma zamanlayıcısı sesi durdurdu');
-        }
-      }, minutes * 60000);
+    const totalMs = activeTimerMinutes * 60000;
+    timerEndTimeMs = Date.now() + totalMs;
+
+    if (!silent) {
+      showToast(timerFadeOutEnabled
+        ? `🔉 Ses ${activeTimerMinutes} dk sonra kademeli kısılarak kapanacak`
+        : `⏱️ Ses ${activeTimerMinutes} dakika sonra otomatik kapanacak`);
     }
+
+    scheduleTimerWithRemainingMs(totalMs, true);
   }
 
   // =========================================================================
@@ -9417,6 +9716,23 @@
         } catch (_be) {}
       };
       window.syncBabyProfileToBackend(false);
+      window.sendMishilAnalyticsSignal = function(evtType) {
+        try {
+          var _duid = localStorage.getItem('mishil_device_uid') || 'msl_anon';
+          var _ua = (navigator.userAgent || '').toLowerCase();
+          var _os = _ua.indexOf('android') > -1 ? 'android' : (/iphone|ipad|ipod/.test(_ua) ? 'ios' : 'desktop');
+          var _plat = !!(window.ReactNativeWebView || window.__MISHIL_APP__) ? (_os + '_native') : 'web_pwa';
+          fetch(apiBase + '/api/v1/analytics/app-open-signal', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ device_uid: _duid, event_type: evtType, os_family: _os, platform: _plat, app_version: '4.46.0' })
+          }).catch(function() {});
+        } catch (_se) {}
+      };
+      if (localStorage.getItem('mishil_sub_active') === 'true' && localStorage.getItem('mishil_vip_sig_v1') !== '1') {
+        localStorage.setItem('mishil_vip_sig_v1', '1');
+        window.sendMishilAnalyticsSignal('vip_started');
+      }
       var _todayActiveKey = 'mishil_active_' + new Date().toISOString().slice(0, 10);
       var _alreadyFirstOpen = (localStorage.getItem('mishil_first_open_v1') === '1');
       if (_alreadyFirstOpen && localStorage.getItem(_todayActiveKey) === '1') return;

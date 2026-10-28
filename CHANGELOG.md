@@ -2,6 +2,36 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.45.3 - Build 65] - 2026-10-29
+### 🔉 Kapanma Zamanlayıcısı İçin Opsiyonel "Kademeli Kısarak Kapat (Smart Fade-Out)" Motoru
+1. **Opsiyonel Kademeli Kapanış Anahtarı (`public/app.html`):**
+   - Sesler sekmesindeki **Kapanma Zamanlayıcısı** (`Sürekli | 15 dk | 30 dk | 45 dk | 60 dk`) kartının altına ebeveynlerin isteğe bağlı olarak açıp kapatabileceği **"🔉 Kademeli Kısarak Kapat (Fade-Out)"** anahtarı (toggle switch) eklendi; kullanıcı tercihi `localStorage` (`mishil_timer_fadeout`) üzerinde kalıcı olarak saklanır.
+   - Seçenek aktifken zamanlayıcının bitmesine **son 30 saniye kala** ses seviyesi 20 adımda (`%100 ➔ %0`) pürüzsüzce azaltılarak kapatılır; böylece bebeğin zamanlayıcı bittiği an ani sessizlik şokuyla (acoustic drop) uyanması önlenir.
+   - Seçenek kapatıldığında ise süre dolduğu an ses azaltılmadan doğrudan durdurulur.
+2. **EAS Build Gerektirmeyen Hibrit Köprü & Native Uyum (`public/app.html`, `nativeAudioPlayer.ts`, `MishilUnifiedWebView.tsx`):**
+   - Mevcut mağaza sürümlerinde (`Build 63` Android / `Build 61-62` iOS) `AUDIO_VOLUME` köprüsü halihazırda derlenmiş olduğu için, `app.html` üzerinden adım adım `AUDIO_VOLUME` mesajları gönderilerek yeni bir EAS build gerekmeksizin mevcut cihazlarda da kademeli kısma sağlandı; kapanış sonrası ses seviyesi otomatik olarak `1.0` değerine sıfırlanır.
+   - Ayrıca `nativeAudioPlayer.ts` içerisindeki `startTimer(minutes, onState, fadeOut)` fonksiyonuna doğrudan native fade-out döngüsü eklendi ve `offlineHtml.generated.ts` güncellendi.
+
+## [4.46.0 - Build 65] - 2026-10-29
+### 🏛️ 4 Fazlı Kurumsal Büyüme, Abone Defteri (MRR/LTV) ve Ürün Analitiği Aracı (RevenueCat + Adapty + Mixpanel + Baremetrics Mimarisi)
+1. **Faz 1 — Kalıcı PostgreSQL Mağaza & Abone Veri Ambarı (`app/db/models.py` & `app/api/v1/endpoints/analytics.py`):**
+   - Bellek içi (`in-memory`) geçici sözlük mimarisinin yanına kalıcı PostgreSQL veri ambarı tabloları eklendi: `StoreDailyMetric` (`store_daily_metrics`), `SubscriberLedger` (`subscriber_ledger`), `SubscriptionLifecycleEvent` (`subscription_lifecycle_events`) ve `StoreSyncState` (`store_sync_states`).
+   - `sync_live_store_apis()` fonksiyonu Apple `SALES`, `SUBSCRIPTION`, `SUBSCRIPTION_EVENT` ve **`SUBSCRIBER` (`1_3` DETAILED)** raporlarını otomatik sorgulayıp `StoreSyncState` üzerinden PostgreSQL'e kalıcı olarak mühürleyecek şekilde yükseltildi.
+   - `public/app.html` içerisine `window.sendMishilAnalyticsSignal(evtType)` genel sinyali ve VIP abonelik aktifleştiğinde (`mishil_sub_active === 'true'`) Apple'ın ertesi gün raporunu beklemeden anında kokpite düşen `vip_started` gerçek zamanlı telemetri kancası eklendi; `offlineHtml.generated.ts` güncellendi.
+2. **Faz 2 — Kurumsal Gelir, MRR, Tekil Abone Defteri & Tahsilat Takvimi (`💎 2. Gelir, MRR & Abone Defteri` Sekmesi):**
+   - Apple `SUBSCRIBER` (`1_3`) raporundaki **12 tekil aktif VIP abonenin (13 işlem)** tamamı tekil `subscriber_id` bazında `SubscriberLedger` tablosuna işlendi:
+     - **Tahsil Edilen Gerçek Gelir:** **`149,99 ₺ Brüt` / `83,12 ₺ Net`** (`#602650322813562` — 20 Ekim'de 7 günlük deneme başlatıp 27 Ekim'de ücretliye geçen ilk abone).
+     - **Olgunlaşan 7 Günlük Deneme ➔ Ücretli Dönüşüm Oranı:** **`%100,0` (`1 / 1`)** ve **`0` İptal (`%100` Otomatik Yenileme Açık)**.
+     - **7 Günlük Deneme Hattı (Pipeline MRR) & Tahsilat Takvimi:** **`6` aktif 7 günlük deneme (`899,94 ₺ Brüt / 498,72 ₺ Net`)** vade günlerine göre takvimlendirildi (`29 Ekim: 3 Abone • 249,36 ₺ Net`, `30 Ekim: 1 Abone • 83,12 ₺ Net`, `01 Kasım: 1 Abone • 83,12 ₺ Net`, `02 Kasım: 1 Abone • 83,12 ₺ Net`).
+     - **Promosyon Kodu (`DamlaEge2026`):** **`5` Yıllık VIP Abone** (`%100` aktif, otomatik yenileme açık).
+3. **Faz 3 & 4 — Kanal/ASO Attribution, Kohort Tutundurma & 5 Sekmeli Progressive Disclosure Kokpit (`preview_analytics_cockpit.html` & `/admin/analytics`):**
+   - En üstte **4 Kuzey Yıldızı Kartı** sabit tutularak altına **5 Kurumsal Sekme** eklendi:
+     - `🌟 1. Yönetici Özeti (3 Sn)` (Varsayılan açık: 4 Adımlı Yolculuk, Kümülatif/Günlük İndirme Grafiği, 3 SVG Halka),
+     - `💎 2. Gelir, MRR & Abone Defteri (12 VIP)`,
+     - `🎯 3. Kanal, ASO & Kod Attribution` (Kaynak bazlı `Görüntülenme ➔ Sayfa/Tık ➔ İndirme ➔ CVR % ➔ VIP` matrisi + Meta `/ios` & Instagram `/download` köprü kırılımı + 9 ülke tablosu),
+     - `👶 4. Ürün Nabzı & Kohort Tutundurma` (20–26 Ekim arası **7 günlük abone kohortunun `%100` tutundurma matrisi** + oturum/cihaz/modül sayaçları),
+     - `⚡ 5. Yorumlar (5.0★) & Canlı Akış` (6 resmi 5 yıldızlı yorum + canlı tıklama tablosu + CSV dışa aktarım).
+
 ## [4.45.2 - Build 65] - 2026-10-28
 ### 🛡️ %100 API Kanıtlı Doğrulanmış Veri Motoru (`SUBSCRIBER` & `SUBSCRIPTION` Tekilleştirmesi)
 1. **Apple `SUBSCRIBER` & `SUBSCRIPTION` (`1_3`) Resmi Abone Durum Doğrulaması (`app/api/v1/endpoints/analytics.py`):**
