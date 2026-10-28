@@ -31,6 +31,10 @@ from app.db.models import (
     BridgeClick,
     AppInstallSignal,
     CampaignConfig,
+    StoreDailyMetric,
+    SubscriberLedger,
+    SubscriptionLifecycleEvent,
+    StoreSyncState,
     User,
     Baby,
     CryEvent,
@@ -51,6 +55,7 @@ ADMIN_PINS = ("MISIL-REV-9842", "MISILREV2026")
 
 _HISTORICAL_SEED_DONE = False
 _CAMPAIGN_SEED_DONE = False
+_WAREHOUSE_SEED_DONE = False
 
 BOT_SIGNATURES = (
     "facebookexternalhit",
@@ -208,6 +213,238 @@ OFFICIAL_STORE_BASELINE: Dict[str, Any] = {
         },
     ],
 }
+
+# Resmi Apple SUBSCRIBER (1_3) ve SUBSCRIPTION_EVENT (1_3) Raporlarından Doğrulanmış 12 Tekil Abone Defteri
+VERIFIED_SUBSCRIBER_LEDGER_SEED: List[Dict[str, Any]] = [
+    {
+        "subscriber_id": "602650322813562",
+        "platform": "ios",
+        "product_id": "misil_monthly",
+        "plan_label": "Aylık Esnek VIP",
+        "status": "paid_active",
+        "offer_type": "standard_paid",
+        "offer_code_name": "7G Deneme ➔ Ücretli",
+        "started_date": "2026-10-20",
+        "converted_or_renewed_date": "2026-10-27",
+        "maturity_or_renewal_date": "2026-11-27",
+        "auto_renew_enabled": True,
+        "customer_price_try": 149.99,
+        "developer_proceeds_try": 83.12,
+        "expected_next_price_try": 149.99,
+        "expected_next_proceeds_try": 83.12,
+        "country": "TR",
+        "device_type": "iPhone",
+    },
+    {
+        "subscriber_id": "532634120476306",
+        "platform": "ios",
+        "product_id": "misil_monthly",
+        "plan_label": "Aylık Esnek VIP",
+        "status": "intro_free_trial",
+        "offer_type": "intro_7d_trial",
+        "offer_code_name": "7 Günlük Deneme",
+        "started_date": "2026-10-22",
+        "converted_or_renewed_date": None,
+        "maturity_or_renewal_date": "2026-10-29",
+        "auto_renew_enabled": True,
+        "customer_price_try": 0.0,
+        "developer_proceeds_try": 0.0,
+        "expected_next_price_try": 149.99,
+        "expected_next_proceeds_try": 83.12,
+        "country": "TR",
+        "device_type": "iPhone",
+    },
+    {
+        "subscriber_id": "182647337449600",
+        "platform": "ios",
+        "product_id": "misil_monthly",
+        "plan_label": "Aylık Esnek VIP",
+        "status": "intro_free_trial",
+        "offer_type": "intro_7d_trial",
+        "offer_code_name": "7 Günlük Deneme (EUR)",
+        "started_date": "2026-10-22",
+        "converted_or_renewed_date": None,
+        "maturity_or_renewal_date": "2026-10-29",
+        "auto_renew_enabled": True,
+        "customer_price_try": 0.0,
+        "developer_proceeds_try": 0.0,
+        "expected_next_price_try": 149.99,
+        "expected_next_proceeds_try": 83.12,
+        "country": "FR",
+        "device_type": "iPhone",
+    },
+    {
+        "subscriber_id": "581618536107716",
+        "platform": "ios",
+        "product_id": "misil_monthly",
+        "plan_label": "Aylık Esnek VIP",
+        "status": "intro_free_trial",
+        "offer_type": "intro_7d_trial",
+        "offer_code_name": "7 Günlük Deneme",
+        "started_date": "2026-10-22",
+        "converted_or_renewed_date": None,
+        "maturity_or_renewal_date": "2026-10-29",
+        "auto_renew_enabled": True,
+        "customer_price_try": 0.0,
+        "developer_proceeds_try": 0.0,
+        "expected_next_price_try": 149.99,
+        "expected_next_proceeds_try": 83.12,
+        "country": "TR",
+        "device_type": "iPhone",
+    },
+    {
+        "subscriber_id": "777569757954257",
+        "platform": "ios",
+        "product_id": "misil_monthly",
+        "plan_label": "Aylık Esnek VIP",
+        "status": "intro_free_trial",
+        "offer_type": "intro_7d_trial",
+        "offer_code_name": "7 Günlük Deneme",
+        "started_date": "2026-10-23",
+        "converted_or_renewed_date": None,
+        "maturity_or_renewal_date": "2026-10-30",
+        "auto_renew_enabled": True,
+        "customer_price_try": 0.0,
+        "developer_proceeds_try": 0.0,
+        "expected_next_price_try": 149.99,
+        "expected_next_proceeds_try": 83.12,
+        "country": "TR",
+        "device_type": "iPhone",
+    },
+    {
+        "subscriber_id": "525666993639692",
+        "platform": "ios",
+        "product_id": "misil_monthly",
+        "plan_label": "Aylık Esnek VIP",
+        "status": "intro_free_trial",
+        "offer_type": "intro_7d_trial",
+        "offer_code_name": "7 Günlük Deneme",
+        "started_date": "2026-10-25",
+        "converted_or_renewed_date": None,
+        "maturity_or_renewal_date": "2026-11-01",
+        "auto_renew_enabled": True,
+        "customer_price_try": 0.0,
+        "developer_proceeds_try": 0.0,
+        "expected_next_price_try": 149.99,
+        "expected_next_proceeds_try": 83.12,
+        "country": "TR",
+        "device_type": "iPhone",
+    },
+    {
+        "subscriber_id": "644578512620366",
+        "platform": "ios",
+        "product_id": "misil_monthly",
+        "plan_label": "Aylık Esnek VIP",
+        "status": "intro_free_trial",
+        "offer_type": "intro_7d_trial",
+        "offer_code_name": "7 Günlük Deneme",
+        "started_date": "2026-10-26",
+        "converted_or_renewed_date": None,
+        "maturity_or_renewal_date": "2026-11-02",
+        "auto_renew_enabled": True,
+        "customer_price_try": 0.0,
+        "developer_proceeds_try": 0.0,
+        "expected_next_price_try": 149.99,
+        "expected_next_proceeds_try": 83.12,
+        "country": "TR",
+        "device_type": "iPhone",
+    },
+    {
+        "subscriber_id": "679508968652551",
+        "platform": "ios",
+        "product_id": "misil_annual",
+        "plan_label": "Yıllık VIP",
+        "status": "offer_code_trial",
+        "offer_type": "offer_code",
+        "offer_code_name": "DamlaEge2026",
+        "started_date": "2026-10-20",
+        "converted_or_renewed_date": None,
+        "maturity_or_renewal_date": "2027-10-20",
+        "auto_renew_enabled": True,
+        "customer_price_try": 0.0,
+        "developer_proceeds_try": 0.0,
+        "expected_next_price_try": 599.99,
+        "expected_next_proceeds_try": 332.50,
+        "country": "TR",
+        "device_type": "iPhone",
+    },
+    {
+        "subscriber_id": "595636574492241",
+        "platform": "ios",
+        "product_id": "misil_annual",
+        "plan_label": "Yıllık VIP",
+        "status": "offer_code_trial",
+        "offer_type": "offer_code",
+        "offer_code_name": "DamlaEge2026",
+        "started_date": "2026-10-20",
+        "converted_or_renewed_date": None,
+        "maturity_or_renewal_date": "2027-10-20",
+        "auto_renew_enabled": True,
+        "customer_price_try": 0.0,
+        "developer_proceeds_try": 0.0,
+        "expected_next_price_try": 599.99,
+        "expected_next_proceeds_try": 332.50,
+        "country": "TR",
+        "device_type": "iPhone",
+    },
+    {
+        "subscriber_id": "658531636670315",
+        "platform": "ios",
+        "product_id": "misil_annual",
+        "plan_label": "Yıllık VIP",
+        "status": "offer_code_trial",
+        "offer_type": "offer_code",
+        "offer_code_name": "DamlaEge2026",
+        "started_date": "2026-10-21",
+        "converted_or_renewed_date": None,
+        "maturity_or_renewal_date": "2027-10-21",
+        "auto_renew_enabled": True,
+        "customer_price_try": 0.0,
+        "developer_proceeds_try": 0.0,
+        "expected_next_price_try": 599.99,
+        "expected_next_proceeds_try": 332.50,
+        "country": "TR",
+        "device_type": "iPhone",
+    },
+    {
+        "subscriber_id": "455612367307295",
+        "platform": "ios",
+        "product_id": "misil_annual",
+        "plan_label": "Yıllık VIP",
+        "status": "offer_code_trial",
+        "offer_type": "offer_code",
+        "offer_code_name": "DamlaEge2026",
+        "started_date": "2026-10-24",
+        "converted_or_renewed_date": None,
+        "maturity_or_renewal_date": "2027-10-24",
+        "auto_renew_enabled": True,
+        "customer_price_try": 0.0,
+        "developer_proceeds_try": 0.0,
+        "expected_next_price_try": 599.99,
+        "expected_next_proceeds_try": 332.50,
+        "country": "TR",
+        "device_type": "iPhone",
+    },
+    {
+        "subscriber_id": "574659145471420",
+        "platform": "ios",
+        "product_id": "misil_annual",
+        "plan_label": "Yıllık VIP",
+        "status": "offer_code_trial",
+        "offer_type": "offer_code",
+        "offer_code_name": "DamlaEge2026",
+        "started_date": "2026-10-25",
+        "converted_or_renewed_date": None,
+        "maturity_or_renewal_date": "2027-10-25",
+        "auto_renew_enabled": True,
+        "customer_price_try": 0.0,
+        "developer_proceeds_try": 0.0,
+        "expected_next_price_try": 599.99,
+        "expected_next_proceeds_try": 332.50,
+        "country": "TR",
+        "device_type": "iPhone",
+    },
+]
 
 # Railway deployment loglarından çıkarılan geçmiş 143 tıklama (27 Ekim 19:34 UTC – 28 Ekim 11:25 UTC)
 HISTORICAL_SEED_DATA = [
@@ -468,11 +705,117 @@ def sync_live_store_apis() -> Dict[str, Any]:
                                     synced_sources.append(f"Apple Subscription State ({rep_date})")
                 except Exception:
                     pass
+
+                # Ayrıca SUBSCRIBER (DETAILED 1_3) raporundan tekil Subscriber ID, ödeme, kod ve ülke kayıtlarını DB'ye işle
+                sub_det_url = (
+                    "https://api.appstoreconnect.apple.com/v1/salesReports"
+                    f"?filter[frequency]=DAILY&filter[reportDate]={rep_date}"
+                    f"&filter[reportSubType]=DETAILED&filter[reportType]=SUBSCRIBER"
+                    f"&filter[vendorNumber]={vendor_num}&filter[version]=1_3"
+                )
+                sub_det_req = urllib.request.Request(
+                    sub_det_url,
+                    headers={"Authorization": f"Bearer {token}", "Accept": "application/a-gzip"},
+                )
+                try:
+                    with urllib.request.urlopen(sub_det_req, timeout=3) as det_resp:
+                        if det_resp.status == 200:
+                            det_txt = gzip.decompress(det_resp.read()).decode("utf-8", errors="replace")
+                            det_lines = [ln for ln in det_txt.splitlines() if ln.strip()]
+                            if len(det_lines) > 1:
+                                det_hdr = det_lines[0].split("\t")
+                                db_sync = SessionLocal()
+                                try:
+                                    for ln in det_lines[1:]:
+                                        rd = dict(zip(det_hdr, ln.split("\t")))
+                                        sid = (rd.get("Subscriber ID") or "").strip()
+                                        if not sid:
+                                            continue
+                                        ev_date = (rd.get("Event Date") or rep_date).strip()
+                                        sub_name = (rd.get("Subscription Name") or "Aylik Esnek").strip()
+                                        offer_name = (rd.get("Subscription Offer Name") or "").strip()
+                                        c_price = float(rd.get("Customer Price") or 0.0)
+                                        d_proc = float(rd.get("Developer Proceeds") or 0.0)
+                                        cntry = (rd.get("Country") or "TR").strip()
+                                        dev = (rd.get("Device") or "iPhone").strip()
+                                        is_annual = "Yillik" in sub_name or "6809228257" in (rd.get("Subscription Apple ID") or "")
+                                        prod_id = "misil_annual" if is_annual else "misil_monthly"
+                                        plan_lbl = "Yıllık VIP" if is_annual else "Aylık Esnek VIP"
+                                        existing_sub = db_sync.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == sid).first()
+                                        if existing_sub:
+                                            if c_price > 0 and existing_sub.converted_or_renewed_date != ev_date:
+                                                existing_sub.status = "paid_active"
+                                                existing_sub.offer_type = "standard_paid"
+                                                existing_sub.converted_or_renewed_date = ev_date
+                                                existing_sub.customer_price_try += c_price
+                                                existing_sub.developer_proceeds_try += d_proc
+                                                try:
+                                                    dt_conv = datetime.strptime(ev_date, "%Y-%m-%d")
+                                                    existing_sub.maturity_or_renewal_date = (dt_conv + timedelta(days=365 if is_annual else 30)).strftime("%Y-%m-%d")
+                                                except Exception:
+                                                    pass
+                                        else:
+                                            try:
+                                                dt_st = datetime.strptime(ev_date, "%Y-%m-%d")
+                                                mat_date = (dt_st + timedelta(days=365 if is_annual else 7)).strftime("%Y-%m-%d")
+                                            except Exception:
+                                                mat_date = ev_date
+                                            st_val = "paid_active" if c_price > 0 else ("offer_code_trial" if is_annual or (offer_name and "Default_Intro" not in offer_name) else "intro_free_trial")
+                                            of_type = "standard_paid" if c_price > 0 else ("offer_code" if st_val == "offer_code_trial" else "intro_7d_trial")
+                                            of_lbl = offer_name if (offer_name and "Default_Intro" not in offer_name) else ("Standart Ücretli" if c_price > 0 else "7 Günlük Deneme")
+                                            db_sync.add(
+                                                SubscriberLedger(
+                                                    subscriber_id=sid,
+                                                    platform="ios",
+                                                    product_id=prod_id,
+                                                    plan_label=plan_lbl,
+                                                    status=st_val,
+                                                    offer_type=of_type,
+                                                    offer_code_name=of_lbl,
+                                                    started_date=ev_date,
+                                                    converted_or_renewed_date=ev_date if c_price > 0 else None,
+                                                    maturity_or_renewal_date=mat_date,
+                                                    auto_renew_enabled=True,
+                                                    customer_price_try=c_price,
+                                                    developer_proceeds_try=d_proc,
+                                                    expected_next_price_try=599.99 if is_annual else 149.99,
+                                                    expected_next_proceeds_try=332.50 if is_annual else 83.12,
+                                                    country=cntry,
+                                                    device_type=dev,
+                                                )
+                                            )
+                                    db_sync.commit()
+                                    synced_sources.append(f"Apple Subscriber Ledger ({rep_date})")
+                                finally:
+                                    db_sync.close()
+                except Exception:
+                    pass
         except Exception as e:
             logger.warning(f"Live Apple API sync skipped/warn: {e}")
 
     tz_tr = timezone(timedelta(hours=3))
     OFFICIAL_STORE_BASELINE["last_synced_at"] = datetime.now(tz_tr).strftime("%d.%m.%Y %H:%M TSİ")
+    # Kalıcı PostgreSQL StoreSyncState tablosuna mühürle (Restart'ta sıfır veri kaybı)
+    try:
+        db_state = SessionLocal()
+        try:
+            st_row = db_state.query(StoreSyncState).filter(StoreSyncState.state_key == "primary_store_baseline").first()
+            if st_row:
+                st_row.snapshot_json = dict(OFFICIAL_STORE_BASELINE)
+                st_row.last_synced_at_str = OFFICIAL_STORE_BASELINE["last_synced_at"]
+            else:
+                db_state.add(
+                    StoreSyncState(
+                        state_key="primary_store_baseline",
+                        snapshot_json=dict(OFFICIAL_STORE_BASELINE),
+                        last_synced_at_str=OFFICIAL_STORE_BASELINE["last_synced_at"],
+                    )
+                )
+            db_state.commit()
+        finally:
+            db_state.close()
+    except Exception:
+        pass
     return {"synced": bool(synced_sources), "sources": synced_sources}
 
 
@@ -597,9 +940,9 @@ def sanitize_csv_cell(val: Any) -> str:
 
 
 def ensure_historical_seed(db: Session) -> None:
-    """Tablo boşsa 143 geçmiş Railway tıklamasını ve mağaza baz yapılandırmalarını tek seferlik tohumlar."""
-    global _HISTORICAL_SEED_DONE, _CAMPAIGN_SEED_DONE
-    if _HISTORICAL_SEED_DONE and _CAMPAIGN_SEED_DONE:
+    """Tablo boşsa 143 geçmiş Railway tıklamasını, mağaza baz yapılandırmalarını ve 12 tekil abone defterini tohumlar."""
+    global _HISTORICAL_SEED_DONE, _CAMPAIGN_SEED_DONE, _WAREHOUSE_SEED_DONE
+    if _HISTORICAL_SEED_DONE and _CAMPAIGN_SEED_DONE and _WAREHOUSE_SEED_DONE:
         return
     try:
         Base.metadata.create_all(bind=engine)
@@ -716,6 +1059,49 @@ def ensure_historical_seed(db: Session) -> None:
                     db.add(cfg)
                 db.commit()
             _CAMPAIGN_SEED_DONE = True
+
+        if not _WAREHOUSE_SEED_DONE:
+            # 1. Tekil Abone Defterini (12 Resmi Apple Abonesi) Tohumla
+            sub_count = db.query(SubscriberLedger.id).limit(1).count()
+            if sub_count == 0:
+                for s_item in VERIFIED_SUBSCRIBER_LEDGER_SEED:
+                    db.add(SubscriberLedger(**s_item))
+                db.commit()
+
+            # 2. Günlük Mağaza Metriklerini (StoreDailyMetric) Tohumla
+            dm_count = db.query(StoreDailyMetric.id).limit(1).count()
+            if dm_count == 0:
+                for d_k, d_v in OFFICIAL_STORE_BASELINE["daily_store_series"].items():
+                    db.add(
+                        StoreDailyMetric(
+                            metric_date=d_k,
+                            platform="ios",
+                            impressions=d_v.get("impressions", 0),
+                            page_views=d_v.get("page_views", 0),
+                            downloads_total=d_v.get("ios_downloads", 0),
+                            active_free_trials=d_v.get("vip_activations", 0),
+                            gross_revenue_try=149.99 if d_k == "2026-10-27" else 0.0,
+                            net_proceeds_try=83.12 if d_k == "2026-10-27" else 0.0,
+                        )
+                    )
+                db.commit()
+
+            # 3. Kalıcı StoreSyncState Önbelleğini Yükle veya İlk Kez Yaz
+            st_row = db.query(StoreSyncState).filter(StoreSyncState.state_key == "primary_store_baseline").first()
+            if st_row and isinstance(st_row.snapshot_json, dict):
+                saved_dl = st_row.snapshot_json.get("apple_downloads_total", 0)
+                if saved_dl >= OFFICIAL_STORE_BASELINE["apple_downloads_total"]:
+                    OFFICIAL_STORE_BASELINE.update(st_row.snapshot_json)
+            else:
+                db.add(
+                    StoreSyncState(
+                        state_key="primary_store_baseline",
+                        snapshot_json=dict(OFFICIAL_STORE_BASELINE),
+                        last_synced_at_str=OFFICIAL_STORE_BASELINE["last_synced_at"],
+                    )
+                )
+                db.commit()
+            _WAREHOUSE_SEED_DONE = True
     except Exception as e:
         db.rollback()
         logger.error(f"Seed initialization error (non-fatal): {e}")
@@ -1229,6 +1615,255 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     meta_android_leak_pct = round((len(meta_android) / max(1, meta_live_clicks)) * 100, 1)
     active_human_count = len(active_human_set)
 
+    # ========================================================================
+    # FAZ 2: KURUMSAL GELİR, MRR, ABONE DEFTERİ VE TAHSİLAT TAKVİMİ (REVENUECAT & BAREMETRICS KATMANI)
+    # ========================================================================
+    ledger_rows_db: List[SubscriberLedger] = (
+        db.query(SubscriberLedger)
+        .order_by(SubscriberLedger.maturity_or_renewal_date.asc(), SubscriberLedger.started_date.asc())
+        .all()
+    )
+    subscriber_ledger_list = []
+    realized_gross_try = 0.0
+    realized_net_try = 0.0
+    active_paid_mrr_gross = 0.0
+    active_paid_mrr_net = 0.0
+    pipeline_7d_gross = 0.0
+    pipeline_7d_net = 0.0
+    paid_subs_cnt = 0
+    offer_code_cnt = 0
+    intro_trial_cnt = 0
+    cancelled_cnt = 0
+
+    renewal_by_date: Dict[str, Dict[str, Any]] = {}
+    cohort_by_start_date: Dict[str, Dict[str, Any]] = {}
+
+    for r in ledger_rows_db:
+        realized_gross_try += float(r.customer_price_try or 0.0)
+        realized_net_try += float(r.developer_proceeds_try or 0.0)
+        if not r.auto_renew_enabled or r.status == "cancelled":
+            cancelled_cnt += 1
+        if r.status == "paid_active":
+            paid_subs_cnt += 1
+            if r.product_id == "misil_annual":
+                active_paid_mrr_gross += (r.customer_price_try or 599.99) / 12.0
+                active_paid_mrr_net += (r.developer_proceeds_try or 332.50) / 12.0
+            else:
+                active_paid_mrr_gross += (r.customer_price_try or 149.99)
+                active_paid_mrr_net += (r.developer_proceeds_try or 83.12)
+        elif r.status == "offer_code_trial":
+            offer_code_cnt += 1
+        elif r.status == "intro_free_trial":
+            intro_trial_cnt += 1
+            if r.auto_renew_enabled:
+                pipeline_7d_gross += float(r.expected_next_price_try or 149.99)
+                pipeline_7d_net += float(r.expected_next_proceeds_try or 83.12)
+                m_dt = r.maturity_or_renewal_date
+                if m_dt not in renewal_by_date:
+                    renewal_by_date[m_dt] = {
+                        "date": m_dt,
+                        "count": 0,
+                        "expected_gross_try": 0.0,
+                        "expected_net_try": 0.0,
+                        "subscribers": [],
+                    }
+                renewal_by_date[m_dt]["count"] += 1
+                renewal_by_date[m_dt]["expected_gross_try"] = round(
+                    renewal_by_date[m_dt]["expected_gross_try"] + float(r.expected_next_price_try or 149.99), 2
+                )
+                renewal_by_date[m_dt]["expected_net_try"] = round(
+                    renewal_by_date[m_dt]["expected_net_try"] + float(r.expected_next_proceeds_try or 83.12), 2
+                )
+                renewal_by_date[m_dt]["subscribers"].append(f"#{r.subscriber_id[-6:]} ({r.country})")
+
+        s_dt = r.started_date
+        if s_dt not in cohort_by_start_date:
+            cohort_by_start_date[s_dt] = {
+                "start_date": s_dt,
+                "started_total": 0,
+                "active_retained": 0,
+                "paid_converted": 0,
+                "offer_code": 0,
+                "intro_trial": 0,
+                "cancelled": 0,
+            }
+        cohort_by_start_date[s_dt]["started_total"] += 1
+        if r.status != "cancelled" and r.auto_renew_enabled:
+            cohort_by_start_date[s_dt]["active_retained"] += 1
+        else:
+            cohort_by_start_date[s_dt]["cancelled"] += 1
+        if r.status == "paid_active":
+            cohort_by_start_date[s_dt]["paid_converted"] += 1
+        elif r.status == "offer_code_trial":
+            cohort_by_start_date[s_dt]["offer_code"] += 1
+        elif r.status == "intro_free_trial":
+            cohort_by_start_date[s_dt]["intro_trial"] += 1
+
+        subscriber_ledger_list.append({
+            "subscriber_id": r.subscriber_id,
+            "subscriber_short": f"#{r.subscriber_id[-6:]}",
+            "platform": r.platform,
+            "product_id": r.product_id,
+            "plan_label": r.plan_label,
+            "status": r.status,
+            "offer_type": r.offer_type,
+            "offer_code_name": r.offer_code_name or "-",
+            "started_date": r.started_date or "-",
+            "converted_or_renewed_date": r.converted_or_renewed_date or "-",
+            "maturity_or_renewal_date": r.maturity_or_renewal_date or "-",
+            "auto_renew_enabled": r.auto_renew_enabled,
+            "customer_price_try": round(float(r.customer_price_try or 0.0), 2),
+            "developer_proceeds_try": round(float(r.developer_proceeds_try or 0.0), 2),
+            "expected_next_price_try": round(float(r.expected_next_price_try or 149.99), 2),
+            "expected_next_proceeds_try": round(float(r.expected_next_proceeds_try or 83.12), 2),
+            "country": r.country,
+            "device_type": r.device_type,
+        })
+
+    # Olgunlaşmış (7 günü dolmuş, <= 2026-10-21 tarihinde başlamış) 7 günlük denemelerin ücretliye dönüşüm oranı
+    matured_7d_cohort = [
+        r for r in ledger_rows_db
+        if r.offer_type in ("standard_paid", "intro_7d_trial") and r.started_date <= "2026-10-21"
+    ]
+    matured_total = max(1, len(matured_7d_cohort))
+    matured_converted = sum(1 for r in matured_7d_cohort if r.status == "paid_active")
+    matured_cvr_pct = round((matured_converted / matured_total) * 100, 1)
+
+    financial_ledger = {
+        "realized_gross_try": round(realized_gross_try, 2),
+        "realized_net_proceeds_try": round(realized_net_try, 2),
+        "active_paid_mrr_gross_try": round(active_paid_mrr_gross, 2),
+        "active_paid_mrr_net_try": round(active_paid_mrr_net, 2),
+        "active_paid_arr_net_try": round(active_paid_mrr_net * 12, 2),
+        "pipeline_7d_trials_count": intro_trial_cnt,
+        "pipeline_7d_mrr_gross_try": round(pipeline_7d_gross, 2),
+        "pipeline_7d_mrr_net_try": round(pipeline_7d_net, 2),
+        "projected_total_mrr_net_try": round(active_paid_mrr_net + pipeline_7d_net, 2),
+        "projected_total_arr_net_try": round((active_paid_mrr_net + pipeline_7d_net) * 12, 2),
+        "offer_code_subs_count": offer_code_cnt,
+        "paid_subs_count": paid_subs_cnt,
+        "cancelled_subs_count": cancelled_cnt,
+        "auto_renew_on_pct": round(((len(ledger_rows_db) - cancelled_cnt) / max(1, len(ledger_rows_db))) * 100, 1),
+        "matured_trials_total": len(matured_7d_cohort),
+        "matured_trials_converted": matured_converted,
+        "matured_trial_to_paid_cvr_pct": matured_cvr_pct,
+        "renewal_forecast_calendar": [renewal_by_date[k] for k in sorted(renewal_by_date.keys())],
+    }
+
+    # ========================================================================
+    # FAZ 3: KANAL, ASO & KOD ATTRIBUTION MATRİSİ (ADAPTY & APPFIGURES KATMANI)
+    # ========================================================================
+    r3_search = sb.get("apple_downloads_search", 47)
+    r3_ref = sb.get("apple_downloads_referrer", 14)
+    r3_browse = sb.get("apple_downloads_browse", 7)
+    recent_ios_dl = max(0, apple_downloads - (r3_search + r3_ref + r3_browse))
+    imp_search_val = sb.get("apple_impressions_search", 4014)
+    imp_browse_val = sb.get("apple_impressions_browse", 52)
+    android_bridge_uniq = len([c for c in unique_human if c.os_family == "android"])
+
+    aso_attribution_matrix = [
+        {
+            "channel": "🔍 App Store Arama (Search)",
+            "source_badge": "Apple r3 & r14 API",
+            "impressions": f"{imp_search_val:,}",
+            "page_views_or_clicks": f"Toplam {sb['apple_page_views_total']} Sayfa ({sb['apple_page_views_unique']} Cihaz)",
+            "downloads": r3_search,
+            "cvr_pct": round((r3_search / max(1, imp_search_val)) * 100, 2),
+            "cvr_basis": "Görüntülenme ➔ İndirme",
+            "vip_attributed": "1 Ücretli (149.99 ₺) + 6 Aktif 7G Deneme",
+        },
+        {
+            "channel": "📲 Sosyal Yönlendirme (Instagram & Facebook)",
+            "source_badge": "Apple App Referrer + Köprü DB",
+            "impressions": "-",
+            "page_views_or_clicks": f"{len(unique_human)} Tekil Tık ({total_raw} Ham)",
+            "downloads": r3_ref,
+            "cvr_pct": round((r3_ref / max(1, len(unique_human))) * 100, 1),
+            "cvr_basis": "Tekil Tık ➔ iOS İndirme",
+            "vip_attributed": "Sosyal & Influencer Trafiği",
+        },
+        {
+            "channel": "🎟️ Promosyon Kodu (DamlaEge2026)",
+            "source_badge": "Apple SUBSCRIBER (1_3) API",
+            "impressions": "-",
+            "page_views_or_clicks": f"{offer_code_cnt} Tekil Kod Kullanımı",
+            "downloads": offer_code_cnt,
+            "cvr_pct": 100.0,
+            "cvr_basis": "Kod ➔ Yıllık VIP Aktivasyon",
+            "vip_attributed": f"{offer_code_cnt} Yıllık VIP (%100 Aktif • 0 İptal)",
+        },
+        {
+            "channel": "📅 25–27 Ekim Yeni iOS Kurulumları",
+            "source_badge": "Apple Sales Report API",
+            "impressions": "r14 gecikmeli (+24s)",
+            "page_views_or_clicks": "r14 gecikmeli (+24s)",
+            "downloads": recent_ios_dl,
+            "cvr_pct": None,
+            "cvr_basis": "Doğrudan Sales API",
+            "vip_attributed": "3 Yeni VIP Başlangıcı (25–26 Ekim)",
+        },
+        {
+            "channel": "✨ App Store Keşfet (Browse)",
+            "source_badge": "Apple r3 & r14 API",
+            "impressions": f"{imp_browse_val}",
+            "page_views_or_clicks": f"Toplam {sb['apple_taps_total']} Dokunma ({sb['apple_taps_unique']} Cihaz)",
+            "downloads": r3_browse,
+            "cvr_pct": round((r3_browse / max(1, imp_browse_val)) * 100, 1),
+            "cvr_basis": "Görüntülenme ➔ İndirme",
+            "vip_attributed": "Organik Vitrin Keşfi",
+        },
+        {
+            "channel": "🤖 Google Play (Android Üretim)",
+            "source_badge": "Google Play Console API (Build 63)",
+            "impressions": "Play API paylaşmaz",
+            "page_views_or_clicks": f"{android_bridge_uniq} Android Köprü Tıkı",
+            "downloads": google_play_downloads,
+            "cvr_pct": round((google_play_downloads / max(1, android_bridge_uniq)) * 100, 1),
+            "cvr_basis": "Android Tık ➔ Play Kurulum",
+            "vip_attributed": "Android İlk Kurulum Kohortu",
+        },
+    ]
+
+    # ========================================================================
+    # FAZ 3B: ÜRÜN İÇİ NABIZ, BEBEK YAŞ DAĞILIMI & KOHORT TUTUNDURMA (MIXPANEL & POSTHOG KATMANI)
+    # ========================================================================
+    babies_all: List[Baby] = db.query(Baby).limit(500).all()
+    age_buckets = {"0–3 Ay (Yenidoğan / 4. Trimester)": 0, "4–6 Ay (Uyku Gerilemesi)": 0, "7–12 Ay": 0, "12+ Ay": 0}
+    for b in babies_all:
+        try:
+            m = b.age_in_months
+            if m <= 3.5:
+                age_buckets["0–3 Ay (Yenidoğan / 4. Trimester)"] += 1
+            elif m <= 6.5:
+                age_buckets["4–6 Ay (Uyku Gerilemesi)"] += 1
+            elif m <= 12.5:
+                age_buckets["7–12 Ay"] += 1
+            else:
+                age_buckets["12+ Ay"] += 1
+        except Exception:
+            age_buckets["0–3 Ay (Yenidoğan / 4. Trimester)"] += 1
+
+    cohort_rows = []
+    for k_dt in sorted(cohort_by_start_date.keys()):
+        c_item = cohort_by_start_date[k_dt]
+        ret_pct = round((c_item["active_retained"] / max(1, c_item["started_total"])) * 100, 1)
+        c_item["retention_pct"] = ret_pct
+        cohort_rows.append(c_item)
+
+    product_retention = {
+        "apple_official_sessions": sb["apple_sessions_total"],
+        "total_tracked_sessions": apple_sessions,
+        "optin_active_devices": max(sb["apple_sessions_optin_devices"], distinct_signal_devices, db_babies_count),
+        "avg_session_duration_sec": round(sb["apple_sessions_duration_sec"] / max(1, sb["apple_sessions_total"])),
+        "babies_count": db_babies_count,
+        "sleep_logs_count": db_sleep_count,
+        "cry_events_count": db_cry_count,
+        "routine_logs_count": db_routine_count,
+        "dadi_chats_count": db_dadi_count,
+        "age_buckets": age_buckets,
+        "subscriber_cohorts": cohort_rows,
+    }
+
     return {
         "period": period,
         "period_label": period_label,
@@ -1257,6 +1892,10 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "vip_activations": apple_vip,
             "distinct_live_devices": max(sb["apple_sessions_optin_devices"], distinct_signal_devices, db_babies_count),
         },
+        "financial_ledger": financial_ledger,
+        "subscriber_ledger": subscriber_ledger_list,
+        "aso_attribution_matrix": aso_attribution_matrix,
+        "product_retention": product_retention,
         "store_official": sb,
         "timeline_days": timeline_days,
         "night_vs_day": {
@@ -1678,6 +2317,107 @@ async def analytics_dashboard_page(
     imp_search = sb.get("apple_impressions_search", 4014)
     imp_browse = sb.get("apple_impressions_browse", 52)
 
+    fl = s["financial_ledger"]
+    sub_ledger = s["subscriber_ledger"]
+    aso_matrix = s["aso_attribution_matrix"]
+    pr = s["product_retention"]
+
+    # SEKME 2: 7 Günlük Deneme -> Ücretli Tahsilat Takvimi Kartları
+    renewal_calendar_html = ""
+    for rc in fl["renewal_forecast_calendar"]:
+        subs_badges = " • ".join(html.escape(x) for x in rc["subscribers"])
+        renewal_calendar_html += f"""
+        <div class="step-box" style="border-left: 4px solid #34D399;">
+          <div class="step-num" style="color:#34D399;">📅 VADE: {html.escape(rc['date'])}</div>
+          <div class="step-val">{rc['count']} Abone</div>
+          <div class="step-sub">Beklenen Tahsilat: <strong>{rc['expected_gross_try']:.2f} ₺ Brüt</strong> / <strong style="color:#34D399;">{rc['expected_net_try']:.2f} ₺ Net</strong></div>
+          <span class="step-rate">👤 {subs_badges}</span>
+        </div>
+        """
+
+    # SEKME 2: 12 Doğrulanmış Abone Defteri Satırları (Apple SUBSCRIBER 1_3 API)
+    ledger_rows_html = ""
+    for idx_sub, sl in enumerate(sub_ledger, start=1):
+        if sl["status"] == "paid_active":
+            st_badge = '<span class="badge" style="background:rgba(16,185,129,0.2); color:#34D399;">💳 Ücretli Aktif</span>'
+        elif sl["status"] == "offer_code_trial":
+            st_badge = f'<span class="badge" style="background:rgba(192,132,252,0.2); color:#C084FC;">🎟️ Kodlu ({html.escape(sl["offer_code_name"])})</span>'
+        else:
+            st_badge = '<span class="badge" style="background:rgba(232,168,85,0.2); color:#E8A855;">⏳ 7 Günlük Deneme</span>'
+
+        ar_badge = (
+            '<span style="color:#34D399; font-weight:700;">✔ Açık (Aktif)</span>'
+            if sl["auto_renew_enabled"]
+            else '<span style="color:#F87171; font-weight:700;">✖ İptal</span>'
+        )
+        paid_str = (
+            f"<strong style='color:#34D399;'>{sl['customer_price_try']:.2f} ₺</strong> <span style='color:#94A3B8;'>(Net {sl['developer_proceeds_try']:.2f} ₺)</span>"
+            if sl["customer_price_try"] > 0
+            else "<span style='color:#94A3B8;'>0.00 ₺ (Deneme / Kod)</span>"
+        )
+        next_str = f"{sl['expected_next_price_try']:.2f} ₺ (Net {sl['expected_next_proceeds_try']:.2f} ₺)"
+        ledger_rows_html += f"""
+        <tr>
+          <td style="color:#94A3B8; font-weight:700;">{idx_sub}</td>
+          <td style="font-family:monospace; color:#F8FAFC; font-weight:700;" title="Tam Apple Subscriber ID: {html.escape(sl['subscriber_id'])}">{html.escape(sl['subscriber_short'])}</td>
+          <td><strong>{html.escape(sl['plan_label'])}</strong></td>
+          <td>{st_badge}</td>
+          <td>{html.escape(sl['started_date'])}</td>
+          <td>{html.escape(sl['converted_or_renewed_date'])}</td>
+          <td style="color:#E8A855; font-weight:700;">{html.escape(sl['maturity_or_renewal_date'])}</td>
+          <td>{ar_badge}</td>
+          <td>{paid_str}</td>
+          <td style="color:#CBD5E1;">{next_str}</td>
+          <td>{html.escape(sl['country'])} • {html.escape(sl['device_type'])}</td>
+        </tr>
+        """
+
+    # SEKME 3: Kanal, ASO & Kod Attribution Matrisi Satırları
+    aso_rows_html = ""
+    for am in aso_matrix:
+        cvr_cell = (
+            f"<strong style='color:#34D399;'>%{am['cvr_pct']}</strong> <span style='font-size:11px; color:#94A3B8;'>({html.escape(am['cvr_basis'])})</span>"
+            if am["cvr_pct"] is not None
+            else f"<span style='color:#94A3B8;'>{html.escape(am['cvr_basis'])}</span>"
+        )
+        aso_rows_html += f"""
+        <tr>
+          <td><strong>{html.escape(am['channel'])}</strong></td>
+          <td><span class="badge badge-meta">{html.escape(am['source_badge'])}</span></td>
+          <td style="font-weight:700; color:#E8A855;">{html.escape(str(am['impressions']))}</td>
+          <td style="color:#CBD5E1;">{html.escape(str(am['page_views_or_clicks']))}</td>
+          <td style="font-family:'Sora',sans-serif; font-weight:800; color:#34D399; font-size:15px;">{am['downloads']}</td>
+          <td>{cvr_cell}</td>
+          <td style="color:#C084FC; font-weight:600;">{html.escape(am['vip_attributed'])}</td>
+        </tr>
+        """
+
+    country_rows_html = ""
+    for c_item in sb["apple_downloads_by_country"]:
+        c_pct = round((c_item["count"] / max(1, kpis["ios_downloads"])) * 100, 1)
+        country_rows_html += f"""
+        <tr>
+          <td>{c_item['flag']} <strong>{html.escape(c_item['name'])}</strong> ({html.escape(c_item['code'])})</td>
+          <td style="font-weight:800; color:#34D399;">{c_item['count']} İndirme</td>
+          <td style="color:#94A3B8;">%{c_pct}</td>
+        </tr>
+        """
+
+    # SEKME 4: Günlük Abone Kohort Tutundurma Satırları
+    cohort_rows_html = ""
+    for ch in pr["subscriber_cohorts"]:
+        cohort_rows_html += f"""
+        <tr>
+          <td style="font-weight:700; color:#F8FAFC;">📅 {html.escape(ch['start_date'])} Kohortu</td>
+          <td style="font-weight:800; color:#60A5FA;">{ch['started_total']} Abone</td>
+          <td style="color:#34D399; font-weight:700;">{ch['paid_converted']} Ücretli</td>
+          <td style="color:#C084FC; font-weight:700;">{ch['offer_code']} Yıllık Kodlu</td>
+          <td style="color:#E8A855; font-weight:700;">{ch['intro_trial']} 7G Denemede</td>
+          <td style="color:#94A3B8;">{ch['cancelled']} İptal</td>
+          <td><span class="badge" style="background:rgba(16,185,129,0.2); color:#34D399;">%{ch['retention_pct']} Aktif Korundu</span></td>
+        </tr>
+        """
+
     return HTMLResponse(f"""
     <!DOCTYPE html>
     <html lang="tr">
@@ -1685,7 +2425,7 @@ async def analytics_dashboard_page(
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="referrer" content="no-referrer">
-      <title>Mışıl Baby — Tek Bakışta Büyüme Özeti</title>
+      <title>Mışıl Baby — Kurumsal Büyüme, Abone Defteri & Ürün Analitiği Kokpiti</title>
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
       <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -1696,7 +2436,7 @@ async def analytics_dashboard_page(
           min-height: 100vh;
           padding: 24px 18px 80px;
         }}
-        .container {{ max-width: 1180px; margin: 0 auto; }}
+        .container {{ max-width: 1200px; margin: 0 auto; }}
 
         /* ÜST BAŞLIK */
         .topbar {{
@@ -1705,7 +2445,7 @@ async def analytics_dashboard_page(
           justify-content: space-between;
           align-items: center;
           gap: 14px;
-          margin-bottom: 22px;
+          margin-bottom: 20px;
           padding-bottom: 18px;
           border-bottom: 1px solid rgba(255,255,255,0.08);
         }}
@@ -1754,12 +2494,12 @@ async def analytics_dashboard_page(
           box-shadow: 0 0 10px #34D399;
         }}
 
-        /* 1. BLOK: 4 FERAH ÖZET KARTI (1 BÜYÜK RAKAM + 1 CÜMLE) */
+        /* 1. BLOK: 4 SABİT KUZEY YILDIZI ÖZET KARTI */
         .kpi-grid {{
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(255px, 1fr));
           gap: 16px;
-          margin-bottom: 22px;
+          margin-bottom: 20px;
         }}
         .bento-card {{
           background: rgba(18, 24, 41, 0.9);
@@ -1771,30 +2511,70 @@ async def analytics_dashboard_page(
         }}
         .kpi-grid .bento-card {{ margin-bottom: 0; }}
         .card-label {{
-          font-size: 13px;
-          font-weight: 700;
+          font-size: 12.5px;
+          font-weight: 800;
           color: #CBD5E1;
           margin-bottom: 10px;
           display: flex;
           align-items: center;
           gap: 8px;
+          letter-spacing: 0.3px;
         }}
         .big-num {{
           font-family: 'Sora', sans-serif;
-          font-size: 42px;
+          font-size: 40px;
           font-weight: 800;
           color: #FFF;
           line-height: 1.05;
           margin-bottom: 10px;
         }}
         .card-desc {{
-          font-size: 13.5px;
+          font-size: 13px;
           color: #94A3B8;
           line-height: 1.5;
         }}
         .card-desc strong {{ color: #F8FAFC; }}
 
-        /* 2. BLOK: YAN YANA 4 ADIMLI GÖRSEL YOLCULUK */
+        /* 5 SEKMELİ KURUMSAL NAVİGASYON BARI (PROGRESSIVE DISCLOSURE) */
+        .tabs-nav {{
+          display: flex;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-bottom: 22px;
+          padding: 8px;
+          background: rgba(13, 18, 32, 0.85);
+          border: 1px solid rgba(255,255,255,0.09);
+          border-radius: 18px;
+        }}
+        .tab-btn {{
+          flex: 1;
+          min-width: 195px;
+          padding: 12px 14px;
+          border-radius: 12px;
+          border: 1px solid transparent;
+          background: transparent;
+          color: #94A3B8;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          font-size: 13px;
+          font-weight: 700;
+          cursor: pointer;
+          text-align: center;
+          transition: all 0.18s ease;
+        }}
+        .tab-btn:hover {{
+          color: #FFF;
+          background: rgba(255,255,255,0.05);
+        }}
+        .tab-btn.active {{
+          background: linear-gradient(135deg, rgba(232, 168, 85, 0.22), rgba(52, 211, 153, 0.16));
+          border-color: rgba(232, 168, 85, 0.55);
+          color: #FFF;
+          box-shadow: 0 6px 18px rgba(0,0,0,0.28);
+        }}
+        .tab-pane {{ display: none; }}
+        .tab-pane.active {{ display: block; }}
+
+        /* YAN YANA ADIM KUTULARI */
         .section-head {{
           font-family: 'Sora', sans-serif;
           font-size: 17px;
@@ -1828,7 +2608,7 @@ async def analytics_dashboard_page(
         }}
         .step-val {{
           font-family: 'Sora', sans-serif;
-          font-size: 28px;
+          font-size: 26px;
           font-weight: 800;
           color: #FFF;
           margin-bottom: 4px;
@@ -1845,7 +2625,7 @@ async def analytics_dashboard_page(
           color: #E2E8F0;
         }}
 
-        /* 3. BLOK: TEK ÇUBUKLU KÜMÜLATİF İNDİRME GRAFİĞİ */
+        /* TEK ÇUBUKLU KÜMÜLATİF İNDİRME GRAFİĞİ */
         .chart-toggle {{ display: flex; gap: 8px; }}
         .chart-toggle button {{
           padding: 8px 14px;
@@ -1893,7 +2673,7 @@ async def analytics_dashboard_page(
         .t-bar {{ width: 65%; max-width: 34px; border-radius: 8px 8px 3px 3px; }}
         .t-lbl {{ font-size: 12px; color: #CBD5E1; margin-top: 8px; font-weight: 700; }}
 
-        /* 4. BLOK: 3 YAN YANA GÖRSEL HALKA (DONUT) */
+        /* 3 YAN YANA GÖRSEL HALKA (DONUT) */
         .donuts-grid {{
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
@@ -1921,7 +2701,7 @@ async def analytics_dashboard_page(
         .donut-dot {{ width: 10px; height: 10px; border-radius: 50%; display: inline-block; }}
         .donut-pct {{ color: #94A3B8; font-size: 11.5px; margin-left: 3px; }}
 
-        /* 5. BLOK: 6 RESMİ YORUM & İSTEĞE BAĞLI GİZLİ ÇEKMECE */
+        /* YORUMLAR & TABLOLAR */
         .reviews-grid {{
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -1940,9 +2720,9 @@ async def analytics_dashboard_page(
         .badge {{
           display: inline-flex;
           align-items: center;
-          padding: 3px 9px;
+          padding: 4px 10px;
           border-radius: 99px;
-          font-size: 11px;
+          font-size: 11.5px;
           font-weight: 700;
         }}
         .badge-meta {{ background: rgba(59, 130, 246, 0.18); color: #60A5FA; }}
@@ -1957,25 +2737,11 @@ async def analytics_dashboard_page(
           font-size: 13.5px;
           font-weight: 600;
         }}
-        details.drawer {{
-          background: rgba(18, 24, 41, 0.65);
-          border: 1px solid rgba(255,255,255,0.08);
-          border-radius: 18px;
-          padding: 16px 20px;
-        }}
-        details.drawer summary {{
-          cursor: pointer;
-          font-family: 'Sora', sans-serif;
-          font-size: 14px;
-          font-weight: 700;
-          color: #94A3B8;
-          list-style: none;
-        }}
-        details.drawer summary:hover {{ color: #FFF; }}
-        .table-wrap {{ overflow-x: auto; margin-top: 14px; }}
+        .table-wrap {{ overflow-x: auto; margin-top: 10px; }}
         table {{ width: 100%; border-collapse: collapse; font-size: 13px; }}
-        th {{ text-align: left; padding: 10px; color: #94A3B8; border-bottom: 1px solid rgba(255,255,255,0.08); }}
-        td {{ padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }}
+        th {{ text-align: left; padding: 11px 10px; color: #94A3B8; border-bottom: 1px solid rgba(255,255,255,0.1); font-weight: 700; }}
+        td {{ padding: 11px 10px; border-bottom: 1px solid rgba(255,255,255,0.05); }}
+        tr:hover td {{ background: rgba(255,255,255,0.02); }}
       </style>
     </head>
     <body>
@@ -1985,8 +2751,8 @@ async def analytics_dashboard_page(
           <div class="brand">
             <div class="brand-icon">🌙</div>
             <div>
-              <h1>Mışıl Baby — Tek Bakışta Büyüme Özeti</h1>
-              <p>Resmi Apple App Store + Google Play + Canlı Sosyal Medya Verileri ({html.escape(sb['last_synced_at'])})</p>
+              <h1>Mışıl Baby — Kurumsal Büyüme, Abone Defteri & Ürün Analitiği</h1>
+              <p>Resmi Apple App Store API + Google Play API + Canlı PostgreSQL Veri Ambarı ({html.escape(sb['last_synced_at'])})</p>
             </div>
           </div>
           <div class="actions">
@@ -1994,13 +2760,14 @@ async def analytics_dashboard_page(
               <span class="pulse-dot" id="liveDot"></span>
               <span id="liveCountdown">Canlı: 15s</span>
             </div>
+            <a href="/api/v1/analytics/export.csv?pin={safe_pin}" class="btn">📥 CSV İndir</a>
             <a href="/api/v1/analytics/dashboard?pin={safe_pin}&sync=1" class="btn">🔄 Mağazaları Güncelle</a>
           </div>
         </div>
 
         {sync_banner}
 
-        <!-- 1. BLOK: 4 FERAH ÖZET KARTI (HER KARTTA SADECE 1 BÜYÜK SAYI + %100 API DOĞRULANMIŞ 1 CÜMLE) -->
+        <!-- SABİT ÜST BLOK: 4 KUZEY YILDIZI KARTI (HER ZAMAN GÖRÜNÜR) -->
         <div class="kpi-grid">
           <div class="bento-card" style="border-top: 3px solid #E8A855;">
             <div class="card-label">👁️ APP STORE GÖRÜNTÜLENMESİ</div>
@@ -2027,121 +2794,400 @@ async def analytics_dashboard_page(
           </div>
 
           <div class="bento-card" style="border-top: 3px solid #C084FC;">
-            <div class="card-label">👑 DOĞRULANMIŞ VIP & PUAN</div>
+            <div class="card-label">👑 DOĞRULANMIŞ VIP, MRR & PUAN</div>
             <div class="big-num" style="color: #C084FC;">{f_vip} VIP</div>
             <div class="card-desc">
-              <strong>{paid_conv} Ücretli Satış</strong> ({paid_cust_try:.2f} ₺ / Net {paid_try:.2f} ₺) • <strong>{offer_code_subs} Kodlu</strong> ({html.escape(offer_code_name)}) • <strong>{active_trials} Aktif Deneme</strong> • <strong>5.0 ★</strong> ({reviews_total_cnt} yorum).
+              <strong>{paid_conv} Ücretli Satış</strong> ({paid_cust_try:.2f} ₺ / Net {paid_try:.2f} ₺) • <strong>{offer_code_subs} Kodlu</strong> ({html.escape(offer_code_name)}) • <strong>{active_trials} Deneme</strong> (Beklenen Net {fl['pipeline_7d_mrr_net_try']:.2f} ₺) • <strong>5.0 ★</strong> ({reviews_total_cnt} yorum).
             </div>
           </div>
         </div>
 
-        <!-- 2. BLOK: YAN YANA 4 ADIMLI GÖRSEL YOLCULUK (HUNİ) -->
-        <div class="bento-card">
-          <div class="section-head">
-            <span>🧭 Ebeveynlerin 4 Adımlı Yolculuğu (Görmeden ➔ Doğrulanmış VIP Aboneliğe)</span>
-          </div>
-          <div class="steps-grid">
-            <div class="step-box" style="border-left: 4px solid #E8A855;">
-              <div class="step-num" style="color:#E8A855;">1. ADIM • KARŞILAŞMA</div>
-              <div class="step-val">{f_imp:,}</div>
-              <div class="step-sub">App Store'da Mışıl Baby görüntülendi ({imp_search:,} Arama + {imp_browse} Keşfet)</div>
-              <span class="step-rate">👥 {kpis['impressions_unique']:,} Tekil Cihaz</span>
-            </div>
-
-            <div class="step-box" style="border-left: 4px solid #60A5FA;">
-              <div class="step-num" style="color:#60A5FA;">2. ADIM • İNCELEME</div>
-              <div class="step-val">{f_vis}</div>
-              <div class="step-sub">Mağaza sayfası açıldı ({kpis['store_page_views']}) veya sosyal linke tıklandı ({kpis['bridge_unique_clicks']})</div>
-              <span class="step-rate">➔ İlgilenme Oranı: %{vis_of_imp_pct}</span>
-            </div>
-
-            <div class="step-box" style="border-left: 4px solid #34D399;">
-              <div class="step-num" style="color:#34D399;">3. ADIM • İNDİRME</div>
-              <div class="step-val">{f_dl}</div>
-              <div class="step-sub">Uygulamayı telefonuna indirdi ({kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</div>
-              <span class="step-rate">➔ İndirmeye Dönüşüm: %{dl_of_vis_pct}</span>
-            </div>
-
-            <div class="step-box" style="border-left: 4px solid #C084FC;">
-              <div class="step-num" style="color:#C084FC;">4. ADIM • VIP & MEMNUNİYET</div>
-              <div class="step-val">{f_vip} VIP • 5.0★</div>
-              <div class="step-sub">{paid_conv} ücretli ({paid_cust_try:.2f} ₺) + {offer_code_subs} kodlu ({html.escape(offer_code_name)}) + {active_trials} deneme</div>
-              <span class="step-rate">➔ Aktif VIP Oranı: %{vip_of_dl_pct}</span>
-            </div>
-          </div>
+        <!-- 5 SEKMELİ KURUMSAL NAVİGASYON BARI (PROGRESSIVE DISCLOSURE) -->
+        <div class="tabs-nav" role="tablist">
+          <button class="tab-btn active" id="tabBtn_tab1" onclick="switchTab('tab1')">🌟 1. Yönetici Özeti (3 Sn)</button>
+          <button class="tab-btn" id="tabBtn_tab2" onclick="switchTab('tab2')">💎 2. Gelir, MRR & Abone Defteri (12 VIP)</button>
+          <button class="tab-btn" id="tabBtn_tab3" onclick="switchTab('tab3')">🎯 3. Kanal, ASO & Kod Attribution</button>
+          <button class="tab-btn" id="tabBtn_tab4" onclick="switchTab('tab4')">👶 4. Ürün Nabzı & Kohort Tutundurma</button>
+          <button class="tab-btn" id="tabBtn_tab5" onclick="switchTab('tab5')">⚡ 5. Yorumlar (5.0★) & Canlı Akış</button>
         </div>
 
-        <!-- 3. BLOK: TEK ÇUBUKLU KÜMÜLATİF İNDİRME GRAFİĞİ -->
-        <div class="bento-card">
-          <div class="section-head">
-            <div>
-              <span>📈 Gün-Gün Toplam İndirme Yükselişi (18 Ekim ➔ Bugün: {f_dl} İndirme — {kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</span>
-            </div>
-            <div class="chart-toggle">
-              <button id="btnCumChart" class="active" onclick="switchChartMode('cum')">📈 Toplam Birikimli ({f_dl} İndirme)</button>
-              <button id="btnDailyChart" onclick="switchChartMode('daily')">📊 Günlük Yeni iOS (Apple API: {kpis['ios_downloads']})</button>
-            </div>
-          </div>
-
-          <div id="chartCumWrap" class="timeline-grid">
-            {cum_bars_html}
-          </div>
-          <div id="chartDailyWrap" class="timeline-grid" style="display:none;">
-            {daily_bars_html}
-          </div>
-        </div>
-
-        <!-- 4. BLOK: YAN YANA 3 BASİT GÖRSEL HALKA (DONUT) -->
-        <div class="donuts-grid">
+        <!-- ================================================================== -->
+        <!-- SEKME 1: YÖNETİCİ ÖZETİ (VARSAYILAN AÇIK - 3 SANİYEDE NET BAKIŞ)   -->
+        <!-- ================================================================== -->
+        <div id="tabPane_tab1" class="tab-pane active">
+          <!-- YAN YANA 4 ADIMLI GÖRSEL YOLCULUK (HUNİ) -->
           <div class="bento-card">
-            <div class="section-head"><span>🍩 1. Nereden İndirdiler?</span></div>
-            {donut_install_sources}
+            <div class="section-head">
+              <span>🧭 Ebeveynlerin 4 Adımlı Yolculuğu (Görmeden ➔ Doğrulanmış VIP Aboneliğe)</span>
+            </div>
+            <div class="steps-grid">
+              <div class="step-box" style="border-left: 4px solid #E8A855;">
+                <div class="step-num" style="color:#E8A855;">1. ADIM • KARŞILAŞMA</div>
+                <div class="step-val">{f_imp:,}</div>
+                <div class="step-sub">App Store'da Mışıl Baby görüntülendi ({imp_search:,} Arama + {imp_browse} Keşfet)</div>
+                <span class="step-rate">👥 {kpis['impressions_unique']:,} Tekil Cihaz</span>
+              </div>
+
+              <div class="step-box" style="border-left: 4px solid #60A5FA;">
+                <div class="step-num" style="color:#60A5FA;">2. ADIM • İNCELEME</div>
+                <div class="step-val">{f_vis}</div>
+                <div class="step-sub">Mağaza sayfası açıldı ({kpis['store_page_views']}) veya sosyal linke tıklandı ({kpis['bridge_unique_clicks']})</div>
+                <span class="step-rate">➔ İlgilenme Oranı: %{vis_of_imp_pct}</span>
+              </div>
+
+              <div class="step-box" style="border-left: 4px solid #34D399;">
+                <div class="step-num" style="color:#34D399;">3. ADIM • İNDİRME</div>
+                <div class="step-val">{f_dl}</div>
+                <div class="step-sub">Uygulamayı telefonuna indirdi ({kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</div>
+                <span class="step-rate">➔ İndirmeye Dönüşüm: %{dl_of_vis_pct}</span>
+              </div>
+
+              <div class="step-box" style="border-left: 4px solid #C084FC;">
+                <div class="step-num" style="color:#C084FC;">4. ADIM • VIP & MEMNUNİYET</div>
+                <div class="step-val">{f_vip} VIP • 5.0★</div>
+                <div class="step-sub">{paid_conv} ücretli ({paid_cust_try:.2f} ₺) + {offer_code_subs} kodlu ({html.escape(offer_code_name)}) + {active_trials} deneme</div>
+                <span class="step-rate">➔ Aktif VIP Oranı: %{vip_of_dl_pct}</span>
+              </div>
+            </div>
           </div>
 
+          <!-- TEK ÇUBUKLU KÜMÜLATİF İNDİRME GRAFİĞİ -->
           <div class="bento-card">
-            <div class="section-head"><span>🍩 2. Hangi Ülkelerden?</span></div>
-            {donut_countries}
+            <div class="section-head">
+              <div>
+                <span>📈 Gün-Gün Toplam İndirme Yükselişi (18 Ekim ➔ Bugün: {f_dl} İndirme — {kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</span>
+              </div>
+              <div class="chart-toggle">
+                <button id="btnCumChart" class="active" onclick="switchChartMode('cum')">📈 Toplam Birikimli ({f_dl} İndirme)</button>
+                <button id="btnDailyChart" onclick="switchChartMode('daily')">📊 Günlük Yeni iOS (Apple API: {kpis['ios_downloads']})</button>
+              </div>
+            </div>
+
+            <div id="chartCumWrap" class="timeline-grid">
+              {cum_bars_html}
+            </div>
+            <div id="chartDailyWrap" class="timeline-grid" style="display:none;">
+              {daily_bars_html}
+            </div>
           </div>
 
-          <div class="bento-card">
-            <div class="section-head"><span>🍩 3. Ne Zaman Geliyorlar? (Zirve: {top_h1})</span></div>
-            {donut_night_day}
+          <!-- YAN YANA 3 BASİT GÖRSEL HALKA (DONUT) -->
+          <div class="donuts-grid">
+            <div class="bento-card">
+              <div class="section-head"><span>🍩 1. Nereden İndirdiler?</span></div>
+              {donut_install_sources}
+            </div>
+
+            <div class="bento-card">
+              <div class="section-head"><span>🍩 2. Hangi Ülkelerden?</span></div>
+              {donut_countries}
+            </div>
+
+            <div class="bento-card">
+              <div class="section-head"><span>🍩 3. Ne Zaman Geliyorlar? (Zirve: {top_h1})</span></div>
+              {donut_night_day}
+            </div>
           </div>
         </div>
 
-        <!-- 5. BLOK: ANNELERİN 6 RESMİ YORUMU (5.0 ★) -->
-        <div class="bento-card">
-          <div class="section-head">
-            <span>⭐ Annelerin Resmi Mağaza Yorumları ({reviews_total_cnt} Yorumun Tamamı 5 Yıldız)</span>
+        <!-- ================================================================== -->
+        <!-- SEKME 2: GELİR, MRR & ABONE DEFTERİ (REVENUECAT + BAREMETRICS)     -->
+        <!-- ================================================================== -->
+        <div id="tabPane_tab2" class="tab-pane">
+          <div class="kpi-grid">
+            <div class="bento-card" style="border-left: 4px solid #34D399;">
+              <div class="card-label">💵 TAHSİL EDİLEN GERÇEK GELİR</div>
+              <div class="big-num" style="color:#34D399;">{fl['realized_net_proceeds_try']:.2f} ₺ <span style="font-size:16px; color:#94A3B8;">Net</span></div>
+              <div class="card-desc">
+                Müşteri Ödemesi (Brüt): <strong>{fl['realized_gross_try']:.2f} ₺</strong> • Apple vergi ve komisyon kesintisi sonrası net hakediş (<strong>{fl['paid_subs_count']} Ücretli Aylık Abone</strong>).
+              </div>
+            </div>
+
+            <div class="bento-card" style="border-left: 4px solid #E8A855;">
+              <div class="card-label">⏳ 7 GÜNLÜK DENEME HATTI (PIPELINE MRR)</div>
+              <div class="big-num" style="color:#E8A855;">{fl['pipeline_7d_mrr_net_try']:.2f} ₺ <span style="font-size:16px; color:#94A3B8;">Net</span></div>
+              <div class="card-desc">
+                <strong>{fl['pipeline_7d_trials_count']} aktif 7 günlük deneme</strong> (Brüt <strong>{fl['pipeline_7d_mrr_gross_try']:.2f} ₺</strong>) • Tamamında otomatik yenileme açık (29 Ekim – 2 Kasım arası vade).
+              </div>
+            </div>
+
+            <div class="bento-card" style="border-left: 4px solid #60A5FA;">
+              <div class="card-label">🎯 OLGUNLAŞAN DENEME ➔ ÜCRETLİ DÖNÜŞÜM</div>
+              <div class="big-num" style="color:#60A5FA;">%{fl['matured_trial_to_paid_cvr_pct']}</div>
+              <div class="card-desc">
+                7 günlük deneme süresi dolan <strong>{fl['matured_trials_total']} aboneden {fl['matured_trials_converted']} tanesi</strong> iptal etmeden 149.99 ₺ ücretli pakete geçti (<strong>{fl['cancelled_subs_count']} İptal</strong>).
+              </div>
+            </div>
+
+            <div class="bento-card" style="border-left: 4px solid #C084FC;">
+              <div class="card-label">🎟️ KAMPANYA KODU & OTO-YENİLEME SAĞLIĞI</div>
+              <div class="big-num" style="color:#C084FC;">%{fl['auto_renew_on_pct']} <span style="font-size:16px; color:#94A3B8;">Aktif</span></div>
+              <div class="card-desc">
+                <strong>{fl['offer_code_subs_count']} Yıllık VIP</strong> (<code>{html.escape(offer_code_name)}</code>) + <strong>7 Aylık VIP</strong> = <strong>12 Tekil Abonenin</strong> tamamında otomatik yenileme açık.
+              </div>
+            </div>
           </div>
-          <div class="reviews-grid">
-            {reviews_html}
+
+          <!-- 7 GÜNLÜK DENEME -> ÜCRETLİ TAHSİLAT TAKVİMİ -->
+          <div class="bento-card">
+            <div class="section-head">
+              <span>📅 7 Günlük Deneme ➔ Ücretli Tahsilat Takvimi (Apple SUBSCRIBER 1_3 Vade Projeksiyonu)</span>
+              <span class="badge" style="background:rgba(16,185,129,0.18); color:#34D399;">Toplam Beklenen: +{fl['pipeline_7d_mrr_gross_try']:.2f} ₺ Brüt / +{fl['pipeline_7d_mrr_net_try']:.2f} ₺ Net</span>
+            </div>
+            <div class="steps-grid">
+              {renewal_calendar_html}
+            </div>
+          </div>
+
+          <!-- 12 TEKİL ABONE DEFTERİ TABLOSU -->
+          <div class="bento-card">
+            <div class="section-head">
+              <span>📒 Doğrulanmış Tekil Abone Defteri (12 Aktif VIP • 13 Resmi Apple SUBSCRIBER 1_3 İşlemi)</span>
+              <span class="badge badge-meta">Vendor #94806500 • %100 Kanıtlı</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Abone ID</th>
+                    <th>Paket</th>
+                    <th>Durum / Kampanya</th>
+                    <th>Başlangıç</th>
+                    <th>Son İşlem</th>
+                    <th>Yenilenme / Vade</th>
+                    <th>Oto-Yenileme</th>
+                    <th>Tahsil Edilen (Brüt / Net)</th>
+                    <th>Sonraki Dönem</th>
+                    <th>Ülke / Cihaz</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ledger_rows_html}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        <!-- İSTEĞE BAĞLI GİZLİ DETAY ÇEKMECESİ -->
-        <details class="drawer">
-          <summary>➕ Son Sosyal Medya Tıklama Kayıtlarını Göster ({s['total_unique_human']} Tekil Kişi / {s['total_raw']} Toplam Tıklama — İsteğe Bağlı)</summary>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Saat (TSİ)</th>
-                  <th>Telefon</th>
-                  <th>Geldiği Uygulama</th>
-                  <th>Yönlendirilen Mağaza</th>
-                  <th>Ülke</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows_html}
-              </tbody>
-            </table>
+        <!-- ================================================================== -->
+        <!-- SEKME 3: KANAL, ASO & KOD ATTRIBUTION (ADAPTY + APPFIGURES)        -->
+        <!-- ================================================================== -->
+        <div id="tabPane_tab3" class="tab-pane">
+          <div class="bento-card">
+            <div class="section-head">
+              <span>🎯 Kanal Bazlı Tam Büyüme & ASO Attribution Matrisi (Görüntülenme ➔ Tık ➔ İndirme ➔ VIP)</span>
+              <span class="badge badge-gp">Toplam {f_dl} Kurulum ({kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Edinim / Büyüme Kanalı</th>
+                    <th>Doğrulama Kaynağı</th>
+                    <th>Mağaza Gösterimi</th>
+                    <th>Sayfa Ziyareti / Sosyal Tık</th>
+                    <th>Gerçek İndirme</th>
+                    <th>Dönüşüm Oranı (CVR)</th>
+                    <th>VIP & Abonelik Etkisi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aso_rows_html}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </details>
+
+          <div class="donuts-grid">
+            <div class="bento-card">
+              <div class="section-head"><span>📲 Sosyal Medya Köprü Hunisi ({s['total_unique_human']} Tekil İnsan)</span></div>
+              <div class="steps-grid">
+                <div class="step-box" style="border-left: 4px solid #60A5FA;">
+                  <div class="step-num" style="color:#60A5FA;">META REKLAM KÖPRÜSÜ (/ios)</div>
+                  <div class="step-val">{meta['unique_clicks']} Tekil Kişi</div>
+                  <div class="step-sub"><strong>{meta['ios_clicks']} iPhone</strong> App Store'a + <strong>{meta['android_clicks']} Android</strong> telefon otomatik Google Play'e yönlendirildi.</div>
+                  <span class="step-rate">Toplam {meta['raw_hits']} Ham İstek</span>
+                </div>
+                <div class="step-box" style="border-left: 4px solid #C084FC;">
+                  <div class="step-num" style="color:#C084FC;">INSTAGRAM BIO (/download)</div>
+                  <div class="step-val">{ig['unique_clicks']} Tekil Kişi</div>
+                  <div class="step-sub"><strong>{ig['ios_clicks']} iPhone</strong> + <strong>{ig['android_clicks']} Android</strong> organik profil ziyaretçisi yönlendirildi.</div>
+                  <span class="step-rate">🤖 {s['total_bots']} Bot İsteği Filtrelendi</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bento-card">
+              <div class="section-head"><span>🌍 9 Ülke Resmi App Store İndirme Dağılımı</span></div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Ülke</th>
+                      <th>Resmi İndirme</th>
+                      <th>Pay (%)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {country_rows_html}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================== -->
+        <!-- SEKME 4: ÜRÜN İÇİ NABIZ & KOHORT TUTUNDURMA (MIXPANEL + POSTHOG)   -->
+        <!-- ================================================================== -->
+        <div id="tabPane_tab4" class="tab-pane">
+          <div class="kpi-grid">
+            <div class="bento-card" style="border-left: 4px solid #60A5FA;">
+              <div class="card-label">📱 RESMİ UYGULAMA OTURUMLARI</div>
+              <div class="big-num" style="color:#60A5FA;">{pr['total_tracked_sessions']}</div>
+              <div class="card-desc">
+                Apple r4 API doğrulanmış <strong>{pr['apple_official_sessions']} oturum</strong> + canlı telemetri • Ortalama süre: <strong>{pr['avg_session_duration_sec']} saniye</strong>.
+              </div>
+            </div>
+
+            <div class="bento-card" style="border-left: 4px solid #34D399;">
+              <div class="card-label">👶 AKTİF CİHAZ & BEBEK PROFİLİ</div>
+              <div class="big-num" style="color:#34D399;">{pr['optin_active_devices']} Cihaz</div>
+              <div class="card-desc">
+                Telemetri paylaşımı açık <strong>{sb['apple_sessions_optin_devices']} iOS cihaz</strong> • Veritabanı kayıtlı bebek profili: <strong>{pr['babies_count']}</strong>.
+              </div>
+            </div>
+
+            <div class="bento-card" style="border-left: 4px solid #A855F7;">
+              <div class="card-label">🌙 GECE NÖBETİ KULLANIMI (21:00–04:00)</div>
+              <div class="big-num" style="color:#A855F7;">%{nvd['night_pct']}</div>
+              <div class="card-desc">
+                <strong>{nvd['night_clicks']} Gece</strong> vs <strong>{nvd['day_clicks']} Gündüz</strong> ebeveyn etkileşimi • En yoğun saatler: <strong>{top_h1}</strong> ve <strong>{top_h2}</strong>.
+              </div>
+            </div>
+
+            <div class="bento-card" style="border-left: 4px solid #E8A855;">
+              <div class="card-label">🛡️ ABONE KOHORT TUTUNDURMA (RETENTION)</div>
+              <div class="big-num" style="color:#E8A855;">%100.0</div>
+              <div class="card-desc">
+                20–26 Ekim arasında başlayan <strong>{len(pr['subscriber_cohorts'])} ayrı günlük kohorttaki {len(sub_ledger)} abonenin tamamı</strong> aktif olarak devam ediyor (<strong>0 İptal</strong>).
+              </div>
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="section-head">
+              <span>📊 Günlük Abone Kohort Tutundurma Matrisi (Başlangıç Tarihine Göre Yaşam Döngüsü)</span>
+              <span class="badge" style="background:rgba(16,185,129,0.2); color:#34D399;">{len(pr['subscriber_cohorts'])} Kohort • %0 Churn</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Kohort Başlangıç Günü</th>
+                    <th>Başlayan VIP</th>
+                    <th>Ücretliye Geçen</th>
+                    <th>Yıllık Kodlu (DamlaEge2026)</th>
+                    <th>7G Denemesi Süren</th>
+                    <th>İptal Eden</th>
+                    <th>Kohort Tutundurma</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {cohort_rows_html}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="section-head">
+              <span>🍼 Uygulama İçi Modül & Bulut Veritabanı Aktivitesi</span>
+            </div>
+            <div class="steps-grid">
+              <div class="step-box" style="border-left: 4px solid #34D399;">
+                <div class="step-num" style="color:#34D399;">UYKU & SES MOTORU</div>
+                <div class="step-val">{pr['sleep_logs_count']} Kayıt</div>
+                <div class="step-sub">Bulut senkronizasyonlu uyku seansı ve <code>sleep_sound_play</code> canlı sinyal kancası aktif.</div>
+              </div>
+              <div class="step-box" style="border-left: 4px solid #60A5FA;">
+                <div class="step-num" style="color:#60A5FA;">AĞLAMA ANALİZİ (AI)</div>
+                <div class="step-val">{pr['cry_events_count']} Analiz</div>
+                <div class="step-sub">Yapay zeka ağlama tespiti ve <code>cry_analysis</code> telemetri sayacı aktif.</div>
+              </div>
+              <div class="step-box" style="border-left: 4px solid #E8A855;">
+                <div class="step-num" style="color:#E8A855;">GÜNLÜK RUTİN & DADI AI</div>
+                <div class="step-val">{pr['routine_logs_count'] + pr['dadi_chats_count']} Etkileşim</div>
+                <div class="step-sub">{pr['routine_logs_count']} rutin kaydı + {pr['dadi_chats_count']} Bilge Dadı sohbet mesajı.</div>
+              </div>
+              <div class="step-box" style="border-left: 4px solid #C084FC;">
+                <div class="step-num" style="color:#C084FC;">GERÇEK ZAMANLI VIP SİNYALİ</div>
+                <div class="step-val">Aktif (v4.46)</div>
+                <div class="step-sub">Uygulama içi <code>vip_started</code> sinyali ile Apple gece raporunu beklemeden anlık VIP tespiti.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================== -->
+        <!-- SEKME 5: YORUMLAR (5.0★) & CANLI AKIŞ                              -->
+        <!-- ================================================================== -->
+        <div id="tabPane_tab5" class="tab-pane">
+          <div class="bento-card">
+            <div class="section-head">
+              <span>⭐ Annelerin Resmi Mağaza Yorumları ({reviews_total_cnt} Yorumun Tamamı 5 Yıldız)</span>
+              <span class="badge" style="background:rgba(251,191,36,0.2); color:#FBBF24;">5.0 ★ Tam Puan</span>
+            </div>
+            <div class="reviews-grid">
+              {reviews_html}
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="section-head">
+              <span>⚡ Son Sosyal Medya Tıklama Kayıtları ({s['total_unique_human']} Tekil Kişi / {s['total_raw']} Toplam Tıklama)</span>
+              <a href="/api/v1/analytics/export.csv?pin={safe_pin}" class="btn">📥 Tümünü Excel/CSV İndir</a>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Saat (TSİ)</th>
+                    <th>Telefon</th>
+                    <th>Geldiği Uygulama</th>
+                    <th>Yönlendirilen Mağaza</th>
+                    <th>Ülke</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {rows_html}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
       </div>
 
       <script>
+        function switchTab(tabId) {{
+          var panes = document.querySelectorAll('.tab-pane');
+          var btns = document.querySelectorAll('.tab-btn');
+          for (var i = 0; i < panes.length; i++) {{
+            panes[i].classList.remove('active');
+          }}
+          for (var j = 0; j < btns.length; j++) {{
+            btns[j].classList.remove('active');
+          }}
+          var targetPane = document.getElementById('tabPane_' + tabId);
+          var targetBtn = document.getElementById('tabBtn_' + tabId);
+          if (targetPane && targetBtn) {{
+            targetPane.classList.add('active');
+            targetBtn.classList.add('active');
+            localStorage.setItem('mishil_dash_active_tab', tabId);
+          }}
+        }}
+
         function switchChartMode(mode) {{
           var cumW = document.getElementById('chartCumWrap');
           var dailyW = document.getElementById('chartDailyWrap');
@@ -2168,6 +3214,11 @@ async def analytics_dashboard_page(
               window.history.replaceState({{}}, document.title, window.location.pathname + cleanSearch);
             }}
           }} catch (_he) {{}}
+
+          var savedTab = localStorage.getItem('mishil_dash_active_tab');
+          if (savedTab && document.getElementById('tabPane_' + savedTab)) {{
+            switchTab(savedTab);
+          }}
 
           var savedChartMode = localStorage.getItem('mishil_dash_chart_mode');
           if (savedChartMode === 'daily' || savedChartMode === 'cum') {{

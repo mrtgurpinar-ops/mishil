@@ -357,4 +357,102 @@ class CampaignConfig(Base):
     )
 
 
+class StoreDailyMetric(Base):
+    """Apple App Store Connect ve Google Play günlük resmi metrik ambarı."""
+    __tablename__ = "store_daily_metrics"
+
+    id = Column(Integer, primary_key=True, index=True)
+    metric_date = Column(String(16), index=True, nullable=False)  # 'YYYY-MM-DD'
+    platform = Column(String(32), index=True, nullable=False, default="ios")  # 'ios' | 'android'
+    impressions = Column(Integer, default=0, nullable=False)
+    impressions_unique = Column(Integer, default=0, nullable=False)
+    page_views = Column(Integer, default=0, nullable=False)
+    page_views_unique = Column(Integer, default=0, nullable=False)
+    downloads_total = Column(Integer, default=0, nullable=False)
+    downloads_search = Column(Integer, default=0, nullable=False)
+    downloads_browse = Column(Integer, default=0, nullable=False)
+    downloads_referrer = Column(Integer, default=0, nullable=False)
+    redownloads = Column(Integer, default=0, nullable=False)
+    active_paid_subs = Column(Integer, default=0, nullable=False)
+    active_free_trials = Column(Integer, default=0, nullable=False)
+    active_offer_code_subs = Column(Integer, default=0, nullable=False)
+    gross_revenue_try = Column(Float, default=0.0, nullable=False)
+    net_proceeds_try = Column(Float, default=0.0, nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+
+class SubscriberLedger(Base):
+    """Apple SUBSCRIBER (1_3) ve Google Play subscriptionsv2 tekil abone yaşam döngüsü defteri."""
+    __tablename__ = "subscriber_ledger"
+
+    id = Column(Integer, primary_key=True, index=True)
+    subscriber_id = Column(String(128), unique=True, index=True, nullable=False)  # Apple Subscriber ID veya Google Token Hash
+    platform = Column(String(32), index=True, nullable=False, default="ios")
+    product_id = Column(String(64), index=True, nullable=False)  # 'misil_monthly', 'misil_annual'
+    plan_label = Column(String(100), nullable=False)  # 'Aylık Esnek', 'Yıllık VIP'
+    status = Column(String(64), index=True, nullable=False)  # 'paid_active', 'offer_code_trial', 'intro_free_trial', 'cancelled'
+    offer_type = Column(String(64), nullable=False)  # 'standard_paid', 'offer_code', 'intro_7d_trial'
+    offer_code_name = Column(String(100), nullable=True)  # Örn: 'DamlaEge2026'
+    started_date = Column(String(16), index=True, nullable=False)  # 'YYYY-MM-DD'
+    converted_or_renewed_date = Column(String(16), nullable=True)  # 'YYYY-MM-DD'
+    maturity_or_renewal_date = Column(String(16), index=True, nullable=False)  # Tahsilat / Vade Günü 'YYYY-MM-DD'
+    auto_renew_enabled = Column(Boolean, default=True, nullable=False)
+    customer_price_try = Column(Float, default=0.0, nullable=False)
+    developer_proceeds_try = Column(Float, default=0.0, nullable=False)
+    expected_next_price_try = Column(Float, default=149.99, nullable=False)
+    expected_next_proceeds_try = Column(Float, default=83.12, nullable=False)
+    country = Column(String(16), default="TR", nullable=False)
+    device_type = Column(String(64), default="iPhone", nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+
+class SubscriptionLifecycleEvent(Base):
+    """Apple SUBSCRIPTION_EVENT (1_3) abonelik olay günlüğü (Start, Paid Conversion, Cancel, Reactivate)."""
+    __tablename__ = "subscription_lifecycle_events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    event_date = Column(String(16), index=True, nullable=False)
+    platform = Column(String(32), default="ios", nullable=False)
+    event_type = Column(String(128), index=True, nullable=False)
+    product_id = Column(String(64), nullable=False)
+    plan_label = Column(String(100), nullable=True)
+    offer_code_name = Column(String(100), nullable=True)
+    country = Column(String(16), default="TR", nullable=False)
+    device_type = Column(String(64), default="iPhone", nullable=False)
+    quantity = Column(Integer, default=1, nullable=False)
+    days_before_canceling = Column(String(32), nullable=True)
+    cancellation_reason = Column(String(128), nullable=True)
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+
+class StoreSyncState(Base):
+    """Apple & Google mağaza API senkronizasyon durumu ve kalıcı JSON önbelleği."""
+    __tablename__ = "store_sync_states"
+
+    id = Column(Integer, primary_key=True, index=True)
+    state_key = Column(String(64), unique=True, index=True, nullable=False, default="primary_store_baseline")
+    snapshot_json = Column(JSON, nullable=False, default=dict)
+    last_synced_at_str = Column(String(64), nullable=True)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+
 
