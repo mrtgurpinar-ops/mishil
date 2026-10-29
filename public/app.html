@@ -9548,7 +9548,7 @@
       if (referenceTs) {
         if (endDate.getTime() - referenceTs > 12 * 3600000) {
           endDate.setDate(endDate.getDate() - 1);
-        } else if (referenceTs - endDate.getTime() > 12 * 3600000 && endMins >= 1440) {
+        } else if (referenceTs - endDate.getTime() > 12 * 3600000) {
           endDate.setDate(endDate.getDate() + 1);
         }
       }
@@ -9754,7 +9754,7 @@
       }
 
       const updatedSleepLog = {
-        id: existingItem ? existingItem.id : ('slp_' + Date.now()),
+        id: existingItem ? existingItem.id : ('slp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)),
         type: 'sleep',
         icon: '🌙',
         title: sleepTitle,
@@ -10181,6 +10181,7 @@
         } catch (_be) {}
       };
       window.syncBabyProfileToBackend(false);
+      var _activeAppVer = (typeof appMeta === 'function' && appMeta() && appMeta().version) ? appMeta().version : WEB_APP_META.version;
       window.sendMishilAnalyticsSignal = function(evtType) {
         try {
           var _duid = localStorage.getItem('mishil_device_uid') || 'msl_anon';
@@ -10190,7 +10191,7 @@
           fetch(apiBase + '/api/v1/analytics/app-open-signal', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ device_uid: _duid, event_type: evtType, os_family: _os, platform: _plat, app_version: '4.46.0' })
+            body: JSON.stringify({ device_uid: _duid, event_type: evtType, os_family: _os, platform: _plat, app_version: _activeAppVer })
           }).catch(function() {});
         } catch (_se) {}
       };
@@ -10198,7 +10199,7 @@
         localStorage.setItem('mishil_vip_sig_v1', '1');
         window.sendMishilAnalyticsSignal('vip_started');
       }
-      var _todayActiveKey = 'mishil_active_' + new Date().toISOString().slice(0, 10);
+      var _todayActiveKey = 'mishil_active_' + new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10);
       var _alreadyFirstOpen = (localStorage.getItem('mishil_first_open_v1') === '1');
       if (_alreadyFirstOpen && localStorage.getItem(_todayActiveKey) === '1') return;
       // _todayActiveKey set after successful response below
@@ -10219,7 +10220,7 @@
           event_type: _alreadyFirstOpen ? 'daily_active' : 'first_open',
           os_family: osFam,
           platform: plat,
-          app_version: '4.45.0'
+          app_version: _activeAppVer
         })
       }).then(function(r) {
         if (r && r.ok) { localStorage.setItem('mishil_first_open_v1', '1'); localStorage.setItem(_todayActiveKey, '1'); }

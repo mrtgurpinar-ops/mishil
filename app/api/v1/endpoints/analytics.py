@@ -4,10 +4,12 @@ import hashlib
 import hmac
 import io
 import csv
+import copy
 import gzip
 import json
 import math
 import os
+import threading
 import time
 import urllib.request
 import urllib.error
@@ -51,7 +53,35 @@ logger = get_logger("analytics")
 
 router = APIRouter(prefix="/analytics", tags=["Kümülatif Büyüme, Mağaza API & Görsel Kurucu Kokpiti"])
 
-ADMIN_PINS = ("MISIL-REV-9842", "MISILREV2026")
+# Google Play mağaza incelemesi uyumluluğu için bu PIN env değişkeni ne olursa olsun daima geçerli kalır.
+_GOOGLE_PLAY_REVIEWER_PIN = "MISILREV2026"
+_env_admin_pins_raw = os.environ.get("MISIL_ADMIN_PINS", "")
+_configured_admin_pins = tuple(p.strip().upper() for p in _env_admin_pins_raw.split(",") if p.strip())
+ADMIN_PINS = _configured_admin_pins or ("MISIL-REV-9842", _GOOGLE_PLAY_REVIEWER_PIN)
+if _GOOGLE_PLAY_REVIEWER_PIN not in ADMIN_PINS:
+    ADMIN_PINS = ADMIN_PINS + (_GOOGLE_PLAY_REVIEWER_PIN,)
+
+# Yönetici PIN'i için IP bazlı brute-force hız sınırlaması (5 hatalı deneme -> 15 dk blok)
+_PIN_RATE_LIMIT_LOCK = threading.Lock()
+_PIN_FAILED_ATTEMPTS: Dict[str, List[float]] = {}
+_PIN_BLOCK_UNTIL: Dict[str, float] = {}
+_PIN_MAX_ATTEMPTS = 5
+_PIN_ATTEMPT_WINDOW_SECONDS = 15 * 60
+_PIN_BLOCK_SECONDS = 15 * 60
+
+# Oturum çerezi: başarılı PIN girişinden sonra sayfa içi linklerde ?pin= taşınmasını azaltır.
+_ADMIN_SESSION_COOKIE = "misil_admin_session"
+_ADMIN_SESSION_SECRET = (
+    os.environ.get("MISIL_ADMIN_SESSION_SECRET")
+    or hashlib.sha256(("misil-admin-session::" + "|".join(ADMIN_PINS)).encode("utf-8")).hexdigest()
+)
+
+# OFFICIAL_STORE_BASELINE modül seviyesindeki paylaşımlı bir dict'tir; eşzamanlı
+# sync_live_store_apis() / ensure_historical_seed() çağrılarında TOCTOU'ya karşı korur.
+_BASELINE_LOCK = threading.RLock()
+
+# first_open / daily_active sinyal kaydı için eşzamanlı çift-kayıt (TOCTOU) koruması.
+_APP_OPEN_SIGNAL_LOCK = threading.Lock()
 
 _HISTORICAL_SEED_DONE = False
 _CAMPAIGN_SEED_DONE = False
@@ -519,6 +549,95 @@ def verify_admin_pin(
     return any(hmac.compare_digest(entered_pin, valid_pin) for valid_pin in ADMIN_PINS)
 
 
+def _extract_client_ip(request: Request) -> str:
+    ip = (
+        request.headers.get("cf-connecting-ip")
+        or request.headers.get("x-forwarded-for")
+        or (request.client.host if request.client else "unknown")
+    )
+    if ip and "," in ip:
+        ip = ip.split(",")[0].strip()
+    return ip or "unknown"
+
+
+def _is_pin_client_blocked(client_key: str) -> bool:
+    with _PIN_RATE_LIMIT_LOCK:
+        blocked_until = _PIN_BLOCK_UNTIL.get(client_key)
+        if blocked_until and time.time() < blocked_until:
+            return True
+        if blocked_until and time.time() >= blocked_until:
+            _PIN_BLOCK_UNTIL.pop(client_key, None)
+            _PIN_FAILED_ATTEMPTS.pop(client_key, None)
+        return False
+
+
+def _register_pin_failure(client_key: str) -> None:
+    now_ts = time.time()
+    with _PIN_RATE_LIMIT_LOCK:
+        attempts = [t for t in _PIN_FAILED_ATTEMPTS.get(client_key, []) if now_ts - t < _PIN_ATTEMPT_WINDOW_SECONDS]
+        attempts.append(now_ts)
+        _PIN_FAILED_ATTEMPTS[client_key] = attempts
+        if len(attempts) >= _PIN_MAX_ATTEMPTS:
+            _PIN_BLOCK_UNTIL[client_key] = now_ts + _PIN_BLOCK_SECONDS
+            logger.warning(
+                f"ADMIN_PIN_SECURITY: {client_key} brute-force şüphesiyle {_PIN_BLOCK_SECONDS // 60} dk bloklandı."
+            )
+
+
+def _register_pin_success(client_key: str) -> None:
+    with _PIN_RATE_LIMIT_LOCK:
+        _PIN_FAILED_ATTEMPTS.pop(client_key, None)
+        _PIN_BLOCK_UNTIL.pop(client_key, None)
+
+
+def _make_admin_session_token(pin_value: str) -> str:
+    return hmac.new(_ADMIN_SESSION_SECRET.encode("utf-8"), pin_value.encode("utf-8"), hashlib.sha256).hexdigest()
+
+
+def _admin_session_token_is_valid(token: Optional[str]) -> bool:
+    if not token:
+        return False
+    return any(hmac.compare_digest(token, _make_admin_session_token(p)) for p in ADMIN_PINS)
+
+
+def authorize_admin_request(
+    request: Request,
+    pin: Optional[str] = None,
+    x_admin_pin: Optional[str] = None,
+    session_token: Optional[str] = None,
+) -> bool:
+    """
+    IP bazlı brute-force korumalı yönetici yetkilendirmesi.
+    Geçerli bir oturum çerezi varsa PIN'i tekrar sormadan doğrular (rate-limit'e tabi değildir,
+    çünkü çerez zaten daha önce başarılı bir PIN doğrulamasının kanıtıdır).
+    """
+    if _admin_session_token_is_valid(session_token):
+        return True
+
+    client_key = _extract_client_ip(request)
+    if _is_pin_client_blocked(client_key):
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Çok fazla hatalı PIN denemesi. Lütfen 15 dakika sonra tekrar deneyin.",
+        )
+
+    is_valid = verify_admin_pin(pin, x_admin_pin)
+    if is_valid:
+        _register_pin_success(client_key)
+    else:
+        _register_pin_failure(client_key)
+    return is_valid
+
+
+def _with_baseline_lock(fn):
+    """OFFICIAL_STORE_BASELINE üzerinde okuma/güncelleme yapan fonksiyonları eşzamanlılığa karşı korur."""
+    def _wrapped(*args, **kwargs):
+        with _BASELINE_LOCK:
+            return fn(*args, **kwargs)
+    return _wrapped
+
+
+@_with_baseline_lock
 def sync_live_store_apis() -> Dict[str, Any]:
     """
     Yerel veya ortam değişkenlerinde Apple (.p8) ve Google Play (Service Account)
@@ -541,8 +660,8 @@ def sync_live_store_apis() -> Dict[str, Any]:
         try:
             with open(p8_path, "r", encoding="utf-8") as f:
                 asc_priv_key = f.read()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Failed to read Apple .p8 key file (%s): %s", p8_path, e)
 
     if asc_priv_key:
         asc_priv_key = asc_priv_key.replace("\\n", "\n")
@@ -664,8 +783,8 @@ def sync_live_store_apis() -> Dict[str, Any]:
                                                 {"code": cc_k, "flag": "🌍", "name": cc_k, "count": cc_v}
                                             )
                                 synced_sources.append(f"Apple Sales Report ({rep_date})")
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("Apple Sales Report sync warning (%s): %s", rep_date, e)
 
                 # Ayrıca SUBSCRIPTION durum özetinden tekil aktif ücretli, kodlu ve deneme abone sayılarını doğrula
                 sub_state_url = (
@@ -703,8 +822,8 @@ def sync_live_store_apis() -> Dict[str, Any]:
                                         f"Yıllık VIP ({code_cnt} DamlaEge2026 Kodlu)": code_cnt,
                                     }
                                     synced_sources.append(f"Apple Subscription State ({rep_date})")
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("Apple Subscription State sync warning (%s): %s", rep_date, e)
 
                 # Ayrıca SUBSCRIBER (DETAILED 1_3) raporundan tekil Subscriber ID, ödeme, kod ve ülke kayıtlarını DB'ye işle
                 sub_det_url = (
@@ -788,8 +907,8 @@ def sync_live_store_apis() -> Dict[str, Any]:
                                     synced_sources.append(f"Apple Subscriber Ledger ({rep_date})")
                                 finally:
                                     db_sync.close()
-                except Exception:
-                    pass
+                except Exception as e:
+                    logger.warning("Apple Subscriber Ledger sync warning (%s): %s", rep_date, e)
         except Exception as e:
             logger.warning(f"Live Apple API sync skipped/warn: {e}")
 
@@ -814,8 +933,8 @@ def sync_live_store_apis() -> Dict[str, Any]:
             db_state.commit()
         finally:
             db_state.close()
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("StoreSyncState persistence warning: %s", e)
     return {"synced": bool(synced_sources), "sources": synced_sources}
 
 
@@ -939,13 +1058,18 @@ def sanitize_csv_cell(val: Any) -> str:
     return s
 
 
+@_with_baseline_lock
 def ensure_historical_seed(db: Session) -> None:
     """Tablo boşsa 143 geçmiş Railway tıklamasını, mağaza baz yapılandırmalarını ve 12 tekil abone defterini tohumlar."""
     global _HISTORICAL_SEED_DONE, _CAMPAIGN_SEED_DONE, _WAREHOUSE_SEED_DONE
+    try:
+        bind_target = db.get_bind() if db is not None else engine
+        Base.metadata.create_all(bind=bind_target)
+    except Exception:
+        Base.metadata.create_all(bind=engine)
     if _HISTORICAL_SEED_DONE and _CAMPAIGN_SEED_DONE and _WAREHOUSE_SEED_DONE:
         return
     try:
-        Base.metadata.create_all(bind=engine)
         if not _HISTORICAL_SEED_DONE:
             existing_count = db.query(BridgeClick.id).limit(1).count()
             if existing_count == 0:
@@ -1223,111 +1347,126 @@ async def record_app_open_signal(
     now_utc = datetime.now(timezone.utc)
     cutoff_24h = now_utc - timedelta(hours=24)
 
+    # daily_active tekilleştirmesi UTC değil, Türkiye saati (TSİ / UTC+3) gün başlangıcıyla hizalanır.
+    tz_tr = timezone(timedelta(hours=3))
+    now_tr = now_utc.astimezone(tz_tr)
+    today_start_tr = datetime(now_tr.year, now_tr.month, now_tr.day, tzinfo=tz_tr)
+    today_start_utc = today_start_tr.astimezone(timezone.utc)
+
     clean_uid = "".join(ch for ch in payload.device_uid if ch.isalnum() or ch in ("-", "_"))[:100] or "anon"
     clean_event = "".join(ch for ch in payload.event_type if ch.isalnum() or ch == "_")[:40] or "first_open"
 
-    if clean_event == "first_open":
-        existing_open = (
-            db.query(AppInstallSignal)
-            .filter(
-                AppInstallSignal.device_uid == clean_uid,
-                AppInstallSignal.event_type == "first_open",
+    # first_open/daily_active için eşzamanlı isteklerde çift kayıt oluşmasını (TOCTOU) önlemek
+    # amacıyla "mevcut kaydı kontrol et + yoksa oluştur" işlemi tek bir kilit altında yapılır.
+    needs_dedup_lock = clean_event in ("first_open", "daily_active")
+    if needs_dedup_lock:
+        _APP_OPEN_SIGNAL_LOCK.acquire()
+    try:
+        if clean_event == "first_open":
+            existing_open = (
+                db.query(AppInstallSignal)
+                .filter(
+                    AppInstallSignal.device_uid == clean_uid,
+                    AppInstallSignal.event_type == "first_open",
+                )
+                .first()
             )
-            .first()
-        )
-        if existing_open:
-            return {
-                "status": "already_recorded",
-                "signal_id": existing_open.id,
-                "matched_channel": existing_open.matched_channel,
-                "match_confidence": existing_open.match_confidence,
-            }
-    elif clean_event == "daily_active":
-        today_start_utc = datetime(now_utc.year, now_utc.month, now_utc.day, tzinfo=timezone.utc)
-        existing_daily = (
-            db.query(AppInstallSignal)
-            .filter(
-                AppInstallSignal.device_uid == clean_uid,
-                AppInstallSignal.event_type == "daily_active",
-                AppInstallSignal.created_at >= today_start_utc,
+            if existing_open:
+                return {
+                    "status": "already_recorded",
+                    "signal_id": existing_open.id,
+                    "matched_channel": existing_open.matched_channel,
+                    "match_confidence": existing_open.match_confidence,
+                }
+        elif clean_event == "daily_active":
+            existing_daily = (
+                db.query(AppInstallSignal)
+                .filter(
+                    AppInstallSignal.device_uid == clean_uid,
+                    AppInstallSignal.event_type == "daily_active",
+                    AppInstallSignal.created_at >= today_start_utc,
+                )
+                .first()
             )
-            .first()
+            if existing_daily:
+                return {
+                    "status": "already_recorded_today",
+                    "signal_id": existing_daily.id,
+                    "matched_channel": existing_daily.matched_channel,
+                    "match_confidence": existing_daily.match_confidence,
+                }
+
+        candidates: List[BridgeClick] = (
+            db.query(BridgeClick)
+            .filter(
+                BridgeClick.is_bot.is_(False),
+                BridgeClick.os_family == os_family,
+                BridgeClick.created_at >= cutoff_24h,
+            )
+            .order_by(desc(BridgeClick.created_at))
+            .limit(200)
+            .all()
         )
-        if existing_daily:
-            return {
-                "status": "already_recorded_today",
-                "signal_id": existing_daily.id,
-                "matched_channel": existing_daily.matched_channel,
-                "match_confidence": existing_daily.match_confidence,
-            }
 
-    candidates: List[BridgeClick] = (
-        db.query(BridgeClick)
-        .filter(
-            BridgeClick.is_bot.is_(False),
-            BridgeClick.os_family == os_family,
-            BridgeClick.created_at >= cutoff_24h,
-        )
-        .order_by(desc(BridgeClick.created_at))
-        .limit(200)
-        .all()
-    )
+        matched_click: Optional[BridgeClick] = None
+        confidence = "unmatched"
 
-    matched_click: Optional[BridgeClick] = None
-    confidence = "unmatched"
+        for c in candidates:
+            c_time = c.created_at.replace(tzinfo=timezone.utc) if c.created_at.tzinfo is None else c.created_at
+            delta_sec = max(0.0, (now_utc - c_time).total_seconds())
+            c_base_ip = extract_base_ip(c.ip_masked)
 
-    for c in candidates:
-        c_time = c.created_at.replace(tzinfo=timezone.utc) if c.created_at.tzinfo is None else c.created_at
-        delta_sec = max(0.0, (now_utc - c_time).total_seconds())
-        c_base_ip = extract_base_ip(c.ip_masked)
+            if c_base_ip == base_ip and base_ip != "unknown":
+                if delta_sec <= 1800:
+                    matched_click = c
+                    confidence = "high"
+                    break
+                elif delta_sec <= 86400:
+                    matched_click = c
+                    confidence = "medium"
+                    break
 
-        if c_base_ip == base_ip and base_ip != "unknown":
-            if delta_sec <= 1800:
-                matched_click = c
-                confidence = "high"
-                break
-            elif delta_sec <= 86400:
-                matched_click = c
+        if matched_click is None and candidates:
+            top_c = candidates[0]
+            top_time = top_c.created_at.replace(tzinfo=timezone.utc) if top_c.created_at.tzinfo is None else top_c.created_at
+            if (now_utc - top_time).total_seconds() <= 900 and (top_c.country or "TR") == country_clean:
+                matched_click = top_c
                 confidence = "medium"
-                break
 
-    if matched_click is None and candidates:
-        top_c = candidates[0]
-        top_time = top_c.created_at.replace(tzinfo=timezone.utc) if top_c.created_at.tzinfo is None else top_c.created_at
-        if (now_utc - top_time).total_seconds() <= 900 and (top_c.country or "TR") == country_clean:
-            matched_click = top_c
-            confidence = "medium"
+        matched_channel = matched_click.channel if matched_click else "organic_or_asa"
 
-    matched_channel = matched_click.channel if matched_click else "organic_or_asa"
+        sig = AppInstallSignal(
+            device_uid=clean_uid,
+            event_type=clean_event,
+            os_family=os_family,
+            platform=(payload.platform or "web_pwa")[:45],
+            app_version=(payload.app_version or "4.45.0")[:30],
+            ip_masked=ip_masked[:60],
+            country=country_clean,
+            matched_click_id=matched_click.id if matched_click else None,
+            matched_channel=matched_channel,
+            match_confidence=confidence,
+            created_at=now_utc,
+        )
+        db.add(sig)
+        db.commit()
+        db.refresh(sig)
 
-    sig = AppInstallSignal(
-        device_uid=clean_uid,
-        event_type=clean_event,
-        os_family=os_family,
-        platform=(payload.platform or "web_pwa")[:45],
-        app_version=(payload.app_version or "4.45.0")[:30],
-        ip_masked=ip_masked[:60],
-        country=country_clean,
-        matched_click_id=matched_click.id if matched_click else None,
-        matched_channel=matched_channel,
-        match_confidence=confidence,
-        created_at=now_utc,
-    )
-    db.add(sig)
-    db.commit()
-    db.refresh(sig)
-
-    return {
-        "status": "ok",
-        "signal_id": sig.id,
-        "matched_channel": matched_channel,
-        "match_confidence": confidence,
-        "matched_click_id": sig.matched_click_id,
-    }
+        return {
+            "status": "ok",
+            "signal_id": sig.id,
+            "matched_channel": matched_channel,
+            "match_confidence": confidence,
+            "matched_click_id": sig.matched_click_id,
+        }
+    finally:
+        if needs_dedup_lock:
+            _APP_OPEN_SIGNAL_LOCK.release()
 
 
 @router.post("/campaign-config")
 async def update_campaign_config(
+    request: Request,
     pin: Optional[str] = Form(None),
     channel_key: str = Form(...),
     spend_usd: float = Form(0.0),
@@ -1337,7 +1476,7 @@ async def update_campaign_config(
     notes: Optional[str] = Form(None),
     db: Session = Depends(get_db),
 ):
-    if not verify_admin_pin(pin, None):
+    if not authorize_admin_request(request, pin, None, request.cookies.get(_ADMIN_SESSION_COOKIE)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz Yönetici PIN kodu.")
 
     ensure_historical_seed(db)
@@ -1546,7 +1685,10 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     distinct_signal_devices = len({s.device_uid for s in signals if s.event_type in ("first_open", "daily_active", "baby_created")})
 
     # Resmi Mağaza Verileri (Apple App Store Connect API + Google Play API)
-    sb = OFFICIAL_STORE_BASELINE
+    # Eşzamanlı sync_live_store_apis() güncellemeleriyle çakışmayı önlemek için
+    # kilit altında atomik bir anlık görüntü (deepcopy) alınır.
+    with _BASELINE_LOCK:
+        sb = copy.deepcopy(OFFICIAL_STORE_BASELINE)
     apple_impressions = sb["apple_impressions_total"]
     apple_page_views = sb["apple_page_views_total"]
     apple_taps = sb["apple_taps_total"]
@@ -1965,13 +2107,14 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
 
 @router.get("/summary")
 async def get_analytics_summary(
+    request: Request,
     pin: Optional[str] = Query(None),
     period: Optional[str] = Query("all"),
     x_admin_pin: Optional[str] = Header(None),
     db: Session = Depends(get_db),
 ):
     """JSON API: Kümülatif mağaza, köprü ve uygulama içi büyüme verilerini döndürür."""
-    if not verify_admin_pin(pin, x_admin_pin):
+    if not authorize_admin_request(request, pin, x_admin_pin, request.cookies.get(_ADMIN_SESSION_COOKIE)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz veya eksik Yönetici PIN kodu.")
 
     summary = _build_analytics_summary(db, period=period or "all")
@@ -2002,12 +2145,13 @@ async def get_analytics_summary(
 
 @router.get("/export.csv")
 async def export_analytics_csv(
+    request: Request,
     pin: Optional[str] = Query(None),
     x_admin_pin: Optional[str] = Header(None),
     db: Session = Depends(get_db),
 ):
     """Tüm tıklama kayıtlarını Excel uyumlu ve Formula-Injection korumalı CSV olarak indirir."""
-    if not verify_admin_pin(pin, x_admin_pin):
+    if not authorize_admin_request(request, pin, x_admin_pin, request.cookies.get(_ADMIN_SESSION_COOKIE)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz Yönetici PIN kodu.")
 
     ensure_historical_seed(db)
@@ -2051,6 +2195,7 @@ async def export_analytics_csv(
 
 @router.get("/dashboard", response_class=HTMLResponse)
 async def analytics_dashboard_page(
+    request: Request,
     pin: Optional[str] = Query(None),
     period: Optional[str] = Query("all"),
     sync: Optional[str] = Query(None),
@@ -2060,7 +2205,11 @@ async def analytics_dashboard_page(
     """
     Mışıl Baby v4.45.0 — Kümülatif Büyüme, Resmi Apple/Google Mağaza API ve Görsel Kurucu Kokpiti.
     """
-    if not verify_admin_pin(pin):
+    session_token = request.cookies.get(_ADMIN_SESSION_COOKIE)
+    authorized_by_session = _admin_session_token_is_valid(session_token)
+    if not authorize_admin_request(request, pin, None, session_token):
+        # Boş ziyaret (pin yok) -> normal giriş ekranı (200). Yanlış PIN girildiyse -> 401.
+        login_status_code = status.HTTP_401_UNAUTHORIZED if pin else status.HTTP_200_OK
         return HTMLResponse(f"""
         <!DOCTYPE html>
         <html lang="tr">
@@ -2138,7 +2287,15 @@ async def analytics_dashboard_page(
           </div>
         </body>
         </html>
-        """)
+        """, status_code=login_status_code)
+
+    # Oturum çerezi: ilk kez geçerli PIN ile giriş yapıldıysa, sayfa içi linklerde
+    # ?pin= taşınmaya devam etmemesi için HttpOnly bir oturum çerezi mühürlenir.
+    new_session_cookie_value = None
+    if not authorized_by_session:
+        normalized_pin = (pin or "").strip().upper()
+        if normalized_pin in ADMIN_PINS:
+            new_session_cookie_value = _make_admin_session_token(normalized_pin)
 
     sync_banner = ""
     if sync == "1":
@@ -2150,7 +2307,6 @@ async def analytics_dashboard_page(
         """
 
     clean_period = period if period in ("all", "today", "yesterday", "7d") else "all"
-    safe_pin = html.escape(pin or "")
     s = _build_analytics_summary(db, period=clean_period)
 
     kpis = s["cumulative_kpis"]
@@ -2418,7 +2574,7 @@ async def analytics_dashboard_page(
         </tr>
         """
 
-    return HTMLResponse(f"""
+    dashboard_response = HTMLResponse(f"""
     <!DOCTYPE html>
     <html lang="tr">
     <head>
@@ -2760,8 +2916,8 @@ async def analytics_dashboard_page(
               <span class="pulse-dot" id="liveDot"></span>
               <span id="liveCountdown">Canlı: 15s</span>
             </div>
-            <a href="/api/v1/analytics/export.csv?pin={safe_pin}" class="btn">📥 CSV İndir</a>
-            <a href="/api/v1/analytics/dashboard?pin={safe_pin}&sync=1" class="btn">🔄 Mağazaları Güncelle</a>
+            <a href="/api/v1/analytics/export.csv" class="btn">📥 CSV İndir</a>
+            <a href="/api/v1/analytics/dashboard?sync=1" class="btn">🔄 Mağazaları Güncelle</a>
           </div>
         </div>
 
@@ -3147,7 +3303,7 @@ async def analytics_dashboard_page(
           <div class="bento-card">
             <div class="section-head">
               <span>⚡ Son Sosyal Medya Tıklama Kayıtları ({s['total_unique_human']} Tekil Kişi / {s['total_raw']} Toplam Tıklama)</span>
-              <a href="/api/v1/analytics/export.csv?pin={safe_pin}" class="btn">📥 Tümünü Excel/CSV İndir</a>
+              <a href="/api/v1/analytics/export.csv" class="btn">📥 Tümünü Excel/CSV İndir</a>
             </div>
             <div class="table-wrap">
               <table>
@@ -3277,3 +3433,12 @@ async def analytics_dashboard_page(
     </body>
     </html>
     """)
+    if new_session_cookie_value:
+        dashboard_response.set_cookie(
+            key=_ADMIN_SESSION_COOKIE,
+            value=new_session_cookie_value,
+            httponly=True,
+            samesite="lax",
+            max_age=7 * 24 * 3600,
+        )
+    return dashboard_response

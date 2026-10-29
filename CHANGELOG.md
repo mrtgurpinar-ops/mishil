@@ -2,6 +2,19 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.2 - Build 65] - 2026-10-29
+### 🛡️ 3'lü Konsensüs (Claude Code CLI + Codex CLI + Antigravity) Güvenlik, İzolasyon ve Veri Bütünlüğü Sertleştirmesi
+1. **Uyku Kaydı (`sleep.py`) Son Kaydı Ezme Engeli & Aile İzolasyonu:**
+   - `is_update=True` iken `client_id` veya `original_start_time` (`±2 sn` toleranslı) eşleşmediğinde bebeğin en son uyku kaydını sessizce ezen fallback kaldırıldı; eşleşme yoksa mevcut kayıtları bozmadan yeni kayıt oluşturulur.
+   - `cid_tag` sorgusunda SQL `LIKE` joker karakterleri (`_`, `%`) escape edildi ve Python katmanında tam `[cid:...]` token eşitliği doğrulandı.
+   - Geçersiz `family_code` veya başka bir aileye ait `baby_id` ile yapılan isteklerde `db.query(Baby).first()` global fallback'ine düşülmesi engellenerek `403`/`404` sahiplik izolasyonu sağlandı.
+2. **Analitik Kokpit (`analytics.py`) Thread Lock, TOCTOU ve PIN Koruması:**
+   - `OFFICIAL_STORE_BASELINE` sözlüğü `_BASELINE_LOCK` (`threading.RLock`) ve `deepcopy` snapshot koruması altına alındı; sessiz `except` blokları `logger.warning` ile loglandı.
+   - `first_open` ve `daily_active` sinyallerindeki TOCTOU yarışı `_APP_OPEN_SIGNAL_LOCK` ile kapatıldı; `daily_active` gün başlangıcı TSİ (`UTC+3`) ile hizalandı.
+   - Yönetici PIN doğrulamasına IP bazlı brute-force kilidi (`5` hatalı denemede `15 dk` blok), `MISIL_ADMIN_PINS` ortam değişkeni desteği ve `HttpOnly`/`SameSite=Lax` oturum çerezi eklendi.
+3. **İstemci Zaman Damgası & Birim Testler (`public/app.html`, `tests/test_sleep_and_analytics_remediation.py`):**
+   - `resolveSleepTimestamps` gece yarısı geçişi, benzersiz `slp_` istemci kimliği ve `appMeta().version` telemetri sürüm okuması senkronize edildi (`offlineHtml.generated.ts` güncellendi).
+
 ## [4.46.1 - Build 65] - 2026-10-29
 ### ✏️ Geriye Dönük Uyku Saati Düzenleme, Canlı Uyku Başlangıç Düzeltme & MışılSpot™ Yeniden Hesaplama Motoru
 1. **Geriye Dönük Uyku ve Rutin Saati Düzenleme (`public/app.html`):**

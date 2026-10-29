@@ -39,9 +39,17 @@ def create_or_update_sleep_log(req: SleepLogCreateRequest, db: Session = Depends
     """Record live sleep start or completion to PostgreSQL database."""
     try:
         baby_id = req.baby_id
-        if not baby_id and req.family_code:
+        if req.family_code:
             family = db.query(FamilyGroup).filter(FamilyGroup.invite_code == req.family_code.upper()).first()
-            if family and family.babies:
+            if not family:
+                raise HTTPException(status_code=404, detail="Aile kodu bulunamadı.")
+            family_baby_ids = {b.id for b in family.babies}
+            if baby_id is not None:
+                if baby_id not in family_baby_ids:
+                    raise HTTPException(status_code=403, detail="Bu bebek belirtilen aileye ait değil.")
+            else:
+                if not family_baby_ids:
+                    raise HTTPException(status_code=404, detail="Aileye kayıtlı bebek bulunamadı.")
                 baby_id = family.babies[0].id
 
         if not baby_id:
@@ -78,13 +86,25 @@ def create_or_update_sleep_log(req: SleepLogCreateRequest, db: Session = Depends
 
         log = None
         if req.is_update:
-            if req.client_id:
-                log = (
-                    db.query(SleepLog)
-                    .filter(SleepLog.baby_id == baby_id, SleepLog.notes.contains(cid_tag))
-                    .order_by(SleepLog.id.desc())
-                    .first()
+            if cid_tag:
+                escaped_cid_tag = (
+                    cid_tag.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
                 )
+                candidates = (
+                    db.query(SleepLog)
+                    .filter(
+                        SleepLog.baby_id == baby_id,
+                        SleepLog.notes.like(f"%{escaped_cid_tag}%", escape="\\"),
+                    )
+                    .order_by(SleepLog.id.desc())
+                    .all()
+                )
+                for candidate in candidates:
+                    # SQL LIKE eşleşmesi tek başına yeterli değil; "[cid:...]" token'ının
+                    # notlar içinde tam (kısmi değil) olarak bulunduğunu doğrula.
+                    if cid_tag in (candidate.notes or "").split():
+                        log = candidate
+                        break
             if not log and req.original_start_time:
                 log = (
                     db.query(SleepLog)
@@ -92,13 +112,8 @@ def create_or_update_sleep_log(req: SleepLogCreateRequest, db: Session = Depends
                     .order_by(SleepLog.id.desc())
                     .first()
                 )
-            if not log:
-                log = (
-                    db.query(SleepLog)
-                    .filter(SleepLog.baby_id == baby_id)
-                    .order_by(SleepLog.id.desc())
-                    .first()
-                )
+            # Eşleşen kayıt bulunamazsa rastgele bir kaydı (en sonuncuyu) ezmek yerine
+            # aşağıdaki else bloğu güvenli şekilde yeni bir kayıt oluşturur.
 
         if log:
             if req.start_time:
@@ -137,6 +152,8 @@ def create_or_update_sleep_log(req: SleepLogCreateRequest, db: Session = Depends
             sleep_type=log.sleep_type.value if hasattr(log.sleep_type, 'value') else str(log.sleep_type),
             created_at=log.created_at or datetime.now(timezone.utc)
         )
+    except HTTPException:
+        raise
     except Exception as exc:
         db.rollback()
         logger.error(f"Error recording sleep log: {str(exc)}", exc_info=True)
@@ -149,17 +166,18 @@ def create_or_update_sleep_log(req: SleepLogCreateRequest, db: Session = Depends
 @router.get("/logs/{identifier}", response_model=List[SleepLogResponse])
 def get_recent_sleep_logs(identifier: str, limit: int = 10, db: Session = Depends(get_db)):
     """List recent sleep logs for a baby or family group."""
-    family = db.query(FamilyGroup).filter(FamilyGroup.invite_code == identifier.upper()).first()
-    baby_id = None
-    if family and family.babies:
-        baby_id = family.babies[0].id
-
-    if not baby_id and identifier.isdigit():
+    if identifier.isdigit():
         baby_id = int(identifier)
-
-    if not baby_id:
-        baby = db.query(Baby).first()
-        baby_id = baby.id if baby else 1
+        baby = db.query(Baby).filter(Baby.id == baby_id).first()
+        if not baby:
+            raise HTTPException(status_code=404, detail="Bebek bulunamadı.")
+    else:
+        family = db.query(FamilyGroup).filter(FamilyGroup.invite_code == identifier.upper()).first()
+        if not family:
+            raise HTTPException(status_code=404, detail="Aile kodu bulunamadı.")
+        if not family.babies:
+            raise HTTPException(status_code=404, detail="Aileye kayıtlı bebek bulunamadı.")
+        baby_id = family.babies[0].id
 
     logs = (
         db.query(SleepLog)
