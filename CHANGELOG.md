@@ -2,6 +2,17 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.9] - 2026-10-29
+### ⚡ Otomatik Mağaza Senkronizasyonu & Periyodik Arka Plan Görevi (Seçenek B)
+1. **Periyodik Arka Plan Döngüsü (app/main.py, app/api/v1/endpoints/analytics.py):**
+   - FastAPI lifespan asenkron yaşam döngüsüne run_periodic_store_sync_loop() arka plan görevi entegre edildi.
+   - Sunucu açılışından 15 saniye sonra ilk tarama yapılır; ardından her 6 saatte bir (21.600 sn) Apple App Store Connect (SALES, SUBSCRIBER, r14 Discovery, r8 Sessions) ve Google Play Developer API'leri taranarak veritabanı otonom olarak güncellenir.
+   - Sunucu kapanırken asyncio.Event durdurma bayrağı ile arka plan görevi bellek sızıntısı olmadan zarifçe (graceful shutdown) sonlandırılır.
+   - PYTEST_CURRENT_TEST tespitiyle otomatik testlerde arka plan senkronizasyonunun testleri yavaşlatması önlendi.
+2. **Tek Tıkla Senkronizasyon Uç Noktası (POST /api/v1/analytics/trigger-sync):**
+   - Yönetici PIN/çerez korumalı manuel senkronizasyon uç noktası eklendi; run_in_threadpool ile FastAPI ana event loop'unu bloklamadan arka planda çalışır.
+   - test_sleep_and_analytics_remediation.py test paketine yetkisiz/yetkili doğrulama testleri eklendi (10/10 test yeşil).
+
 ## [4.46.5 - Build 65] - 2026-10-29
 ### 🛡️ Mışıl Analitik Kokpiti: 3'lü Konsensüs (`task-30` Claude CLI + `task-52` Codex CLI + Antigravity) Sıfır Statik Veri, Asenkron Mağaza Senkronizasyonu ve Güvenlik/MRR Sertleştirmesi
 1. **Sıfır Statik Veri Mimarisi (`app/api/v1/endpoints/analytics.py`, `app/db/models.py`, `public/preview_analytics_cockpit.html`):**

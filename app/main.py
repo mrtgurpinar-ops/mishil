@@ -2,6 +2,7 @@ import os
 import sys
 import time
 import uuid
+import asyncio
 
 # Ensure root package directory is in sys.path for direct python main.py runs
 project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,7 +23,7 @@ from app.core.logging import setup_logging, get_logger, request_id_ctx
 from app.db.base import Base, engine
 import app.db.models  # Ensures all SQLAlchemy models are registered in Base.metadata
 from app.api.v1.router import api_router
-from app.api.v1.endpoints.analytics import record_bridge_click
+from app.api.v1.endpoints.analytics import record_bridge_click, run_periodic_store_sync_loop
 
 # Setup structured logging
 setup_logging(debug=settings.DEBUG)
@@ -45,9 +46,14 @@ def _cleanup_rate_limit_record(now: float) -> None:
     _RATE_LIMIT_LAST_CLEANUP = now
 
 
+_store_sync_stop_event: Optional[asyncio.Event] = None
+_store_sync_task: Optional[asyncio.Task] = None
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup and shutdown events."""
+    global _store_sync_stop_event, _store_sync_task
     logger.info(f"Starting {settings.APP_NAME} in {settings.ENVIRONMENT} mode...")
     try:
         # Create database tables if they do not exist
@@ -55,8 +61,21 @@ async def lifespan(app: FastAPI):
         logger.info("Database tables verified and initialized successfully.")
     except Exception as e:
         logger.error(f"Error during DB initialization: {str(e)}", exc_info=True)
+
+    # Arka plan periyodik mağaza API senkronizasyon görevini başlat (her 6 saatte bir)
+    _store_sync_stop_event = asyncio.Event()
+    _store_sync_task = asyncio.create_task(run_periodic_store_sync_loop(_store_sync_stop_event))
+
     yield
+
     logger.info(f"Shutting down {settings.APP_NAME}...")
+    if _store_sync_stop_event:
+        _store_sync_stop_event.set()
+    if _store_sync_task:
+        try:
+            await asyncio.wait_for(_store_sync_task, timeout=3)
+        except (asyncio.TimeoutError, asyncio.CancelledError, Exception):
+            _store_sync_task.cancel()
 
 
 app = FastAPI(

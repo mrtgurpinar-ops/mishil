@@ -297,6 +297,17 @@ def test_store_daily_metric_aggregation_and_feedback_pin_isolation(client, db_se
         assert dash_res.status_code == 200
         assert "Kurumsal Büyüme" in dash_res.text
 
+    # /api/v1/analytics/trigger-sync endpoint testi
+    client.cookies.clear()
+    unauth_trig = client.post("/api/v1/analytics/trigger-sync", params={"pin": "WRONG_PIN"})
+    assert unauth_trig.status_code == 401
+
+    from unittest.mock import patch
+    with patch("app.api.v1.endpoints.analytics.sync_live_store_apis", return_value={"synced": True, "sources": ["Mock Store API"]}):
+        auth_trig = client.post("/api/v1/analytics/trigger-sync", params={"pin": "MISIL-REV-9842", "days_back": 1})
+        assert auth_trig.status_code == 200
+        assert auth_trig.json()["status"] == "ok"
+
 
 
 

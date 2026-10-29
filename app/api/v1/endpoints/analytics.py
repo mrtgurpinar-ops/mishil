@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime, timezone, timedelta
 import html
 import hashlib
@@ -979,7 +980,43 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
         "sources": _mask_sensitive_sync_value(synced_sources),
         "apple_connected": apple_connected,
         "google_connected": google_connected,
+        "synced_at": synced_at_str,
     }
+
+
+async def run_periodic_store_sync_loop(stop_event: asyncio.Event, interval_seconds: int = 21600):
+    """
+    Railway üzerinde çalışan periyodik arka plan senkronizasyonu.
+    Her 6 saatte bir (21600 sn) Apple ve Google mağaza API'lerini tarar.
+    Ortamda anahtar tanımlı değilse sessizce loglar ve bekler.
+    """
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        logger.debug("Skipping periodic store sync loop during automated tests.")
+        return
+
+    logger.info("Starting periodic store sync background loop (interval=%ds)...", interval_seconds)
+    # İlk çalışma için sunucu açılışından sonra 15 saniye bekle
+    try:
+        await asyncio.wait_for(stop_event.wait(), timeout=15)
+        return
+    except asyncio.TimeoutError:
+        pass
+
+    while not stop_event.is_set():
+        try:
+            logger.info("Triggering periodic background store sync...")
+            res = await run_in_threadpool(sync_live_store_apis, 30)
+            logger.info("Periodic store sync completed. Synced: %s, Sources: %s", res.get("synced"), res.get("sources"))
+        except Exception as e:
+            logger.warning("Periodic store sync error: %s", e)
+
+        # Bir sonraki periyoda kadar bekle
+        try:
+            await asyncio.wait_for(stop_event.wait(), timeout=interval_seconds)
+            break
+        except asyncio.TimeoutError:
+            pass
+    logger.info("Periodic store sync loop gracefully stopped.")
 
 
 def classify_user_agent(ua_raw: str) -> Dict[str, Any]:
@@ -2438,6 +2475,28 @@ async def ingest_local_store_sync(
         "upserted_daily_metrics": upserted_metrics,
         "upserted_subscribers": upserted_subs,
         "upserted_lifecycle_events": upserted_events,
+    }
+
+
+@router.post("/trigger-sync")
+async def trigger_store_sync_now(
+    request: Request,
+    pin: Optional[str] = Query(None),
+    x_admin_pin: Optional[str] = Header(None),
+    days_back: int = Query(30, ge=1, le=90),
+):
+    """Admin tarafından manuel olarak tetiklenebilen mağaza API senkronizasyonu."""
+    if not authorize_admin_request(request, pin, x_admin_pin, request.cookies.get(_ADMIN_SESSION_COOKIE)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz veya eksik Yönetici PIN kodu.")
+
+    sync_res = await run_in_threadpool(sync_live_store_apis, days_back)
+    return {
+        "status": "ok",
+        "synced": sync_res.get("synced", False),
+        "sources": sync_res.get("sources", []),
+        "apple_connected": sync_res.get("apple_connected", False),
+        "google_connected": sync_res.get("google_connected", False),
+        "synced_at": sync_res.get("synced_at", ""),
     }
 
 
