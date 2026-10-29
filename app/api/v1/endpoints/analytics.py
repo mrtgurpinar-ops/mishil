@@ -566,8 +566,16 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                         is_annual = "Yillik" in sub_name or "6809228257" in (rd.get("Subscription Apple ID") or "")
                                         prod_id = "misil_annual" if is_annual else "misil_monthly"
                                         plan_lbl = "Yıllık VIP" if is_annual else "Aylık Esnek VIP"
-                                        std_price_try = 599.99 if is_annual else 149.99
-                                        std_proc_try = 332.50 if is_annual else 83.12
+                                        paid_ref = (
+                                            db_sync.query(SubscriberLedger)
+                                            .filter(
+                                                SubscriberLedger.product_id == prod_id,
+                                                SubscriberLedger.customer_price_try > 0,
+                                            )
+                                            .first()
+                                        )
+                                        std_price_try = float(paid_ref.customer_price_try) if paid_ref else 0.0
+                                        std_proc_try = float(paid_ref.developer_proceeds_try) if paid_ref else 0.0
 
                                         ev_type_key = "refund" if refund_flag else ("paid_conversion" if c_price_try > 0 else "trial_or_code_start")
                                         dup_ev = (
@@ -946,6 +954,49 @@ def ensure_historical_seed(db: Session) -> None:
             pass
         try:
             Base.metadata.create_all(bind=engine, checkfirst=True)
+        except Exception:
+            pass
+
+    # Eski v4.46.0 sürümünden veritabanında kalan tüm statik tohum kayıtlarını (HistoricalSeed vb.) temizle
+    try:
+        del_clicks = (
+            db.query(BridgeClick)
+            .filter(
+                (BridgeClick.user_agent == "Historical Railway Deployment Log (6a91615f)")
+                | (BridgeClick.fbclid == "railway_log_backfill")
+                | (BridgeClick.utm_campaign == "misil_launch_oct2026")
+            )
+            .delete(synchronize_session=False)
+        )
+        del_campaigns = (
+            db.query(CampaignConfig)
+            .filter(CampaignConfig.reported_impressions.in_([4014, 3850, 640, 410]))
+            .delete(synchronize_session=False)
+        )
+        del_metrics = (
+            db.query(StoreDailyMetric)
+            .filter(StoreDailyMetric.impressions.in_([85, 290, 620, 740, 810, 690, 520, 311]))
+            .delete(synchronize_session=False)
+        )
+        st_row_check = db.query(StoreSyncState).filter(StoreSyncState.state_key == "primary_store_baseline").first()
+        del_sync = 0
+        if st_row_check:
+            snap = st_row_check.snapshot_json if isinstance(st_row_check.snapshot_json, dict) else {}
+            if (
+                snap.get("apple_impressions_total") == 4066
+                or (st_row_check.last_synced_at_str and "28.10.2026 22:30" in st_row_check.last_synced_at_str)
+            ):
+                db.delete(st_row_check)
+                del_sync = 1
+                with _BASELINE_LOCK:
+                    OFFICIAL_STORE_BASELINE.clear()
+                    OFFICIAL_STORE_BASELINE.update(_empty_store_state())
+        if del_clicks or del_campaigns or del_metrics or del_sync:
+            db.commit()
+    except Exception as purge_exc:
+        logger.debug("Legacy seed purge skipped: %s", purge_exc)
+        try:
+            db.rollback()
         except Exception:
             pass
 
@@ -2078,6 +2129,130 @@ async def get_analytics_summary(
     summary["recent_clicks"] = recent_serialized
     summary["product_funnel"].pop("feedbacks_list", None)
     return summary
+
+
+class StoreSyncPushPayload(BaseModel):
+    baseline_snapshot: Dict[str, Any] = Field(default_factory=dict)
+    daily_metrics: List[Dict[str, Any]] = Field(default_factory=list)
+    subscribers: List[Dict[str, Any]] = Field(default_factory=list)
+    lifecycle_events: List[Dict[str, Any]] = Field(default_factory=list)
+
+
+@router.post("/store-sync-push")
+async def ingest_local_store_sync(
+    payload: StoreSyncPushPayload,
+    request: Request,
+    pin: Optional[str] = Query(None),
+    x_admin_pin: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+):
+    """
+    Sıfır Bulut Anahtar Riski (Zero-Cloud-Key Architecture):
+    Apple .p8 ve Google Play Service Account özel anahtarları hiçbir zaman buluta yüklenmez;
+    yerel makinede çekilen resmi mağaza metrikleri bu güvenli uç nokta üzerinden canlı veritabanına aktarılır.
+    """
+    if not authorize_admin_request(request, pin, x_admin_pin, request.cookies.get(_ADMIN_SESSION_COOKIE)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz veya eksik Yönetici PIN kodu.")
+
+    ensure_historical_seed(db)
+
+    upserted_metrics = 0
+    for dm in payload.daily_metrics:
+        m_date = str(dm.get("metric_date") or "").strip()[:16]
+        plat = str(dm.get("platform") or "ios").strip()[:32]
+        if not m_date:
+            continue
+        row = (
+            db.query(StoreDailyMetric)
+            .filter(StoreDailyMetric.metric_date == m_date, StoreDailyMetric.platform == plat)
+            .first()
+        )
+        if not row:
+            row = StoreDailyMetric(metric_date=m_date, platform=plat)
+            db.add(row)
+        row.downloads_total = int(dm.get("downloads_total") or 0)
+        row.redownloads = int(dm.get("redownloads") or 0)
+        row.active_sessions = int(dm.get("active_sessions") or 0)
+        row.gross_revenue_try = float(dm.get("gross_revenue_try") or 0.0)
+        row.net_proceeds_try = float(dm.get("net_proceeds_try") or 0.0)
+        upserted_metrics += 1
+
+    upserted_subs = 0
+    if payload.subscribers:
+        db.query(SubscriberLedger).delete(synchronize_session=False)
+        for s_item in payload.subscribers:
+            sub_id = str(s_item.get("subscriber_id") or "").strip()[:128]
+            if not sub_id:
+                continue
+            db.add(
+                SubscriberLedger(
+                    subscriber_id=sub_id,
+                    platform=str(s_item.get("platform") or "ios")[:32],
+                    product_id=str(s_item.get("product_id") or "misil_monthly")[:64],
+                    plan_label=str(s_item.get("plan_label") or "Aylık Esnek")[:100],
+                    status=str(s_item.get("status") or "intro_free_trial")[:64],
+                    offer_type=str(s_item.get("offer_type") or "intro_7d_trial")[:64],
+                    offer_code_name=s_item.get("offer_code_name"),
+                    started_date=str(s_item.get("started_date") or "")[:16],
+                    converted_or_renewed_date=s_item.get("converted_or_renewed_date"),
+                    maturity_or_renewal_date=str(s_item.get("maturity_or_renewal_date") or "")[:16],
+                    auto_renew_enabled=bool(s_item.get("auto_renew_enabled", True)),
+                    customer_price_try=float(s_item.get("customer_price_try") or 0.0),
+                    developer_proceeds_try=float(s_item.get("developer_proceeds_try") or 0.0),
+                    expected_next_price_try=float(s_item.get("expected_next_price_try") or 0.0),
+                    expected_next_proceeds_try=float(s_item.get("expected_next_proceeds_try") or 0.0),
+                    country=str(s_item.get("country") or "TR")[:16],
+                    device_type=str(s_item.get("device_type") or "iPhone")[:64],
+                )
+            )
+            upserted_subs += 1
+
+    upserted_events = 0
+    if payload.lifecycle_events:
+        db.query(SubscriptionLifecycleEvent).delete(synchronize_session=False)
+        for ev in payload.lifecycle_events:
+            db.add(
+                SubscriptionLifecycleEvent(
+                    event_date=str(ev.get("event_date") or "")[:16],
+                    platform=str(ev.get("platform") or "ios")[:32],
+                    event_type=str(ev.get("event_type") or "")[:128],
+                    product_id=str(ev.get("product_id") or "")[:64],
+                    plan_label=ev.get("plan_label"),
+                    offer_code_name=ev.get("offer_code_name"),
+                    country=str(ev.get("country") or "TR")[:16],
+                    device_type=str(ev.get("device_type") or "iPhone")[:64],
+                    quantity=int(ev.get("quantity") or 1),
+                    days_before_canceling=ev.get("days_before_canceling"),
+                    cancellation_reason=ev.get("cancellation_reason"),
+                )
+            )
+            upserted_events += 1
+
+    if payload.baseline_snapshot:
+        clean_snap = _mask_sensitive_sync_value(payload.baseline_snapshot)
+        with _BASELINE_LOCK:
+            OFFICIAL_STORE_BASELINE.update(clean_snap)
+            snapshot_copy = copy.deepcopy(OFFICIAL_STORE_BASELINE)
+        st_row = db.query(StoreSyncState).filter(StoreSyncState.state_key == "primary_store_baseline").first()
+        if st_row:
+            st_row.snapshot_json = snapshot_copy
+            st_row.last_synced_at_str = str(clean_snap.get("last_synced_at") or "")
+        else:
+            db.add(
+                StoreSyncState(
+                    state_key="primary_store_baseline",
+                    snapshot_json=snapshot_copy,
+                    last_synced_at_str=str(clean_snap.get("last_synced_at") or ""),
+                )
+            )
+
+    db.commit()
+    return {
+        "status": "ok",
+        "upserted_daily_metrics": upserted_metrics,
+        "upserted_subscribers": upserted_subs,
+        "upserted_lifecycle_events": upserted_events,
+    }
 
 
 @router.get("/export.csv")
