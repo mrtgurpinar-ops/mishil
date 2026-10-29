@@ -3,7 +3,9 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Any
 from app.services.ai_sleep_coach import ask_mishil_dadi, stream_mishil_dadi
+from app.core.logging import get_logger
 
+logger = get_logger("coach_endpoint")
 router = APIRouter()
 
 
@@ -19,7 +21,7 @@ class CoachChatRequest(BaseModel):
     user_name: Optional[str] = Field(default=None, description="Soruyu soran ebeveynin adı")
     manual_leap: Optional[int] = Field(default=None, description="Manuel aktif edilmiş sıçrama numarası (1-10)")
     routine_rollup: Optional[Dict[str, Any]] = Field(default=None, description="Bebeğin son rutin rollup özeti (uyku, beslenme ml, bez, gece uyanma)")
-    message: str = Field(..., min_length=1, description="Ebeveynin/Dadının Mışıl Dadı'ya sorusu")
+    message: str = Field(..., min_length=1, max_length=4000, description="Ebeveynin/Dadının Mışıl Dadı'ya sorusu")
     chat_history: Optional[List[Dict[str, str]]] = Field(default=[], description="Önceki sohbet geçmişi")
 
 
@@ -49,9 +51,10 @@ async def chat_with_coach(payload: CoachChatRequest):
         )
         return CoachChatResponse(**result)
     except Exception as e:
+        logger.error(f"Coach chat error: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Mışıl Dadı yanıt üretirken bir hata oluştu: {str(e)}"
+            detail="Mışıl Dadı şu an yanıt üretirken geçici bir yoğunluk yaşıyor, lütfen birazdan tekrar deneyin."
         )
 
 
@@ -81,8 +84,9 @@ async def stream_coach_response(payload: CoachChatRequest):
             }
         )
     except Exception as e:
+        logger.error(f"Coach stream error: {str(e)}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Mışıl Dadı akışı başlatılamadı: {str(e)}"
+            detail="Mışıl Dadı canlı yanıt akışı şu an başlatılamadı, lütfen tekrar deneyin."
         )
 

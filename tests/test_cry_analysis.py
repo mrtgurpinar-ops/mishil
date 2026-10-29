@@ -52,7 +52,7 @@ class TestCryAnalysisService(unittest.TestCase):
 
         # Check probabilities
         probs = CryAnalysisService.evaluate_probabilities(features)
-        self.assertEqual(len(probs), 5)
+        self.assertEqual(len(probs), 6)
         
         # Verify probability distribution sums close to 1.0
         total_prob = sum(p.likelihood for p in probs)
@@ -60,7 +60,17 @@ class TestCryAnalysisService(unittest.TestCase):
 
         # Check top cause
         top_cause = probs[0].cause
-        self.assertIn(top_cause, [CryType.HUNGRY, CryType.TIRED, CryType.PAIN_COLIC, CryType.DISCOMFORT, CryType.BURPING_NEEDED])
+        self.assertIn(
+            top_cause,
+            [
+                CryType.HUNGRY,
+                CryType.TIRED,
+                CryType.PAIN_COLIC,
+                CryType.DISCOMFORT,
+                CryType.BURPING_NEEDED,
+                CryType.OVERSTIMULATED,
+            ],
+        )
 
 
 if __name__ == "__main__":

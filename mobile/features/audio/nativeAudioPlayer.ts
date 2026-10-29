@@ -111,7 +111,7 @@ export async function playSound(id: string, url: string, onState: StateListener)
       return;
     } catch (e) {
       console.log(`[nativeAudio] playSound deneme ${attempt + 1} hatası:`, e);
-      await unloadInternal();
+      await unloadInternal(attempt === 0);
     }
   }
   onState({ playing: false, id: null, reason: 'error' });

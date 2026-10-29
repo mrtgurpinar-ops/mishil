@@ -4800,7 +4800,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.44.1', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.46.10', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -4817,7 +4817,11 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.46.1', date: '29 Ekim 2026', latest: true, items: [
+    { v: '4.46.10', date: '30 Ekim 2026', latest: true, items: [
+      'Arka Plan Ninni Zamanlayıcı Koruması (Native Audio): Ses yükleme yeniden denemelerinde (retry) aktif uyku zamanlayıcısının sıfırlanmasını önleyen koruma eklendi.',
+      'Klinik Ağlama Analizi (6 Kategori) & Mışıl Dadı AI İyileştirmesi: 6 kategorili (aşırı uyarılma dahil) akustik ağlama doğrulaması ve Mışıl Dadı AI yanıt dayanıklılığı güncellendi.'
+    ]},
+    { v: '4.46.1', date: '29 Ekim 2026', items: [
       'Geriye Dönük Uyku Saati Düzenleme (Sleep Log Editing): Kaydedilen tüm uyku ve rutinlerin başlangıç ve uyanış saatlerini sonradan düzenleme ("✏️ Saatleri Düzenle") özelliği eklendi; anne veya babanın sayacı kapatmayı unutarak uyuyakalması durumunda fazla kaydedilen süre tek dokunuşla düzeltilebilir.',
       'Hızlı Saat Kaydırma Çipleri & Canlı Başlangıç Düzeltme: Düzenleme penceresine "⏪ Uyanış -15 dk / -30 dk / -1 saat" hızlı düzeltme çipleri ve aktif canlı uyku sırasında başlangıç saatini geriye çekme ("🕓 Başlangıç: HH:MM • Saatini Düzelt ✏️") özelliği eklendi.',
       'Otomatik MışılSpot™ ve Gelişim Skoru Yeniden Hesaplama: Gece yarısını (00:00) aşan uykularda tarih kayması hatası giderildi; uyku saati güncellendiğinde bir sonraki MışılSpot™ hedef uyku penceresi ve Gelişim Skoru anında yeniden hesaplanır.'

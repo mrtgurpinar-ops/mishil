@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.10] - 2026-10-30
+### 🛡️ 3'lü Konsensüs (`task-12`/`task-70` Claude CLI + `task-33`/`task-71` Codex CLI + Antigravity) Sıfır Regresyonlu Güvenlik, Test ve Native Ses Zamanlayıcı Sertleştirmesi
+1. **Native Arka Plan Ses Motoru Zamanlayıcı Koruması (`mobile/features/audio/nativeAudioPlayer.ts`):**
+   - `playSound()` içinde ilk denemede hata alınıp 2. denemeye (cache-bust retry) geçilirken `unloadInternal(attempt === 0)` (`keepTimer=true`) çağrılarak aktif uyku zamanlayıcısının (`15/30/45/60 dk`) sıfırlanması önlendi.
+2. **Test Paketi (%100 Yeşil) & Bulut Maliyet Koruması (`tests/test_cry_analysis.py`, `test_veo_31_video.py`):**
+   - `test_cry_analysis.py` içinde 6 kategorili (`CryType.OVERSTIMULATED` dahil) olasılık doğrulaması güncellendi (`25/25 pytest` yeşil).
+   - `test_veo_31_video.py` içindeki Vertex AI Veo çağrısı `if __name__ == "__main__":` bloğu altına alınarak `pytest` import aşamasında ücretli bulut çağrısı tetiklenmesi engellendi.
+3. **Apple Pre-Flight Doğrulayıcı & Mışıl Dadı AI Dayanıklılığı (`core/apple_preflight_validator.py`, `app/api/v1/endpoints/coach.py`, `public/app.html`):**
+   - `apple_preflight_validator.py` içinde aboneliklerin `state` alanı okunarak halihazırda `APPROVED`/`READY_FOR_SALE` durumdaki abonelikler için yanlış pozitif `Guideline 2.1(b)` hatası giderildi (`mobile_compliance_checker.py` ➔ `READY_FOR_RELEASE`).
+   - `coach.py` içinde `message` alanına `max_length=4000` eklendi ve hata durumunda ham `str(e)` sızıntısı kapatıldı.
+   - `public/app.html` içindeki `WEB_APP_META.version` ve `CHANGELOG_ENTRIES` `4.46.9` ile hizalanarak `offlineHtml.generated.ts` yenilendi.
+
 ## [4.46.9] - 2026-10-29
 ### ⚡ Otomatik Mağaza Senkronizasyonu & Periyodik Arka Plan Görevi (Seçenek B)
 1. **Periyodik Arka Plan Döngüsü (app/main.py, app/api/v1/endpoints/analytics.py):**
