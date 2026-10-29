@@ -663,8 +663,9 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
 
             # 5) Apple Analytics Report Requests (r14 Discovery & Engagement + r8 App Sessions) -> Gerçek Gösterim, Sayfa Ziyareti ve Oturumlar
             try:
+                asc_app_id = os.environ.get("ASC_APP_ID", "6809223195")
                 arr_req = urllib.request.Request(
-                    f"https://api.appstoreconnect.apple.com/v1/apps/{app_id}/analyticsReportRequests",
+                    f"https://api.appstoreconnect.apple.com/v1/apps/{asc_app_id}/analyticsReportRequests",
                     headers={"Authorization": f"Bearer {token}"},
                 )
                 with urllib.request.urlopen(arr_req, timeout=5) as arr_resp:
@@ -674,10 +675,10 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                 pv_by_date: Counter = Counter()
                 pv_uniq_by_date: Counter = Counter()
                 sess_by_date: Counter = Counter()
-                imp_search_total = 0
-                imp_browse_total = 0
-                imp_ref_total = 0
-                taps_total = 0
+                imp_search_by_date: Counter = Counter()
+                imp_browse_by_date: Counter = Counter()
+                imp_ref_by_date: Counter = Counter()
+                taps_by_date: Counter = Counter()
                 optin_devices_max = 0
 
                 for arr_item in arr_items:
@@ -714,6 +715,10 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                     d_imp_u: Counter = Counter()
                                     d_pv: Counter = Counter()
                                     d_pv_u: Counter = Counter()
+                                    d_search: Counter = Counter()
+                                    d_browse: Counter = Counter()
+                                    d_ref: Counter = Counter()
+                                    d_taps: Counter = Counter()
                                     for ln in s_lines[1:]:
                                         row_d = dict(zip(s_hdr, ln.split("\t")))
                                         dt_s = (row_d.get("Date") or "").strip()
@@ -725,16 +730,16 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                             d_imp[dt_s] += cnt_v
                                             d_imp_u[dt_s] += ucnt_v
                                             if "search" in src_s.lower():
-                                                imp_search_total += cnt_v
+                                                d_search[dt_s] += cnt_v
                                             elif "browse" in src_s.lower():
-                                                imp_browse_total += cnt_v
+                                                d_browse[dt_s] += cnt_v
                                             elif "referrer" in src_s.lower():
-                                                imp_ref_total += cnt_v
+                                                d_ref[dt_s] += cnt_v
                                         elif ev_s == "Page view":
                                             d_pv[dt_s] += cnt_v
                                             d_pv_u[dt_s] += ucnt_v
                                         elif ev_s == "Tap":
-                                            taps_total += cnt_v
+                                            d_taps[dt_s] += cnt_v
                                     for dt_k, v_c in d_imp.items():
                                         imp_by_date[dt_k] = max(imp_by_date[dt_k], v_c)
                                     for dt_k, v_c in d_imp_u.items():
@@ -743,6 +748,14 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                         pv_by_date[dt_k] = max(pv_by_date[dt_k], v_c)
                                     for dt_k, v_c in d_pv_u.items():
                                         pv_uniq_by_date[dt_k] = max(pv_uniq_by_date[dt_k], v_c)
+                                    for dt_k, v_c in d_search.items():
+                                        imp_search_by_date[dt_k] = max(imp_search_by_date[dt_k], v_c)
+                                    for dt_k, v_c in d_browse.items():
+                                        imp_browse_by_date[dt_k] = max(imp_browse_by_date[dt_k], v_c)
+                                    for dt_k, v_c in d_ref.items():
+                                        imp_ref_by_date[dt_k] = max(imp_ref_by_date[dt_k], v_c)
+                                    for dt_k, v_c in d_taps.items():
+                                        taps_by_date[dt_k] = max(taps_by_date[dt_k], v_c)
                     except Exception as r14_exc:
                         logger.debug("Apple r14 analytics sync info (%s): %s", req_id, r14_exc)
 
@@ -815,12 +828,12 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                     with _BASELINE_LOCK:
                         OFFICIAL_STORE_BASELINE["apple_impressions_total"] = sum(imp_by_date.values())
                         OFFICIAL_STORE_BASELINE["apple_impressions_unique"] = sum(imp_uniq_by_date.values())
-                        OFFICIAL_STORE_BASELINE["apple_impressions_search"] = imp_search_total
-                        OFFICIAL_STORE_BASELINE["apple_impressions_browse"] = imp_browse_total
-                        OFFICIAL_STORE_BASELINE["apple_impressions_referrer"] = imp_ref_total
+                        OFFICIAL_STORE_BASELINE["apple_impressions_search"] = sum(imp_search_by_date.values())
+                        OFFICIAL_STORE_BASELINE["apple_impressions_browse"] = sum(imp_browse_by_date.values())
+                        OFFICIAL_STORE_BASELINE["apple_impressions_referrer"] = sum(imp_ref_by_date.values())
                         OFFICIAL_STORE_BASELINE["apple_page_views_total"] = sum(pv_by_date.values())
                         OFFICIAL_STORE_BASELINE["apple_page_views_unique"] = sum(pv_uniq_by_date.values())
-                        OFFICIAL_STORE_BASELINE["apple_taps_total"] = taps_total
+                        OFFICIAL_STORE_BASELINE["apple_taps_total"] = sum(taps_by_date.values())
                         OFFICIAL_STORE_BASELINE["apple_sessions_total"] = sum(sess_by_date.values())
                         OFFICIAL_STORE_BASELINE["apple_sessions_optin_devices"] = optin_devices_max
             except Exception as arr_exc:
