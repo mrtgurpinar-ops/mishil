@@ -25,7 +25,7 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from sqlalchemy import desc, inspect, text
 
 try:
     import jwt
@@ -322,7 +322,7 @@ def _convert_to_try(amount: float, currency_code: Optional[str]) -> float:
     return round(float(amount or 0.0) * rate, 2)
 
 
-def sync_live_store_apis(days_back: int = 12) -> Dict[str, Any]:
+def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
     """
     P0-1 & Sıfır Statik Veri Çözümü:
     Ağ G/Ç işlemleri _BASELINE_LOCK dışında yürütülür; Apple App Store Connect API ve
@@ -932,7 +932,18 @@ def ensure_historical_seed(db: Session) -> None:
     try:
         bind_target = db.connection() if db is not None else engine
         Base.metadata.create_all(bind=bind_target, checkfirst=True)
-    except Exception:
+        insp = inspect(bind_target)
+        if insp.has_table("store_daily_metrics"):
+            existing_cols = {col["name"] for col in insp.get_columns("store_daily_metrics")}
+            if "active_sessions" not in existing_cols:
+                db.execute(text("ALTER TABLE store_daily_metrics ADD COLUMN active_sessions INTEGER NOT NULL DEFAULT 0"))
+                db.commit()
+    except Exception as schema_exc:
+        logger.warning("Schema migration check warning: %s", schema_exc)
+        try:
+            db.rollback()
+        except Exception:
+            pass
         try:
             Base.metadata.create_all(bind=engine, checkfirst=True)
         except Exception:
@@ -2272,7 +2283,8 @@ async def analytics_dashboard_page(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Geçersiz dönem filtresi: {period}. İzin verilenler: {', '.join(ALLOWED_PERIODS)}",
         )
-    s = _build_analytics_summary(db, period=period)
+    clean_period = period
+    s = _build_analytics_summary(db, period=clean_period)
 
     kpis = s["cumulative_kpis"]
     sb = s["store_official"]

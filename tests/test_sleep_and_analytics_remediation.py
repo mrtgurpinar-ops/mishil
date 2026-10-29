@@ -291,5 +291,12 @@ def test_store_daily_metric_aggregation_and_feedback_pin_isolation(client, db_se
     assert "9X8Y7Z6W5V" not in masked_payload["status"]
     assert "AuthKey_[MASKED]" in masked_payload["status"]
 
+    # Canlı HTML Kokpit (/admin/analytics -> /api/v1/analytics/dashboard) uçtan uca 200 OK dönmeli
+    for p_val in ("all", "today", "yesterday", "7d"):
+        dash_res = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842", "period": p_val})
+        assert dash_res.status_code == 200
+        assert "Kurumsal Büyüme" in dash_res.text
+
+
 
 
