@@ -31,7 +31,10 @@ from sqlalchemy import desc, inspect, text
 try:
     import jwt
 except ImportError:
-    jwt = None
+    try:
+        from jose import jwt
+    except ImportError:
+        jwt = None
 
 from app.db.base import get_db, SessionLocal, engine
 from app.db.models import (
@@ -346,8 +349,8 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
         bn = os.path.basename(p8_path)
         if bn.startswith("AuthKey_") and bn.endswith(".p8"):
             detected_key_id = bn[len("AuthKey_"):-len(".p8")]
-    asc_key_id = os.environ.get("ASC_KEY_ID", detected_key_id)
-    asc_issuer_id = os.environ.get("ASC_ISSUER_ID", "7d2413c6-ea40-4bd9-9334-8313a514b0e6" if p8_path else "")
+    asc_key_id = os.environ.get("ASC_KEY_ID") or detected_key_id or "8YHMP6BH2H"
+    asc_issuer_id = os.environ.get("ASC_ISSUER_ID") or "7d2413c6-ea40-4bd9-9334-8313a514b0e6"
     asc_priv_key = os.environ.get("ASC_PRIVATE_KEY")
 
     if not asc_priv_key and p8_path:
@@ -359,6 +362,8 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
 
     if asc_priv_key:
         asc_priv_key = asc_priv_key.replace("\\n", "\n")
+    else:
+        logger.info("Apple private key (.p8) not found on disk or environment.")
 
     synced_sources: List[str] = []
     fetched_apple_reviews: List[Dict[str, Any]] = []
