@@ -2,6 +2,40 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.5 - Build 65] - 2026-10-29
+### 🛡️ Mışıl Analitik Kokpiti: 3'lü Konsensüs (`task-30` Claude CLI + `task-52` Codex CLI + Antigravity) Sıfır Statik Veri, Asenkron Mağaza Senkronizasyonu ve Güvenlik/MRR Sertleştirmesi
+1. **Sıfır Statik Veri Mimarisi (`app/api/v1/endpoints/analytics.py`, `app/db/models.py`, `public/preview_analytics_cockpit.html`):**
+   - İcra & Doğrulama: **3'lü Konsensüs** (`task-30` Claude Code CLI + `task-52` Codex CLI `gpt-6-luna` + Antigravity).
+   - `OFFICIAL_STORE_BASELINE` içindeki tüm sabit/statik sayılar, `VERIFIED_SUBSCRIBER_LEDGER_SEED` (12 sabit abone), `HISTORICAL_SEED_DATA` (sabit tıklama/kampanya tohumları), sabit reklam harcaması/indirme sayıları (`77.0 $`, `47`, `14`, `7`), sabit tarihler (`2026-10-18`, `2026-10-21`, `2026-10-28`) ve sabit kohort tutundurma metinleri (`%100.0`) tamamen kaldırıldı.
+   - Tüm KPI'lar, zaman serisi, ASO attribution matrisi, kampanya harcamaları (`CampaignConfig`), günlük mağaza metrikleri (`StoreDailyMetric` — `(metric_date, platform)` tekillik kısıtı ile), abone defteri (`SubscriberLedger`), yaşam döngüsü olayları (`SubscriptionLifecycleEvent`) ve `app.html` uygulama içi sinyalleri (`first_open`, `daily_active`, `store_jump`, `baby_created`, `vip_started`, `sleep_sound_play`, `cry_analysis`) %100 dinamik olarak veritabanından ve canlı API senkronizasyonundan beslenecek şekilde yeniden yazıldı.
+   - `public/preview_analytics_cockpit.html` içindeki dondurulmuş statik HTML anlık görüntüsü ve gömülü `pin=MISIL-REV-9842` sızıntısı kaldırılarak `/api/v1/analytics/summary` uç noktasından canlı veri çeken sıfır-statik önizleme kabuğuna dönüştürüldü.
+2. **P0-1 Asenkron Event-Loop Koruması & Gerçek Çift Mağaza Senkronizasyonu (`analytics.py`):**
+   - `sync_live_store_apis()` içindeki harici HTTP/API çağrıları `_BASELINE_LOCK` dışına çıkarıldı ve `analytics_dashboard_page` içinde `await run_in_threadpool(sync_live_store_apis)` ile çalıştırılarak FastAPI ana event loop'unun bloklanması önlendi.
+   - Apple App Store Connect API (`Reviews`, `SALES`, `SUBSCRIPTION 1_3`, `SUBSCRIBER 1_3`) yanında gerçek Google Play Developer API (`androidpublisher` v3 `Reviews`) senkronizasyonu eklendi.
+3. **P0-2 & P1-3 Kimlik Doğrulama, PIN İzolasyonu ve Oturum Süresi (`analytics.py`):**
+   - Mağaza inceleme ekibi için kamuya açık olan `_GOOGLE_PLAY_REVIEWER_PIN` (`MISILREV2026`), yönetici kokpiti `ADMIN_PINS` listesinden çıkarıldı (`401 Unauthorized`).
+   - `_make_admin_session_token` ve `_admin_session_token_is_valid` fonksiyonlarına sunucu taraflı son kullanma zaman damgası (`exp`) doğrulaması eklendi; `POST /api/v1/analytics/login` uç noktası ile PIN kodunun URL query parametresine (`?pin=`) sızması engellendi; çerezlere `secure=(request.url.scheme == "https")` eklendi ve `AuthKey` dosya kimliği maskelendi.
+   - `POST /api/v1/analytics/campaign-config` uç noktasına `ALLOWED_CAMPAIGN_CHANNELS` whitelist doğrulaması (`400 Bad Request`) ve güçlendirilmiş `sanitize_csv_cell` formül enjeksiyonu koruması eklendi.
+4. **P1-1, P1-2 & P1-4 MRR/LTV Ayrımı, Dönem Filtresi Barı ve Oturum Tekilleştirme (`analytics.py`, `tests/test_sleep_and_analytics_remediation.py`):**
+   - Kümülatif tahsil edilen gelir (`customer_price_try`) ile tek dönemlik yinelenen aylık gelir (`expected_next_price_try` / MRR) birbirinden ayrıldı; çoklu para birimi (`TRY`/`EUR`/`USD`) dönüşümü ve `SubscriptionLifecycleEvent` üzerinden idempotent işlem kaydı sağlandı.
+   - Kokpit üst barına Dönem Filtresi (`♾️ Tüm Zamanlar`, `📅 Bugün`, `⏮️ Dün`, `📆 Son 7 Gün`) eklendi; dar dönemlerde (`today`/`yesterday`) 0 tıklama olduğunda tüm zamanlara sessizce geri dönen yanıltıcı fallback kaldırıldı.
+   - Oturum sayısında çift sayım (`apple_sessions_total + first_opens + daily_actives`) yerine `max(apple_official_sessions, live_telemetry_sessions)` tekilleştirmesi uygulandı; `pytest` birim test paketi 9/9 yeşil olarak doğrulandı.
+
+## [4.46.4 - Build 65] - 2026-10-29
+### 🎨 Mışıl Comics • Sayı #6: 3'lü Konsensüs (`task-114` Claude CLI + `task-129` Codex CLI + Antigravity) Konu/Diyalog Odaklı 7 Özgün Sahne İllüstrasyonu
+1. **Tekrar Eden Stok Görsellerin Kaldırılması & 7 Özel Çizgi Roman Sahnesi (`kullanici/instagram/karakterler/comic6_s1..s7`):**
+   - İcra & Doğrulama: **3'lü Konsensüs** (`task-114` Claude Code CLI + `task-129` Codex CLI + Antigravity).
+   - Önceki sayılardan (#2–#5) devralınan genel stok portreler kaldırılarak, Mışıl Comics #6 ("Sabaha Karşı 04:00 Ikınma Krizi! — Yenidoğan Diskezi") içerisindeki her bir slaytın konuşma balonunu, saatini ve pediatrik eylemini birebir canlandıran **7 yeni Pixar/Disney 3D çizgi roman sahnesi** üretildi:
+     - **Slayt 1 (`comic6_s1_0415_ikinma_besik.jpg`):** Komodindeki saatte `04:15` yazarken beşikte **gözleri sımsıkı kapalı**, yüzü pancar gibi kızarmış ve bacaklarını karnına çekerek ıkınan Mışıl Bebek + endişeyle izleyen Işıl Anne.
+     - **Slayt 2 (`comic6_s2_kas_koordinasyonu_diskezi.jpg`):** Ellerini karnına koyup kaslarını koordine etmeye çalışan Mışıl Bebek ve karın üzerindeki parıltılı **beyin-kas koordinasyonu (Yenidoğan Diskezi) hologramı**.
+     - **Slayt 3 (`comic6_s3_tuzak1_fitil_zeytinyagi_red.jpg`):** Elinde zeytinyağı damlalığı ve fitil tutan Işıl Anne'ye karşı iki minik elini öne uzatıp **"Dur / Hayır!"** işareti yapan Mışıl Bebek.
+     - **Slayt 4 (`comic6_s4_tuzak2_gece_isigi_bez_soku.jpg` — Claude CLI `task-114` Bulgusuyla v2):** Saat `04:20`'de tepeden yakılan parlak ışık hüzmesinden **eliyle gözünü koruyarak irkilen ve ağlayarak uyanan** Mışıl + elini alnına götürüp pişmanlık yaşayan Işıl Anne.
+     - **Slayt 5 (`comic6_s5_tuzak3_kriz_masaji_vs_aksam.jpg`):** **İkiye Bölünmüş (Split-Screen) Sahne:** Sol yarıda gece `04:00` kriz anında gergin karına yapılan yanlış masaj; sağ yarıda akşam ılık banyo sonrası sarı ördekler eşliğinde neşeyle yapılan **bisiklet bacak egzersizi ve karın masajı**.
+     - **Slayt 6 (`comic6_s6_recete_uzaktan_gozlem_rahim_sesi.jpg`):** Beşiğe müdahale etmeden parmağıyla *"Şşş, dokunma"* işareti yaparak uzaktan gözlemleyen Işıl Anne + komodindeki telefondan yayılan **Mışıl Baby Rahim İçi Uğultu ses dalgaları**.
+     - **Slayt 7 (`comic6_s7_zafer_sabah_huzurlu_uyku.jpg`):** Sabah güneş huzmeleri altında sarı yıldız peluşuna (`Yıldızcık`) sarılarak rahatlamış uyuyan Mışıl + elinde sıcak sabah kahvesiyle gülümseyen Işıl Anne.
+2. **3'lü Konsensüs Caption & Tıbbi İhtiyat Revizyonu (`post_06_sabaha_karsi_ikinma_diskezi.md`, `render_instagram_comic_06.py`, `preview_instagram_concepts.html`):**
+   - Claude CLI (`task-114`) ve Codex CLI (`task-129`) bulgularıyla; Rome IV *"yumuşak dışkılama öncesi 10–15 dk ıkınma"* kriteri, tıbben ihtiyatlı tanı dili, Slayt 5–6 bilimsel alt notları ve iki ayrı satıra ayrılmış `GÖNDERİN` / `KAYDEDİN` çağrıları entegre edildi; 7 PNG slayt yeniden derlendi (`?v=comic6_v3_consensus`).
+
 ## [4.46.2 - Build 65] - 2026-10-29
 ### 🛡️ 3'lü Konsensüs (Claude Code CLI + Codex CLI + Antigravity) Güvenlik, İzolasyon ve Veri Bütünlüğü Sertleştirmesi
 1. **Uyku Kaydı (`sleep.py`) Son Kaydı Ezme Engeli & Aile İzolasyonu:**

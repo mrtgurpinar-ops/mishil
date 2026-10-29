@@ -12,6 +12,7 @@ from sqlalchemy import (
     Boolean,
     Enum as SQLEnum,
     Text,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 from .base import Base
@@ -360,6 +361,9 @@ class CampaignConfig(Base):
 class StoreDailyMetric(Base):
     """Apple App Store Connect ve Google Play günlük resmi metrik ambarı."""
     __tablename__ = "store_daily_metrics"
+    __table_args__ = (
+        UniqueConstraint("metric_date", "platform", name="uq_store_daily_metric_date_platform"),
+    )
 
     id = Column(Integer, primary_key=True, index=True)
     metric_date = Column(String(16), index=True, nullable=False)  # 'YYYY-MM-DD'
@@ -373,6 +377,7 @@ class StoreDailyMetric(Base):
     downloads_browse = Column(Integer, default=0, nullable=False)
     downloads_referrer = Column(Integer, default=0, nullable=False)
     redownloads = Column(Integer, default=0, nullable=False)
+    active_sessions = Column(Integer, default=0, nullable=False)
     active_paid_subs = Column(Integer, default=0, nullable=False)
     active_free_trials = Column(Integer, default=0, nullable=False)
     active_offer_code_subs = Column(Integer, default=0, nullable=False)
@@ -404,8 +409,8 @@ class SubscriberLedger(Base):
     auto_renew_enabled = Column(Boolean, default=True, nullable=False)
     customer_price_try = Column(Float, default=0.0, nullable=False)
     developer_proceeds_try = Column(Float, default=0.0, nullable=False)
-    expected_next_price_try = Column(Float, default=149.99, nullable=False)
-    expected_next_proceeds_try = Column(Float, default=83.12, nullable=False)
+    expected_next_price_try = Column(Float, default=0.0, nullable=False)
+    expected_next_proceeds_try = Column(Float, default=0.0, nullable=False)
     country = Column(String(16), default="TR", nullable=False)
     device_type = Column(String(64), default="iPhone", nullable=False)
     updated_at = Column(

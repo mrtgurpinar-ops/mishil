@@ -1,9 +1,10 @@
 from datetime import datetime, timezone
+import html
 import io
 import csv
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, Request, status, Query, Header
-from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
+from fastapi import APIRouter, Depends, HTTPException, Request, status, Query, Header, Form
+from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 
@@ -11,20 +12,20 @@ from app.db.base import get_db
 from app.db.models import Feedback
 from app.models.schemas import FeedbackCreate, FeedbackResponse, BaseResponse
 from app.core.logging import get_logger
+from app.api.v1.endpoints.analytics import (
+    ADMIN_PINS,
+    authorize_admin_request,
+    verify_admin_pin,
+    sanitize_csv_cell,
+    _ADMIN_SESSION_COOKIE,
+    _ADMIN_SESSION_TTL_SECONDS,
+    _make_admin_session_token,
+    _admin_session_token_is_valid,
+)
 
 logger = get_logger("feedback")
 
 router = APIRouter(prefix="/feedback", tags=["Anne Geri Bildirimi & 5 Yıldız Çarkı"])
-
-ADMIN_PINS = {"MISIL-REV-9842", "MISILREV2026", "984271"}
-
-
-def verify_admin_pin(
-    pin: Optional[str] = Query(None),
-    x_admin_pin: Optional[str] = Header(None),
-) -> bool:
-    entered_pin = (pin or x_admin_pin or "").strip().upper()
-    return entered_pin in ADMIN_PINS
 
 
 @router.post("", response_model=BaseResponse, status_code=status.HTTP_201_CREATED)
@@ -68,13 +69,14 @@ async def submit_feedback(
 
 @router.get("/list", response_model=List[FeedbackResponse])
 async def list_feedbacks(
+    request: Request,
     pin: Optional[str] = Query(None),
     x_admin_pin: Optional[str] = Header(None),
     limit: int = Query(100, ge=1, le=500),
     db: Session = Depends(get_db),
 ):
     """JSON API: Yönetici PIN doğrulamasıyla tüm geri bildirimleri listeler."""
-    if not verify_admin_pin(pin, x_admin_pin):
+    if not authorize_admin_request(request, pin, x_admin_pin, request.cookies.get(_ADMIN_SESSION_COOKIE)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz veya eksik Yönetici PIN kodu.")
 
     feedbacks = db.query(Feedback).order_by(desc(Feedback.created_at)).limit(limit).all()
@@ -83,12 +85,13 @@ async def list_feedbacks(
 
 @router.get("/export.csv")
 async def export_feedbacks_csv(
+    request: Request,
     pin: Optional[str] = Query(None),
     x_admin_pin: Optional[str] = Header(None),
     db: Session = Depends(get_db),
 ):
     """Geri bildirimleri CSV (Excel) dosyası olarak dışa aktarır."""
-    if not verify_admin_pin(pin, x_admin_pin):
+    if not authorize_admin_request(request, pin, x_admin_pin, request.cookies.get(_ADMIN_SESSION_COOKIE)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz Yönetici PIN kodu.")
 
     feedbacks = db.query(Feedback).order_by(desc(Feedback.created_at)).all()
@@ -100,14 +103,14 @@ async def export_feedbacks_csv(
     for fb in feedbacks:
         dt_str = fb.created_at.strftime("%Y-%m-%d %H:%M:%S") if fb.created_at else ""
         writer.writerow([
-            fb.id,
-            dt_str,
-            fb.sentiment,
-            fb.baby_age_months or "",
-            fb.contact_info or "",
-            fb.platform,
-            fb.app_version or "",
-            fb.message.replace("\n", " "),
+            sanitize_csv_cell(fb.id),
+            sanitize_csv_cell(dt_str),
+            sanitize_csv_cell(fb.sentiment),
+            sanitize_csv_cell(fb.baby_age_months if fb.baby_age_months is not None else ""),
+            sanitize_csv_cell(fb.contact_info or ""),
+            sanitize_csv_cell(fb.platform),
+            sanitize_csv_cell(fb.app_version or ""),
+            sanitize_csv_cell((fb.message or "").replace("\n", " ")),
         ])
 
     output.seek(0)
@@ -118,16 +121,41 @@ async def export_feedbacks_csv(
     )
 
 
+@router.post("/login")
+async def feedback_login_post(
+    request: Request,
+    pin: Optional[str] = Form(None),
+):
+    if not verify_admin_pin(pin):
+        return HTMLResponse("Geçersiz PIN kodu.", status_code=status.HTTP_401_UNAUTHORIZED)
+    clean_pin = (pin or "").strip().upper()
+    resp = RedirectResponse(url="/api/v1/feedback/dashboard", status_code=status.HTTP_303_SEE_OTHER)
+    resp.set_cookie(
+        key=_ADMIN_SESSION_COOKIE,
+        value=_make_admin_session_token(clean_pin),
+        httponly=True,
+        samesite="lax",
+        secure=(request.url.scheme == "https"),
+        max_age=_ADMIN_SESSION_TTL_SECONDS,
+        path="/",
+    )
+    return resp
+
+
 @router.get("/dashboard", response_class=HTMLResponse)
 async def feedback_dashboard_page(
+    request: Request,
     pin: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
     """
     Şık, koyu modlu, mobil uyumlu Anne Geri Bildirimleri Yönetici Paneli.
     """
-    is_authed = verify_admin_pin(pin)
+    session_token = request.cookies.get(_ADMIN_SESSION_COOKIE)
+    authorized_by_session = _admin_session_token_is_valid(session_token)
+    is_authed = authorize_admin_request(request, pin, None, session_token)
     if not is_authed:
+        login_status = status.HTTP_401_UNAUTHORIZED if pin else status.HTTP_200_OK
         # PIN Giriş Ekranı
         return HTMLResponse(f"""
         <!DOCTYPE html>
@@ -135,6 +163,7 @@ async def feedback_dashboard_page(
         <head>
           <meta charset="UTF-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <meta name="referrer" content="no-referrer">
           <title>Yönetici Girişi — Mışıl Baby</title>
           <link rel="preconnect" href="https://fonts.googleapis.com">
           <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -202,7 +231,7 @@ async def feedback_dashboard_page(
             <div class="moon">🌙</div>
             <h2>Mışıl Geri Bildirim Paneli</h2>
             <p>Anne mesajlarını ve mağaza koruma bildirimlerini görüntülemek için PIN kodunuzu giriniz.</p>
-            <form method="GET">
+            <form method="POST" action="/api/v1/feedback/login">
               <input type="password" name="pin" placeholder="Yönetici PIN" autofocus autocomplete="off" />
               <button type="submit">Panele Giriş Yap</button>
             </form>
@@ -210,7 +239,11 @@ async def feedback_dashboard_page(
           </div>
         </body>
         </html>
-        """)
+        """, status_code=login_status)
+
+    new_cookie_val = None
+    if not authorized_by_session and verify_admin_pin(pin):
+        new_cookie_val = _make_admin_session_token((pin or "").strip().upper())
 
     # PIN Doğru — Gösterge Paneli
     feedbacks = db.query(Feedback).order_by(desc(Feedback.created_at)).all()
@@ -222,7 +255,7 @@ async def feedback_dashboard_page(
 
     rows_html = ""
     for fb in feedbacks:
-        dt_str = fb.created_at.strftime("%d.%m.%Y %H:%M") if fb.created_at else "—"
+        dt_str = html.escape(fb.created_at.strftime("%d.%m.%Y %H:%M") if fb.created_at else "—")
         
         # Platform rozeti
         plat = (fb.platform or "ios").lower()
@@ -243,8 +276,9 @@ async def feedback_dashboard_page(
             sent_badge = '<span class="badge badge-info">💡 Öneri/İstek</span>'
 
         # Bebek yaşı
-        age_str = f"👶 {fb.baby_age_months} Aylık" if fb.baby_age_months is not None else "👶 Yaş Belirtilmedi"
-        contact_str = f'<span class="contact-pill">💬 {fb.contact_info}</span>' if fb.contact_info else ""
+        age_str = f"👶 {int(fb.baby_age_months)} Aylık" if fb.baby_age_months is not None else "👶 Yaş Belirtilmedi"
+        contact_str = f'<span class="contact-pill">💬 {html.escape(str(fb.contact_info))}</span>' if fb.contact_info else ""
+        safe_msg = html.escape(str(fb.message or ""))
 
         rows_html += f"""
         <div class="feedback-card">
@@ -258,7 +292,7 @@ async def feedback_dashboard_page(
             {contact_str}
           </div>
           <div class="feedback-body">
-            "{fb.message}"
+            "{safe_msg}"
           </div>
         </div>
         """
@@ -272,12 +306,13 @@ async def feedback_dashboard_page(
         </div>
         """
 
-    return HTMLResponse(f"""
+    resp = HTMLResponse(f"""
     <!DOCTYPE html>
     <html lang="tr">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="referrer" content="no-referrer">
       <title>Mışıl Baby — Anne Geri Bildirimleri Paneli</title>
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -503,8 +538,8 @@ async def feedback_dashboard_page(
             </div>
           </div>
           <div class="actions" style="display:flex; gap:8px; flex-wrap:wrap;">
-            <a href="/api/v1/analytics/dashboard?pin={pin}" class="btn" style="background:rgba(59,130,246,0.18); color:#60A5FA; border:1px solid rgba(59,130,246,0.35); text-decoration:none; padding:10px 14px; border-radius:10px; font-size:13px; font-weight:700;">📊 Reklam & Tıklama Kokpiti</a>
-            <a href="/api/v1/feedback/export.csv?pin={pin}" class="btn btn-export">📥 CSV Olarak İndir</a>
+            <a href="/api/v1/analytics/dashboard" class="btn" style="background:rgba(59,130,246,0.18); color:#60A5FA; border:1px solid rgba(59,130,246,0.35); text-decoration:none; padding:10px 14px; border-radius:10px; font-size:13px; font-weight:700;">📊 Reklam & Tıklama Kokpiti</a>
+            <a href="/api/v1/feedback/export.csv" class="btn btn-export">📥 CSV Olarak İndir</a>
           </div>
         </div>
 
@@ -535,4 +570,15 @@ async def feedback_dashboard_page(
     </body>
     </html>
     """)
+    if new_cookie_val:
+        resp.set_cookie(
+            key=_ADMIN_SESSION_COOKIE,
+            value=new_cookie_val,
+            httponly=True,
+            samesite="lax",
+            secure=(request.url.scheme == "https"),
+            max_age=_ADMIN_SESSION_TTL_SECONDS,
+            path="/",
+        )
+    return resp
 
