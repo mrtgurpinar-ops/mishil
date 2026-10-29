@@ -3112,7 +3112,7 @@
           <div class="organic-hero-subtext" id="target-sleep-subtext">Sonraki En İdeal Uyku Vakti (1 saat 15 dk kaldı)</div>
           
           <div id="live-sleep-timer" style="display: none; font-size: 13px; font-weight: 800; color: #2ED573; margin-top: 8px; text-shadow: 0 0 12px rgba(46, 213, 115, 0.4);">
-            💤 Canlı Uyku: 00:00:00
+            💤 Canlı Uyku: 00:00:00</div><div id="live-sleep-edit-start-wrap" style="display: none; margin-top: 8px;" onclick="event.stopPropagation(); openLiveSleepStartEditModal();"><span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 999px; padding: 4px 12px; font-size: 11px; font-weight: 700; color: #FAF5EE; cursor: pointer;"><span>🕓 Başlangıç: <strong id="live-sleep-start-label">--:--</strong></span><span style="color: var(--accent); text-decoration: underline;">Saatini Düzelt ✏️</span></span>
           </div>
         </div>
 
@@ -3168,6 +3168,7 @@
           <span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>
         </button>
 
+        <div id="last-sleep-quick-edit-bar" style="display: none; align-items: center; justify-content: space-between; gap: 8px; background: rgba(244, 162, 97, 0.12); border: 1px dashed rgba(244, 162, 97, 0.45); border-radius: 14px; padding: 9px 12px; margin-top: -4px; margin-bottom: 12px;"><div style="font-size: 11px; color: var(--text-night); line-height: 15px;"><span>🌙 Son Uyku: <strong id="last-sleep-quick-summary" style="color: var(--heading-night);">—</strong></span><div style="font-size: 10px; color: var(--text-muted);" id="last-sleep-quick-sub">Uyuyakaldıysanız veya uyanış saati farklıysa düzeltin</div></div><button type="button" id="btn-last-sleep-quick-edit" onclick="editLatestSleepRoutine()" style="background: rgba(244, 162, 97, 0.22); border: 1px solid var(--accent); color: var(--accent); border-radius: 10px; padding: 6px 10px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0;">✏️ Saatleri Düzenle</button></div>
         <!-- Quick Routine Shortcuts (4 Yumuşak Dokunmatik Bento Kutusu) -->
         <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
           <span>Hızlı Rutin Kaydı</span>
@@ -4310,7 +4311,7 @@
 <div class="modal-overlay" id="modal-routine" onclick="closeModalOnOverlay(event, 'modal-routine')">
   <div class="modal-sheet no-scrollbar">
     <div class="modal-header">
-      <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">+ Manuel Rutin & Uyku Ekle</div>
+      <div id="routine-modal-header-title" style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">+ Manuel Rutin & Uyku Ekle</div>
       <button class="modal-close" onclick="closeAddRoutineModal()">✕</button>
     </div>
 
@@ -4329,11 +4330,11 @@
       <div style="display: flex; gap: 10px; margin-bottom: 12px;">
         <div style="flex: 1;">
           <label class="form-label">Uyku Başlangıç Saati</label>
-          <input type="time" class="form-input" id="routine-modal-start" value="13:00" onchange="calcModalSleepDuration()" style="margin-bottom: 0;" />
+          <input type="time" class="form-input" id="routine-modal-start" value="13:00" onchange="calcModalSleepDuration()" oninput="calcModalSleepDuration()" style="margin-bottom: 0;" />
         </div>
         <div style="flex: 1;">
           <label class="form-label">Uyanış Saati</label>
-          <input type="time" class="form-input" id="routine-modal-end" value="14:15" onchange="calcModalSleepDuration()" style="margin-bottom: 0;" />
+          <input type="time" class="form-input" id="routine-modal-end" value="14:15" onchange="calcModalSleepDuration()" oninput="calcModalSleepDuration()" style="margin-bottom: 0;" /></div></div><div id="routine-sleep-quick-shift-box" style="margin-bottom: 12px;"><div style="font-size: 10px; font-weight: 700; color: var(--accent); margin-bottom: 6px;">⚡ Hızlı Saat Düzeltme (Uyuyakaldıysanız uyanışı geri çekin):</div><div style="display: flex; flex-wrap: wrap; gap: 6px;"><button type="button" onclick="shiftModalSleepTime('end', -15)" style="flex: 1; min-width: 70px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 700; cursor: pointer;">Uyanış -15 dk</button><button type="button" onclick="shiftModalSleepTime('end', -30)" style="flex: 1; min-width: 70px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 700; cursor: pointer;">Uyanış -30 dk</button><button type="button" onclick="shiftModalSleepTime('end', -60)" style="flex: 1; min-width: 70px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 700; cursor: pointer;">Uyanış -1 saat</button><button type="button" onclick="shiftModalSleepTime('start', -15)" style="flex: 1; min-width: 70px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-night); color: var(--text-night); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 600; cursor: pointer;">Başlangıç -15 dk</button>
         </div>
       </div>
 
@@ -4395,10 +4396,11 @@
       <div class="form-group">
         <label class="form-label">Açıklama</label>
         <input type="text" class="form-input" id="routine-modal-custom-detail" placeholder="Örn: D vitamini damlası, banyo vb." />
+      </div></div><div id="routine-non-sleep-time-wrap" style="display: none; margin-bottom: 10px;"><div><label class="form-label">Kayıt Saati</label><input type="time" class="form-input" id="routine-modal-event-time" value="13:00" style="margin-bottom: 0;" />
       </div>
     </div>
 
-    <button class="btn-primary" onclick="submitCustomRoutine()" style="margin-top: 6px;">💾 Rutini Kaydet & Çizelgeye Ekle</button>
+    <button class="btn-primary" id="routine-modal-submit-btn" onclick="submitCustomRoutine()" style="margin-top: 6px;">💾 Rutini Kaydet & Çizelgeye Ekle</button></div></div><div class="modal-overlay" id="modal-live-sleep-edit" onclick="closeModalOnOverlay(event, 'modal-live-sleep-edit')"><div class="modal-sheet no-scrollbar" style="max-width: 400px;"><div class="modal-header"><div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: #FFF;">🕓 Canlı Uyku Başlangıç Saatini Düzelt</div><button class="modal-close" onclick="closeLiveSleepStartEditModal()">✕</button></div><div style="font-size: 12px; color: var(--text-muted); line-height: 17px; margin-bottom: 12px;">Bebeğiniz uykuya daldıktan sonra sayacı başlatmayı unuttuysanız veya geç bastıysanız gerçek uyku başlangıç saatini seçin:</div><div class="form-group"><label class="form-label">Uykuya Dalma Saati</label><input type="time" class="form-input" id="live-sleep-edit-time-input" value="13:00" style="font-size: 16px; font-weight: 700; text-align: center;" /></div><div style="margin-bottom: 14px;"><div style="font-size: 10px; font-weight: 700; color: var(--accent); margin-bottom: 6px;">⚡ Hızlı Geri Çek:</div><div style="display: flex; gap: 6px;"><button type="button" onclick="shiftLiveSleepModalTime(-10)" style="flex: 1; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 7px 4px; font-size: 11px; font-weight: 700; cursor: pointer;">-10 dk</button><button type="button" onclick="shiftLiveSleepModalTime(-15)" style="flex: 1; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 7px 4px; font-size: 11px; font-weight: 700; cursor: pointer;">-15 dk</button><button type="button" onclick="shiftLiveSleepModalTime(-30)" style="flex: 1; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 7px 4px; font-size: 11px; font-weight: 700; cursor: pointer;">-30 dk</button><button type="button" onclick="shiftLiveSleepModalTime(-45)" style="flex: 1; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 7px 4px; font-size: 11px; font-weight: 700; cursor: pointer;">-45 dk</button></div></div><button class="btn-primary" onclick="saveLiveSleepStartEdit()">💾 Başlangıç Saatini Güncelle</button><button class="btn-secondary" onclick="closeLiveSleepStartEditModal()" style="margin-top: 8px;">Vazgeç</button>
   </div>
 </div>
 
@@ -4815,7 +4817,12 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.44.1', date: '29 Ekim 2026', latest: true, items: [
+    { v: '4.46.1', date: '29 Ekim 2026', latest: true, items: [
+      'Geriye Dönük Uyku Saati Düzenleme (Sleep Log Editing): Kaydedilen tüm uyku ve rutinlerin başlangıç ve uyanış saatlerini sonradan düzenleme ("✏️ Saatleri Düzenle") özelliği eklendi; anne veya babanın sayacı kapatmayı unutarak uyuyakalması durumunda fazla kaydedilen süre tek dokunuşla düzeltilebilir.',
+      'Hızlı Saat Kaydırma Çipleri & Canlı Başlangıç Düzeltme: Düzenleme penceresine "⏪ Uyanış -15 dk / -30 dk / -1 saat" hızlı düzeltme çipleri ve aktif canlı uyku sırasında başlangıç saatini geriye çekme ("🕓 Başlangıç: HH:MM • Saatini Düzelt ✏️") özelliği eklendi.',
+      'Otomatik MışılSpot™ ve Gelişim Skoru Yeniden Hesaplama: Gece yarısını (00:00) aşan uykularda tarih kayması hatası giderildi; uyku saati güncellendiğinde bir sonraki MışılSpot™ hedef uyku penceresi ve Gelişim Skoru anında yeniden hesaplanır.'
+    ]},
+    { v: '4.44.1', date: '29 Ekim 2026', items: [
       'Kademeli Kısarak Kapat (Smart Fade-Out) Seçeneği: Kapanma Zamanlayıcısına (15/30/45/60 dk) isteğe bağlı açılıp kapatılabilen "🔉 Kademeli Kısarak Kapat (Fade-Out)" anahtarı eklendi; süre biterken son 30 saniyede sesi yavaşça azaltarak bebeğin ani sessizlik şokuyla uyanmasını önler.',
       'Google Play Store & Apple App Store Çift Mağaza Senkronizasyonu (Build 63): Resmi Google Play mağaza bağlantıları, akıllı cihaz yönlendirme köprüsü ve çevrimdışı yedek paket senkronize edildi.',
       'Akıllı Yerel Bildirim & Bakım Radarı (CareNotificationEngine): T.C. Sağlık Bakanlığı aşı takvimi, Wonder Weeks büyüme sıçramaları ve akşam uyku kontrolleri Android & iOS native katmanına mühürlendi.'
@@ -7767,7 +7774,7 @@
     let statusNote = '';
 
     const sleepLogs = (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines))
-      ? activeRoutines.filter(r => r.type === 'sleep' && (r.endTs || r.timestamp))
+      ? activeRoutines.filter(r => r.type === 'sleep' && (r.endTs || r.timestamp)).sort((a, b) => (b.endTs || b.timestamp || 0) - (a.endTs || a.timestamp || 0))
       : [];
 
     if (sleepLogs.length > 0) {
@@ -7806,6 +7813,8 @@
         ? `Beklenen Doğuma ${diffDays} Gün Kaldı (Yenidoğan Hazırlık)` 
         : `${months} Ay ${remainingDays} Günlük (${currentWeek}. Hafta)`,
       currentWeek: isFuture ? 0 : currentWeek,
+      months: isFuture ? 0 : months,
+      nextSleepDate: nextSleepDate,
       activeLeap: leapData,
       isManual: !!manualLeap,
       leap: `${leapData.num}. GELİŞİM ATAĞI (${leapData.title})`,
@@ -8014,7 +8023,7 @@
 
   function deleteRoutine(id) {
     hapticPulse();
-    activeRoutines = activeRoutines.filter(r => r.id !== id);
+    activeRoutines = activeRoutines.filter(r => r.id !== id); sortActiveRoutines(); localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines)); if (typeof loadBabyProfile === 'function') loadBabyProfile(); updateLastSleepQuickEditBar();
     localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
     renderHomeTodayTimeline();
     renderAnalyticsView();
@@ -8052,6 +8061,7 @@
     if (!list) return;
 
     list.innerHTML = '';
+    if (typeof updateLastSleepQuickEditBar === 'function') updateLastSleepQuickEditBar();
     const sleepLogs = activeRoutines.filter(r => r.type === 'sleep');
     let totalMins = sleepLogs.reduce((acc, s) => acc + (s.durationMins || 0), 0);
     const hrs = Math.floor(totalMins / 60);
@@ -8093,7 +8103,7 @@
               </div>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 11px; color: var(--accent); font-weight: 700;">${s.start || s.time} - ${s.end || s.time}</span>
+              <span onclick="openEditRoutineModal('${s.id}')" style="font-size: 11px; color: var(--accent); font-weight: 700; cursor: pointer;" title="Saatleri Düzenle">${extractSleepStartEnd(s).start} - ${extractSleepStartEnd(s).end}</span><button onclick="openEditRoutineModal('${s.id}')" style="background: rgba(244, 162, 97, 0.16); border: 1px solid rgba(244, 162, 97, 0.4); color: var(--accent); cursor: pointer; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 8px;" title="Saatleri Düzenle">✏️ Düzenle</button>
               <button onclick="deleteRoutine('${s.id}')" style="background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 13px; padding: 2px 4px;" title="Kaydı Sil">🗑️</button>
             </div>
           </div>
@@ -8144,7 +8154,21 @@
 
     // 2. Gerçek MışılSpot Zamanlama Hassasiyeti (%30 Ağırlık) - Dakika Sapma Analizi
     let sweetspotScore = 75; // Varsayılan nötr başlangıç
-    if (sleepLogs.length > 0 && calc.nextSleepDate) {
+    if (sleepLogs.length >= 2) {
+      const sortedSleeps = [...sleepLogs].sort((a, b) => (b.endTs || b.timestamp || 0) - (a.endTs || a.timestamp || 0));
+      const latestSleepStart = sortedSleeps[0].startTs || ((sortedSleeps[0].endTs || sortedSleeps[0].timestamp) - (sortedSleeps[0].durationMins || 60) * 60000);
+      const prevSleepEnd = sortedSleeps[1].endTs || sortedSleeps[1].timestamp;
+      const targetTs = prevSleepEnd + (calc.wakeWindowMin || 90) * 60000;
+      const sleepStart = latestSleepStart;
+      const deltaMins = Math.abs(Math.round((sleepStart - targetTs) / 60000));
+      const effectiveDelta = isStorm ? Math.max(0, deltaMins - 15) : deltaMins;
+      if (effectiveDelta <= 15) sweetspotScore = 100;
+      else if (effectiveDelta <= 30) sweetspotScore = 85;
+      else if (effectiveDelta <= 60) sweetspotScore = 65;
+      else sweetspotScore = Math.max(40, 65 - Math.round((effectiveDelta - 60) / 4));
+    } else if (sleepLogs.length === 1) {
+      sweetspotScore = calc.isOverdue ? 72 : 92;
+    } else if (false && sleepLogs.length > 0 && calc.nextSleepDate) {
       const lastSleep = sleepLogs[0];
       const sleepStart = lastSleep.timestamp;
       const targetTs = calc.nextSleepDate.getTime();
@@ -8419,6 +8443,7 @@
 
     // Son 7 günü GERÇEK uyku kayıtlarından hesapla (sabit örnek veri kaldırıldı)
     const dayNames = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+    if (typeof updateLastSleepQuickEditBar === 'function') updateLastSleepQuickEditBar();
     const sleepLogs = activeRoutines.filter(r => r.type === 'sleep');
     const buckets = [];
     for (let i = 6; i >= 0; i--) {
@@ -8506,7 +8531,7 @@
               </div>
             </div>
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 11px; color: var(--accent); font-weight: 700;">${r.time}</span>
+              <span onclick="openEditRoutineModal('${r.id}')" style="font-size: 11px; color: var(--accent); font-weight: 700; cursor: pointer;" title="Kaydı Düzenle">${r.type === 'sleep' ? (extractSleepStartEnd(r).start + ' - ' + extractSleepStartEnd(r).end) : r.time}</span><button onclick="openEditRoutineModal('${r.id}')" style="background: rgba(244, 162, 97, 0.16); border: 1px solid rgba(244, 162, 97, 0.4); color: var(--accent); cursor: pointer; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 8px;" title="Kaydı Düzenle">✏️ Düzenle</button>
               <button onclick="deleteRoutine('${r.id}')" style="background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 13px; padding: 2px 4px;" title="Kaydı Sil">🗑️</button>
             </div>
           </div>
@@ -8519,6 +8544,11 @@
   function openCryModal() {
     hapticPulse();
     if (!requireActiveSubscription()) return;
+    editingRoutineId = null;
+    const headerTitle = document.getElementById('routine-modal-header-title');
+    const submitBtn = document.getElementById('routine-modal-submit-btn');
+    if (headerTitle) headerTitle.textContent = '+ Manuel Rutin & Uyku Ekle';
+    if (submitBtn) submitBtn.textContent = '💾 Rutini Kaydet & Çizelgeye Ekle';
     document.getElementById('modal-cry').classList.add('active');
   }
 
@@ -8573,6 +8603,7 @@
       showToast('🌙 Bebek uykuya daldı, canlı takip başladı');
       hapticImpact('medium');
       broadcastRealtimeEvent('SLEEP_STARTED', { by: role, startTime: sleepStartTime.toISOString() });
+      if (typeof updateLiveSleepStartUI === 'function') updateLiveSleepStartUI();
     } else {
       if (sleepInterval) clearInterval(sleepInterval);
       localStorage.removeItem('mishil_live_sleep_start');
@@ -8628,6 +8659,10 @@
 
       showToast(`☀️ Günaydın! ${totalMins} dk uyku kaydedildi. Sıradaki MışılSpot: ${nextSleepFormatted}`);
       broadcastRealtimeEvent('SLEEP_COMPLETED', { by: role, duration_mins: totalMins });
+      if (typeof updateLiveSleepStartUI === 'function') updateLiveSleepStartUI();
+      if (totalMins >= 180 && typeof openEditRoutineModal === 'function') {
+        setTimeout(() => { openEditRoutineModal(newSleepLog.id); showToast('💡 Uzun uyku kaydedildi (' + totalMins + ' dk). Uyuyakaldıysanız uyanış saatini buradan düzeltebilirsiniz ✏️'); }, 450);
+      }
       try {
         var _sBase = (window.location && window.location.origin && window.location.origin.indexOf('http') === 0) ? '' : 'https://mishil-production.up.railway.app';
         fetch(_sBase + '/api/v1/sleep/log', {
@@ -8635,6 +8670,9 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             family_code: localStorage.getItem('mishil_family_code') || undefined,
+            client_id: newSleepLog.id,
+            start_time: sleepStartTime.toISOString(),
+            end_time: endTime.toISOString(),
             duration_minutes: totalMins,
             sleep_type: totalMins >= 180 ? 'night' : 'nap'
           })
@@ -8665,6 +8703,7 @@
     isSleeping = true;
     sleepStartTime = parsedStart;
     updateFabSleepState(true);
+    if (typeof updateLiveSleepStartUI === 'function') setTimeout(updateLiveSleepStartUI, 0);
     const organicHero = document.getElementById('home-organic-hero');
     if (organicHero) organicHero.classList.add('sleeping-hero');
 
@@ -9230,10 +9269,14 @@
     } else {
       const calc = calculateMışılSpot(baby.bdate);
       if (disp) {
-        disp.textContent = calc.sweetSpotTime;
+        if (!isSleeping) disp.textContent = calc.sweetSpotTime;
+        if (!isSleeping) disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
+      }
+      if (sub && !isSleeping) sub.textContent = calc.statusNote;
+      if (false && disp) {
         disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
       }
-      if (sub) sub.textContent = calc.statusNote;
+      if (sub && !isSleeping) sub.textContent = calc.statusNote;
       if (badge) {
         badge.textContent = calc.isOverdue 
           ? '⚠️ Uyku Vakti Aşıldı' 
@@ -9387,6 +9430,8 @@
     document.getElementById('routine-feeding-fields').style.display = (type === 'feeding') ? 'block' : 'none';
     document.getElementById('routine-diaper-fields').style.display = (type === 'diaper') ? 'block' : 'none';
     document.getElementById('routine-custom-fields').style.display = (type === 'custom') ? 'block' : 'none';
+    const nsTimeWrap = document.getElementById('routine-non-sleep-time-wrap');
+    if (nsTimeWrap) nsTimeWrap.style.display = (type !== 'sleep') ? 'block' : 'none';
     if (type === 'sleep') calcModalSleepDuration();
     if (type === 'feeding') onFeedMethodChange();
   }
@@ -9426,12 +9471,423 @@
     let endMins = eh * 60 + em;
     if (endMins < startMins) endMins += 24 * 60; // Gece devri
 
-    let diff = Math.max(5, endMins - startMins);
+    let diff = Math.max(1, endMins - startMins);
     const hrs = Math.floor(diff / 60);
     const mins = diff % 60;
 
     badge.textContent = hrs > 0 ? `${hrs} saat ${mins} dk (${diff} dk)` : `${diff} dk`;
     return diff;
+  }
+
+  let editingRoutineId = null;
+
+  function formatTimeHHMM(d) {
+    const dt = (d instanceof Date) ? d : new Date(d);
+    if (isNaN(dt.getTime())) return '13:00';
+    return `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
+  }
+
+  function sortActiveRoutines() {
+    if (!Array.isArray(activeRoutines)) return;
+    activeRoutines.sort((a, b) => {
+      const tsA = a.endTs || a.timestamp || 0;
+      const tsB = b.endTs || b.timestamp || 0;
+      return tsB - tsA;
+    });
+  }
+
+  function normalizeHHMM(val, fallback) {
+    if (!val || typeof val !== 'string') return fallback || '13:00';
+    const m = val.trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return fallback || '13:00';
+    const hh = parseInt(m[1], 10);
+    const mm = parseInt(m[2], 10);
+    if (isNaN(hh) || isNaN(mm) || hh < 0 || hh > 23 || mm < 0 || mm > 59) return fallback || '13:00';
+    return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+  }
+
+  function extractSleepStartEnd(item) {
+    if (!item) return { start: '13:00', end: '14:15' };
+    if (item.start && item.end && /^\d{1,2}:\d{2}$/.test(item.start) && /^\d{1,2}:\d{2}$/.test(item.end)) {
+      return { start: normalizeHHMM(item.start, '13:00'), end: normalizeHHMM(item.end, '14:15') };
+    }
+    const textSource = `${item.detail || ''} ${item.time || ''}`;
+    const rangeMatch = textSource.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/);
+    if (rangeMatch) {
+      return { start: normalizeHHMM(rangeMatch[1], '13:00'), end: normalizeHHMM(rangeMatch[2], '14:15') };
+    }
+    const endTs = item.endTs || item.timestamp || Date.now();
+    const dMins = Number(item.durationMins) || 60;
+    const startTs = item.startTs || (endTs - dMins * 60000);
+    return {
+      start: formatTimeHHMM(startTs),
+      end: (item.time && /^\d{1,2}:\d{2}$/.test(item.time)) ? normalizeHHMM(item.time, formatTimeHHMM(endTs)) : formatTimeHHMM(endTs)
+    };
+  }
+
+  function resolveSleepTimestamps(startStr, endStr, referenceTs, referenceStartTs) {
+    const [sh, sm] = normalizeHHMM(startStr, '13:00').split(':').map(Number);
+    const [eh, em] = normalizeHHMM(endStr, '14:15').split(':').map(Number);
+    const startMins = (sh || 0) * 60 + (sm || 0);
+    let endMins = (eh || 0) * 60 + (em || 0);
+    if (endMins < startMins) endMins += 24 * 60;
+    const durMins = Math.max(1, endMins - startMins);
+
+    const nowMs = Date.now();
+    let endDate;
+    if (referenceStartTs) {
+      const baseStart = new Date(referenceStartTs);
+      baseStart.setHours(sh || 0, sm || 0, 0, 0);
+      if (baseStart.getTime() - referenceStartTs > 12 * 3600000) baseStart.setDate(baseStart.getDate() - 1);
+      else if (referenceStartTs - baseStart.getTime() > 12 * 3600000) baseStart.setDate(baseStart.getDate() + 1);
+      endDate = new Date(baseStart.getTime() + durMins * 60000);
+    } else {
+      const refDate = referenceTs ? new Date(referenceTs) : new Date(nowMs);
+      endDate = new Date(refDate);
+      endDate.setHours(eh || 0, em || 0, 0, 0);
+      if (referenceTs) {
+        if (endDate.getTime() - referenceTs > 12 * 3600000) {
+          endDate.setDate(endDate.getDate() - 1);
+        } else if (referenceTs - endDate.getTime() > 12 * 3600000 && endMins >= 1440) {
+          endDate.setDate(endDate.getDate() + 1);
+        }
+      }
+    }
+
+    // Gelecek zaman koruması: Bitiş saati şu andan 5 dk'dan fazla ilerideyse dün geceye çek
+    while (endDate.getTime() > nowMs + 5 * 60000) {
+      endDate.setDate(endDate.getDate() - 1);
+    }
+    const startDate = new Date(endDate.getTime() - durMins * 60000);
+    return { startDate, endDate, durMins };
+  }
+
+  function shiftModalSleepTime(field, deltaMins) {
+    hapticSelection();
+    const inputId = field === 'start' ? 'routine-modal-start' : 'routine-modal-end';
+    const el = document.getElementById(inputId);
+    if (!el || !el.value) return;
+    const [h, m] = el.value.split(':').map(Number);
+    const shifted = (((h * 60 + m + deltaMins) % 1440) + 1440) % 1440;
+    const nh = String(Math.floor(shifted / 60)).padStart(2, '0');
+    const nm = String(shifted % 60).padStart(2, '0');
+    el.value = `${nh}:${nm}`;
+    calcModalSleepDuration();
+  }
+
+  function updateLastSleepQuickEditBar() {
+    const bar = document.getElementById('last-sleep-quick-edit-bar');
+    const sumEl = document.getElementById('last-sleep-quick-summary');
+    if (!bar || !sumEl) return;
+    if (isSleeping) {
+      bar.style.display = 'none';
+      return;
+    }
+    const sleepLogs = (Array.isArray(activeRoutines) ? activeRoutines : []).filter(r => r.type === 'sleep');
+    if (sleepLogs.length === 0) {
+      bar.style.display = 'none';
+      return;
+    }
+    const last = sleepLogs[0];
+    const dMins = last.durationMins || 0;
+    const dText = Math.floor(dMins / 60) > 0 ? `${Math.floor(dMins / 60)}s ${dMins % 60}dk` : `${dMins} dk`;
+    const extracted = extractSleepStartEnd(last);
+    const range = `${extracted.start} - ${extracted.end} (${dText})`;
+    sumEl.textContent = range;
+    bar.style.display = 'flex';
+  }
+
+  function editLatestSleepRoutine() {
+    const sleepLogs = (Array.isArray(activeRoutines) ? activeRoutines : []).filter(r => r.type === 'sleep');
+    if (sleepLogs.length > 0) {
+      openEditRoutineModal(sleepLogs[0].id);
+    }
+  }
+
+  function updateLiveSleepStartUI() {
+    const wrap = document.getElementById('live-sleep-edit-start-wrap');
+    const lbl = document.getElementById('live-sleep-start-label');
+    if (wrap) wrap.style.display = isSleeping ? 'block' : 'none';
+    if (lbl && sleepStartTime) lbl.textContent = formatTimeHHMM(sleepStartTime);
+    updateLastSleepQuickEditBar();
+  }
+
+  function openLiveSleepStartEditModal() {
+    if (!isSleeping || !sleepStartTime) return;
+    hapticPulse();
+    const inp = document.getElementById('live-sleep-edit-time-input');
+    if (inp) inp.value = formatTimeHHMM(sleepStartTime);
+    const modal = document.getElementById('modal-live-sleep-edit');
+    if (modal) modal.classList.add('active');
+  }
+
+  function closeLiveSleepStartEditModal() {
+    hapticPulse();
+    const modal = document.getElementById('modal-live-sleep-edit');
+    if (modal) modal.classList.remove('active');
+  }
+
+  function shiftLiveSleepModalTime(deltaMins) {
+    hapticSelection();
+    const inp = document.getElementById('live-sleep-edit-time-input');
+    if (!inp || !inp.value) return;
+    const [h, m] = inp.value.split(':').map(Number);
+    const shifted = (((h * 60 + m + deltaMins) % 1440) + 1440) % 1440;
+    inp.value = `${String(Math.floor(shifted / 60)).padStart(2, '0')}:${String(shifted % 60).padStart(2, '0')}`;
+  }
+
+  function saveLiveSleepStartEdit() {
+    if (!isSleeping) { closeLiveSleepStartEditModal(); return; }
+    hapticSuccess();
+    const inp = document.getElementById('live-sleep-edit-time-input');
+    const val = (inp && inp.value) ? inp.value : formatTimeHHMM(new Date());
+    const [sh, sm] = normalizeHHMM(val, formatTimeHHMM(sleepStartTime || new Date())).split(':').map(Number);
+    const newStart = sleepStartTime ? new Date(sleepStartTime) : new Date();
+    newStart.setHours(sh || 0, sm || 0, 0, 0);
+    if (sleepStartTime && newStart.getTime() - sleepStartTime.getTime() > 12 * 3600000) {
+      newStart.setDate(newStart.getDate() - 1);
+    }
+    while (newStart.getTime() > Date.now() + 60000) {
+      newStart.setDate(newStart.getDate() - 1);
+    }
+    sleepStartTime = newStart;
+    localStorage.setItem('mishil_live_sleep_start', sleepStartTime.toISOString());
+    updateLiveSleepStartUI();
+    const liveTimer = document.getElementById('live-sleep-timer');
+    if (liveTimer) {
+      const diff = Math.max(0, Math.floor((Date.now() - sleepStartTime.getTime()) / 1000));
+      const hrs = String(Math.floor(diff / 3600)).padStart(2, '0');
+      const mins = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+      const secs = String(diff % 60).padStart(2, '0');
+      liveTimer.textContent = `💤 Canlı Uyku: ${hrs}:${mins}:${secs}`;
+    }
+    closeLiveSleepStartEditModal();
+    showToast(`✅ Uyku başlangıç saati ${val} olarak güncellendi`);
+  }
+
+  function openEditRoutineModal(id) {
+    hapticPulse();
+    const item = (Array.isArray(activeRoutines) ? activeRoutines : []).find(r => r.id === id);
+    if (!item) return;
+    editingRoutineId = item.id;
+
+    const headerTitle = document.getElementById('routine-modal-header-title');
+    const submitBtn = document.getElementById('routine-modal-submit-btn');
+    const typeSelect = document.getElementById('routine-modal-type');
+
+    if (headerTitle) {
+      headerTitle.textContent = item.type === 'sleep' ? '✏️ Uyku Saatlerini Düzenle' : '✏️ Rutin Kaydını Düzenle';
+    }
+    if (submitBtn) {
+      submitBtn.textContent = item.type === 'sleep' ? '💾 Saatleri Güncelle & MışılSpot\'u Hesapla' : '💾 Değişiklikleri Kaydet';
+    }
+    if (typeSelect) {
+      typeSelect.value = item.type || 'sleep';
+    }
+    handleRoutineTypeChange(item.type || 'sleep');
+
+    const evTimeInput = document.getElementById('routine-modal-event-time');
+    if (evTimeInput) {
+      evTimeInput.value = normalizeHHMM(item.time, item.timestamp ? formatTimeHHMM(item.timestamp) : formatTimeHHMM(new Date()));
+    }
+
+    if (item.type === 'sleep') {
+      const startInput = document.getElementById('routine-modal-start');
+      const endInput = document.getElementById('routine-modal-end');
+      const qualSelect = document.getElementById('routine-modal-quality');
+
+      const extracted = extractSleepStartEnd(item);
+      if (startInput) startInput.value = extracted.start;
+      if (endInput) endInput.value = extracted.end;
+      if (qualSelect) {
+        const qVal = item.quality === 'Derin' ? 'Derin Uyku' : (item.quality || 'Derin Uyku');
+        qualSelect.value = qVal;
+      }
+      calcModalSleepDuration();
+    } else if (item.type === 'feeding') {
+      const mSel = document.getElementById('routine-modal-feed-method');
+      const amtInp = document.getElementById('routine-modal-feed-amount');
+      const durInp = document.getElementById('routine-modal-feed-duration');
+      const noteInp = document.getElementById('routine-modal-feed-note');
+      if (mSel) mSel.value = item.method || 'breast';
+      if (amtInp) amtInp.value = item.amountMl || '';
+      if (durInp) durInp.value = item.durationMin || '';
+      if (noteInp) noteInp.value = item.note || '';
+      onFeedMethodChange();
+    } else if (item.type === 'diaper') {
+      const dSel = document.getElementById('routine-modal-diaper-status');
+      if (dSel) dSel.value = item.kind || 'wet';
+    } else if (item.type === 'custom') {
+      const cInp = document.getElementById('routine-modal-custom-detail');
+      if (cInp) cInp.value = item.detail || '';
+    }
+
+    document.getElementById('modal-routine').classList.add('active');
+  }
+
+  function submitCustomRoutineUnified() {
+    hapticPulse();
+    const type = document.getElementById('routine-modal-type').value;
+    const now = new Date();
+    const existingIdx = editingRoutineId ? activeRoutines.findIndex(r => r.id === editingRoutineId) : -1;
+    const existingItem = existingIdx !== -1 ? activeRoutines[existingIdx] : null;
+    const isEditing = !!existingItem;
+
+    if (type === 'sleep') {
+      const start = document.getElementById('routine-modal-start').value || '13:00';
+      const end = document.getElementById('routine-modal-end').value || '14:15';
+      if (start === end) {
+        showToast('⚠️ Uyku başlangıç ve uyanış saati aynı olamaz');
+        return;
+      }
+      const quality = document.getElementById('routine-modal-quality').value || 'Derin Uyku';
+      const refTs = existingItem ? (existingItem.endTs || existingItem.timestamp) : null;
+      const refStartTs = existingItem ? existingItem.startTs : null;
+      const { startDate, endDate, durMins } = resolveSleepTimestamps(start, end, refTs, refStartTs);
+
+      const sh = startDate.getHours();
+      const isNight = sh >= 20 || sh < 7;
+      let sleepTitle = existingItem && existingItem.type === 'sleep' ? existingItem.title : '';
+      if (!sleepTitle || (isNight && !sleepTitle.includes('Gece')) || (!isNight && sleepTitle.includes('Gece'))) {
+        const sleepCount = activeRoutines.filter(r => r.type === 'sleep' && (!existingItem || r.id !== existingItem.id)).length + 1;
+        sleepTitle = isNight ? 'Gece Uykusu' : `${sleepCount}. Gündüz Uykusu (Nap ${sleepCount})`;
+      }
+
+      const updatedSleepLog = {
+        id: existingItem ? existingItem.id : ('slp_' + Date.now()),
+        type: 'sleep',
+        icon: '🌙',
+        title: sleepTitle,
+        detail: `${durMins} dk ${quality} (${start} - ${end})`,
+        time: end,
+        start: start,
+        end: end,
+        timestamp: endDate.getTime(),
+        startTs: startDate.getTime(),
+        endTs: endDate.getTime(),
+        durationMins: durMins,
+        quality: quality
+      };
+
+      if (isEditing) {
+        activeRoutines[existingIdx] = updatedSleepLog;
+      } else {
+        activeRoutines.unshift(updatedSleepLog);
+      }
+      sortActiveRoutines();
+      localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+      hapticSuccess();
+
+      loadBabyProfile();
+      const _baby = getBaby();
+      const _calc = _baby ? calculateMışılSpot(_baby.bdate) : { sweetSpotTime: '--:--', wakeWindowMin: 90 };
+      showToast(isEditing
+        ? `✅ Uyku saati güncellendi (${start} - ${end} • ${durMins} dk). Sıradaki MışılSpot: ${_calc.sweetSpotTime}`
+        : `🌙 ${durMins} dk uyku kaydedildi! Sıradaki MışılSpot: ${_calc.sweetSpotTime}`);
+
+      try {
+        var _apiBase = (window.location && window.location.origin && window.location.origin.indexOf('http') === 0) ? '' : 'https://mishil-production.up.railway.app';
+        fetch(_apiBase + '/api/v1/sleep/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            family_code: localStorage.getItem('mishil_family_code') || undefined,
+            client_id: updatedSleepLog.id,
+            original_start_time: (existingItem && existingItem.startTs) ? new Date(existingItem.startTs).toISOString() : undefined,
+            start_time: startDate.toISOString(),
+            end_time: endDate.toISOString(),
+            duration_minutes: durMins,
+            sleep_type: durMins >= 180 ? 'night' : 'nap',
+            is_update: isEditing
+          })
+        }).catch(function() {});
+      } catch (_e) {}
+    } else if (type === 'feeding') {
+      const method = (document.getElementById('routine-modal-feed-method') || {}).value || 'breast';
+      const amountMl = method === 'breast' ? null : (parseInt(document.getElementById('routine-modal-feed-amount').value, 10) || null);
+      const durationMin = method === 'breast' ? (parseInt(document.getElementById('routine-modal-feed-duration').value, 10) || null) : null;
+      const note = (document.getElementById('routine-modal-feed-note').value || '').trim();
+      const evTimeVal = (document.getElementById('routine-modal-event-time') || {}).value;
+      const timeNow = normalizeHHMM(evTimeVal, existingItem ? (existingItem.time || formatTimeHHMM(now)) : formatTimeHHMM(now));
+      const baseEvtDate = existingItem && existingItem.timestamp ? new Date(existingItem.timestamp) : new Date(now);
+      const [evH, evM] = timeNow.split(':').map(Number);
+      baseEvtDate.setHours(evH || 0, evM || 0, 0, 0);
+      let detail = FEED_METHOD_LABEL[method];
+      if (amountMl) detail += ` • ${amountMl} ${method === 'solid' ? 'g' : 'ml'}`;
+      if (durationMin) detail += ` • ${durationMin} dk`;
+      if (note) detail += ` • ${note}`;
+      const feedObj = {
+        id: existingItem ? existingItem.id : ('rt_' + Date.now()),
+        type: 'feeding',
+        icon: '🍼',
+        title: 'Beslenme',
+        method: method,
+        amountMl: amountMl,
+        durationMin: durationMin,
+        note: note,
+        detail: detail,
+        time: timeNow,
+        timestamp: baseEvtDate.getTime(),
+        durationMins: 0
+      };
+      if (isEditing) activeRoutines[existingIdx] = feedObj;
+      else activeRoutines.unshift(feedObj);
+      sortActiveRoutines();
+      localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+      showToast(isEditing ? `✅ Beslenme kaydı güncellendi (${detail})` : `🍼 Beslenme kaydedildi (${detail})`);
+    } else if (type === 'diaper') {
+      const kind = (document.getElementById('routine-modal-diaper-status') || {}).value || 'wet';
+      const kindLabel = { wet: 'Islak (çiş)', dirty: 'Kirli (kaka)', mixed: 'Dolu (çiş + kaka)' }[kind] || kind;
+      const evTimeVal = (document.getElementById('routine-modal-event-time') || {}).value;
+      const timeNow = normalizeHHMM(evTimeVal, existingItem ? (existingItem.time || formatTimeHHMM(now)) : formatTimeHHMM(now));
+      const baseEvtDate = existingItem && existingItem.timestamp ? new Date(existingItem.timestamp) : new Date(now);
+      const [evH, evM] = timeNow.split(':').map(Number);
+      baseEvtDate.setHours(evH || 0, evM || 0, 0, 0);
+      const diaperObj = {
+        id: existingItem ? existingItem.id : ('rt_' + Date.now()),
+        type: 'diaper',
+        icon: '🚼',
+        title: 'Bez Değişimi',
+        kind: kind,
+        detail: kindLabel,
+        time: timeNow,
+        timestamp: baseEvtDate.getTime(),
+        durationMins: 0
+      };
+      if (isEditing) activeRoutines[existingIdx] = diaperObj;
+      else activeRoutines.unshift(diaperObj);
+      sortActiveRoutines();
+      localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+      showToast(isEditing ? `✅ Bez kaydı güncellendi (${kindLabel})` : `🚼 Bez değişimi kaydedildi (${kindLabel})`);
+    } else {
+      const customDetail = document.getElementById('routine-modal-custom-detail').value || 'Özel Rutin';
+      const evTimeVal = (document.getElementById('routine-modal-event-time') || {}).value;
+      const timeNow = normalizeHHMM(evTimeVal, existingItem ? (existingItem.time || formatTimeHHMM(now)) : formatTimeHHMM(now));
+      const baseEvtDate = existingItem && existingItem.timestamp ? new Date(existingItem.timestamp) : new Date(now);
+      const [evH, evM] = timeNow.split(':').map(Number);
+      baseEvtDate.setHours(evH || 0, evM || 0, 0, 0);
+      const customObj = {
+        id: existingItem ? existingItem.id : ('rt_' + Date.now()),
+        type: 'custom',
+        icon: '✨',
+        title: 'Özel Rutin',
+        detail: customDetail,
+        time: timeNow,
+        timestamp: baseEvtDate.getTime(),
+        durationMins: 0
+      };
+      if (isEditing) activeRoutines[existingIdx] = customObj;
+      else activeRoutines.unshift(customObj);
+      sortActiveRoutines();
+      localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+      showToast(isEditing ? `✅ Rutin güncellendi (${customDetail})` : `✨ Rutin (${customDetail}) kaydedildi`);
+    }
+
+    editingRoutineId = null;
+    closeAddRoutineModal();
+    renderHomeTodayTimeline();
+    renderAnalyticsView();
+    renderHomeScreenScore();
   }
 
   function openRoutineModalFor(type) {
@@ -9442,6 +9898,11 @@
 
   function openAddRoutineModal() {
     if (!requireActiveSubscription()) return;
+    editingRoutineId = null;
+    const headerTitle = document.getElementById('routine-modal-header-title');
+    const submitBtn = document.getElementById('routine-modal-submit-btn');
+    if (headerTitle) headerTitle.textContent = '+ Manuel Rutin & Uyku Ekle';
+    if (submitBtn) submitBtn.textContent = '💾 Rutini Kaydet & Çizelgeye Ekle';
     hapticPulse();
     const now = new Date();
     const endH = String(now.getHours()).padStart(2, '0');
@@ -9456,6 +9917,8 @@
     const endInput = document.getElementById('routine-modal-end');
     if (startInput) startInput.value = `${startH}:${startM}`;
     if (endInput) endInput.value = `${endH}:${endM}`;
+    const evTimeInput = document.getElementById('routine-modal-event-time');
+    if (evTimeInput) evTimeInput.value = `${endH}:${endM}`;
 
     // Alan görünürlüğünü seçili türle senkronla (select değeri modal kapansa da kalıyor)
     const sel = document.getElementById('routine-modal-type');
@@ -9465,11 +9928,13 @@
 
   function closeAddRoutineModal() { 
     hapticPulse();
+    editingRoutineId = null;
     document.getElementById('modal-routine').classList.remove('active'); 
   }
 
   function submitCustomRoutine() {
     hapticPulse();
+    if (typeof submitCustomRoutineUnified === 'function') return submitCustomRoutineUnified();
     const type = document.getElementById('routine-modal-type').value;
     const now = new Date();
 

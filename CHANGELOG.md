@@ -2,6 +2,20 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.1 - Build 65] - 2026-10-29
+### ✏️ Geriye Dönük Uyku Saati Düzenleme, Canlı Uyku Başlangıç Düzeltme & MışılSpot™ Yeniden Hesaplama Motoru
+1. **Geriye Dönük Uyku ve Rutin Saati Düzenleme (`public/app.html`):**
+   - Anne veya babanın canlı uyku sayacını (`🌙 Şimdi Uyuyor`) başlattıktan sonra uyuyakalması ve uyanıp sayacı saatler sonra durdurması sonucunda oluşan **fazla uyku süresi kaydını** düzeltmek için tam kapsamlı **Saat Düzenleme (`openEditRoutineModal` & `submitCustomRoutineUnified`)** akışı eklendi.
+   - Ana ekranda **"🌙 Şimdi Uyuyor"** butonunun hemen altına son uykuyu gösteren ve tek dokunuşla düzenleme penceresini açan **"🌙 Son Uyku: HH:MM - HH:MM • ✏️ Saatleri Düzenle"** hızlı erişim barı (`#last-sleep-quick-edit-bar`) eklendi.
+   - Hem Ana Ekran (`Bugünün Akışı`) hem de Analiz (`Rutinler & Günlük Akış`) sekmelerindeki tüm uyku/rutin kartlarına **`✏️ Düzenle`** butonu eklendi ve saat aralıkları tıklanabilir hale getirildi.
+   - Canlı uyku **3 saati (`180 dk`)** aştığında ve ebeveyn `"☀️ Uyandı"` butonuna bastığında, ebeveynin uyuyakalmış olma ihtimaline karşı düzenleme penceresi otomatik olarak açılarak saatleri kontrol etmesi sağlanır.
+2. **Hızlı Saat Kaydırma Çipleri & Canlı Uyku Sırasında Başlangıç Saati Düzeltme (`public/app.html`):**
+   - Gece yorgunluğunda saat seçiciyle uğraşmadan tek dokunuşla süreyi düzeltmek için uyku düzenleme penceresine **`⏪ Uyanış -15 dk`**, **`⏪ Uyanış -30 dk`**, **`⏪ Uyanış -1 saat`** ve **`⏪ Başlangıç -15 dk`** hızlı kaydırma çipleri (`shiftModalSleepTime`) eklendi.
+   - Bebek halen uyurken (`Canlı Uyku` aktifken) başlangıç saatini geriye çekebilmek için ana ekrandaki uyku halkasının içine **`🕓 Başlangıç: HH:MM • Saatini Düzelt ✏️`** hap butonu (`#live-sleep-edit-start-wrap`) ve `-10 dk / -15 dk / -30 dk / -45 dk` hızlı çipli canlı başlangıç düzeltme modalı (`#modal-live-sleep-edit`) eklendi.
+3. **Gece Yarısı (00:00) Tarih Kayması Çözümü & MışılSpot™ / Gelişim Skoru Senkronu (`public/app.html`, `app/api/v1/endpoints/sleep.py`, `offlineHtml.generated.ts`):**
+   - Gece yarısını aşan uykularda (`23:30 - 02:15` gibi) `endDate`'in ertesi güne (geleceğe) kayarak `MışılSpot™` hedefini bozmasına yol açan tarih hatası `resolveSleepTimestamps()` fonksiyonu ile giderildi; `calculateMışılSpot()` kronolojik olarak en son uyanış zamanını (`endTs`) baz alacak şekilde güçlendirildi.
+   - Backend `POST /api/v1/sleep/log` uç noktasına `is_update: Optional[bool]` alanı eklendi; saat düzenlendiğinde PostgreSQL üzerinde mükerrer kayıt açmak yerine mevcut son uyku kaydı güncellenir. `offlineHtml.generated.ts` yenilendi.
+
 ## [4.45.3 - Build 65] - 2026-10-29
 ### 🔉 Kapanma Zamanlayıcısı İçin Opsiyonel "Kademeli Kısarak Kapat (Smart Fade-Out)" Motoru
 1. **Opsiyonel Kademeli Kapanış Anahtarı (`public/app.html`):**

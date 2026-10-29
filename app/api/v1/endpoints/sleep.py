@@ -14,11 +14,14 @@ router = APIRouter()
 class SleepLogCreateRequest(BaseModel):
     family_code: Optional[str] = Field(None, description="6-character family code")
     baby_id: Optional[int] = Field(None, description="Baby ID")
+    client_id: Optional[str] = Field(None, description="Client-side routine ID (e.g., slp_1730...)")
+    original_start_time: Optional[datetime] = Field(None, description="Original start timestamp before edit")
     start_time: Optional[datetime] = Field(None, description="Sleep start timestamp")
     end_time: Optional[datetime] = Field(None, description="Sleep end timestamp")
-    duration_minutes: Optional[int] = Field(None, description="Duration in minutes")
+    duration_minutes: Optional[int] = Field(None, ge=1, le=1440, description="Duration in minutes")
     sleep_type: Optional[str] = Field("nap", description="Type: nap or night")
     notes: Optional[str] = Field(None, description="Notes")
+    is_update: Optional[bool] = Field(False, description="Update matching sleep log if True")
 
 
 class SleepLogResponse(BaseModel):
@@ -59,25 +62,71 @@ def create_or_update_sleep_log(req: SleepLogCreateRequest, db: Session = Depends
         # Determine start time and duration
         start = req.start_time or datetime.now(timezone.utc)
         duration = req.duration_minutes
-        if req.end_time and not duration:
+        if req.start_time and req.end_time:
+            diff = (req.end_time - req.start_time).total_seconds()
+            if diff > 0:
+                duration = max(1, min(1440, int(round(diff / 60))))
+        elif req.end_time and not duration:
             diff = (req.end_time - start).total_seconds()
-            duration = max(1, int(diff / 60))
+            duration = max(1, min(1440, int(diff / 60)))
 
         stype = SleepType.NIGHT if req.sleep_type == "night" else SleepType.NAP
+        cid_tag = f"[cid:{req.client_id}]" if req.client_id else ""
+        merged_notes = req.notes or ""
+        if cid_tag and cid_tag not in merged_notes:
+            merged_notes = f"{merged_notes} {cid_tag}".strip()
 
-        log = SleepLog(
-            baby_id=baby_id,
-            start_time=start,
-            end_time=req.end_time,
-            duration_minutes=duration,
-            sleep_type=stype,
-            notes=req.notes
-        )
-        db.add(log)
-        db.commit()
-        db.refresh(log)
+        log = None
+        if req.is_update:
+            if req.client_id:
+                log = (
+                    db.query(SleepLog)
+                    .filter(SleepLog.baby_id == baby_id, SleepLog.notes.contains(cid_tag))
+                    .order_by(SleepLog.id.desc())
+                    .first()
+                )
+            if not log and req.original_start_time:
+                log = (
+                    db.query(SleepLog)
+                    .filter(SleepLog.baby_id == baby_id, SleepLog.start_time == req.original_start_time)
+                    .order_by(SleepLog.id.desc())
+                    .first()
+                )
+            if not log:
+                log = (
+                    db.query(SleepLog)
+                    .filter(SleepLog.baby_id == baby_id)
+                    .order_by(SleepLog.id.desc())
+                    .first()
+                )
 
-        logger.info(f"Sleep log recorded in live DB: {log.id} for baby {baby_id} ({duration} mins)")
+        if log:
+            if req.start_time:
+                log.start_time = req.start_time
+            if req.end_time:
+                log.end_time = req.end_time
+            if duration is not None:
+                log.duration_minutes = duration
+            if req.sleep_type is not None:
+                log.sleep_type = stype
+            if merged_notes:
+                log.notes = merged_notes
+            db.commit()
+            db.refresh(log)
+            logger.info(f"Sleep log updated in live DB: {log.id} for baby {baby_id} ({duration} mins, cid={req.client_id})")
+        else:
+            log = SleepLog(
+                baby_id=baby_id,
+                start_time=start,
+                end_time=req.end_time,
+                duration_minutes=duration,
+                sleep_type=stype,
+                notes=merged_notes or None
+            )
+            db.add(log)
+            db.commit()
+            db.refresh(log)
+            logger.info(f"Sleep log recorded in live DB: {log.id} for baby {baby_id} ({duration} mins)")
 
         return SleepLogResponse(
             id=log.id,
