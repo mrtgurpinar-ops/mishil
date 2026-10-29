@@ -660,6 +660,171 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                     db_sync.close()
                 except Exception as e:
                     logger.debug("Apple Subscriber Ledger info (%s): %s", rep_date, e)
+
+            # 5) Apple Analytics Report Requests (r14 Discovery & Engagement + r8 App Sessions) -> Gerçek Gösterim, Sayfa Ziyareti ve Oturumlar
+            try:
+                arr_req = urllib.request.Request(
+                    f"https://api.appstoreconnect.apple.com/v1/apps/{app_id}/analyticsReportRequests",
+                    headers={"Authorization": f"Bearer {token}"},
+                )
+                with urllib.request.urlopen(arr_req, timeout=5) as arr_resp:
+                    arr_items = json.loads(arr_resp.read().decode("utf-8")).get("data", []) if arr_resp.status == 200 else []
+                imp_by_date: Counter = Counter()
+                imp_uniq_by_date: Counter = Counter()
+                pv_by_date: Counter = Counter()
+                pv_uniq_by_date: Counter = Counter()
+                sess_by_date: Counter = Counter()
+                imp_search_total = 0
+                imp_browse_total = 0
+                imp_ref_total = 0
+                taps_total = 0
+                optin_devices_max = 0
+
+                for arr_item in arr_items:
+                    req_id = arr_item.get("id")
+                    if not req_id:
+                        continue
+                    # r14: App Store Discovery and Engagement Standard
+                    r14_id = f"r14-{req_id}"
+                    try:
+                        inst_req = urllib.request.Request(
+                            f"https://api.appstoreconnect.apple.com/v1/analyticsReports/{r14_id}/instances",
+                            headers={"Authorization": f"Bearer {token}"},
+                        )
+                        with urllib.request.urlopen(inst_req, timeout=5) as inst_resp:
+                            inst_list = json.loads(inst_resp.read().decode("utf-8")).get("data", []) if inst_resp.status == 200 else []
+                        for inst in inst_list:
+                            if (inst.get("attributes") or {}).get("granularity") != "DAILY":
+                                continue
+                            seg_req = urllib.request.Request(
+                                f"https://api.appstoreconnect.apple.com/v1/analyticsReportInstances/{inst['id']}/segments",
+                                headers={"Authorization": f"Bearer {token}"},
+                            )
+                            with urllib.request.urlopen(seg_req, timeout=5) as seg_resp:
+                                seg_list = json.loads(seg_resp.read().decode("utf-8")).get("data", []) if seg_resp.status == 200 else []
+                            for seg in seg_list:
+                                seg_url = (seg.get("attributes") or {}).get("url")
+                                if not seg_url:
+                                    continue
+                                seg_txt = gzip.decompress(urllib.request.urlopen(seg_url, timeout=8).read()).decode("utf-8", errors="replace")
+                                s_lines = [ln for ln in seg_txt.splitlines() if ln.strip()]
+                                if len(s_lines) > 1:
+                                    s_hdr = s_lines[0].split("\t")
+                                    d_imp: Counter = Counter()
+                                    d_imp_u: Counter = Counter()
+                                    d_pv: Counter = Counter()
+                                    d_pv_u: Counter = Counter()
+                                    for ln in s_lines[1:]:
+                                        row_d = dict(zip(s_hdr, ln.split("\t")))
+                                        dt_s = (row_d.get("Date") or "").strip()
+                                        ev_s = (row_d.get("Event") or "").strip()
+                                        src_s = (row_d.get("Source Type") or "").strip()
+                                        cnt_v = int(float(row_d.get("Counts") or 0))
+                                        ucnt_v = int(float(row_d.get("Unique Counts") or 0))
+                                        if ev_s == "Impression":
+                                            d_imp[dt_s] += cnt_v
+                                            d_imp_u[dt_s] += ucnt_v
+                                            if "search" in src_s.lower():
+                                                imp_search_total += cnt_v
+                                            elif "browse" in src_s.lower():
+                                                imp_browse_total += cnt_v
+                                            elif "referrer" in src_s.lower():
+                                                imp_ref_total += cnt_v
+                                        elif ev_s == "Page view":
+                                            d_pv[dt_s] += cnt_v
+                                            d_pv_u[dt_s] += ucnt_v
+                                        elif ev_s == "Tap":
+                                            taps_total += cnt_v
+                                    for dt_k, v_c in d_imp.items():
+                                        imp_by_date[dt_k] = max(imp_by_date[dt_k], v_c)
+                                    for dt_k, v_c in d_imp_u.items():
+                                        imp_uniq_by_date[dt_k] = max(imp_uniq_by_date[dt_k], v_c)
+                                    for dt_k, v_c in d_pv.items():
+                                        pv_by_date[dt_k] = max(pv_by_date[dt_k], v_c)
+                                    for dt_k, v_c in d_pv_u.items():
+                                        pv_uniq_by_date[dt_k] = max(pv_uniq_by_date[dt_k], v_c)
+                    except Exception as r14_exc:
+                        logger.debug("Apple r14 analytics sync info (%s): %s", req_id, r14_exc)
+
+                    # r8: App Sessions Standard
+                    r8_id = f"r8-{req_id}"
+                    try:
+                        s_inst_req = urllib.request.Request(
+                            f"https://api.appstoreconnect.apple.com/v1/analyticsReports/{r8_id}/instances",
+                            headers={"Authorization": f"Bearer {token}"},
+                        )
+                        with urllib.request.urlopen(s_inst_req, timeout=5) as s_inst_resp:
+                            s_inst_list = json.loads(s_inst_resp.read().decode("utf-8")).get("data", []) if s_inst_resp.status == 200 else []
+                        for s_inst in s_inst_list:
+                            if (s_inst.get("attributes") or {}).get("granularity") != "DAILY":
+                                continue
+                            s_seg_req = urllib.request.Request(
+                                f"https://api.appstoreconnect.apple.com/v1/analyticsReportInstances/{s_inst['id']}/segments",
+                                headers={"Authorization": f"Bearer {token}"},
+                            )
+                            with urllib.request.urlopen(s_seg_req, timeout=5) as s_seg_resp:
+                                s_seg_list = json.loads(s_seg_resp.read().decode("utf-8")).get("data", []) if s_seg_resp.status == 200 else []
+                            for seg in s_seg_list:
+                                seg_url = (seg.get("attributes") or {}).get("url")
+                                if not seg_url:
+                                    continue
+                                seg_txt = gzip.decompress(urllib.request.urlopen(seg_url, timeout=8).read()).decode("utf-8", errors="replace")
+                                s_lines = [ln for ln in seg_txt.splitlines() if ln.strip()]
+                                if len(s_lines) > 1:
+                                    s_hdr = s_lines[0].split("\t")
+                                    d_sess: Counter = Counter()
+                                    for ln in s_lines[1:]:
+                                        row_d = dict(zip(s_hdr, ln.split("\t")))
+                                        dt_s = (row_d.get("Date") or "").strip()
+                                        sess_v = int(float(row_d.get("Sessions") or 0))
+                                        udev_v = int(float(row_d.get("Unique Devices") or 0))
+                                        d_sess[dt_s] += sess_v
+                                        optin_devices_max = max(optin_devices_max, udev_v)
+                                    for dt_k, v_c in d_sess.items():
+                                        sess_by_date[dt_k] = max(sess_by_date[dt_k], v_c)
+                    except Exception as r8_exc:
+                        logger.debug("Apple r8 sessions sync info (%s): %s", req_id, r8_exc)
+
+                if imp_by_date or pv_by_date or sess_by_date:
+                    db_an = SessionLocal()
+                    try:
+                        all_dates = set(imp_by_date.keys()) | set(pv_by_date.keys()) | set(sess_by_date.keys())
+                        for dt_k in sorted(all_dates):
+                            if not dt_k:
+                                continue
+                            m_row = (
+                                db_an.query(StoreDailyMetric)
+                                .filter(StoreDailyMetric.metric_date == dt_k, StoreDailyMetric.platform == "ios")
+                                .first()
+                            )
+                            if not m_row:
+                                m_row = StoreDailyMetric(metric_date=dt_k, platform="ios")
+                                db_an.add(m_row)
+                            if dt_k in imp_by_date:
+                                m_row.impressions = imp_by_date[dt_k]
+                                m_row.impressions_unique = imp_uniq_by_date.get(dt_k, 0)
+                            if dt_k in pv_by_date:
+                                m_row.page_views = pv_by_date[dt_k]
+                                m_row.page_views_unique = pv_uniq_by_date.get(dt_k, 0)
+                            if dt_k in sess_by_date:
+                                m_row.active_sessions = sess_by_date[dt_k]
+                        db_an.commit()
+                        synced_sources.append("Apple Analytics API (r14 Engagement & r8 Sessions)")
+                    finally:
+                        db_an.close()
+                    with _BASELINE_LOCK:
+                        OFFICIAL_STORE_BASELINE["apple_impressions_total"] = sum(imp_by_date.values())
+                        OFFICIAL_STORE_BASELINE["apple_impressions_unique"] = sum(imp_uniq_by_date.values())
+                        OFFICIAL_STORE_BASELINE["apple_impressions_search"] = imp_search_total
+                        OFFICIAL_STORE_BASELINE["apple_impressions_browse"] = imp_browse_total
+                        OFFICIAL_STORE_BASELINE["apple_impressions_referrer"] = imp_ref_total
+                        OFFICIAL_STORE_BASELINE["apple_page_views_total"] = sum(pv_by_date.values())
+                        OFFICIAL_STORE_BASELINE["apple_page_views_unique"] = sum(pv_uniq_by_date.values())
+                        OFFICIAL_STORE_BASELINE["apple_taps_total"] = taps_total
+                        OFFICIAL_STORE_BASELINE["apple_sessions_total"] = sum(sess_by_date.values())
+                        OFFICIAL_STORE_BASELINE["apple_sessions_optin_devices"] = optin_devices_max
+            except Exception as arr_exc:
+                logger.debug("Apple Analytics Report Requests sync skipped: %s", arr_exc)
         except Exception as e:
             logger.warning("Live Apple API sync warning: %s", e)
 
@@ -2157,25 +2322,31 @@ async def ingest_local_store_sync(
     ensure_historical_seed(db)
 
     upserted_metrics = 0
-    for dm in payload.daily_metrics:
-        m_date = str(dm.get("metric_date") or "").strip()[:16]
-        plat = str(dm.get("platform") or "ios").strip()[:32]
-        if not m_date:
-            continue
-        row = (
-            db.query(StoreDailyMetric)
-            .filter(StoreDailyMetric.metric_date == m_date, StoreDailyMetric.platform == plat)
-            .first()
-        )
-        if not row:
-            row = StoreDailyMetric(metric_date=m_date, platform=plat)
+    if payload.daily_metrics:
+        db.query(StoreDailyMetric).delete(synchronize_session=False)
+        for dm in payload.daily_metrics:
+            m_date = str(dm.get("metric_date") or "").strip()[:16]
+            plat = str(dm.get("platform") or "ios").strip()[:32]
+            if not m_date:
+                continue
+            row = StoreDailyMetric(
+                metric_date=m_date,
+                platform=plat,
+                impressions=int(dm.get("impressions") or 0),
+                impressions_unique=int(dm.get("impressions_unique") or 0),
+                page_views=int(dm.get("page_views") or 0),
+                page_views_unique=int(dm.get("page_views_unique") or 0),
+                downloads_total=int(dm.get("downloads_total") or 0),
+                downloads_search=int(dm.get("downloads_search") or 0),
+                downloads_browse=int(dm.get("downloads_browse") or 0),
+                downloads_referrer=int(dm.get("downloads_referrer") or 0),
+                redownloads=int(dm.get("redownloads") or 0),
+                active_sessions=int(dm.get("active_sessions") or 0),
+                gross_revenue_try=float(dm.get("gross_revenue_try") or 0.0),
+                net_proceeds_try=float(dm.get("net_proceeds_try") or 0.0),
+            )
             db.add(row)
-        row.downloads_total = int(dm.get("downloads_total") or 0)
-        row.redownloads = int(dm.get("redownloads") or 0)
-        row.active_sessions = int(dm.get("active_sessions") or 0)
-        row.gross_revenue_try = float(dm.get("gross_revenue_try") or 0.0)
-        row.net_proceeds_try = float(dm.get("net_proceeds_try") or 0.0)
-        upserted_metrics += 1
+            upserted_metrics += 1
 
     upserted_subs = 0
     if payload.subscribers:
@@ -2231,6 +2402,8 @@ async def ingest_local_store_sync(
     if payload.baseline_snapshot:
         clean_snap = _mask_sensitive_sync_value(payload.baseline_snapshot)
         with _BASELINE_LOCK:
+            OFFICIAL_STORE_BASELINE.clear()
+            OFFICIAL_STORE_BASELINE.update(_empty_store_state())
             OFFICIAL_STORE_BASELINE.update(clean_snap)
             snapshot_copy = copy.deepcopy(OFFICIAL_STORE_BASELINE)
         st_row = db.query(StoreSyncState).filter(StoreSyncState.state_key == "primary_store_baseline").first()
