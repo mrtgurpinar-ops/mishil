@@ -1665,10 +1665,10 @@ def _build_svg_donut(segments: List[Dict[str, Any]], center_val: str, center_lbl
     <div class="donut-wrap">
       <div class="donut-svg-box">
         <svg width="140" height="140" viewBox="0 0 140 140">
-          <circle cx="70" cy="70" r="{radius}" fill="transparent" stroke="rgba(255,255,255,0.06)" stroke-width="16" />
+          <circle cx="70" cy="70" r="{radius}" fill="transparent" stroke="var(--ring-track, #E2E8F0)" stroke-width="16" />
           {circles_svg}
-          <text x="70" y="66" text-anchor="middle" fill="#FFFFFF" font-family="Sora, sans-serif" font-size="20" font-weight="800">{html.escape(str(center_val))}</text>
-          <text x="70" y="84" text-anchor="middle" fill="#94A3B8" font-family="Plus Jakarta Sans, sans-serif" font-size="10" font-weight="700">{html.escape(str(center_lbl))}</text>
+          <text x="70" y="66" text-anchor="middle" fill="var(--text-primary, #0F172A)" font-family="Sora, sans-serif" font-size="20" font-weight="800">{html.escape(str(center_val))}</text>
+          <text x="70" y="84" text-anchor="middle" fill="var(--text-muted, #64748B)" font-family="Plus Jakarta Sans, sans-serif" font-size="10" font-weight="700">{html.escape(str(center_lbl))}</text>
         </svg>
       </div>
       <div class="donut-legend">
@@ -3153,15 +3153,15 @@ async def analytics_dashboard_page(
         cum_tip = f"{d['label']}: Kümülatif {d['cum_downloads']} İndirme ({cum_ios_val} iOS + {cum_android_val} Android){pending_note}"
 
         bar_style_cum = (
-            f"height:{dl_h}%; background:rgba(52,211,153,0.18); border:1.5px dashed #34D399;"
+            f"height:{dl_h}%; background:rgba(16,185,129,0.20); border:1.5px dashed #059669;"
             if is_pending
-            else f"height:{dl_h}%; background:linear-gradient(180deg, #34D399 0%, #059669 100%);"
+            else f"height:{dl_h}%; background:linear-gradient(180deg, #10B981 0%, #059669 100%);"
         )
         top_val_cum = f"{d['cum_downloads']}*" if is_pending else str(d["cum_downloads"])
 
         cum_bars_html += f"""
         <div class="t-col {'t-today' if is_today else ''} {'t-pending' if is_pending else ''}" title="{html.escape(cum_tip)}">
-          <div class="t-top-val" style="color:{'#E8A855' if is_pending else '#34D399'};">{top_val_cum}</div>
+          <div class="t-top-val" style="color:{'#D97706' if is_pending else '#059669'};">{top_val_cum}</div>
           <div class="t-bars-pair">
             <div class="t-bar" style="{bar_style_cum}"></div>
           </div>
@@ -3172,13 +3172,13 @@ async def analytics_dashboard_page(
         if is_pending and d["daily_downloads"] == 0 and d["daily_visits_clicks"] > 0:
             sig_h = max(18, round((d["daily_visits_clicks"] / max_daily_clicks) * 75))
             d_dl_str = f"⏳{d['daily_visits_clicks']} Tık"
-            bar_style_daily = f"height:{sig_h}%; background:rgba(96,165,250,0.20); border:1.5px dashed #60A5FA;"
-            top_color_daily = "#60A5FA"
+            bar_style_daily = f"height:{sig_h}%; background:rgba(37,99,235,0.20); border:1.5px dashed #2563EB;"
+            top_color_daily = "#2563EB"
         else:
             d_dl_h = max(12, round((d["daily_downloads"] / max_daily_dl) * 100)) if d["daily_downloads"] > 0 else 6
             d_dl_str = f"+{d['daily_downloads']}" if d["daily_downloads"] > 0 else "0"
-            bar_style_daily = f"height:{d_dl_h}%; background:linear-gradient(180deg, #E8A855 0%, #D48828 100%);"
-            top_color_daily = "#E8A855"
+            bar_style_daily = f"height:{d_dl_h}%; background:linear-gradient(180deg, #F59E0B 0%, #D97706 100%);"
+            top_color_daily = "#D97706"
         d_touch_tip = f" • +{d['daily_visits_clicks']} Sayfa/Sosyal Tık" if d["daily_visits_clicks"] > 0 else ""
 
         daily_bars_html += f"""
@@ -3212,9 +3212,9 @@ async def analytics_dashboard_page(
           <div class="review-head">
             <div>
               <span class="badge {'badge-meta' if 'iOS' in badge_txt else 'badge-gp'}">{html.escape(badge_txt)}</span>
-              <strong style="color:#FFF; margin-left:6px;">{html.escape(str(rv.get('title', '')))}</strong>
+              <strong style="color:var(--text-primary); margin-left:6px;">{html.escape(str(rv.get('title', '')))}</strong>
             </div>
-            <span style="font-size:11.5px; color:#FBBF24; font-weight:700;">{stars} • {html.escape(str(rv.get('date', '')))}</span>
+            <span style="font-size:11.5px; color:#D97706; font-weight:700;">{stars} • {html.escape(str(rv.get('date', '')))}</span>
           </div>
           <p class="review-body">“{html.escape(str(rv.get('body', '')))}”</p>
           <div class="review-foot">👤 {html.escape(str(rv.get('author', 'Kullanıcı')))} — {html.escape(str(rv.get('store', '')))}</div>
@@ -3222,7 +3222,7 @@ async def analytics_dashboard_page(
         """
     if not reviews_html:
         reviews_html = """
-        <div class="bento-card" style="grid-column: 1 / -1; text-align:center; color:#94A3B8;">
+        <div class="bento-card" style="grid-column: 1 / -1; text-align:center; color:var(--text-muted);">
           Henüz senkronize edilmiş mağaza yorumu bulunmuyor. Canlı mağaza verilerini çekmek için üstteki <strong>Mağazaları Güncelle</strong> butonunu kullanabilirsiniz.
         </div>
         """
@@ -3241,11 +3241,11 @@ async def analytics_dashboard_page(
 
         rows_html += f"""
         <tr>
-          <td style="color:#CBD5E1; font-weight:600; font-variant-numeric:tabular-nums;">{dt_tr}</td>
+          <td style="color:var(--text-secondary); font-weight:600; font-variant-numeric:tabular-nums;">{dt_tr}</td>
           <td>{'🍏 ' + safe_detail if c.os_family == 'ios' else '🤖 ' + safe_detail}</td>
           <td>{safe_webview}</td>
-          <td style="color:#34D399; font-weight:700;">{store_str}</td>
-          <td style="color:#94A3B8;">{safe_country}</td>
+          <td style="color:#059669; font-weight:700;">{store_str}</td>
+          <td style="color:var(--text-muted);">{safe_country}</td>
         </tr>
         """
 
@@ -3274,14 +3274,14 @@ async def analytics_dashboard_page(
     renewal_calendar_html = ""
     for rc in fl["renewal_forecast_calendar"]:
         subs_badges = " • ".join(html.escape(x) for x in rc["subscribers"])
-        is_rec_cal = rc.get("reconciliation_status") == "reconciling"
-        rec_border = "#60A5FA" if is_rec_cal else "#34D399"
+        is_rec_cal = bool(rc.get("is_reconciling") or rc.get("reconciliation_status") == "reconciling")
+        rec_border = "#2563EB" if is_rec_cal else "#059669"
         rec_lbl = "🔄 APPLE MUTABAKATINDA" if is_rec_cal else "📅 YAKLAŞAN VADE"
         renewal_calendar_html += f"""
         <div class="step-box" style="border-left: 4px solid {rec_border};">
           <div class="step-num" style="color:{rec_border};">{rec_lbl}: {html.escape(str(rc['date']))}</div>
           <div class="step-val">{rc['count']} Abone</div>
-          <div class="step-sub">Beklenen Tahsilat: <strong>{rc['expected_gross_try']:.2f} ₺ Brüt</strong> / <strong style="color:#34D399;">{rc['expected_net_try']:.2f} ₺ Net</strong></div>
+          <div class="step-sub">Beklenen Tahsilat: <strong>{rc['expected_gross_try']:.2f} ₺ Brüt</strong> / <strong style="color:#059669;">{rc['expected_net_try']:.2f} ₺ Net</strong></div>
           <span class="step-rate">👤 {subs_badges}</span>
         </div>
         """
@@ -3291,53 +3291,53 @@ async def analytics_dashboard_page(
         lc_stage = sl.get("lifecycle_stage", sl["status"])
         lc_prog = int(sl.get("trial_progress_pct", 50) or 50)
         if sl["status"] == "paid_active":
-            st_badge = '<span class="badge" style="background:rgba(16,185,129,0.2); color:#34D399;">💳 Ücretli Aktif</span>'
-            bar_color = "#34D399"
+            st_badge = '<span class="badge" style="background:rgba(16,185,129,0.15); color:#059669;">💳 Ücretli Aktif</span>'
+            bar_color = "#10B981"
         elif sl["status"] == "offer_code_trial":
-            st_badge = f'<span class="badge" style="background:rgba(192,132,252,0.2); color:#C084FC;">🎟️ Kodlu ({html.escape(str(sl["offer_code_name"]))})</span>'
-            bar_color = "#C084FC"
+            st_badge = f'<span class="badge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">🎟️ Kodlu ({html.escape(str(sl["offer_code_name"]))})</span>'
+            bar_color = "#8B5CF6"
         elif sl["status"] == "cancelled":
-            st_badge = '<span class="badge" style="background:rgba(248,113,113,0.2); color:#F87171;">✖ İptal</span>'
-            bar_color = "#F87171"
-        elif lc_stage == "trial_matured_reconciling":
-            st_badge = '<span class="badge" style="background:rgba(96,165,250,0.22); color:#60A5FA;">🔄 Mutabakatta (7G Doldu)</span>'
-            bar_color = "#60A5FA"
+            st_badge = '<span class="badge" style="background:rgba(239,68,68,0.14); color:#DC2626;">✖ İptal</span>'
+            bar_color = "#EF4444"
+        elif lc_stage in ("reconciling_trial", "trial_matured_reconciling"):
+            st_badge = '<span class="badge" style="background:rgba(37,99,235,0.14); color:#2563EB;">🔄 Mutabakatta (7/7 Gün)</span>'
+            bar_color = "#3B82F6"
         else:
-            st_badge = f'<span class="badge" style="background:rgba(232,168,85,0.2); color:#E8A855;">⏳ {html.escape(str(sl.get("lifecycle_badge", "7 Günlük Deneme")))}</span>'
-            bar_color = "#E8A855"
+            st_badge = f'<span class="badge" style="background:rgba(217,119,6,0.15); color:#D97706;">{html.escape(str(sl.get("lifecycle_badge", "⏳ 7 Günlük Deneme")))}</span>'
+            bar_color = "#F59E0B"
 
         ar_badge = (
-            '<span style="color:#34D399; font-weight:700;">✔ Açık (Aktif)</span>'
+            '<span style="color:#059669; font-weight:700;">✔ Açık (Aktif)</span>'
             if sl["auto_renew_enabled"]
-            else '<span style="color:#F87171; font-weight:700;">✖ İptal</span>'
+            else '<span style="color:#DC2626; font-weight:700;">✖ İptal</span>'
         )
         paid_str = (
-            f"<strong style='color:#34D399;'>{sl['customer_price_try']:.2f} ₺</strong> <span style='color:#94A3B8;'>(Net {sl['developer_proceeds_try']:.2f} ₺)</span>"
+            f"<strong style='color:#059669;'>{sl['customer_price_try']:.2f} ₺</strong> <span style='color:var(--text-muted);'>(Net {sl['developer_proceeds_try']:.2f} ₺)</span>"
             if sl["customer_price_try"] > 0
-            else "<span style='color:#94A3B8;'>0.00 ₺ (Deneme / Kod)</span>"
+            else "<span style='color:var(--text-muted);'>0.00 ₺ (Deneme / Kod)</span>"
         )
         next_str = (
-            f"<strong style='color:#F8FAFC;'>{sl['expected_next_price_try']:.2f} ₺</strong> <span style='color:#34D399;'>(Net {sl['expected_next_proceeds_try']:.2f} ₺)</span>"
+            f"<strong style='color:var(--text-primary);'>{sl['expected_next_price_try']:.2f} ₺</strong> <span style='color:#059669;'>(Net {sl['expected_next_proceeds_try']:.2f} ₺)</span>"
             if sl["expected_next_price_try"] > 0
-            else "<span style='color:#94A3B8;'>0.00 ₺</span>"
+            else "<span style='color:var(--text-muted);'>0.00 ₺</span>"
         )
         prog_html = f"""
-        <div style="margin-top:5px; width:100%; height:5px; background:rgba(255,255,255,0.08); border-radius:99px; overflow:hidden;">
+        <div style="margin-top:5px; width:100%; height:5px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
           <div style="width:{lc_prog}%; height:100%; background:{bar_color}; border-radius:99px;"></div>
         </div>
         """
         ledger_rows_html += f"""
         <tr>
-          <td style="color:#94A3B8; font-weight:700;">{idx_sub}</td>
-          <td style="font-family:monospace; color:#F8FAFC; font-weight:700;" title="Tam Subscriber ID: {html.escape(str(sl['subscriber_id']))}">{html.escape(str(sl['subscriber_short']))}</td>
+          <td style="color:var(--text-muted); font-weight:700;">{idx_sub}</td>
+          <td style="font-family:monospace; color:var(--text-primary); font-weight:700;" title="Tam Subscriber ID: {html.escape(str(sl['subscriber_id']))}">{html.escape(str(sl['subscriber_short']))}</td>
           <td><strong>{html.escape(str(sl['plan_label']))}</strong></td>
           <td>{st_badge}{prog_html}</td>
           <td style="font-variant-numeric:tabular-nums;">{html.escape(str(sl['started_date']))}</td>
           <td style="font-variant-numeric:tabular-nums;">{html.escape(str(sl['converted_or_renewed_date']))}</td>
-          <td style="color:#E8A855; font-weight:700; font-variant-numeric:tabular-nums;">{html.escape(str(sl['maturity_or_renewal_date']))}</td>
+          <td style="color:#D97706; font-weight:700; font-variant-numeric:tabular-nums;">{html.escape(str(sl['maturity_or_renewal_date']))}</td>
           <td>{ar_badge}</td>
           <td style="font-variant-numeric:tabular-nums;">{paid_str}</td>
-          <td style="color:#CBD5E1; font-variant-numeric:tabular-nums;">{next_str}</td>
+          <td style="color:var(--text-secondary); font-variant-numeric:tabular-nums;">{next_str}</td>
           <td>{html.escape(str(sl['country']))} • {html.escape(str(sl['device_type']))}</td>
         </tr>
         """
@@ -3348,27 +3348,27 @@ async def analytics_dashboard_page(
         am_dl = int(am.get("downloads", 0) or 0)
         am_bar_w = max(4, round((am_dl / max_aso_dl) * 100)) if am_dl > 0 else 0
         cvr_cell = (
-            f"<strong style='color:#34D399;'>%{am['cvr_pct']}</strong> <span style='font-size:11px; color:#94A3B8;'>({html.escape(str(am['cvr_basis']))})</span>"
+            f"<strong style='color:#059669;'>%{am['cvr_pct']}</strong> <span style='font-size:11px; color:var(--text-muted);'>({html.escape(str(am['cvr_basis']))})</span>"
             if am["cvr_pct"] is not None
-            else f"<span style='color:#94A3B8;'>{html.escape(str(am['cvr_basis']))}</span>"
+            else f"<span style='color:var(--text-muted);'>{html.escape(str(am['cvr_basis']))}</span>"
         )
         aso_rows_html += f"""
         <tr>
           <td><strong>{html.escape(str(am['channel']))}</strong></td>
           <td><span class="badge badge-meta">{html.escape(str(am['source_badge']))}</span></td>
-          <td style="font-weight:700; color:#E8A855; font-variant-numeric:tabular-nums;">{html.escape(str(am['impressions']))}</td>
-          <td style="color:#CBD5E1;">{html.escape(str(am['page_views_or_clicks']))}</td>
+          <td style="font-weight:700; color:#D97706; font-variant-numeric:tabular-nums;">{html.escape(str(am['impressions']))}</td>
+          <td style="color:var(--text-secondary);">{html.escape(str(am['page_views_or_clicks']))}</td>
           <td style="min-width:130px;">
             <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
-              <span style="font-family:'Sora',sans-serif; font-weight:800; color:#34D399; font-size:15px;">{am_dl}</span>
-              <span style="font-size:11px; color:#94A3B8;">%{round((am_dl / max(1, f_dl)) * 100)}</span>
+              <span style="font-family:'Sora',sans-serif; font-weight:800; color:#059669; font-size:15px;">{am_dl}</span>
+              <span style="font-size:11px; color:var(--text-muted);">%{round((am_dl / max(1, f_dl)) * 100)}</span>
             </div>
-            <div style="margin-top:4px; width:100%; height:5px; background:rgba(255,255,255,0.07); border-radius:99px; overflow:hidden;">
-              <div style="width:{am_bar_w}%; height:100%; background:linear-gradient(90deg, #34D399, #60A5FA); border-radius:99px;"></div>
+            <div style="margin-top:4px; width:100%; height:5px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
+              <div style="width:{am_bar_w}%; height:100%; background:linear-gradient(90deg, #10B981, #3B82F6); border-radius:99px;"></div>
             </div>
           </td>
           <td>{cvr_cell}</td>
-          <td style="color:#C084FC; font-weight:600;">{html.escape(str(am['vip_attributed']))}</td>
+          <td style="color:#7C3AED; font-weight:600;">{html.escape(str(am['vip_attributed']))}</td>
         </tr>
         """
 
@@ -3380,24 +3380,24 @@ async def analytics_dashboard_page(
         country_rows_html += f"""
         <tr>
           <td>{safe_flag} <strong>{html.escape(str(c_item.get('name', '')))}</strong> ({html.escape(str(c_item.get('code', '')))})</td>
-          <td style="font-weight:800; color:#34D399; font-variant-numeric:tabular-nums;">{c_cnt} İndirme</td>
-          <td style="color:#94A3B8; font-variant-numeric:tabular-nums;">%{c_pct}</td>
+          <td style="font-weight:800; color:#059669; font-variant-numeric:tabular-nums;">{c_cnt} İndirme</td>
+          <td style="color:var(--text-muted); font-variant-numeric:tabular-nums;">%{c_pct}</td>
         </tr>
         """
 
     cohort_rows_html = ""
     for ch in pr["subscriber_cohorts"]:
         ret_p = float(ch.get("retention_pct", 0.0) or 0.0)
-        heat_bg = "rgba(16,185,129,0.24)" if ret_p >= 90 else ("rgba(232,168,85,0.22)" if ret_p >= 60 else "rgba(248,113,113,0.22)")
-        heat_col = "#34D399" if ret_p >= 90 else ("#E8A855" if ret_p >= 60 else "#F87171")
+        heat_bg = "rgba(16,185,129,0.16)" if ret_p >= 90 else ("rgba(217,119,6,0.16)" if ret_p >= 60 else "rgba(239,68,68,0.16)")
+        heat_col = "#059669" if ret_p >= 90 else ("#D97706" if ret_p >= 60 else "#DC2626")
         cohort_rows_html += f"""
         <tr>
-          <td style="font-weight:700; color:#F8FAFC; font-variant-numeric:tabular-nums;">📅 {html.escape(str(ch['start_date']))} Kohortu</td>
-          <td style="font-weight:800; color:#60A5FA;">{ch['started_total']} Abone</td>
-          <td style="color:#34D399; font-weight:700;">{ch['paid_converted']} Ücretli</td>
-          <td style="color:#C084FC; font-weight:700;">{ch['offer_code']} Yıllık Kodlu</td>
-          <td style="color:#E8A855; font-weight:700;">{ch['intro_trial']} 7G Denemede</td>
-          <td style="color:#94A3B8;">{ch['cancelled']} İptal</td>
+          <td style="font-weight:700; color:var(--text-primary); font-variant-numeric:tabular-nums;">📅 {html.escape(str(ch['start_date']))} Kohortu</td>
+          <td style="font-weight:800; color:#2563EB;">{ch['started_total']} Abone</td>
+          <td style="color:#059669; font-weight:700;">{ch['paid_converted']} Ücretli</td>
+          <td style="color:#7C3AED; font-weight:700;">{ch['offer_code']} Yıllık Kodlu</td>
+          <td style="color:#D97706; font-weight:700;">{ch['intro_trial']} 7G Denemede</td>
+          <td style="color:var(--text-muted);">{ch['cancelled']} İptal</td>
           <td><span class="badge" style="background:{heat_bg}; color:{heat_col}; font-variant-numeric:tabular-nums;">%{ch['retention_pct']} Aktif Korundu</span></td>
         </tr>
         """
@@ -3423,120 +3423,138 @@ async def analytics_dashboard_page(
       <title>Mışıl Baby — Kurumsal Büyüme, Abone Defteri & Ürün Analitiği Kokpiti</title>
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
       <style>
+        /* SEÇENEK 1: AIRY DAYLIGHT (STRIPE / APPLE STORE CONNECT FERAH GÜNDÜZ TEMASI — VARSAYILAN) */
         :root {{
-          --bg-obsidian: #08090C;
-          --bg-cell: #0B0D12;
-          --bg-card: #08090C;
-          --hairline: #1E222D;
-          --border-subtle: #1E222D;
-          --gold: #E8A855;
-          --sky: #60A5FA;
-          --emerald: #10B981;
-          --violet: #C084FC;
-          --rose: #F87171;
+          --bg-canvas: #F4F6FB;
+          --bg-card: #FFFFFF;
+          --bg-cell: #F8FAFC;
+          --border-subtle: #E2E8F0;
+          --ring-track: #E2E8F0;
+          --text-primary: #0F172A;
+          --text-secondary: #334155;
+          --text-muted: #64748B;
+          --card-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+          --gold: #D97706;
+          --sky: #2563EB;
+          --emerald: #059669;
+          --violet: #7C3AED;
+          --rose: #DC2626;
+        }}
+        /* İSTEĞE BAĞLI YUMUŞAK GECE MODU (SOFT SLATE) */
+        body.theme-slate {{
+          --bg-canvas: #0F172A;
+          --bg-card: #1E293B;
+          --bg-cell: #162033;
+          --border-subtle: rgba(148, 163, 184, 0.18);
+          --ring-track: rgba(255, 255, 255, 0.08);
+          --text-primary: #F8FAFC;
+          --text-secondary: #CBD5E1;
+          --text-muted: #94A3B8;
+          --card-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
         }}
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
         body {{
-          background: var(--bg-obsidian);
-          color: #F8FAFC;
+          background: var(--bg-canvas);
+          color: var(--text-primary);
           font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
           min-height: 100vh;
-          padding: 20px 16px 80px;
+          padding: 24px 18px 80px;
           -webkit-font-smoothing: antialiased;
+          transition: background 0.2s ease, color 0.2s ease;
         }}
         .container {{
-          max-width: 1260px;
+          max-width: 1280px;
           margin: 0 auto;
-          border: 1px solid var(--hairline);
-          border-radius: 14px;
-          background: var(--bg-obsidian);
-          overflow: hidden;
         }}
 
-        /* ÜST BAŞLIK (LINEAR HAIRLINE HEADER) */
+        /* ÜST BAŞLIK (AIRY DAYLIGHT ELEVATED HEADER) */
         .topbar {{
           display: flex;
           flex-wrap: wrap;
           justify-content: space-between;
           align-items: center;
           gap: 14px;
-          padding: 16px 20px;
-          background: var(--bg-cell);
-          border-bottom: 1px solid var(--hairline);
+          padding: 18px 22px;
+          background: var(--bg-card);
+          border: 1px solid var(--border-subtle);
+          border-radius: 18px;
+          box-shadow: var(--card-shadow);
+          margin-bottom: 16px;
         }}
-        .brand {{ display: flex; align-items: center; gap: 12px; }}
+        .brand {{ display: flex; align-items: center; gap: 14px; }}
         .brand-icon {{
-          width: 38px; height: 38px; border-radius: 8px;
-          background: rgba(16, 185, 129, 0.12);
-          border: 1px solid rgba(16, 185, 129, 0.35);
+          width: 44px; height: 44px; border-radius: 12px;
+          background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+          color: #FFFFFF;
           display: flex; align-items: center; justify-content: center;
-          font-size: 18px;
+          font-size: 20px;
+          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
         }}
-        .brand h1 {{ font-family: 'JetBrains Mono', 'Sora', monospace; font-size: 15.5px; font-weight: 700; color: #FFF; letter-spacing: -0.02em; }}
-        .brand p {{ font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #64748B; margin-top: 2px; }}
+        .brand h1 {{ font-family: 'Sora', sans-serif; font-size: 18px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; }}
+        .brand p {{ font-size: 12.5px; color: var(--text-muted); margin-top: 3px; font-weight: 500; }}
         .actions {{ display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }}
         .btn {{
-          padding: 8px 13px;
-          border-radius: 8px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11.5px;
+          padding: 9px 14px;
+          border-radius: 10px;
+          font-size: 12.5px;
           font-weight: 700;
           text-decoration: none;
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          border: 1px solid var(--hairline);
-          background: #10131C;
-          color: #E2E8F0;
+          border: 1px solid var(--border-subtle);
+          background: var(--bg-cell);
+          color: var(--text-secondary);
           cursor: pointer;
           transition: all 0.15s ease;
         }}
-        .btn:hover {{ background: #181D2B; border-color: #334155; color: #FFF; }}
+        .btn:hover {{ background: var(--bg-card); border-color: #10B981; color: var(--text-primary); }}
         .live-pill {{
           display: inline-flex;
           align-items: center;
           gap: 7px;
-          padding: 7px 12px;
-          border-radius: 6px;
-          background: rgba(16, 185, 129, 0.10);
-          border: 1px solid rgba(16, 185, 129, 0.32);
-          color: #10B981;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11.5px;
-          font-weight: 700;
+          padding: 8px 14px;
+          border-radius: 99px;
+          background: rgba(16, 185, 129, 0.12);
+          border: 1px solid rgba(16, 185, 129, 0.30);
+          color: #059669;
+          font-size: 12px;
+          font-weight: 800;
           cursor: pointer;
           font-variant-numeric: tabular-nums;
         }}
         .pulse-dot {{
-          width: 7px; height: 7px; border-radius: 50%;
+          width: 8px; height: 8px; border-radius: 50%;
           background: #10B981;
           box-shadow: 0 0 8px #10B981;
         }}
 
-        /* 4 KAYNAKLI KILCAL TAZELİK BANDI (1PX HAIRLINE FRESHNESS STRIP) */
+        /* 4 KAYNAKLI FERAH VERİ TAZELİK KARTLARI */
         .freshness-strip {{
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-          gap: 1px;
-          background: var(--hairline);
-          border-bottom: 1px solid var(--hairline);
+          gap: 12px;
+          margin-bottom: 16px;
         }}
         .fs-pill {{
-          padding: 11px 16px;
-          background: var(--bg-obsidian);
+          padding: 12px 16px;
+          background: var(--bg-card);
+          border: 1px solid var(--border-subtle);
+          border-radius: 14px;
+          box-shadow: var(--card-shadow);
           display: flex;
           flex-direction: column;
           gap: 4px;
         }}
-        .fs-realtime {{ border-top: 2px solid #10B981; }}
-        .fs-reconciling {{ border-top: 2px solid #60A5FA; }}
-        .fs-synced {{ border-top: 2px solid #E8A855; }}
+        .fs-realtime {{ border-left: 4px solid #10B981; }}
+        .fs-reconciling {{ border-left: 4px solid #3B82F6; }}
+        .fs-synced {{ border-left: 4px solid #F59E0B; }}
         .fs-top {{ display: flex; justify-content: space-between; align-items: center; gap: 6px; }}
-        .fs-lbl {{ font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px; }}
-        .fs-badge {{ font-family: 'JetBrains Mono', monospace; font-size: 10.5px; font-weight: 700; color: #10B981; font-variant-numeric: tabular-nums; }}
-        .fs-reconciling .fs-badge {{ color: #60A5FA; }}
-        .fs-synced .fs-badge {{ color: #E8A855; }}
-        .fs-sub {{ font-size: 11px; color: #94A3B8; font-variant-numeric: tabular-nums; }}
+        .fs-lbl {{ font-size: 11px; font-weight: 800; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px; }}
+        .fs-badge {{ font-size: 11px; font-weight: 800; color: #059669; font-variant-numeric: tabular-nums; }}
+        .fs-reconciling .fs-badge {{ color: #2563EB; }}
+        .fs-synced .fs-badge {{ color: #D97706; }}
+        .fs-sub {{ font-size: 11.5px; color: var(--text-secondary); font-variant-numeric: tabular-nums; font-weight: 500; }}
 
         /* DÖNEM FİLTRESİ BARI */
         .period-bar {{
@@ -3545,58 +3563,64 @@ async def analytics_dashboard_page(
           justify-content: space-between;
           align-items: center;
           gap: 10px;
-          padding: 10px 20px;
-          background: var(--bg-cell);
-          border-bottom: 1px solid var(--hairline);
+          padding: 12px 18px;
+          background: var(--bg-card);
+          border: 1px solid var(--border-subtle);
+          border-radius: 14px;
+          box-shadow: var(--card-shadow);
+          margin-bottom: 16px;
         }}
         .period-pills {{ display: flex; gap: 6px; flex-wrap: wrap; }}
         .period-pill {{
-          padding: 5px 11px;
-          border-radius: 6px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
+          padding: 6px 13px;
+          border-radius: 99px;
+          font-size: 12px;
           font-weight: 700;
           text-decoration: none;
-          color: #64748B;
-          background: #08090C;
-          border: 1px solid var(--hairline);
+          color: var(--text-muted);
+          background: var(--bg-cell);
+          border: 1px solid var(--border-subtle);
+          transition: all 0.15s ease;
         }}
+        .period-pill:hover {{ color: var(--text-primary); border-color: #CBD5E1; }}
         .period-pill.active {{
-          color: #08090C;
+          color: #FFFFFF;
           background: #10B981;
-          border-color: #10B981;
+          border-color: #059669;
+          box-shadow: 0 2px 8px rgba(16, 185, 129, 0.25);
         }}
 
-        /* 1. BLOK: 4 SABİT KUZEY YILDIZI KILCAL IZGARA (1PX HAIRLINE GRID) */
+        /* 1. BLOK: 4 FERAH KUZEY YILDIZI KARTI (AIRY DAYLIGHT BENTO) */
         .kpi-grid {{
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(265px, 1fr));
-          gap: 1px;
-          background: var(--hairline);
-          border-bottom: 1px solid var(--hairline);
+          gap: 16px;
+          margin-bottom: 18px;
         }}
         .bento-card {{
-          background: var(--bg-obsidian);
-          border-bottom: 1px solid var(--hairline);
-          padding: 20px;
+          background: var(--bg-card);
+          border: 1px solid var(--border-subtle);
+          border-radius: 18px;
+          padding: 20px 22px;
+          box-shadow: var(--card-shadow);
+          margin-bottom: 16px;
         }}
         .kpi-grid .bento-card {{
-          border-bottom: none;
+          margin-bottom: 0;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
         }}
         .card-label {{
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10.5px;
-          font-weight: 700;
-          color: #64748B;
+          font-size: 11.5px;
+          font-weight: 800;
+          color: var(--text-muted);
           margin-bottom: 10px;
           display: flex;
           align-items: center;
           justify-content: space-between;
           gap: 8px;
-          letter-spacing: 0.6px;
+          letter-spacing: 0.4px;
           text-transform: uppercase;
         }}
         .kpi-hero-row {{
@@ -3607,10 +3631,10 @@ async def analytics_dashboard_page(
           margin-bottom: 10px;
         }}
         .big-num {{
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 32px;
-          font-weight: 700;
-          color: #F8FAFC;
+          font-family: 'Sora', sans-serif;
+          font-size: 33px;
+          font-weight: 800;
+          color: var(--text-primary);
           line-height: 1.05;
           font-variant-numeric: tabular-nums;
           letter-spacing: -0.03em;
@@ -3618,74 +3642,81 @@ async def analytics_dashboard_page(
         .delta-chip {{
           display: inline-flex;
           align-items: center;
-          padding: 2px 7px;
-          border-radius: 4px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10.5px;
-          font-weight: 700;
-          background: rgba(16, 185, 129, 0.12);
-          color: #10B981;
-          border: 1px solid rgba(16, 185, 129, 0.28);
+          padding: 3px 9px;
+          border-radius: 99px;
+          font-size: 11px;
+          font-weight: 800;
+          background: rgba(16, 185, 129, 0.14);
+          color: #059669;
           font-variant-numeric: tabular-nums;
           white-space: nowrap;
         }}
         .split-bar {{
           width: 100%;
-          height: 4px;
-          background: #151922;
+          height: 6px;
+          border-radius: 99px;
+          background: var(--ring-track);
           overflow: hidden;
           display: flex;
           margin: 8px 0 10px;
         }}
         .card-desc {{
-          font-size: 12px;
-          color: #64748B;
+          font-size: 12.5px;
+          color: var(--text-muted);
           line-height: 1.5;
         }}
-        .card-desc strong {{ color: #CBD5E1; font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }}
+        .card-desc strong {{ color: var(--text-primary); font-weight: 700; font-variant-numeric: tabular-nums; }}
 
-        /* 5 SEKMELİ KILCAL NAVİGASYON BARI */
+        /* 5 SEKMELİ FERAH NAVİGASYON BARI */
         .tabs-nav {{
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(195px, 1fr));
-          gap: 1px;
-          background: var(--hairline);
-          border-bottom: 1px solid var(--hairline);
+          display: flex;
+          flex-wrap: wrap;
+          gap: 8px;
+          margin-bottom: 18px;
+          padding: 8px;
+          background: var(--bg-card);
+          border: 1px solid var(--border-subtle);
+          border-radius: 16px;
+          box-shadow: var(--card-shadow);
         }}
         .tab-btn {{
-          padding: 13px 14px;
-          border: none;
-          border-top: 2px solid transparent;
-          background: var(--bg-cell);
-          color: #64748B;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11.5px;
-          font-weight: 700;
+          flex: 1;
+          min-width: 180px;
+          padding: 11px 14px;
+          border-radius: 11px;
+          border: 1px solid transparent;
+          background: transparent;
+          color: var(--text-muted);
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          font-size: 12.5px;
+          font-weight: 800;
           cursor: pointer;
           text-align: center;
           transition: all 0.15s ease;
         }}
         .tab-btn:hover {{
-          color: #F8FAFC;
-          background: #10141F;
+          color: var(--text-primary);
+          background: var(--bg-cell);
         }}
         .tab-btn.active {{
-          background: var(--bg-obsidian);
-          border-top-color: #10B981;
-          color: #F8FAFC;
+          background: #0F172A;
+          color: #FFFFFF;
+          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        }}
+        body.theme-slate .tab-btn.active {{
+          background: #10B981;
+          color: #06281E;
         }}
         .tab-pane {{ display: none; }}
         .tab-pane.active {{ display: block; }}
 
-        /* YAN YANA ADIM KUTULARI & HUNİ BARI (1PX HAIRLINE CELLS) */
+        /* YAN YANA ADIM KUTULARI & HUNİ BARI */
         .section-head {{
-          font-family: 'JetBrains Mono', 'Sora', monospace;
-          font-size: 13px;
-          font-weight: 700;
-          color: #E2E8F0;
-          text-transform: uppercase;
-          letter-spacing: 0.4px;
-          margin-bottom: 14px;
+          font-family: 'Sora', sans-serif;
+          font-size: 15px;
+          font-weight: 800;
+          color: var(--text-primary);
+          margin-bottom: 16px;
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -3695,63 +3726,60 @@ async def analytics_dashboard_page(
         .steps-grid {{
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-          gap: 1px;
-          background: var(--hairline);
-          border: 1px solid var(--hairline);
+          gap: 14px;
         }}
         .step-box {{
           background: var(--bg-cell);
+          border: 1px solid var(--border-subtle);
+          border-radius: 14px;
           padding: 16px;
           position: relative;
         }}
         .step-num {{
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10.5px;
-          font-weight: 700;
+          font-size: 11px;
+          font-weight: 800;
           text-transform: uppercase;
-          letter-spacing: 0.5px;
+          letter-spacing: 0.4px;
           margin-bottom: 6px;
         }}
         .step-val {{
-          font-family: 'JetBrains Mono', monospace;
+          font-family: 'Sora', sans-serif;
           font-size: 24px;
-          font-weight: 700;
-          color: #FFF;
+          font-weight: 800;
+          color: var(--text-primary);
           margin-bottom: 4px;
           font-variant-numeric: tabular-nums;
         }}
-        .step-sub {{ font-size: 12px; color: #64748B; line-height: 1.45; }}
+        .step-sub {{ font-size: 12.5px; color: var(--text-muted); line-height: 1.45; }}
         .step-rate {{
           display: inline-block;
           margin-top: 10px;
-          padding: 3px 8px;
-          border-radius: 4px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10.5px;
+          padding: 4px 10px;
+          border-radius: 99px;
+          font-size: 11px;
           font-weight: 700;
-          background: #131722;
-          border: 1px solid var(--hairline);
-          color: #CBD5E1;
+          background: var(--bg-card);
+          border: 1px solid var(--border-subtle);
+          color: var(--text-secondary);
           font-variant-numeric: tabular-nums;
         }}
 
         /* SIFIR KAYMA GARANTİLİ 3-SATIRLI CSS GRID ZAMAN ÇİZELGESİ */
         .chart-toggle {{ display: flex; gap: 6px; flex-wrap: wrap; }}
         .chart-toggle button {{
-          padding: 6px 12px;
-          border-radius: 6px;
-          border: 1px solid var(--hairline);
+          padding: 7px 13px;
+          border-radius: 10px;
+          border: 1px solid var(--border-subtle);
           background: var(--bg-cell);
-          color: #64748B;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 11px;
+          color: var(--text-muted);
+          font-size: 12px;
           font-weight: 700;
           cursor: pointer;
         }}
         .chart-toggle button.active {{
           background: #10B981;
-          color: #08090C;
-          border-color: #10B981;
+          color: #FFFFFF;
+          border-color: #059669;
         }}
         .timeline-scroll {{
           width: 100%;
@@ -3762,10 +3790,11 @@ async def analytics_dashboard_page(
           display: grid;
           grid-template-columns: repeat({max(1, len(t_days))}, minmax(56px, 1fr));
           gap: 6px;
-          height: 220px;
-          padding: 12px 8px;
+          height: 224px;
+          padding: 14px 10px;
           background: var(--bg-cell);
-          border: 1px solid var(--hairline);
+          border-radius: 14px;
+          border: 1px solid var(--border-subtle);
         }}
         .t-col {{
           display: grid;
@@ -3774,18 +3803,18 @@ async def analytics_dashboard_page(
           justify-items: center;
           height: 100%;
           padding: 2px;
+          border-radius: 8px;
         }}
         .t-today {{
-          background: rgba(16, 185, 129, 0.06);
-          border: 1px dashed rgba(16, 185, 129, 0.38);
+          background: rgba(16, 185, 129, 0.08);
+          border: 1px dashed rgba(16, 185, 129, 0.45);
         }}
         .t-pending {{
-          background: rgba(232, 168, 85, 0.04);
+          background: rgba(245, 158, 11, 0.06);
         }}
         .t-top-val {{
-          font-family: 'JetBrains Mono', monospace;
           font-size: 11px;
-          font-weight: 700;
+          font-weight: 800;
           line-height: 22px;
           white-space: nowrap;
           font-variant-numeric: tabular-nums;
@@ -3799,148 +3828,148 @@ async def analytics_dashboard_page(
           padding: 2px 0;
         }}
         .t-bar {{
-          width: 66%;
+          width: 68%;
           max-width: 30px;
-          border-radius: 4px 4px 1px 1px;
+          border-radius: 6px 6px 2px 2px;
           transition: height 0.25s ease;
         }}
         .t-lbl {{
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10.5px;
-          color: #64748B;
+          font-size: 11px;
+          color: var(--text-muted);
           line-height: 22px;
           font-weight: 700;
           white-space: nowrap;
           font-variant-numeric: tabular-nums;
         }}
 
-        /* 3 YAN YANA GÖRSEL HALKA (1PX HAIRLINE DONUT GRID) */
+        /* 3 YAN YANA GÖRSEL HALKA */
         .donuts-grid {{
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
-          gap: 1px;
-          background: var(--hairline);
-          border-bottom: 1px solid var(--hairline);
+          gap: 16px;
+          margin-bottom: 16px;
         }}
-        .donuts-grid .bento-card {{ border-bottom: none; }}
+        .donuts-grid .bento-card {{ margin-bottom: 0; }}
         .donut-wrap {{
           display: flex;
           align-items: center;
           gap: 18px;
           flex-wrap: wrap;
         }}
-        .donut-legend {{ flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 6px; }}
+        .donut-legend {{ flex: 1; min-width: 160px; display: flex; flex-direction: column; gap: 7px; }}
         .donut-leg-row {{
           display: flex;
           justify-content: space-between;
           align-items: center;
           font-size: 12.5px;
-          padding: 6px 10px;
+          padding: 7px 10px;
           background: var(--bg-cell);
-          border: 1px solid var(--hairline);
+          border-radius: 9px;
+          border: 1px solid var(--border-subtle);
           font-variant-numeric: tabular-nums;
         }}
-        .donut-leg-left {{ display: flex; align-items: center; gap: 8px; }}
-        .donut-dot {{ width: 8px; height: 8px; border-radius: 2px; display: inline-block; }}
-        .donut-pct {{ font-family: 'JetBrains Mono', monospace; color: #64748B; font-size: 11px; margin-left: 3px; }}
+        .donut-leg-left {{ display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-weight: 600; }}
+        .donut-dot {{ width: 9px; height: 9px; border-radius: 50%; display: inline-block; }}
+        .donut-pct {{ color: var(--text-muted); font-size: 11px; margin-left: 3px; }}
 
         /* YORUMLAR & TABLOLAR */
         .reviews-grid {{
           display: grid;
           grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-          gap: 1px;
-          background: var(--hairline);
-          border: 1px solid var(--hairline);
+          gap: 14px;
         }}
         .review-bubble {{
           background: var(--bg-cell);
+          border: 1px solid var(--border-subtle);
+          border-radius: 14px;
           padding: 16px;
         }}
         .review-head {{ display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }}
-        .review-body {{ font-size: 13.5px; color: #F8FAFC; line-height: 1.55; margin-bottom: 8px; }}
-        .review-foot {{ font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #64748B; font-weight: 600; }}
+        .review-body {{ font-size: 13.5px; color: var(--text-primary); line-height: 1.55; margin-bottom: 8px; }}
+        .review-foot {{ font-size: 11.5px; color: var(--text-muted); font-weight: 600; }}
 
         .badge {{
           display: inline-flex;
           align-items: center;
-          padding: 3px 8px;
-          border-radius: 4px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 10.5px;
-          font-weight: 700;
+          padding: 4px 10px;
+          border-radius: 99px;
+          font-size: 11px;
+          font-weight: 800;
           white-space: nowrap;
         }}
-        .badge-meta {{ background: rgba(59, 130, 246, 0.14); color: #60A5FA; border: 1px solid rgba(59, 130, 246, 0.28); }}
-        .badge-gp {{ background: rgba(16, 185, 129, 0.14); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.28); }}
+        .badge-meta {{ background: rgba(37, 99, 235, 0.12); color: #2563EB; }}
+        .badge-gp {{ background: rgba(16, 185, 129, 0.14); color: #059669; }}
         .toast-banner {{
-          background: rgba(16,185,129,0.12);
-          border-bottom: 1px solid rgba(16,185,129,0.35);
-          color: #10B981;
-          padding: 12px 20px;
-          font-family: 'JetBrains Mono', monospace;
-          font-size: 12px;
+          background: rgba(16, 185, 129, 0.12);
+          border: 1px solid rgba(16, 185, 129, 0.35);
+          color: #059669;
+          padding: 13px 18px;
+          border-radius: 14px;
+          margin-bottom: 16px;
+          font-size: 13px;
           font-weight: 600;
         }}
-        .table-wrap {{ overflow-x: auto; margin-top: 10px; border: 1px solid var(--hairline); }}
-        table {{ width: 100%; border-collapse: collapse; font-size: 12.5px; background: var(--bg-obsidian); }}
-        th {{ text-align: left; padding: 10px 12px; background: var(--bg-cell); color: #64748B; font-family: 'JetBrains Mono', monospace; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1px solid var(--hairline); font-weight: 700; white-space: nowrap; }}
-        td {{ padding: 10px 12px; border-bottom: 1px solid var(--hairline); }}
+        .table-wrap {{ overflow-x: auto; margin-top: 10px; border: 1px solid var(--border-subtle); border-radius: 12px; }}
+        table {{ width: 100%; border-collapse: collapse; font-size: 12.5px; background: var(--bg-card); }}
+        th {{ text-align: left; padding: 11px 12px; background: var(--bg-cell); color: var(--text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1px solid var(--border-subtle); font-weight: 800; white-space: nowrap; }}
+        td {{ padding: 11px 12px; border-bottom: 1px solid var(--border-subtle); color: var(--text-primary); }}
         tr:hover td {{ background: var(--bg-cell); }}
       </style>
     </head>
     <body>
       <div class="container">
-        <!-- ÜST BAŞLIK (KONSEPT A: LINEAR / VERCEL OBSIDIAN HAIRLINE) -->
+        <!-- ÜST BAŞLIK (SEÇENEK 1: AIRY DAYLIGHT FERAH GÜNDÜZ TEMASI) -->
         <div class="topbar">
           <div class="brand">
             <div class="brand-icon">🌙</div>
             <div>
-              <h1>MIŞIL_TELEMETRY // V2.0_HAIRLINE — Kurumsal Büyüme, Abone Defteri & Ürün Analitiği</h1>
-              <p>SYNC: {html.escape(str(sb.get('last_synced_at', '')))} • ZERO_PADDING_1PX_GRID • APPLE_API + GOOGLE_PLAY + POSTGRESQL</p>
+              <h1>Mışıl Baby — Kurumsal Büyüme, Abone Defteri & Ürün Analitiği</h1>
+              <p>Son Mağaza Senkronu: {html.escape(str(sb.get('last_synced_at', '')))} • App Store API + Google Play + Canlı DB</p>
             </div>
           </div>
           <div class="actions">
+            <button type="button" class="btn" onclick="toggleTheme()" id="themeToggleBtn" title="Gündüz (Airy Daylight) ve Gece (Soft Slate) görünümü arasında geçiş yap">☀️ Gündüz / 🌙 Gece</button>
             <div class="live-pill" onclick="toggleAutoRefresh()" id="liveToggleBtn" title="Sayfayı yenilemeden arka planda canlı JSON telemetri senkronizasyonu yapar">
               <span class="pulse-dot" id="liveDot"></span>
               <span id="liveCountdown">Canlı: 15s</span>
             </div>
-            <a href="/api/v1/analytics/export.csv" class="btn">📥 CSV_EXPORT</a>
-            <a href="/api/v1/analytics/dashboard?sync=1&period={clean_period}" class="btn">🔄 SYNC_STORES</a>
+            <a href="/api/v1/analytics/export.csv" class="btn">📥 CSV İndir</a>
+            <a href="/api/v1/analytics/dashboard?sync=1&period={clean_period}" class="btn">🔄 Mağazaları Güncelle</a>
           </div>
         </div>
 
         {sync_banner}
 
-        <!-- 4 KAYNAKLI CANLI VERİ TAZELİK BANDI -->
+        <!-- 4 KAYNAKLI CANLI VERİ TAZELİK BANDI (TÜM VERİLER KORUNDU) -->
         <div class="freshness-strip">
           {freshness_strip_html}
         </div>
 
         <!-- P1-2: AKTİF DÖNEM FİLTRESİ BARI -->
         <div class="period-bar">
-          <div style="font-family:'JetBrains Mono',monospace; font-size:11.5px; color:#CBD5E1; font-weight:700;">
-            FILTER // <strong style="color:#10B981;">{html.escape(s['period_label'])}</strong>
-            <span id="livePeriodSub" style="color:#64748B; margin-left:8px;">({s['active_human_count']} Tekil İnsan • Bugün: {s['today_unique_clicks']} • Dün: {s['yesterday_unique_clicks']})</span>
+          <div style="font-size:13px; color:var(--text-secondary); font-weight:700;">
+            🎯 Aktif Görünüm Dönemi: <strong style="color:#059669;">{html.escape(s['period_label'])}</strong>
+            <span id="livePeriodSub" style="font-size:12px; color:var(--text-muted); margin-left:8px;">({s['active_human_count']} Tekil İnsan • Bugün: {s['today_unique_clicks']} • Dün: {s['yesterday_unique_clicks']})</span>
           </div>
           <div class="period-pills">
             {period_pills_html}
           </div>
         </div>
 
-        <!-- SABİT ÜST BLOK: 4 KUZEY YILDIZI KILCAL IZGARA KARTI (KONSEPT A) -->
+        <!-- SABİT ÜST BLOK: 4 FERAH KUZEY YILDIZI KARTI (SEÇENEK 1: AIRY DAYLIGHT) -->
         <div class="kpi-grid">
           <div class="bento-card">
             <div>
               <div class="card-label">
-                <span>01 / IMPRESSIONS (GÖSTERİM)</span>
-                <span class="delta-chip" style="background:rgba(232,168,85,0.12); color:#E8A855; border-color:rgba(232,168,85,0.28);">+{s['kpi_deltas']['recent_3d_impressions']} (3G)</span>
+                <span>1. Mağaza Gösterimi</span>
+                <span class="delta-chip" style="background:rgba(217,119,6,0.14); color:#D97706;">+{s['kpi_deltas']['recent_3d_impressions']} (3G)</span>
               </div>
               <div class="kpi-hero-row">
-                <div class="big-num" id="kpiImpressions">{f_imp:,}</div>
+                <div class="big-num" style="color: #D97706;" id="kpiImpressions">{f_imp:,}</div>
                 {spark_imp_svg}
               </div>
               <div class="split-bar">
-                <div style="width:{imp_search_pct}%; background:#E8A855;"></div>
+                <div style="width:{imp_search_pct}%; background:#F59E0B;"></div>
                 <div style="width:{100 - imp_search_pct}%; background:#10B981;"></div>
               </div>
             </div>
@@ -3952,16 +3981,16 @@ async def analytics_dashboard_page(
           <div class="bento-card">
             <div>
               <div class="card-label">
-                <span>02 / TOUCHPOINTS (İNCELEME & TIK)</span>
-                <span class="delta-chip" style="background:rgba(96,165,250,0.12); color:#60A5FA; border-color:rgba(96,165,250,0.28);">+{s['today_unique_clicks']} BUGÜN</span>
+                <span>2. İnceleme & Sosyal Tık</span>
+                <span class="delta-chip" style="background:rgba(37,99,235,0.14); color:#2563EB;">+{s['today_unique_clicks']} Bugün</span>
               </div>
               <div class="kpi-hero-row">
-                <div class="big-num" id="kpiVisitsClicks">{f_vis}</div>
+                <div class="big-num" style="color: #2563EB;" id="kpiVisitsClicks">{f_vis}</div>
                 {spark_vis_svg}
               </div>
               <div class="split-bar">
-                <div style="width:{vis_store_pct}%; background:#60A5FA;"></div>
-                <div style="width:{100 - vis_store_pct}%; background:#C084FC;"></div>
+                <div style="width:{vis_store_pct}%; background:#3B82F6;"></div>
+                <div style="width:{100 - vis_store_pct}%; background:#8B5CF6;"></div>
               </div>
             </div>
             <div class="card-desc">
@@ -3972,16 +4001,16 @@ async def analytics_dashboard_page(
           <div class="bento-card">
             <div>
               <div class="card-label">
-                <span>03 / INSTALLS (KURULUM)</span>
+                <span>3. Toplam İndirme</span>
                 <span class="delta-chip">+{s['kpi_deltas']['recent_3d_downloads']} (3G) • CVR %{dl_of_vis_pct}</span>
               </div>
               <div class="kpi-hero-row">
-                <div class="big-num" id="kpiDownloads">{f_dl}</div>
+                <div class="big-num" style="color: #059669;" id="kpiDownloads">{f_dl}</div>
                 {spark_dl_svg}
               </div>
               <div class="split-bar">
                 <div style="width:{dl_ios_pct}%; background:#10B981;"></div>
-                <div style="width:{100 - dl_ios_pct}%; background:#60A5FA;"></div>
+                <div style="width:{100 - dl_ios_pct}%; background:#3B82F6;"></div>
               </div>
             </div>
             <div class="card-desc">
@@ -3992,17 +4021,17 @@ async def analytics_dashboard_page(
           <div class="bento-card">
             <div>
               <div class="card-label">
-                <span>04 / VIP & NET MRR</span>
-                <span class="delta-chip" style="background:rgba(192,132,252,0.12); color:#C084FC; border-color:rgba(192,132,252,0.28);">{fl['projected_total_mrr_net_try']:.2f} ₺ NET</span>
+                <span>4. VIP & Beklenen Net MRR</span>
+                <span class="delta-chip" style="background:rgba(124,58,237,0.14); color:#7C3AED;">{fl['projected_total_mrr_net_try']:.2f} ₺/Ay Net</span>
               </div>
               <div class="kpi-hero-row">
-                <div class="big-num" id="kpiVip" style="color: #10B981;">{f_vip} VIP</div>
+                <div class="big-num" style="color: #7C3AED;" id="kpiVip">{f_vip} VIP</div>
                 {spark_vip_svg}
               </div>
               <div class="split-bar">
                 <div style="width:15%; background:#10B981;"></div>
-                <div style="width:70%; background:#E8A855;"></div>
-                <div style="width:15%; background:#C084FC;"></div>
+                <div style="width:70%; background:#F59E0B;"></div>
+                <div style="width:15%; background:#8B5CF6;"></div>
               </div>
             </div>
             <div class="card-desc">
@@ -4011,13 +4040,13 @@ async def analytics_dashboard_page(
           </div>
         </div>
 
-        <!-- 5 SEKMELİ KILCAL NAVİGASYON BARI -->
+        <!-- 5 SEKMELİ FERAH NAVİGASYON BARI -->
         <div class="tabs-nav" role="tablist">
-          <button class="tab-btn active" id="tabBtn_tab1" onclick="switchTab('tab1')">01 // YÖNETİCİ ÖZETİ</button>
-          <button class="tab-btn" id="tabBtn_tab2" onclick="switchTab('tab2')">02 // GELİR & ABONE DEFTERİ ({len(sub_ledger)})</button>
-          <button class="tab-btn" id="tabBtn_tab3" onclick="switchTab('tab3')">03 // KANAL & ASO ATTRIBUTION</button>
-          <button class="tab-btn" id="tabBtn_tab4" onclick="switchTab('tab4')">04 // ÜRÜN NABZI & KOHORT</button>
-          <button class="tab-btn" id="tabBtn_tab5" onclick="switchTab('tab5')">05 // YORUMLAR ({avg_stars_label}) & CANLI AKIŞ</button>
+          <button class="tab-btn active" id="tabBtn_tab1" onclick="switchTab('tab1')">🧭 1. Yönetici Özeti</button>
+          <button class="tab-btn" id="tabBtn_tab2" onclick="switchTab('tab2')">💎 2. Gelir & Abone Defteri ({len(sub_ledger)})</button>
+          <button class="tab-btn" id="tabBtn_tab3" onclick="switchTab('tab3')">🎯 3. Kanal & ASO Attribution</button>
+          <button class="tab-btn" id="tabBtn_tab4" onclick="switchTab('tab4')">🍼 4. Ürün Nabzı & Kohort</button>
+          <button class="tab-btn" id="tabBtn_tab5" onclick="switchTab('tab5')">⭐ 5. Yorumlar ({avg_stars_label}) & Canlı Akış</button>
         </div>
 
         <!-- SEKME 1: YÖNETİCİ ÖZETİ -->
@@ -4025,45 +4054,45 @@ async def analytics_dashboard_page(
           <div class="bento-card">
             <div class="section-head">
               <span>🧭 Ebeveynlerin 4 Adımlı Dönüşüm Hunisi (Görmeden ➔ Doğrulanmış VIP Aboneliğe)</span>
-              <span class="badge" style="background:rgba(52,211,153,0.16); color:#34D399;">İndirme ➔ VIP Dönüşümü: %{vip_of_dl_pct}</span>
+              <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">İndirme ➔ VIP Dönüşümü: %{vip_of_dl_pct}</span>
             </div>
             <div class="steps-grid">
-              <div class="step-box" style="border-left: 4px solid #E8A855;">
-                <div class="step-num" style="color:#E8A855;">1. ADIM • KARŞILAŞMA (100%)</div>
+              <div class="step-box" style="border-left: 4px solid #F59E0B;">
+                <div class="step-num" style="color:#D97706;">1. ADIM • KARŞILAŞMA (100%)</div>
                 <div class="step-val">{f_imp:,}</div>
                 <div class="step-sub">App Store'da Mışıl Baby görüntülendi ({imp_search:,} Arama + {imp_browse} Keşfet)</div>
-                <div style="margin-top:8px; height:6px; background:rgba(255,255,255,0.07); border-radius:99px; overflow:hidden;">
-                  <div style="width:100%; height:100%; background:#E8A855;"></div>
+                <div style="margin-top:8px; height:6px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
+                  <div style="width:100%; height:100%; background:#F59E0B;"></div>
                 </div>
                 <span class="step-rate">👥 {kpis['impressions_unique']:,} Tekil Cihaz</span>
               </div>
 
-              <div class="step-box" style="border-left: 4px solid #60A5FA;">
-                <div class="step-num" style="color:#60A5FA;">2. ADIM • İNCELEME (%{vis_of_imp_pct})</div>
+              <div class="step-box" style="border-left: 4px solid #3B82F6;">
+                <div class="step-num" style="color:#2563EB;">2. ADIM • İNCELEME (%{vis_of_imp_pct})</div>
                 <div class="step-val">{f_vis}</div>
                 <div class="step-sub">Mağaza sayfası açıldı ({kpis['store_page_views']}) veya sosyal linke tıklandı ({kpis['bridge_unique_clicks']})</div>
-                <div style="margin-top:8px; height:6px; background:rgba(255,255,255,0.07); border-radius:99px; overflow:hidden;">
-                  <div style="width:{min(100, max(12, round(vis_of_imp_pct)))}%; height:100%; background:#60A5FA;"></div>
+                <div style="margin-top:8px; height:6px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
+                  <div style="width:{min(100, max(12, round(vis_of_imp_pct)))}%; height:100%; background:#3B82F6;"></div>
                 </div>
                 <span class="step-rate">➔ İlgilenme Oranı: %{vis_of_imp_pct}</span>
               </div>
 
-              <div class="step-box" style="border-left: 4px solid #34D399;">
-                <div class="step-num" style="color:#34D399;">3. ADIM • İNDİRME (%{dl_of_vis_pct})</div>
+              <div class="step-box" style="border-left: 4px solid #10B981;">
+                <div class="step-num" style="color:#059669;">3. ADIM • İNDİRME (%{dl_of_vis_pct})</div>
                 <div class="step-val">{f_dl}</div>
                 <div class="step-sub">Uygulamayı telefonuna indirdi ({kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</div>
-                <div style="margin-top:8px; height:6px; background:rgba(255,255,255,0.07); border-radius:99px; overflow:hidden;">
-                  <div style="width:{min(100, max(15, round(dl_of_vis_pct * 2.2)))}%; height:100%; background:#34D399;"></div>
+                <div style="margin-top:8px; height:6px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
+                  <div style="width:{min(100, max(15, round(dl_of_vis_pct * 2.2)))}%; height:100%; background:#10B981;"></div>
                 </div>
                 <span class="step-rate">➔ İndirmeye Dönüşüm: %{dl_of_vis_pct}</span>
               </div>
 
-              <div class="step-box" style="border-left: 4px solid #C084FC;">
-                <div class="step-num" style="color:#C084FC;">4. ADIM • VIP & MEMNUNİYET (%{vip_of_dl_pct})</div>
+              <div class="step-box" style="border-left: 4px solid #8B5CF6;">
+                <div class="step-num" style="color:#7C3AED;">4. ADIM • VIP & MEMNUNİYET (%{vip_of_dl_pct})</div>
                 <div class="step-val">{f_vip} VIP • {avg_stars_label}</div>
                 <div class="step-sub">{paid_conv} ücretli ({paid_cust_try:.2f} ₺) + {offer_code_subs} kodlu ({html.escape(offer_code_name)}) + {active_trials} deneme</div>
-                <div style="margin-top:8px; height:6px; background:rgba(255,255,255,0.07); border-radius:99px; overflow:hidden;">
-                  <div style="width:{min(100, max(14, round(vip_of_dl_pct * 3)))}%; height:100%; background:#C084FC;"></div>
+                <div style="margin-top:8px; height:6px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
+                  <div style="width:{min(100, max(14, round(vip_of_dl_pct * 3)))}%; height:100%; background:#8B5CF6;"></div>
                 </div>
                 <span class="step-rate">➔ Aktif VIP Oranı: %{vip_of_dl_pct}</span>
               </div>
@@ -4074,7 +4103,7 @@ async def analytics_dashboard_page(
             <div class="section-head">
               <div>
                 <span>📈 Gün-Gün Toplam İndirme Yükselişi ({html.escape(timeline_range_lbl)}: {f_dl} İndirme — {kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</span>
-                <div style="font-size:11.5px; color:#94A3B8; font-weight:500; margin-top:3px;">
+                <div style="font-size:12px; color:var(--text-muted); font-weight:500; margin-top:3px;">
                   Kesikli sütunlar (<code>*</code> / <code>⏳Tık</code>) Apple Sales TSV raporu 24 saat gecikmeli geldiği için o günün canlı köprü etkileşimini gösterir.
                 </div>
               </div>
@@ -4115,33 +4144,33 @@ async def analytics_dashboard_page(
         <!-- SEKME 2: GELİR, MRR & ABONE DEFTERİ -->
         <div id="tabPane_tab2" class="tab-pane">
           <div class="kpi-grid">
-            <div class="bento-card" style="border-left: 4px solid #34D399;">
+            <div class="bento-card" style="border-left: 4px solid #10B981;">
               <div class="card-label">💵 1. TAHSİL EDİLEN KESİN GELİR</div>
-              <div class="big-num" style="color:#34D399;">{fl['realized_net_proceeds_try']:.2f} ₺ <span style="font-size:15px; color:#94A3B8;">Net</span></div>
+              <div class="big-num" style="color:#059669;">{fl['realized_net_proceeds_try']:.2f} ₺ <span style="font-size:15px; color:var(--text-muted);">Net</span></div>
               <div class="card-desc">
                 Brüt Tahsilat: <strong>{fl['realized_gross_try']:.2f} ₺</strong> • Aktif Yinelenen MRR: <strong>{fl['active_paid_mrr_net_try']:.2f} ₺ Net/Ay</strong> (<strong>{fl['paid_subs_count']} Ücretli Abone</strong>).
               </div>
             </div>
 
-            <div class="bento-card" style="border-left: 4px solid #60A5FA;">
+            <div class="bento-card" style="border-left: 4px solid #3B82F6;">
               <div class="card-label">🔄 2. APPLE MUTABAKATINDA (VADESİ DOLAN)</div>
-              <div class="big-num" style="color:#60A5FA;">+{fl['reconciling_7d_mrr_net_try']:.2f} ₺ <span style="font-size:15px; color:#94A3B8;">Net</span></div>
+              <div class="big-num" style="color:#2563EB;">+{fl['reconciling_7d_mrr_net_try']:.2f} ₺ <span style="font-size:15px; color:var(--text-muted);">Net</span></div>
               <div class="card-desc">
                 7 günlük denemesi dolmuş ve oto-yenilemesi açık <strong>{fl['reconciling_7d_trials_count']} abone</strong> (Brüt <strong>{fl['reconciling_7d_mrr_gross_try']:.2f} ₺</strong>) • Apple 24–48s tahsilat raporu bekleniyor.
               </div>
             </div>
 
-            <div class="bento-card" style="border-left: 4px solid #E8A855;">
+            <div class="bento-card" style="border-left: 4px solid #F59E0B;">
               <div class="card-label">⏳ 3. YAKLAŞAN DENEME VADESİ (AKTİF 7G)</div>
-              <div class="big-num" style="color:#E8A855;">+{fl['upcoming_7d_mrr_net_try']:.2f} ₺ <span style="font-size:15px; color:#94A3B8;">Net</span></div>
+              <div class="big-num" style="color:#D97706;">+{fl['upcoming_7d_mrr_net_try']:.2f} ₺ <span style="font-size:15px; color:var(--text-muted);">Net</span></div>
               <div class="card-desc">
                 Deneme süresi devam eden <strong>{fl['upcoming_7d_trials_count']} abone</strong> (Brüt <strong>{fl['upcoming_7d_mrr_gross_try']:.2f} ₺</strong>) • Toplam Pipeline: <strong>{fl['pipeline_7d_mrr_net_try']:.2f} ₺ Net</strong>.
               </div>
             </div>
 
-            <div class="bento-card" style="border-left: 4px solid #C084FC;">
+            <div class="bento-card" style="border-left: 4px solid #8B5CF6;">
               <div class="card-label">🚀 4. BEKLENEN TOPLAM NET MRR KÖPRÜSÜ</div>
-              <div class="big-num" style="color:#C084FC;">{fl['projected_total_mrr_net_try']:.2f} ₺ <span style="font-size:15px; color:#94A3B8;">Net/Ay</span></div>
+              <div class="big-num" style="color:#7C3AED;">{fl['projected_total_mrr_net_try']:.2f} ₺ <span style="font-size:15px; color:var(--text-muted);">Net/Ay</span></div>
               <div class="card-desc">
                 Brüt: <strong>{fl['projected_total_mrr_gross_try']:.2f} ₺/Ay</strong> • Oto-Yenileme Sağlığı: <strong>%{fl['auto_renew_on_pct']}</strong> • <strong>{fl['offer_code_subs_count']} Kodlu VIP</strong> (<code>{html.escape(offer_code_name)}</code>).
               </div>
@@ -4151,7 +4180,7 @@ async def analytics_dashboard_page(
           <div class="bento-card">
             <div class="section-head">
               <span>📅 7 Günlük Deneme ➔ Ücretli Tahsilat Takvimi (Apple SUBSCRIBER 1_3 Vade Projeksiyonu)</span>
-              <span class="badge" style="background:rgba(16,185,129,0.18); color:#34D399;">Toplam Pipeline: +{fl['pipeline_7d_mrr_gross_try']:.2f} ₺ Brüt / +{fl['pipeline_7d_mrr_net_try']:.2f} ₺ Net</span>
+              <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">Toplam Pipeline: +{fl['pipeline_7d_mrr_gross_try']:.2f} ₺ Brüt / +{fl['pipeline_7d_mrr_net_try']:.2f} ₺ Net</span>
             </div>
             <div class="steps-grid">
               {renewal_calendar_html}
@@ -4219,14 +4248,14 @@ async def analytics_dashboard_page(
             <div class="bento-card">
               <div class="section-head"><span>📲 Sosyal Medya Köprü Hunisi ({html.escape(s['period_label'])}: {s['active_human_count']} Tekil İnsan)</span></div>
               <div class="steps-grid">
-                <div class="step-box" style="border-left: 4px solid #60A5FA;">
-                  <div class="step-num" style="color:#60A5FA;">META REKLAM KÖPRÜSÜ (/ios)</div>
+                <div class="step-box" style="border-left: 4px solid #3B82F6;">
+                  <div class="step-num" style="color:#2563EB;">META REKLAM KÖPRÜSÜ (/ios)</div>
                   <div class="step-val">{meta['unique_clicks']} Tekil Kişi</div>
                   <div class="step-sub"><strong>{meta['ios_clicks']} iPhone</strong> App Store'a + <strong>{meta['android_clicks']} Android</strong> telefon otomatik Google Play'e yönlendirildi.</div>
                   <span class="step-rate">Toplam {meta['raw_hits']} Ham İstek</span>
                 </div>
-                <div class="step-box" style="border-left: 4px solid #C084FC;">
-                  <div class="step-num" style="color:#C084FC;">INSTAGRAM BIO (/download)</div>
+                <div class="step-box" style="border-left: 4px solid #8B5CF6;">
+                  <div class="step-num" style="color:#7C3AED;">INSTAGRAM BIO (/download)</div>
                   <div class="step-val">{ig['unique_clicks']} Tekil Kişi</div>
                   <div class="step-sub"><strong>{ig['ios_clicks']} iPhone</strong> + <strong>{ig['android_clicks']} Android</strong> organik profil ziyaretçisi yönlendirildi.</div>
                   <span class="step-rate">🤖 {s['total_bots']} Bot İsteği Filtrelendi</span>
@@ -4257,33 +4286,33 @@ async def analytics_dashboard_page(
         <!-- SEKME 4: ÜRÜN İÇİ NABIZ & KOHORT TUTUNDURMA -->
         <div id="tabPane_tab4" class="tab-pane">
           <div class="kpi-grid">
-            <div class="bento-card" style="border-left: 4px solid #60A5FA;">
+            <div class="bento-card" style="border-left: 4px solid #3B82F6;">
               <div class="card-label">📱 RESMİ UYGULAMA OTURUMLARI</div>
-              <div class="big-num" style="color:#60A5FA;">{pr['total_tracked_sessions']}</div>
+              <div class="big-num" style="color:#2563EB;">{pr['total_tracked_sessions']}</div>
               <div class="card-desc">
                 Apple r4 API doğrulanmış <strong>{pr['apple_official_sessions']} oturum</strong> / canlı telemetri maksimumu • Ortalama süre: <strong>{pr['avg_session_duration_sec']} saniye</strong>.
               </div>
             </div>
 
-            <div class="bento-card" style="border-left: 4px solid #34D399;">
+            <div class="bento-card" style="border-left: 4px solid #10B981;">
               <div class="card-label">👶 AKTİF CİHAZ & BEBEK PROFİLİ</div>
-              <div class="big-num" style="color:#34D399;">{pr['optin_active_devices']} Cihaz</div>
+              <div class="big-num" style="color:#059669;">{pr['optin_active_devices']} Cihaz</div>
               <div class="card-desc">
                 Telemetri paylaşımı açık <strong>{sb.get('apple_sessions_optin_devices', 0)} iOS cihaz</strong> • Veritabanı kayıtlı bebek profili: <strong>{pr['babies_count']}</strong>.
               </div>
             </div>
 
-            <div class="bento-card" style="border-left: 4px solid #A855F7;">
+            <div class="bento-card" style="border-left: 4px solid #8B5CF6;">
               <div class="card-label">🌙 GECE NÖBETİ KULLANIMI (21:00–04:00)</div>
-              <div class="big-num" style="color:#A855F7;">%{nvd['night_pct']}</div>
+              <div class="big-num" style="color:#7C3AED;">%{nvd['night_pct']}</div>
               <div class="card-desc">
                 <strong>{nvd['night_clicks']} Gece</strong> vs <strong>{nvd['day_clicks']} Gündüz</strong> ebeveyn etkileşimi • En yoğun saatler: <strong>{top_h1}</strong> ve <strong>{top_h2}</strong>.
               </div>
             </div>
 
-            <div class="bento-card" style="border-left: 4px solid #E8A855;">
+            <div class="bento-card" style="border-left: 4px solid #F59E0B;">
               <div class="card-label">🛡️ ABONE KOHORT TUTUNDURMA (RETENTION)</div>
-              <div class="big-num" style="color:#E8A855;">{html.escape(pr['overall_retention_str'])}</div>
+              <div class="big-num" style="color:#D97706;">{html.escape(pr['overall_retention_str'])}</div>
               <div class="card-desc">
                 Toplam <strong>{len(pr['subscriber_cohorts'])} ayrı günlük kohorttaki {len(sub_ledger)} abonenin</strong> aktif tutundurma oranı (<strong>{fl['cancelled_subs_count']} İptal</strong>).
               </div>
@@ -4293,7 +4322,7 @@ async def analytics_dashboard_page(
           <div class="bento-card">
             <div class="section-head">
               <span>📊 Günlük Abone Kohort Tutundurma Matrisi (Başlangıç Tarihine Göre Yaşam Döngüsü)</span>
-              <span class="badge" style="background:rgba(16,185,129,0.2); color:#34D399;">{len(pr['subscriber_cohorts'])} Kohort • Tutundurma: {html.escape(pr['overall_retention_str'])}</span>
+              <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">{len(pr['subscriber_cohorts'])} Kohort • Tutundurma: {html.escape(pr['overall_retention_str'])}</span>
             </div>
             <div class="table-wrap">
               <table>
@@ -4320,23 +4349,23 @@ async def analytics_dashboard_page(
               <span>🍼 Uygulama İçi Modül & Bulut Veritabanı Aktivitesi</span>
             </div>
             <div class="steps-grid">
-              <div class="step-box" style="border-left: 4px solid #34D399;">
-                <div class="step-num" style="color:#34D399;">UYKU & SES MOTORU</div>
+              <div class="step-box" style="border-left: 4px solid #10B981;">
+                <div class="step-num" style="color:#059669;">UYKU & SES MOTORU</div>
                 <div class="step-val">{pr['sleep_logs_count']} Kayıt</div>
                 <div class="step-sub">Bulut senkronizasyonlu uyku seansı ve <code>sleep_sound_play</code> canlı sinyal kancası aktif.</div>
               </div>
-              <div class="step-box" style="border-left: 4px solid #60A5FA;">
-                <div class="step-num" style="color:#60A5FA;">AĞLAMA ANALİZİ (AI)</div>
+              <div class="step-box" style="border-left: 4px solid #3B82F6;">
+                <div class="step-num" style="color:#2563EB;">AĞLAMA ANALİZİ (AI)</div>
                 <div class="step-val">{pr['cry_events_count']} Analiz</div>
                 <div class="step-sub">Yapay zeka ağlama tespiti ve <code>cry_analysis</code> telemetri sayacı aktif.</div>
               </div>
-              <div class="step-box" style="border-left: 4px solid #E8A855;">
-                <div class="step-num" style="color:#E8A855;">GÜNLÜK RUTİN & DADI AI</div>
+              <div class="step-box" style="border-left: 4px solid #F59E0B;">
+                <div class="step-num" style="color:#D97706;">GÜNLÜK RUTİN & DADI AI</div>
                 <div class="step-val">{pr['routine_logs_count'] + pr['dadi_chats_count']} Etkileşim</div>
                 <div class="step-sub">{pr['routine_logs_count']} rutin kaydı + {pr['dadi_chats_count']} Bilge Dadı sohbet mesajı.</div>
               </div>
-              <div class="step-box" style="border-left: 4px solid #C084FC;">
-                <div class="step-num" style="color:#C084FC;">GERÇEK ZAMANLI VIP SİNYALİ</div>
+              <div class="step-box" style="border-left: 4px solid #8B5CF6;">
+                <div class="step-num" style="color:#7C3AED;">GERÇEK ZAMANLI VIP SİNYALİ</div>
                 <div class="step-val">{pf['vip_started_signals']} Sinyal</div>
                 <div class="step-sub">Uygulama içi <code>vip_started</code> sinyali ve <code>first_open</code> ({pf['first_open_signals']}) telemetrisi aktif.</div>
               </div>
@@ -4349,7 +4378,7 @@ async def analytics_dashboard_page(
           <div class="bento-card">
             <div class="section-head">
               <span>⭐ Annelerin Resmi Mağaza Yorumları ({reviews_total_cnt} Yorum)</span>
-              <span class="badge" style="background:rgba(251,191,36,0.2); color:#FBBF24;">{avg_stars_label} Puan</span>
+              <span class="badge" style="background:rgba(217,119,6,0.14); color:#D97706;">{avg_stars_label} Puan</span>
             </div>
             <div class="reviews-grid">
               {reviews_html}
@@ -4382,6 +4411,15 @@ async def analytics_dashboard_page(
       </div>
 
       <script>
+        function toggleTheme() {{
+          document.body.classList.toggle('theme-slate');
+          var isSlate = document.body.classList.contains('theme-slate');
+          localStorage.setItem('mishil_dash_theme', isSlate ? 'slate' : 'daylight');
+        }}
+        if (localStorage.getItem('mishil_dash_theme') === 'slate') {{
+          document.body.classList.add('theme-slate');
+        }}
+
         function switchTab(tabId) {{
           var panes = document.querySelectorAll('.tab-pane');
           var btns = document.querySelectorAll('.tab-btn');

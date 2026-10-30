@@ -2,6 +2,12 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.14] - 2026-10-30
+### ☀️ Seçenek 1: "Airy Daylight" (Stripe / Apple Store Connect Ferah Gündüz Teması) & Tam Veri Görünürlüğü
+1. **Airy Daylight Ferah Gündüz Teması + ☀️/🌙 Tema Geçişi (`app/api/v1/endpoints/analytics.py`, `public/preview_analytics_cockpit.html`):**
+   - Kullanıcı geri bildirimi doğrultusunda koyu `#08090C` ve sıkışık `1px` çerçeve görünümü, hiçbir veri eksiltilmeden **Seçenek 1: Airy Daylight (`#F4F6FB` gün ışığı zemin, `#FFFFFF` ferah beyaz kartlar, `16px` kart aralığı, `#0F172A` yüksek kontrastlı tipografi)** mimarisine geçirildi.
+   - 4 Kaynaklı Canlı Veri Tazelik Kartları, Dönem Filtresi, 4 Kuzey Yıldızı KPI Kartı (SVG Sparkline + Split Bar), 5 Sekme, 4 Adımlı Dönüşüm Hunisi, Günlük/Kümülatif İndirme Grafiği, 3 SVG Halka Grafik, 3 Kademeli MRR Şelalesi, 14 Kayıtlı Tekil Abone Defteri (`reconciling_trial` rozet uyumuyla), ASO Attribution Matrisi, Kohort Tutundurma Tablosu, Modül Aktivitesi, Mağaza Yorumları ve Canlı Akış **%100 eksiksiz** korundu; üst bara tek tıkla **☀️ Gündüz / 🌙 Gece (`toggleTheme()`)** geçiş butonu eklendi.
+
 ## [4.46.13] - 2026-10-30
 ### 📊 Linear / Vercel "Obsidian Hairline" (`1px` Kılcal Izgara) Kurucu Kokpiti v2.0 & Canlı Veri Motoru Onarımı
 1. **Canlı Veri Motoru & 3 Kademeli MRR Şelalesi (`app/api/v1/endpoints/analytics.py`, `tests/test_sleep_and_analytics_remediation.py`):**
