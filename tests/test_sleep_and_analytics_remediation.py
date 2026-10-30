@@ -380,11 +380,24 @@ def test_obsidian_cockpit_v2_trial_mrr_healing_and_3row_grid(client, db_session)
     assert fl["pipeline_7d_mrr_net_try"] == 166.24
     assert fl["projected_total_mrr_net_try"] == 166.24
 
+    ps = summary["platform_split"]
+    assert "all" in ps and "ios" in ps and "android" in ps
+    gp_cat = summary["google_play_subscriptions_catalog"]
+    assert len(gp_cat) >= 2
+    assert any(p["product_id"] == "misil" for p in gp_cat)
+    assert any(p["product_id"] == "misilaylik" for p in gp_cat)
+
     dash_res = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"})
     assert dash_res.status_code == 200
     assert "grid-template-rows: 22px 1fr 22px" in dash_res.text
     assert "pollLiveTelemetry" in dash_res.text
     assert "window.location.reload()" not in dash_res.text
+    assert "platBtn_all" in dash_res.text
+    assert "platBtn_ios" in dash_res.text
+    assert "platBtn_android" in dash_res.text
+    assert "googlePlayLedgerCard" in dash_res.text
+    assert "misilaylik" in dash_res.text
+    assert "switchPlatform" in dash_res.text
 
 
 

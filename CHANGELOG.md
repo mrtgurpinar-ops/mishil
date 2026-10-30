@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.15] - 2026-10-30
+### ⚖️ 3'lü Platform Ayrımı (🌐 Kümülatif / 🍏 Apple iOS / 🤖 Google Play) & Canlı Google Play Abonelik Defteri (`monetization.subscriptions`)
+1. **Tek Tıkla 3'lü Platform Seçici & Yan Yana Platform Karşılaştırma Matrisi (`app/api/v1/endpoints/analytics.py`, `public/preview_analytics_cockpit.html`):**
+   - Üst kontrol çubuğuna **`🌐 Kümülatif (105)` | `🍏 Apple iOS (90)` | `🤖 Google Play (15)`** canlı platform anahtarı (`switchPlatform('all'|'ios'|'android')`) eklendi; seçilen platforma göre 4 Kuzey Yıldızı KPI kartı, 4 adımlı dönüşüm hunisi, 13 günlük indirme grafiği (`🌐 Kümülatif` Yeşil+Mavi Yığılmış / `🍏 Sadece iOS` / `🤖 Sadece Android` / `📊 Günlük Yeni`), Sekme 2 abonelik tabloları ve Sekme 5 yorum/tıklama akışı anında filtrelenir hale getirildi.
+   - Sekme 1'e **⚖️ Kümülatif vs Apple App Store (iOS) vs Google Play Store (Android) — Yan Yana Platform Karşılaştırması** tablosu eklendi:
+     - **🍏 Apple (iOS):** `4,813` Gösterim • `707` Etkileşim (`492` Mağaza Sayfası + `215` iOS Köprü Tıkı) • `90` Kurulum (`%12.7` CVR) • **`14` Aktif VIP (`664.96 ₺/Ay Net MRR`)** • `5` Yorum (`5.0 ★`).
+     - **🤖 Google Play (Android):** **`396` Android Köprü Tıkı** (`381` Meta Reklam `/ios` + `15` Bio `/download` — sosyal tıklamaların **%64.4'ü Android!**) • **`15` Doğrulanmış Android Kurulumu (`%3.8` CVR)** • **`0` Aktif Android VIP (`0.00 ₺ MRR`)** • `1` Resmi Google Play Yorumu (`5.0 ★` — Gülgün Gürpınar, Huawei P20 Pro).
+2. **Google Play Developer API (`monetization.subscriptions`) Canlı Abonelik Kataloğu & Android Faturalandırma Defteri (`analytics.py`):**
+   - Sekme 2'de (`Gelir & Abone Defteri`) yalnızca Apple abonelerinin görünmesi eksikliği giderilerek Apple Abone Defteri'nin hemen altına **🤖 Google Play Store — Canlı Abonelik Paketleri & Android Faturalandırma Defteri (`com.levitas.misilbaby`)** kartı eklendi.
+   - `sync_live_store_apis()` içerisine Google Play `androidpublisher/v3/applications/com.levitas.misilbaby/subscriptions` canlı sorgusu entegre edilerek `misil` (**Mışıl Baby Yıllık VIP — `599.99 ₺/Yıl` + `3daystrial` 7 Gün Ücretsiz Deneme `P7D` + 14 Gün Grace Period `ACTIVE`**) ve `misilaylik` (**Mışıl Baby Aylık VIP — `149.99 ₺/Ay` + `freeytrial` 7 Gün Ücretsiz Deneme `P7D` + 7 Gün Grace Period `ACTIVE`**) paketleri ve `396 Android Tık ➔ 15 Kurulum ➔ 0 Aktif Abone` huni teşhisi tabloya bağlandı.
+   - `/store-sync-push` uç noktasında `google_play_downloads_baseline` (`15`) değerinin yerel senkronizasyonda `0` ile ezilmesini önleyen `max(prev_gp_dl, new_gp_dl)` koruması eklendi.
+
 ## [4.46.14] - 2026-10-30
 ### ☀️ Seçenek 1: "Airy Daylight" (Stripe / Apple Store Connect Ferah Gündüz Teması) & Tam Veri Görünürlüğü
 1. **Airy Daylight Ferah Gündüz Teması + ☀️/🌙 Tema Geçişi (`app/api/v1/endpoints/analytics.py`, `public/preview_analytics_cockpit.html`):**

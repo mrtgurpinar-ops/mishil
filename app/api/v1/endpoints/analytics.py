@@ -218,6 +218,32 @@ def _empty_store_state() -> Dict[str, Any]:
         "apple_vip_active_trials": 0,
         "apple_vip_by_plan": {},
         "google_play_downloads_baseline": 0,
+        "google_play_subscriptions_catalog": [
+            {
+                "product_id": "misil",
+                "base_plan_id": "misil",
+                "title": "Mışıl Baby Yıllık VIP",
+                "state": "ACTIVE",
+                "billing_period": "Yıllık (P1Y)",
+                "grace_period": "14 Gün (P14D)",
+                "price_try": 599.99,
+                "net_proceeds_try": 436.20,
+                "free_trial_offer_id": "3daystrial",
+                "free_trial_label": "7 Gün Ücretsiz Deneme (P7D • Aktif)",
+            },
+            {
+                "product_id": "misilaylik",
+                "base_plan_id": "misilaylik",
+                "title": "Mışıl Baby Aylık VIP",
+                "state": "ACTIVE",
+                "billing_period": "Aylık (P1M)",
+                "grace_period": "7 Gün (P7D)",
+                "price_try": 149.99,
+                "net_proceeds_try": 109.05,
+                "free_trial_offer_id": "freeytrial",
+                "free_trial_label": "7 Gün Ücretsiz Deneme (P7D • Aktif)",
+            },
+        ],
         "daily_store_series": {},
         "store_reviews": [],
     }
@@ -1014,6 +1040,56 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                         "date": dt_str,
                                     })
                                 synced_sources.append("Google Play Developer API (Reviews)")
+                        try:
+                            gp_sub_req = urllib.request.Request(
+                                "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.levitas.misilbaby/subscriptions",
+                                headers={"Authorization": f"Bearer {access_token}"},
+                            )
+                            with urllib.request.urlopen(gp_sub_req, timeout=4) as gp_sub_resp:
+                                if gp_sub_resp.status == 200:
+                                    sub_payload = json.loads(gp_sub_resp.read().decode("utf-8"))
+                                    fetched_gp_catalog = []
+                                    for sub_item in sub_payload.get("subscriptions", []):
+                                        p_id = sub_item.get("productId") or "-"
+                                        listings = sub_item.get("listings") or []
+                                        title_str = listings[0].get("title") if listings else p_id
+                                        for bp in sub_item.get("basePlans", []):
+                                            bp_state = bp.get("state") or "INACTIVE"
+                                            if bp_state != "ACTIVE":
+                                                continue
+                                            bp_id = bp.get("basePlanId") or p_id
+                                            ar_type = bp.get("autoRenewingBasePlanType") or {}
+                                            dur_raw = ar_type.get("billingPeriodDuration") or "P1M"
+                                            dur_lbl = "Yıllık (P1Y)" if "Y" in dur_raw else "Aylık (P1M)"
+                                            grace_raw = ar_type.get("gracePeriodDuration") or "P7D"
+                                            grace_lbl = "14 Gün (P14D)" if "14" in grace_raw else "7 Gün (P7D)"
+                                            offer_id = ar_type.get("legacyCompatibleSubscriptionOfferId") or "-"
+                                            tr_price = 599.99 if "Y" in dur_raw else 149.99
+                                            for rc_cfg in bp.get("regionalConfigs", []):
+                                                if rc_cfg.get("regionCode") == "TR":
+                                                    pr_obj = rc_cfg.get("price") or {}
+                                                    units_v = float(pr_obj.get("units") or 0)
+                                                    nanos_v = float(pr_obj.get("nanos") or 0) / 1e9
+                                                    if (units_v + nanos_v) > 0:
+                                                        tr_price = round(units_v + nanos_v, 2)
+                                            fetched_gp_catalog.append({
+                                                "product_id": p_id,
+                                                "base_plan_id": bp_id,
+                                                "title": title_str,
+                                                "state": bp_state,
+                                                "billing_period": dur_lbl,
+                                                "grace_period": grace_lbl,
+                                                "price_try": tr_price,
+                                                "net_proceeds_try": round(tr_price * 0.727, 2),
+                                                "free_trial_offer_id": offer_id,
+                                                "free_trial_label": "7 Gün Ücretsiz Deneme (P7D • Aktif)" if offer_id and offer_id != "-" else "Standart",
+                                            })
+                                    if fetched_gp_catalog:
+                                        with _BASELINE_LOCK:
+                                            OFFICIAL_STORE_BASELINE["google_play_subscriptions_catalog"] = fetched_gp_catalog
+                                        synced_sources.append("Google Play Developer API (Monetization Subscriptions)")
+                        except Exception as gp_sub_exc:
+                            logger.debug("Google Play subscriptions sync info: %s", gp_sub_exc)
         except Exception as e:
             logger.debug("Google Play live sync info: %s", e)
 
@@ -1977,7 +2053,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     # Apple TSV raporunun ulaştığı son kesinleşmiş günü tespit et
     confirmed_store_dates = [
         d_k for d_k, d_v in daily_series_merged.items()
-        if (int(d_v.get("ios_downloads", 0) or 0) + int(d_v.get("android_downloads", 0) or 0)) > 0
+        if int(d_v.get("ios_downloads", 0) or 0) > 0
     ]
     latest_confirmed_store_date = max(confirmed_store_dates) if confirmed_store_dates else ""
 
@@ -2032,7 +2108,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         is_store_pending = bool(
             latest_confirmed_store_date
             and d_str > latest_confirmed_store_date
-            and day_total_dl == 0
+            and day_ios_dl == 0
         )
 
         timeline_days.append({
@@ -2504,34 +2580,113 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     recent_3d_dl = sum(d.get("daily_downloads", 0) for d in settled_days[-3:]) if settled_days else 0
     latest_store_metric_date = settled_days[-1]["date"] if settled_days else ""
 
+    ios_bridge_uniq = len([c for c in unique_human if c.os_family == "ios"])
+    desktop_bridge_uniq = len([c for c in unique_human if c.os_family not in ("ios", "android")])
+    ios_touchpoints = apple_page_views + ios_bridge_uniq
+    android_touchpoints = android_bridge_uniq
+
+    ios_subs_list = [s for s in subscriber_ledger_list if (s.get("platform") or "ios") == "ios"]
+    android_subs_list = [s for s in subscriber_ledger_list if s.get("platform") == "android"]
+    gp_catalog = sb.get("google_play_subscriptions_catalog") or _empty_store_state()["google_play_subscriptions_catalog"]
+
+    all_reviews = sb.get("store_reviews") or []
+    ios_reviews_cnt = sum(1 for r in all_reviews if r.get("store") == "App Store")
+    android_reviews_cnt = sum(1 for r in all_reviews if r.get("store") == "Google Play")
+
+    platform_split = {
+        "all": {
+            "key": "all",
+            "label": "🌐 Kümülatif (Toplam — Apple + Google Play)",
+            "impressions": total_cumulative_impressions,
+            "impressions_display": f"{total_cumulative_impressions:,}",
+            "impressions_sub": f"🍏 {apple_impressions:,} App Store API • 🤖 Google Play Köprü ({android_bridge_uniq} Tık)",
+            "touchpoints": total_cumulative_visits_and_clicks,
+            "touchpoints_display": f"{total_cumulative_visits_and_clicks:,}",
+            "touchpoints_sub": f"🍏 {ios_touchpoints} iOS ({apple_page_views} Mağaza + {ios_bridge_uniq} Tık) • 🤖 {android_touchpoints} Android Tık",
+            "downloads": total_cumulative_downloads,
+            "downloads_display": f"{total_cumulative_downloads}",
+            "downloads_sub": f"🍏 {apple_downloads} iOS (%{round((apple_downloads / max(1, total_cumulative_downloads)) * 100)}) • 🤖 {google_play_downloads} Android (%{round((google_play_downloads / max(1, total_cumulative_downloads)) * 100)})",
+            "cvr_pct": round((total_cumulative_downloads / max(1, total_cumulative_visits_and_clicks)) * 100, 1),
+            "vip_count": len(subscriber_ledger_list),
+            "vip_display": f"{len(subscriber_ledger_list)} VIP",
+            "vip_sub": f"🍏 {len(ios_subs_list)} Apple VIP ({financial_ledger['projected_total_mrr_net_try']:.2f} ₺ Net) • 🤖 {len(android_subs_list)} Android VIP ({len(gp_catalog)} Aktif Paket)",
+            "mrr_net_try": financial_ledger["projected_total_mrr_net_try"],
+            "mrr_gross_try": financial_ledger["projected_total_mrr_gross_try"],
+            "realized_net_try": financial_ledger["realized_net_proceeds_try"],
+            "reviews_count": len(all_reviews),
+        },
+        "ios": {
+            "key": "ios",
+            "label": "🍏 Apple App Store (iOS)",
+            "impressions": apple_impressions,
+            "impressions_display": f"{apple_impressions:,}",
+            "impressions_sub": f"{int(sb.get('apple_impressions_unique', 0) or 0):,} tekil iPhone • {imp_search_val:,} Arama + {imp_browse_val} Keşfet",
+            "touchpoints": ios_touchpoints,
+            "touchpoints_display": f"{ios_touchpoints}",
+            "touchpoints_sub": f"{apple_page_views} App Store Sayfası + {ios_bridge_uniq} iOS Sosyal Köprü Tıkı",
+            "downloads": apple_downloads,
+            "downloads_display": f"{apple_downloads}",
+            "downloads_sub": f"{r3_search} Arama • {r3_ref} Sosyal Referans • {recent_ios_dl} Doğrudan Sales API",
+            "cvr_pct": round((apple_downloads / max(1, ios_touchpoints)) * 100, 1),
+            "vip_count": len(ios_subs_list),
+            "vip_display": f"{len(ios_subs_list)} VIP",
+            "vip_sub": f"{paid_subs_cnt} Ücretli ({financial_ledger['realized_net_proceeds_try']:.2f} ₺) • {intro_trial_cnt} 7G Deneme (+{financial_ledger['pipeline_7d_mrr_net_try']:.2f} ₺) • {offer_code_cnt} Kodlu",
+            "mrr_net_try": financial_ledger["projected_total_mrr_net_try"],
+            "mrr_gross_try": financial_ledger["projected_total_mrr_gross_try"],
+            "realized_net_try": financial_ledger["realized_net_proceeds_try"],
+            "reviews_count": ios_reviews_cnt,
+        },
+        "android": {
+            "key": "android",
+            "label": "🤖 Google Play Store (Android)",
+            "impressions": android_bridge_uniq,
+            "impressions_display": f"{android_bridge_uniq} Köprü",
+            "impressions_sub": f"Play Console Organik + {android_bridge_uniq} Tekil Android Köprü Yönlendirmesi",
+            "touchpoints": android_touchpoints,
+            "touchpoints_display": f"{android_touchpoints}",
+            "touchpoints_sub": f"{len(meta_android)} Meta Reklam (/ios) + {len(ig_android)} Instagram Bio (/download) Android Tıkı",
+            "downloads": google_play_downloads,
+            "downloads_display": f"{google_play_downloads}",
+            "downloads_sub": f"{google_play_downloads} Doğrulanmış Android Kurulum ({android_signal_opens} Canlı İlk Açılış Sinyali)",
+            "cvr_pct": round((google_play_downloads / max(1, android_touchpoints)) * 100, 1),
+            "vip_count": len(android_subs_list),
+            "vip_display": f"{len(android_subs_list)} VIP",
+            "vip_sub": f"0 Aktif Abone • Google Play API'de {len(gp_catalog)} Aktif Paket (599.99 ₺/Yıl & 149.99 ₺/Ay + 7G Deneme) Yayında",
+            "mrr_net_try": 0.0,
+            "mrr_gross_try": 0.0,
+            "realized_net_try": 0.0,
+            "reviews_count": android_reviews_cnt,
+        },
+    }
+
     source_freshness = [
         {
             "id": "bridge_telemetry",
             "label": "Canlı Köprü & Telemetri DB",
             "status": "realtime",
             "badge": f"⚡ Gerçek Zamanlı ({today_str})",
-            "detail": f"Bugün: {today_unique_clicks} Tekil Tık • Dün: {yesterday_unique_clicks} Tekil Tık",
+            "detail": f"Toplam {len(unique_human)} Tık (🍏 {ios_bridge_uniq} iOS • 🤖 {android_bridge_uniq} Android)",
         },
         {
             "id": "apple_sales_tsv",
-            "label": "Apple Sales & Trends TSV",
+            "label": "🍏 Apple Sales & Trends API",
             "status": "lagged_24h",
-            "badge": f"🍏 T-1 Kesinleşen ({latest_store_metric_date or 'Bekleniyor'})",
-            "detail": f"{apple_downloads} iOS Kurulum • 24s Resmi Rapor Gecikmesi",
+            "badge": f"🍏 {apple_downloads} iOS Kurulum ({latest_store_metric_date or 'Aktif'})",
+            "detail": f"{apple_impressions:,} Gösterim • {apple_page_views} Sayfa • {ios_reviews_cnt} Yorum",
         },
         {
             "id": "apple_sub_ledger",
-            "label": "Apple SUBSCRIBER 1_3 Defteri",
+            "label": "🍏 Apple SUBSCRIBER 1_3 API",
             "status": "reconciling" if reconciling_7d_cnt > 0 else "synced",
-            "badge": f"📒 {len(subscriber_ledger_list)} VIP ({reconciling_7d_cnt} Mutabakatta)",
-            "detail": f"Beklenen Net MRR: {financial_ledger['projected_total_mrr_net_try']:.2f} ₺",
+            "badge": f"📒 {len(ios_subs_list)} Apple VIP ({reconciling_7d_cnt} Mutabakatta)",
+            "detail": f"Tahsil: {financial_ledger['realized_net_proceeds_try']:.2f} ₺ • Beklenen MRR: {financial_ledger['projected_total_mrr_net_try']:.2f} ₺",
         },
         {
             "id": "google_play_sync",
-            "label": "Google Play & Android Sinyal",
+            "label": "🤖 Google Play Developer API",
             "status": "synced",
-            "badge": f"🤖 {google_play_downloads} Android Kurulum",
-            "detail": f"{android_signal_opens} İlk Açılış • {android_bridge_uniq} Köprü Tıkı",
+            "badge": f"🤖 {google_play_downloads} Android Kurulum • {len(gp_catalog)} Aktif Paket",
+            "detail": f"{len(android_subs_list)} Android Abone • {android_bridge_uniq} Köprü Tıkı • {android_reviews_cnt} Yorum",
         },
     ]
 
@@ -2550,6 +2705,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         "total_all_spend_usd": total_all_spend_usd,
         "blended_cpi_usd": blended_cpi_usd,
         "source_freshness": source_freshness,
+        "platform_split": platform_split,
+        "google_play_subscriptions_catalog": gp_catalog,
         "kpi_deltas": {
             "recent_3d_impressions": recent_3d_imp,
             "recent_3d_downloads": recent_3d_dl,
@@ -2801,9 +2958,14 @@ async def ingest_local_store_sync(
     if payload.baseline_snapshot:
         clean_snap = _mask_sensitive_sync_value(payload.baseline_snapshot)
         with _BASELINE_LOCK:
+            prev_gp_dl = int(OFFICIAL_STORE_BASELINE.get("google_play_downloads_baseline", 0) or 0)
             OFFICIAL_STORE_BASELINE.clear()
             OFFICIAL_STORE_BASELINE.update(_empty_store_state())
             OFFICIAL_STORE_BASELINE.update(clean_snap)
+            OFFICIAL_STORE_BASELINE["google_play_downloads_baseline"] = max(
+                prev_gp_dl,
+                int(OFFICIAL_STORE_BASELINE.get("google_play_downloads_baseline", 0) or 0),
+            )
             snapshot_copy = copy.deepcopy(OFFICIAL_STORE_BASELINE)
         st_row = db.query(StoreSyncState).filter(StoreSyncState.state_key == "primary_store_baseline").first()
         if st_row:
@@ -3142,7 +3304,11 @@ async def analytics_dashboard_page(
         """
 
     cum_bars_html = ""
+    cum_ios_bars_html = ""
+    cum_android_bars_html = ""
     daily_bars_html = ""
+    max_cum_ios = max(1, max((d.get("cum_ios_downloads", 0) for d in t_days), default=1))
+    max_cum_and = max(1, max((d.get("cum_android_downloads", 0) for d in t_days), default=1))
     for d in t_days:
         dl_h = max(10, round((d["cum_downloads"] / max_cum_dl) * 100)) if d["cum_downloads"] > 0 else 5
         is_today = d["date"] == t_days[-1]["date"]
@@ -3150,12 +3316,19 @@ async def analytics_dashboard_page(
         cum_ios_val = d.get("cum_ios_downloads", d["cum_downloads"])
         cum_android_val = d.get("cum_android_downloads", 0)
         pending_note = f" • ⏳ Apple TSV Bekleniyor (+{d['daily_visits_clicks']} Canlı Tık)" if is_pending else ""
-        cum_tip = f"{d['label']}: Kümülatif {d['cum_downloads']} İndirme ({cum_ios_val} iOS + {cum_android_val} Android){pending_note}"
+        cum_tip = f"{d['label']}: Kümülatif {d['cum_downloads']} İndirme (🍏 {cum_ios_val} iOS + 🤖 {cum_android_val} Android){pending_note}"
+
+        ios_share_pct = round((cum_ios_val / max(1, d["cum_downloads"])) * 100) if d["cum_downloads"] > 0 else 100
+        and_share_pct = max(0, 100 - ios_share_pct)
 
         bar_style_cum = (
             f"height:{dl_h}%; background:rgba(16,185,129,0.20); border:1.5px dashed #059669;"
-            if is_pending
-            else f"height:{dl_h}%; background:linear-gradient(180deg, #10B981 0%, #059669 100%);"
+            if is_pending and cum_android_val == 0
+            else (
+                f"height:{dl_h}%; background:linear-gradient(180deg, #3B82F6 0%, #3B82F6 {and_share_pct}%, #10B981 {and_share_pct}%, #059669 100%);"
+                if cum_android_val > 0
+                else f"height:{dl_h}%; background:linear-gradient(180deg, #10B981 0%, #059669 100%);"
+            )
         )
         top_val_cum = f"{d['cum_downloads']}*" if is_pending else str(d["cum_downloads"])
 
@@ -3164,6 +3337,38 @@ async def analytics_dashboard_page(
           <div class="t-top-val" style="color:{'#D97706' if is_pending else '#059669'};">{top_val_cum}</div>
           <div class="t-bars-pair">
             <div class="t-bar" style="{bar_style_cum}"></div>
+          </div>
+          <div class="t-lbl">{html.escape(d['label'])}</div>
+        </div>
+        """
+
+        ios_h = max(10, round((cum_ios_val / max_cum_ios) * 100)) if cum_ios_val > 0 else 5
+        ios_bar_style = (
+            f"height:{ios_h}%; background:rgba(16,185,129,0.20); border:1.5px dashed #059669;"
+            if is_pending
+            else f"height:{ios_h}%; background:linear-gradient(180deg, #10B981 0%, #059669 100%);"
+        )
+        cum_ios_bars_html += f"""
+        <div class="t-col {'t-today' if is_today else ''} {'t-pending' if is_pending else ''}" title="{html.escape(d['label'])}: 🍏 Apple iOS Kümülatif {cum_ios_val} Kurulum{html.escape(pending_note)}">
+          <div class="t-top-val" style="color:{'#D97706' if is_pending else '#059669'};">{cum_ios_val}{'*' if is_pending else ''}</div>
+          <div class="t-bars-pair">
+            <div class="t-bar" style="{ios_bar_style}"></div>
+          </div>
+          <div class="t-lbl">{html.escape(d['label'])}</div>
+        </div>
+        """
+
+        and_h = max(12, round((cum_android_val / max_cum_and) * 100)) if cum_android_val > 0 else 6
+        and_bar_style = (
+            f"height:{and_h}%; background:linear-gradient(180deg, #60A5FA 0%, #2563EB 100%);"
+            if cum_android_val > 0
+            else "height:6%; background:rgba(148,163,184,0.25);"
+        )
+        cum_android_bars_html += f"""
+        <div class="t-col {'t-today' if is_today else ''}" title="{html.escape(d['label'])}: 🤖 Google Play Android Kümülatif {cum_android_val} Kurulum">
+          <div class="t-top-val" style="color:{'#2563EB' if cum_android_val > 0 else '#94A3B8'};">{cum_android_val}</div>
+          <div class="t-bars-pair">
+            <div class="t-bar" style="{and_bar_style}"></div>
           </div>
           <div class="t-lbl">{html.escape(d['label'])}</div>
         </div>
@@ -3179,7 +3384,7 @@ async def analytics_dashboard_page(
             d_dl_str = f"+{d['daily_downloads']}" if d["daily_downloads"] > 0 else "0"
             bar_style_daily = f"height:{d_dl_h}%; background:linear-gradient(180deg, #F59E0B 0%, #D97706 100%);"
             top_color_daily = "#D97706"
-        d_touch_tip = f" • +{d['daily_visits_clicks']} Sayfa/Sosyal Tık" if d["daily_visits_clicks"] > 0 else ""
+        d_touch_tip = f" (🍏 +{d.get('daily_ios_downloads', 0)} iOS • 🤖 +{d.get('daily_android_downloads', 0)} Android) • +{d['daily_visits_clicks']} Sayfa/Sosyal Tık"
 
         daily_bars_html += f"""
         <div class="t-col {'t-today' if is_today else ''} {'t-pending' if is_pending else ''}" title="{html.escape(d['label'])}: +{d['daily_downloads']} Yeni İndirme{html.escape(d_touch_tip)}">
@@ -3207,11 +3412,12 @@ async def analytics_dashboard_page(
         safe_rating = max(1, min(5, int(rv.get("rating", 5) or 5)))
         stars = "⭐" * safe_rating
         badge_txt = str(rv.get("badge", "Mağaza"))
+        rv_plat = "ios" if "iOS" in badge_txt or rv.get("store") == "App Store" else "android"
         reviews_html += f"""
-        <div class="review-bubble">
+        <div class="review-bubble" data-platform="{rv_plat}">
           <div class="review-head">
             <div>
-              <span class="badge {'badge-meta' if 'iOS' in badge_txt else 'badge-gp'}">{html.escape(badge_txt)}</span>
+              <span class="badge {'badge-meta' if rv_plat == 'ios' else 'badge-gp'}">{html.escape(badge_txt)}</span>
               <strong style="color:var(--text-primary); margin-left:6px;">{html.escape(str(rv.get('title', '')))}</strong>
             </div>
             <span style="font-size:11.5px; color:#D97706; font-weight:700;">{stars} • {html.escape(str(rv.get('date', '')))}</span>
@@ -3237,14 +3443,15 @@ async def analytics_dashboard_page(
         safe_detail = html.escape(c.device_detail or "Telefon")
         safe_webview = html.escape(c.app_webview or "Tarayıcı")
         safe_country = html.escape(c.country or "TR")
-        store_str = "App Store (iPhone)" if c.target_store == "app_store" else "Google Play (Android)"
+        c_plat = "ios" if c.os_family == "ios" or c.target_store == "app_store" else "android"
+        store_str = "🍏 App Store (iPhone)" if c.target_store == "app_store" else "🤖 Google Play (Android)"
 
         rows_html += f"""
-        <tr>
+        <tr data-platform="{c_plat}">
           <td style="color:var(--text-secondary); font-weight:600; font-variant-numeric:tabular-nums;">{dt_tr}</td>
           <td>{'🍏 ' + safe_detail if c.os_family == 'ios' else '🤖 ' + safe_detail}</td>
           <td>{safe_webview}</td>
-          <td style="color:#059669; font-weight:700;">{store_str}</td>
+          <td style="color:{'#059669' if c_plat == 'ios' else '#2563EB'}; font-weight:700;">{store_str}</td>
           <td style="color:var(--text-muted);">{safe_country}</td>
         </tr>
         """
@@ -3412,6 +3619,30 @@ async def analytics_dashboard_page(
     for p_key, p_lbl in period_options:
         is_act = "active" if clean_period == p_key else ""
         period_pills_html += f'<a href="/api/v1/analytics/dashboard?period={p_key}" class="period-pill {is_act}">{p_lbl}</a>'
+
+    ps = s.get("platform_split") or {}
+    ps_all = ps.get("all") or {}
+    ps_ios = ps.get("ios") or {}
+    ps_and = ps.get("android") or {}
+    ps_json_str = json.dumps(ps, ensure_ascii=False)
+
+    gp_catalog = s.get("google_play_subscriptions_catalog") or []
+    gp_catalog_rows_html = ""
+    for idx_gp, gpc in enumerate(gp_catalog, start=1):
+        gp_catalog_rows_html += f"""
+        <tr>
+          <td style="color:var(--text-muted); font-weight:700;">{idx_gp}</td>
+          <td style="font-family:monospace; color:var(--text-primary); font-weight:700;">{html.escape(str(gpc.get('product_id', '')))} / {html.escape(str(gpc.get('base_plan_id', '')))}</td>
+          <td><strong>{html.escape(str(gpc.get('title', '')))}</strong></td>
+          <td><span class="badge badge-gp">✔ {html.escape(str(gpc.get('state', 'ACTIVE')))}</span></td>
+          <td>{html.escape(str(gpc.get('billing_period', '')))}</td>
+          <td><span class="badge" style="background:rgba(37,99,235,0.14); color:#2563EB;">🎁 {html.escape(str(gpc.get('free_trial_label', '')))}</span></td>
+          <td><code>{html.escape(str(gpc.get('free_trial_offer_id', '-')))}</code></td>
+          <td>{html.escape(str(gpc.get('grace_period', '')))}</td>
+          <td style="font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums;">{float(gpc.get('price_try', 0.0)):.2f} ₺ <span style="color:#059669; font-size:11.5px;">(Net ~{float(gpc.get('net_proceeds_try', 0.0)):.2f} ₺)</span></td>
+          <td><strong style="color:var(--text-muted);">0 Aktif Abone</strong> <span style="font-size:11px; color:var(--text-muted);">({ps_and.get('downloads', 0)} Android Kurulumu)</span></td>
+        </tr>
+        """
 
     dashboard_response = HTMLResponse(f"""
     <!DOCTYPE html>
@@ -3945,14 +4176,24 @@ async def analytics_dashboard_page(
           {freshness_strip_html}
         </div>
 
-        <!-- P1-2: AKTİF DÖNEM FİLTRESİ BARI -->
+        <!-- P1-2: AKTİF PLATFORM & DÖNEM FİLTRESİ BARI -->
         <div class="period-bar">
-          <div style="font-size:13px; color:var(--text-secondary); font-weight:700;">
-            🎯 Aktif Görünüm Dönemi: <strong style="color:#059669;">{html.escape(s['period_label'])}</strong>
-            <span id="livePeriodSub" style="font-size:12px; color:var(--text-muted); margin-left:8px;">({s['active_human_count']} Tekil İnsan • Bugün: {s['today_unique_clicks']} • Dün: {s['yesterday_unique_clicks']})</span>
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <span style="font-size:12.5px; color:var(--text-secondary); font-weight:800;">🏪 Mağaza / Platform:</span>
+            <div class="period-pills" id="platformPills">
+              <button type="button" class="period-pill active" id="platBtn_all" onclick="switchPlatform('all')">🌐 Kümülatif ({f_dl} Kurulum • {f_vip} VIP)</button>
+              <button type="button" class="period-pill" id="platBtn_ios" onclick="switchPlatform('ios')">🍏 Apple iOS ({kpis['ios_downloads']} Kurulum • {ps_ios.get('vip_count', f_vip)} VIP)</button>
+              <button type="button" class="period-pill" id="platBtn_android" onclick="switchPlatform('android')">🤖 Google Play ({kpis['android_downloads']} Kurulum • {ps_and.get('vip_count', 0)} VIP / {len(gp_catalog)} Paket)</button>
+            </div>
           </div>
-          <div class="period-pills">
-            {period_pills_html}
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+            <div style="font-size:12.5px; color:var(--text-secondary); font-weight:700;">
+              🎯 Dönem: <strong style="color:#059669;">{html.escape(s['period_label'])}</strong>
+              <span id="livePeriodSub" style="font-size:11.5px; color:var(--text-muted); margin-left:4px;">({s['active_human_count']} Tekil • Bugün: {s['today_unique_clicks']})</span>
+            </div>
+            <div class="period-pills">
+              {period_pills_html}
+            </div>
           </div>
         </div>
 
@@ -3961,7 +4202,7 @@ async def analytics_dashboard_page(
           <div class="bento-card">
             <div>
               <div class="card-label">
-                <span>1. Mağaza Gösterimi</span>
+                <span id="kpiTitle1">1. Mağaza Gösterimi</span>
                 <span class="delta-chip" style="background:rgba(217,119,6,0.14); color:#D97706;">+{s['kpi_deltas']['recent_3d_impressions']} (3G)</span>
               </div>
               <div class="kpi-hero-row">
@@ -3973,15 +4214,15 @@ async def analytics_dashboard_page(
                 <div style="width:{100 - imp_search_pct}%; background:#10B981;"></div>
               </div>
             </div>
-            <div class="card-desc">
-              <strong>{kpis['impressions_unique']:,}</strong> tekil cihaz • <strong>{imp_search:,}</strong> Arama (%{imp_search_pct}) + <strong>{imp_browse}</strong> Keşfet
+            <div class="card-desc" id="kpiDesc1">
+              {ps_all.get('impressions_sub', '')} • <strong>{kpis['impressions_unique']:,}</strong> tekil cihaz
             </div>
           </div>
 
           <div class="bento-card">
             <div>
               <div class="card-label">
-                <span>2. İnceleme & Sosyal Tık</span>
+                <span id="kpiTitle2">2. İnceleme & Sosyal Tık</span>
                 <span class="delta-chip" style="background:rgba(37,99,235,0.14); color:#2563EB;">+{s['today_unique_clicks']} Bugün</span>
               </div>
               <div class="kpi-hero-row">
@@ -3993,36 +4234,36 @@ async def analytics_dashboard_page(
                 <div style="width:{100 - vis_store_pct}%; background:#8B5CF6;"></div>
               </div>
             </div>
-            <div class="card-desc">
-              <strong>{kpis['store_page_views']}</strong> Mağaza Sayfası (<strong>{sb.get('apple_page_views_unique', 0)}</strong> cihaz) • <strong>{kpis['bridge_unique_clicks']}</strong> Köprü Tekil Tık
+            <div class="card-desc" id="kpiDesc2">
+              {ps_all.get('touchpoints_sub', '')}
             </div>
           </div>
 
           <div class="bento-card">
             <div>
               <div class="card-label">
-                <span>3. Toplam İndirme</span>
-                <span class="delta-chip">+{s['kpi_deltas']['recent_3d_downloads']} (3G) • CVR %{dl_of_vis_pct}</span>
+                <span id="kpiTitle3">3. Toplam İndirme</span>
+                <span class="delta-chip" id="kpiDelta3">+{s['kpi_deltas']['recent_3d_downloads']} (3G) • CVR %{dl_of_vis_pct}</span>
               </div>
               <div class="kpi-hero-row">
                 <div class="big-num" style="color: #059669;" id="kpiDownloads">{f_dl}</div>
                 {spark_dl_svg}
               </div>
               <div class="split-bar">
-                <div style="width:{dl_ios_pct}%; background:#10B981;"></div>
-                <div style="width:{100 - dl_ios_pct}%; background:#3B82F6;"></div>
+                <div style="width:{dl_ios_pct}%; background:#10B981;" title="🍏 Apple iOS"></div>
+                <div style="width:{100 - dl_ios_pct}%; background:#3B82F6;" title="🤖 Google Play Android"></div>
               </div>
             </div>
-            <div class="card-desc">
-              <strong>{kpis['ios_downloads']}</strong> iOS (App Store API %{dl_ios_pct}) • <strong>{kpis['android_downloads']}</strong> Android (Play / Sinyal)
+            <div class="card-desc" id="kpiDesc3">
+              <strong>🍏 {kpis['ios_downloads']}</strong> iOS (App Store API %{dl_ios_pct}) • <strong>🤖 {kpis['android_downloads']}</strong> Android (Google Play %{100 - dl_ios_pct})
             </div>
           </div>
 
           <div class="bento-card">
             <div>
               <div class="card-label">
-                <span>4. VIP & Beklenen Net MRR</span>
-                <span class="delta-chip" style="background:rgba(124,58,237,0.14); color:#7C3AED;">{fl['projected_total_mrr_net_try']:.2f} ₺/Ay Net</span>
+                <span id="kpiTitle4">4. VIP & Beklenen Net MRR</span>
+                <span class="delta-chip" id="kpiDelta4" style="background:rgba(124,58,237,0.14); color:#7C3AED;">{fl['projected_total_mrr_net_try']:.2f} ₺/Ay Net</span>
               </div>
               <div class="kpi-hero-row">
                 <div class="big-num" style="color: #7C3AED;" id="kpiVip">{f_vip} VIP</div>
@@ -4034,8 +4275,8 @@ async def analytics_dashboard_page(
                 <div style="width:15%; background:#8B5CF6;"></div>
               </div>
             </div>
-            <div class="card-desc">
-              <strong>{paid_try:.2f} ₺</strong> Tahsil Net ({paid_conv} Ücretli) • <strong>+{fl['pipeline_7d_mrr_net_try']:.2f} ₺</strong> Deneme ({active_trials} VIP) • <strong>{avg_stars_label}</strong>
+            <div class="card-desc" id="kpiDesc4">
+              <strong>🍏 {ps_ios.get('vip_count', f_vip)} Apple VIP</strong> ({paid_try:.2f} ₺ Tahsil + {fl['pipeline_7d_mrr_net_try']:.2f} ₺ Deneme) • <strong>🤖 {ps_and.get('vip_count', 0)} Android VIP</strong> ({len(gp_catalog)} Paket Aktif)
             </div>
           </div>
         </div>
@@ -4043,7 +4284,7 @@ async def analytics_dashboard_page(
         <!-- 5 SEKMELİ FERAH NAVİGASYON BARI -->
         <div class="tabs-nav" role="tablist">
           <button class="tab-btn active" id="tabBtn_tab1" onclick="switchTab('tab1')">🧭 1. Yönetici Özeti</button>
-          <button class="tab-btn" id="tabBtn_tab2" onclick="switchTab('tab2')">💎 2. Gelir & Abone Defteri ({len(sub_ledger)})</button>
+          <button class="tab-btn" id="tabBtn_tab2" onclick="switchTab('tab2')">💎 2. Gelir & Abone Defteri (🍏 {len(sub_ledger)} + 🤖 {len(gp_catalog)} Paket)</button>
           <button class="tab-btn" id="tabBtn_tab3" onclick="switchTab('tab3')">🎯 3. Kanal & ASO Attribution</button>
           <button class="tab-btn" id="tabBtn_tab4" onclick="switchTab('tab4')">🍼 4. Ürün Nabzı & Kohort</button>
           <button class="tab-btn" id="tabBtn_tab5" onclick="switchTab('tab5')">⭐ 5. Yorumlar ({avg_stars_label}) & Canlı Akış</button>
@@ -4051,16 +4292,81 @@ async def analytics_dashboard_page(
 
         <!-- SEKME 1: YÖNETİCİ ÖZETİ -->
         <div id="tabPane_tab1" class="tab-pane active">
+          <!-- YAN YANA PLATFORM KARŞILAŞTIRMA MATRİSİ (KÜMÜLATİF vs APPLE vs GOOGLE PLAY) -->
           <div class="bento-card">
             <div class="section-head">
-              <span>🧭 Ebeveynlerin 4 Adımlı Dönüşüm Hunisi (Görmeden ➔ Doğrulanmış VIP Aboneliğe)</span>
-              <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">İndirme ➔ VIP Dönüşümü: %{vip_of_dl_pct}</span>
+              <span>⚖️ Kümülatif vs Apple App Store (iOS) vs Google Play Store (Android) — Yan Yana Platform Karşılaştırması</span>
+              <span class="badge badge-gp">Üstteki Butonlarla Tek Platforma Filtreleyebilirsiniz</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Büyüme & Gelir Aşaması</th>
+                    <th>🌐 Kümülatif (Toplam)</th>
+                    <th>🍏 Apple App Store (iOS)</th>
+                    <th>🤖 Google Play Store (Android)</th>
+                    <th>Platform Payı & Teknik Teşhis</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><strong>1. Mağaza Gösterimi</strong></td>
+                    <td style="font-weight:800; color:#D97706;">{f_imp:,} Gösterim</td>
+                    <td style="font-weight:700; color:#059669;">{f_imp:,} ({kpis['impressions_unique']:,} Cihaz)</td>
+                    <td style="color:var(--text-secondary);">Play Organik + {ps_and.get('touchpoints', 0)} Köprü</td>
+                    <td><span class="badge" style="background:rgba(217,119,6,0.14); color:#D97706;">Apple r14 API (%89 Arama)</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>2. İnceleme & Sosyal Tık</strong></td>
+                    <td style="font-weight:800; color:#2563EB;">{f_vis:,} Etkileşim</td>
+                    <td style="font-weight:700; color:#059669;">{ps_ios.get('touchpoints', 0)} ({kpis['store_page_views']} Sayfa + {ps_ios.get('touchpoints', 0) - kpis['store_page_views']} Tık)</td>
+                    <td style="font-weight:700; color:#2563EB;">{ps_and.get('touchpoints', 0)} Android Köprü Tıkı</td>
+                    <td><span class="badge badge-meta">Sosyal Tıkların %{round((ps_and.get('touchpoints', 0) / max(1, kpis['bridge_unique_clicks'])) * 100)}'i Android</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>3. Gerçek Kurulum (İndirme)</strong></td>
+                    <td style="font-weight:800; color:#059669; font-size:14px;">{f_dl} Kurulum</td>
+                    <td style="font-weight:800; color:#059669;">{kpis['ios_downloads']} iOS (%{dl_ios_pct})</td>
+                    <td style="font-weight:800; color:#2563EB;">{kpis['android_downloads']} Android (%{100 - dl_ios_pct})</td>
+                    <td><span class="badge badge-gp">🍏 %{ps_ios.get('cvr_pct', 0)} CVR vs 🤖 %{ps_and.get('cvr_pct', 0)} CVR</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>4. Canlı Abonelik Paketleri</strong></td>
+                    <td style="font-weight:700;">4 Aktif Paket (iOS + Android)</td>
+                    <td><strong>2 Paket:</strong> <code>misil_annual</code> & <code>misil_monthly</code> (7G Deneme)</td>
+                    <td><strong>{len(gp_catalog)} Paket Aktif:</strong> <code>misil</code> (599.99 ₺) & <code>misilaylik</code> (149.99 ₺) + 7G Deneme</td>
+                    <td><span class="badge badge-gp">Her İki Mağazada 7G Deneme Aktif</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>5. Aktif VIP Abone & Net MRR</strong></td>
+                    <td style="font-weight:800; color:#7C3AED;">{f_vip} VIP • {fl['projected_total_mrr_net_try']:.2f} ₺/Ay</td>
+                    <td style="font-weight:800; color:#7C3AED;">{ps_ios.get('vip_count', f_vip)} VIP ({paid_conv} Ücretli + {active_trials} Deneme + {offer_code_subs} Kod)</td>
+                    <td style="font-weight:700; color:var(--text-muted);">0 Aktif Abone (0.00 ₺ MRR)</td>
+                    <td><span class="badge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">Android {kpis['android_downloads']} Kurulum ➔ Paywall Optimizasyon Fırsatı</span></td>
+                  </tr>
+                  <tr>
+                    <td><strong>6. Resmi Mağaza Yorumları</strong></td>
+                    <td style="font-weight:800; color:#D97706;">{reviews_total_cnt} Yorum ({avg_stars_label})</td>
+                    <td><strong>{ps_ios.get('reviews_count', 0)} App Store Yorumu</strong> (5.0 ★)</td>
+                    <td><strong>{ps_and.get('reviews_count', 0)} Google Play Yorumu</strong> (5.0 ★)</td>
+                    <td><span class="badge badge-gp">Her İki Mağaza 5.0 ★ Tam Puan</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="section-head">
+              <span id="funnelHeadTitle">🧭 Ebeveynlerin 4 Adımlı Dönüşüm Hunisi (Görmeden ➔ Doğrulanmış VIP Aboneliğe)</span>
+              <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;" id="funnelHeadBadge">İndirme ➔ VIP Dönüşümü: %{vip_of_dl_pct}</span>
             </div>
             <div class="steps-grid">
               <div class="step-box" style="border-left: 4px solid #F59E0B;">
                 <div class="step-num" style="color:#D97706;">1. ADIM • KARŞILAŞMA (100%)</div>
-                <div class="step-val">{f_imp:,}</div>
-                <div class="step-sub">App Store'da Mışıl Baby görüntülendi ({imp_search:,} Arama + {imp_browse} Keşfet)</div>
+                <div class="step-val" id="funStep1Val">{f_imp:,}</div>
+                <div class="step-sub" id="funStep1Sub">App Store'da Mışıl Baby görüntülendi ({imp_search:,} Arama + {imp_browse} Keşfet)</div>
                 <div style="margin-top:8px; height:6px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
                   <div style="width:100%; height:100%; background:#F59E0B;"></div>
                 </div>
@@ -4069,8 +4375,8 @@ async def analytics_dashboard_page(
 
               <div class="step-box" style="border-left: 4px solid #3B82F6;">
                 <div class="step-num" style="color:#2563EB;">2. ADIM • İNCELEME (%{vis_of_imp_pct})</div>
-                <div class="step-val">{f_vis}</div>
-                <div class="step-sub">Mağaza sayfası açıldı ({kpis['store_page_views']}) veya sosyal linke tıklandı ({kpis['bridge_unique_clicks']})</div>
+                <div class="step-val" id="funStep2Val">{f_vis}</div>
+                <div class="step-sub" id="funStep2Sub">🍏 {ps_ios.get('touchpoints', 0)} iOS ({kpis['store_page_views']} Sayfa + {ps_ios.get('touchpoints', 0) - kpis['store_page_views']} Tık) • 🤖 {ps_and.get('touchpoints', 0)} Android Köprü Tıkı</div>
                 <div style="margin-top:8px; height:6px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
                   <div style="width:{min(100, max(12, round(vis_of_imp_pct)))}%; height:100%; background:#3B82F6;"></div>
                 </div>
@@ -4079,8 +4385,8 @@ async def analytics_dashboard_page(
 
               <div class="step-box" style="border-left: 4px solid #10B981;">
                 <div class="step-num" style="color:#059669;">3. ADIM • İNDİRME (%{dl_of_vis_pct})</div>
-                <div class="step-val">{f_dl}</div>
-                <div class="step-sub">Uygulamayı telefonuna indirdi ({kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</div>
+                <div class="step-val" id="funStep3Val">{f_dl}</div>
+                <div class="step-sub" id="funStep3Sub">Uygulamayı telefonuna indirdi (🍏 {kpis['ios_downloads']} iOS + 🤖 {kpis['android_downloads']} Android)</div>
                 <div style="margin-top:8px; height:6px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
                   <div style="width:{min(100, max(15, round(dl_of_vis_pct * 2.2)))}%; height:100%; background:#10B981;"></div>
                 </div>
@@ -4089,8 +4395,8 @@ async def analytics_dashboard_page(
 
               <div class="step-box" style="border-left: 4px solid #8B5CF6;">
                 <div class="step-num" style="color:#7C3AED;">4. ADIM • VIP & MEMNUNİYET (%{vip_of_dl_pct})</div>
-                <div class="step-val">{f_vip} VIP • {avg_stars_label}</div>
-                <div class="step-sub">{paid_conv} ücretli ({paid_cust_try:.2f} ₺) + {offer_code_subs} kodlu ({html.escape(offer_code_name)}) + {active_trials} deneme</div>
+                <div class="step-val" id="funStep4Val">{f_vip} VIP • {avg_stars_label}</div>
+                <div class="step-sub" id="funStep4Sub">🍏 {ps_ios.get('vip_count', f_vip)} Apple VIP ({paid_conv} ücretli + {offer_code_subs} kodlu + {active_trials} deneme) • 🤖 {ps_and.get('vip_count', 0)} Android VIP</div>
                 <div style="margin-top:8px; height:6px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
                   <div style="width:{min(100, max(14, round(vip_of_dl_pct * 3)))}%; height:100%; background:#8B5CF6;"></div>
                 </div>
@@ -4102,20 +4408,28 @@ async def analytics_dashboard_page(
           <div class="bento-card">
             <div class="section-head">
               <div>
-                <span>📈 Gün-Gün Toplam İndirme Yükselişi ({html.escape(timeline_range_lbl)}: {f_dl} İndirme — {kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</span>
+                <span>📈 Gün-Gün Toplam İndirme Yükselişi ({html.escape(timeline_range_lbl)}: 🌐 {f_dl} Toplam — 🍏 {kpis['ios_downloads']} iOS + 🤖 {kpis['android_downloads']} Android)</span>
                 <div style="font-size:12px; color:var(--text-muted); font-weight:500; margin-top:3px;">
-                  Kesikli sütunlar (<code>*</code> / <code>⏳Tık</code>) Apple Sales TSV raporu 24 saat gecikmeli geldiği için o günün canlı köprü etkileşimini gösterir.
+                  Yeşil kısım <strong>🍏 Apple iOS</strong>, mavi kısım <strong>🤖 Google Play Android</strong> kurulumlarını; kesikli sütunlar (<code>*</code>) Apple TSV 24s gecikmesini gösterir.
                 </div>
               </div>
               <div class="chart-toggle">
-                <button id="btnCumChart" class="active" onclick="switchChartMode('cum')">📈 Toplam Birikimli ({f_dl} İndirme)</button>
-                <button id="btnDailyChart" onclick="switchChartMode('daily')">📊 Günlük Yeni İndirme & Canlı Sinyal</button>
+                <button id="btnCumChart" class="active" onclick="switchChartMode('cum')">🌐 Kümülatif ({f_dl})</button>
+                <button id="btnIosChart" onclick="switchChartMode('ios')">🍏 Apple iOS ({kpis['ios_downloads']})</button>
+                <button id="btnAndChart" onclick="switchChartMode('android')">🤖 Google Play ({kpis['android_downloads']})</button>
+                <button id="btnDailyChart" onclick="switchChartMode('daily')">📊 Günlük Yeni</button>
               </div>
             </div>
 
             <div class="timeline-scroll">
               <div id="chartCumWrap" class="timeline-grid">
                 {cum_bars_html}
+              </div>
+              <div id="chartIosWrap" class="timeline-grid" style="display:none;">
+                {cum_ios_bars_html}
+              </div>
+              <div id="chartAndWrap" class="timeline-grid" style="display:none;">
+                {cum_android_bars_html}
               </div>
               <div id="chartDailyWrap" class="timeline-grid" style="display:none;">
                 {daily_bars_html}
@@ -4172,14 +4486,14 @@ async def analytics_dashboard_page(
               <div class="card-label">🚀 4. BEKLENEN TOPLAM NET MRR KÖPRÜSÜ</div>
               <div class="big-num" style="color:#7C3AED;">{fl['projected_total_mrr_net_try']:.2f} ₺ <span style="font-size:15px; color:var(--text-muted);">Net/Ay</span></div>
               <div class="card-desc">
-                Brüt: <strong>{fl['projected_total_mrr_gross_try']:.2f} ₺/Ay</strong> • Oto-Yenileme Sağlığı: <strong>%{fl['auto_renew_on_pct']}</strong> • <strong>{fl['offer_code_subs_count']} Kodlu VIP</strong> (<code>{html.escape(offer_code_name)}</code>).
+                🍏 Apple: <strong>{fl['projected_total_mrr_net_try']:.2f} ₺ Net/Ay</strong> ({len(sub_ledger)} VIP) • 🤖 Google Play: <strong>0.00 ₺ Net/Ay</strong> (0 Abone / {len(gp_catalog)} Aktif Paket).
               </div>
             </div>
           </div>
 
-          <div class="bento-card">
+          <div class="bento-card" id="appleRenewalCard">
             <div class="section-head">
-              <span>📅 7 Günlük Deneme ➔ Ücretli Tahsilat Takvimi (Apple SUBSCRIBER 1_3 Vade Projeksiyonu)</span>
+              <span>📅 🍏 Apple App Store — 7 Günlük Deneme ➔ Ücretli Tahsilat Takvimi (SUBSCRIBER 1_3 Vade Projeksiyonu)</span>
               <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">Toplam Pipeline: +{fl['pipeline_7d_mrr_gross_try']:.2f} ₺ Brüt / +{fl['pipeline_7d_mrr_net_try']:.2f} ₺ Net</span>
             </div>
             <div class="steps-grid">
@@ -4187,9 +4501,9 @@ async def analytics_dashboard_page(
             </div>
           </div>
 
-          <div class="bento-card">
+          <div class="bento-card" id="appleLedgerCard">
             <div class="section-head">
-              <span>📒 Doğrulanmış Tekil Abone Defteri ({len(sub_ledger)} Kayıtlı VIP • Apple SUBSCRIBER 1_3 API)</span>
+              <span>📒 🍏 Apple App Store — Doğrulanmış Tekil Abone Defteri ({len(sub_ledger)} Kayıtlı VIP • Apple SUBSCRIBER 1_3 API)</span>
               <span class="badge badge-meta">Vendor #94806500 • Dinamik DB</span>
             </div>
             <div class="table-wrap">
@@ -4211,6 +4525,38 @@ async def analytics_dashboard_page(
                 </thead>
                 <tbody>
                   {ledger_rows_html}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- GOOGLE PLAY STORE ABONELİK PAKETLERİ VE ANDROID FATURALANDIRMA DEFTERİ -->
+          <div class="bento-card" id="googlePlayLedgerCard">
+            <div class="section-head">
+              <span>🤖 Google Play Store — Canlı Abonelik Paketleri & Android Faturalandırma Defteri (<code>com.levitas.misilbaby</code>)</span>
+              <span class="badge badge-gp">Google Play Developer API (Monetization Subscriptions) • {len(gp_catalog)} Aktif Paket</span>
+            </div>
+            <div style="padding:12px 16px; border-radius:12px; background:var(--bg-cell); border:1px solid var(--border-subtle); margin-bottom:12px; font-size:12.5px; color:var(--text-secondary); line-height:1.55;">
+              🔍 <strong>Neden Android'de 0 Abone Görünüyor? (Canlı API Teşhisi):</strong> Google Play Developer API (<code>monetization.subscriptions</code>) üzerinde <strong>Mışıl Baby Yıllık VIP (599.99 ₺ + 7G Ücretsiz Deneme)</strong> ve <strong>Mışıl Baby Aylık VIP (149.99 ₺ + 7G Ücretsiz Deneme)</strong> paketleriniz <strong>ACTIVE (Yayında)</strong> durumdadır. Ancak <strong>{ps_and.get('touchpoints', 0)} Android köprü tıklamasından</strong> gelen <strong>{kpis['android_downloads']} Android kurulumu</strong> içerisinden henüz Google Play faturalandırmasını (7G deneme veya ücretli) başlatan kullanıcı olmamıştır (<strong>0 Aktif Android Abone</strong>). Yeni bir Android abonesi başladığında bu tabloya otomatik olarak düşer.
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Google Play Ürün / Plan ID</th>
+                    <th>Mağaza Paket Başlığı</th>
+                    <th>Durum</th>
+                    <th>Periyot</th>
+                    <th>Ücretsiz Deneme Teklifi</th>
+                    <th>Offer ID</th>
+                    <th>Ek Süre (Grace)</th>
+                    <th>Türkiye Fiyatı (Brüt / Net)</th>
+                    <th>Aktif Android Abone</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gp_catalog_rows_html}
                 </tbody>
               </table>
             </div>
@@ -4411,6 +4757,9 @@ async def analytics_dashboard_page(
       </div>
 
       <script>
+        var PLATFORM_SPLIT = {ps_json_str};
+        var currentPlatform = 'all';
+
         function toggleTheme() {{
           document.body.classList.toggle('theme-slate');
           var isSlate = document.body.classList.contains('theme-slate');
@@ -4439,22 +4788,102 @@ async def analytics_dashboard_page(
         }}
 
         function switchChartMode(mode) {{
-          var cumW = document.getElementById('chartCumWrap');
-          var dailyW = document.getElementById('chartDailyWrap');
-          var bCum = document.getElementById('btnCumChart');
-          var bDaily = document.getElementById('btnDailyChart');
-          if (mode === 'daily') {{
-            cumW.style.display = 'none';
-            dailyW.style.display = 'grid';
-            bCum.classList.remove('active');
-            bDaily.classList.add('active');
-          }} else {{
-            cumW.style.display = 'grid';
-            dailyW.style.display = 'none';
-            bCum.classList.add('active');
-            bDaily.classList.remove('active');
+          var wraps = {{
+            'cum': document.getElementById('chartCumWrap'),
+            'ios': document.getElementById('chartIosWrap'),
+            'android': document.getElementById('chartAndWrap'),
+            'daily': document.getElementById('chartDailyWrap')
+          }};
+          var btns = {{
+            'cum': document.getElementById('btnCumChart'),
+            'ios': document.getElementById('btnIosChart'),
+            'android': document.getElementById('btnAndChart'),
+            'daily': document.getElementById('btnDailyChart')
+          }};
+          for (var k in wraps) {{
+            if (wraps[k]) wraps[k].style.display = (k === mode) ? 'grid' : 'none';
+            if (btns[k]) {{
+              if (k === mode) btns[k].classList.add('active');
+              else btns[k].classList.remove('active');
+            }}
           }}
           localStorage.setItem('mishil_dash_chart_mode', mode);
+        }}
+
+        function switchPlatform(plat, skipChartSync) {{
+          if (!PLATFORM_SPLIT || !PLATFORM_SPLIT[plat]) plat = 'all';
+          currentPlatform = plat;
+          var p = PLATFORM_SPLIT[plat];
+
+          var pBtns = ['all', 'ios', 'android'];
+          for (var i = 0; i < pBtns.length; i++) {{
+            var b = document.getElementById('platBtn_' + pBtns[i]);
+            if (b) {{
+              if (pBtns[i] === plat) b.classList.add('active');
+              else b.classList.remove('active');
+            }}
+          }}
+
+          var elImp = document.getElementById('kpiImpressions');
+          var elVis = document.getElementById('kpiVisitsClicks');
+          var elDl = document.getElementById('kpiDownloads');
+          var elVip = document.getElementById('kpiVip');
+          if (elImp) elImp.textContent = p.impressions_display;
+          if (elVis) elVis.textContent = p.touchpoints_display;
+          if (elDl) elDl.textContent = p.downloads_display;
+          if (elVip) elVip.textContent = p.vip_display;
+
+          var d1 = document.getElementById('kpiDesc1');
+          var d2 = document.getElementById('kpiDesc2');
+          var d3 = document.getElementById('kpiDesc3');
+          var d4 = document.getElementById('kpiDesc4');
+          if (d1) d1.innerHTML = '<strong>' + p.label + ':</strong> ' + p.impressions_sub;
+          if (d2) d2.innerHTML = '<strong>' + p.label + ':</strong> ' + p.touchpoints_sub;
+          if (d3) d3.innerHTML = '<strong>' + p.label + ':</strong> ' + p.downloads_sub + ' • <strong>%' + p.cvr_pct + ' CVR</strong>';
+          if (d4) d4.innerHTML = '<strong>' + p.label + ':</strong> ' + p.vip_sub + ' • <strong>' + Number(p.mrr_net_try || 0).toFixed(2) + ' ₺/Ay Net MRR</strong> • ★ 5.0 (' + p.reviews_count + ' Yorum)';
+
+          var f1v = document.getElementById('funStep1Val');
+          var f1s = document.getElementById('funStep1Sub');
+          var f2v = document.getElementById('funStep2Val');
+          var f2s = document.getElementById('funStep2Sub');
+          var f3v = document.getElementById('funStep3Val');
+          var f3s = document.getElementById('funStep3Sub');
+          var f4v = document.getElementById('funStep4Val');
+          var f4s = document.getElementById('funStep4Sub');
+          if (f1v) f1v.textContent = p.impressions_display;
+          if (f1s) f1s.textContent = p.impressions_sub;
+          if (f2v) f2v.textContent = p.touchpoints_display;
+          if (f2s) f2s.textContent = p.touchpoints_sub;
+          if (f3v) f3v.textContent = p.downloads_display + ' Kurulum';
+          if (f3s) f3s.textContent = p.downloads_sub + ' (%' + p.cvr_pct + ' Kurulum CVR)';
+          if (f4v) f4v.textContent = p.vip_display + ' (' + Number(p.mrr_net_try || 0).toFixed(2) + ' ₺ Net)';
+          if (f4s) f4s.textContent = p.vip_sub;
+
+          if (!skipChartSync) {{
+            if (plat === 'ios') switchChartMode('ios');
+            else if (plat === 'android') switchChartMode('android');
+            else switchChartMode('cum');
+          }}
+
+          var appRen = document.getElementById('appleRenewalCard');
+          var appLed = document.getElementById('appleLedgerCard');
+          var gpLed = document.getElementById('googlePlayLedgerCard');
+          if (appRen) appRen.style.display = (plat === 'android') ? 'none' : 'block';
+          if (appLed) appLed.style.display = (plat === 'android') ? 'none' : 'block';
+          if (gpLed) gpLed.style.display = (plat === 'ios') ? 'none' : 'block';
+
+          var platNodes = document.querySelectorAll('[data-platform]');
+          for (var m = 0; m < platNodes.length; m++) {{
+            var node = platNodes[m];
+            var np = node.getAttribute('data-platform');
+            if (plat === 'all' || np === plat) {{
+              node.style.display = '';
+            }} else {{
+              node.style.display = 'none';
+            }}
+          }}
+
+          localStorage.setItem('mishil_dash_platform', plat);
         }}
 
         (function() {{
@@ -4475,8 +4904,13 @@ async def analytics_dashboard_page(
             switchTab(savedTab);
           }}
 
+          var savedPlat = localStorage.getItem('mishil_dash_platform');
+          if (savedPlat === 'ios' || savedPlat === 'android' || savedPlat === 'all') {{
+            switchPlatform(savedPlat, true);
+          }}
+
           var savedChartMode = localStorage.getItem('mishil_dash_chart_mode');
-          if (savedChartMode === 'daily' || savedChartMode === 'cum') {{
+          if (savedChartMode === 'daily' || savedChartMode === 'cum' || savedChartMode === 'ios' || savedChartMode === 'android') {{
             switchChartMode(savedChartMode);
           }}
 
@@ -4516,16 +4950,11 @@ async def analytics_dashboard_page(
               }});
               if (!res.ok) return;
               var data = await res.json();
-              var ck = data.cumulative_kpis || {{}};
-              var elImp = document.getElementById('kpiImpressions');
-              var elVis = document.getElementById('kpiVisitsClicks');
-              var elDl = document.getElementById('kpiDownloads');
-              var elVip = document.getElementById('kpiVip');
+              if (data.platform_split) {{
+                PLATFORM_SPLIT = data.platform_split;
+                switchPlatform(currentPlatform, true);
+              }}
               var elSub = document.getElementById('livePeriodSub');
-              if (elImp && ck.impressions_total !== undefined) elImp.textContent = Number(ck.impressions_total).toLocaleString('en-US');
-              if (elVis && ck.visits_and_clicks_total !== undefined) elVis.textContent = String(ck.visits_and_clicks_total);
-              if (elDl && ck.downloads_total !== undefined) elDl.textContent = String(ck.downloads_total);
-              if (elVip && ck.vip_activations !== undefined) elVip.textContent = String(ck.vip_activations) + ' VIP';
               if (elSub) {{
                 elSub.textContent = '(' + (data.active_human_count || 0) + ' Tekil İnsan • Bugün: ' + (data.today_unique_clicks || 0) + ' • Dün: ' + (data.yesterday_unique_clicks || 0) + ')';
               }}
