@@ -3395,7 +3395,7 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-top: 14px; margin-bottom: 10px;">
             <div class="analytics-badge-pill" style="border-color: rgba(116, 198, 157, 0.3);">
               <div style="font-size: 10px; color: var(--text-muted);">🌙 Uyku</div>
-              <div style="font-size: 11px; font-weight: 700; color: var(--sage); margin-top: 2px;" id="stat-badge-sleep">Ritimde</div>
+              <div style="font-size: 11px; font-weight: 700; color: var(--sage); margin-top: 2px;" id="stat-badge-sleep">Bekleniyor ⏳</div>
             </div>
             <div class="analytics-badge-pill" style="border-color: rgba(244, 162, 97, 0.3); cursor: pointer;" onclick="openVaccineQuickModal()">
               <div style="font-size: 10px; color: var(--text-muted);">💉 Aşı</div>
@@ -8402,7 +8402,7 @@
     const badgeLeap = document.getElementById('stat-badge-leap');
 
     if (badgeSleep) {
-      if (scoreData.sleepBudgetScore >= 80) { badgeSleep.textContent = 'Harika 🟢'; badgeSleep.style.color = '#2ED573'; }
+      if (!Array.isArray(activeRoutines) || activeRoutines.length === 0) { badgeSleep.textContent = 'İlk Kayıt Bekleniyor ⏳'; badgeSleep.style.color = 'var(--text-muted)'; } else if (scoreData.sleepBudgetScore >= 80) { badgeSleep.textContent = 'Harika 🟢'; badgeSleep.style.color = '#2ED573'; }
       else if (scoreData.sleepBudgetScore >= 50) { badgeSleep.textContent = 'Dengeli 🟡'; badgeSleep.style.color = 'var(--accent)'; }
       else { badgeSleep.textContent = 'Eksik 🔴'; badgeSleep.style.color = '#FF4757'; }
     }

@@ -309,5 +309,84 @@ def test_store_daily_metric_aggregation_and_feedback_pin_isolation(client, db_se
         assert auth_trig.json()["status"] == "ok"
 
 
+def test_obsidian_cockpit_v2_trial_mrr_healing_and_3row_grid(client, db_session):
+    """v8.69.0: 0 TL kalan 7G denemelerin 149.99/83.12 TL'ye otomatik onarımı, 3 kademeli MRR şelalesi ve sıfır kaymalı 3-row CSS Grid doğrulaması."""
+    from datetime import timedelta
+    from app.db.models import SubscriberLedger, StoreDailyMetric
+    from app.api.v1.endpoints.analytics import _build_analytics_summary
+
+    SubscriberLedger.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    StoreDailyMetric.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+
+    tz_tr = timezone(timedelta(hours=3))
+    today_tr = datetime.now(tz_tr).date()
+    d_matured_start = (today_tr - timedelta(days=9)).strftime("%Y-%m-%d")
+    d_matured_end = (today_tr - timedelta(days=2)).strftime("%Y-%m-%d")
+    d_upcoming_start = (today_tr - timedelta(days=2)).strftime("%Y-%m-%d")
+    d_upcoming_end = (today_tr + timedelta(days=5)).strftime("%Y-%m-%d")
+
+    # 1) Vadesi dolmuş ancak Apple mutabakatında olan 7G deneme (expected_next_price_try=0.0 -> 149.99/83.12 onarılmalı)
+    db_session.add(
+        SubscriberLedger(
+            subscriber_id="SUB_RECONCILING_01",
+            platform="ios",
+            product_id="misil_monthly",
+            plan_label="Aylık Esnek",
+            status="intro_free_trial",
+            offer_type="intro_7d_trial",
+            started_date=d_matured_start,
+            converted_or_renewed_date=d_matured_start,
+            maturity_or_renewal_date=d_matured_end,
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=0.0,
+            expected_next_proceeds_try=0.0,
+            country="TR",
+            device_type="iPhone",
+        )
+    )
+    # 2) Vadesi gelecek 7G deneme (expected_next_price_try=0.0 -> 149.99/83.12 onarılmalı)
+    db_session.add(
+        SubscriberLedger(
+            subscriber_id="SUB_UPCOMING_02",
+            platform="ios",
+            product_id="misil_monthly",
+            plan_label="Aylık Esnek",
+            status="intro_free_trial",
+            offer_type="intro_7d_trial",
+            started_date=d_upcoming_start,
+            converted_or_renewed_date=d_upcoming_start,
+            maturity_or_renewal_date=d_upcoming_end,
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=0.0,
+            expected_next_proceeds_try=0.0,
+            country="TR",
+            device_type="iPhone",
+        )
+    )
+    db_session.commit()
+
+    summary = _build_analytics_summary(db_session, period="all")
+    fl = summary["financial_ledger"]
+
+    assert fl["pipeline_7d_trials_count"] == 2
+    assert fl["reconciling_7d_trials_count"] == 1
+    assert fl["upcoming_7d_trials_count"] == 1
+    assert fl["reconciling_7d_mrr_net_try"] == 83.12
+    assert fl["upcoming_7d_mrr_net_try"] == 83.12
+    assert fl["pipeline_7d_mrr_net_try"] == 166.24
+    assert fl["projected_total_mrr_net_try"] == 166.24
+
+    dash_res = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"})
+    assert dash_res.status_code == 200
+    assert "grid-template-rows: 22px 1fr 22px" in dash_res.text
+    assert "pollLiveTelemetry" in dash_res.text
+    assert "window.location.reload()" not in dash_res.text
+
+
+
 
 

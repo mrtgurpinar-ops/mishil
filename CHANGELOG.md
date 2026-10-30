@@ -2,6 +2,32 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.13] - 2026-10-30
+### 📊 Linear / Vercel "Obsidian Hairline" (`1px` Kılcal Izgara) Kurucu Kokpiti v2.0 & Canlı Veri Motoru Onarımı
+1. **Canlı Veri Motoru & 3 Kademeli MRR Şelalesi (`app/api/v1/endpoints/analytics.py`, `tests/test_sleep_and_analytics_remediation.py`):**
+   - Apple `SUBSCRIBER 1_3` raporunda `customer_price = 0.00` döndüğü için `0.00 ₺` kalan 7 günlük deneme aboneleri `_resolve_expected_trial_pricing()` ile otomatik olarak paket fiyatlarıyla (`149.99 ₺ Brüt` / `83.12 ₺ Net`) eşleştirildi.
+   - Gelir sekmesi **Tahsil Edilen Kesin Gelir + Apple Mutabakatında Vadesi Dolan (`reconciling_7d`) + Yaklaşan Deneme Vadesi (`upcoming_7d`) = Beklenen Toplam Net MRR Köprüsü** yapısına kavuşturuldu.
+   - Android kurulumlarının tek güne (`30 Eki`) yığılması düzeltilerek aktif sinyal günlerine dağıtıldı; Apple TSV raporunun 24s gecikmeli olduğu günler `is_store_pending` olarak işaretlendi ve `r14` Discovery arama/keşfet oranlarıyla kaynak dağılımı zenginleştirildi.
+2. **Konsept A — Linear / Vercel "Obsidian Hairline" (`1px` Kılcal Izgara) & Sıfır Kaymalı 3-Row CSS Grid (`analytics.py`, `public/preview_analytics_cockpit.html`, `public/app.html`):**
+   - Kokpit arayüzü `#08090C` saf karbon zemin, `#1E222D` `1px` kılcal ızgara (`hairline grid`), `JetBrains Mono` (`tabular-nums`) tipografi, 4 kaynaklı canlı tazelik bandı (`Freshness Strip`), SVG sparkline'lı Kuzey Yıldızı kartları ve `grid-template-rows: 22px 1fr 22px` sıfır kaymalı çubuk grafik mimarisiyle baştan sona yenilendi.
+   - 15 saniyede bir sayfayı yenileyen `window.location.reload()` kaldırılarak arka planda `pollLiveTelemetry()` (`fetch('/api/v1/analytics/summary')`) devreye alındı; `public/app.html` `#view-analytics` ekranında rutin kaydı yokken çıkan `"Harika 🟢"` rozeti `"İlk Kayıt Bekleniyor ⏳"` olarak düzeltildi ve `offlineHtml.generated.ts` güncellendi.
+
+## [4.46.12] - 2026-10-30
+### 🎨 Mışıl Comics • Sayı #7 (v3 CMO & Görsel Konsensüs Final): 3'lü Konsensüs (`task-92`/`task-153`/`task-175` Claude CLI + `task-119`/`task-154`/`task-176` Codex CLI + Antigravity) "Acıktı mı, Gazı mı Var, Uykusu mu Geldi? (5 Gizli Bebek Sesi)" 4:5 Dikey Webcomic Paketi
+1. **İlk 6 Sayıyla %0 Çakışan Konu & 7 Özgün Pixar/Disney 3D Çizgi Roman Sahnesi (`kullanici/instagram/karakterler/comic7_s1..s7`):**
+   - İcra & Doğrulama: **3 Turlu 3'lü Konsensüs** (`task-92`/`task-153`/`task-175` Claude Code CLI + `task-119`/`task-154`/`task-176` Codex CLI `gpt-6-luna` + Antigravity).
+   - 0–4 aylık bebeklerin çığlık fırtınasına geçmeden önce emme, esneme ve geğirme refleksleriyle çıkardığı 5 akustik ön-sinyali (`Neh` = Açlık, `Owh` = Uyku, `Eh` = Üst Gaz, `Eairh` = Alt Gaz, `Heh` = Rahatsızlık) ve Mışıl Baby **AI Ağlama Analizi** özelliğini anlatan 7 özgün sahne kronolojik saat sürekliliğiyle (`02:10 -> 02:12 -> 02:15 -> 02:25`) üretildi:
+     - **Slayt 1 (`comic7_s1_neden_agliyor_bilmecesi.jpg`):** Saat `02:10`'da beşik başında bir elinde biberon, diğer elinde bez ve başının üzerinde `🍼 / 💨 / 🌙?` düşünce balonlarıyla şaşkın bakan Işıl Anne + mıkırdanan Mışıl Bebek.
+     - **Slayt 2 (`comic7_s2_5_gizli_bebek_kelimesi.jpg` — v3):** Saat `02:12`'de Mışıl Bebek etrafında 5 pastel akustik balon (`🍼`, `🌙`, `🫧`, `🌀`, `🌡️`) ve elini kulağına götürüp aydınlanan Işıl Anne (papatyalı taç tam kadrajda).
+     - **Slayt 3 (`comic7_s3_tuzak1_gaz_sesinde_emzirmek.jpg`):** Göğsünde mavi hava kabarcığı hologramı varken iki elini kaldırıp biberonu reddeden Mışıl Bebek (*"Eh" gaz sesinde hemen besleme tuzağı*).
+     - **Slayt 4 (`comic7_s4_tuzak2_owh_uyku_sesini_kacirmak.jpg` — v3):** Saat `02:15`'te gözünü ovuşturup oval ağızla esneyen (`Owh`) Mışıl Bebek, göğüs hizasında renkli çıngırağı tutarak uyku penceresini kaçırdığını fark eden Işıl Anne.
+     - **Slayt 5 (`comic7_s5_tuzak3_on_sinyal_vs_ciglik.jpg`):** İkiye bölünmüş (Split-Screen) sahne: Sol yarıda erken sakin ön-sinyali (`30–60 sn`) dinleyen Işıl Anne; sağ yarıda kaçırılan sinyal sonrası başlayan ağlama fırtınası.
+     - **Slayt 6 (`comic7_s6_recete_ai_aglama_analizi.jpg` — v3):** Işıl Anne'nin omzunda gazını çıkarıp rahatlayan Mışıl Bebek (sıfır yabancı metin, temiz rüzgar/hava ikonu) + elde sıfır bozuk yazılı Mışıl Baby **AI Ağlama Analizi** ekranı.
+     - **Slayt 7 (`comic7_s7_zafer_anlasilan_bebek_huzur.jpg` — v3):** Saat `02:25`'te (yalnızca 15 dakikada çözülen kriz) Yıldızcık peluşuna sarılarak mışıl mışıl uyuyan Mışıl Bebek ve beşik başında *"Tamam"* işareti yapan huzurlu Işıl Anne.
+2. **CMO Büyüme Pazarlaması, Open Loop & Pediatrik İhtiyat Mimarisi (`post_07_aglama_dili_5_gizli_ses.md`, `render_instagram_comic_07.py`, `preview_instagram_concepts.html`):**
+   - Claude CLI (`task-153`, `task-175`) ve Codex CLI (`task-154`, `task-176`) bulgularıyla: Slayt 1'e spesifik merak kancası (*«'NEH' Diyorsa Aç, 'EH' Diyorsa Gazlı! Peki Diğer 3 Ses Ne Demek?»*), Slayt 2'ye kaydırma düşüşünü (drop-off) önleyen **Open Loop** kurgusu, Slayt 3'e emziren ve biberon veren tüm anneleri kapsayan *"Beslemek"* dili + AAP nüansı, Slayt 6'ya **Hero Product Mışıl Baby AI Ağlama Analizi** vurgusu + hekim uyarı notu, Slayt 7'ye ise doğrudan **App Store / Google Play Ücretsiz İndirme CTA** ve ayrıştırılmış **KAYDEDİN / GÖNDERİN** çağrısı eklendi.
+   - Playwright ile 7 adet `1080×1350` PNG slayt (`post_07_slaytlar/comic_7_1..7.png`) yeniden derlendi ve `preview_instagram_concepts.html` vitrini (`?v=comic7_v3_cmo_consensus`) güncellendi.
+
 ## [4.46.11] - 2026-10-30
 ### 🎨 3'lü Konsensüs (`task-176`/`task-213`/`task-278` Claude CLI + `task-177`/`task-214`/`task-279` Codex CLI + Antigravity) Gece Ergonomisi, Dar Ekran ve Aydınlık Mod UI/UX İyileştirme Paketi
 1. **Dar Ekran (`360px–375px`) Toast Taşma Koruması & Safe-Area İyileştirmesi (`public/app.html`):**
