@@ -2,6 +2,19 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.11] - 2026-10-30
+### 🎨 3'lü Konsensüs (`task-176`/`task-213`/`task-278` Claude CLI + `task-177`/`task-214`/`task-279` Codex CLI + Antigravity) Gece Ergonomisi, Dar Ekran ve Aydınlık Mod UI/UX İyileştirme Paketi
+1. **Dar Ekran (`360px–375px`) Toast Taşma Koruması & Safe-Area İyileştirmesi (`public/app.html`):**
+   - `.toast-msg` (`white-space: normal; width: max-content; max-width: calc(100vw - 32px); box-sizing: border-box;`) ile uzun Türkçe bildirimlerin ekran dışına taşması giderildi.
+   - `.modal-sheet` alt dolgusu `env(safe-area-inset-bottom)` ile korundu ve `.screen-container` alt boşluğu yükseltilmiş FAB gölgesini kurtaracak şekilde `104px + safe-area` yapıldı.
+2. **Gece Tek El Dokunma Hedefleri, FAB Mikro-Fiziği ve Hero Kazara Tıklama Koruması (`public/app.html`):**
+   - `.modal-close` (`40×40px` dairesel), `.header-profile-btn` / `.header-close-btn` (`42×42px`), `.segmented-btn`, `.routine-pill-btn`, `.timer-pill`, `.role-chip` (`min-height: 38px`) ve `.cat-chip`, `.ai-chip` (`min-height: 36px`) dokunma hedefleri büyütüldü.
+   - `.dock-fab-btn:active` içindeki ekstra `translateY(-16px)` sıçraması `scale(0.92)` olarak düzeltildi; "Mışıl Spot" ana ekran sekmesi sıcak yuva/ev SVG ikonuyla orta altın hilal FAB butonundan ayrıştırıldı.
+   - `#home-organic-hero` kapsayıcısındaki `onclick="toggleLiveSleep()"` kaldırılıp `#home-candle-aura` (`76×76px` hilal + `:active` efekti) ve `#btn-toggle-sleep` butonuna bağlanarak sayfa kaydırırken kazara uyku başlatma/durdurma önlendi.
+3. **Aydınlık Mod (`[data-theme="light"]`) Tam Kontrast & Küçük Ekran Esnekliği (`public/app.html`, `offlineHtml.generated.ts`):**
+   - Açık temada date input takvim ikonu (`color-scheme: light`), `.timeline-line`, `.bento-chart-bar-bg`, `.settings-accordion-title`, `#sheet-rating-sentiment`, `.modal-close` ve tüm 9 modal başlığı (`var(--heading-night)`) yüksek kontrasta kavuşturuldu.
+   - `.cat-chips-row` sağ dolgusu `16px`, `.fab-label` `9px` ve mobil `.dadi-container` `min-height: 240px` olarak iyileştirildi; `offlineHtml.generated.ts` senkronize edildi.
+
 ## [4.46.10] - 2026-10-30
 ### 🛡️ 3'lü Konsensüs (`task-12`/`task-70` Claude CLI + `task-33`/`task-71` Codex CLI + Antigravity) Sıfır Regresyonlu Güvenlik, Test ve Native Ses Zamanlayıcı Sertleştirmesi
 1. **Native Arka Plan Ses Motoru Zamanlayıcı Koruması (`mobile/features/audio/nativeAudioPlayer.ts`):**
