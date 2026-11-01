@@ -3027,7 +3027,12 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "downloads": total_cumulative_downloads,
             "downloads_display": f"{total_cumulative_downloads}",
             "downloads_sub": f"🍏 {apple_downloads} iOS (%{round((apple_downloads / max(1, total_cumulative_downloads)) * 100)}) • 🤖 {google_play_downloads} Android (%{round((google_play_downloads / max(1, total_cumulative_downloads)) * 100)})",
+            "vis_of_imp_pct": round((total_cumulative_visits_and_clicks / max(1, total_cumulative_impressions)) * 100, 1),
             "cvr_pct": round((total_cumulative_downloads / max(1, total_cumulative_visits_and_clicks)) * 100, 1),
+            "dl_of_imp_pct": round((total_cumulative_downloads / max(1, total_cumulative_impressions)) * 100, 2),
+            "vip_of_dl_pct": round((active_vip_total / max(1, total_cumulative_downloads)) * 100, 1),
+            "vip_of_vis_pct": round((active_vip_total / max(1, total_cumulative_visits_and_clicks)) * 100, 2),
+            "vip_of_imp_pct": round((active_vip_total / max(1, total_cumulative_impressions)) * 100, 2),
             "vip_count": active_vip_total,
             "total_vip_count": all_total_rec,
             "cancelled_vip_count": cancelled_cnt,
@@ -3053,7 +3058,12 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "downloads": apple_downloads,
             "downloads_display": f"{apple_downloads}",
             "downloads_sub": f"{r3_search} Arama • {r3_ref} Sosyal Referans • {recent_ios_dl} Doğrudan Sales API",
+            "vis_of_imp_pct": round((ios_touchpoints / max(1, apple_impressions)) * 100, 1),
             "cvr_pct": round((apple_downloads / max(1, ios_touchpoints)) * 100, 1),
+            "dl_of_imp_pct": round((apple_downloads / max(1, apple_impressions)) * 100, 2),
+            "vip_of_dl_pct": round((ios_active_cnt / max(1, apple_downloads)) * 100, 1),
+            "vip_of_vis_pct": round((ios_active_cnt / max(1, ios_touchpoints)) * 100, 2),
+            "vip_of_imp_pct": round((ios_active_cnt / max(1, apple_impressions)) * 100, 2),
             "vip_count": ios_active_cnt,
             "total_vip_count": ios_total_rec,
             "cancelled_vip_count": ios_cancelled_cnt,
@@ -3076,7 +3086,12 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "downloads": google_play_downloads,
             "downloads_display": f"{google_play_downloads}",
             "downloads_sub": f"{google_play_downloads} Doğrulanmış Android Kurulum ({android_signal_opens} Canlı İlk Açılış Sinyali)",
+            "vis_of_imp_pct": 100.0 if android_bridge_uniq > 0 else 0.0,
             "cvr_pct": round((google_play_downloads / max(1, android_touchpoints)) * 100, 1),
+            "dl_of_imp_pct": round((google_play_downloads / max(1, android_bridge_uniq)) * 100, 2),
+            "vip_of_dl_pct": round((and_active_cnt / max(1, google_play_downloads)) * 100, 1),
+            "vip_of_vis_pct": round((and_active_cnt / max(1, android_touchpoints)) * 100, 2),
+            "vip_of_imp_pct": round((and_active_cnt / max(1, android_bridge_uniq)) * 100, 2),
             "vip_count": and_active_cnt,
             "total_vip_count": and_total_rec,
             "cancelled_vip_count": and_cancelled_cnt,
@@ -4186,7 +4201,10 @@ async def analytics_dashboard_page(
 
     vis_of_imp_pct = round((f_vis / f_imp) * 100, 1) if f_imp > 0 else 0
     dl_of_vis_pct = round((f_dl / f_vis) * 100, 1) if f_vis > 0 else 0
+    dl_of_imp_pct = round((f_dl / f_imp) * 100, 2) if f_imp > 0 else 0
     vip_of_dl_pct = round((f_vip / f_dl) * 100, 1) if f_dl > 0 else 0
+    vip_of_vis_pct = round((f_vip / f_vis) * 100, 2) if f_vis > 0 else 0
+    vip_of_imp_pct = round((f_vip / f_imp) * 100, 2) if f_imp > 0 else 0
 
     paid_conv = fl["paid_subs_count"]
     paid_cust_try = fl["realized_gross_try"]
@@ -4949,7 +4967,7 @@ async def analytics_dashboard_page(
             <div>
               <div class="card-label">
                 <span id="kpiTitle1">1. Mağaza Gösterimi</span>
-                <span class="delta-chip" style="background:rgba(217,119,6,0.14); color:#D97706;">+{s['kpi_deltas']['recent_3d_impressions']} (3G)</span>
+                <span class="delta-chip" id="kpiDelta1" style="background:rgba(217,119,6,0.14); color:#D97706;">+{s['kpi_deltas']['recent_3d_impressions']} (3G) • %100 Baz</span>
               </div>
               <div class="kpi-hero-row">
                 <div class="big-num" style="color: #D97706;" id="kpiImpressions">{f_imp:,}</div>
@@ -4961,7 +4979,8 @@ async def analytics_dashboard_page(
               </div>
             </div>
             <div class="card-desc" id="kpiDesc1">
-              {ps_all.get('impressions_sub', '')} • <strong>{kpis['impressions_unique']:,}</strong> tekil cihaz
+              <strong>{html.escape(str(ps_all.get('label', '')))}:</strong> {ps_all.get('impressions_sub', '')} • <strong>{kpis['impressions_unique']:,}</strong> tekil cihaz<br>
+              <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(217,119,6,0.10); color:#D97706; font-weight:700; font-size:11.5px;">🎯 Huni Başlangıcı: %100.0 Baz</span>
             </div>
           </div>
 
@@ -4969,10 +4988,10 @@ async def analytics_dashboard_page(
             <div>
               <div class="card-label">
                 <span id="kpiTitle2">2. İnceleme & Sosyal Tık</span>
-                <span class="delta-chip" style="background:rgba(37,99,235,0.14); color:#2563EB;">+{s['today_unique_clicks']} Bugün</span>
+                <span class="delta-chip" id="kpiDelta2" style="background:rgba(37,99,235,0.14); color:#2563EB;">+{s['today_unique_clicks']} Bugün • Gösterim ➔ Tık %{vis_of_imp_pct}</span>
               </div>
               <div class="kpi-hero-row">
-                <div class="big-num" style="color: #2563EB;" id="kpiVisitsClicks">{f_vis}</div>
+                <div class="big-num" style="color: #2563EB;" id="kpiVisitsClicks">{f_vis:,}</div>
                 {spark_vis_svg}
               </div>
               <div class="split-bar">
@@ -4981,7 +5000,8 @@ async def analytics_dashboard_page(
               </div>
             </div>
             <div class="card-desc" id="kpiDesc2">
-              {ps_all.get('touchpoints_sub', '')}
+              <strong>{html.escape(str(ps_all.get('label', '')))}:</strong> {ps_all.get('touchpoints_sub', '')}<br>
+              <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(37,99,235,0.10); color:#2563EB; font-weight:700; font-size:11.5px;">🎯 Gösterim ➔ İnceleme Dönüşümü: %{vis_of_imp_pct}</span>
             </div>
           </div>
 
@@ -4989,7 +5009,7 @@ async def analytics_dashboard_page(
             <div>
               <div class="card-label">
                 <span id="kpiTitle3">3. Toplam İndirme</span>
-                <span class="delta-chip" id="kpiDelta3">+{s['kpi_deltas']['recent_3d_downloads']} (3G) • CVR %{dl_of_vis_pct}</span>
+                <span class="delta-chip" id="kpiDelta3">+{s['kpi_deltas']['recent_3d_downloads']} (3G) • Tık ➔ İndirme %{dl_of_vis_pct}</span>
               </div>
               <div class="kpi-hero-row">
                 <div class="big-num" style="color: #059669;" id="kpiDownloads">{f_dl}</div>
@@ -5001,7 +5021,8 @@ async def analytics_dashboard_page(
               </div>
             </div>
             <div class="card-desc" id="kpiDesc3">
-              <strong>🍏 {kpis['ios_downloads']}</strong> iOS (App Store API %{dl_ios_pct}) • <strong>🤖 {kpis['android_downloads']}</strong> Android (Google Play %{100 - dl_ios_pct})
+              <strong>{html.escape(str(ps_all.get('label', '')))}:</strong> {ps_all.get('downloads_sub', '')}<br>
+              <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(5,150,105,0.10); color:#059669; font-weight:700; font-size:11.5px;">🎯 Tık ➔ İndirme: %{dl_of_vis_pct} • Gösterim ➔ İndirme: %{dl_of_imp_pct}</span>
             </div>
           </div>
 
@@ -5009,7 +5030,7 @@ async def analytics_dashboard_page(
             <div>
               <div class="card-label">
                 <span id="kpiTitle4">4. VIP & Beklenen Net MRR</span>
-                <span class="delta-chip" id="kpiDelta4" style="background:rgba(124,58,237,0.14); color:#7C3AED;">{fl['projected_total_mrr_net_try']:.2f} ₺/Ay Net</span>
+                <span class="delta-chip" id="kpiDelta4" style="background:rgba(124,58,237,0.14); color:#7C3AED;">İndirme ➔ VIP %{vip_of_dl_pct} • Gösterim ➔ VIP %{vip_of_imp_pct}</span>
               </div>
               <div class="kpi-hero-row">
                 <div class="big-num" style="color: #7C3AED;" id="kpiVip">{f_vip} Aktif VIP</div>
@@ -5022,7 +5043,8 @@ async def analytics_dashboard_page(
               </div>
             </div>
             <div class="card-desc" id="kpiDesc4">
-              {ps_all.get('vip_sub', '')}
+              <strong>{html.escape(str(ps_all.get('label', '')))}:</strong> {ps_all.get('vip_sub', '')} • <strong>{fl['projected_total_mrr_net_try']:.2f} ₺/Ay Net MRR</strong><br>
+              <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(124,58,237,0.12); color:#7C3AED; font-weight:700; font-size:11.5px;">🎯 İndirme ➔ VIP: %{vip_of_dl_pct} • Tık ➔ VIP: %{vip_of_vis_pct} • Gösterim ➔ VIP: %{vip_of_imp_pct}</span>
             </div>
           </div>
         </div>
@@ -5583,10 +5605,25 @@ async def analytics_dashboard_page(
           var d2 = document.getElementById('kpiDesc2');
           var d3 = document.getElementById('kpiDesc3');
           var d4 = document.getElementById('kpiDesc4');
-          if (d1) d1.innerHTML = '<strong>' + p.label + ':</strong> ' + p.impressions_sub;
-          if (d2) d2.innerHTML = '<strong>' + p.label + ':</strong> ' + p.touchpoints_sub;
-          if (d3) d3.innerHTML = '<strong>' + p.label + ':</strong> ' + p.downloads_sub + ' • <strong>%' + p.cvr_pct + ' CVR</strong>';
-          if (d4) d4.innerHTML = '<strong>' + p.label + ':</strong> ' + p.vip_sub + ' • <strong>' + Number(p.mrr_net_try || 0).toFixed(2) + ' ₺/Ay Net MRR</strong> • ★ 5.0 (' + p.reviews_count + ' Yorum)';
+          var dl1 = document.getElementById('kpiDelta1');
+          var dl2 = document.getElementById('kpiDelta2');
+          var dl3 = document.getElementById('kpiDelta3');
+          var dl4 = document.getElementById('kpiDelta4');
+          var visOfImp = (p.vis_of_imp_pct !== undefined) ? p.vis_of_imp_pct : 0;
+          var dlOfVis = (p.cvr_pct !== undefined) ? p.cvr_pct : 0;
+          var dlOfImp = (p.dl_of_imp_pct !== undefined) ? p.dl_of_imp_pct : 0;
+          var vipOfDl = (p.vip_of_dl_pct !== undefined) ? p.vip_of_dl_pct : 0;
+          var vipOfVis = (p.vip_of_vis_pct !== undefined) ? p.vip_of_vis_pct : 0;
+          var vipOfImp = (p.vip_of_imp_pct !== undefined) ? p.vip_of_imp_pct : 0;
+
+          if (dl2) dl2.textContent = 'Gösterim ➔ Tık %' + visOfImp;
+          if (dl3) dl3.textContent = 'Tık ➔ İndirme %' + dlOfVis + ' • Gösterim ➔ İndirme %' + dlOfImp;
+          if (dl4) dl4.textContent = 'İndirme ➔ VIP %' + vipOfDl + ' • Gösterim ➔ VIP %' + vipOfImp;
+
+          if (d1) d1.innerHTML = '<strong>' + p.label + ':</strong> ' + p.impressions_sub + '<br><span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(217,119,6,0.10); color:#D97706; font-weight:700; font-size:11.5px;">🎯 Huni Başlangıcı: %100.0 Baz</span>';
+          if (d2) d2.innerHTML = '<strong>' + p.label + ':</strong> ' + p.touchpoints_sub + '<br><span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(37,99,235,0.10); color:#2563EB; font-weight:700; font-size:11.5px;">🎯 Gösterim ➔ İnceleme Dönüşümü: %' + visOfImp + '</span>';
+          if (d3) d3.innerHTML = '<strong>' + p.label + ':</strong> ' + p.downloads_sub + '<br><span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(5,150,105,0.10); color:#059669; font-weight:700; font-size:11.5px;">🎯 Tık ➔ İndirme: %' + dlOfVis + ' • Gösterim ➔ İndirme: %' + dlOfImp + '</span>';
+          if (d4) d4.innerHTML = '<strong>' + p.label + ':</strong> ' + p.vip_sub + ' • <strong>' + Number(p.mrr_net_try || 0).toFixed(2) + ' ₺/Ay Net MRR</strong> • ★ 5.0 (' + p.reviews_count + ' Yorum)<br><span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(124,58,237,0.12); color:#7C3AED; font-weight:700; font-size:11.5px;">🎯 İndirme ➔ VIP: %' + vipOfDl + ' • Tık ➔ VIP: %' + vipOfVis + ' • Gösterim ➔ VIP: %' + vipOfImp + '</span>';
 
           var f1v = document.getElementById('funStep1Val');
           var f1s = document.getElementById('funStep1Sub');

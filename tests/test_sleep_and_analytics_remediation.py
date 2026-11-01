@@ -619,8 +619,18 @@ def test_apple_connect_12_active_16_records_reconciliation_and_google_play_bridg
 
     summary_after_and = _build_analytics_summary(db_session, period="all")
     ps_and = summary_after_and["platform_split"]["android"]
+    ps_all = summary_after_and["platform_split"]["all"]
     assert ps_and["vip_count"] == 2
     assert ps_and["mrr_net_try"] > 0
+    assert "vis_of_imp_pct" in ps_all
+    assert "dl_of_imp_pct" in ps_all
+    assert "vip_of_dl_pct" in ps_all
+    assert "vip_of_vis_pct" in ps_all
+    assert "vip_of_imp_pct" in ps_all
+
+    dash_html = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"}).text
+    assert "Gösterim ➔ VIP:" in dash_html
+    assert "İndirme ➔ VIP:" in dash_html
 
 
 
