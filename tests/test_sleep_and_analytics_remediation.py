@@ -400,6 +400,230 @@ def test_obsidian_cockpit_v2_trial_mrr_healing_and_3row_grid(client, db_session)
     assert "switchPlatform" in dash_res.text
 
 
+def test_apple_connect_12_active_16_records_reconciliation_and_google_play_bridge(client, db_session):
+    """Apple Connect (12 Aktif VIP = 1 Ücretli + 6 Deneme + 5 DamlaEge2026 Kodlu, 4 İptal, Toplam 16 Kayıt) ve Google Play köprüsü doğrulaması."""
+    from app.db.models import SubscriberLedger, SubscriptionLifecycleEvent
+    from app.api.v1.endpoints.analytics import _build_analytics_summary
+    from app.services.subscription import SubscriptionService
+
+    SubscriberLedger.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    SubscriptionLifecycleEvent.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+
+    # 1) 1 Ücretli Aktif (#813562)
+    db_session.add(
+        SubscriberLedger(
+            subscriber_id="520002815813562",
+            platform="ios",
+            product_id="misil_monthly",
+            plan_label="Aylık Esnek",
+            status="paid_active",
+            offer_type="standard_paid",
+            started_date="2026-10-20",
+            converted_or_renewed_date="2026-10-27",
+            maturity_or_renewal_date="2026-11-27",
+            customer_price_try=149.99,
+            developer_proceeds_try=83.12,
+            expected_next_price_try=149.99,
+            expected_next_proceeds_try=83.12,
+            country="TR",
+            device_type="iPhone",
+            auto_renew_enabled=True,
+        )
+    )
+
+    # 2) 5 DamlaEge2026 Kampanya Kodu (1 Yıl)
+    for idx in range(1, 6):
+        db_session.add(
+            SubscriberLedger(
+                subscriber_id=f"52000999000000{idx}",
+                platform="ios",
+                product_id="misil_annual",
+                plan_label="Mışıl Yıllık VIP",
+                status="offer_code_trial",
+                offer_type="offer_code",
+                offer_code_name="DamlaEge2026",
+                started_date="2026-10-20",
+                converted_or_renewed_date="2026-10-20",
+                maturity_or_renewal_date="2027-10-20",
+                customer_price_try=0.0,
+                developer_proceeds_try=0.0,
+                expected_next_price_try=599.99,
+                expected_next_proceeds_try=332.50,
+                country="TR",
+                device_type="iPhone",
+                auto_renew_enabled=True,
+            )
+        )
+
+    # 3) 4 İptal Edilen Aylık Deneme (22-23 Ekim kohortu: 1 FR + 2 TR 10-22, 1 TR 10-23)
+    cancelled_seeds = [
+        ("520002749476306", "2026-10-22", "2026-10-29", "FR"),
+        ("540001269107716", "2026-10-22", "2026-10-29", "TR"),
+        ("560002227449600", "2026-10-22", "2026-10-29", "TR"),
+        ("570001850954257", "2026-10-23", "2026-10-30", "TR"),
+    ]
+    for sub_id, st_d, mat_d, ctry in cancelled_seeds:
+        db_session.add(
+            SubscriberLedger(
+                subscriber_id=sub_id,
+                platform="ios",
+                product_id="misil_monthly",
+                plan_label="Aylık Esnek",
+                status="intro_free_trial",
+                offer_type="intro_7d_trial",
+                started_date=st_d,
+                converted_or_renewed_date=st_d,
+                maturity_or_renewal_date=mat_d,
+                customer_price_try=0.0,
+                developer_proceeds_try=0.0,
+                expected_next_price_try=149.99,
+                expected_next_proceeds_try=83.12,
+                country=ctry,
+                device_type="iPhone",
+                auto_renew_enabled=True,
+            )
+        )
+
+    # 4) 3 Aktif Aylık 7G Deneme (28-30 Ekim)
+    for idx, st_d, mat_d in [
+        ("500001925784599", "2026-10-28", "2026-11-04"),
+        ("530002725216337", "2026-10-30", "2026-11-06"),
+        ("540001265067047", "2026-10-30", "2026-11-06"),
+    ]:
+        db_session.add(
+            SubscriberLedger(
+                subscriber_id=idx,
+                platform="ios",
+                product_id="misil_monthly",
+                plan_label="Aylık Esnek",
+                status="intro_free_trial",
+                offer_type="intro_7d_trial",
+                started_date=st_d,
+                converted_or_renewed_date=st_d,
+                maturity_or_renewal_date=mat_d,
+                customer_price_try=0.0,
+                developer_proceeds_try=0.0,
+                expected_next_price_try=149.99,
+                expected_next_proceeds_try=83.12,
+                country="TR",
+                device_type="iPhone",
+                auto_renew_enabled=True,
+            )
+        )
+
+    # 5) 3 Yıllık Default_Intro 7G Deneme (eski hatalı offer_code_trial ve 799.99 TL kaydıyla -> otomatik onarılmalı)
+    for idx, st_d in [
+        ("500001920786416", "2026-10-28"),
+        ("500001917243135", "2026-10-30"),
+        ("540001283217720", "2026-10-30"),
+    ]:
+        db_session.add(
+            SubscriberLedger(
+                subscriber_id=idx,
+                platform="ios",
+                product_id="misil_annual",
+                plan_label="Mışıl Yıllık VIP",
+                status="offer_code_trial",
+                offer_type="offer_code",
+                offer_code_name="7 Günlük Deneme",
+                started_date=st_d,
+                converted_or_renewed_date=st_d,
+                maturity_or_renewal_date="2027-10-30",
+                customer_price_try=0.0,
+                developer_proceeds_try=0.0,
+                expected_next_price_try=799.99,
+                expected_next_proceeds_try=443.33,
+                country="TR",
+                device_type="iPhone",
+                auto_renew_enabled=True,
+            )
+        )
+
+    # 6) Apple SUBSCRIPTION_EVENT Cancel kayıtları (4 iptal)
+    cancel_evts = [
+        ("2026-10-28", "FR", "6"),
+        ("2026-10-28", "TR", "6"),
+        ("2026-10-29", "TR", "7"),
+        ("2026-10-30", "TR", "7"),
+    ]
+    for e_date, ctry, dbc in cancel_evts:
+        db_session.add(
+            SubscriptionLifecycleEvent(
+                event_date=e_date,
+                event_type="Cancel",
+                product_id="misil_monthly",
+                plan_label="Aylık Esnek",
+                quantity=1,
+                country=ctry,
+                days_before_canceling=dbc,
+                platform="ios",
+            )
+        )
+    db_session.commit()
+
+    summary = _build_analytics_summary(db_session, period="all")
+    fl = summary["financial_ledger"]
+
+    # 16 toplam kayıt -> 12 Aktif VIP (1 Ücretli + 5 Kodlu + 6 Deneme) ve 4 İptal
+    assert summary["product_funnel"]["subscriptions_count"] == 12
+    assert fl["active_vip_subs_count"] == 12
+    assert fl["total_vip_records_count"] == 16
+    assert fl["cancelled_subs_count"] == 4
+    assert fl["paid_subs_count"] == 1
+    assert fl["offer_code_subs_count"] == 5
+    assert fl["pipeline_7d_trials_count"] == 6
+    # 3 × 149.99 + 3 × 599.99 = 2249.94 Brüt / 3 × 83.12 + 3 × 332.50 = 1246.86 Net
+    assert fl["pipeline_7d_mrr_gross_try"] == 2249.94
+    assert fl["pipeline_7d_mrr_net_try"] == 1246.86
+
+    # Google Play /api/v1/analytics/subscriber-sync ve RevenueCat webhook testi
+    sync_res = client.post(
+        "/api/v1/analytics/subscriber-sync",
+        json={
+            "subscriber_id": "GPA.3381-9911-2233-44556",
+            "device_uid": "msl_android_test01",
+            "platform": "android",
+            "product_id": "misilaylik",
+            "plan": "monthly",
+            "status": "intro_free_trial",
+            "started_date": "2026-10-31",
+            "maturity_or_renewal_date": "2026-11-07",
+            "country": "TR",
+            "device_type": "Android",
+        },
+    )
+    assert sync_res.status_code == 200
+    assert sync_res.json()["ok"] is True
+
+    # RevenueCat PLAY_STORE anonim kullanıcı webhook testi (user DB'de olmasa bile SubscriberLedger'a yazmalı)
+    from app.core.config import settings
+    rc_res = SubscriptionService.process_revenuecat_webhook(
+        db_session,
+        payload={
+            "event": {
+                "type": "INITIAL_PURCHASE",
+                "app_user_id": "$RCAnonymousID:8899aabbccdd",
+                "original_transaction_id": "GPA.3399-8877-6655-00112",
+                "product_id": "misil",
+                "store": "PLAY_STORE",
+                "period_type": "NORMAL",
+                "price_in_purchased_currency": 599.99,
+                "takehome_percentage": 0.727,
+                "country_code": "TR",
+                "currency": "TRY",
+            }
+        },
+        auth_header=settings.REVENUECAT_WEBHOOK_SECRET,
+    )
+    assert rc_res["ledger_synced"] is True
+
+    summary_after_and = _build_analytics_summary(db_session, period="all")
+    ps_and = summary_after_and["platform_split"]["android"]
+    assert ps_and["vip_count"] == 2
+    assert ps_and["mrr_net_try"] > 0
+
+
+
 
 
 

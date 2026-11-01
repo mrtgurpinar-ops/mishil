@@ -185,6 +185,20 @@ export default function MishilUnifiedWebView() {
       const customerInfo = await Purchases.getCustomerInfo();
       const active = hasActiveEntitlement(customerInfo);
       const detectedPlan = active ? getPlanFromCustomerInfo(customerInfo) : null;
+      const activeEnts = customerInfo?.entitlements?.active || {};
+      const firstEntKey = Object.keys(activeEnts)[0];
+      const firstEnt = firstEntKey ? activeEnts[firstEntKey] : null;
+      const subMetaJson = active && firstEnt ? JSON.stringify({
+        subscriberId: customerInfo?.originalAppUserId || undefined,
+        productId: firstEnt?.productIdentifier || undefined,
+        plan: detectedPlan || undefined,
+        periodType: firstEnt?.periodType || 'TRIAL',
+        store: firstEnt?.store || (Platform.OS === 'android' ? 'PLAY_STORE' : 'APP_STORE'),
+        platform: Platform.OS === 'android' ? 'android' : 'ios',
+        willRenew: firstEnt?.willRenew !== false,
+        originalPurchaseDate: firstEnt?.originalPurchaseDate || undefined,
+        expirationDate: firstEnt?.expirationDate || undefined,
+      }) : 'null';
       const planLine = detectedPlan
         ? `localStorage.setItem('mishil_subscription_plan', '${detectedPlan}');`
         : '';
@@ -193,6 +207,10 @@ export default function MishilUnifiedWebView() {
           try {
             localStorage.setItem('mishil_subscription_active', '${active ? 'true' : 'false'}');
             ${planLine}
+            window.__MISHIL_SUB_META__ = ${subMetaJson};
+            if (${active ? 'true' : 'false'} && typeof window.syncSubscriberToAnalytics === 'function') {
+              window.syncSubscriberToAnalytics(window.__MISHIL_SUB_META__);
+            }
             if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
             ${active ? '' : `
             // Hak yok → Pro özelliği kilitle: açık Mışıl Dadı sekmesinden çık.
@@ -592,14 +610,24 @@ export default function MishilUnifiedWebView() {
             if (result.success && result.isActive) {
               // Yalnızca GERÇEKTEN aktif hak varsa VIP'yi aç
               grantProInWebView(plan, '🎉 Mışıl VIP aktif edildi!');
+              const purchaseMeta = JSON.stringify({
+                plan,
+                productId: pkg?.identifier || (Platform.OS === 'android' ? (plan === 'yearly' ? 'misil' : 'misilaylik') : (plan === 'yearly' ? 'misil_annual' : 'misil_monthly')),
+                platform: Platform.OS === 'android' ? 'android' : 'ios',
+                store: Platform.OS === 'android' ? 'PLAY_STORE' : 'APP_STORE',
+                periodType: 'TRIAL',
+                isActive: true,
+              });
               webviewRef.current?.injectJavaScript(`
                 (function() {
+                  window.__MISHIL_SUB_META__ = ${purchaseMeta};
                   if (window.MishilNative && typeof window.MishilNative.onPurchaseSuccess === 'function') {
-                    window.MishilNative.onPurchaseSuccess({ plan: '${plan}' });
+                    window.MishilNative.onPurchaseSuccess(${purchaseMeta});
                   }
                   true;
                 })();
               `);
+              void syncEntitlementToWebView();
             } else if (result.cancelled) {
               // Kullanıcı ödeme penceresini kapattı veya vazgeçti — sıfır sahte hata, butonu sessizce normale döndür
               webviewRef.current?.injectJavaScript(`

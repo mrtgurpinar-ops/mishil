@@ -113,32 +113,54 @@ FX_RATES_TO_TRY: Dict[str, float] = {
     "TRY": 1.0,
     "EUR": float(os.environ.get("MISIL_FX_EUR_TRY", "37.50")),
     "USD": float(os.environ.get("MISIL_FX_USD_TRY", "34.50")),
+    "GBP": float(os.environ.get("MISIL_FX_GBP_TRY", "43.50")),
+    "AUD": float(os.environ.get("MISIL_FX_AUD_TRY", "22.50")),
+    "CAD": float(os.environ.get("MISIL_FX_CAD_TRY", "25.00")),
+    "CHF": float(os.environ.get("MISIL_FX_CHF_TRY", "39.50")),
 }
 
 # Doğrulanmış App Store / Google Play katalog tarife referansı (Brüt TRY, Net Hakediş TRY)
 DEFAULT_PLAN_PRICING_TRY: Dict[str, tuple] = {
     "misil_monthly": (149.99, 83.12),
-    "misil_annual": (799.99, 443.33),
+    "misil_annual": (599.99, 332.50),
+    "misilaylik": (149.99, 109.04),
+    "misil": (599.99, 436.19),
 }
+
+
+def _is_annual_product(product_id: Optional[str]) -> bool:
+    """Hem iOS (misil_annual / 6809228257) hem Android (misil / misil:misil) yıllık paketlerini tanır."""
+    pid = (product_id or "").strip().lower()
+    if not pid:
+        return False
+    if pid == "misil" or pid.startswith("misil:"):
+        return True
+    return any(tok in pid for tok in ("annual", "yillik", "yearly", "6809228257"))
 
 
 def _resolve_expected_trial_pricing(
     product_id: Optional[str],
     paid_ref_gross: float = 0.0,
     paid_ref_net: float = 0.0,
+    platform: Optional[str] = "ios",
 ) -> tuple:
     """
     Deneme (intro_free_trial) abonelerinin vade sonunda beklenen brüt/net TRY tutarını
     önce veritabanındaki gerçek ücretli işlem referansından, henüz yoksa resmi katalog
-    tarifesinden çözer (0.00 TL pipeline hatasını önler).
+    tarifesinden çözer (0.00 TL pipeline ve eski 799.99 TL katalog sapmasını önler).
     """
-    if paid_ref_gross > 0:
-        net_val = paid_ref_net if paid_ref_net > 0 else round(paid_ref_gross * 0.55417, 2)
+    plat = (platform or "ios").strip().lower()
+    net_ratio = 0.727 if plat == "android" else 0.55417
+    is_ann = _is_annual_product(product_id)
+    if paid_ref_gross > 0 and not (is_ann and round(float(paid_ref_gross), 2) == 799.99):
+        net_val = paid_ref_net if paid_ref_net > 0 else round(paid_ref_gross * net_ratio, 2)
         return (round(float(paid_ref_gross), 2), round(float(net_val), 2))
-    pid = (product_id or "misil_monthly").strip().lower()
-    if "annual" in pid or "yillik" in pid:
-        return DEFAULT_PLAN_PRICING_TRY["misil_annual"]
-    return DEFAULT_PLAN_PRICING_TRY["misil_monthly"]
+    pid = (product_id or "").strip().lower()
+    if pid in DEFAULT_PLAN_PRICING_TRY:
+        return DEFAULT_PLAN_PRICING_TRY[pid]
+    if plat == "android":
+        return DEFAULT_PLAN_PRICING_TRY["misil" if is_ann else "misilaylik"]
+    return DEFAULT_PLAN_PRICING_TRY["misil_annual" if is_ann else "misil_monthly"]
 
 # Bellek içi çalışma zamanı önbelleği için kısa süreli kilit (Ağ G/Ç işlemleri bu kilit dışında yapılır)
 _BASELINE_LOCK = threading.RLock()
@@ -377,6 +399,150 @@ def _convert_to_try(amount: float, currency_code: Optional[str]) -> float:
     return round(float(amount or 0.0) * rate, 2)
 
 
+def _reconcile_ios_ledger_and_cancellations(
+    db: Session,
+    cancel_cohorts: Optional[Counter] = None,
+    active_trials_target: Optional[int] = None,
+) -> bool:
+    """
+    Apple App Store Connect mutabakat motoru:
+    1) Yıllık 7 günlük deneme (Default_Intro / 7 Days) olduğu halde eski mantıkla 'offer_code_trial'
+       veya 799.99 TL yazılmış kayıtları 'intro_free_trial' (+7 gün vade, 599.99 TL / 332.50 TL) olarak onarır.
+    2) SUBSCRIPTION_EVENT (Event='Cancel') raporundaki iptalleri (product_id, original_start_date, country)
+       kohort eşleşmesiyle SubscriberLedger üzerinde status='cancelled' ve auto_renew_enabled=False yapar.
+    3) Apple SUBSCRIPTION (1_3) raporundaki aktif deneme sayısı (active_trials_target) ile DB arasındaki
+       vadesi geçmiş deneme farkını kapatır.
+    """
+    changed = False
+    ios_rows: List[SubscriberLedger] = (
+        db.query(SubscriberLedger)
+        .filter(SubscriberLedger.platform == "ios")
+        .order_by(SubscriberLedger.started_date.asc(), SubscriberLedger.subscriber_id.asc())
+        .all()
+    )
+    if not ios_rows:
+        return False
+
+    # 1) Yıllık 7G deneme (Default_Intro) sınıflandırma ve 599.99 TL tarife onarımı
+    for r in ios_rows:
+        is_ann = _is_annual_product(r.product_id)
+        of_name_low = (r.offer_code_name or "").strip().lower()
+        is_default_intro = (
+            not of_name_low
+            or "default_intro" in of_name_low
+            or "7 günlük deneme" in of_name_low
+        )
+        if is_ann and r.status == "offer_code_trial" and is_default_intro and (r.customer_price_try or 0.0) <= 0:
+            r.status = "intro_free_trial"
+            r.offer_type = "intro_7d_trial"
+            if not of_name_low or "default_intro" in of_name_low:
+                r.offer_code_name = "7 Günlük Deneme"
+            try:
+                if r.started_date and len(r.started_date) == 10:
+                    dt_st = datetime.strptime(r.started_date, "%Y-%m-%d")
+                    r.maturity_or_renewal_date = (dt_st + timedelta(days=7)).strftime("%Y-%m-%d")
+            except Exception:
+                pass
+            std_g, std_n = _resolve_expected_trial_pricing(r.product_id, 0.0, 0.0, "ios")
+            r.expected_next_price_try = std_g
+            r.expected_next_proceeds_try = std_n
+            changed = True
+        elif is_ann and r.status == "intro_free_trial" and round(float(r.expected_next_price_try or 0.0), 2) == 799.99:
+            std_g, std_n = _resolve_expected_trial_pricing(r.product_id, 0.0, 0.0, "ios")
+            r.expected_next_price_try = std_g
+            r.expected_next_proceeds_try = std_n
+            changed = True
+
+    # 2) SUBSCRIPTION_EVENT (Event='Cancel') kohort eşleşmesi
+    merged_cancels: Counter = Counter()
+    if cancel_cohorts:
+        merged_cancels.update(cancel_cohorts)
+
+    ev_rows: List[SubscriptionLifecycleEvent] = (
+        db.query(SubscriptionLifecycleEvent)
+        .filter(SubscriptionLifecycleEvent.platform == "ios")
+        .all()
+    )
+    db_cancels: Counter = Counter()
+    for ev in ev_rows:
+        et = (ev.event_type or "").strip()
+        if et.startswith("EVENT:Cancel:"):
+            parts = et.split(":")
+            orig_st = parts[2] if len(parts) > 2 else ""
+            cntry = (ev.country or (parts[3] if len(parts) > 3 else "TR")).strip().upper()
+            if orig_st and len(orig_st) == 10:
+                db_cancels[(ev.product_id or "misil_monthly", orig_st, cntry)] += max(1, int(ev.quantity or 1))
+        elif et.lower() == "cancel":
+            orig_st = ""
+            try:
+                days_b = int(float(str(ev.days_before_canceling or "0").strip() or 0))
+                if ev.event_date and len(ev.event_date) == 10 and days_b > 0:
+                    dt_ev = datetime.strptime(ev.event_date, "%Y-%m-%d")
+                    orig_st = (dt_ev - timedelta(days=days_b)).strftime("%Y-%m-%d")
+            except Exception:
+                orig_st = ""
+            cntry = (ev.country or "TR").strip().upper()
+            if orig_st:
+                db_cancels[(ev.product_id or "misil_monthly", orig_st, cntry)] += max(1, int(ev.quantity or 1))
+
+    for k_coh, cnt_val in db_cancels.items():
+        if cnt_val > merged_cancels[k_coh]:
+            merged_cancels[k_coh] = cnt_val
+
+    for (pid_c, st_date_c, cntry_c), req_cancel_cnt in merged_cancels.items():
+        if req_cancel_cnt <= 0:
+            continue
+        cohort_subs = [
+            r for r in ios_rows
+            if (r.product_id or "misil_monthly") == pid_c
+            and (r.started_date or "") == st_date_c
+            and (r.country or "TR").upper() == cntry_c
+            and r.status != "paid_active"
+        ]
+        for r in cohort_subs:
+            if not r.auto_renew_enabled and r.status != "cancelled":
+                r.status = "cancelled"
+                r.expected_next_price_try = 0.0
+                r.expected_next_proceeds_try = 0.0
+                changed = True
+        already_cancelled = sum(1 for r in cohort_subs if r.status == "cancelled")
+        need_to_cancel = max(0, req_cancel_cnt - already_cancelled)
+        if need_to_cancel > 0:
+            for r in cohort_subs:
+                if need_to_cancel <= 0:
+                    break
+                if r.status != "cancelled" and r.auto_renew_enabled:
+                    r.status = "cancelled"
+                    r.auto_renew_enabled = False
+                    r.expected_next_price_try = 0.0
+                    r.expected_next_proceeds_try = 0.0
+                    need_to_cancel -= 1
+                    changed = True
+
+    # 3) Apple SUBSCRIPTION (1_3) aktif deneme sayısı hedefiyle mutabakat
+    if active_trials_target is not None and active_trials_target > 0:
+        tz_tr = timezone(timedelta(hours=3))
+        today_str = datetime.now(tz_tr).strftime("%Y-%m-%d")
+        active_trials = [
+            r for r in ios_rows
+            if r.status == "intro_free_trial" and r.auto_renew_enabled
+        ]
+        excess = len(active_trials) - int(active_trials_target)
+        if excess > 0:
+            past_due_trials = [
+                r for r in active_trials
+                if r.maturity_or_renewal_date and len(r.maturity_or_renewal_date) == 10 and r.maturity_or_renewal_date <= today_str
+            ]
+            for r in past_due_trials[:excess]:
+                r.status = "cancelled"
+                r.auto_renew_enabled = False
+                r.expected_next_price_try = 0.0
+                r.expected_next_proceeds_try = 0.0
+                changed = True
+
+    return changed
+
+
 def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
     """
     P0-1 & Sıfır Statik Veri Çözümü:
@@ -421,6 +587,7 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
     fetched_gp_reviews: List[Dict[str, Any]] = []
     country_totals: Counter = Counter()
     latest_sub_state: Dict[str, int] = {}
+    cancel_cohorts_synced: Counter = Counter()
     apple_connected = False
     google_connected = False
 
@@ -546,7 +713,7 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                 except Exception as e:
                     logger.debug("Apple Sales Report info (%s): %s", rep_date, e)
 
-                # 2) SUBSCRIPTION Durum Özeti -> Aktif abone sayıları
+                # 2) SUBSCRIPTION Durum Özeti -> Aktif abone sayıları (tüm aktif sütunlar dahil)
                 sub_state_url = (
                     "https://api.appstoreconnect.apple.com/v1/salesReports"
                     f"?filter[frequency]=DAILY&filter[reportDate]={rep_date}"
@@ -569,8 +736,17 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                 trial_cnt = 0
                                 for ln in st_lines[1:]:
                                     sd = dict(zip(st_hdr, ln.split("\t")))
-                                    paid_cnt += int(float(sd.get("Active Standard Price Subscriptions", "0") or 0))
-                                    code_cnt += int(float(sd.get("Free Trial Offer Code Subscriptions", "0") or 0))
+                                    paid_cnt += (
+                                        int(float(sd.get("Active Standard Price Subscriptions", "0") or 0))
+                                        + int(float(sd.get("Active Pay Up Front Introductory Offer Subscriptions", "0") or 0))
+                                        + int(float(sd.get("Active Pay As You Go Introductory Offer Subscriptions", "0") or 0))
+                                    )
+                                    code_cnt += (
+                                        int(float(sd.get("Free Trial Offer Code Subscriptions", "0") or 0))
+                                        + int(float(sd.get("Pay Up Front Offer Code Subscriptions", "0") or 0))
+                                        + int(float(sd.get("Pay As You Go Offer Code Subscriptions", "0") or 0))
+                                        + int(float(sd.get("Free Trial Promotional Offer Subscriptions", "0") or 0))
+                                    )
                                     trial_cnt += int(float(sd.get("Active Free Trial Introductory Offer Subscriptions", "0") or 0))
                                 if (paid_cnt + code_cnt + trial_cnt) > 0:
                                     latest_sub_state = {
@@ -611,6 +787,8 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                         ev_date = (rd.get("Event Date") or rep_date).strip()
                                         sub_name = (rd.get("Subscription Name") or "Aylik Esnek").strip()
                                         offer_name = (rd.get("Subscription Offer Name") or "").strip()
+                                        offer_type_raw = (rd.get("Subscription Offer Type") or "").strip()
+                                        offer_dur_raw = (rd.get("Subscription Offer Duration") or "").strip()
                                         raw_c_price = float(rd.get("Customer Price") or 0.0)
                                         raw_d_proc = float(rd.get("Developer Proceeds") or 0.0)
                                         c_ccy = (rd.get("Customer Currency") or "TRY").strip().upper()
@@ -634,7 +812,24 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                         ref_gross = float(paid_ref.customer_price_try) if paid_ref else 0.0
                                         ref_net = float(paid_ref.developer_proceeds_try) if paid_ref else 0.0
                                         std_price_try, std_proc_try = _resolve_expected_trial_pricing(
-                                            prod_id, ref_gross, ref_net
+                                            prod_id, ref_gross, ref_net, "ios"
+                                        )
+
+                                        is_intro_offer = (
+                                            "default_intro" in offer_name.lower()
+                                            or "introductory" in offer_type_raw.lower()
+                                            or "7 days" in offer_dur_raw.lower()
+                                            or "1 week" in offer_dur_raw.lower()
+                                        )
+                                        is_offer_code = bool(
+                                            c_price_try <= 0
+                                            and not is_intro_offer
+                                            and (
+                                                (offer_name and "default_intro" not in offer_name.lower())
+                                                or "offer code" in offer_type_raw.lower()
+                                                or "promotional" in offer_type_raw.lower()
+                                                or "1 year" in offer_dur_raw.lower()
+                                            )
                                         )
 
                                         ev_type_key = "refund" if refund_flag else ("paid_conversion" if c_price_try > 0 else "trial_or_code_start")
@@ -683,16 +878,29 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                                     existing_sub.maturity_or_renewal_date = (dt_conv + timedelta(days=365 if is_annual else 30)).strftime("%Y-%m-%d")
                                                 except Exception:
                                                     pass
+                                            elif existing_sub.status == "offer_code_trial" and not is_offer_code and c_price_try <= 0:
+                                                existing_sub.status = "intro_free_trial"
+                                                existing_sub.offer_type = "intro_7d_trial"
+                                                ccy_suffix = f" ({c_ccy})" if c_ccy != "TRY" else ""
+                                                existing_sub.offer_code_name = ("7 Günlük Deneme" + ccy_suffix)[:95]
+                                                try:
+                                                    dt_st = datetime.strptime(existing_sub.started_date or ev_date, "%Y-%m-%d")
+                                                    existing_sub.maturity_or_renewal_date = (dt_st + timedelta(days=7)).strftime("%Y-%m-%d")
+                                                except Exception:
+                                                    pass
+                                                existing_sub.expected_next_price_try = std_price_try
+                                                existing_sub.expected_next_proceeds_try = std_proc_try
                                         else:
+                                            trial_days = (365 if is_annual else 30) if is_offer_code else 7
                                             try:
                                                 dt_st = datetime.strptime(ev_date, "%Y-%m-%d")
-                                                mat_date = (dt_st + timedelta(days=365 if is_annual else 7)).strftime("%Y-%m-%d")
+                                                mat_date = (dt_st + timedelta(days=(365 if is_annual else 30) if c_price_try > 0 else trial_days)).strftime("%Y-%m-%d")
                                             except Exception:
                                                 mat_date = ev_date
-                                            st_val = "paid_active" if c_price_try > 0 else ("offer_code_trial" if is_annual or (offer_name and "Default_Intro" not in offer_name) else "intro_free_trial")
-                                            of_type = "standard_paid" if c_price_try > 0 else ("offer_code" if st_val == "offer_code_trial" else "intro_7d_trial")
+                                            st_val = "paid_active" if c_price_try > 0 else ("offer_code_trial" if is_offer_code else "intro_free_trial")
+                                            of_type = "standard_paid" if c_price_try > 0 else ("offer_code" if is_offer_code else "intro_7d_trial")
                                             ccy_suffix = f" ({c_ccy})" if c_ccy != "TRY" else ""
-                                            of_lbl = (offer_name if (offer_name and "Default_Intro" not in offer_name) else ("Standart Ücretli" if c_price_try > 0 else "7 Günlük Deneme")) + ccy_suffix
+                                            of_lbl = (offer_name if is_offer_code else ("Standart Ücretli" if c_price_try > 0 else "7 Günlük Deneme")) + ccy_suffix
                                             db_sync.add(
                                                 SubscriberLedger(
                                                     subscriber_id=sid,
@@ -708,8 +916,8 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                                     auto_renew_enabled=not refund_flag,
                                                     customer_price_try=c_price_try if not refund_flag else 0.0,
                                                     developer_proceeds_try=d_proc_try if not refund_flag else 0.0,
-                                                    expected_next_price_try=c_price_try if c_price_try > 0 else std_price_try,
-                                                    expected_next_proceeds_try=d_proc_try if d_proc_try > 0 else std_proc_try,
+                                                    expected_next_price_try=c_price_try if c_price_try > 0 else (0.0 if is_offer_code else std_price_try),
+                                                    expected_next_proceeds_try=d_proc_try if d_proc_try > 0 else (0.0 if is_offer_code else std_proc_try),
                                                     country=cntry,
                                                     device_type=dev,
                                                 )
@@ -720,6 +928,95 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                     db_sync.close()
                 except Exception as e:
                     logger.debug("Apple Subscriber Ledger info (%s): %s", rep_date, e)
+
+                # 4) SUBSCRIPTION_EVENT (SUMMARY 1_3) Raporu -> İptal (Cancel) ve Yaşam Döngüsü Senkronizasyonu
+                sub_ev_url = (
+                    "https://api.appstoreconnect.apple.com/v1/salesReports"
+                    f"?filter[frequency]=DAILY&filter[reportDate]={rep_date}"
+                    f"&filter[reportSubType]=SUMMARY&filter[reportType]=SUBSCRIPTION_EVENT"
+                    f"&filter[vendorNumber]={vendor_num}&filter[version]=1_3"
+                )
+                sub_ev_req = urllib.request.Request(
+                    sub_ev_url,
+                    headers={"Authorization": f"Bearer {token}", "Accept": "application/a-gzip"},
+                )
+                try:
+                    with urllib.request.urlopen(sub_ev_req, timeout=3) as ev_resp:
+                        if ev_resp.status == 200:
+                            ev_txt = gzip.decompress(ev_resp.read()).decode("utf-8", errors="replace")
+                            ev_lines = [ln for ln in ev_txt.splitlines() if ln.strip()]
+                            if len(ev_lines) > 1:
+                                ev_hdr = ev_lines[0].split("\t")
+                                db_ev = SessionLocal()
+                                try:
+                                    for ln in ev_lines[1:]:
+                                        ed = dict(zip(ev_hdr, ln.split("\t")))
+                                        ev_name = (ed.get("Event") or "").strip()
+                                        if not ev_name:
+                                            continue
+                                        sub_name_ev = (ed.get("Subscription Name") or "Aylik Esnek").strip()
+                                        sub_apple_id_ev = (ed.get("Subscription Apple ID") or "").strip()
+                                        orig_start = (ed.get("Original Start Date") or "").strip()
+                                        cntry_ev = (ed.get("Country") or "TR").strip().upper()
+                                        dev_ev = (ed.get("Device") or "iPhone").strip()
+                                        qty_ev = max(1, int(float(ed.get("Quantity") or 1)))
+                                        days_before_c = (ed.get("Days Before Canceling") or "").strip() or None
+                                        cancel_reason = (ed.get("Cancellation Reason") or "").strip() or None
+                                        offer_name_ev = (ed.get("Subscription Offer Name") or "").strip() or None
+                                        is_ann_ev = "Yillik" in sub_name_ev or "6809228257" in sub_apple_id_ev
+                                        prod_id_ev = "misil_annual" if is_ann_ev else "misil_monthly"
+                                        plan_lbl_ev = "Yıllık VIP" if is_ann_ev else "Aylık Esnek VIP"
+
+                                        if ev_name.lower() == "cancel" and orig_start:
+                                            cancel_cohorts_synced[(prod_id_ev, orig_start, cntry_ev)] += qty_ev
+
+                                        ev_key = f"EVENT:{ev_name}:{orig_start}:{cntry_ev}:{dev_ev}"
+                                        dup_sev = (
+                                            db_ev.query(SubscriptionLifecycleEvent.id)
+                                            .filter(
+                                                SubscriptionLifecycleEvent.event_date == rep_date,
+                                                SubscriptionLifecycleEvent.event_type == ev_key,
+                                                SubscriptionLifecycleEvent.product_id == prod_id_ev,
+                                            )
+                                            .first()
+                                        )
+                                        if dup_sev is None:
+                                            db_ev.add(
+                                                SubscriptionLifecycleEvent(
+                                                    event_date=rep_date,
+                                                    platform="ios",
+                                                    event_type=ev_key[:128],
+                                                    product_id=prod_id_ev,
+                                                    plan_label=plan_lbl_ev,
+                                                    offer_code_name=offer_name_ev,
+                                                    country=cntry_ev,
+                                                    device_type=dev_ev,
+                                                    quantity=qty_ev,
+                                                    days_before_canceling=days_before_c,
+                                                    cancellation_reason=cancel_reason,
+                                                )
+                                            )
+                                    db_ev.commit()
+                                    synced_sources.append(f"Apple Subscription Events ({rep_date})")
+                                finally:
+                                    db_ev.close()
+                except Exception as e:
+                    logger.debug("Apple Subscription Event info (%s): %s", e)
+
+            # SUBSCRIBER + SUBSCRIPTION_EVENT + SUBSCRIPTION State sonrası tekil abone defterini mutabakata sok
+            try:
+                db_rec = SessionLocal()
+                try:
+                    if _reconcile_ios_ledger_and_cancellations(
+                        db_rec,
+                        cancel_cohorts=cancel_cohorts_synced,
+                        active_trials_target=latest_sub_state.get("trial") if latest_sub_state else None,
+                    ):
+                        db_rec.commit()
+                finally:
+                    db_rec.close()
+            except Exception as rec_exc:
+                logger.debug("iOS ledger reconciliation warning: %s", rec_exc)
 
             # 5) Apple Analytics Report Requests (r14 Discovery & Engagement + r8 App Sessions) -> Gerçek Gösterim, Sayfa Ziyareti ve Oturumlar
             try:
@@ -1064,6 +1361,25 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                             grace_raw = ar_type.get("gracePeriodDuration") or "P7D"
                                             grace_lbl = "14 Gün (P14D)" if "14" in grace_raw else "7 Gün (P7D)"
                                             offer_id = ar_type.get("legacyCompatibleSubscriptionOfferId") or "-"
+                                            offer_lbl = "7 Gün Ücretsiz Deneme (P7D • Aktif)" if offer_id and offer_id != "-" else "Standart"
+                                            try:
+                                                gp_off_req = urllib.request.Request(
+                                                    f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.levitas.misilbaby/subscriptions/{p_id}/basePlans/{bp_id}/offers",
+                                                    headers={"Authorization": f"Bearer {access_token}"},
+                                                )
+                                                with urllib.request.urlopen(gp_off_req, timeout=3) as gp_off_resp:
+                                                    if gp_off_resp.status == 200:
+                                                        off_payload = json.loads(gp_off_resp.read().decode("utf-8"))
+                                                        for off_item in off_payload.get("subscriptionOffers", []):
+                                                            if (off_item.get("state") or "") == "ACTIVE":
+                                                                offer_id = off_item.get("offerId") or offer_id
+                                                                phases = off_item.get("phases") or []
+                                                                if phases:
+                                                                    ph_dur = phases[0].get("duration") or "P7D"
+                                                                    offer_lbl = f"7 Gün Ücretsiz Deneme ({ph_dur} • Aktif)" if "7D" in ph_dur or "1W" in ph_dur else f"Teklif ({ph_dur} • Aktif)"
+                                                                break
+                                            except Exception:
+                                                pass
                                             tr_price = 599.99 if "Y" in dur_raw else 149.99
                                             for rc_cfg in bp.get("regionalConfigs", []):
                                                 if rc_cfg.get("regionCode") == "TR":
@@ -1082,12 +1398,12 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                                 "price_try": tr_price,
                                                 "net_proceeds_try": round(tr_price * 0.727, 2),
                                                 "free_trial_offer_id": offer_id,
-                                                "free_trial_label": "7 Gün Ücretsiz Deneme (P7D • Aktif)" if offer_id and offer_id != "-" else "Standart",
+                                                "free_trial_label": offer_lbl,
                                             })
                                     if fetched_gp_catalog:
                                         with _BASELINE_LOCK:
                                             OFFICIAL_STORE_BASELINE["google_play_subscriptions_catalog"] = fetched_gp_catalog
-                                        synced_sources.append("Google Play Developer API (Monetization Subscriptions)")
+                                        synced_sources.append("Google Play Developer API (Monetization Subscriptions & Offers)")
                         except Exception as gp_sub_exc:
                             logger.debug("Google Play subscriptions sync info: %s", gp_sub_exc)
         except Exception as e:
@@ -2137,6 +2453,19 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     # ========================================================================
     # FAZ 2: KURUMSAL GELİR, 3 KADEMELİ MRR ŞELALESİ VE ABONE DEFTERİ
     # ========================================================================
+    try:
+        active_trials_target_val = int(sb.get("apple_vip_active_trials", 0) or 0)
+        if _reconcile_ios_ledger_and_cancellations(
+            db,
+            active_trials_target=active_trials_target_val if active_trials_target_val > 0 else None,
+        ):
+            db.commit()
+    except Exception:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+
     ledger_rows_db: List[SubscriberLedger] = (
         db.query(SubscriberLedger)
         .order_by(SubscriberLedger.maturity_or_renewal_date.asc(), SubscriberLedger.started_date.asc())
@@ -2147,9 +2476,11 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     paid_ref_by_prod: Dict[str, tuple] = {}
     for r_ref in ledger_rows_db:
         if (r_ref.customer_price_try or 0.0) > 0 and r_ref.product_id:
+            ref_plat = (r_ref.platform or "ios").lower()
+            ref_ratio = 0.727 if ref_plat == "android" else 0.55417
             paid_ref_by_prod[r_ref.product_id] = (
                 float(r_ref.customer_price_try),
-                float(r_ref.developer_proceeds_try or round(float(r_ref.customer_price_try) * 0.55417, 2)),
+                float(r_ref.developer_proceeds_try or round(float(r_ref.customer_price_try) * ref_ratio, 2)),
             )
 
     subscriber_ledger_list = []
@@ -2159,6 +2490,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     active_paid_mrr_net = 0.0
     pipeline_7d_gross = 0.0
     pipeline_7d_net = 0.0
+    pipeline_7d_monthly_mrr_gross = 0.0
+    pipeline_7d_monthly_mrr_net = 0.0
     reconciling_7d_gross = 0.0
     reconciling_7d_net = 0.0
     reconciling_7d_cnt = 0
@@ -2171,19 +2504,45 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     cancelled_cnt = 0
     healed_trial_pricing = False
 
+    plat_fin: Dict[str, Dict[str, float]] = {
+        "ios": {
+            "realized_gross": 0.0, "realized_net": 0.0,
+            "paid_mrr_gross": 0.0, "paid_mrr_net": 0.0,
+            "pipeline_gross": 0.0, "pipeline_net": 0.0,
+            "paid_cnt": 0, "trial_cnt": 0, "code_cnt": 0, "cancelled_cnt": 0,
+        },
+        "android": {
+            "realized_gross": 0.0, "realized_net": 0.0,
+            "paid_mrr_gross": 0.0, "paid_mrr_net": 0.0,
+            "pipeline_gross": 0.0, "pipeline_net": 0.0,
+            "paid_cnt": 0, "trial_cnt": 0, "code_cnt": 0, "cancelled_cnt": 0,
+        },
+    }
+
     renewal_by_date: Dict[str, Dict[str, Any]] = {}
     cohort_by_start_date: Dict[str, Dict[str, Any]] = {}
 
     for r in ledger_rows_db:
-        realized_gross_try += float(r.customer_price_try or 0.0)
-        realized_net_try += float(r.developer_proceeds_try or 0.0)
-        if not r.auto_renew_enabled or r.status == "cancelled":
+        r_plat = "android" if (r.platform or "ios").lower() == "android" else "ios"
+        net_ratio = 0.727 if r_plat == "android" else 0.55417
+        pf_bucket = plat_fin[r_plat]
+
+        r_gross = float(r.customer_price_try or 0.0)
+        r_net = float(r.developer_proceeds_try or 0.0)
+        realized_gross_try += r_gross
+        realized_net_try += r_net
+        pf_bucket["realized_gross"] += r_gross
+        pf_bucket["realized_net"] += r_net
+
+        is_cancelled_row = bool(r.status == "cancelled" or (r.status != "paid_active" and not r.auto_renew_enabled))
+        if is_cancelled_row:
             cancelled_cnt += 1
+            pf_bucket["cancelled_cnt"] += 1
 
         # T1 Çözümü: Deneme abonelerinde expected_next_price_try 0.0 kalmışsa katalog/referans tarifeden tamamla
         ref_pair = paid_ref_by_prod.get(r.product_id or "misil_monthly", (0.0, 0.0))
         resolved_gross, resolved_net = _resolve_expected_trial_pricing(
-            r.product_id, ref_pair[0], ref_pair[1]
+            r.product_id, ref_pair[0], ref_pair[1], r_plat
         )
         if r.status == "intro_free_trial" and r.auto_renew_enabled:
             if (r.expected_next_price_try or 0.0) <= 0:
@@ -2191,43 +2550,62 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
                 r.expected_next_proceeds_try = resolved_net
                 healed_trial_pricing = True
             elif (r.expected_next_proceeds_try or 0.0) <= 0:
-                r.expected_next_proceeds_try = round(float(r.expected_next_price_try) * 0.55417, 2)
+                r.expected_next_proceeds_try = round(float(r.expected_next_price_try) * net_ratio, 2)
                 healed_trial_pricing = True
 
         lifecycle_stage = r.status
         lifecycle_badge = "⏳ 7 Günlük Deneme"
         trial_progress_pct = 100
 
-        if r.status == "paid_active":
+        if r.status == "cancelled":
+            lifecycle_stage = "cancelled"
+            lifecycle_badge = "✖ İptal"
+            trial_progress_pct = 0
+        elif r.status == "paid_active":
             paid_subs_cnt += 1
+            pf_bucket["paid_cnt"] += 1
             lifecycle_stage = "paid_active"
             lifecycle_badge = "💳 Ücretli Aktif"
             trial_progress_pct = 100
             if r.auto_renew_enabled:
                 rec_gross = float(r.expected_next_price_try or r.customer_price_try or resolved_gross)
                 rec_net = float(r.expected_next_proceeds_try or r.developer_proceeds_try or resolved_net)
-                if "annual" in (r.product_id or "").lower():
-                    active_paid_mrr_gross += rec_gross / 12.0
-                    active_paid_mrr_net += rec_net / 12.0
+                if _is_annual_product(r.product_id):
+                    m_g = rec_gross / 12.0
+                    m_n = rec_net / 12.0
                 else:
-                    active_paid_mrr_gross += rec_gross
-                    active_paid_mrr_net += rec_net
-        elif r.status == "offer_code_trial":
-            offer_code_cnt += 1
-            lifecycle_stage = "offer_code_trial"
-            lifecycle_badge = f"🎟️ Kodlu ({r.offer_code_name or 'VIP'})"
-            trial_progress_pct = 100
-        elif r.status == "cancelled" or not r.auto_renew_enabled:
+                    m_g = rec_gross
+                    m_n = rec_net
+                active_paid_mrr_gross += m_g
+                active_paid_mrr_net += m_n
+                pf_bucket["paid_mrr_gross"] += m_g
+                pf_bucket["paid_mrr_net"] += m_n
+        elif not r.auto_renew_enabled:
             lifecycle_stage = "cancelled"
             lifecycle_badge = "✖ İptal"
             trial_progress_pct = 0
+        elif r.status == "offer_code_trial":
+            offer_code_cnt += 1
+            pf_bucket["code_cnt"] += 1
+            lifecycle_stage = "offer_code_trial"
+            lifecycle_badge = f"🎟️ Kodlu ({r.offer_code_name or 'VIP'})"
+            trial_progress_pct = 100
         elif r.status == "intro_free_trial":
             intro_trial_cnt += 1
+            pf_bucket["trial_cnt"] += 1
             if r.auto_renew_enabled:
                 next_gross = float(r.expected_next_price_try or resolved_gross)
                 next_net = float(r.expected_next_proceeds_try or resolved_net)
                 pipeline_7d_gross += next_gross
                 pipeline_7d_net += next_net
+                pf_bucket["pipeline_gross"] += next_gross
+                pf_bucket["pipeline_net"] += next_net
+                if _is_annual_product(r.product_id):
+                    pipeline_7d_monthly_mrr_gross += next_gross / 12.0
+                    pipeline_7d_monthly_mrr_net += next_net / 12.0
+                else:
+                    pipeline_7d_monthly_mrr_gross += next_gross
+                    pipeline_7d_monthly_mrr_net += next_net
                 m_dt = r.maturity_or_renewal_date or "-"
 
                 # T4 Çözümü: Vade günü bugün veya geçmişteyse Apple 24-48s mutabakat penceresinde olarak ayır
@@ -2237,7 +2615,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
                     reconciling_7d_gross += next_gross
                     reconciling_7d_net += next_net
                     lifecycle_stage = "reconciling_trial"
-                    lifecycle_badge = "🔄 Apple Mutabakatında (7/7 Gün)"
+                    lifecycle_badge = "🔄 Apple Mutabakatında (7/7 Gün)" if r_plat == "ios" else "🔄 Google Play Mutabakatında (7/7 Gün)"
                     trial_progress_pct = 100
                 else:
                     upcoming_7d_cnt += 1
@@ -2261,7 +2639,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
                         "expected_gross_try": 0.0,
                         "expected_net_try": 0.0,
                         "is_reconciling": is_reconciling,
-                        "status_label": "🔄 Apple Tahsilat Mutabakatında" if is_reconciling else "⏳ Vadesi Gelecek Tahsilat",
+                        "status_label": "🔄 Tahsilat Mutabakatında" if is_reconciling else "⏳ Vadesi Gelecek Tahsilat",
                         "subscribers": [],
                     }
                 renewal_by_date[m_dt]["count"] += 1
@@ -2294,7 +2672,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             cohort_by_start_date[s_dt]["paid_converted"] += 1
         elif r.status == "offer_code_trial":
             cohort_by_start_date[s_dt]["offer_code"] += 1
-        elif r.status == "intro_free_trial":
+        elif r.status == "intro_free_trial" and r.auto_renew_enabled:
             cohort_by_start_date[s_dt]["intro_trial"] += 1
             if lifecycle_stage == "reconciling_trial":
                 cohort_by_start_date[s_dt]["reconciling_trial"] += 1
@@ -2354,7 +2732,11 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         else 0.0
     )
 
-    apple_vip = max(int(sb.get("apple_vip_activations_total", 0) or 0), len(ledger_rows_db), db_subs_count, len(vip_started_signals))
+    active_vip_total = paid_subs_cnt + offer_code_cnt + intro_trial_cnt
+    if len(ledger_rows_db) > 0:
+        apple_vip = active_vip_total
+    else:
+        apple_vip = max(int(sb.get("apple_vip_activations_total", 0) or 0), db_subs_count, len(vip_started_signals))
     sb["apple_vip_activations_total"] = apple_vip
 
     financial_ledger = {
@@ -2366,6 +2748,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         "pipeline_7d_trials_count": intro_trial_cnt,
         "pipeline_7d_mrr_gross_try": round(pipeline_7d_gross, 2),
         "pipeline_7d_mrr_net_try": round(pipeline_7d_net, 2),
+        "pipeline_7d_monthly_mrr_gross_try": round(pipeline_7d_monthly_mrr_gross, 2),
+        "pipeline_7d_monthly_mrr_net_try": round(pipeline_7d_monthly_mrr_net, 2),
         "reconciling_7d_trials_count": reconciling_7d_cnt,
         "reconciling_7d_mrr_gross_try": round(reconciling_7d_gross, 2),
         "reconciling_7d_mrr_net_try": round(reconciling_7d_net, 2),
@@ -2375,6 +2759,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         "projected_total_mrr_gross_try": round(active_paid_mrr_gross + pipeline_7d_gross, 2),
         "projected_total_mrr_net_try": round(active_paid_mrr_net + pipeline_7d_net, 2),
         "projected_total_arr_net_try": round((active_paid_mrr_net + pipeline_7d_net) * 12, 2),
+        "active_vip_subs_count": active_vip_total,
+        "total_vip_records_count": len(ledger_rows_db),
         "offer_code_subs_count": offer_code_cnt,
         "paid_subs_count": paid_subs_cnt,
         "cancelled_subs_count": cancelled_cnt,
@@ -2589,9 +2975,44 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     android_subs_list = [s for s in subscriber_ledger_list if s.get("platform") == "android"]
     gp_catalog = sb.get("google_play_subscriptions_catalog") or _empty_store_state()["google_play_subscriptions_catalog"]
 
+    ios_paid_cnt = int(plat_fin["ios"]["paid_cnt"])
+    ios_trial_cnt = int(plat_fin["ios"]["trial_cnt"])
+    ios_code_cnt = int(plat_fin["ios"]["code_cnt"])
+    ios_cancelled_cnt = int(plat_fin["ios"]["cancelled_cnt"])
+    ios_active_cnt = ios_paid_cnt + ios_trial_cnt + ios_code_cnt
+    ios_mrr_net = round(plat_fin["ios"]["paid_mrr_net"] + plat_fin["ios"]["pipeline_net"], 2)
+    ios_mrr_gross = round(plat_fin["ios"]["paid_mrr_gross"] + plat_fin["ios"]["pipeline_gross"], 2)
+    ios_realized_net = round(plat_fin["ios"]["realized_net"], 2)
+
+    and_paid_cnt = int(plat_fin["android"]["paid_cnt"])
+    and_trial_cnt = int(plat_fin["android"]["trial_cnt"])
+    and_code_cnt = int(plat_fin["android"]["code_cnt"])
+    and_cancelled_cnt = int(plat_fin["android"]["cancelled_cnt"])
+    and_active_cnt = and_paid_cnt + and_trial_cnt + and_code_cnt
+    and_mrr_net = round(plat_fin["android"]["paid_mrr_net"] + plat_fin["android"]["pipeline_net"], 2)
+    and_mrr_gross = round(plat_fin["android"]["paid_mrr_gross"] + plat_fin["android"]["pipeline_gross"], 2)
+    and_realized_net = round(plat_fin["android"]["realized_net"], 2)
+
     all_reviews = sb.get("store_reviews") or []
     ios_reviews_cnt = sum(1 for r in all_reviews if r.get("store") == "App Store")
     android_reviews_cnt = sum(1 for r in all_reviews if r.get("store") == "Google Play")
+
+    ios_total_rec = len(ios_subs_list)
+    and_total_rec = len(android_subs_list)
+    all_total_rec = len(subscriber_ledger_list)
+
+    ios_vip_sub_str = (
+        f"Toplam {ios_total_rec} Kayıt ({ios_active_cnt} Aktif • {ios_cancelled_cnt} İptal) — "
+        f"{ios_paid_cnt} Ücretli ({ios_realized_net:.2f} ₺) • {ios_trial_cnt} 7G Deneme (+{plat_fin['ios']['pipeline_net']:.2f} ₺) • {ios_code_cnt} Kodlu"
+        if ios_cancelled_cnt > 0
+        else f"{ios_paid_cnt} Ücretli ({ios_realized_net:.2f} ₺) • {ios_trial_cnt} 7G Deneme (+{plat_fin['ios']['pipeline_net']:.2f} ₺) • {ios_code_cnt} Kodlu"
+    )
+    and_vip_sub_str = (
+        f"{and_active_cnt} Aktif Android VIP (Toplam {and_total_rec} Kayıt • {and_cancelled_cnt} İptal) — "
+        f"{and_paid_cnt} Ücretli ({and_realized_net:.2f} ₺) • {and_trial_cnt} 7G Deneme (+{plat_fin['android']['pipeline_net']:.2f} ₺) • {and_code_cnt} Kodlu"
+        if and_total_rec > 0
+        else f"0 Aktif Abone • Google Play API'de {len(gp_catalog)} Aktif Paket (599.99 ₺/Yıl & 149.99 ₺/Ay + 7G Deneme) Yayında"
+    )
 
     platform_split = {
         "all": {
@@ -2607,9 +3028,14 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "downloads_display": f"{total_cumulative_downloads}",
             "downloads_sub": f"🍏 {apple_downloads} iOS (%{round((apple_downloads / max(1, total_cumulative_downloads)) * 100)}) • 🤖 {google_play_downloads} Android (%{round((google_play_downloads / max(1, total_cumulative_downloads)) * 100)})",
             "cvr_pct": round((total_cumulative_downloads / max(1, total_cumulative_visits_and_clicks)) * 100, 1),
-            "vip_count": len(subscriber_ledger_list),
-            "vip_display": f"{len(subscriber_ledger_list)} VIP",
-            "vip_sub": f"🍏 {len(ios_subs_list)} Apple VIP ({financial_ledger['projected_total_mrr_net_try']:.2f} ₺ Net) • 🤖 {len(android_subs_list)} Android VIP ({len(gp_catalog)} Aktif Paket)",
+            "vip_count": active_vip_total,
+            "total_vip_count": all_total_rec,
+            "cancelled_vip_count": cancelled_cnt,
+            "vip_display": f"{active_vip_total} Aktif VIP" if cancelled_cnt > 0 else f"{active_vip_total} VIP",
+            "vip_sub": (
+                f"🍏 {ios_active_cnt} Aktif (Toplam {ios_total_rec} Kayıt • {ios_cancelled_cnt} İptal) • "
+                f"🤖 {and_active_cnt} Android VIP ({len(gp_catalog)} Aktif Paket)"
+            ),
             "mrr_net_try": financial_ledger["projected_total_mrr_net_try"],
             "mrr_gross_try": financial_ledger["projected_total_mrr_gross_try"],
             "realized_net_try": financial_ledger["realized_net_proceeds_try"],
@@ -2628,12 +3054,14 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "downloads_display": f"{apple_downloads}",
             "downloads_sub": f"{r3_search} Arama • {r3_ref} Sosyal Referans • {recent_ios_dl} Doğrudan Sales API",
             "cvr_pct": round((apple_downloads / max(1, ios_touchpoints)) * 100, 1),
-            "vip_count": len(ios_subs_list),
-            "vip_display": f"{len(ios_subs_list)} VIP",
-            "vip_sub": f"{paid_subs_cnt} Ücretli ({financial_ledger['realized_net_proceeds_try']:.2f} ₺) • {intro_trial_cnt} 7G Deneme (+{financial_ledger['pipeline_7d_mrr_net_try']:.2f} ₺) • {offer_code_cnt} Kodlu",
-            "mrr_net_try": financial_ledger["projected_total_mrr_net_try"],
-            "mrr_gross_try": financial_ledger["projected_total_mrr_gross_try"],
-            "realized_net_try": financial_ledger["realized_net_proceeds_try"],
+            "vip_count": ios_active_cnt,
+            "total_vip_count": ios_total_rec,
+            "cancelled_vip_count": ios_cancelled_cnt,
+            "vip_display": f"{ios_active_cnt} Aktif VIP" if ios_cancelled_cnt > 0 else f"{ios_active_cnt} VIP",
+            "vip_sub": ios_vip_sub_str,
+            "mrr_net_try": ios_mrr_net,
+            "mrr_gross_try": ios_mrr_gross,
+            "realized_net_try": ios_realized_net,
             "reviews_count": ios_reviews_cnt,
         },
         "android": {
@@ -2649,12 +3077,14 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "downloads_display": f"{google_play_downloads}",
             "downloads_sub": f"{google_play_downloads} Doğrulanmış Android Kurulum ({android_signal_opens} Canlı İlk Açılış Sinyali)",
             "cvr_pct": round((google_play_downloads / max(1, android_touchpoints)) * 100, 1),
-            "vip_count": len(android_subs_list),
-            "vip_display": f"{len(android_subs_list)} VIP",
-            "vip_sub": f"0 Aktif Abone • Google Play API'de {len(gp_catalog)} Aktif Paket (599.99 ₺/Yıl & 149.99 ₺/Ay + 7G Deneme) Yayında",
-            "mrr_net_try": 0.0,
-            "mrr_gross_try": 0.0,
-            "realized_net_try": 0.0,
+            "vip_count": and_active_cnt,
+            "total_vip_count": and_total_rec,
+            "cancelled_vip_count": and_cancelled_cnt,
+            "vip_display": f"{and_active_cnt} Aktif VIP" if and_cancelled_cnt > 0 else f"{and_active_cnt} VIP",
+            "vip_sub": and_vip_sub_str,
+            "mrr_net_try": and_mrr_net,
+            "mrr_gross_try": and_mrr_gross,
+            "realized_net_try": and_realized_net,
             "reviews_count": android_reviews_cnt,
         },
     }
@@ -2676,17 +3106,17 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         },
         {
             "id": "apple_sub_ledger",
-            "label": "🍏 Apple SUBSCRIBER 1_3 API",
+            "label": "🍏 Apple SUBSCRIBER + EVENT API",
             "status": "reconciling" if reconciling_7d_cnt > 0 else "synced",
-            "badge": f"📒 {len(ios_subs_list)} Apple VIP ({reconciling_7d_cnt} Mutabakatta)",
-            "detail": f"Tahsil: {financial_ledger['realized_net_proceeds_try']:.2f} ₺ • Beklenen MRR: {financial_ledger['projected_total_mrr_net_try']:.2f} ₺",
+            "badge": f"📒 {ios_active_cnt} Aktif / {ios_total_rec} Kayıt ({ios_cancelled_cnt} İptal)",
+            "detail": f"Tahsil: {ios_realized_net:.2f} ₺ • Beklenen Havuz: +{plat_fin['ios']['pipeline_net']:.2f} ₺ Net",
         },
         {
             "id": "google_play_sync",
             "label": "🤖 Google Play Developer API",
             "status": "synced",
-            "badge": f"🤖 {google_play_downloads} Android Kurulum • {len(gp_catalog)} Aktif Paket",
-            "detail": f"{len(android_subs_list)} Android Abone • {android_bridge_uniq} Köprü Tıkı • {android_reviews_cnt} Yorum",
+            "badge": f"🤖 {google_play_downloads} Android Kurulum • {and_active_cnt} Aktif VIP",
+            "detail": f"{len(gp_catalog)} Aktif Paket • {android_bridge_uniq} Köprü Tıkı • {android_reviews_cnt} Yorum",
         },
     ]
 
@@ -2724,6 +3154,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "android_downloads": google_play_downloads,
             "active_sessions": apple_sessions,
             "vip_activations": apple_vip,
+            "vip_total_records": all_total_rec,
+            "vip_cancelled": cancelled_cnt,
             "distinct_live_devices": max(int(sb.get("apple_sessions_optin_devices", 0) or 0), distinct_signal_devices, db_babies_count),
         },
         "financial_ledger": financial_ledger,
@@ -2853,6 +3285,291 @@ class StoreSyncPushPayload(BaseModel):
     lifecycle_events: List[Dict[str, Any]] = Field(default_factory=list)
 
 
+class ClientSubscriberSyncPayload(BaseModel):
+    subscriber_id: str = Field(..., min_length=3, max_length=128)
+    platform: str = Field(default="android", max_length=32)
+    product_id: str = Field(default="misil", max_length=64)
+    plan_label: Optional[str] = Field(default=None, max_length=100)
+    status: str = Field(default="intro_free_trial", max_length=64)
+    offer_type: Optional[str] = Field(default=None, max_length=64)
+    offer_code_name: Optional[str] = Field(default=None, max_length=100)
+    started_date: Optional[str] = Field(default=None, max_length=16)
+    converted_or_renewed_date: Optional[str] = Field(default=None, max_length=16)
+    maturity_or_renewal_date: Optional[str] = Field(default=None, max_length=16)
+    auto_renew_enabled: bool = Field(default=True)
+    customer_price_try: float = Field(default=0.0)
+    developer_proceeds_try: float = Field(default=0.0)
+    purchase_token: Optional[str] = Field(default=None, max_length=512)
+    country: Optional[str] = Field(default="TR", max_length=16)
+    device_type: Optional[str] = Field(default=None, max_length=64)
+
+
+def verify_google_play_subscription_token(purchase_token: str) -> Optional[Dict[str, Any]]:
+    """
+    Google Play Developer API purchases.subscriptionsv2/tokens/{token} uç noktasını
+    kullanarak Android abonelik token'ını doğrular (Service Account mevcutsa).
+    """
+    clean_tok = (purchase_token or "").strip()
+    if not clean_tok or not jwt:
+        return None
+    sa_raw = os.environ.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON")
+    if not sa_raw:
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+        sa_candidates = [
+            os.path.join(project_root, "..", "..", "storage", "google_play_service_account.json"),
+            os.path.join(project_root, "storage", "google_play_service_account.json"),
+        ]
+        sa_path = next((p for p in sa_candidates if os.path.exists(p)), None)
+        if sa_path:
+            try:
+                with open(sa_path, "r", encoding="utf-8") as f:
+                    sa_raw = f.read()
+            except Exception:
+                sa_raw = None
+    if not sa_raw:
+        return None
+    try:
+        sa = json.loads(sa_raw)
+        now_gp = int(time.time())
+        assertion = jwt.encode(
+            {
+                "iss": sa["client_email"],
+                "scope": "https://www.googleapis.com/auth/androidpublisher",
+                "aud": "https://oauth2.googleapis.com/token",
+                "iat": now_gp - 30,
+                "exp": now_gp + 3600,
+            },
+            sa["private_key"],
+            algorithm="RS256",
+        )
+        tok_data = urllib.parse.urlencode({
+            "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "assertion": assertion,
+        }).encode("utf-8")
+        tok_req = urllib.request.Request(
+            "https://oauth2.googleapis.com/token",
+            data=tok_data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        with urllib.request.urlopen(tok_req, timeout=4) as tok_resp:
+            access_token = json.loads(tok_resp.read().decode("utf-8")).get("access_token")
+        if not access_token:
+            return None
+        v2_url = (
+            "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/"
+            f"com.levitas.misilbaby/purchases/subscriptionsv2/tokens/{urllib.parse.quote(clean_tok)}"
+        )
+        v2_req = urllib.request.Request(v2_url, headers={"Authorization": f"Bearer {access_token}"})
+        with urllib.request.urlopen(v2_req, timeout=4) as v2_resp:
+            if v2_resp.status == 200:
+                return json.loads(v2_resp.read().decode("utf-8"))
+    except Exception as exc:
+        logger.debug("Google Play subscriptionsv2 token verify info: %s", exc)
+    return None
+
+
+@router.post("/subscriber-sync")
+async def sync_client_subscriber_ledger(
+    payload: ClientSubscriberSyncPayload,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Mobil uygulama (Google Play / App Store) veya RevenueCat istemci köprüsünden gelen
+    doğrulanmış abonelik/deneme/kod durumunu SubscriberLedger'a idempotent olarak yazar.
+    """
+    ensure_historical_seed(db)
+
+    clean_sid = "".join(ch for ch in payload.subscriber_id.strip() if ch.isalnum() or ch in ("-", "_", ":", "."))[:128]
+    if not clean_sid:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Geçersiz subscriber_id.")
+
+    plat = (payload.platform or "android").strip().lower()
+    if plat not in ("android", "ios"):
+        plat = "android"
+
+    tz_tr = timezone(timedelta(hours=3))
+    today_str = datetime.now(tz_tr).strftime("%Y-%m-%d")
+
+    prod_id = (payload.product_id or ("misil" if plat == "android" else "misil_monthly")).strip()[:64]
+    st_val = (payload.status or "intro_free_trial").strip()[:64]
+    if st_val not in ("paid_active", "intro_free_trial", "offer_code_trial", "cancelled"):
+        st_val = "intro_free_trial"
+
+    auto_renew = bool(payload.auto_renew_enabled)
+    start_dt_str = (payload.started_date or today_str).strip()[:10]
+    mat_dt_str = (payload.maturity_or_renewal_date or "").strip()[:10]
+    offer_code_nm = (payload.offer_code_name or "").strip()[:95] or None
+
+    # Google Play purchase_token varsa subscriptionsv2 API ile doğrula
+    verified_gp_token = False
+    if plat == "android" and payload.purchase_token:
+        gp_v2 = await run_in_threadpool(verify_google_play_subscription_token, payload.purchase_token)
+        if isinstance(gp_v2, dict):
+            verified_gp_token = True
+            sub_state = str(gp_v2.get("subscriptionState") or "")
+            if sub_state in ("SUBSCRIPTION_STATE_CANCELED", "SUBSCRIPTION_STATE_EXPIRED"):
+                st_val = "cancelled"
+                auto_renew = False
+            start_iso = str(gp_v2.get("startTime") or "")[:10]
+            if len(start_iso) == 10:
+                start_dt_str = start_iso
+            line_items = gp_v2.get("lineItems") or []
+            if line_items:
+                li0 = line_items[0]
+                if li0.get("productId"):
+                    prod_id = str(li0["productId"])[:64]
+                exp_iso = str(li0.get("expiryTime") or "")[:10]
+                if len(exp_iso) == 10:
+                    mat_dt_str = exp_iso
+                ar_plan = li0.get("autoRenewingPlan") or {}
+                if "autoRenewEnabled" in ar_plan:
+                    auto_renew = bool(ar_plan.get("autoRenewEnabled"))
+                off_details = li0.get("offerDetails") or {}
+                off_id = off_details.get("offerId")
+                if off_id and st_val != "cancelled":
+                    offer_code_nm = str(off_id)[:95]
+
+    is_admin_authed = authorize_admin_request(
+        request, None, request.headers.get("x-admin-pin"), request.cookies.get(_ADMIN_SESSION_COOKIE)
+    )
+    # Kimliksiz/doğrulanmamış istemci çağrılarının sahte tahsilat (paid_active) yazmasını veya resmi Apple satırlarını ezmesini engelle
+    if not is_admin_authed and not verified_gp_token:
+        if st_val == "paid_active":
+            st_val = "intro_free_trial"
+        payload.customer_price_try = 0.0
+        payload.developer_proceeds_try = 0.0
+
+    is_ann = _is_annual_product(prod_id)
+    default_lbl = (
+        ("Mışıl Baby Yıllık VIP" if is_ann else "Mışıl Baby Aylık VIP")
+        if plat == "android"
+        else ("Yıllık VIP" if is_ann else "Aylık Esnek VIP")
+    )
+    plan_lbl = (payload.plan_label or default_lbl).strip()[:100]
+
+    if not mat_dt_str or len(mat_dt_str) != 10:
+        try:
+            dt_s = datetime.strptime(start_dt_str, "%Y-%m-%d")
+        except Exception:
+            dt_s = datetime.now(tz_tr)
+            start_dt_str = dt_s.strftime("%Y-%m-%d")
+        days_add = 7 if st_val == "intro_free_trial" else (365 if is_ann else 30)
+        mat_dt_str = (dt_s + timedelta(days=days_add)).strftime("%Y-%m-%d")
+
+    std_gross, std_net = _resolve_expected_trial_pricing(
+        prod_id, payload.customer_price_try, payload.developer_proceeds_try, plat
+    )
+    net_ratio = 0.727 if plat == "android" else 0.55417
+    c_gross = round(float(payload.customer_price_try or (std_gross if st_val == "paid_active" else 0.0)), 2)
+    c_net = round(float(payload.developer_proceeds_try or (round(c_gross * net_ratio, 2) if c_gross > 0 else 0.0)), 2)
+
+    if st_val == "cancelled" or not auto_renew:
+        exp_gross, exp_net = 0.0, 0.0
+    elif st_val == "offer_code_trial":
+        exp_gross, exp_net = 0.0, 0.0
+    else:
+        exp_gross, exp_net = (c_gross, c_net) if c_gross > 0 else (std_gross, std_net)
+
+    of_type = payload.offer_type or (
+        "standard_paid" if st_val == "paid_active" else ("offer_code" if st_val == "offer_code_trial" else "intro_7d_trial")
+    )
+    if not offer_code_nm:
+        offer_code_nm = "Standart Ücretli" if st_val == "paid_active" else "7 Günlük Deneme"
+
+    cntry_clean = "".join(ch for ch in (payload.country or "TR").upper() if ch.isalnum())[:16] or "TR"
+    dev_clean = (payload.device_type or ("Android" if plat == "android" else "iPhone")).strip()[:64]
+
+    existing = db.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == clean_sid).first()
+    if existing and not is_admin_authed and not verified_gp_token:
+        # Resmi mağaza API'lerinden (Apple SUBSCRIBER 1_3 veya RevenueCat Webhook) gelen kayıtların kimliksiz istemci tarafından ezilmesini engelle
+        if not clean_sid.startswith("DEV_"):
+            return {
+                "ok": True,
+                "status": "protected",
+                "subscriber_id": clean_sid,
+                "platform": existing.platform,
+                "product_id": existing.product_id,
+                "ledger_status": existing.status,
+            }
+    if existing:
+        existing.platform = plat
+        existing.product_id = prod_id
+        existing.plan_label = plan_lbl
+        existing.status = st_val
+        existing.offer_type = of_type[:64]
+        existing.offer_code_name = offer_code_nm
+        existing.maturity_or_renewal_date = mat_dt_str
+        existing.auto_renew_enabled = auto_renew
+        if c_gross > 0:
+            existing.customer_price_try = c_gross
+            existing.developer_proceeds_try = c_net
+            existing.converted_or_renewed_date = payload.converted_or_renewed_date or today_str
+        existing.expected_next_price_try = exp_gross
+        existing.expected_next_proceeds_try = exp_net
+        existing.country = cntry_clean
+        existing.device_type = dev_clean
+    else:
+        db.add(
+            SubscriberLedger(
+                subscriber_id=clean_sid,
+                platform=plat,
+                product_id=prod_id,
+                plan_label=plan_lbl,
+                status=st_val,
+                offer_type=of_type[:64],
+                offer_code_name=offer_code_nm,
+                started_date=start_dt_str,
+                converted_or_renewed_date=(payload.converted_or_renewed_date or start_dt_str) if st_val == "paid_active" else None,
+                maturity_or_renewal_date=mat_dt_str,
+                auto_renew_enabled=auto_renew,
+                customer_price_try=c_gross,
+                developer_proceeds_try=c_net,
+                expected_next_price_try=exp_gross,
+                expected_next_proceeds_try=exp_net,
+                country=cntry_clean,
+                device_type=dev_clean,
+            )
+        )
+
+    ev_key = f"{clean_sid}:{st_val}"
+    dup_ev = (
+        db.query(SubscriptionLifecycleEvent.id)
+        .filter(
+            SubscriptionLifecycleEvent.event_date == today_str,
+            SubscriptionLifecycleEvent.event_type == ev_key[:128],
+            SubscriptionLifecycleEvent.product_id == prod_id,
+        )
+        .first()
+    )
+    if dup_ev is None:
+        db.add(
+            SubscriptionLifecycleEvent(
+                event_date=today_str,
+                platform=plat,
+                event_type=ev_key[:128],
+                product_id=prod_id,
+                plan_label=plan_lbl,
+                offer_code_name=offer_code_nm,
+                country=cntry_clean,
+                device_type=dev_clean,
+                quantity=1,
+            )
+        )
+
+    db.commit()
+    return {
+        "ok": True,
+        "status": "ok",
+        "subscriber_id": clean_sid,
+        "platform": plat,
+        "product_id": prod_id,
+        "ledger_status": st_val,
+        "expected_next_price_try": exp_gross,
+        "expected_next_proceeds_try": exp_net,
+    }
+
+
 @router.post("/store-sync-push")
 async def ingest_local_store_sync(
     payload: StoreSyncPushPayload,
@@ -2873,7 +3590,8 @@ async def ingest_local_store_sync(
 
     upserted_metrics = 0
     if payload.daily_metrics:
-        db.query(StoreDailyMetric).delete(synchronize_session=False)
+        metric_platforms = {str(dm.get("platform") or "ios").strip()[:32] for dm in payload.daily_metrics}
+        db.query(StoreDailyMetric).filter(StoreDailyMetric.platform.in_(metric_platforms)).delete(synchronize_session=False)
         for dm in payload.daily_metrics:
             m_date = str(dm.get("metric_date") or "").strip()[:16]
             plat = str(dm.get("platform") or "ios").strip()[:32]
@@ -2900,21 +3618,23 @@ async def ingest_local_store_sync(
 
     upserted_subs = 0
     if payload.subscribers:
-        db.query(SubscriberLedger).delete(synchronize_session=False)
+        sub_platforms = {str(s_item.get("platform") or "ios").strip()[:32] for s_item in payload.subscribers}
+        db.query(SubscriberLedger).filter(SubscriberLedger.platform.in_(sub_platforms)).delete(synchronize_session=False)
         for s_item in payload.subscribers:
             sub_id = str(s_item.get("subscriber_id") or "").strip()[:128]
             if not sub_id:
                 continue
+            plat_s = str(s_item.get("platform") or "ios").strip()[:32]
             prod_id_val = str(s_item.get("product_id") or "misil_monthly")[:64]
             status_val = str(s_item.get("status") or "intro_free_trial")[:64]
             exp_gross = float(s_item.get("expected_next_price_try") or 0.0)
             exp_net = float(s_item.get("expected_next_proceeds_try") or 0.0)
             if status_val == "intro_free_trial":
-                exp_gross, exp_net = _resolve_expected_trial_pricing(prod_id_val, exp_gross, exp_net)
+                exp_gross, exp_net = _resolve_expected_trial_pricing(prod_id_val, exp_gross, exp_net, plat_s)
             db.add(
                 SubscriberLedger(
                     subscriber_id=sub_id,
-                    platform=str(s_item.get("platform") or "ios")[:32],
+                    platform=plat_s,
                     product_id=prod_id_val,
                     plan_label=str(s_item.get("plan_label") or "Aylık Esnek")[:100],
                     status=status_val,
@@ -2936,7 +3656,8 @@ async def ingest_local_store_sync(
 
     upserted_events = 0
     if payload.lifecycle_events:
-        db.query(SubscriptionLifecycleEvent).delete(synchronize_session=False)
+        ev_platforms = {str(ev.get("platform") or "ios").strip()[:32] for ev in payload.lifecycle_events}
+        db.query(SubscriptionLifecycleEvent).filter(SubscriptionLifecycleEvent.platform.in_(ev_platforms)).delete(synchronize_session=False)
         for ev in payload.lifecycle_events:
             db.add(
                 SubscriptionLifecycleEvent(
@@ -2980,6 +3701,8 @@ async def ingest_local_store_sync(
                 )
             )
 
+    db.flush()
+    _reconcile_ios_ledger_and_cancellations(db)
     db.commit()
     return {
         "status": "ok",
@@ -3533,10 +4256,12 @@ async def analytics_dashboard_page(
           <div style="width:{lc_prog}%; height:100%; background:{bar_color}; border-radius:99px;"></div>
         </div>
         """
+        sl_plat = str(sl.get("platform") or "ios").lower()
+        plat_icon = "🤖" if sl_plat == "android" else "🍏"
         ledger_rows_html += f"""
-        <tr>
+        <tr data-platform="{html.escape(sl_plat)}">
           <td style="color:var(--text-muted); font-weight:700;">{idx_sub}</td>
-          <td style="font-family:monospace; color:var(--text-primary); font-weight:700;" title="Tam Subscriber ID: {html.escape(str(sl['subscriber_id']))}">{html.escape(str(sl['subscriber_short']))}</td>
+          <td style="font-family:monospace; color:var(--text-primary); font-weight:700;" title="Tam Subscriber ID: {html.escape(str(sl['subscriber_id']))}">{plat_icon} {html.escape(str(sl['subscriber_short']))}</td>
           <td><strong>{html.escape(str(sl['plan_label']))}</strong></td>
           <td>{st_badge}{prog_html}</td>
           <td style="font-variant-numeric:tabular-nums;">{html.escape(str(sl['started_date']))}</td>
@@ -3627,12 +4352,26 @@ async def analytics_dashboard_page(
     ps_json_str = json.dumps(ps, ensure_ascii=False)
 
     gp_catalog = s.get("google_play_subscriptions_catalog") or []
+    android_subs_in_ledger = [sl for sl in sub_ledger if sl.get("platform") == "android"]
+    android_active_by_pid: Counter = Counter()
+    for asl in android_subs_in_ledger:
+        if asl.get("status") != "cancelled" and asl.get("auto_renew_enabled"):
+            p_raw = str(asl.get("product_id") or "").split(":")[0].strip()
+            android_active_by_pid[p_raw] += 1
+
     gp_catalog_rows_html = ""
     for idx_gp, gpc in enumerate(gp_catalog, start=1):
+        gp_pid = str(gpc.get("product_id", ""))
+        gp_act_cnt = android_active_by_pid.get(gp_pid, 0)
+        gp_act_badge = (
+            f"<strong style='color:#059669;'>{gp_act_cnt} Aktif Abone</strong>"
+            if gp_act_cnt > 0
+            else "<strong style='color:var(--text-muted);'>0 Aktif Abone</strong>"
+        )
         gp_catalog_rows_html += f"""
         <tr>
           <td style="color:var(--text-muted); font-weight:700;">{idx_gp}</td>
-          <td style="font-family:monospace; color:var(--text-primary); font-weight:700;">{html.escape(str(gpc.get('product_id', '')))} / {html.escape(str(gpc.get('base_plan_id', '')))}</td>
+          <td style="font-family:monospace; color:var(--text-primary); font-weight:700;">{html.escape(gp_pid)} / {html.escape(str(gpc.get('base_plan_id', '')))}</td>
           <td><strong>{html.escape(str(gpc.get('title', '')))}</strong></td>
           <td><span class="badge badge-gp">✔ {html.escape(str(gpc.get('state', 'ACTIVE')))}</span></td>
           <td>{html.escape(str(gpc.get('billing_period', '')))}</td>
@@ -3640,9 +4379,16 @@ async def analytics_dashboard_page(
           <td><code>{html.escape(str(gpc.get('free_trial_offer_id', '-')))}</code></td>
           <td>{html.escape(str(gpc.get('grace_period', '')))}</td>
           <td style="font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums;">{float(gpc.get('price_try', 0.0)):.2f} ₺ <span style="color:#059669; font-size:11.5px;">(Net ~{float(gpc.get('net_proceeds_try', 0.0)):.2f} ₺)</span></td>
-          <td><strong style="color:var(--text-muted);">0 Aktif Abone</strong> <span style="font-size:11px; color:var(--text-muted);">({ps_and.get('downloads', 0)} Android Kurulumu)</span></td>
+          <td>{gp_act_badge} <span style="font-size:11px; color:var(--text-muted);">({ps_and.get('downloads', 0)} Android Kurulumu)</span></td>
         </tr>
         """
+
+    gp_diag_html = (
+        f"✅ <strong>Canlı Android Abone Durumu:</strong> Google Play üzerinde <strong>{ps_and.get('vip_count', 0)} Aktif Android VIP</strong> "
+        f"(Toplam {ps_and.get('total_vip_count', 0)} Kayıt • Beklenen/Aktif Net MRR: <strong>{float(ps_and.get('mrr_net_try', 0.0)):.2f} ₺</strong>) bulunmaktadır."
+        if int(ps_and.get("total_vip_count", 0) or 0) > 0
+        else f"🔍 <strong>Neden Android'de 0 Abone Görünüyor? (Canlı API Teşhisi):</strong> Google Play Developer API (<code>monetization.subscriptions</code>) üzerinde <strong>Mışıl Baby Yıllık VIP (599.99 ₺ + 7G Ücretsiz Deneme)</strong> ve <strong>Mışıl Baby Aylık VIP (149.99 ₺ + 7G Ücretsiz Deneme)</strong> paketleriniz <strong>ACTIVE (Yayında)</strong> durumdadır. Ancak <strong>{ps_and.get('touchpoints', 0)} Android köprü tıklamasından</strong> gelen <strong>{kpis['android_downloads']} Android kurulumu</strong> içerisinden henüz Google Play faturalandırmasını (7G deneme veya ücretli) başlatan kullanıcı olmamıştır (<strong>0 Aktif Android Abone</strong>). Yeni bir Android abonesi başladığında bu tabloya otomatik olarak düşer."
+    )
 
     dashboard_response = HTMLResponse(f"""
     <!DOCTYPE html>
@@ -4181,8 +4927,8 @@ async def analytics_dashboard_page(
           <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
             <span style="font-size:12.5px; color:var(--text-secondary); font-weight:800;">🏪 Mağaza / Platform:</span>
             <div class="period-pills" id="platformPills">
-              <button type="button" class="period-pill active" id="platBtn_all" onclick="switchPlatform('all')">🌐 Kümülatif ({f_dl} Kurulum • {f_vip} VIP)</button>
-              <button type="button" class="period-pill" id="platBtn_ios" onclick="switchPlatform('ios')">🍏 Apple iOS ({kpis['ios_downloads']} Kurulum • {ps_ios.get('vip_count', f_vip)} VIP)</button>
+              <button type="button" class="period-pill active" id="platBtn_all" onclick="switchPlatform('all')">🌐 Kümülatif ({f_dl} Kurulum • {f_vip} Aktif VIP / {ps_all.get('total_vip_count', f_vip)} Kayıt)</button>
+              <button type="button" class="period-pill" id="platBtn_ios" onclick="switchPlatform('ios')">🍏 Apple iOS ({kpis['ios_downloads']} Kurulum • {ps_ios.get('vip_count', f_vip)} Aktif / {ps_ios.get('total_vip_count', f_vip)} Kayıt)</button>
               <button type="button" class="period-pill" id="platBtn_android" onclick="switchPlatform('android')">🤖 Google Play ({kpis['android_downloads']} Kurulum • {ps_and.get('vip_count', 0)} VIP / {len(gp_catalog)} Paket)</button>
             </div>
           </div>
@@ -4266,7 +5012,7 @@ async def analytics_dashboard_page(
                 <span class="delta-chip" id="kpiDelta4" style="background:rgba(124,58,237,0.14); color:#7C3AED;">{fl['projected_total_mrr_net_try']:.2f} ₺/Ay Net</span>
               </div>
               <div class="kpi-hero-row">
-                <div class="big-num" style="color: #7C3AED;" id="kpiVip">{f_vip} VIP</div>
+                <div class="big-num" style="color: #7C3AED;" id="kpiVip">{f_vip} Aktif VIP</div>
                 {spark_vip_svg}
               </div>
               <div class="split-bar">
@@ -4276,7 +5022,7 @@ async def analytics_dashboard_page(
               </div>
             </div>
             <div class="card-desc" id="kpiDesc4">
-              <strong>🍏 {ps_ios.get('vip_count', f_vip)} Apple VIP</strong> ({paid_try:.2f} ₺ Tahsil + {fl['pipeline_7d_mrr_net_try']:.2f} ₺ Deneme) • <strong>🤖 {ps_and.get('vip_count', 0)} Android VIP</strong> ({len(gp_catalog)} Paket Aktif)
+              {ps_all.get('vip_sub', '')}
             </div>
           </div>
         </div>
@@ -4284,7 +5030,7 @@ async def analytics_dashboard_page(
         <!-- 5 SEKMELİ FERAH NAVİGASYON BARI -->
         <div class="tabs-nav" role="tablist">
           <button class="tab-btn active" id="tabBtn_tab1" onclick="switchTab('tab1')">🧭 1. Yönetici Özeti</button>
-          <button class="tab-btn" id="tabBtn_tab2" onclick="switchTab('tab2')">💎 2. Gelir & Abone Defteri (🍏 {len(sub_ledger)} + 🤖 {len(gp_catalog)} Paket)</button>
+          <button class="tab-btn" id="tabBtn_tab2" onclick="switchTab('tab2')">💎 2. Gelir & Abone Defteri (🍏 {ps_ios.get('vip_count', f_vip)} Aktif / {len(sub_ledger)} Kayıt + 🤖 {ps_and.get('vip_count', 0)} VIP)</button>
           <button class="tab-btn" id="tabBtn_tab3" onclick="switchTab('tab3')">🎯 3. Kanal & ASO Attribution</button>
           <button class="tab-btn" id="tabBtn_tab4" onclick="switchTab('tab4')">🍼 4. Ürün Nabzı & Kohort</button>
           <button class="tab-btn" id="tabBtn_tab5" onclick="switchTab('tab5')">⭐ 5. Yorumlar ({avg_stars_label}) & Canlı Akış</button>
@@ -4340,10 +5086,10 @@ async def analytics_dashboard_page(
                   </tr>
                   <tr>
                     <td><strong>5. Aktif VIP Abone & Net MRR</strong></td>
-                    <td style="font-weight:800; color:#7C3AED;">{f_vip} VIP • {fl['projected_total_mrr_net_try']:.2f} ₺/Ay</td>
-                    <td style="font-weight:800; color:#7C3AED;">{ps_ios.get('vip_count', f_vip)} VIP ({paid_conv} Ücretli + {active_trials} Deneme + {offer_code_subs} Kod)</td>
-                    <td style="font-weight:700; color:var(--text-muted);">0 Aktif Abone (0.00 ₺ MRR)</td>
-                    <td><span class="badge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">Android {kpis['android_downloads']} Kurulum ➔ Paywall Optimizasyon Fırsatı</span></td>
+                    <td style="font-weight:800; color:#7C3AED;">{f_vip} Aktif VIP ({ps_all.get('total_vip_count', f_vip)} Kayıt • {fl.get('cancelled_subs_count', 0)} İptal) • {fl['projected_total_mrr_net_try']:.2f} ₺/Ay</td>
+                    <td style="font-weight:800; color:#7C3AED;">{ps_ios.get('vip_count', f_vip)} Aktif VIP ({paid_conv} Ücretli + {active_trials} Deneme + {offer_code_subs} Kod • {ps_ios.get('cancelled_vip_count', 0)} İptal)</td>
+                    <td style="font-weight:700; color:{'#059669' if ps_and.get('vip_count', 0) > 0 else 'var(--text-muted)'};">{ps_and.get('vip_count', 0)} Aktif Abone ({ps_and.get('mrr_net_try', 0.0):.2f} ₺ MRR)</td>
+                    <td><span class="badge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">{'🤖 Android Gelir Köprüsü Aktif' if ps_and.get('vip_count', 0) > 0 else f"Android {kpis['android_downloads']} Kurulum ➔ Paywall Optimizasyon Fırsatı"}</span></td>
                   </tr>
                   <tr>
                     <td><strong>6. Resmi Mağaza Yorumları</strong></td>
@@ -4486,7 +5232,7 @@ async def analytics_dashboard_page(
               <div class="card-label">🚀 4. BEKLENEN TOPLAM NET MRR KÖPRÜSÜ</div>
               <div class="big-num" style="color:#7C3AED;">{fl['projected_total_mrr_net_try']:.2f} ₺ <span style="font-size:15px; color:var(--text-muted);">Net/Ay</span></div>
               <div class="card-desc">
-                🍏 Apple: <strong>{fl['projected_total_mrr_net_try']:.2f} ₺ Net/Ay</strong> ({len(sub_ledger)} VIP) • 🤖 Google Play: <strong>0.00 ₺ Net/Ay</strong> (0 Abone / {len(gp_catalog)} Aktif Paket).
+                🍏 Apple: <strong>{ps_ios.get('mrr_net_try', fl['projected_total_mrr_net_try']):.2f} ₺ Net/Ay</strong> ({ps_ios.get('vip_count', f_vip)} Aktif / {ps_ios.get('total_vip_count', len(sub_ledger))} Kayıt • {ps_ios.get('cancelled_vip_count', 0)} İptal) • 🤖 Google Play: <strong>{ps_and.get('mrr_net_try', 0.0):.2f} ₺ Net/Ay</strong> ({ps_and.get('vip_count', 0)} Abone / {len(gp_catalog)} Aktif Paket).
               </div>
             </div>
           </div>
@@ -4503,8 +5249,8 @@ async def analytics_dashboard_page(
 
           <div class="bento-card" id="appleLedgerCard">
             <div class="section-head">
-              <span>📒 🍏 Apple App Store — Doğrulanmış Tekil Abone Defteri ({len(sub_ledger)} Kayıtlı VIP • Apple SUBSCRIBER 1_3 API)</span>
-              <span class="badge badge-meta">Vendor #94806500 • Dinamik DB</span>
+              <span>📒 🍏 Apple App Store & Android — Doğrulanmış Tekil Abone Defteri ({f_vip} Aktif VIP / Toplam {len(sub_ledger)} Kayıt • {fl.get('cancelled_subs_count', 0)} İptal)</span>
+              <span class="badge badge-meta">Vendor #94806500 & Google Play • Dinamik DB</span>
             </div>
             <div class="table-wrap">
               <table>
@@ -4534,10 +5280,10 @@ async def analytics_dashboard_page(
           <div class="bento-card" id="googlePlayLedgerCard">
             <div class="section-head">
               <span>🤖 Google Play Store — Canlı Abonelik Paketleri & Android Faturalandırma Defteri (<code>com.levitas.misilbaby</code>)</span>
-              <span class="badge badge-gp">Google Play Developer API (Monetization Subscriptions) • {len(gp_catalog)} Aktif Paket</span>
+              <span class="badge badge-gp">Google Play Developer API (Monetization Subscriptions) • {len(gp_catalog)} Aktif Paket • {ps_and.get('vip_count', 0)} Aktif Abone</span>
             </div>
             <div style="padding:12px 16px; border-radius:12px; background:var(--bg-cell); border:1px solid var(--border-subtle); margin-bottom:12px; font-size:12.5px; color:var(--text-secondary); line-height:1.55;">
-              🔍 <strong>Neden Android'de 0 Abone Görünüyor? (Canlı API Teşhisi):</strong> Google Play Developer API (<code>monetization.subscriptions</code>) üzerinde <strong>Mışıl Baby Yıllık VIP (599.99 ₺ + 7G Ücretsiz Deneme)</strong> ve <strong>Mışıl Baby Aylık VIP (149.99 ₺ + 7G Ücretsiz Deneme)</strong> paketleriniz <strong>ACTIVE (Yayında)</strong> durumdadır. Ancak <strong>{ps_and.get('touchpoints', 0)} Android köprü tıklamasından</strong> gelen <strong>{kpis['android_downloads']} Android kurulumu</strong> içerisinden henüz Google Play faturalandırmasını (7G deneme veya ücretli) başlatan kullanıcı olmamıştır (<strong>0 Aktif Android Abone</strong>). Yeni bir Android abonesi başladığında bu tabloya otomatik olarak düşer.
+              {gp_diag_html}
             </div>
             <div class="table-wrap">
               <table>

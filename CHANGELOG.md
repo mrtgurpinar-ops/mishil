@@ -2,6 +2,33 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.17] - 2026-11-01
+### 📊 Kurucu Kokpiti (Analytics Dashboard): Apple App Store Connect (`12 Aktif VIP / 16 Kayıt / 4 İptal`) & Google Play (`monetization.subscriptions` + `purchases.subscriptionsv2`) 3'lü Konsensüs Mutabakatı
+1. **Apple App Store Connect (`SUBSCRIBER 1_3` + `SUBSCRIPTION 1_3` + `SUBSCRIPTION_EVENT 1_3`) Tam Mutabakatı (`app/api/v1/endpoints/analytics.py`):**
+   - İcra & Doğrulama: **3'lü Konsensüs** (`task-377`/`task-382`/`task-467` Claude Code CLI + `task-378`/`task-383`/`task-488` Codex CLI `gpt-6-luna` + Antigravity).
+   - **Deneme İptali (`Cancel`) Kohort Mutabakatı (`_reconcile_ios_ledger_and_cancellations`):** Apple `SUBSCRIBER` raporu ücretsiz deneme iptallerini basmadığı için `SUBSCRIPTION_EVENT` (`Event == "Cancel"`) raporundaki iptaller `(product_id, original_start_date, country)` kohortlarıyla eşleştirilerek iptal edilen 4 deneme (`#476306`, `#107716`, `#449600`, `#954257`) `status = "cancelled"`, `auto_renew_enabled = False` ve `0.00 ₺` beklenen tahsilat olarak işaretlendi.
+   - **Yıllık 7 Günlük Deneme (`Default_Intro`) vs Kampanya Kodu (`DamlaEge2026`) Ayrımı:** `misil_annual` üzerindeki 3 adet 7 günlük ücretsiz denemenin (`#786416`, `#243135`, `#217720`) `offer_code_trial` (`+365 gün`) sayılması hatası giderildi; `Subscription Offer Duration == "7 Days"` / `Default_Intro` kontrolüyle `intro_free_trial` (`+7 gün` vade) olarak ayrıştırıldı (`5 Kodlu` + `6 Aktif Deneme` = `3 Aylık + 3 Yıllık`).
+   - **Yıllık Tarife Referansı (`599.99 ₺ Brüt / 332.50 ₺ Net`) & Çift Gösterim (`12 Aktif VIP / Toplam 16 Kayıt • 4 İptal`):** `DEFAULT_PLAN_PRICING_TRY["misil_annual"]` eski `(799.99, 443.33)` değerinden resmi `(599.99, 332.50)` değerine güncellendi; beklenen 7G dönüşüm havuzu gerçek 6 aktif deneme üzerinden `2.249,94 ₺ Brüt / 1.246,86 ₺ Net` olarak sabitlendi. Apple Connect ekranları arasındaki (`Sales and Trends = 12 Aktif` vs `App Analytics r226 = 16 Kayıt`) farkı şeffaf göstermek için üst rozet ve tablo başlıkları `12 Aktif VIP (Toplam 16 Kayıt • 4 İptal)` formatına geçirildi.
+2. **Google Play Store (`com.levitas.misilbaby`) Canlı Abonelik Köprüsü & RevenueCat Webhook Dayanıklılığı (`analytics.py`, `app/services/subscription.py`, `public/app.html`, `mobile/components/MishilUnifiedWebView.tsx`):**
+   - `/store-sync-push` uç noktasında platform bazlı silme (`platform.in_(...)`) uygulanarak iOS senkronizasyonunun Android kayıtlarını silmesi engellendi.
+   - Google Play `purchases.subscriptionsv2/tokens/{token}` doğrulamalı `POST /api/v1/analytics/subscriber-sync` uç noktası (kimliksiz sahte `paid_active` ve resmi Apple satırı ezme korumalı) ve `app.html` / `MishilUnifiedWebView.tsx` canlı abonelik bildirim köprüsü (`mishil_subscription_active` anahtar uyumuyla) devreye alındı.
+   - `SubscriptionService.process_revenuecat_webhook` içinde `PLAY_STORE` / `misil` (`SubscriptionPlan.YEARLY`), döviz kuru (`FX_RATES_TO_TRY`), `takehome_percentage` normalizasyonu, out-of-order olay koruması, `CANCELLATION` dönem sonu erişim koruması ve anonim kullanıcı (`$RCAnonymousID`) `SubscriberLedger` senkronizasyonu tamamlandı (`12/12 pytest` ve `10/10 Jest` yeşil).
+
+## [4.46.16] - 2026-10-31
+### ☀️ Mışıl Comics • Sayı #8 (Gündüz Bebek Bakımı & Fizyolojisi Özel Sayısı): 3'lü Konsensüs (`task-20`/`task-31`/`task-42` Claude CLI + `task-21`/`task-32`/`task-43` Codex CLI + Antigravity) "Eli Buz Gibi, Bu Çocuk Üşümüş!" 4:5 Dikey Webcomic Paketi
+1. **Uyku Dışı Gündüz Bebek Bakımı & 7 Özgün Pixar/Disney 3D Çizgi Roman Sahnesi (`kullanici/instagram/karakterler/comic8_s1..s7`):**
+   - İcra & Doğrulama: **3 Turlu 3'lü Konsensüs** (`task-20`/`task-31`/`task-42` Claude Code CLI + `task-21`/`task-32`/`task-43` Codex CLI `gpt-6-luna` + Antigravity — Aileye/Eşe DM Paylaşım Skoru `98/100`, Kaydetme Skoru `96/100`).
+   - İlk 7 sayıyla `%0` çakışan ve sürekli uyku teması yerine **gündüz ev içi bebek bakımı ve fizyolojisine** odaklanan 7 özgün sahne (`Saat 14:30 -> 15:00`) üretildi:
+     - **Slayt 1 (`comic8_s1_eli_buz_gibi_bilmecesi.jpg`):** Saat `14:30`'da güneşli salonda oyun matında Mışıl'ın eline dokunan (buz kristali ikonu) ve ensesindeki sıcaklığı fark eden Işıl Anne (elinde katlanmış battaniye ve eldiven).
+     - **Slayt 2 (`comic8_s2_periferik_dolasim_kesif.jpg`):** Merkez gövdede sıcak kalp parıltısı, minik ellerde serin mavi ışıltı (uç/periferik kan dolaşımı) ve çıplak parmaklarıyla Yıldızcık'a dokunarak duyusal keşif yapan Mışıl Bebek.
+     - **Slayt 3 (`comic8_s3_tuzak1_kat_kat_giydirme_isilik.jpg`):** Soğuk el yanılgısıyla kalın battaniye ve eldivene sarılıp terleyen, yanakları kızaran Mışıl Bebek + fazla katı kaldırıp rahatlatan Işıl Anne.
+     - **Slayt 4 (`comic8_s4_tuzak2_hickirik_diyafram.jpg`):** Beslenme sonrası Işıl Anne'nin kucağında tatlı tatlı hıçkıran ve karnında diyafram halkası parlayan Mışıl Bebek (*Hıçkırık = üşüme değil, diyafram gelişimidir*).
+     - **Slayt 5 (`comic8_s5_tuzak3_hapsirik_gunes_isigi.jpg`):** Pencereden süzülen altın güneş huzmesinde burnunu kırıştırıp sevimli bir temizlik hapşırığı yapan Mışıl Bebek (*Hapşırık = doğal burun temizleme refleksidir*).
+     - **Slayt 6 (`comic8_s6_recete_3_saniye_ense_testi.jpg`):** İki parmağıyla Mışıl'ın ensesini kontrol eden Işıl Anne (yeşil-altın konfor kalbi) + **3 Saniyelik Ense Testi** ve **"+1 İnce Kat"** kuralı.
+     - **Slayt 7 (`comic8_s7_zafer_ferah_oyun_zamani.jpg`):** Saat `15:00`'te oyun matında özgür elleriyle Yıldızcık'a sarılıp kahkaha atan Mışıl Bebek ve elinde çayıyla *"Tamam"* işareti yapan huzurlu Işıl Anne.
+2. **Sıfır Yapay Pazarlama (Zero-Cheesy) İletişim Tonu & Karusel Render (`post_08_eli_buz_gibi_usume_efsaneleri.md`, `render_instagram_comic_08.py`, `preview_instagram_concepts.html`):**
+   - Kullanıcı geri bildirimi doğrultusunda itici/yapay reklam yönlendirmelerinden arındırılmış, saf pediatrik fayda ve doğal bakım/gelişim takibi hatırlatması içeren 7 adet `1080×1350` PNG slayt (`post_08_slaytlar/comic_8_1..7.png`) üretildi ve `preview_instagram_concepts.html` vitrinine eklendi.
+
 ## [4.46.15] - 2026-10-30
 ### ⚖️ 3'lü Platform Ayrımı (🌐 Kümülatif / 🍏 Apple iOS / 🤖 Google Play) & Canlı Google Play Abonelik Defteri (`monetization.subscriptions`)
 1. **Tek Tıkla 3'lü Platform Seçici & Yan Yana Platform Karşılaştırma Matrisi (`app/api/v1/endpoints/analytics.py`, `public/preview_analytics_cockpit.html`):**

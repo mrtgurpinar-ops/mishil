@@ -4687,6 +4687,7 @@
       if (typeof loadBabyProfile === 'function') loadBabyProfile();
       if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
       if (typeof renderAllViews === 'function') renderAllViews();
+      try { localStorage.setItem('mishil_vip_sig_v1', '1'); if (typeof window.sendMishilAnalyticsSignal === 'function') window.sendMishilAnalyticsSignal('vip_started'); if (typeof window.syncSubscriberToAnalytics === 'function') window.syncSubscriberToAnalytics(data || { plan: plan, isActive: true }); } catch (_vse) {}
       showToast('🎉 Mışıl VIP aktif edildi!');
     },
 
@@ -10269,9 +10270,41 @@
           }).catch(function() {});
         } catch (_se) {}
       };
-      if (localStorage.getItem('mishil_sub_active') === 'true' && localStorage.getItem('mishil_vip_sig_v1') !== '1') {
+      window.syncSubscriberToAnalytics = function(meta) {
+        try {
+          var _m = meta || window.__MISHIL_SUB_META__ || {};
+          var _duid = localStorage.getItem('mishil_device_uid') || 'msl_anon';
+          var _ua = (navigator.userAgent || '').toLowerCase();
+          var _os = _ua.indexOf('android') > -1 ? 'android' : (/iphone|ipad|ipod/.test(_ua) ? 'ios' : 'ios');
+          var _plat = (_m.platform || (_m.store && String(_m.store).toUpperCase().indexOf('PLAY') > -1 ? 'android' : _os)).toLowerCase();
+          var _plan = _m.plan || localStorage.getItem('mishil_subscription_plan') || 'monthly';
+          var _prodId = _m.productId || _m.product_id || (_plat === 'android' ? (_plan === 'yearly' ? 'misil' : 'misilaylik') : (_plan === 'yearly' ? 'misil_annual' : 'misil_monthly'));
+          var _subId = _m.subscriberId || _m.originalAppUserId || ('DEV_' + _plat.toUpperCase() + '_' + _duid);
+          var _pType = String(_m.periodType || 'TRIAL').toUpperCase();
+          var _status = _m.status || (_pType === 'NORMAL' ? 'paid_active' : (_pType === 'PROMOTIONAL' ? 'offer_code_trial' : 'intro_free_trial'));
+          fetch(apiBase + '/api/v1/analytics/subscriber-sync', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              subscriber_id: _subId,
+              device_uid: _duid,
+              platform: _plat,
+              product_id: _prodId,
+              plan: _plan,
+              status: _status,
+              auto_renew_enabled: _m.willRenew !== false,
+              started_date: (_m.originalPurchaseDate || localStorage.getItem('mishil_trial_start') || new Date().toISOString()).slice(0, 10),
+              maturity_or_renewal_date: _m.expirationDate ? String(_m.expirationDate).slice(0, 10) : undefined,
+              purchase_token: _m.purchaseToken || undefined,
+              device_type: _plat === 'android' ? 'Android' : 'iPhone'
+            })
+          }).catch(function() {});
+        } catch (_sse) {}
+      };
+      if ((localStorage.getItem('mishil_subscription_active') === 'true' || localStorage.getItem('mishil_sub_active') === 'true') && localStorage.getItem('mishil_vip_sig_v1') !== '1') {
         localStorage.setItem('mishil_vip_sig_v1', '1');
         window.sendMishilAnalyticsSignal('vip_started');
+        window.syncSubscriberToAnalytics(window.__MISHIL_SUB_META__);
       }
       var _todayActiveKey = 'mishil_active_' + new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10);
       var _alreadyFirstOpen = (localStorage.getItem('mishil_first_open_v1') === '1');
