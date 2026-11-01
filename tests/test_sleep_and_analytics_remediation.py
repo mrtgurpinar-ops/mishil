@@ -634,6 +634,8 @@ def test_apple_connect_12_active_16_records_reconciliation_and_google_play_bridg
     assert "conversionBridgeCard" in dash_html
     assert "convBridge1" in dash_html
     assert "convBridge2" in dash_html
+    assert "convBridge2Sub" in dash_html
+    assert "convStoreCvrPill" in dash_html
     assert "convBridge3" in dash_html
     assert "hero-stage-card" in dash_html
     assert "conv-bridge-grid" in dash_html
@@ -641,6 +643,108 @@ def test_apple_connect_12_active_16_records_reconciliation_and_google_play_bridg
     assert "toggleCompareDrawer" in dash_html
     assert "funStep1Val" not in dash_html
     assert "<strong>🌐 Kümülatif (Toplam — Apple + Google Play):</strong>" not in dash_html
+
+
+def test_priority1_android_intent_bridge_and_separated_cvr_metrics(client, db_session):
+    """
+    Öncelik 1 Doğrulaması:
+    1) Android IAB (Facebook / Instagram WebView) ve /ios köprüsü için native Google Play intent://
+       (com.android.vending) + App Links meta etiketleri + store_button_click sinyali.
+    2) Simpson Paradoksu çözümü: Mağaza Sayfası CVR (store_cvr_pct) vs Sosyal Köprü CVR (bridge_cvr_pct)
+       vs Kesinleşen Günler CVR (settled_cvr_pct) ve Masaüstü (desktop_bridge_clicks) mutabakatı.
+    """
+    from app.main import generate_interstitial_html, GOOGLE_PLAY_INTENT_URL
+    from app.api.v1.endpoints.analytics import (
+        _build_analytics_summary,
+        OFFICIAL_STORE_BASELINE,
+        _empty_store_state,
+        _BASELINE_LOCK,
+    )
+    from app.db.models import StoreDailyMetric
+
+    StoreDailyMetric.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    db_session.add(
+        StoreDailyMetric(
+            metric_date="2026-10-30",
+            platform="ios",
+            impressions=1000,
+            page_views=200,
+            downloads_total=40,
+            downloads_search=30,
+            downloads_referrer=8,
+            downloads_browse=2,
+            active_sessions=120,
+        )
+    )
+    db_session.commit()
+
+    and_html = generate_interstitial_html(is_android=True)
+    assert GOOGLE_PLAY_INTENT_URL in and_html
+    assert "package=com.android.vending" in and_html
+    assert 'property="al:android:package" content="com.levitas.misilbaby"' in and_html
+    assert 'property="al:ios:app_store_id" content="6809223195"' in and_html
+    assert 'id="storeOpenBtn"' in and_html
+    assert 'id="storeWebFallbackBtn"' in and_html
+    assert "store_button_click" in and_html
+
+    ios_html = generate_interstitial_html(is_android=False)
+    assert "id6809223195" in ios_html
+    assert 'id="storeWebFallbackBtn"' not in ios_html
+
+    # Meta Reklam (/ios) üzerinden gelen Android Facebook In-App Browser (FBAN) isteği
+    from unittest.mock import patch
+    with patch("app.main.record_bridge_click"):
+        bridge_res = client.get(
+            "/ios",
+            headers={
+                "user-agent": (
+                    "Mozilla/5.0 (Linux; Android 14; SM-S918B Build/UP1A.231005.007; wv) "
+                    "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/120.0.6099.144 "
+                    "Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/445.0.0.34.118;]"
+                )
+            },
+        )
+    assert bridge_res.status_code == 200
+    assert "intent://details?id=com.levitas.misilbaby" in bridge_res.text
+
+    # Manuel buton tıklama sinyali (store_button_click) kaydı
+    btn_sig_res = client.post(
+        "/api/v1/analytics/app-open-signal",
+        json={
+            "device_uid": "jump_testbtn01",
+            "event_type": "store_button_click",
+            "os_family": "android",
+            "platform": "primary_cta",
+            "app_version": "4.46.0",
+        },
+    )
+    assert btn_sig_res.status_code == 200
+    assert btn_sig_res.json()["status"] == "ok"
+
+    with _BASELINE_LOCK:
+        OFFICIAL_STORE_BASELINE.clear()
+        OFFICIAL_STORE_BASELINE.update(_empty_store_state())
+
+    summary = _build_analytics_summary(db_session, period="all")
+    kpis = summary["cumulative_kpis"]
+    ps_all = summary["platform_split"]["all"]
+    ps_ios = summary["platform_split"]["ios"]
+    ps_and = summary["platform_split"]["android"]
+
+    assert summary["product_funnel"]["store_button_clicks_tracked"] >= 1
+    assert "store_page_cvr_pct" in kpis
+    assert "store_unique_cvr_pct" in kpis
+    assert "bridge_cvr_pct" in kpis
+    assert "settled_cvr_pct" in kpis
+    assert "desktop_bridge_clicks" in kpis
+
+    assert ps_all["store_cvr_pct"] == 20.0
+    assert 0.0 <= ps_all["bridge_cvr_pct"] <= 100.0
+    assert "Mağaza:" in ps_all["cvr_breakdown_label"]
+    assert "Köprü:" in ps_all["cvr_breakdown_label"]
+    assert "Mağaza:" in ps_ios["cvr_breakdown_label"]
+    assert "Native Intent Aktif" in ps_and["cvr_breakdown_label"]
+
 
 
 

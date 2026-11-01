@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.19] - 2026-11-01
+### 🚀 Öncelik 1 (P0) Dönüşüm Darboğazı Çözümü: Android Native `intent://` IAB Köprüsü & Simpson Paradoksu Ayrıştırılmış CVR Mimarisi
+1. **Android Facebook/Instagram In-App Browser (IAB) Native `intent://` Kaçış Motoru & App Links (`app/main.py`):**
+   - İcra & Doğrulama: **3'lü Konsensüs** (`task-32` Claude Code CLI + `task-40` Codex CLI `gpt-6-luna` + Antigravity).
+   - `generate_interstitial_html(is_android: bool)` içerisine **App Links (`al:ios:*` & `al:android:*`)** meta etiketleri (`al:ios:app_store_id="6809223195"`, `al:android:package="com.levitas.misilbaby"`, `al:android:url="market://details?id=com.levitas.misilbaby"`) eklendi.
+   - Android kullanıcılarının (özellikle Meta reklamlarından `/ios` ve `/download` köprüsüne düşen `%85.2` Facebook/Instagram uygulama içi tarayıcı `FB_IAB` / `FBAN` trafiğinin) oturumsuz WebView web Play Store sayfasında takılı kalmasını önlemek için doğrudan yerel **Google Play Store uygulamasını (`com.android.vending`)** uyandıran `GOOGLE_PLAY_INTENT_URL` (`intent://details?id=com.levitas.misilbaby#Intent;scheme=market;package=com.android.vending;S.browser_fallback_url=...;end`) devreye alındı; 1200ms `document.hidden` kontrolüyle güvenli HTTPS fallback ve `#storeWebFallbackBtn` ikincil bağlantısı eklendi.
+   - Otomatik JS yönlendirmesi (`store_jump`) ile kullanıcının köprü ekranındaki `#storeOpenBtn` butonuna manuel dokunuşu (`store_button_click`) ayrı telemetri sinyalleri olarak ayrıştırıldı.
+2. **Kurucu Kokpiti Simpson Paradoksu & 24s Gecikme Ayrımı (`app/api/v1/endpoints/analytics.py`, `public/preview_analytics_cockpit.html`):**
+   - `601` App Store ürün sayfası ziyareti ile `2,965` ham sosyal köprü tıklamasını tek bir `%4.0` ortalamasında eriten gösterim yerine; **Mağaza Sayfası CVR (`store_cvr_pct = %18.5`, Tekil Cihaz CVR `store_unique_cvr_pct = %26.5`)**, **Sosyal Köprü CVR (`bridge_cvr_pct = %2.3` — `🍏 %8.6 iOS` vs `🤖 %1.3 Android`)** ve Apple TSV 24 saatlik gecikmesinden arındırılmış **Kesinleşen Günler CVR (`settled_cvr_pct = %5.3`)** metrikleri ayrıştırıldı.
+   - Üst huni başlığına `#convStoreCvrPill` (`Mağaza CVR: %18.5 (Kesinleşen: %5.3)`) ve 2. adım dönüşüm okunun (`#convBridge2`) altına `#convBridge2Sub` (`Mağaza: %18.5 • Köprü: %2.3`) canlı kırılım etiketi eklendi; `switchPlatform('all'|'ios'|'android')` ile dinamik senkronize edildi.
+   - Masaüstü (`Mac/Windows` = `9` tık, `desktop_bridge_clicks`) tıklamaları `touchpoints_sub` ve `source_freshness` altında açıkça gösterilerek `1,032 iOS + 2,525 Android + 9 Masaüstü = 3,566` toplam etkileşim mutabakatı %100 sağlandı (`13/13 pytest` yeşil).
+
 ## [4.46.18] - 2026-11-01
 ### 🎬 Kurucu Kokpiti (Analytics Dashboard): 3'lü Konsensüs (`task-31` Claude CLI + `task-40` Codex CLI + Antigravity) Sıfır Mükerrerlik (Zero-Redundancy) & Executive Keynote / Sunum Modu Mimari Dönüşümü
 1. **Tek Satırlı Birleşik Büyüme & Dönüşüm Hunisi (`#conversionBridgeCard` / `.hero-stage-card`) (`app/api/v1/endpoints/analytics.py`, `public/preview_analytics_cockpit.html`):**

@@ -2237,10 +2237,11 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     )
     golden_hours = top_hours_sorted[:3]
 
-    # Uygulama İçi Cihaz Sinyalleri (app.html tarafından gönderilen tüm 7 event türü)
+    # Uygulama İçi Cihaz Sinyalleri (app.html ve köprü tarafından gönderilen event türleri)
     first_opens = [s for s in signals if s.event_type == "first_open"]
     daily_actives = [s for s in signals if s.event_type == "daily_active"]
     store_jumps = [s for s in signals if s.event_type == "store_jump"]
+    store_button_clicks = [s for s in signals if s.event_type == "store_button_click"]
     baby_created_signals = [s for s in signals if s.event_type == "baby_created"]
     vip_started_signals = [s for s in signals if s.event_type == "vip_started"]
     sleep_sound_signals = [s for s in signals if s.event_type == "sleep_sound_play"]
@@ -2971,6 +2972,46 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     ios_touchpoints = apple_page_views + ios_bridge_uniq
     android_touchpoints = android_bridge_uniq
 
+    # P1: Simpson Paradoksu & 24s Gecikme Ayrımı — Mağaza Sayfası CVR vs Sosyal Köprü CVR vs Kesinleşen Günler CVR
+    apple_page_views_uniq = max(1, int(sb.get("apple_page_views_unique", 0) or apple_page_views))
+    store_page_cvr_pct = (
+        min(100.0, round((apple_downloads / max(1, apple_page_views)) * 100, 1))
+        if apple_page_views > 0
+        else 0.0
+    )
+    store_unique_cvr_pct = (
+        min(100.0, round((apple_downloads / apple_page_views_uniq) * 100, 1))
+        if apple_page_views > 0
+        else 0.0
+    )
+    ios_bridge_dl = min(ios_bridge_uniq, r3_ref) if ios_bridge_uniq > 0 else 0
+    and_bridge_dl = min(android_bridge_uniq, google_play_downloads) if android_bridge_uniq > 0 else 0
+    ios_bridge_cvr_pct = (
+        round((ios_bridge_dl / max(1, ios_bridge_uniq)) * 100, 1)
+        if ios_bridge_uniq > 0
+        else 0.0
+    )
+    android_bridge_cvr_pct = (
+        round((and_bridge_dl / max(1, android_bridge_uniq)) * 100, 1)
+        if android_bridge_uniq > 0
+        else 0.0
+    )
+    all_bridge_installs = ios_bridge_dl + and_bridge_dl
+    all_bridge_cvr_pct = (
+        round((all_bridge_installs / max(1, len(unique_human))) * 100, 1)
+        if len(unique_human) > 0
+        else 0.0
+    )
+
+    settled_touchpoints = sum(int(d.get("daily_visits_clicks", 0) or 0) for d in settled_days)
+    settled_downloads = sum(int(d.get("daily_downloads", 0) or 0) for d in settled_days)
+    settled_cvr_pct = (
+        round((settled_downloads / max(1, settled_touchpoints)) * 100, 1)
+        if settled_touchpoints > 0
+        else round((total_cumulative_downloads / max(1, total_cumulative_visits_and_clicks)) * 100, 1)
+    )
+    desktop_sub_suffix = f" • 💻 {desktop_bridge_uniq} Masaüstü" if desktop_bridge_uniq > 0 else ""
+
     ios_subs_list = [s for s in subscriber_ledger_list if (s.get("platform") or "ios") == "ios"]
     android_subs_list = [s for s in subscriber_ledger_list if s.get("platform") == "android"]
     gp_catalog = sb.get("google_play_subscriptions_catalog") or _empty_store_state()["google_play_subscriptions_catalog"]
@@ -3023,12 +3064,18 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "impressions_sub": f"🍏 {apple_impressions:,} App Store API • 🤖 Google Play Köprü ({android_bridge_uniq} Tık)",
             "touchpoints": total_cumulative_visits_and_clicks,
             "touchpoints_display": f"{total_cumulative_visits_and_clicks:,}",
-            "touchpoints_sub": f"🍏 {ios_touchpoints} iOS ({apple_page_views} Mağaza + {ios_bridge_uniq} Tık) • 🤖 {android_touchpoints} Android Tık",
+            "touchpoints_sub": f"🍏 {ios_touchpoints} iOS ({apple_page_views} Mağaza + {ios_bridge_uniq} Tık) • 🤖 {android_touchpoints} Android Tık{desktop_sub_suffix}",
             "downloads": total_cumulative_downloads,
             "downloads_display": f"{total_cumulative_downloads}",
             "downloads_sub": f"🍏 {apple_downloads} iOS (%{round((apple_downloads / max(1, total_cumulative_downloads)) * 100)}) • 🤖 {google_play_downloads} Android (%{round((google_play_downloads / max(1, total_cumulative_downloads)) * 100)})",
             "vis_of_imp_pct": round((total_cumulative_visits_and_clicks / max(1, total_cumulative_impressions)) * 100, 1),
             "cvr_pct": round((total_cumulative_downloads / max(1, total_cumulative_visits_and_clicks)) * 100, 1),
+            "store_cvr_pct": store_page_cvr_pct,
+            "store_unique_cvr_pct": store_unique_cvr_pct,
+            "bridge_cvr_pct": all_bridge_cvr_pct,
+            "settled_cvr_pct": settled_cvr_pct,
+            "desktop_bridge_clicks": desktop_bridge_uniq,
+            "cvr_breakdown_label": f"Mağaza: %{store_page_cvr_pct} • Köprü: %{all_bridge_cvr_pct}",
             "dl_of_imp_pct": round((total_cumulative_downloads / max(1, total_cumulative_impressions)) * 100, 2),
             "vip_of_dl_pct": round((active_vip_total / max(1, total_cumulative_downloads)) * 100, 1),
             "vip_of_vis_pct": round((active_vip_total / max(1, total_cumulative_visits_and_clicks)) * 100, 2),
@@ -3060,6 +3107,12 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "downloads_sub": f"{r3_search} Arama • {r3_ref} Sosyal Referans • {recent_ios_dl} Doğrudan Sales API",
             "vis_of_imp_pct": round((ios_touchpoints / max(1, apple_impressions)) * 100, 1),
             "cvr_pct": round((apple_downloads / max(1, ios_touchpoints)) * 100, 1),
+            "store_cvr_pct": store_page_cvr_pct,
+            "store_unique_cvr_pct": store_unique_cvr_pct,
+            "bridge_cvr_pct": ios_bridge_cvr_pct,
+            "settled_cvr_pct": round((apple_downloads / max(1, ios_touchpoints)) * 100, 1),
+            "desktop_bridge_clicks": 0,
+            "cvr_breakdown_label": f"Mağaza: %{store_page_cvr_pct} (Cihaz: %{store_unique_cvr_pct}) • Köprü: %{ios_bridge_cvr_pct}",
             "dl_of_imp_pct": round((apple_downloads / max(1, apple_impressions)) * 100, 2),
             "vip_of_dl_pct": round((ios_active_cnt / max(1, apple_downloads)) * 100, 1),
             "vip_of_vis_pct": round((ios_active_cnt / max(1, ios_touchpoints)) * 100, 2),
@@ -3088,6 +3141,12 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "downloads_sub": f"{google_play_downloads} Doğrulanmış Android Kurulum ({android_signal_opens} Canlı İlk Açılış Sinyali)",
             "vis_of_imp_pct": 100.0 if android_bridge_uniq > 0 else 0.0,
             "cvr_pct": round((google_play_downloads / max(1, android_touchpoints)) * 100, 1),
+            "store_cvr_pct": android_bridge_cvr_pct,
+            "store_unique_cvr_pct": android_bridge_cvr_pct,
+            "bridge_cvr_pct": android_bridge_cvr_pct,
+            "settled_cvr_pct": android_bridge_cvr_pct,
+            "desktop_bridge_clicks": 0,
+            "cvr_breakdown_label": f"Köprü: %{android_bridge_cvr_pct} • Native Intent Aktif",
             "dl_of_imp_pct": round((google_play_downloads / max(1, android_bridge_uniq)) * 100, 2),
             "vip_of_dl_pct": round((and_active_cnt / max(1, google_play_downloads)) * 100, 1),
             "vip_of_vis_pct": round((and_active_cnt / max(1, android_touchpoints)) * 100, 2),
@@ -3110,7 +3169,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "label": "Canlı Köprü & Telemetri DB",
             "status": "realtime",
             "badge": f"⚡ Gerçek Zamanlı ({today_str})",
-            "detail": f"Toplam {len(unique_human)} Tık (🍏 {ios_bridge_uniq} iOS • 🤖 {android_bridge_uniq} Android)",
+            "detail": f"Toplam {len(unique_human)} Tık (🍏 {ios_bridge_uniq} iOS • 🤖 {android_bridge_uniq} Android{desktop_sub_suffix})",
         },
         {
             "id": "apple_sales_tsv",
@@ -3162,11 +3221,17 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "impressions_unique": int(sb.get("apple_impressions_unique", 0) or 0),
             "visits_and_clicks_total": total_cumulative_visits_and_clicks,
             "store_page_views": apple_page_views,
+            "store_page_views_unique": apple_page_views_uniq,
             "bridge_unique_clicks": len(unique_human),
+            "desktop_bridge_clicks": desktop_bridge_uniq,
             "store_taps": apple_taps,
             "downloads_total": total_cumulative_downloads,
             "ios_downloads": apple_downloads,
             "android_downloads": google_play_downloads,
+            "store_page_cvr_pct": store_page_cvr_pct,
+            "store_unique_cvr_pct": store_unique_cvr_pct,
+            "bridge_cvr_pct": all_bridge_cvr_pct,
+            "settled_cvr_pct": settled_cvr_pct,
             "active_sessions": apple_sessions,
             "vip_activations": apple_vip,
             "vip_total_records": all_total_rec,
@@ -3224,6 +3289,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "asa_clicks": asa_clicks_val,
             "total_acquisition_clicks": total_cumulative_visits_and_clicks,
             "store_jumps_tracked": len(store_jumps) + len(unique_human),
+            "store_button_clicks_tracked": len(store_button_clicks),
             "total_store_installs": total_cumulative_downloads,
             "first_open_signals": len(first_opens),
             "daily_active_signals": len(daily_actives),
@@ -5182,6 +5248,7 @@ async def analytics_dashboard_page(
               <span id="funnelHeadTitle">🎯 Kuzey Yıldızı Büyüme & Uçtan Uca Dönüşüm Hunisi (Gösterim ➔ Tık ➔ İndirme ➔ Aktif VIP)</span>
             </div>
             <div class="conv-summary-pills" id="funnelHeadBadge">
+              <span class="conv-summary-pill" style="background:rgba(5,150,105,0.08); border-color:rgba(5,150,105,0.28); color:var(--stage-3);" title="App Store ürün sayfası ziyaretinden indirmeye dönüşüm ve 24s gecikmeli günler hariç kesinleşmiş CVR">Mağaza CVR: <strong id="convStoreCvrPill">%{ps_all.get('store_cvr_pct', 0)}</strong> <span style="opacity:0.75;">(Kesinleşen: %{ps_all.get('settled_cvr_pct', 0)})</span></span>
               <span class="conv-summary-pill">Gösterim ➔ VIP (Uçtan Uca): <strong id="convSumVipImp">%{vip_of_imp_pct}</strong></span>
               <span class="conv-summary-pill" style="background:var(--bg-cell); border-color:var(--border-subtle); color:var(--text-secondary);">Tık ➔ VIP: <strong id="convCum4" style="color:var(--stage-4);">%{vip_of_vis_pct}</strong></span>
             </div>
@@ -5236,6 +5303,7 @@ async def analytics_dashboard_page(
             <div class="conv-connector">
               <span class="conv-conn-lbl">Tık ➔ İndirme</span>
               <span class="conv-conn-pill" style="color:var(--stage-3); border-color:rgba(5,150,105,0.28);" id="convBridge2">%{dl_of_vis_pct} ➔</span>
+              <span class="conv-conn-lbl" style="font-size:9.5px; color:var(--stage-3); font-weight:700;" id="convBridge2Sub">{ps_all.get('cvr_breakdown_label', '')}</span>
             </div>
 
             <!-- ADIM 3: TOPLAM İNDİRME -->
@@ -5322,7 +5390,7 @@ async def analytics_dashboard_page(
                   <td style="font-weight:800; color:#059669; font-size:14px;">{f_dl} Kurulum</td>
                   <td style="font-weight:800; color:#059669;">{kpis['ios_downloads']} iOS (%{dl_ios_pct})</td>
                   <td style="font-weight:800; color:#2563EB;">{kpis['android_downloads']} Android (%{100 - dl_ios_pct})</td>
-                  <td><span class="badge badge-gp">🍏 %{ps_ios.get('cvr_pct', 0)} CVR vs 🤖 %{ps_and.get('cvr_pct', 0)} CVR</span></td>
+                  <td><span class="badge badge-gp">🍏 %{ps_ios.get('cvr_pct', 0)} Genel (Mağaza %{ps_ios.get('store_cvr_pct', 0)}) vs 🤖 %{ps_and.get('cvr_pct', 0)} Köprü CVR</span></td>
                 </tr>
                 <tr>
                   <td><strong>4. Canlı Abonelik Paketleri</strong></td>
@@ -5840,10 +5908,14 @@ async def analytics_dashboard_page(
 
           var cb1 = document.getElementById('convBridge1');
           var cb2 = document.getElementById('convBridge2');
+          var cb2Sub = document.getElementById('convBridge2Sub');
           var cb3 = document.getElementById('convBridge3');
+          var csStorePill = document.getElementById('convStoreCvrPill');
           if (cb1) cb1.textContent = '%' + visOfImp + ' ➔';
           if (cb2) cb2.textContent = '%' + dlOfVis + ' ➔';
+          if (cb2Sub && p.cvr_breakdown_label) cb2Sub.textContent = p.cvr_breakdown_label;
           if (cb3) cb3.textContent = '%' + vipOfDl + ' ➔';
+          if (csStorePill && p.store_cvr_pct !== undefined) csStorePill.textContent = '%' + p.store_cvr_pct;
 
           var cc4 = document.getElementById('convCum4');
           if (cc4) cc4.textContent = '%' + vipOfImp + ' • %' + vipOfVis;

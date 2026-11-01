@@ -291,12 +291,25 @@ _BOT_USER_AGENTS = (
 
 APP_STORE_URL = "https://apps.apple.com/app/m%C4%B1%C5%9F%C4%B1l-baby-bebek-uyku-ve-a%C4%9Flama/id6809223195"
 GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=com.levitas.misilbaby"
+GOOGLE_PLAY_MARKET_URL = "market://details?id=com.levitas.misilbaby"
+GOOGLE_PLAY_INTENT_URL = (
+    "intent://details?id=com.levitas.misilbaby"
+    "#Intent;scheme=market;package=com.android.vending;"
+    "S.browser_fallback_url=https%3A%2F%2Fplay.google.com%2Fstore%2Fapps%2Fdetails%3Fid%3Dcom.levitas.misilbaby;end"
+)
 
 
 def generate_interstitial_html(is_android: bool) -> str:
     store_name = "Google Play" if is_android else "App Store"
     target_url = GOOGLE_PLAY_URL if is_android else APP_STORE_URL
+    cta_href = GOOGLE_PLAY_INTENT_URL if is_android else APP_STORE_URL
     store_icon = "🤖" if is_android else "🍏"
+    web_fallback_html = (
+        f'<a href="{GOOGLE_PLAY_URL}" id="storeWebFallbackBtn" class="sub-link" onclick="window.__sendStoreButtonSignal && window.__sendStoreButtonSignal(\'web_fallback\')">'
+        "Uygulama açılmazsa tarayıcıda Google Play sayfasını aç ↗</a>"
+        if is_android
+        else ""
+    )
 
     return f"""<!DOCTYPE html>
 <html lang="tr">
@@ -307,6 +320,12 @@ def generate_interstitial_html(is_android: bool) -> str:
   <meta property="og:title" content="Mışıl Baby — Bebek Uyku & Ağlama Analizi">
   <meta property="og:description" content="Yapay zeka ağlama analizi ve beyaz gürültü. {store_name}'de.">
   <meta property="og:image" content="/icon-512.png">
+  <meta property="al:ios:url" content="misilbaby://open">
+  <meta property="al:ios:app_store_id" content="6809223195">
+  <meta property="al:ios:app_name" content="Mışıl Baby">
+  <meta property="al:android:url" content="{GOOGLE_PLAY_MARKET_URL}">
+  <meta property="al:android:package" content="com.levitas.misilbaby">
+  <meta property="al:android:app_name" content="Mışıl Baby">
   <style>
     * {{ margin: 0; padding: 0; box-sizing: border-box; }}
     body {{
@@ -327,7 +346,7 @@ def generate_interstitial_html(is_android: bool) -> str:
       50% {{ transform: scale(1.12); filter: drop-shadow(0 0 24px rgba(232, 168, 85, 0.8)); }}
     }}
     h1 {{ font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; color: #FFFFFF; }}
-    p {{ color: #94A3B8; font-size: 0.95rem; margin-bottom: 24px; max-width: 320px; line-height: 1.5; }}
+    p {{ color: #94A3B8; font-size: 0.95rem; margin-bottom: 24px; max-width: 340px; line-height: 1.5; }}
     .btn {{
       background: linear-gradient(135deg, #E8A855 0%, #D4882B 100%);
       color: #0B0F19;
@@ -340,41 +359,77 @@ def generate_interstitial_html(is_android: bool) -> str:
       gap: 8px;
       box-shadow: 0 4px 20px rgba(232, 168, 85, 0.35);
     }}
+    .sub-link {{
+      margin-top: 16px;
+      color: #94A3B8;
+      font-size: 0.82rem;
+      text-decoration: underline;
+      opacity: 0.85;
+    }}
   </style>
   <script>
     (function() {{
-      var ua = navigator.userAgent.toLowerCase();
-      var target = "{target_url}";
-      var isAnd = ua.indexOf("android") > -1;
-      if (isAnd) {{
-        target = "{GOOGLE_PLAY_URL}";
-      }} else if (/iphone|ipad|ipod/.test(ua)) {{
-        target = "{APP_STORE_URL}";
+      var ua = (navigator.userAgent || "").toLowerCase();
+      var isAnd = ua.indexOf("android") > -1 || {str(bool(is_android)).lower()};
+      var isIos = /iphone|ipad|ipod/.test(ua);
+      var isIab = /fban|fbav|instagram|wv|line|tiktok/.test(ua);
+      var jumpUid = "jump_" + Math.random().toString(36).slice(2, 10);
+      var playHttpsUrl = "{GOOGLE_PLAY_URL}";
+      var playIntentUrl = "{GOOGLE_PLAY_INTENT_URL}";
+      var appStoreUrl = "{APP_STORE_URL}";
+
+      function emitBridgeSignal(evtType, platformTag) {{
+        try {{
+          var payload = JSON.stringify({{
+            device_uid: jumpUid,
+            event_type: evtType,
+            os_family: isAnd ? "android" : "ios",
+            platform: platformTag || (isIab ? "bridge_iab" : "bridge_interstitial"),
+            app_version: "4.46.0"
+          }});
+          if (navigator.sendBeacon) {{
+            var blob = new Blob([payload], {{ type: "application/json" }});
+            navigator.sendBeacon("/api/v1/analytics/app-open-signal", blob);
+          }} else {{
+            fetch("/api/v1/analytics/app-open-signal", {{
+              method: "POST",
+              headers: {{ "Content-Type": "application/json" }},
+              body: payload,
+              keepalive: true
+            }}).catch(function(){{}});
+          }}
+        }} catch (err) {{}}
       }}
-      try {{
-        var payload = JSON.stringify({{
-          device_uid: "jump_" + Math.random().toString(36).slice(2, 10),
-          event_type: "store_jump",
-          os_family: isAnd ? "android" : "ios",
-          platform: "bridge_interstitial",
-          app_version: "4.44.9"
-        }});
-        if (navigator.sendBeacon) {{
-          var blob = new Blob([payload], {{ type: "application/json" }});
-          navigator.sendBeacon("/api/v1/analytics/app-open-signal", blob);
-        }} else {{
-          fetch("/api/v1/analytics/app-open-signal", {{
-            method: "POST",
-            headers: {{ "Content-Type": "application/json" }},
-            body: payload,
-            keepalive: true
-          }}).catch(function(){{}});
+
+      window.__sendStoreButtonSignal = function(mode) {{
+        emitBridgeSignal("store_button_click", mode || (isIab ? "manual_cta_iab" : "manual_cta"));
+      }};
+
+      emitBridgeSignal("store_jump", isIab ? "bridge_iab" : "bridge_interstitial");
+
+      if (isAnd && !isIos) {{
+        // Android IAB & Chrome: Doğrudan yerel Google Play Store uygulamasını (com.android.vending) intent:// ile uyandır
+        try {{
+          window.location.replace(playIntentUrl);
+        }} catch (e) {{
+          window.location.href = playHttpsUrl;
         }}
-      }} catch (err) {{}}
-      try {{
-        window.location.replace(target);
-      }} catch (e) {{
-        window.location.href = target;
+        setTimeout(function() {{
+          if (!document.hidden) {{
+            try {{
+              window.location.replace(playHttpsUrl);
+            }} catch (err2) {{
+              window.location.href = playHttpsUrl;
+            }}
+          }}
+        }}, 1200);
+      }} else {{
+        var target = isIos ? appStoreUrl : "{target_url}";
+        try {{
+          window.location.replace(target);
+        }} catch (e) {{
+          window.location.href = target;
+        }}
       }}
     }})();
   </script>
@@ -382,10 +437,11 @@ def generate_interstitial_html(is_android: bool) -> str:
 <body>
   <div class="moon">🌙</div>
   <h1>Mışıl Baby Açılıyor...</h1>
-  <p>{store_name} sayfasına yönlendiriliyorsunuz. Açılmazsa aşağıdaki butona dokunun:</p>
-  <a href="{target_url}" class="btn">
+  <p>{store_name} uygulamasına yönlendiriliyorsunuz. Otomatik açılmazsa aşağıdaki butona dokunun:</p>
+  <a href="{cta_href}" id="storeOpenBtn" class="btn" onclick="window.__sendStoreButtonSignal && window.__sendStoreButtonSignal('primary_cta')">
     <span>{store_icon}</span> {store_name}'de Aç
   </a>
+  {web_fallback_html}
 </body>
 </html>"""
 
