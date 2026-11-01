@@ -635,6 +635,12 @@ def test_apple_connect_12_active_16_records_reconciliation_and_google_play_bridg
     assert "convBridge1" in dash_html
     assert "convBridge2" in dash_html
     assert "convBridge3" in dash_html
+    assert "hero-stage-card" in dash_html
+    assert "conv-bridge-grid" in dash_html
+    assert "togglePresentationMode" in dash_html
+    assert "toggleCompareDrawer" in dash_html
+    assert "funStep1Val" not in dash_html
+    assert "<strong>🌐 Kümülatif (Toplam — Apple + Google Play):</strong>" not in dash_html
 
 
 

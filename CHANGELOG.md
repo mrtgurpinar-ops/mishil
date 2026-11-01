@@ -2,6 +2,19 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.18] - 2026-11-01
+### 🎬 Kurucu Kokpiti (Analytics Dashboard): 3'lü Konsensüs (`task-31` Claude CLI + `task-40` Codex CLI + Antigravity) Sıfır Mükerrerlik (Zero-Redundancy) & Executive Keynote / Sunum Modu Mimari Dönüşümü
+1. **Tek Satırlı Birleşik Büyüme & Dönüşüm Hunisi (`#conversionBridgeCard` / `.hero-stage-card`) (`app/api/v1/endpoints/analytics.py`, `public/preview_analytics_cockpit.html`):**
+   - İcra & Doğrulama: **3'lü Konsensüs** (`task-31` Claude Code CLI + `task-40` Codex CLI `gpt-6-luna` + Antigravity).
+   - **Alt Alta İki Kez Basılan KPI + Huni Mükerrerliğinin Kaldırılması:** Aynı 4 ana metriği (`5,137`, `3,527`, `143`, `13 Aktif VIP`) ve aynı alt kırılım metinlerini alt alta iki kez tekrarlayan üst `.kpi-grid` ile alt `#conversionBridgeCard` tek bir **7 sütunlu (`1fr auto 1fr auto 1fr auto 1fr`) Executive Büyüme & Dönüşüm Hunisi** satırında birleştirildi.
+   - Her aşama kartında (`hero-stage-card`) yalnızca bir kez büyük metrik (`clamp(24px, 2.1vw, 31px)`), 14 günlük mini sparkline, gerçek platform/kohort oranlı (`vip_paid_pct / vip_trial_pct / vip_code_pct`) split-bar ve tekrarsız (`🌐 Kümülatif (Toplam — Apple + Google Play):` ön eki kaldırılmış) alt kırılım metni yer alır; kartların arasındaki `conv-connector` sütunları ise adım dönüşüm oklarını (`%68.7 ➔`, `%4.1 ➔`, `%9.1 ➔`) doğrudan bağlar.
+   - `13 Aktif VIP` ifadesinin iki satıra kırılması `<span class="big-num-unit">Aktif VIP</span>` ve `white-space: nowrap` ile giderildi.
+2. **Kompakt Veri Kaynağı Şeridi (`fs-chip`), Yalın Segmented Kontroller, Çekmeceli Platform Matrisi ve `📽️ Sunum Modu` (`togglePresentationMode`):**
+   - 4 büyük veri tazelik kartı (`freshness-strip`) üst başlık (`topbar`) içerisine gömülü kompakt durum rozetlerine (`fs-chip`) dönüştürüldü.
+   - Platform seçici butonlar (`🌐 Tümü`, `🍏 Apple iOS`, `🤖 Google Play`) ve sekme başlıkları (`1. Yönetici Özeti`, `2. Gelir & Abone Defteri`, vb.) parantez içi sayı tekrarlarından arındırıldı.
+   - Sekme 1'deki aynı sayıları 3. kez tekrarlayan 5 satırlık *Yan Yana Platform Karşılaştırması* tablosu varsayılan olarak katlanabilir çekmeceye (`#platformCompareDrawer` / `⚖️ Platform Kıyas Tablosu`) alındı; Sekme 1 açılışında doğrudan **14 Günlük Kümülatif Büyüme & İndirme İvmesi** grafiği görünür hale getirildi.
+   - Tek tıkla (veya `ESC` ile çıkılan) **`📽️ Sunum Modu` (`body.presentation-mode`)** eklendi; aktif edildiğinde operasyonel butonları ve veri kaynağı şeridini gizleyerek kokpiti yatırımcı/yönetim kurulu sunumu (Board Deck) görünümüne geçirir (`12/12 pytest` yeşil).
+
 ## [4.46.17] - 2026-11-01
 ### 📊 Kurucu Kokpiti (Analytics Dashboard): Apple App Store Connect (`12 Aktif VIP / 16 Kayıt / 4 İptal`) & Google Play (`monetization.subscriptions` + `purchases.subscriptionsv2`) 3'lü Konsensüs Mutabakatı
 1. **Apple App Store Connect (`SUBSCRIBER 1_3` + `SUBSCRIPTION 1_3` + `SUBSCRIPTION_EVENT 1_3`) Tam Mutabakatı (`app/api/v1/endpoints/analytics.py`):**
