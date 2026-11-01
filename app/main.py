@@ -367,6 +367,15 @@ def generate_interstitial_html(is_android: bool) -> str:
       opacity: 0.85;
     }}
   </style>
+</head>
+<body>
+  <div class="moon">🌙</div>
+  <h1>Mışıl Baby Açılıyor...</h1>
+  <p>{store_name} uygulamasına yönlendiriliyorsunuz. Otomatik açılmazsa aşağıdaki butona dokunun:</p>
+  <a href="{cta_href}" id="storeOpenBtn" class="btn" onclick="window.__sendStoreButtonSignal && window.__sendStoreButtonSignal('primary_cta')">
+    <span>{store_icon}</span> {store_name}'de Aç
+  </a>
+  {web_fallback_html}
   <script>
     (function() {{
       var ua = (navigator.userAgent || "").toLowerCase();
@@ -407,41 +416,44 @@ def generate_interstitial_html(is_android: bool) -> str:
 
       emitBridgeSignal("store_jump", isIab ? "bridge_iab" : "bridge_interstitial");
 
-      if (isAnd && !isIos) {{
-        // Android IAB & Chrome: Doğrudan yerel Google Play Store uygulamasını (com.android.vending) intent:// ile uyandır
-        try {{
-          window.location.replace(playIntentUrl);
-        }} catch (e) {{
-          window.location.href = playHttpsUrl;
-        }}
-        setTimeout(function() {{
-          if (!document.hidden) {{
-            try {{
-              window.location.replace(playHttpsUrl);
-            }} catch (err2) {{
-              window.location.href = playHttpsUrl;
-            }}
+      function triggerStoreRedirect() {{
+        if (isAnd && !isIos) {{
+          // Android IAB & Chrome: Doğrudan yerel Google Play Store uygulamasını (com.android.vending) intent:// ile uyandır
+          try {{
+            window.location.replace(playIntentUrl);
+          }} catch (e) {{
+            window.location.href = playHttpsUrl;
           }}
-        }}, 1200);
-      }} else {{
-        var target = isIos ? appStoreUrl : "{target_url}";
-        try {{
-          window.location.replace(target);
-        }} catch (e) {{
-          window.location.href = target;
+          setTimeout(function() {{
+            if (!document.hidden) {{
+              try {{
+                window.location.replace(playHttpsUrl);
+              }} catch (err2) {{
+                window.location.href = playHttpsUrl;
+              }}
+            }}
+          }}, 1200);
+        }} else {{
+          var target = isIos ? appStoreUrl : "{target_url}";
+          try {{
+            window.location.replace(target);
+          }} catch (e) {{
+            window.location.href = target;
+          }}
         }}
+      }}
+
+      // Meta "Yönlendirme Sayfası Görünümü" (Landing Page View) sayacının IAB içinde
+      // onPageFinished / DOMContentLoaded olayını kaydetmesi için ilk boyamadan (120ms) hemen sonra yönlendir
+      if (document.readyState === "complete" || document.readyState === "interactive") {{
+        setTimeout(triggerStoreRedirect, 120);
+      }} else {{
+        window.addEventListener("DOMContentLoaded", function() {{
+          setTimeout(triggerStoreRedirect, 120);
+        }});
       }}
     }})();
   </script>
-</head>
-<body>
-  <div class="moon">🌙</div>
-  <h1>Mışıl Baby Açılıyor...</h1>
-  <p>{store_name} uygulamasına yönlendiriliyorsunuz. Otomatik açılmazsa aşağıdaki butona dokunun:</p>
-  <a href="{cta_href}" id="storeOpenBtn" class="btn" onclick="window.__sendStoreButtonSignal && window.__sendStoreButtonSignal('primary_cta')">
-    <span>{store_icon}</span> {store_name}'de Aç
-  </a>
-  {web_fallback_html}
 </body>
 </html>"""
 
