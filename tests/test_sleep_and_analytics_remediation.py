@@ -629,8 +629,12 @@ def test_apple_connect_12_active_16_records_reconciliation_and_google_play_bridg
     assert "vip_of_imp_pct" in ps_all
 
     dash_html = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"}).text
-    assert "Gösterim ➔ VIP:" in dash_html
-    assert "İndirme ➔ VIP:" in dash_html
+    assert "Gösterim ➔ VIP" in dash_html
+    assert "İndirme ➔ VIP" in dash_html
+    assert "conversionBridgeCard" in dash_html
+    assert "convBridge1" in dash_html
+    assert "convBridge2" in dash_html
+    assert "convBridge3" in dash_html
 
 
 

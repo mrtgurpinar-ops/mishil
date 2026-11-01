@@ -4605,6 +4605,180 @@ async def analytics_dashboard_page(
           display: flex;
           flex-direction: column;
           justify-content: space-between;
+          min-width: 0;
+          overflow: hidden;
+        }}
+        /* YATAY KADEMELİ HUNİ & ADIM KÖPRÜSÜ GRAFİĞİ */
+        .conv-bridge-card {{
+          margin-bottom: 18px;
+          padding: 18px 20px;
+        }}
+        .conv-bridge-head {{
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-bottom: 14px;
+        }}
+        .conv-bridge-title {{
+          font-family: 'Sora', sans-serif;
+          font-size: 14px;
+          font-weight: 800;
+          color: var(--text-primary);
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }}
+        .conv-summary-pills {{
+          display: flex;
+          flex-wrap: wrap;
+          gap: 6px;
+        }}
+        .conv-summary-pill {{
+          display: inline-flex;
+          align-items: center;
+          gap: 5px;
+          padding: 4px 10px;
+          border-radius: 99px;
+          font-size: 11px;
+          font-weight: 800;
+          font-variant-numeric: tabular-nums;
+          border: 1px solid var(--border-subtle);
+          background: var(--bg-cell);
+          color: var(--text-secondary);
+        }}
+        .conv-summary-pill strong {{
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 11.5px;
+        }}
+        .conv-bridge-grid {{
+          display: grid;
+          grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+          align-items: stretch;
+          gap: 8px;
+        }}
+        @media (max-width: 1150px) {{
+          .conv-bridge-grid {{
+            grid-template-columns: 1fr;
+            gap: 10px;
+          }}
+          .conv-connector {{
+            flex-direction: row !important;
+            padding: 4px 10px !important;
+          }}
+        }}
+        .conv-stage {{
+          background: var(--bg-cell);
+          border: 1px solid var(--border-subtle);
+          border-radius: 14px;
+          padding: 13px 14px;
+          display: flex;
+          flex-direction: column;
+          justify-content: space-between;
+          min-width: 0;
+          position: relative;
+        }}
+        .conv-stage-top {{
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 6px;
+          margin-bottom: 6px;
+        }}
+        .conv-stage-name {{
+          font-size: 10.5px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.35px;
+        }}
+        .conv-stage-step-tag {{
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 10.5px;
+          font-weight: 800;
+          padding: 2px 7px;
+          border-radius: 6px;
+          white-space: nowrap;
+        }}
+        .conv-stage-val {{
+          font-family: 'Sora', sans-serif;
+          font-size: 21px;
+          font-weight: 800;
+          color: var(--text-primary);
+          line-height: 1.15;
+          font-variant-numeric: tabular-nums;
+          margin-bottom: 4px;
+        }}
+        .conv-stage-sub {{
+          font-size: 11.5px;
+          color: var(--text-muted);
+          line-height: 1.35;
+          margin-bottom: 10px;
+        }}
+        .conv-bar-track {{
+          width: 100%;
+          height: 8px;
+          background: var(--ring-track);
+          border-radius: 99px;
+          overflow: hidden;
+          margin-bottom: 8px;
+        }}
+        .conv-bar-fill {{
+          height: 100%;
+          border-radius: 99px;
+          transition: width 0.25s ease;
+        }}
+        .conv-cum-row {{
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 6px;
+          padding-top: 6px;
+          border-top: 1px dashed var(--border-subtle);
+          font-size: 11px;
+          color: var(--text-secondary);
+          font-weight: 700;
+        }}
+        .conv-cum-val {{
+          font-family: 'JetBrains Mono', monospace;
+          font-weight: 800;
+          font-size: 11.5px;
+          font-variant-numeric: tabular-nums;
+        }}
+        .conv-connector {{
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          gap: 3px;
+          padding: 0 2px;
+          min-width: 68px;
+        }}
+        .conv-conn-pill {{
+          font-family: 'JetBrains Mono', monospace;
+          font-size: 12px;
+          font-weight: 800;
+          padding: 4px 8px;
+          border-radius: 99px;
+          border: 1px solid var(--border-subtle);
+          background: var(--bg-card);
+          box-shadow: var(--card-shadow);
+          white-space: nowrap;
+          font-variant-numeric: tabular-nums;
+        }}
+        .conv-conn-lbl {{
+          font-size: 9.5px;
+          font-weight: 800;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.2px;
+          text-align: center;
+          white-space: nowrap;
+        }}
+        .conv-conn-arrow {{
+          font-size: 13px;
+          line-height: 1;
+          color: var(--text-muted);
         }}
         .card-label {{
           font-size: 11.5px;
@@ -4967,7 +5141,7 @@ async def analytics_dashboard_page(
             <div>
               <div class="card-label">
                 <span id="kpiTitle1">1. Mağaza Gösterimi</span>
-                <span class="delta-chip" id="kpiDelta1" style="background:rgba(217,119,6,0.14); color:#D97706;">+{s['kpi_deltas']['recent_3d_impressions']} (3G) • %100 Baz</span>
+                <span class="delta-chip" id="kpiDelta1" style="background:rgba(217,119,6,0.14); color:#D97706;">+{s['kpi_deltas']['recent_3d_impressions']} (3G)</span>
               </div>
               <div class="kpi-hero-row">
                 <div class="big-num" style="color: #D97706;" id="kpiImpressions">{f_imp:,}</div>
@@ -4979,8 +5153,7 @@ async def analytics_dashboard_page(
               </div>
             </div>
             <div class="card-desc" id="kpiDesc1">
-              <strong>{html.escape(str(ps_all.get('label', '')))}:</strong> {ps_all.get('impressions_sub', '')} • <strong>{kpis['impressions_unique']:,}</strong> tekil cihaz<br>
-              <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(217,119,6,0.10); color:#D97706; font-weight:700; font-size:11.5px;">🎯 Huni Başlangıcı: %100.0 Baz</span>
+              <strong>{html.escape(str(ps_all.get('label', '')))}:</strong> {ps_all.get('impressions_sub', '')}
             </div>
           </div>
 
@@ -4988,7 +5161,7 @@ async def analytics_dashboard_page(
             <div>
               <div class="card-label">
                 <span id="kpiTitle2">2. İnceleme & Sosyal Tık</span>
-                <span class="delta-chip" id="kpiDelta2" style="background:rgba(37,99,235,0.14); color:#2563EB;">+{s['today_unique_clicks']} Bugün • Gösterim ➔ Tık %{vis_of_imp_pct}</span>
+                <span class="delta-chip" id="kpiDelta2" style="background:rgba(37,99,235,0.14); color:#2563EB;">+{s['today_unique_clicks']} Bugün</span>
               </div>
               <div class="kpi-hero-row">
                 <div class="big-num" style="color: #2563EB;" id="kpiVisitsClicks">{f_vis:,}</div>
@@ -5000,8 +5173,7 @@ async def analytics_dashboard_page(
               </div>
             </div>
             <div class="card-desc" id="kpiDesc2">
-              <strong>{html.escape(str(ps_all.get('label', '')))}:</strong> {ps_all.get('touchpoints_sub', '')}<br>
-              <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(37,99,235,0.10); color:#2563EB; font-weight:700; font-size:11.5px;">🎯 Gösterim ➔ İnceleme Dönüşümü: %{vis_of_imp_pct}</span>
+              <strong>{html.escape(str(ps_all.get('label', '')))}:</strong> {ps_all.get('touchpoints_sub', '')}
             </div>
           </div>
 
@@ -5009,7 +5181,7 @@ async def analytics_dashboard_page(
             <div>
               <div class="card-label">
                 <span id="kpiTitle3">3. Toplam İndirme</span>
-                <span class="delta-chip" id="kpiDelta3">+{s['kpi_deltas']['recent_3d_downloads']} (3G) • Tık ➔ İndirme %{dl_of_vis_pct}</span>
+                <span class="delta-chip" id="kpiDelta3">+{s['kpi_deltas']['recent_3d_downloads']} (3G) • CVR %{dl_of_vis_pct}</span>
               </div>
               <div class="kpi-hero-row">
                 <div class="big-num" style="color: #059669;" id="kpiDownloads">{f_dl}</div>
@@ -5021,8 +5193,7 @@ async def analytics_dashboard_page(
               </div>
             </div>
             <div class="card-desc" id="kpiDesc3">
-              <strong>{html.escape(str(ps_all.get('label', '')))}:</strong> {ps_all.get('downloads_sub', '')}<br>
-              <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(5,150,105,0.10); color:#059669; font-weight:700; font-size:11.5px;">🎯 Tık ➔ İndirme: %{dl_of_vis_pct} • Gösterim ➔ İndirme: %{dl_of_imp_pct}</span>
+              <strong>{html.escape(str(ps_all.get('label', '')))}:</strong> {ps_all.get('downloads_sub', '')}
             </div>
           </div>
 
@@ -5030,7 +5201,7 @@ async def analytics_dashboard_page(
             <div>
               <div class="card-label">
                 <span id="kpiTitle4">4. VIP & Beklenen Net MRR</span>
-                <span class="delta-chip" id="kpiDelta4" style="background:rgba(124,58,237,0.14); color:#7C3AED;">İndirme ➔ VIP %{vip_of_dl_pct} • Gösterim ➔ VIP %{vip_of_imp_pct}</span>
+                <span class="delta-chip" id="kpiDelta4" style="background:rgba(124,58,237,0.14); color:#7C3AED;">{fl['projected_total_mrr_net_try']:.2f} ₺/Ay Net</span>
               </div>
               <div class="kpi-hero-row">
                 <div class="big-num" style="color: #7C3AED;" id="kpiVip">{f_vip} Aktif VIP</div>
@@ -5043,8 +5214,129 @@ async def analytics_dashboard_page(
               </div>
             </div>
             <div class="card-desc" id="kpiDesc4">
-              <strong>{html.escape(str(ps_all.get('label', '')))}:</strong> {ps_all.get('vip_sub', '')} • <strong>{fl['projected_total_mrr_net_try']:.2f} ₺/Ay Net MRR</strong><br>
-              <span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(124,58,237,0.12); color:#7C3AED; font-weight:700; font-size:11.5px;">🎯 İndirme ➔ VIP: %{vip_of_dl_pct} • Tık ➔ VIP: %{vip_of_vis_pct} • Gösterim ➔ VIP: %{vip_of_imp_pct}</span>
+              <strong>{html.escape(str(ps_all.get('label', '')))}:</strong> {ps_all.get('vip_sub', '')}
+            </div>
+          </div>
+        </div>
+
+        <!-- SABİT YATAY KADEMELİ HUNİ & ADIM KÖPRÜSÜ GRAFİĞİ (TÜM SEKMELERDE SABİT GÖRÜNÜR) -->
+        <div class="bento-card conv-bridge-card" id="conversionBridgeCard">
+          <div class="conv-bridge-head">
+            <div class="conv-bridge-title">
+              <span id="funnelHeadTitle">🎯 Uçtan Uca Yüzdesel Dönüşüm Hunisi & Adım Köprüsü (Gösterim ➔ Tık ➔ İndirme ➔ VIP)</span>
+            </div>
+            <div class="conv-summary-pills" id="funnelHeadBadge">
+              <span class="conv-summary-pill">Gösterim ➔ Tık: <strong style="color:#2563EB;" id="convSumVisImp">%{vis_of_imp_pct}</strong></span>
+              <span class="conv-summary-pill">Tık ➔ İndirme: <strong style="color:#059669;" id="convSumDlVis">%{dl_of_vis_pct}</strong></span>
+              <span class="conv-summary-pill">İndirme ➔ VIP: <strong style="color:#7C3AED;" id="convSumVipDl">%{vip_of_dl_pct}</strong></span>
+              <span class="conv-summary-pill" style="background:rgba(124,58,237,0.10); border-color:rgba(124,58,237,0.28); color:#7C3AED;">Gösterim ➔ VIP (Uçtan Uca): <strong id="convSumVipImp">%{vip_of_imp_pct}</strong></span>
+            </div>
+          </div>
+
+          <div class="conv-bridge-grid">
+            <!-- ADIM 1: GÖSTERİM -->
+            <div class="conv-stage" style="border-top: 3px solid #F59E0B;">
+              <div>
+                <div class="conv-stage-top">
+                  <span class="conv-stage-name" style="color:#D97706;">1. Mağaza Gösterimi</span>
+                  <span class="conv-stage-step-tag" style="background:rgba(217,119,6,0.14); color:#D97706;" id="convStepTag1">%100.0 Baz</span>
+                </div>
+                <div class="conv-stage-val" id="funStep1Val">{f_imp:,}</div>
+                <div class="conv-stage-sub" id="funStep1Sub">App Store'da görüntülendi ({imp_search:,} Arama + {imp_browse} Keşfet • {kpis['impressions_unique']:,} Cihaz)</div>
+              </div>
+              <div>
+                <div class="conv-bar-track">
+                  <div class="conv-bar-fill" id="convBar1" style="width:100%; background:#F59E0B;"></div>
+                </div>
+                <div class="conv-cum-row">
+                  <span>Gösterimden Kümülatif:</span>
+                  <span class="conv-cum-val" style="color:#D97706;" id="convCum1">%100.0</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- KÖPRÜ 1: GÖSTERİM ➔ TIK -->
+            <div class="conv-connector">
+              <span class="conv-conn-lbl">Gösterim ➔ Tık</span>
+              <span class="conv-conn-pill" style="color:#2563EB; border-color:rgba(37,99,235,0.3);" id="convBridge1">%{vis_of_imp_pct} ➔</span>
+              <span class="conv-conn-lbl">Adım Dönüşümü</span>
+            </div>
+
+            <!-- ADIM 2: İNCELEME & SOSYAL TIK -->
+            <div class="conv-stage" style="border-top: 3px solid #3B82F6;">
+              <div>
+                <div class="conv-stage-top">
+                  <span class="conv-stage-name" style="color:#2563EB;">2. İnceleme & Tık</span>
+                  <span class="conv-stage-step-tag" style="background:rgba(37,99,235,0.14); color:#2563EB;" id="convStepTag2">Adım: %{vis_of_imp_pct}</span>
+                </div>
+                <div class="conv-stage-val" id="funStep2Val">{f_vis:,}</div>
+                <div class="conv-stage-sub" id="funStep2Sub">🍏 {ps_ios.get('touchpoints', 0)} iOS ({kpis['store_page_views']} Sayfa + {ps_ios.get('touchpoints', 0) - kpis['store_page_views']} Tık) • 🤖 {ps_and.get('touchpoints', 0)} Android Tık</div>
+              </div>
+              <div>
+                <div class="conv-bar-track">
+                  <div class="conv-bar-fill" id="convBar2" style="width:{min(100, max(14, round(vis_of_imp_pct)))}%; background:#3B82F6;"></div>
+                </div>
+                <div class="conv-cum-row">
+                  <span>Gösterimden Kümülatif:</span>
+                  <span class="conv-cum-val" style="color:#2563EB;" id="convCum2">%{vis_of_imp_pct}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- KÖPRÜ 2: TIK ➔ İNDİRME -->
+            <div class="conv-connector">
+              <span class="conv-conn-lbl">Tık ➔ İndirme</span>
+              <span class="conv-conn-pill" style="color:#059669; border-color:rgba(16,185,129,0.35);" id="convBridge2">%{dl_of_vis_pct} ➔</span>
+              <span class="conv-conn-lbl">Kurulum CVR</span>
+            </div>
+
+            <!-- ADIM 3: İNDİRME -->
+            <div class="conv-stage" style="border-top: 3px solid #10B981;">
+              <div>
+                <div class="conv-stage-top">
+                  <span class="conv-stage-name" style="color:#059669;">3. Toplam İndirme</span>
+                  <span class="conv-stage-step-tag" style="background:rgba(16,185,129,0.14); color:#059669;" id="convStepTag3">Adım: %{dl_of_vis_pct}</span>
+                </div>
+                <div class="conv-stage-val" id="funStep3Val">{f_dl} Kurulum</div>
+                <div class="conv-stage-sub" id="funStep3Sub">🍏 {kpis['ios_downloads']} iOS (%{dl_ios_pct}) + 🤖 {kpis['android_downloads']} Android (%{100 - dl_ios_pct})</div>
+              </div>
+              <div>
+                <div class="conv-bar-track">
+                  <div class="conv-bar-fill" id="convBar3" style="width:{min(100, max(16, round(dl_of_vis_pct * 3.5)))}%; background:#10B981;"></div>
+                </div>
+                <div class="conv-cum-row">
+                  <span>Gösterimden Kümülatif:</span>
+                  <span class="conv-cum-val" style="color:#059669;" id="convCum3">%{dl_of_imp_pct}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- KÖPRÜ 3: İNDİRME ➔ VIP -->
+            <div class="conv-connector">
+              <span class="conv-conn-lbl">İndirme ➔ VIP</span>
+              <span class="conv-conn-pill" style="color:#7C3AED; border-color:rgba(124,58,237,0.35);" id="convBridge3">%{vip_of_dl_pct} ➔</span>
+              <span class="conv-conn-lbl">Paywall CVR</span>
+            </div>
+
+            <!-- ADIM 4: AKTİF VIP -->
+            <div class="conv-stage" style="border-top: 3px solid #8B5CF6;">
+              <div>
+                <div class="conv-stage-top">
+                  <span class="conv-stage-name" style="color:#7C3AED;">4. Aktif VIP Abone</span>
+                  <span class="conv-stage-step-tag" style="background:rgba(124,58,237,0.14); color:#7C3AED;" id="convStepTag4">Adım: %{vip_of_dl_pct}</span>
+                </div>
+                <div class="conv-stage-val" id="funStep4Val">{f_vip} Aktif VIP</div>
+                <div class="conv-stage-sub" id="funStep4Sub">🍏 {ps_ios.get('vip_count', f_vip)} Apple VIP ({paid_conv} Ücretli + {active_trials} Deneme + {offer_code_subs} Kod) • 🤖 {ps_and.get('vip_count', 0)} Android VIP</div>
+              </div>
+              <div>
+                <div class="conv-bar-track">
+                  <div class="conv-bar-fill" id="convBar4" style="width:{min(100, max(14, round(vip_of_dl_pct * 3)))}%; background:#8B5CF6;"></div>
+                </div>
+                <div class="conv-cum-row">
+                  <span>Gösterim ➔ VIP • Tık ➔ VIP:</span>
+                  <span class="conv-cum-val" style="color:#7C3AED;" id="convCum4">%{vip_of_imp_pct} • %{vip_of_vis_pct}</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -5122,54 +5414,6 @@ async def analytics_dashboard_page(
                   </tr>
                 </tbody>
               </table>
-            </div>
-          </div>
-
-          <div class="bento-card">
-            <div class="section-head">
-              <span id="funnelHeadTitle">🧭 Ebeveynlerin 4 Adımlı Dönüşüm Hunisi (Görmeden ➔ Doğrulanmış VIP Aboneliğe)</span>
-              <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;" id="funnelHeadBadge">İndirme ➔ VIP Dönüşümü: %{vip_of_dl_pct}</span>
-            </div>
-            <div class="steps-grid">
-              <div class="step-box" style="border-left: 4px solid #F59E0B;">
-                <div class="step-num" style="color:#D97706;">1. ADIM • KARŞILAŞMA (100%)</div>
-                <div class="step-val" id="funStep1Val">{f_imp:,}</div>
-                <div class="step-sub" id="funStep1Sub">App Store'da Mışıl Baby görüntülendi ({imp_search:,} Arama + {imp_browse} Keşfet)</div>
-                <div style="margin-top:8px; height:6px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
-                  <div style="width:100%; height:100%; background:#F59E0B;"></div>
-                </div>
-                <span class="step-rate">👥 {kpis['impressions_unique']:,} Tekil Cihaz</span>
-              </div>
-
-              <div class="step-box" style="border-left: 4px solid #3B82F6;">
-                <div class="step-num" style="color:#2563EB;">2. ADIM • İNCELEME (%{vis_of_imp_pct})</div>
-                <div class="step-val" id="funStep2Val">{f_vis}</div>
-                <div class="step-sub" id="funStep2Sub">🍏 {ps_ios.get('touchpoints', 0)} iOS ({kpis['store_page_views']} Sayfa + {ps_ios.get('touchpoints', 0) - kpis['store_page_views']} Tık) • 🤖 {ps_and.get('touchpoints', 0)} Android Köprü Tıkı</div>
-                <div style="margin-top:8px; height:6px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
-                  <div style="width:{min(100, max(12, round(vis_of_imp_pct)))}%; height:100%; background:#3B82F6;"></div>
-                </div>
-                <span class="step-rate">➔ İlgilenme Oranı: %{vis_of_imp_pct}</span>
-              </div>
-
-              <div class="step-box" style="border-left: 4px solid #10B981;">
-                <div class="step-num" style="color:#059669;">3. ADIM • İNDİRME (%{dl_of_vis_pct})</div>
-                <div class="step-val" id="funStep3Val">{f_dl}</div>
-                <div class="step-sub" id="funStep3Sub">Uygulamayı telefonuna indirdi (🍏 {kpis['ios_downloads']} iOS + 🤖 {kpis['android_downloads']} Android)</div>
-                <div style="margin-top:8px; height:6px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
-                  <div style="width:{min(100, max(15, round(dl_of_vis_pct * 2.2)))}%; height:100%; background:#10B981;"></div>
-                </div>
-                <span class="step-rate">➔ İndirmeye Dönüşüm: %{dl_of_vis_pct}</span>
-              </div>
-
-              <div class="step-box" style="border-left: 4px solid #8B5CF6;">
-                <div class="step-num" style="color:#7C3AED;">4. ADIM • VIP & MEMNUNİYET (%{vip_of_dl_pct})</div>
-                <div class="step-val" id="funStep4Val">{f_vip} VIP • {avg_stars_label}</div>
-                <div class="step-sub" id="funStep4Sub">🍏 {ps_ios.get('vip_count', f_vip)} Apple VIP ({paid_conv} ücretli + {offer_code_subs} kodlu + {active_trials} deneme) • 🤖 {ps_and.get('vip_count', 0)} Android VIP</div>
-                <div style="margin-top:8px; height:6px; background:var(--ring-track); border-radius:99px; overflow:hidden;">
-                  <div style="width:{min(100, max(14, round(vip_of_dl_pct * 3)))}%; height:100%; background:#8B5CF6;"></div>
-                </div>
-                <span class="step-rate">➔ Aktif VIP Oranı: %{vip_of_dl_pct}</span>
-              </div>
             </div>
           </div>
 
@@ -5616,14 +5860,13 @@ async def analytics_dashboard_page(
           var vipOfVis = (p.vip_of_vis_pct !== undefined) ? p.vip_of_vis_pct : 0;
           var vipOfImp = (p.vip_of_imp_pct !== undefined) ? p.vip_of_imp_pct : 0;
 
-          if (dl2) dl2.textContent = 'Gösterim ➔ Tık %' + visOfImp;
-          if (dl3) dl3.textContent = 'Tık ➔ İndirme %' + dlOfVis + ' • Gösterim ➔ İndirme %' + dlOfImp;
-          if (dl4) dl4.textContent = 'İndirme ➔ VIP %' + vipOfDl + ' • Gösterim ➔ VIP %' + vipOfImp;
+          if (dl3) dl3.textContent = 'CVR %' + dlOfVis;
+          if (dl4) dl4.textContent = Number(p.mrr_net_try || 0).toFixed(2) + ' ₺/Ay Net';
 
-          if (d1) d1.innerHTML = '<strong>' + p.label + ':</strong> ' + p.impressions_sub + '<br><span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(217,119,6,0.10); color:#D97706; font-weight:700; font-size:11.5px;">🎯 Huni Başlangıcı: %100.0 Baz</span>';
-          if (d2) d2.innerHTML = '<strong>' + p.label + ':</strong> ' + p.touchpoints_sub + '<br><span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(37,99,235,0.10); color:#2563EB; font-weight:700; font-size:11.5px;">🎯 Gösterim ➔ İnceleme Dönüşümü: %' + visOfImp + '</span>';
-          if (d3) d3.innerHTML = '<strong>' + p.label + ':</strong> ' + p.downloads_sub + '<br><span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(5,150,105,0.10); color:#059669; font-weight:700; font-size:11.5px;">🎯 Tık ➔ İndirme: %' + dlOfVis + ' • Gösterim ➔ İndirme: %' + dlOfImp + '</span>';
-          if (d4) d4.innerHTML = '<strong>' + p.label + ':</strong> ' + p.vip_sub + ' • <strong>' + Number(p.mrr_net_try || 0).toFixed(2) + ' ₺/Ay Net MRR</strong> • ★ 5.0 (' + p.reviews_count + ' Yorum)<br><span style="display:inline-block; margin-top:4px; padding:2px 8px; border-radius:6px; background:rgba(124,58,237,0.12); color:#7C3AED; font-weight:700; font-size:11.5px;">🎯 İndirme ➔ VIP: %' + vipOfDl + ' • Tık ➔ VIP: %' + vipOfVis + ' • Gösterim ➔ VIP: %' + vipOfImp + '</span>';
+          if (d1) d1.innerHTML = '<strong>' + p.label + ':</strong> ' + p.impressions_sub;
+          if (d2) d2.innerHTML = '<strong>' + p.label + ':</strong> ' + p.touchpoints_sub;
+          if (d3) d3.innerHTML = '<strong>' + p.label + ':</strong> ' + p.downloads_sub;
+          if (d4) d4.innerHTML = '<strong>' + p.label + ':</strong> ' + p.vip_sub + ' • ★ 5.0 (' + p.reviews_count + ' Yorum)';
 
           var f1v = document.getElementById('funStep1Val');
           var f1s = document.getElementById('funStep1Sub');
@@ -5638,9 +5881,46 @@ async def analytics_dashboard_page(
           if (f2v) f2v.textContent = p.touchpoints_display;
           if (f2s) f2s.textContent = p.touchpoints_sub;
           if (f3v) f3v.textContent = p.downloads_display + ' Kurulum';
-          if (f3s) f3s.textContent = p.downloads_sub + ' (%' + p.cvr_pct + ' Kurulum CVR)';
+          if (f3s) f3s.textContent = p.downloads_sub;
           if (f4v) f4v.textContent = p.vip_display + ' (' + Number(p.mrr_net_try || 0).toFixed(2) + ' ₺ Net)';
           if (f4s) f4s.textContent = p.vip_sub;
+
+          var csVisImp = document.getElementById('convSumVisImp');
+          var csDlVis = document.getElementById('convSumDlVis');
+          var csVipDl = document.getElementById('convSumVipDl');
+          var csVipImp = document.getElementById('convSumVipImp');
+          if (csVisImp) csVisImp.textContent = '%' + visOfImp;
+          if (csDlVis) csDlVis.textContent = '%' + dlOfVis;
+          if (csVipDl) csVipDl.textContent = '%' + vipOfDl;
+          if (csVipImp) csVipImp.textContent = '%' + vipOfImp;
+
+          var cb1 = document.getElementById('convBridge1');
+          var cb2 = document.getElementById('convBridge2');
+          var cb3 = document.getElementById('convBridge3');
+          if (cb1) cb1.textContent = '%' + visOfImp + ' ➔';
+          if (cb2) cb2.textContent = '%' + dlOfVis + ' ➔';
+          if (cb3) cb3.textContent = '%' + vipOfDl + ' ➔';
+
+          var ct2 = document.getElementById('convStepTag2');
+          var ct3 = document.getElementById('convStepTag3');
+          var ct4 = document.getElementById('convStepTag4');
+          if (ct2) ct2.textContent = 'Adım: %' + visOfImp;
+          if (ct3) ct3.textContent = 'Adım: %' + dlOfVis;
+          if (ct4) ct4.textContent = 'Adım: %' + vipOfDl;
+
+          var cc2 = document.getElementById('convCum2');
+          var cc3 = document.getElementById('convCum3');
+          var cc4 = document.getElementById('convCum4');
+          if (cc2) cc2.textContent = '%' + visOfImp;
+          if (cc3) cc3.textContent = '%' + dlOfImp;
+          if (cc4) cc4.textContent = '%' + vipOfImp + ' • %' + vipOfVis;
+
+          var bar2 = document.getElementById('convBar2');
+          var bar3 = document.getElementById('convBar3');
+          var bar4 = document.getElementById('convBar4');
+          if (bar2) bar2.style.width = Math.min(100, Math.max(14, Math.round(visOfImp))) + '%';
+          if (bar3) bar3.style.width = Math.min(100, Math.max(16, Math.round(dlOfVis * 3.5))) + '%';
+          if (bar4) bar4.style.width = Math.min(100, Math.max(14, Math.round(vipOfDl * 3))) + '%';
 
           if (!skipChartSync) {{
             if (plat === 'ios') switchChartMode('ios');
