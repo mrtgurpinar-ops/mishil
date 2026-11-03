@@ -2,6 +2,45 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.22] - 2026-11-03
+### 💎 İndirme ➔ Aktif VIP Dönüşüm (CRO) & Büyüme Pazarlaması Mimari Paketi (`app.html`, `offlineHtml.generated.ts`, `analytics.py`)
+1. **3 Ajanlı Teknik CRO & Büyüme Pazarlaması (CMO) Konsensüsü (`task-59` & `task-96` Codex CLI `gpt-6-luna` + `task-73` & `task-95` Claude Code CLI + Antigravity):**
+   - İndirmeden aktif VIP'ye dönüşüm dar boğazları (7 günlük ücretsiz denemenin ilk 24 saatinde %36.3 iptal oranı, 32 Android kurulumunda 0 abone, mühendislik jargonu, uzun kaydırma altında kalan CTA ve kör paywall hunisi) hem mühendislik hem pazarlama perspektifiyle 3 ajan tarafından denetlendi.
+2. **Şeffaf 7 Günlük Deneme Zaman Çizelgesi, Yapışkan (Sticky) CTA & Anne Diliyle Fayda Konumlandırması (`projects/mishil/public/app.html`):**
+   - `#quiz-step-5` (Kişisel Uyku Raporu & Paywall) ekranına 3 adımlı görsel **7 Günlük Deneme Zaman Çizelgesi (`#onboarding-trial-timeline`: Bugün ₺0 ➔ 5. Gün Hatırlatma ➔ 8. Gün Dinamik Başlangıç)** eklendi; `selectOnboardingPlan('yearly'|'monthly')` ve `window.applyStorePrices` ile `#onboarding-timeline-day7-text` seçilen plana göre dinamik güncellendi (`Apple Guideline 3.1.2c` %100 parite).
+   - Mühendislik jargonu (`Librosa DSP`, `Sirkadiyen Faz`) anne odaklı sade fayda diline (`🌙 MışılSpot™ Saatleri`, `🎙️ Akıllı Ağlama Rehberi`, `🤖 Mışıl Dadı™ 7/24`, `🎧 18 Stüdyo Sesi`) ve somut fiyat çıpasına (`Günde ₺1.64 • 1 bezden uygun`) dönüştürüldü; doğrulanmış `★★★★★ 5.0 Mağaza Puanı` rozeti eklendi.
+   - `#chk-medical-disclaimer` onay kutusu varsayılan işaretli ve yasal `mishil_medical_disclaimer_accepted_at` kaydını koruyarak tek satıra kompaktlaştırıldı (`Apple Guideline 1.4.1`); `#btn-onboarding-pro` (`🎁 7 Gün Ücretsiz Dene ve Başlat (Bugün ₺0)`) ekran altına yapışkan (sticky) hale getirildi ve atlama gecikmesi `4500ms` yapıldı.
+3. **İlk Gece VIP Eylem Planı & Kademeli Freemium Değer Kancası (`projects/mishil/public/app.html`):**
+   - **İlk 24 Saat Deneme İptalini (%36.3) Önleyen Post-Purchase Onboarding (`#home-vip-first-night-card`):** Deneme veya VIP başlatıldığında ana ekranda tek tıkla **1. Canlı Uyku Takibi**, **2. 432Hz Pembe Gürültü & Ninni**, **3. Ağlama Rehberi** aksiyonlarını başlatan 3 adımlı *"İlk Gece VIP Eylem Planı"* rehberi devreye alındı; ücretsiz kullanıcılara ise `#home-free-vip-banner` gösterildi.
+   - **Günlük 1 Ücretsiz MışılSpot™ & Kademeli Zamanlayıcı Kilidi:** Ücretsiz kullanıcılar her gün ilk MışılSpot™ tahminini tam saat olarak görürken (`Aha! Moment`), aynı gün içindeki 2. uykudan itibaren (`getTodayCompletedSleepsCount() >= 2`) sıradaki MışılSpot™ saati `${th}:•• 🔒` olarak maskelenip bağlamsal VIP modalına (`openVipRenewalModal('mishil_spot')`) bağlandı. Ses zamanlayıcısında `Sürekli`, `15 dk` ve `30 dk` 3 ücretsiz parçada açık tutulurken; `45 dk`, `60 dk` ve `Gece Beşiği Modu (openNightAmbient)` VIP kancasına (`sound_timer`) bağlandı. Uyku kaydı düzenleme (`openEditRoutineModal`) ebeveyn güveni için %100 ücretsiz korundu.
+4. **Bağlamsal (Contextual) VIP Paywall & Paywall Hunisi Telemetrisi (`app/api/v1/endpoints/analytics.py`, `tests/test_sleep_and_analytics_remediation.py`):**
+   - `openVipRenewalModal(contextFeature)` tetiklenen özelliğe (`cry_analysis`, `mishil_spot`, `sound_timer`, `ai_nanny`, `analytics`, `routine_log`, `vip_sound`, `home_banner`) göre `#vip-renewal-title` ve `#vip-renewal-subtext` metinlerini dinamik kişiselleştirir hale getirildi.
+   - `POST /api/v1/analytics/usage-signal` ve `POST /api/v1/analytics/app-open-signal` üzerinden `paywall_viewed`, `paywall_cta_clicked`, `paywall_skipped`, `purchase_cancelled`, `purchase_error` sinyalleri ve `product_funnel.paywall_funnel` (`ios`/`android` kırılımlı) özet metrikleri eklendi (`14/14 pytest`, `10/10 Jest`, `READY_FOR_RELEASE`).
+
+## [4.46.21] - 2026-11-02
+### 🌙 Mışıl Lifestyle #2: "23:40 • Uyurken Parmağını Sımsıkı Tutan Minik El" (4:5 Dikey Edge-to-Edge Tekil Gönderi)
+1. **3 Ajanlı CLI Konsensüs Konsept Seçimi (`task-192` Claude Code CLI + Codex CLI `gpt-6-luna` + Antigravity):**
+   - Eğitici çizgi roman karuselleri (Sayı #9 ve Sayı #10) arasına duygusal bağ ve topluluk sıcaklığı katmak için 3 aday konsept değerlendirildi; **Aday B («23:40 • Uyurken Parmağını Sımsıkı Tutan Minik El»)** **93.0 / 100** ortalama puanla (`Claude CLI: 90/100`, `Codex CLI: 94/100`, `Antigravity: 95/100`) 1. seçildi.
+2. **Pixar/Disney 3D Karakter Tutarlılığı & Playwright Edge-to-Edge Render (`render_instagram_single_night_hand.py`):**
+   - `isil_3_ve_misil_2_birlikte_master.jpg` referansıyla Işıl Anne (sarı papatyalı saç bandı, adaçayı yeşili örgü hırka), Mışıl Bebek (tavşan kulaklı krem peluş tulum) ve Yıldızcık karakter tutarlılığı korunarak `lifestyle2_uyurken_parmagi_tutan_minik_el.jpg` üretildi.
+   - `projects/mishil/scripts/render_instagram_single_night_hand.py` ile `1080×1350` (`4:5` dikey) sıfır boş kenarlı `post_single_gece_minik_el.png` derlendi; kopyala-yapıştır açıklama, ilk yorum, story anketi ve SEO alt-text paketi (`post_single_02_uyurken_parmagi_tutan_minik_el.md`) ile `preview_instagram_concepts.html` vitrinine (`#tab-singleNightHand`) entegre edildi.
+
+## [4.46.20] - 2026-11-02
+### 👶 Mışıl Comics • Sayı #10 (v2 Konsensüs Final — Motor Gelişim & Tummy Time Özel Sayısı): 3'lü Konsensüs (`task-22`/`task-101` Claude CLI + `task-32`/`task-102` Codex CLI + Antigravity) "Yüzüstü Koyunca 10 Saniyede Kıyamet!" 4:5 Dikey Webcomic Paketi
+1. **3'lü Konsensüs Konu Puanlaması & 7 Özgün Pixar/Disney 3D Çizgi Roman Sahnesi (`kullanici/instagram/karakterler/comic10_s1..s7`):**
+   - İcra & Doğrulama: **2 Turlu 3'lü Konsensüs** (`task-22`/`task-101` Claude Code CLI + `task-32`/`task-102` Codex CLI `gpt-6-luna` + Antigravity — Ortak Konu Seçim Skoru `95.0 / 100`, ilk 9 sayıyla `%0` çakışma).
+   - 0–6 ay motor gelişim evreninde her evde yaşanan *"Yüzüstü (Tummy Time) koyunca 10. saniyede ağlamaya başlıyor!"* deneyimini anlatan 7 özgün sahne (`Saat 15:30 -> 15:45`) üretildi:
+     - **Slayt 1 (`comic10_s1_10_saniye_tummy_time_kiyameti.jpg`):** Saat `15:30`'da oyun matında yüzüstü konmuş, ağır başını kaldırmaya çalışırken mızmızlanan Mışıl Bebek ve yanında şefkatle şaşıran Işıl Anne.
+     - **Slayt 2 (`comic10_s2_agir_kafa_minik_sporcu.jpg`):** Omuz ve boyun kaslarında parlayan enerji halkalarıyla minik plank/şınav eforu gösteren Mışıl Bebek ve baş-gövde oranını anlayan Işıl Anne.
+     - **Slayt 3 (`comic10_s3_tuzak1_tok_karna_mide_baskisi.jpg`):** Beslenmeden hemen sonra yüzüstü konunca dolu midesine baskı olan Mışıl Bebek'i şefkatle kaldıran Işıl Anne.
+     - **Slayt 4 (`comic10_s4_tuzak2_goguste_ve_rulo_havlu_egim.jpg`):** Işıl Anne'nin göğsünde yarı yatar eğimle kolayca başını kaldırıp gülümseyen Mışıl Bebek ve rulo havlu desteği.
+     - **Slayt 5 (`comic10_s5_tuzak3_goz_hizasi_burun_buruna.jpg`):** Oyun matında rulo havlu destekli Mışıl Bebek'in karşısına yere uzanıp burun buruna göz teması kuran Işıl Anne, kontrast kartlar ve Yıldızcık.
+     - **Slayt 6 (`comic10_s6_recete_rulo_havlu_ve_ayna.jpg`):** Rulo havlu desteğiyle kırılmaz bebek aynasındaki yansımasına gülümseyen Mışıl Bebek ve alkışla teşvik eden Işıl Anne.
+     - **Slayt 7 (`comic10_s7_zafer_guclu_boyun_mutlu_kesif.jpg`):** Saat `15:45`'te karın üstü destek minderiyle başını keyifle kaldırıp kahkaha atan Mışıl Bebek ve yanında gururla gülümseyen Işıl Anne.
+2. **Post-Production QA & AAP Güvenli Uyku Nüansı (`post_10_yuzustu_tummy_time_kiyameti.md`, `render_instagram_comic_10.py`, `preview_instagram_concepts.html`):**
+   - Claude CLI (`task-101`, `93/100`) ve Codex CLI (`task-102`) bulgularıyla: Sabit/kesin reçete dili yerine bebeğin toleransına göre kademeli ilerleme (`1–2 dakikalık kısa denemelerle başlayıp haftalar içinde toplam 15–30 dakikaya artırma`) ve AAP *Back-to-Sleep, Tummy-to-Play* kuralı (*"karın üstü aktivite ve rulo/yastık destekleri yalnızca bebek uyanıkken ve yakın gözetim altında kullanılır; uykuda daima sırtüstü, düz ve boş yatağına yatırılır"*) uygulandı.
+   - Playwright ile `0px` taşma garantili 7 adet `1080×1350` PNG slayt (`post_10_slaytlar/comic_10_1..7.png`) üretildi ve `preview_instagram_concepts.html` vitrinine 1. aktif sekme olarak entegre edildi.
+
 ## [4.46.19] - 2026-11-01
 ### 🚀 Öncelik 1 (P0) Dönüşüm Darboğazı Çözümü: Android Native `intent://` IAB Köprüsü & Simpson Paradoksu Ayrıştırılmış CVR Mimarisi
 1. **Android Facebook/Instagram In-App Browser (IAB) Native `intent://` Kaçış Motoru & App Links (`app/main.py`):**

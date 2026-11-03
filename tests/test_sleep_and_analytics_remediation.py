@@ -746,6 +746,52 @@ def test_priority1_android_intent_bridge_and_separated_cvr_metrics(client, db_se
     assert "Native Intent Aktif" in ps_and["cvr_breakdown_label"]
 
 
+def test_paywall_funnel_telemetry_and_usage_signal_endpoint(client, db_session):
+    from app.api.v1.endpoints.analytics import _build_analytics_summary
+
+    events = [
+        ("paywall_viewed", "ios"),
+        ("paywall_cta_clicked", "ios"),
+        ("purchase_cancelled", "ios"),
+        ("paywall_viewed", "android"),
+        ("paywall_skipped", "android"),
+        ("purchase_error", "android"),
+    ]
+    for idx, (evt, os_fam) in enumerate(events):
+        endpoint = "/api/v1/analytics/usage-signal" if idx % 2 == 0 else "/api/v1/analytics/app-open-signal"
+        res = client.post(
+            endpoint,
+            json={
+                "device_uid": f"msl_cro_test_{idx}",
+                "event_type": evt,
+                "os_family": os_fam,
+                "platform": f"{os_fam}_native",
+                "app_version": "4.46.22",
+            },
+        )
+        assert res.status_code == 200
+        assert res.json()["status"] == "ok"
+
+    summary = _build_analytics_summary(db_session, period="all")
+    pf = summary["product_funnel"]["paywall_funnel"]
+    assert pf["paywall_viewed"] >= 2
+    assert pf["paywall_cta_clicked"] >= 1
+    assert pf["paywall_skipped"] >= 1
+    assert pf["purchase_cancelled"] >= 1
+    assert pf["purchase_error"] >= 1
+    assert pf["ios"]["paywall_viewed"] >= 1
+    assert pf["ios"]["paywall_cta_clicked"] >= 1
+    assert pf["ios"]["purchase_cancelled"] >= 1
+    assert pf["android"]["paywall_viewed"] >= 1
+    assert pf["android"]["paywall_skipped"] >= 1
+    assert pf["android"]["purchase_error"] >= 1
+
+    dash_res = client.get("/api/v1/analytics/dashboard")
+    assert dash_res.status_code == 200
+    assert "Mışıl" in dash_res.text
+
+
+
 
 
 

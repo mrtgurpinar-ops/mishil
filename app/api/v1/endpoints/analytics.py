@@ -1802,6 +1802,7 @@ def record_bridge_click(request: Request, route_path: str, target_store: str) ->
         db.close()
 
 
+@router.post("/usage-signal")
 @router.post("/app-open-signal")
 async def record_app_open_signal(
     payload: AppSignalPayload,
@@ -2246,13 +2247,19 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     vip_started_signals = [s for s in signals if s.event_type == "vip_started"]
     sleep_sound_signals = [s for s in signals if s.event_type == "sleep_sound_play"]
     cry_analysis_signals = [s for s in signals if s.event_type == "cry_analysis"]
+    paywall_viewed_signals = [s for s in signals if s.event_type == "paywall_viewed"]
+    paywall_cta_clicked_signals = [s for s in signals if s.event_type == "paywall_cta_clicked"]
+    paywall_skipped_signals = [s for s in signals if s.event_type == "paywall_skipped"]
+    purchase_cancelled_signals = [s for s in signals if s.event_type == "purchase_cancelled"]
+    purchase_error_signals = [s for s in signals if s.event_type == "purchase_error"]
     unmatched_organic_opens = len([
         s for s in first_opens if (s.match_confidence or "unmatched") == "unmatched"
     ])
     distinct_signal_devices = len({
         s.device_uid for s in signals
         if s.device_uid and s.event_type in (
-            "first_open", "daily_active", "baby_created", "vip_started", "sleep_sound_play", "cry_analysis"
+            "first_open", "daily_active", "baby_created", "vip_started", "sleep_sound_play", "cry_analysis",
+            "paywall_viewed", "paywall_cta_clicked", "paywall_skipped", "purchase_cancelled", "purchase_error"
         )
     })
 
@@ -3297,6 +3304,33 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "vip_started_signals": len(vip_started_signals),
             "sleep_sound_signals": len(sleep_sound_signals),
             "cry_analysis_signals": len(cry_analysis_signals),
+            "paywall_viewed_signals": len(paywall_viewed_signals),
+            "paywall_cta_clicked_signals": len(paywall_cta_clicked_signals),
+            "paywall_skipped_signals": len(paywall_skipped_signals),
+            "purchase_cancelled_signals": len(purchase_cancelled_signals),
+            "purchase_error_signals": len(purchase_error_signals),
+            "paywall_funnel": {
+                "paywall_viewed": len(paywall_viewed_signals),
+                "paywall_cta_clicked": len(paywall_cta_clicked_signals),
+                "paywall_skipped": len(paywall_skipped_signals),
+                "purchase_cancelled": len(purchase_cancelled_signals),
+                "purchase_error": len(purchase_error_signals),
+                "vip_started": len(vip_started_signals),
+                "ios": {
+                    "paywall_viewed": len([s for s in paywall_viewed_signals if (s.os_family or "").lower() == "ios"]),
+                    "paywall_cta_clicked": len([s for s in paywall_cta_clicked_signals if (s.os_family or "").lower() == "ios"]),
+                    "paywall_skipped": len([s for s in paywall_skipped_signals if (s.os_family or "").lower() == "ios"]),
+                    "purchase_cancelled": len([s for s in purchase_cancelled_signals if (s.os_family or "").lower() == "ios"]),
+                    "purchase_error": len([s for s in purchase_error_signals if (s.os_family or "").lower() == "ios"]),
+                },
+                "android": {
+                    "paywall_viewed": len([s for s in paywall_viewed_signals if (s.os_family or "").lower() == "android"]),
+                    "paywall_cta_clicked": len([s for s in paywall_cta_clicked_signals if (s.os_family or "").lower() == "android"]),
+                    "paywall_skipped": len([s for s in paywall_skipped_signals if (s.os_family or "").lower() == "android"]),
+                    "purchase_cancelled": len([s for s in purchase_cancelled_signals if (s.os_family or "").lower() == "android"]),
+                    "purchase_error": len([s for s in purchase_error_signals if (s.os_family or "").lower() == "android"]),
+                },
+            },
             "registered_users": db_users_count,
             "babies_created": max(db_babies_count, len(baby_created_signals)),
             "cry_analyses": max(db_cry_count, len(cry_analysis_signals)),
