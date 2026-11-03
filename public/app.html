@@ -2620,6 +2620,48 @@
 
     .modal-overlay.active { display: flex; }
 
+    /* HUCKLEBERRY / NAPPER BENCHMARK: 4 ADIMLI İNTERAKTİF SPOTLIGHT UYGULAMALI ANLATIM TURU */
+    #spotlight-tour-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 3200;
+      display: none;
+      pointer-events: auto;
+      overflow: hidden;
+    }
+    #spotlight-tour-overlay.active {
+      display: block;
+    }
+    #spotlight-cutout {
+      position: fixed;
+      border-radius: 20px;
+      border: 2px solid var(--accent);
+      box-shadow: 0 0 0 9999px rgba(10, 8, 18, 0.80), 0 0 28px rgba(244, 162, 97, 0.60);
+      transition: top 0.28s cubic-bezier(0.22, 1, 0.36, 1), left 0.28s cubic-bezier(0.22, 1, 0.36, 1), width 0.28s cubic-bezier(0.22, 1, 0.36, 1), height 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+    #spotlight-tooltip-card {
+      position: fixed;
+      left: 14px;
+      right: 14px;
+      max-width: 460px;
+      margin: 0 auto;
+      background: rgba(29, 24, 41, 0.98);
+      border: 1.5px solid var(--accent);
+      border-radius: 20px;
+      padding: 15px 16px;
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      transition: top 0.26s cubic-bezier(0.22, 1, 0.36, 1), bottom 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 3202;
+    }
+    [data-theme="light"] #spotlight-tooltip-card {
+      background: rgba(255, 250, 242, 0.98) !important;
+      border-color: var(--accent) !important;
+      box-shadow: 0 16px 36px rgba(45, 36, 30, 0.22) !important;
+    }
+
     .modal-sheet {
       background: var(--surface-modal);
       border-top: 1px solid rgba(255, 255, 255, 0.14);
@@ -3143,7 +3185,7 @@
 
       <!-- REVIEWER TEST BYPASS TRIGGER (GOOGLE PLAY ANSWER 15748846) -->
       <div style="text-align: center; margin-top: 12px; margin-bottom: 6px;">
-        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.46.23 (Build 65)</span>
+        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.46.24 (Build 65)</span>
       </div>
     </div>
   </div>
@@ -3237,7 +3279,10 @@
               <div style="font-family: 'Sora'; font-size: 13px; font-weight: 800; color: #2ED573;">🎉 VIP Aktif! Bu Gece İçin 3 Adımlı Huzur Planınız</div>
               <div style="font-size: 10.5px; color: var(--text-night); margin-top: 2px;">İlk 24 saatte en yüksek faydayı almak için hemen birini deneyin:</div>
             </div>
-            <button type="button" aria-label="Rehberi Kapat" onclick="dismissVipFirstNightCard()" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); color: var(--text-muted); font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✕</button>
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+              <button type="button" onclick="startSpotlightTour(true)" style="height: 32px; padding: 0 10px; border-radius: 16px; background: rgba(244,162,97,0.18); border: 1px solid var(--accent); color: var(--accent); font-size: 10.5px; font-weight: 800; cursor: pointer; white-space: nowrap;">🎓 Canlı Tur</button>
+              <button type="button" aria-label="Rehberi Kapat" onclick="dismissVipFirstNightCard()" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); color: var(--text-muted); font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✕</button>
+            </div>
           </div>
           <div style="display: flex; flex-direction: column; gap: 6px;">
             <div class="welcome-step-item" onclick="togglePlayTrack('shush_5s'); switchTab('sounds');">
@@ -3274,7 +3319,10 @@
               <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: var(--heading-night);">✨ Mışıl Baby'ye Hoş Geldiniz!</div>
               <div style="font-size: 11px; color: var(--accent); margin-top: 1px;">Bebeğiniz için 3 kolay adımda hızlı başlangıç:</div>
             </div>
-            <button type="button" aria-label="Hoş Geldin Rehberini Kapat" onclick="dismissWelcomeGuide()" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); color: var(--text-muted); font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✕</button>
+            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+              <button type="button" onclick="startSpotlightTour(true)" style="height: 32px; padding: 0 10px; border-radius: 16px; background: rgba(244,162,97,0.18); border: 1px solid var(--accent); color: var(--accent); font-size: 10.5px; font-weight: 800; cursor: pointer; white-space: nowrap;">🎓 Canlı Tur</button>
+              <button type="button" aria-label="Hoş Geldin Rehberini Kapat" onclick="dismissWelcomeGuide()" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); color: var(--text-muted); font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✕</button>
+            </div>
           </div>
           <div class="welcome-step-item" onclick="toggleLiveSleep()">
             <span style="font-size: 18px;">🌙</span>
@@ -4091,6 +4139,18 @@
         </div>
       </div>
 
+      <!-- Uygulamalı Anlatım Turu (Interactive Spotlight Tour) -->
+      <div class="card" style="border: 1px solid var(--border-highlight); background: var(--card-night); cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 8px;" onclick="startSpotlightTour(true)">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 20px;">🎓</span>
+          <div>
+            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: var(--heading-night);">Uygulamalı Anlatım Turu</div>
+            <div style="font-size: 11px; color: var(--text-muted);">Ana ekran özelliklerini 4 adımda canlı keşfedin</div>
+          </div>
+        </div>
+        <span style="color: var(--accent); font-weight: 700; font-size: 12px;">Başlat ›</span>
+      </div>
+
       <!-- Sürüm & Neler Yeni Rozeti -->
       <div class="card" style="border: 1px solid var(--border-highlight); background: rgba(22, 29, 50, 0.95); cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;" onclick="openChangelogModal()">
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -4104,6 +4164,26 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- HUCKLEBERRY / NAPPER BENCHMARK: 4 ADIMLI İNTERAKTİF SPOTLIGHT UYGULAMALI ANLATIM TURU -->
+  <div id="spotlight-tour-overlay" role="dialog" aria-modal="true" aria-label="Uygulamalı Anlatım Turu">
+    <div id="spotlight-cutout"></div>
+    <div id="spotlight-tooltip-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span id="spotlight-step-badge" style="background: rgba(244, 162, 97, 0.22); color: var(--accent); border: 1px solid rgba(244, 162, 97, 0.45); font-size: 10px; font-weight: 800; padding: 3px 9px; border-radius: 999px;">✨ Adım 1 / 4</span>
+          <div id="spotlight-step-dots" style="display: flex; align-items: center; gap: 4px;"></div>
+        </div>
+        <button type="button" onclick="endSpotlightTour(true)" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-night); color: var(--text-muted); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 12px; cursor: pointer;">Atla ✕</button>
+      </div>
+      <div id="spotlight-step-title" style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: var(--heading-night); margin-bottom: 5px;">🌙 MışılSpot™ Altın Uyku Saati</div>
+      <div id="spotlight-step-desc" style="font-size: 12px; line-height: 17px; color: var(--text-night); margin-bottom: 12px;">Bebeğinizin aşırı yorulmadan en kolay uykuya dalacağı dakika burada geri sayar.</div>
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+        <button type="button" id="spotlight-prev-btn" onclick="prevSpotlightStep()" style="background: rgba(255,255,255,0.07); border: 1px solid var(--border-night); color: var(--text-night); font-size: 11.5px; font-weight: 700; padding: 8px 12px; border-radius: 12px; cursor: pointer;">← Geri</button>
+        <button type="button" id="spotlight-next-btn" onclick="nextSpotlightStep()" style="flex: 1; background: linear-gradient(135deg, var(--accent) 0%, #E07A5F 100%); border: none; color: #141B2E; font-family: 'Sora'; font-size: 12px; font-weight: 800; padding: 9px 14px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 14px rgba(244, 162, 97, 0.35);">İleri ➔</button>
+      </div>
+    </div>
   </div>
 
   <!-- CALM / HATCH REST BENCHMARK: GLOBAL YÜZEN MİNİ-PLAYER (YALNIZCA SES ÇALARKEN GÖRÜNÜR) -->
@@ -4386,7 +4466,7 @@
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
     </div>
     <div style="text-align: center; margin-top: 10px;">
-      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.46.23 (Build 65)</span>
+      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.46.24 (Build 65)</span>
     </div>
   </div>
 </div>
@@ -4836,6 +4916,7 @@
       if (typeof renderAllViews === 'function') renderAllViews();
       try { localStorage.setItem('mishil_vip_sig_v1', '1'); if (typeof window.sendMishilAnalyticsSignal === 'function') window.sendMishilAnalyticsSignal('vip_started'); if (typeof window.syncSubscriberToAnalytics === 'function') window.syncSubscriberToAnalytics(data || { plan: plan, isActive: true }); } catch (_vse) {}
       showToast('🎉 Mışıl VIP aktif edildi!');
+      if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
     },
 
     // Kullanıcı ödeme penceresini kapattığında veya vazgeçtiğinde çağrılır (SIFIR TOAST, SIFIR SAHTE HATA!)
@@ -5015,7 +5096,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.46.23', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.46.24', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -5032,7 +5113,11 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.46.23', date: '3 Kasım 2026', latest: true, items: [
+    { v: '4.46.24', date: '3 Kasım 2026', latest: true, items: [
+      '4 Adımlı İnteraktif Spotlight Uygulamalı Anlatım Turu (Huckleberry / Napper Benchmark): İlk kez katılan ebeveynler için MışılSpot™ Altın Uyku Saati, Canlı Bakım Özeti, 24 Saatlik Günlük Ritim Şeridi ve Gece 03:00 Hızlı Araçlarını gerçek ekran üzerinde parlatarak tanıtan interaktif Coach-Mark turu eklendi.',
+      'Tek Dokunuşla Tekrar Oynatma: Ana ekrandaki karşılama kartlarına ("🎓 Canlı Tur") ve Ayarlar sekmesine ("🎓 Uygulamalı Anlatım Turu") istenildiği an turu yeniden başlatma kısayolu eklendi.'
+    ]},
+    { v: '4.46.23', date: '3 Kasım 2026', items: [
       'Canlı Bakım Özeti & 24 Saatlik Günlük Ritim Şeridi (Huckleberry / Napper Benchmark): Ana ekrandaki mükerrer 4\'lü buton ızgarası kaldırılarak yerine "Son Beslenme: Xs Ydk önce", "Son Bez" ve "Bugün Uyku" canlı bakım özeti ile 00:00–24:00 görsel sirkadiyen ritim şeridi entegre edildi.',
       'Global Yüzen Mini-Player & Kusursuz Tema / Değişken Onarımı (Calm / Hatch Rest Benchmark): Sadece ana ekranın altında kalan ses oynatıcı tüm sekmelerde alt dock\'un üzerinde yüzen, ses çalmadığında gizlenen akıllı Mini-Player\'a dönüştürüldü; eksik --sage ve --lavender CSS değişkenleri tanımlanarak Denge Skoru halkası ve Aydınlık Mod kontrastı %100 onarıldı.',
       'Onboarding Geri Butonu, İlerleme Çubuğu & Gece 03:00 Tek El Ergonomisi: Onboarding anketine "← Geri" butonu, 5 adımlı görsel ilerleme çubuğu ve seçili şık onay işareti (✓) eklendi; Rutin Ekleme penceresine 4\'lü tek dokunuş ikon seçici, 42px hızlı saat kaydırma butonları ve sıfır mühendislik jargonlu anne dili eklendi.'
@@ -6651,6 +6736,7 @@
       renderAllViews();
       updateSubscriptionStatusUI();
       showToast('🎉 7 Günlük Ücretsiz Deneme başlatıldı! Hoş geldiniz.');
+      if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
     }, 500);
   }
 
@@ -6728,6 +6814,7 @@
     loadBabyProfile();
     renderAllViews();
     showToast('✨ Ücretsiz temel sürümdesiniz. Keşfetmeye başlayabilirsiniz!');
+    if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
   }
 
   // =========================================================================
@@ -7750,6 +7837,160 @@
       el.style.display = 'block';
     }
   }
+
+  // =========================================================================
+  // 4 ADIMLI İNTERAKTİF SPOTLIGHT UYGULAMALI ANLATIM TURU (COACH-MARK WALKTHROUGH)
+  // =========================================================================
+  let spotlightStepIndex = 0;
+
+  function getSpotlightSteps() {
+    const baby = typeof getBaby === 'function' ? getBaby() : null;
+    const babyName = (baby && baby.name) ? baby.name : 'Bebeğiniz';
+    return [
+      {
+        selector: '#home-organic-hero',
+        title: '🌙 1. MışılSpot™ Altın Uyku Saati',
+        desc: `${babyName}'in aşırı yorulmadan en kolay uykuya dalacağı dakika burada geri sayar. Uyuduğu an altın hilale veya "Şimdi Uyuyor" butonuna dokunmanız yeterli.`
+      },
+      {
+        selector: '.grid-organic-duo',
+        title: '🍼 2. Canlı Bakım Özeti & Denge Skoru',
+        desc: `Son beslenme ve bez değişiminin üzerinden kaç dakika geçtiğini canlı takip edin; satırlara dokunarak saniyeler içinde yeni kayıt ekleyin.`
+      },
+      {
+        selector: '#home-circadian-strip',
+        title: '🕒 3. 24 Saatlik Günlük Ritim Şeridi',
+        desc: `Gün içindeki tamamlanan uykuları (yeşil bloklar) ve sıradaki MışılSpot™ hedef penceresini (altın blok) 24 saatlik tek çubukta izleyin.`
+      },
+      {
+        selector: '.quick-bento-grid',
+        title: '🎙️ 4. Tek Elle Gece Araçları & Sesler',
+        desc: `Gece 03:00'te tek dokunuşla Beslenme, Bez, 5 sn Akıllı Ağlama Rehberi ve 18 Stüdyo Sesine buradan veya alt menüden ulaşabilirsiniz.`
+      }
+    ];
+  }
+
+  function startSpotlightTour(forceManual) {
+    if (typeof hapticPulse === 'function') hapticPulse();
+    if (!forceManual && localStorage.getItem('mishil_spotlight_tour_done') === 'true') {
+      return;
+    }
+    // Ana sekmeye ve MışılSpot segmentine geç
+    if (typeof switchTab === 'function') switchTab('home');
+    if (typeof switchHomeSegment === 'function') switchHomeSegment('sweetspot');
+
+    spotlightStepIndex = 0;
+    const overlay = document.getElementById('spotlight-tour-overlay');
+    if (!overlay) return;
+    overlay.classList.add('active');
+    setTimeout(() => {
+      renderSpotlightStep();
+    }, 120);
+  }
+  window.startSpotlightTour = startSpotlightTour;
+
+  function renderSpotlightStep() {
+    const steps = getSpotlightSteps();
+    if (spotlightStepIndex < 0) spotlightStepIndex = 0;
+    if (spotlightStepIndex >= steps.length) {
+      endSpotlightTour(false);
+      return;
+    }
+    const step = steps[spotlightStepIndex];
+    const target = document.querySelector(step.selector);
+    const cutout = document.getElementById('spotlight-cutout');
+    const card = document.getElementById('spotlight-tooltip-card');
+    const badge = document.getElementById('spotlight-step-badge');
+    const dots = document.getElementById('spotlight-step-dots');
+    const titleEl = document.getElementById('spotlight-step-title');
+    const descEl = document.getElementById('spotlight-step-desc');
+    const prevBtn = document.getElementById('spotlight-prev-btn');
+    const nextBtn = document.getElementById('spotlight-next-btn');
+
+    if (badge) badge.textContent = `✨ Adım ${spotlightStepIndex + 1} / ${steps.length}`;
+    if (dots) {
+      dots.innerHTML = steps.map((_, idx) =>
+        `<span style="width:${idx === spotlightStepIndex ? '16px' : '6px'}; height:6px; border-radius:4px; background:${idx === spotlightStepIndex ? 'var(--accent)' : 'rgba(255,255,255,0.25)'}; transition:all 0.2s;"></span>`
+      ).join('');
+    }
+    if (titleEl) titleEl.textContent = step.title;
+    if (descEl) descEl.textContent = step.desc;
+    if (prevBtn) {
+      prevBtn.style.visibility = spotlightStepIndex === 0 ? 'hidden' : 'visible';
+    }
+    if (nextBtn) {
+      nextBtn.textContent = spotlightStepIndex === steps.length - 1 ? '✨ Keşfetmeye Başla' : 'İleri ➔';
+    }
+
+    if (!target || !cutout || !card) return;
+    try {
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } catch (_se) {}
+
+    setTimeout(() => {
+      const rect = target.getBoundingClientRect();
+      const pad = 6;
+      const top = Math.max(8, rect.top - pad);
+      const left = Math.max(8, rect.left - pad);
+      const width = Math.min(window.innerWidth - 16, rect.width + pad * 2);
+      const height = Math.max(44, rect.height + pad * 2);
+
+      cutout.style.top = `${top}px`;
+      cutout.style.left = `${left}px`;
+      cutout.style.width = `${width}px`;
+      cutout.style.height = `${height}px`;
+
+      const vh = window.innerHeight;
+      const spaceBelow = vh - (top + height);
+      if (spaceBelow >= 195 || top < 190) {
+        card.style.bottom = 'auto';
+        card.style.top = `${Math.min(vh - 185, top + height + 12)}px`;
+      } else {
+        card.style.top = 'auto';
+        card.style.bottom = `${Math.max(16, vh - top + 12)}px`;
+      }
+    }, 180);
+  }
+
+  function nextSpotlightStep() {
+    if (typeof hapticPulse === 'function') hapticPulse();
+    const steps = getSpotlightSteps();
+    if (spotlightStepIndex + 1 >= steps.length) {
+      endSpotlightTour(false);
+    } else {
+      spotlightStepIndex++;
+      renderSpotlightStep();
+    }
+  }
+  window.nextSpotlightStep = nextSpotlightStep;
+
+  function prevSpotlightStep() {
+    if (typeof hapticPulse === 'function') hapticPulse();
+    if (spotlightStepIndex > 0) {
+      spotlightStepIndex--;
+      renderSpotlightStep();
+    }
+  }
+  window.prevSpotlightStep = prevSpotlightStep;
+
+  function endSpotlightTour(skipped) {
+    if (typeof hapticPulse === 'function') hapticPulse();
+    localStorage.setItem('mishil_spotlight_tour_done', 'true');
+    const overlay = document.getElementById('spotlight-tour-overlay');
+    if (overlay) overlay.classList.remove('active');
+    if (!skipped) {
+      showToast('✨ Uygulama turu tamamlandı! İstediğiniz an Ayarlar\'dan tekrar açabilirsiniz.');
+    }
+  }
+  window.endSpotlightTour = endSpotlightTour;
+
+  function maybeStartFirstTimeSpotlightTour() {
+    if (localStorage.getItem('mishil_spotlight_tour_done') === 'true') return;
+    setTimeout(() => {
+      startSpotlightTour(false);
+    }, 650);
+  }
+  window.maybeStartFirstTimeSpotlightTour = maybeStartFirstTimeSpotlightTour;
   // Onboarding anketinden tamamen bağımsızdır. Abonelik açıkça pasifken
   // (mishil_subscription_active === 'false') bir Pro özelliğe dokunulduğunda
   // anket yerine doğrudan bu modal açılır. Bebek verisine ASLA dokunmaz.

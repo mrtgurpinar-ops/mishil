@@ -2,6 +2,14 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.24] - 2026-11-03
+### 🎓 4 Adımlı İnteraktif Spotlight Uygulamalı Anlatım Turu (`app.html`, `offlineHtml.generated.ts`)
+1. **İcra Modu:** Tek Ajan (Yalnızca Antigravity — Claude/Codex CLI çalıştırılmadı) (`[Solo-Antigravity]`).
+2. **Huckleberry / Napper Benchmark Spotlight Coach-Mark Turu (`#spotlight-tour-overlay`, `startSpotlightTour`):**
+   - İlk kez onboarding anketini tamamlayan ebeveynler için (7 gün deneme veya ücretsiz giriş sonrası) ana ekran üzerinde gerçek bileşenleri sırayla parlatan **4 adımlı interaktif uygulamalı anlatım turu** (`1. 🌙 MışılSpot™ Altın Uyku Saati`, `2. 🍼 Canlı Bakım Özeti & Denge Skoru`, `3. 🕒 24 Saatlik Günlük Ritim Şeridi`, `4. 🎙️ Tek Elle Gece Araçları & Sesler`) eklendi.
+   - Her adımda otomatik yumuşak kaydırma (`scrollIntoView`), dinamik ekran içi balon konumlandırması, `← Geri`, `İleri ➔` ve `Atla ✕` kontrolleri ile `[data-theme="light"]` gündüz modu uyumu sağlandı.
+   - Mevcut kullanıcıların da turu istedikleri zaman başlatabilmeleri için ana ekran karşılama kartlarına **`🎓 Canlı Tur`** butonu ve Ayarlar sekmesine **`🎓 Uygulamalı Anlatım Turu`** satırı eklendi.
+
 ## [4.46.23] - 2026-11-03
 ### 🎨 3 Ajanlı Konsensüs UI/UX Benchmark Dönüşüm Paketi (`app.html`, `offlineHtml.generated.ts`)
 1. **3 Ajanlı Sektör Benchmark Denetimi (`task-431` Claude Code CLI + `task-432` Codex CLI `gpt-6-luna` + Antigravity):**
