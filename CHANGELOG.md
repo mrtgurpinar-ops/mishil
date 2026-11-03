@@ -2,6 +2,20 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.23] - 2026-11-03
+### 🎨 3 Ajanlı Konsensüs UI/UX Benchmark Dönüşüm Paketi (`app.html`, `offlineHtml.generated.ts`)
+1. **3 Ajanlı Sektör Benchmark Denetimi (`task-431` Claude Code CLI + `task-432` Codex CLI `gpt-6-luna` + Antigravity):**
+   - **Huckleberry**, **Napper**, **Pampers Smart Sleep Coach** ve **Calm / Endel / Hatch Rest** kıyaslaması doğrultusunda 8 maddelik kapsamlı UI/UX dönüşümü uygulandı.
+2. **Huckleberry "Canlı Bakım Özeti" & Napper "24 Saatlik Günlük Ritim Şeridi" (`projects/mishil/public/app.html`):**
+   - Ana ekranda 4'lü hızlı aksiyon ızgarasıyla (`Emzirme / Mama`, `Bez Değişimi`, `Ağlama Rehberi`, `Ses & Ninni`) mükerrer olan `.routine-pill-grid` kaldırılarak yerine tıklanabilir **Canlı Bakım Özeti** satırları (`#home-last-feed-ago`, `#home-last-diaper-ago`, `#home-today-sleep-total`) ve dinamik hızlı kart alt metinleri (`#quick-card-milk-sub`, `#quick-card-diaper-sub`) yerleştirildi (`renderHomeCareSummaryAndCircadianStrip()`).
+   - MışılSpot™ kartının altına Napper tarzı `00:00 — 06:00 — 12:00 — 18:00 — 24:00` **24 Saatlik Günlük Ritim Şeridi (`#home-circadian-strip`)** eklendi; tamamlanan uykular (`--sage`), aktif uyku ve sıradaki MışılSpot™ penceresi (`--gold`) gerçek zamanlı işlendi.
+3. **Calm / Hatch Rest Yüzen Global Mini-Oynatıcı & Onboarding Ergonomisi (`projects/mishil/public/app.html`):**
+   - Ses çalmayan durumda MışılSpot™ altında yer kaplayan sabit mini-player kaldırıldı; yalnızca ses aktifken (`currentTrackId !== null`) alt navigasyonun (`#app-bottom-dock`) hemen üstünde tüm sekmelerde görünür olan **Global Yüzen Mini-Oynatıcı (`#global-floating-mini-player`)** (`toggleMiniPlay()` + `stopActiveAudioTrack()`) devreye alındı.
+   - `#screen-onboarding` içine kesintisiz ilerleme çubuğu (`#onboarding-progress-fill`), `← Geri` butonu (`prevQuizStep()`), `#quiz-step-5` üzerine `"✏️ Yanıtlarımı Düzenle"` (`prevQuizStep(4)`) ve seçili şık için `✓` rozeti eklendi; `#quiz-step-1` içindeki kalabalık 4'lü promo kutusu sadeleştirildi.
+4. **Sıcak Kaşmir Gece Paleti, `%100` Gündüz Modu (`[data-theme="light"]`) Paritesi & Gece `03:00` Tek Elle Kayıt (`projects/mishil/public/app.html`):**
+   - Eski soğuk lacivert yüzey kodları (`#141B2E`, `#1C253D`, `#151C2F`, `#1A233A`, `#202A44`, `#0B0E17`) sıcak kaşmir gece değişkenlerine (`--surface-modal: #1D1829`, `--surface-input: #262035`, `--surface-pill: #2A233B`) taşındı; tanımlanmamış `--sage` (`#74C69D` / gündüz `#26543C`) ve `--lavender` (`#A569BD` / gündüz `#6D28D9`) kök değişkenleri eklendi ve `[data-theme="light"]` kontrast ezilmeleri giderildi.
+   - Mühendislik jargonu (`13-Bant MFCC`, `Zero Crossing Rate`, `LIBROSA DSP`) sıcak ebeveyn diline dönüştürüldü; `#modal-routine` içine `<select>` yerine 1-tıkla seçilen 4 büyük ikonlu hap buton (`selectRoutineTypePill`), `42px` hızlı süre kaydırma butonları ve boş durum (`empty state`) ekranlarına 1-tıkla aksiyon butonları eklendi (`29/29 pytest`, `10/10 Jest`, `tsc --noEmit`, `READY_FOR_RELEASE`).
+
 ## [4.46.22] - 2026-11-03
 ### 💎 İndirme ➔ Aktif VIP Dönüşüm (CRO) & Büyüme Pazarlaması Mimari Paketi (`app.html`, `offlineHtml.generated.ts`, `analytics.py`)
 1. **3 Ajanlı Teknik CRO & Büyüme Pazarlaması (CMO) Konsensüsü (`task-59` & `task-96` Codex CLI `gpt-6-luna` + `task-73` & `task-95` Claude Code CLI + Antigravity):**

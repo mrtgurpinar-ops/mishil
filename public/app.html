@@ -60,6 +60,7 @@
       --soft-sage-card: linear-gradient(145deg, rgba(32, 52, 42, 0.95) 0%, rgba(22, 36, 29, 0.9) 100%);
       --sage-text: #C3E9D2;
       --sage-accent: #74C69D;
+      --sage: #74C69D;
       
       --soft-butter: #322A19;
       --soft-butter-border: #4D3F25;
@@ -72,10 +73,14 @@
       --soft-lavender: #29213A;
       --soft-lavender-border: #42355D;
       --lavender-text: #E4D8FA;
+      --lavender: #A569BD;
       
       --soft-sky: #1A2834;
       --soft-sky-border: #2B3F52;
       --sky-text: #CAE1FA;
+      --surface-modal: #1D1829;
+      --surface-input: #262035;
+      --surface-pill: #2A233B;
       --card-shadow: 0 12px 30px -6px rgba(0, 0, 0, 0.45);
     }
 
@@ -110,6 +115,7 @@
       --soft-sage-card: linear-gradient(145deg, rgba(235, 245, 238, 0.95) 0%, rgba(214, 232, 219, 0.9) 100%);
       --sage-text: #26543C;
       --sage-accent: #487A63;
+      --sage: #26543C;
       
       --soft-butter: #FEF5E1;
       --soft-butter-border: #F7DFAD;
@@ -122,10 +128,14 @@
       --soft-lavender: #F1ECFA;
       --soft-lavender-border: #DCD0F4;
       --lavender-text: #543E7E;
+      --lavender: #6D28D9;
       
       --soft-sky: #E7F2FC;
       --soft-sky-border: #C8E1F6;
       --sky-text: #26557C;
+      --surface-modal: #FFFFFF;
+      --surface-input: #FFFFFF;
+      --surface-pill: rgba(42, 36, 33, 0.06);
       --card-shadow: 0 10px 26px -6px rgba(160, 140, 120, 0.14), 0 2px 8px -2px rgba(160, 140, 120, 0.08);
     }
 
@@ -204,7 +214,9 @@
       border: 1px solid rgba(15, 23, 42, 0.08) !important;
       color: var(--text-night) !important;
     }
-    [data-theme="light"] [style*="#C9CEDC"] {
+    [data-theme="light"] [style*="#C9CEDC"],
+    [data-theme="light"] [style*="#D8CEE8"],
+    [data-theme="light"] [style*="#E2E8F0"] {
       color: var(--text-muted) !important;
     }
     [data-theme="light"] span[style*="#FFF"],
@@ -213,8 +225,30 @@
     [data-theme="light"] h1[style*="#FFF"],
     [data-theme="light"] h2[style*="#FFF"],
     [data-theme="light"] h3[style*="#FFF"],
-    [data-theme="light"] label[style*="#FFF"] {
+    [data-theme="light"] label[style*="#FFF"],
+    [data-theme="light"] [style*="#FAF5EE"] {
       color: var(--heading-night) !important;
+    }
+    [data-theme="light"] .analytics-organic-card,
+    [data-theme="light"] #home-circadian-strip,
+    [data-theme="light"] #global-floating-mini-player {
+      background: #FFFFFF !important;
+      border-color: rgba(15, 23, 42, 0.14) !important;
+      box-shadow: 0 6px 20px rgba(42, 36, 33, 0.08) !important;
+    }
+    [data-theme="light"] .routine-type-pill {
+      background: rgba(42, 36, 33, 0.05) !important;
+      border-color: rgba(42, 36, 33, 0.12) !important;
+      color: var(--heading-night) !important;
+    }
+    [data-theme="light"] .routine-type-pill.active {
+      background: var(--accent) !important;
+      border-color: var(--accent) !important;
+      color: #FFFFFF !important;
+    }
+    [data-theme="light"] .care-summary-row {
+      background: rgba(255, 255, 255, 0.75) !important;
+      border-color: rgba(224, 122, 95, 0.25) !important;
     }
     [data-theme="light"] .tab-item .tab-label {
       color: #70655C !important;
@@ -1652,7 +1686,7 @@
 
     .search-input {
       width: 100%;
-      background: #151C2F;
+      background: var(--surface-input);
       border: 1px solid var(--border-night);
       border-radius: var(--radius-md);
       padding: 11px 14px 11px 36px;
@@ -1689,7 +1723,7 @@
     }
 
     .cat-chip {
-      background: #1A233A;
+      background: var(--surface-pill);
       border: 1px solid var(--border-night);
       color: var(--text-night);
       font-size: 11px;
@@ -1708,7 +1742,7 @@
 
     .cat-chip.active {
       background: var(--accent);
-      color: #121829;
+      color: #13101C;
       font-weight: 700;
       border-color: var(--accent);
       box-shadow: 0 4px 14px var(--accent-glow);
@@ -1824,7 +1858,7 @@
       justify-content: center;
       font-size: 11px;
       font-weight: 600;
-      background: #202A44;
+      background: var(--surface-pill);
       border-radius: var(--radius-sm);
       color: var(--text-night);
       cursor: pointer;
@@ -1834,7 +1868,7 @@
 
     .timer-pill.active {
       background: var(--accent);
-      color: #141B2E;
+      color: #13101C;
       font-weight: 700;
     }
 
@@ -2273,7 +2307,7 @@
     .onboarding-screen {
       position: absolute;
       inset: 0;
-      background: #0B0E17;
+      background: var(--bg-night);
       z-index: 12000;
       display: none;
       flex-direction: column;
@@ -2292,7 +2326,8 @@
     .onboarding-screen.active { display: flex; animation: fadeIn 0.3s ease-out; }
 
     body:has(#screen-onboarding.active) .tab-bar,
-    body:has(#screen-onboarding.active) .dock-fab-btn {
+    body:has(#screen-onboarding.active) .dock-fab-btn,
+    body:has(#screen-onboarding.active) #global-floating-mini-player {
       display: none !important;
     }
 
@@ -2311,14 +2346,15 @@
 
     .quiz-option:hover, .quiz-option.selected {
       border-color: var(--accent);
-      background: rgba(40, 50, 80, 0.9);
+      background: var(--card-elevated);
       transform: translateY(-2px);
     }
 
     .quiz-option-radio {
-      width: 20px;
-      height: 20px;
-      border-radius: 10px;
+      width: 22px;
+      height: 22px;
+      flex-shrink: 0;
+      border-radius: 11px;
       border: 2px solid var(--border-night);
       display: flex;
       align-items: center;
@@ -2330,13 +2366,21 @@
       background: var(--accent);
     }
 
+    .quiz-option.selected .quiz-option-radio::after {
+      content: "✓";
+      color: #13101C;
+      font-size: 12px;
+      font-weight: 900;
+      line-height: 1;
+    }
+
     .form-group { margin-bottom: 12px; width: 100%; box-sizing: border-box; }
     .form-label { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-bottom: 4px; display: block; }
     .form-input {
       width: 100%;
       max-width: 100%;
       box-sizing: border-box;
-      background: #1C253D;
+      background: var(--surface-input);
       border: 1px solid var(--border-night);
       border-radius: var(--radius-sm);
       padding: 10px 12px;
@@ -2466,7 +2510,7 @@
       width: 42px;
       height: 42px;
       border-radius: 50%;
-      background: #141B2E;
+      background: var(--surface-modal);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -2577,7 +2621,7 @@
     .modal-overlay.active { display: flex; }
 
     .modal-sheet {
-      background: #141B2E;
+      background: var(--surface-modal);
       border-top: 1px solid rgba(255, 255, 255, 0.14);
       border-radius: 28px 28px 0 0;
       width: 100%;
@@ -2802,9 +2846,17 @@
        1. ONBOARDING QUIZ (SaaS PAYWALL ENGINE)
        ======================================================================= -->
   <div id="screen-onboarding" class="onboarding-screen active no-scrollbar">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-      <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: var(--accent);" id="quiz-step-indicator">ADIM 1 / 5</span>
-      <span style="font-size: 11px; color: var(--text-muted);">🌟 Kişiselleştirilmiş Plan</span>
+    <div style="margin-bottom: 12px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; min-height: 28px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <button type="button" id="quiz-back-btn" onclick="prevQuizStep()" style="display: none; background: rgba(255,255,255,0.06); border: 1px solid var(--border-night); color: var(--heading-night); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; cursor: pointer;">← Geri</button>
+          <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: var(--accent);" id="quiz-step-indicator">ADIM 1 / 5</span>
+        </div>
+        <span style="font-size: 11px; color: var(--text-muted);">🌟 Kişiselleştirilmiş Plan</span>
+      </div>
+      <div style="height: 4px; width: 100%; background: rgba(255,255,255,0.08); border-radius: 999px; overflow: hidden;">
+        <div id="onboarding-progress-fill" style="height: 100%; width: 20%; background: linear-gradient(90deg, var(--accent) 0%, #E07A5F 100%); border-radius: 999px; transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1);"></div>
+      </div>
     </div>
 
     <!-- Step 1 -->
@@ -2847,29 +2899,10 @@
       <button class="btn-primary" style="margin-top: 10px; margin-bottom: 10px;" onclick="nextQuizStep(2)">Devam Et ➔</button>
 
       <!-- AİLE KODU İLE KATILMA BAĞLANTISI -->
-      <div style="text-align: center; margin-bottom: 14px;">
-        <button type="button" onclick="openJoinFamilyModal()" style="background: none; border: none; color: var(--accent); font-size: 11px; cursor: pointer; text-decoration: underline; padding: 4px;">
+      <div style="text-align: center; margin-bottom: 8px;">
+        <button type="button" onclick="openJoinFamilyModal()" style="background: none; border: none; color: var(--accent); font-size: 11px; cursor: pointer; text-decoration: underline; padding: 6px;">
           👨‍👩‍👧 Eşinizin oluşturduğu Aile Paylaşım Kodu mu var? Buradan Katılın
         </button>
-      </div>
-
-      <!-- Kompakt Fonksiyon Rozetleri -->
-      <div style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-night); border-radius: 12px; padding: 10px 12px;">
-        <div style="font-size: 10px; font-weight: 700; color: var(--accent); text-transform: uppercase; margin-bottom: 6px;">✨ Bebeğiniz İçin Hazırlanacak Modüller:</div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
-          <div style="background: rgba(255,255,255,0.03); padding: 6px 8px; border-radius: 8px; font-size: 11px; color: #E2E8F0;">
-            🌙 <strong>MışılSpot™</strong><br><span style="font-size: 9px; color: var(--text-muted);">Ağlamasız uyku penceresi</span>
-          </div>
-          <div style="background: rgba(255,255,255,0.03); padding: 6px 8px; border-radius: 8px; font-size: 11px; color: #E2E8F0;">
-            🎧 <strong>18 Akustik Ses</strong><br><span style="font-size: 9px; color: var(--text-muted);">Kesintisiz stüdyo mikseri</span>
-          </div>
-          <div style="background: rgba(255,255,255,0.03); padding: 6px 8px; border-radius: 8px; font-size: 11px; color: #E2E8F0;">
-            🌱 <strong>BabySteps™</strong><br><span style="font-size: 9px; color: var(--text-muted);">Gelişim atakları takvimi</span>
-          </div>
-          <div style="background: rgba(255,255,255,0.03); padding: 6px 8px; border-radius: 8px; font-size: 11px; color: #E2E8F0;">
-            🤖 <strong>Mışıl Dadı™</strong><br><span style="font-size: 9px; color: var(--text-muted);">7/24 AI Ebeveyn Rehberi</span>
-          </div>
-        </div>
       </div>
     </div>
 
@@ -2969,11 +3002,14 @@
       <button class="btn-primary" style="margin-top: 14px;" onclick="generateSleepReport()">📊 Kişisel Uyku Raporumu Oluştur</button>
     </div>
 
-    <!-- Step 5 (Paywall) -->
+      <!-- Step 5 (Paywall) -->
     <div id="quiz-step-5" class="quiz-step" style="display: none;">
-      <div style="text-align: center; margin-bottom: 14px;">
-        <span class="leap-badge">📊 KİŞİSEL UYKU & HUZUR RAPORU</span>
-        <div style="font-family: 'Sora'; font-size: 20px; font-weight: 800; color: var(--heading-night); margin-top: 4px;" id="report-baby-title">
+      <div style="text-align: center; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 8px;">
+          <span class="leap-badge" style="margin-bottom: 0;">📊 KİŞİSEL UYKU & HUZUR RAPORU</span>
+          <button type="button" onclick="prevQuizStep(4)" style="background: rgba(255,255,255,0.06); border: 1px solid var(--border-night); color: var(--accent); font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 6px; cursor: pointer;">✏️ Yanıtlarımı Düzenle</button>
+        </div>
+        <div style="font-family: 'Sora'; font-size: 20px; font-weight: 800; color: var(--heading-night); margin-top: 6px;" id="report-baby-title">
           Bebeğiniz İçin Uyku Analizi
         </div>
         <div style="display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; background: rgba(232, 168, 85, 0.14); border: 1px solid rgba(232, 168, 85, 0.35); border-radius: 999px; padding: 3px 10px; font-size: 10px; font-weight: 700; color: var(--accent);">
@@ -3107,7 +3143,7 @@
 
       <!-- REVIEWER TEST BYPASS TRIGGER (GOOGLE PLAY ANSWER 15748846) -->
       <div style="text-align: center; margin-top: 12px; margin-bottom: 6px;">
-        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.40.0 (Build 57)</span>
+        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.46.23 (Build 65)</span>
       </div>
     </div>
   </div>
@@ -3281,26 +3317,44 @@
             <div id="home-bento-score-badge" class="soft-balance-pill state-in-rhythm" style="background: rgba(116, 198, 157, 0.2); color: var(--sage); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px;">🟢 Ritimde</div>
           </div>
 
-          <!-- Sağ: Hızlı Rutinler (Sıcak Şeftali) -->
-          <div class="bento-card-peach">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-              <span style="font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.3px; text-transform: uppercase;">Hızlı Rutin</span>
-              <span style="font-size: 10px; color: var(--text-muted); cursor: pointer;" onclick="openAddRoutineModal()">+Ekle</span>
+          <!-- Sağ: Canlı Bakım Özeti (Huckleberry Benchmark: Son Kayıtlar — Xh Ym Önce) -->
+          <div class="bento-card-peach" style="justify-content: space-between;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+              <span style="font-size: 10.5px; font-weight: 800; color: var(--accent); letter-spacing: 0.3px; text-transform: uppercase;">Bakım Özeti</span>
+              <span style="font-size: 10px; font-weight: 700; color: var(--accent); cursor: pointer;" onclick="openAddRoutineModal()">+Kayıt</span>
             </div>
-            <div class="routine-pill-grid">
-              <div class="routine-pill-btn" onclick="openRoutineModalFor('feeding')" title="Beslenme Kaydı">
-                <span>🍼</span> <span>Besle</span>
+            <div style="display: flex; flex-direction: column; gap: 5px; width: 100%;">
+              <div class="care-summary-row" onclick="openRoutineModalFor('feeding')" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(244,162,97,0.22); border-radius: 9px; padding: 5px 8px; cursor: pointer;">
+                <span style="font-size: 10.5px; color: var(--text-night);">🍼 Beslenme</span>
+                <strong id="home-last-feed-ago" style="font-size: 10.5px; color: var(--heading-night);">Kayıt ekle +</strong>
               </div>
-              <div class="routine-pill-btn" onclick="openRoutineModalFor('diaper')" title="Alt Değişimi">
-                <span>🚼</span> <span>Bez</span>
+              <div class="care-summary-row" onclick="openRoutineModalFor('diaper')" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(244,162,97,0.22); border-radius: 9px; padding: 5px 8px; cursor: pointer;">
+                <span style="font-size: 10.5px; color: var(--text-night);">🚼 Son Bez</span>
+                <strong id="home-last-diaper-ago" style="font-size: 10.5px; color: var(--heading-night);">Kayıt ekle +</strong>
               </div>
-              <div class="routine-pill-btn" onclick="openCryModal()" title="Ağlama Teşhisi">
-                <span>🎙️</span> <span>Ağlama</span>
-              </div>
-              <div class="routine-pill-btn" onclick="switchTab('sounds')" title="Ninni ve Sesler">
-                <span>🎧</span> <span>Sesler</span>
+              <div class="care-summary-row" onclick="switchHomeSegment('timeline')" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(116,198,157,0.25); border-radius: 9px; padding: 5px 8px; cursor: pointer;">
+                <span style="font-size: 10.5px; color: var(--text-night);">🌙 Bugün Uyku</span>
+                <strong id="home-today-sleep-total" style="font-size: 10.5px; color: var(--sage);">0dk (0 uyku)</strong>
               </div>
             </div>
+          </div>
+        </div>
+
+        <!-- NAPPER BENCHMARK: 24 SAATLİK GÖRSEL SİRKADİYEN GÜNLÜK ŞERİT -->
+        <div class="card" id="home-circadian-strip" onclick="switchHomeSegment('timeline')" style="padding: 10px 12px; margin-bottom: 10px; cursor: pointer; background: var(--card-night); border: 1px solid var(--border-night); border-radius: var(--radius-lg);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-family: 'Sora'; font-size: 11px; font-weight: 700; color: var(--heading-night);">🕒 24 Saatlik Günlük Ritim Şeridi</span>
+            <span id="circadian-strip-summary" style="font-size: 10px; font-weight: 700; color: var(--accent);">MışılSpot™ Takvimde ›</span>
+          </div>
+          <div id="circadian-strip-bar" style="position: relative; height: 18px; width: 100%; background: rgba(255,255,255,0.06); border-radius: 9px; overflow: hidden; border: 1px solid var(--border-night);">
+            <!-- Dinamik uyku blokları, beslenme noktaları ve MışılSpot penceresi JS ile çizilir -->
+          </div>
+          <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-top: 4px; font-weight: 600;">
+            <span>00:00</span>
+            <span>06:00</span>
+            <span>12:00</span>
+            <span>18:00</span>
+            <span>24:00</span>
           </div>
         </div>
 
@@ -3324,7 +3378,7 @@
             <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">🍼</div>
             <div>
               <div style="font-size: 12px; font-weight: 800;">Beslenme</div>
-              <div style="font-size: 10px; opacity: 0.85;">Mama / Emzirme</div>
+              <div style="font-size: 10px; opacity: 0.88;" id="quick-card-milk-sub">Mama / Emzirme</div>
             </div>
           </div>
           <!-- Alt Değişimi (Blush Gül) -->
@@ -3332,15 +3386,15 @@
             <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">🚼</div>
             <div>
               <div style="font-size: 12px; font-weight: 800;">Alt Değişimi</div>
-              <div style="font-size: 10px; opacity: 0.85;">Islak / Kirli Bez</div>
+              <div style="font-size: 10px; opacity: 0.88;" id="quick-card-diaper-sub">Islak / Kirli Bez</div>
             </div>
           </div>
           <!-- Ağlama Analizi (Lavanta) -->
           <div class="soft-quick-card card-cry" onclick="openCryModal()">
             <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">🎙️</div>
             <div>
-              <div style="font-size: 12px; font-weight: 800;">Ağlama Analizi</div>
-              <div style="font-size: 10px; opacity: 0.85;">AI Ses Teşhisi</div>
+              <div style="font-size: 12px; font-weight: 800;">Ağlama Rehberi</div>
+              <div style="font-size: 10px; opacity: 0.88;" id="quick-card-cry-sub">Açlık / Gaz / Uyku</div>
             </div>
           </div>
           <!-- Ses Mikseri (Şeftali) -->
@@ -3348,7 +3402,7 @@
             <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">🎧</div>
             <div>
               <div style="font-size: 12px; font-weight: 800;">Ses Mikseri</div>
-              <div style="font-size: 10px; opacity: 0.85;">18 Melodi & Timer</div>
+              <div style="font-size: 10px; opacity: 0.88;" id="quick-card-sound-sub">18 Melodi & Sayaç</div>
             </div>
           </div>
         </div>
@@ -3387,21 +3441,6 @@
               Pediatrik aşı takvimi...
             </div>
           </div>
-        </div>
-
-        <!-- Mini Player -->
-        <div class="card" style="display: flex; align-items: center; justify-content: space-between; border-color: var(--accent); background: var(--card-night); margin-top: 4px; border-radius: var(--radius-lg); padding: 10px 14px;">
-          <div class="spotlight-glow"></div>
-          <div>
-            <div style="display: flex; align-items: center;">
-              <span style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: var(--heading-night);" id="mini-sound-name">🎹 Brahms Uyku Ninnisi</span>
-              <div class="waves-box" id="mini-sound-waves" style="display: none;">
-                <span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span>
-              </div>
-            </div>
-            <div style="font-size: 10px; color: var(--text-muted); margin-top: 2px;" id="mini-sound-status">Stüdyo Akustik Parça • Duraklatıldı</div>
-          </div>
-          <button class="sound-play-btn" id="mini-play-btn" onclick="toggleMiniPlay()">▶</button>
         </div>
       </div>
 
@@ -3672,7 +3711,7 @@
           <span style="font-size: 22px;">🎙️</span>
           <div>
             <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Bebeğiniz Ağlıyor mu?</div>
-            <div style="font-size: 11px; color: var(--accent);">13-Bant MFCC Akustik Ağlama Analizi Başlat ➔</div>
+            <div style="font-size: 11px; color: var(--accent);">Açlık, Gaz veya Uyku İpucunu 5 Saniyede Keşfet ➔</div>
           </div>
         </div>
         <span class="early-leap-btn" style="margin: 0; padding: 4px 8px; font-size: 10px;">Dinle 🎙️</span>
@@ -4067,6 +4106,23 @@
 
   </div>
 
+  <!-- CALM / HATCH REST BENCHMARK: GLOBAL YÜZEN MİNİ-PLAYER (YALNIZCA SES ÇALARKEN GÖRÜNÜR) -->
+  <div id="global-floating-mini-player" style="display: none; position: absolute; bottom: calc(74px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px))); left: 12px; right: 12px; max-width: 516px; margin: 0 auto; z-index: 998; background: rgba(29, 24, 41, 0.96); border: 1.5px solid var(--accent); border-radius: 18px; padding: 9px 12px; align-items: center; justify-content: space-between; gap: 10px; box-shadow: 0 12px 32px rgba(0, 0, 0, 0.55); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);">
+    <div style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; cursor: pointer;" onclick="switchTab('sounds')">
+      <div class="waves-box" id="mini-sound-waves" style="display: flex; margin-left: 0; flex-shrink: 0;">
+        <span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span>
+      </div>
+      <div style="min-width: 0; flex: 1;">
+        <div style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: var(--heading-night); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="mini-sound-name">🎹 Brahms Uyku Ninnisi</div>
+        <div style="font-size: 10px; color: var(--accent); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="mini-sound-status">Stüdyo Master • Kesintisiz Döngü</div>
+      </div>
+    </div>
+    <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+      <button type="button" class="sound-play-btn" id="mini-play-btn" onclick="toggleMiniPlay()" style="width: 36px; height: 36px; font-size: 12px;">❚❚</button>
+      <button type="button" onclick="stopActiveAudioTrack()" aria-label="Sesi Kapat" style="width: 34px; height: 34px; border-radius: 17px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-night); color: var(--text-muted); font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✕</button>
+    </div>
+  </div>
+
   <!-- HUCKLEBERRY PRO TIER-1 DOCK (5-ELEMENT RETINA SVG & CENTER FAB) -->
   <div class="tab-bar" id="app-bottom-dock">
     <!-- 1. Mışıl Spot (Home) -->
@@ -4163,13 +4219,13 @@
 <div class="modal-overlay" id="modal-cry" onclick="closeModalOnOverlay(event, 'modal-cry')">
   <div class="modal-sheet no-scrollbar">
     <div class="modal-header">
-      <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: var(--heading-night);">🎙️ Akustik Ağlama Analizi</div>
+      <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: var(--heading-night);">🎙️ Akıllı Ağlama Rehberi</div>
       <button class="modal-close" onclick="closeCryModal()">✕</button>
     </div>
     
     <!-- KVKK & APPLE ŞEFFAFLIK ROZETİ -->
     <div style="background: rgba(46, 213, 115, 0.1); border: 1px dashed var(--success); border-radius: 10px; padding: 8px 12px; margin-bottom: 12px; font-size: 11px; color: var(--text-night); line-height: 15px;">
-      🔒 <strong>Sıfır-Depolama RAM Politikası:</strong> Ses kaydı sunucu veya cihaz diskine kaydedilmez. Yalnızca 5 saniye boyunca sunucu RAM belleğinde 13-bant MFCC algoritması ile analiz edilip derhal kalıcı olarak silinir.
+      🔒 <strong>Sıfır-Depolama Gizlilik Güvencesi:</strong> Bebeğinizin ses kaydı sunucu veya cihaz diskine asla kaydedilmez; yalnızca 5 saniye boyunca anlık dinlenip derhal kalıcı olarak silinir.
     </div>
     
     <div class="card mic-record-box" id="cry-recorder" style="margin-bottom: 0;">
@@ -4179,7 +4235,7 @@
         Dinlemek İçin Dokunun
       </div>
       <div style="font-size: 11px; color: var(--text-muted); line-height: 16px;" id="mic-status-desc">
-        Mikrofon 5 saniye boyunca ortam sesini kaydeder. 13 bant MFCC & Zero Crossing Rate ile analiz edilir.
+        5 saniye boyunca bebeğinizin ses tonunu ve ritmini dinleyerek açlık, gaz veya uyku ipucunu keşfeder.
       </div>
 
       <div id="mic-waveform" style="display: none; justify-content: center; gap: 4px; height: 28px; margin-top: 14px; align-items: center;">
@@ -4194,8 +4250,8 @@
     <div id="cry-result" style="display: none; margin-top: 12px;">
       <div class="card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-          <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF;">Tespit Edilen Nedenler</div>
-          <span id="cry-status-badge" style="font-size: 10px; color: var(--success); font-weight: 700;">● GEMINI 3.6 SES ANALİZİ</span>
+          <div style="font-family: 'Sora'; font-size: 14px; font-weight: 600; color: #FFF;">Olası İhtiyaç İpuçları</div>
+          <span id="cry-status-badge" style="font-size: 10px; color: var(--success); font-weight: 700;">● AKILLI SES İPUCU ANALİZİ</span>
         </div>
 
         <!-- GERÇEK AKUSTİK DİNLEME NOTU -->
@@ -4330,7 +4386,7 @@
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
     </div>
     <div style="text-align: center; margin-top: 10px;">
-      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.40.0 (Build 57)</span>
+      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.46.23 (Build 65)</span>
     </div>
   </div>
 </div>
@@ -4465,8 +4521,14 @@
     </div>
 
     <div class="form-group">
-      <label class="form-label">Rutin Türü</label>
-      <select class="form-input" id="routine-modal-type" onchange="handleRoutineTypeChange(this.value)">
+      <label class="form-label">Rutin Türü (Tek Dokunuşla Seçin)</label>
+      <div id="routine-type-pills" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-bottom: 6px;">
+        <button type="button" class="routine-type-pill active" data-rtype="sleep" onclick="selectRoutineTypePill('sleep')" style="min-height: 44px; border-radius: 12px; border: 1.5px solid var(--accent); background: var(--accent); color: #13101C; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;"><span>🌙</span><span>Uyku</span></button>
+        <button type="button" class="routine-type-pill" data-rtype="feeding" onclick="selectRoutineTypePill('feeding')" style="min-height: 44px; border-radius: 12px; border: 1px solid var(--border-night); background: var(--surface-pill); color: var(--text-night); font-family: 'Sora'; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;"><span>🍼</span><span>Beslenme</span></button>
+        <button type="button" class="routine-type-pill" data-rtype="diaper" onclick="selectRoutineTypePill('diaper')" style="min-height: 44px; border-radius: 12px; border: 1px solid var(--border-night); background: var(--surface-pill); color: var(--text-night); font-family: 'Sora'; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;"><span>🚼</span><span>Bez</span></button>
+        <button type="button" class="routine-type-pill" data-rtype="custom" onclick="selectRoutineTypePill('custom')" style="min-height: 44px; border-radius: 12px; border: 1px solid var(--border-night); background: var(--surface-pill); color: var(--text-night); font-family: 'Sora'; font-size: 11px; font-weight: 700; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;"><span>✨</span><span>Diğer</span></button>
+      </div>
+      <select class="form-input" id="routine-modal-type" onchange="handleRoutineTypeChange(this.value)" style="display: none;">
         <option value="sleep" selected>🌙 Gündüz Uykusu</option>
         <option value="feeding">🍼 Beslenme (Anne Sütü / Mama)</option>
         <option value="diaper">🚼 Bez Değişimi</option>
@@ -4483,7 +4545,7 @@
         </div>
         <div style="flex: 1;">
           <label class="form-label">Uyanış Saati</label>
-          <input type="time" class="form-input" id="routine-modal-end" value="14:15" onchange="calcModalSleepDuration()" oninput="calcModalSleepDuration()" style="margin-bottom: 0;" /></div></div><div id="routine-sleep-quick-shift-box" style="margin-bottom: 12px;"><div style="font-size: 10px; font-weight: 700; color: var(--accent); margin-bottom: 6px;">⚡ Hızlı Saat Düzeltme (Uyuyakaldıysanız uyanışı geri çekin):</div><div style="display: flex; flex-wrap: wrap; gap: 6px;"><button type="button" onclick="shiftModalSleepTime('end', -15)" style="flex: 1; min-width: 70px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 700; cursor: pointer;">Uyanış -15 dk</button><button type="button" onclick="shiftModalSleepTime('end', -30)" style="flex: 1; min-width: 70px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 700; cursor: pointer;">Uyanış -30 dk</button><button type="button" onclick="shiftModalSleepTime('end', -60)" style="flex: 1; min-width: 70px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 700; cursor: pointer;">Uyanış -1 saat</button><button type="button" onclick="shiftModalSleepTime('start', -15)" style="flex: 1; min-width: 70px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-night); color: var(--text-night); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 600; cursor: pointer;">Başlangıç -15 dk</button>
+          <input type="time" class="form-input" id="routine-modal-end" value="14:15" onchange="calcModalSleepDuration()" oninput="calcModalSleepDuration()" style="margin-bottom: 0;" /></div></div><div id="routine-sleep-quick-shift-box" style="margin-bottom: 12px;"><div style="font-size: 10px; font-weight: 700; color: var(--accent); margin-bottom: 6px;">⚡ Hızlı Saat Düzeltme (Uyuyakaldıysanız uyanışı geri çekin):</div><div style="display: flex; flex-wrap: wrap; gap: 6px;"><button type="button" onclick="shiftModalSleepTime('end', -15)" style="flex: 1; min-width: 72px; min-height: 42px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 10px; padding: 8px 6px; font-size: 11px; font-weight: 700; cursor: pointer;">Uyanış -15 dk</button><button type="button" onclick="shiftModalSleepTime('end', -30)" style="flex: 1; min-width: 72px; min-height: 42px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 10px; padding: 8px 6px; font-size: 11px; font-weight: 700; cursor: pointer;">Uyanış -30 dk</button><button type="button" onclick="shiftModalSleepTime('end', -60)" style="flex: 1; min-width: 72px; min-height: 42px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 10px; padding: 8px 6px; font-size: 11px; font-weight: 700; cursor: pointer;">Uyanış -1 saat</button><button type="button" onclick="shiftModalSleepTime('start', -15)" style="flex: 1; min-width: 72px; min-height: 42px; background: rgba(255, 255, 255, 0.06); border: 1px solid var(--border-night); color: var(--text-night); border-radius: 10px; padding: 8px 6px; font-size: 11px; font-weight: 600; cursor: pointer;">Başlangıç -15 dk</button>
         </div>
       </div>
 
@@ -4549,7 +4611,7 @@
       </div>
     </div>
 
-    <button class="btn-primary" id="routine-modal-submit-btn" onclick="submitCustomRoutine()" style="margin-top: 6px;">💾 Rutini Kaydet & Çizelgeye Ekle</button></div></div><div class="modal-overlay" id="modal-live-sleep-edit" onclick="closeModalOnOverlay(event, 'modal-live-sleep-edit')"><div class="modal-sheet no-scrollbar" style="max-width: 400px;"><div class="modal-header"><div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: var(--heading-night);">🕓 Canlı Uyku Başlangıç Saatini Düzelt</div><button class="modal-close" onclick="closeLiveSleepStartEditModal()">✕</button></div><div style="font-size: 12px; color: var(--text-muted); line-height: 17px; margin-bottom: 12px;">Bebeğiniz uykuya daldıktan sonra sayacı başlatmayı unuttuysanız veya geç bastıysanız gerçek uyku başlangıç saatini seçin:</div><div class="form-group"><label class="form-label">Uykuya Dalma Saati</label><input type="time" class="form-input" id="live-sleep-edit-time-input" value="13:00" style="font-size: 16px; font-weight: 700; text-align: center;" /></div><div style="margin-bottom: 14px;"><div style="font-size: 10px; font-weight: 700; color: var(--accent); margin-bottom: 6px;">⚡ Hızlı Geri Çek:</div><div style="display: flex; gap: 6px;"><button type="button" onclick="shiftLiveSleepModalTime(-10)" style="flex: 1; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 7px 4px; font-size: 11px; font-weight: 700; cursor: pointer;">-10 dk</button><button type="button" onclick="shiftLiveSleepModalTime(-15)" style="flex: 1; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 7px 4px; font-size: 11px; font-weight: 700; cursor: pointer;">-15 dk</button><button type="button" onclick="shiftLiveSleepModalTime(-30)" style="flex: 1; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 7px 4px; font-size: 11px; font-weight: 700; cursor: pointer;">-30 dk</button><button type="button" onclick="shiftLiveSleepModalTime(-45)" style="flex: 1; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 8px; padding: 7px 4px; font-size: 11px; font-weight: 700; cursor: pointer;">-45 dk</button></div></div><button class="btn-primary" onclick="saveLiveSleepStartEdit()">💾 Başlangıç Saatini Güncelle</button><button class="btn-secondary" onclick="closeLiveSleepStartEditModal()" style="margin-top: 8px;">Vazgeç</button>
+    <button class="btn-primary" id="routine-modal-submit-btn" onclick="submitCustomRoutine()" style="margin-top: 6px;">💾 Rutini Kaydet & Çizelgeye Ekle</button></div></div><div class="modal-overlay" id="modal-live-sleep-edit" onclick="closeModalOnOverlay(event, 'modal-live-sleep-edit')"><div class="modal-sheet no-scrollbar" style="max-width: 400px;"><div class="modal-header"><div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: var(--heading-night);">🕓 Canlı Uyku Başlangıç Saatini Düzelt</div><button class="modal-close" onclick="closeLiveSleepStartEditModal()">✕</button></div><div style="font-size: 12px; color: var(--text-muted); line-height: 17px; margin-bottom: 12px;">Bebeğiniz uykuya daldıktan sonra sayacı başlatmayı unuttuysanız veya geç bastıysanız gerçek uyku başlangıç saatini seçin:</div><div class="form-group"><label class="form-label">Uykuya Dalma Saati</label><input type="time" class="form-input" id="live-sleep-edit-time-input" value="13:00" style="font-size: 16px; font-weight: 700; text-align: center;" /></div><div style="margin-bottom: 14px;"><div style="font-size: 10px; font-weight: 700; color: var(--accent); margin-bottom: 6px;">⚡ Hızlı Geri Çek:</div><div style="display: flex; gap: 6px;"><button type="button" onclick="shiftLiveSleepModalTime(-10)" style="flex: 1; min-height: 42px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 10px; padding: 8px 4px; font-size: 11px; font-weight: 700; cursor: pointer;">-10 dk</button><button type="button" onclick="shiftLiveSleepModalTime(-15)" style="flex: 1; min-height: 42px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 10px; padding: 8px 4px; font-size: 11px; font-weight: 700; cursor: pointer;">-15 dk</button><button type="button" onclick="shiftLiveSleepModalTime(-30)" style="flex: 1; min-height: 42px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 10px; padding: 8px 4px; font-size: 11px; font-weight: 700; cursor: pointer;">-30 dk</button><button type="button" onclick="shiftLiveSleepModalTime(-45)" style="flex: 1; min-height: 42px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.38); color: var(--heading-night); border-radius: 10px; padding: 8px 4px; font-size: 11px; font-weight: 700; cursor: pointer;">-45 dk</button></div></div><button class="btn-primary" onclick="saveLiveSleepStartEdit()">💾 Başlangıç Saatini Güncelle</button><button class="btn-secondary" onclick="closeLiveSleepStartEditModal()" style="margin-top: 8px;">Vazgeç</button>
   </div>
 </div>
 
@@ -4602,7 +4664,7 @@
       </div>
       <div class="guard-feature-item">
         <span style="font-size: 16px;">🎙️</span>
-        <span><strong>Akustik Ağlama Analizi:</strong> 13-bant MFCC ile açlık, gaz ve uyku tespiti</span>
+        <span><strong>Akıllı Ağlama Rehberi:</strong> 5 saniyede açlık, gaz ve uyku ipucu tespiti</span>
       </div>
       <div class="guard-feature-item">
         <span style="font-size: 16px;">🎵</span>
@@ -4953,7 +5015,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.46.22', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.46.23', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -4970,7 +5032,12 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.46.22', date: '3 Kasım 2026', latest: true, items: [
+    { v: '4.46.23', date: '3 Kasım 2026', latest: true, items: [
+      'Canlı Bakım Özeti & 24 Saatlik Günlük Ritim Şeridi (Huckleberry / Napper Benchmark): Ana ekrandaki mükerrer 4\'lü buton ızgarası kaldırılarak yerine "Son Beslenme: Xs Ydk önce", "Son Bez" ve "Bugün Uyku" canlı bakım özeti ile 00:00–24:00 görsel sirkadiyen ritim şeridi entegre edildi.',
+      'Global Yüzen Mini-Player & Kusursuz Tema / Değişken Onarımı (Calm / Hatch Rest Benchmark): Sadece ana ekranın altında kalan ses oynatıcı tüm sekmelerde alt dock\'un üzerinde yüzen, ses çalmadığında gizlenen akıllı Mini-Player\'a dönüştürüldü; eksik --sage ve --lavender CSS değişkenleri tanımlanarak Denge Skoru halkası ve Aydınlık Mod kontrastı %100 onarıldı.',
+      'Onboarding Geri Butonu, İlerleme Çubuğu & Gece 03:00 Tek El Ergonomisi: Onboarding anketine "← Geri" butonu, 5 adımlı görsel ilerleme çubuğu ve seçili şık onay işareti (✓) eklendi; Rutin Ekleme penceresine 4\'lü tek dokunuş ikon seçici, 42px hızlı saat kaydırma butonları ve sıfır mühendislik jargonlu anne dili eklendi.'
+    ]},
+    { v: '4.46.22', date: '3 Kasım 2026', items: [
       'Şeffaf 7 Günlük Deneme Zaman Çizelgesi & Yapışkan (Sticky) CTA: Onboarding uyku raporuna "Bugün ₺0 ➔ 5. Gün Hatırlatma ➔ 8. Gün Başlangıç" görsel zaman çizelgesi, seçilen plana göre dinamik ücret satırı (Apple Guideline 3.1.2c uyumlu) ve kaydırma gerektirmeyen yapışkan başlatma alanı eklendi.',
       'Anne Diliyle Fayda Konumlandırması & İlk Gece VIP Eylem Planı: Teknik mühendislik terimleri anne odaklı sade fayda diline dönüştürüldü; VIP başlatan aileler için ana ekranda 3 adımlı "İlk Gece VIP Eylem Planı" rehberi ve ücretsiz kullanıcılar için günlük 1 ücretsiz MışılSpot™ + devam saatleri VIP kilidi devreye alındı.',
       'Bağlamsal (Contextual) VIP Paywall & Hunisi Telemetrisi: Kilitlenen özelliğe (Ağlama Rehberi, MışılSpot™ Saatleri, 45-60 dk Zamanlayıcı / Gece Beşiği, Mışıl Dadı) göre kişiselleşen başlıklar ve anonim Paywall dönüşüm hunisi sinyalleri eklendi.'
@@ -5621,21 +5688,37 @@
 
   function updatePlayerUI() {
     renderSoundsList();
+    const floatingBar = document.getElementById('global-floating-mini-player');
     const miniName = document.getElementById('mini-sound-name');
     const miniStatus = document.getElementById('mini-sound-status');
     const miniBtn = document.getElementById('mini-play-btn');
     const miniWaves = document.getElementById('mini-sound-waves');
+    const quickSoundSub = document.getElementById('quick-card-sound-sub');
 
     if (currentTrackId) {
       const track = SOUND_TRACKS.find(t => t.id === currentTrackId);
-      miniName.textContent = track ? track.title : 'Çalıyor';
-      miniStatus.textContent = 'Stüdyo Master • Kesintisiz Döngü';
-      miniBtn.textContent = '❚❚';
-      miniWaves.style.display = 'flex';
+      const timerTag = activeTimerMinutes > 0 ? ` • ⏱️ ${activeTimerMinutes} dk` : ' • Kesintisiz Döngü';
+      if (floatingBar) floatingBar.style.display = 'flex';
+      if (miniName) miniName.textContent = track ? track.title : 'Çalıyor';
+      if (miniStatus) miniStatus.textContent = `Stüdyo Master${timerTag}`;
+      if (miniBtn) miniBtn.textContent = '❚❚';
+      if (miniWaves) miniWaves.style.display = 'flex';
+      if (quickSoundSub) quickSoundSub.textContent = track ? `Çalıyor: ${track.title.replace(/^[^\wÇĞİÖŞÜçğıöşü]+/, '')}` : 'Çalıyor...';
     } else {
-      miniStatus.textContent = 'Duraklatıldı';
-      miniBtn.textContent = '▶';
-      miniWaves.style.display = 'none';
+      if (floatingBar) floatingBar.style.display = 'none';
+      if (miniStatus) miniStatus.textContent = 'Duraklatıldı';
+      if (miniBtn) miniBtn.textContent = '▶';
+      if (miniWaves) miniWaves.style.display = 'none';
+      if (quickSoundSub) quickSoundSub.textContent = '18 Melodi & Sayaç';
+    }
+  }
+
+  function stopActiveAudioTrack() {
+    if (currentTrackId) {
+      togglePlayTrack(currentTrackId);
+    } else {
+      const floatingBar = document.getElementById('global-floating-mini-player');
+      if (floatingBar) floatingBar.style.display = 'none';
     }
   }
 
@@ -6156,6 +6239,36 @@
     syncFamilyToCloud(famCode, nm, bd, pRole, pName);
   }
 
+  let currentQuizStep = 1;
+
+  function syncOnboardingHeaderUI(stepNum) {
+    currentQuizStep = stepNum;
+    const ind = document.getElementById('quiz-step-indicator');
+    const backBtn = document.getElementById('quiz-back-btn');
+    const progFill = document.getElementById('onboarding-progress-fill');
+    if (ind) {
+      ind.textContent = stepNum === 5 ? 'KİŞİSEL UYKU RAPORU' : `ADIM ${stepNum} / 5`;
+    }
+    if (backBtn) {
+      backBtn.style.display = stepNum > 1 ? 'inline-flex' : 'none';
+    }
+    if (progFill) {
+      const pct = Math.max(20, Math.min(100, stepNum * 20));
+      progFill.style.width = `${pct}%`;
+    }
+    const screen = document.getElementById('screen-onboarding');
+    if (screen) screen.scrollTop = 0;
+  }
+
+  function prevQuizStep(targetStep) {
+    hapticPulse();
+    const prev = typeof targetStep === 'number' ? targetStep : Math.max(1, currentQuizStep - 1);
+    document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
+    const targetEl = document.getElementById(`quiz-step-${prev}`);
+    if (targetEl) targetEl.style.display = 'block';
+    syncOnboardingHeaderUI(prev);
+  }
+
   function restartOnboardingQuiz() {
     hapticPulse();
     const baby = getBaby();
@@ -6167,7 +6280,7 @@
     if (pnEl) pnEl.value = localStorage.getItem('mishil_user_name') || '';
     document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
     document.getElementById('quiz-step-1').style.display = 'block';
-    document.getElementById('quiz-step-indicator').textContent = 'ADIM 1 / 5';
+    syncOnboardingHeaderUI(1);
     document.getElementById('screen-onboarding').classList.add('active');
   }
 
@@ -6219,7 +6332,7 @@
     }
     document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
     document.getElementById(`quiz-step-${stepNum}`).style.display = 'block';
-    document.getElementById('quiz-step-indicator').textContent = `ADIM ${stepNum} / 5`;
+    syncOnboardingHeaderUI(stepNum);
   }
 
   function updateTrialEndDateDisplay() {
@@ -6356,7 +6469,7 @@
     hapticPulse();
     document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
     document.getElementById('quiz-step-5').style.display = 'block';
-    document.getElementById('quiz-step-indicator').textContent = 'KİŞİSEL UYKU RAPORU';
+    syncOnboardingHeaderUI(5);
     updateTrialEndDateDisplay();
 
     let score = 82;
@@ -6405,7 +6518,7 @@
     } else if (quizAnswers.struggleArea === 'growth') {
       extraText = '✓ BabySteps™ ile 10 zihinsel sıçrama & motor beceri takibi';
     } else if (quizAnswers.struggleArea === 'cry') {
-      extraText = '✓ 13 bant MFCC akustik bebek ağlama analizi ve açlık/gaz ayrımı';
+      extraText = '✓ Akıllı Ağlama Rehberi ile 5 saniyede açlık, gaz ve uyku ipucu ayrımı';
     } else {
       extraText = '✓ MışılSpot™ ve 18 stüdyo sesiyle sıfır dirençli uyku geçişi';
     }
@@ -8341,11 +8454,109 @@
 
   const TARGET_DAY_SLEEP_MINS = 210; // 3.5 Saat (210 dk) Klinik Gündüz Uykusu Hedefi
 
+  function formatAgoShort(ts) {
+    if (!ts) return 'Kayıt ekle +';
+    const diffMins = Math.max(0, Math.round((Date.now() - ts) / 60000));
+    if (diffMins < 2) return 'Az önce';
+    if (diffMins < 60) return `${diffMins} dk önce`;
+    const hrs = Math.floor(diffMins / 60);
+    const mins = diffMins % 60;
+    if (hrs >= 24) return `${Math.floor(hrs / 24)} gün önce`;
+    return mins > 0 ? `${hrs}s ${mins}dk önce` : `${hrs} saat önce`;
+  }
+
+  function renderHomeCareSummaryAndCircadianStrip() {
+    const routines = Array.isArray(activeRoutines) ? activeRoutines : [];
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).getTime();
+
+    // 1. Huckleberry Benchmark: Son Beslenme, Son Bez ve Bugün Uyku
+    const lastFeed = routines.find(r => r && r.type === 'feeding');
+    const lastDiaper = routines.find(r => r && r.type === 'diaper');
+    const todaySleeps = routines.filter(r => r && r.type === 'sleep' && (r.endTs || r.timestamp || 0) >= todayStart);
+    const todaySleepMins = todaySleeps.reduce((acc, s) => acc + (s.durationMins || 0), 0);
+
+    const feedAgoText = lastFeed ? formatAgoShort(lastFeed.timestamp) : 'Kayıt ekle +';
+    const diaperAgoText = lastDiaper ? formatAgoShort(lastDiaper.timestamp) : 'Kayıt ekle +';
+    const sh = Math.floor(todaySleepMins / 60);
+    const sm = todaySleepMins % 60;
+    const sleepSummaryText = todaySleeps.length > 0
+      ? `${sh > 0 ? sh + 's ' : ''}${sm}dk (${todaySleeps.length} uyku)`
+      : '0dk (0 uyku)';
+
+    const elFeedAgo = document.getElementById('home-last-feed-ago');
+    const elDiaperAgo = document.getElementById('home-last-diaper-ago');
+    const elSleepTot = document.getElementById('home-today-sleep-total');
+    if (elFeedAgo) elFeedAgo.textContent = feedAgoText;
+    if (elDiaperAgo) elDiaperAgo.textContent = diaperAgoText;
+    if (elSleepTot) elSleepTot.textContent = sleepSummaryText;
+
+    const qMilkSub = document.getElementById('quick-card-milk-sub');
+    const qDiaperSub = document.getElementById('quick-card-diaper-sub');
+    if (qMilkSub) qMilkSub.textContent = lastFeed ? `Son: ${feedAgoText}` : 'Mama / Emzirme';
+    if (qDiaperSub) qDiaperSub.textContent = lastDiaper ? `Son: ${diaperAgoText}` : 'Islak / Kirli Bez';
+
+    // 2. Napper Benchmark: 24 Saatlik Görsel Sirkadiyen Ritim Şeridi (00:00 - 24:00)
+    const bar = document.getElementById('circadian-strip-bar');
+    const stripSum = document.getElementById('circadian-strip-summary');
+    if (!bar) return;
+
+    let html = '';
+    // Uyku blokları (Yeşil/Adaçayı)
+    todaySleeps.forEach(s => {
+      const ext = extractSleepStartEnd(s);
+      const [sh1, sm1] = (ext.start || '13:00').split(':').map(Number);
+      const [eh1, em1] = (ext.end || '14:00').split(':').map(Number);
+      let sMin = (sh1 || 0) * 60 + (sm1 || 0);
+      let eMin = (eh1 || 0) * 60 + (em1 || 0);
+      if (eMin < sMin) sMin = 0; // Gece devri bugünün başlangıcından itibaren gösterilir
+      const leftPct = Math.max(0, Math.min(98, (sMin / 1440) * 100));
+      const widthPct = Math.max(2, Math.min(100 - leftPct, ((eMin - sMin) / 1440) * 100));
+      html += `<div title="Uyku: ${ext.start} - ${ext.end}" style="position:absolute; top:2px; bottom:2px; left:${leftPct.toFixed(1)}%; width:${widthPct.toFixed(1)}%; background:linear-gradient(90deg, #74C69D, #487A63); border-radius:6px; opacity:0.9;"></div>`;
+    });
+
+    // Beslenme ve Bez Noktaları (Kehribar / Gül)
+    const todayEvents = routines.filter(r => r && (r.type === 'feeding' || r.type === 'diaper') && (r.timestamp || 0) >= todayStart);
+    todayEvents.forEach(ev => {
+      const dt = new Date(ev.timestamp || Date.now());
+      const evMin = dt.getHours() * 60 + dt.getMinutes();
+      const leftPct = Math.max(1, Math.min(98, (evMin / 1440) * 100));
+      const dotColor = ev.type === 'feeding' ? '#FFE5A3' : '#FBC8D3';
+      html += `<div title="${ev.title} (${ev.time || ''})" style="position:absolute; top:5px; width:6px; height:6px; border-radius:50%; left:calc(${leftPct.toFixed(1)}% - 3px); background:${dotColor}; box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`;
+    });
+
+    // Sıradaki MışılSpot™ Hedef Penceresi (Parıldayan Kehribar Blok)
+    const baby = getBaby();
+    if (baby && baby.bdate && !isSleeping) {
+      const calc = calculateMışılSpot(baby.bdate);
+      if (calc && calc.sweetSpotTime && /^\d{1,2}:\d{2}$/.test(calc.sweetSpotTime)) {
+        const [th, tm] = calc.sweetSpotTime.split(':').map(Number);
+        const tMin = (th || 0) * 60 + (tm || 0);
+        const leftPct = Math.max(0, Math.min(95, (tMin / 1440) * 100));
+        html += `<div title="MışılSpot™: ${calc.sweetSpotTime}" style="position:absolute; top:1px; bottom:1px; left:${leftPct.toFixed(1)}%; width:4.2%; background:rgba(244, 162, 97, 0.45); border:1.5px dashed var(--accent); border-radius:5px;"></div>`;
+        if (stripSum) {
+          const lockedSpot = !isSubscriptionCurrentlyActive() && getTodayCompletedSleepsCount() >= 2;
+          stripSum.textContent = lockedSpot ? '🔒 Sıradaki MışılSpot™ (VIP)' : `🌙 MışılSpot™: ${calc.sweetSpotTime} ›`;
+        }
+      }
+    } else if (isSleeping && stripSum) {
+      stripSum.textContent = '💤 Şu Anda Uyuyor ›';
+    }
+
+    // Şu Anki Saat İmleci
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const nowPct = Math.max(0.5, Math.min(99.5, (nowMin / 1440) * 100));
+    html += `<div title="Şu an" style="position:absolute; top:0; bottom:0; left:${nowPct.toFixed(1)}%; width:2px; background:#FFFFFF; box-shadow:0 0 6px var(--accent);"></div>`;
+
+    bar.innerHTML = html;
+  }
+
   function renderHomeTodayTimeline() {
     const list = document.getElementById('home-today-timeline-list');
     const countBadge = document.getElementById('today-sleep-count');
     const summaryHeader = document.getElementById('today-sleep-summary-header');
     const progressBar = document.getElementById('today-sleep-progress-bar');
+    if (typeof renderHomeCareSummaryAndCircadianStrip === 'function') renderHomeCareSummaryAndCircadianStrip();
     if (!list) return;
 
     list.innerHTML = '';
@@ -8362,9 +8573,13 @@
 
     if (sleepLogs.length === 0) {
       list.innerHTML = `
-        <div style="text-align: center; padding: 26px 14px; color: var(--text-muted); font-size: 12px; background: rgba(255,255,255,0.02); border-radius: 14px; border: 1px dashed rgba(255,255,255,0.12); line-height: 18px;">
+        <div style="text-align: center; padding: 24px 14px; color: var(--text-muted); font-size: 12px; background: rgba(255,255,255,0.02); border-radius: 14px; border: 1px dashed rgba(255,255,255,0.14); line-height: 18px;">
           🌙 <strong>Bugün henüz uyku seansı kaydedilmedi.</strong><br>
-          <span style="color: var(--accent); font-size: 11px;">"Şimdi Uyuyor" butonuna dokunarak canlı takip başlatabilirsiniz.</span>
+          <span style="color: var(--text-night); font-size: 11px;">İlk uykuyu kaydederek MışılSpot™ saatlerini canlandırın:</span>
+          <div style="display: flex; justify-content: center; gap: 8px; margin-top: 10px;">
+            <button type="button" onclick="toggleLiveSleep()" style="background: var(--accent); color: #13101C; border: none; border-radius: 10px; padding: 8px 12px; font-size: 11px; font-weight: 800; cursor: pointer;">🌙 Canlı Uyku Başlat</button>
+            <button type="button" onclick="openRoutineModalFor('sleep')" style="background: rgba(255,255,255,0.08); color: var(--heading-night); border: 1px solid var(--border-night); border-radius: 10px; padding: 8px 12px; font-size: 11px; font-weight: 700; cursor: pointer;">+ Geçmiş Uyku Ekle</button>
+          </div>
         </div>
       `;
       return;
@@ -8793,10 +9008,14 @@
     const filtered = activeRoutines.filter(r => filter === 'all' ? true : r.type === filter);
 
     if (filtered.length === 0) {
+      const targetType = (filter && filter !== 'all') ? filter : 'sleep';
       list.innerHTML = `
-        <div style="text-align: center; padding: 26px 14px; color: var(--text-muted); font-size: 12px; background: rgba(255,255,255,0.02); border-radius: 14px; border: 1px dashed rgba(255,255,255,0.12);">
-          📭 Bu kategoride henüz kayıtlı rutin bulunmuyor.<br>
-          <span style="color: var(--accent); font-size: 11px;">Yukarıdaki "+ Rutin Ekle" ile kayıt oluşturabilirsiniz.</span>
+        <div style="text-align: center; padding: 24px 14px; color: var(--text-muted); font-size: 12px; background: rgba(255,255,255,0.02); border-radius: 14px; border: 1px dashed rgba(255,255,255,0.14);">
+          📭 <strong>Bu kategoride henüz kayıtlı rutin bulunmuyor.</strong><br>
+          <span style="color: var(--text-night); font-size: 11px;">Bebeğinizin uyku, beslenme veya bez kaydını tek dokunuşla ekleyin:</span>
+          <div style="margin-top: 10px;">
+            <button type="button" onclick="openRoutineModalFor('${targetType}')" style="background: var(--accent); color: #13101C; border: none; border-radius: 10px; padding: 8px 14px; font-size: 11px; font-weight: 800; cursor: pointer;">+ İlk Rutini Ekle</button>
+          </div>
         </div>
       `;
       return;
@@ -9260,7 +9479,7 @@
     ].sort((a, b) => b.val - a.val);
 
     return {
-      source: 'DİNAMİK BİYOLOJİK MOTOR (Tier 4)',
+      source: 'BİYOLOJİK RİTİM & SES REHBERİ',
       causes,
       advice: causes[0].desc
     };
@@ -9271,19 +9490,12 @@
     document.getElementById('cry-result').style.display = 'block';
 
     let causes = [];
-    let badgeText = '● GEMINI 3.6 SES ANALİZİ';
+    let badgeText = '● AKILLI SES İPUCU ANALİZİ';
     let adviceText = '';
     let acousticObs = '';
 
     if (data && Array.isArray(data.possible_causes) && data.possible_causes.length > 0) {
-      if (data.tier_used) {
-        if (data.tier_used.includes('gemini-3.6') || data.tier_used.includes('Gemini 3.6')) badgeText = '● GEMINI 3.6 SES ANALİZİ';
-        else if (data.tier_used.includes('gemini-3.5') || data.tier_used.includes('Gemini 3.5')) badgeText = '● GEMINI 3.5 SES ANALİZİ';
-        else if (data.tier_used.includes('Librosa')) badgeText = '● LIBROSA DSP ANALİZİ';
-        else badgeText = `● ${data.tier_used}`;
-      } else {
-        badgeText = '● CANLI SES ANALİZİ';
-      }
+      badgeText = '● AKILLI SES İPUCU ANALİZİ';
 
       acousticObs = data.acoustic_observations || '';
 
@@ -9756,8 +9968,24 @@
     showToast(`✅ ${type} başarıyla eklendi (${timeNow})`);
   }
 
+  function selectRoutineTypePill(type) {
+    const sel = document.getElementById('routine-modal-type');
+    if (sel) sel.value = type;
+    handleRoutineTypeChange(type);
+  }
+
   function handleRoutineTypeChange(type) {
     hapticPulse();
+    const sel = document.getElementById('routine-modal-type');
+    if (sel && sel.value !== type) sel.value = type;
+    document.querySelectorAll('#routine-type-pills .routine-type-pill').forEach(btn => {
+      const isAct = btn.getAttribute('data-rtype') === type;
+      btn.classList.toggle('active', isAct);
+      btn.style.background = isAct ? 'var(--accent)' : 'var(--surface-pill)';
+      btn.style.color = isAct ? '#13101C' : 'var(--text-night)';
+      btn.style.borderColor = isAct ? 'var(--accent)' : 'var(--border-night)';
+      btn.style.fontWeight = isAct ? '800' : '700';
+    });
     document.getElementById('routine-sleep-fields').style.display = (type === 'sleep') ? 'block' : 'none';
     document.getElementById('routine-feeding-fields').style.display = (type === 'feeding') ? 'block' : 'none';
     document.getElementById('routine-diaper-fields').style.display = (type === 'diaper') ? 'block' : 'none';
