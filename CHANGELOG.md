@@ -2,6 +2,17 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.25] - 2026-11-03
+### 🚀 3 Ajanlı Konsensüs Pazarlama (CRO / Gelir Koruması) & Gece 03:00 Ergonomi Paketi (`app.html`, `offlineHtml.generated.ts`)
+1. **3 Ajanlı Pazarlama & Ergonomi Denetimi (`task-709` Claude Code CLI + `task-710` Codex CLI `gpt-6-luna` + Antigravity):**
+   - **Aile Kodu Gelir Koruması (`submitJoinFamily`, `joinFamilyFromSettings`):** Aile kodu ile bağlanan cihazlarda yalnızca davet eden aile aktif VIP ise (`fam.subscription_active === true` veya `fam.subscription_plan !== 'free'`) VIP aktarımı yapılması sağlandı; ücretsiz hesaplar arası bedelsiz VIP sızıntısı kapatıldı.
+2. **Gece 03:00 Başparmak Bölgesi (Above-the-Fold) & Modal Swipe-to-Dismiss (`#home-seg-sweetspot`, `.modal-sheet`):**
+   - **4'lü Hızlı Rutin ve Gece Araçları (`.quick-bento-grid`: Beslenme, Alt Değişimi, Ağlama Rehberi, Ses Mikseri)** doğrudan `"🌙 Şimdi Uyuyor"` butonunun hemen altına (ilk ekran başparmak hizasına) taşındı; `getSpotlightSteps()` sırası yeni akışla hizalandı.
+   - Tüm `.modal-sheet` alt pencerelerine görsel tutamaç çubuğu (`grabber`) ve aşağı çekerek kapatma (`initModalSwipeToDismiss`) eklendi; `#quiz-back-btn` (`min-height: 40px`) ve `+Kayıt` butonlarının dokunma alanları büyütüldü.
+3. **Sıfır İptal Hatırlatması, 3 Günlük Anti-Spam Snooze & Viral Aile Davet Kancası:**
+   - Aktif deneme süresindeki kullanıcılara Ayarlar sekmesinde (`updateSubscriptionStatusUI`) geri sayım yerine doğrudan yeşil **`👑 Mışıl VIP Aktif`** gösterimi getirildi.
+   - `#home-free-vip-banner` üzerindeki `✕` kapatma butonu `localStorage` üzerinde **3 günlük sessize alma (`mishil_free_banner_snooze_until`)** ile kalıcı hale getirildi; karşılama kartlarına tek dokunuşla WhatsApp üzerinden **`👨‍👩‍👧 Eşini veya Bakıcını Aile Kodunla Bağla`** (`shareFamilyInviteLink()`) satırı eklendi.
+
 ## [4.46.24] - 2026-11-03
 ### 🎓 4 Adımlı İnteraktif Spotlight Uygulamalı Anlatım Turu (`app.html`, `offlineHtml.generated.ts`)
 1. **İcra Modu:** Tek Ajan (Yalnızca Antigravity — Claude/Codex CLI çalıştırılmadı) (`[Solo-Antigravity]`).

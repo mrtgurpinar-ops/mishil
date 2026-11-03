@@ -21,11 +21,14 @@ def _gen_code() -> str:
 
 
 class FamilyCreateRequest(BaseModel):
+    invite_code: Optional[str] = Field(None, description="Mevcut Aile Kodu (varsa güncellenir)")
     family_name: Optional[str] = Field(None, description="Aile Grubu Adı")
     creator_role: str = Field(default="mother", description="Oluşturan kişinin rolü ('mother', 'father', 'nanny')")
     creator_name: str = Field(default="Anne", description="Oluşturan kişinin adı")
     baby_name: str = Field(default="Bebeğim", description="Bebek adı")
     birth_date: str = Field(default="2026-04-11", description="Doğum tarihi (YYYY-MM-DD)")
+    subscription_active: bool = Field(default=False, description="Davet eden ailenin aktif VIP/Deneme durumu")
+    subscription_plan: str = Field(default="free", description="Abonelik planı ('yearly', 'monthly', 'family_vip', 'free')")
     routines: Optional[List[Dict[str, Any]]] = Field(default_factory=list, description="Bebeğin başlangıç rutinleri")
 
 
@@ -41,30 +44,41 @@ class LeapOverrideRequest(BaseModel):
     is_active: bool = Field(True, description="Erken atak aktif mi?")
 
 
-@router.post("/create", summary="Yeni Aile & Dadı Paylaşım Grubu Oluştur")
+@router.post("/create", summary="Yeni Aile & Dadı Paylaşım Grubu Oluştur veya Güncelle")
 async def create_family(payload: FamilyCreateRequest):
-    code = _gen_code()
-    while code in FAMILY_STORE:
+    req_code = (payload.invite_code or "").strip().upper()
+    if req_code and len(req_code) >= 4:
+        code = req_code
+    else:
         code = _gen_code()
+        while code in FAMILY_STORE:
+            code = _gen_code()
 
+    existing = FAMILY_STORE.get(code)
     fam_name = payload.family_name if payload.family_name else f"{payload.baby_name}'in Ailesi"
+    plan_Norm = payload.subscription_plan if payload.subscription_active else "free"
+    if payload.subscription_active and plan_Norm in ("free", "none", ""):
+        plan_Norm = "family_vip"
+
     fam = {
-        "id": len(FAMILY_STORE) + 1,
+        "id": existing["id"] if existing else (len(FAMILY_STORE) + 1),
         "name": fam_name,
         "invite_code": code,
-        "members": [
+        "subscription_active": bool(payload.subscription_active),
+        "subscription_plan": plan_Norm,
+        "members": existing["members"] if existing else [
             {"id": 1, "role": payload.creator_role, "name": payload.creator_name, "joined_at": datetime.now(timezone.utc).isoformat()}
         ],
         "baby": {
             "name": payload.baby_name,
             "birth_date": payload.birth_date,
             "gender": "female",
-            "development_score": 84,
-            "manual_leap": None,
-            "is_early_leap_active": False
+            "development_score": existing["baby"].get("development_score", 84) if existing else 84,
+            "manual_leap": existing["baby"].get("manual_leap") if existing else None,
+            "is_early_leap_active": existing["baby"].get("is_early_leap_active", False) if existing else False
         },
-        "routines": payload.routines or [],
-        "created_at": datetime.now(timezone.utc).isoformat()
+        "routines": payload.routines if payload.routines else (existing.get("routines", []) if existing else []),
+        "created_at": existing["created_at"] if existing else datetime.now(timezone.utc).isoformat()
     }
     FAMILY_STORE[code] = fam
 

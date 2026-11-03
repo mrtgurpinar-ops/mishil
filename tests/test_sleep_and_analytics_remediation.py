@@ -791,6 +791,63 @@ def test_paywall_funnel_telemetry_and_usage_signal_endpoint(client, db_session):
     assert "Mışıl" in dash_res.text
 
 
+def test_family_create_and_join_vip_inheritance_protection(client):
+    """Ücretsiz aile kodunun bedelsiz VIP sızdırmadığını ve VIP aile kodunun eş/bakıcıya VIP aktardığını doğrular."""
+    # 1. Ücretsiz aile oluşturma
+    r_free = client.post(
+        "/api/v1/family/create",
+        json={
+            "baby_name": "Defne",
+            "birth_date": "2026-06-01",
+            "creator_role": "mother",
+            "creator_name": "Ayşe",
+            "subscription_active": False,
+            "subscription_plan": "free",
+        },
+    )
+    assert r_free.status_code == 200
+    free_code = r_free.json()["invite_code"]
+    assert r_free.json()["family"]["subscription_active"] is False
+    assert r_free.json()["family"]["subscription_plan"] == "free"
+
+    # Ücretsiz aileye baba katıldığında subscription_active False kalmalı
+    r_join_free = client.post(
+        "/api/v1/family/join",
+        json={"invite_code": free_code, "role": "father", "name": "Mehmet"},
+    )
+    assert r_join_free.status_code == 200
+    assert r_join_free.json()["family"]["subscription_active"] is False
+    assert r_join_free.json()["family"]["subscription_plan"] == "free"
+
+    # 2. Anne VIP/Deneme başlattığında mevcut aile kodunu bulutta VIP'ye yükseltir
+    r_upgrade = client.post(
+        "/api/v1/family/create",
+        json={
+            "invite_code": free_code,
+            "baby_name": "Defne",
+            "birth_date": "2026-06-01",
+            "creator_role": "mother",
+            "creator_name": "Ayşe",
+            "subscription_active": True,
+            "subscription_plan": "yearly",
+        },
+    )
+    assert r_upgrade.status_code == 200
+    assert r_upgrade.json()["invite_code"] == free_code
+    assert r_upgrade.json()["family"]["subscription_active"] is True
+    assert r_upgrade.json()["family"]["subscription_plan"] == "yearly"
+
+    # 3. Şimdi dadı katıldığında aktif VIP bilgisini alır
+    r_join_vip = client.post(
+        "/api/v1/family/join",
+        json={"invite_code": free_code, "role": "nanny", "name": "Fatma"},
+    )
+    assert r_join_vip.status_code == 200
+    assert r_join_vip.json()["family"]["subscription_active"] is True
+    assert r_join_vip.json()["family"]["subscription_plan"] == "yearly"
+
+
+
 
 
 
