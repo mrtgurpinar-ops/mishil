@@ -414,6 +414,25 @@ def _reconcile_ios_ledger_and_cancellations(
        vadesi geçmiş deneme farkını kapatır.
     """
     changed = False
+
+    # 0) Doğrulanmamış istemci localStorage kaynaklı sentetik DEV_IOS_* / DEV_ANDROID_* hayalet/mükerrer kayıtları temizle
+    dev_rows: List[SubscriberLedger] = (
+        db.query(SubscriberLedger)
+        .filter(
+            SubscriberLedger.subscriber_id.like("DEV_%"),
+            (SubscriberLedger.customer_price_try == 0.0) | (SubscriberLedger.customer_price_try.is_(None)),
+        )
+        .all()
+    )
+    if dev_rows:
+        for dr in dev_rows:
+            db.delete(dr)
+        db.query(SubscriptionLifecycleEvent).filter(
+            SubscriptionLifecycleEvent.event_type.like("DEV_%")
+        ).delete(synchronize_session=False)
+        db.flush()
+        changed = True
+
     ios_rows: List[SubscriberLedger] = (
         db.query(SubscriberLedger)
         .filter(SubscriberLedger.platform == "ios")
@@ -421,10 +440,31 @@ def _reconcile_ios_ledger_and_cancellations(
         .all()
     )
     if not ios_rows:
-        return False
+        return changed
 
-    # 1) Yıllık 7G deneme (Default_Intro) sınıflandırma ve 599.99 TL tarife onarımı
+    refunded_sids = {
+        (ev.event_type or "").split(":")[0]
+        for ev in db.query(SubscriptionLifecycleEvent).filter(
+            SubscriptionLifecycleEvent.platform == "ios",
+            SubscriptionLifecycleEvent.event_type.like("%:refund"),
+        ).all()
+    }
+
+    # 1) Ücretli aktif (paid_active) auto_renew_enabled onarımı + Yıllık 7G deneme (Default_Intro) 599.99 TL tarife onarımı
     for r in ios_rows:
+        if r.status == "paid_active" and (r.customer_price_try or 0.0) > 0 and r.subscriber_id not in refunded_sids:
+            if not r.auto_renew_enabled:
+                r.auto_renew_enabled = True
+                changed = True
+            if (r.expected_next_price_try or 0.0) <= 0:
+                r.expected_next_price_try = round(float(r.customer_price_try), 2)
+                changed = True
+            if (r.expected_next_proceeds_try or 0.0) <= 0:
+                r.expected_next_proceeds_try = round(
+                    float(r.developer_proceeds_try or round(float(r.customer_price_try) * 0.55417, 2)), 2
+                )
+                changed = True
+
         is_ann = _is_annual_product(r.product_id)
         of_name_low = (r.offer_code_name or "").strip().lower()
         is_default_intro = (
@@ -527,11 +567,32 @@ def _reconcile_ios_ledger_and_cancellations(
             r for r in ios_rows
             if r.status == "intro_free_trial" and r.auto_renew_enabled
         ]
-        excess = len(active_trials) - int(active_trials_target)
-        if excess > 0:
+        deficit = int(active_trials_target) - len(active_trials)
+        if deficit > 0 and merged_cancels:
+            # Daha önce DEV_IOS_* şişmesi nedeniyle yanlışlıkla iptal edilmiş (Cancel olayı bulunmayan) gerçek Apple denemelerini geri yükle
+            cancelled_by_cohort: Dict[tuple, List[SubscriberLedger]] = {}
+            for r in ios_rows:
+                if r.status == "cancelled" and (r.customer_price_try or 0.0) <= 0 and r.offer_type == "intro_7d_trial":
+                    ck = ((r.product_id or "misil_monthly"), (r.started_date or ""), (r.country or "TR").upper())
+                    cancelled_by_cohort.setdefault(ck, []).append(r)
+            restorable: List[SubscriberLedger] = []
+            for ck, c_rows in cancelled_by_cohort.items():
+                req_c = merged_cancels.get(ck, 0)
+                if len(c_rows) > req_c:
+                    restorable.extend(c_rows[req_c:])
+            restorable.sort(key=lambda x: (x.started_date or "", x.subscriber_id or ""), reverse=True)
+            for r in restorable[:deficit]:
+                r.status = "intro_free_trial"
+                r.auto_renew_enabled = True
+                std_g, std_n = _resolve_expected_trial_pricing(r.product_id, 0.0, 0.0, "ios")
+                r.expected_next_price_try = std_g
+                r.expected_next_proceeds_try = std_n
+                changed = True
+        elif deficit < 0:
+            excess = -deficit
             past_due_trials = [
                 r for r in active_trials
-                if r.maturity_or_renewal_date and len(r.maturity_or_renewal_date) == 10 and r.maturity_or_renewal_date <= today_str
+                if r.maturity_or_renewal_date and len(r.maturity_or_renewal_date) == 10 and r.maturity_or_renewal_date < today_str
             ]
             for r in past_due_trials[:excess]:
                 r.status = "cancelled"
@@ -868,6 +929,7 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                             elif c_price_try > 0 and is_new_event and existing_sub.converted_or_renewed_date != ev_date:
                                                 existing_sub.status = "paid_active"
                                                 existing_sub.offer_type = "standard_paid"
+                                                existing_sub.auto_renew_enabled = True
                                                 existing_sub.converted_or_renewed_date = ev_date
                                                 existing_sub.customer_price_try = round((existing_sub.customer_price_try or 0.0) + c_price_try, 2)
                                                 existing_sub.developer_proceeds_try = round((existing_sub.developer_proceeds_try or 0.0) + d_proc_try, 2)
@@ -2798,11 +2860,13 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
 
     matched_meta_installs = len([
         s for s in first_opens
-        if (s.matched_channel and ("meta" in s.matched_channel.lower() or "ios" in s.matched_channel.lower()))
+        if s.os_family == "ios"
+        and (s.matched_channel and ("meta" in s.matched_channel.lower() or "ios" in s.matched_channel.lower()))
     ])
     matched_ig_installs = len([
         s for s in first_opens
-        if (s.matched_channel and ("instagram" in s.matched_channel.lower() or "download" in s.matched_channel.lower()))
+        if s.os_family == "ios"
+        and (s.matched_channel and ("instagram" in s.matched_channel.lower() or "download" in s.matched_channel.lower()))
     ])
 
     r3_search = max(
@@ -2830,12 +2894,12 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     # T3 Çözümü: Apple r3 kaynak raporu henüz senkronize edilmemişse (0 ise), doğrulanmış r14 Discovery
     # arama/keşfet oranları ve köprü sinyalleri üzerinden kaynak dağılımını hesapla
     if (r3_search + r3_browse) == 0 and apple_downloads > 0 and (imp_search_val + imp_browse_val) > 0:
-        allocatable_ios = max(0, apple_downloads - r3_ref)
+        allocatable_ios = max(0, apple_downloads - r3_ref - offer_code_cnt)
         search_share = imp_search_val / max(1, imp_search_val + imp_browse_val)
         r3_search = round(allocatable_ios * search_share)
         r3_browse = max(0, allocatable_ios - r3_search)
 
-    recent_ios_dl = max(0, apple_downloads - (r3_search + r3_ref + r3_browse))
+    recent_ios_dl = max(0, apple_downloads - (r3_search + r3_ref + r3_browse + offer_code_cnt))
     android_bridge_uniq = len([c for c in unique_human if c.os_family == "android"])
 
     total_all_spend_usd = round(sum(float(c.spend_usd or 0.0) for c in cfg_rows), 2)
@@ -3548,8 +3612,19 @@ async def sync_client_subscriber_ledger(
     is_admin_authed = authorize_admin_request(
         request, None, request.headers.get("x-admin-pin"), request.cookies.get(_ADMIN_SESSION_COOKIE)
     )
-    # Kimliksiz/doğrulanmamış istemci çağrılarının sahte tahsilat (paid_active) yazmasını veya resmi Apple satırlarını ezmesini engelle
+    # Kimliksiz/doğrulanmamış istemci çağrılarının sahte tahsilat (paid_active) yazmasını, DEV_* hayalet satırı üretmesini veya resmi Apple satırlarını ezmesini engelle
     if not is_admin_authed and not verified_gp_token:
+        if clean_sid.upper().startswith("DEV_"):
+            return {
+                "ok": True,
+                "status": "ignored_unverified_dev_id",
+                "subscriber_id": clean_sid,
+                "platform": plat,
+                "product_id": prod_id,
+                "ledger_status": st_val,
+                "expected_next_price_try": 0.0,
+                "expected_next_proceeds_try": 0.0,
+            }
         if st_val == "paid_active":
             st_val = "intro_free_trial"
         payload.customer_price_try = 0.0

@@ -11203,9 +11203,14 @@
       };
       window.syncBabyProfileToBackend(false);
       var _activeAppVer = (typeof appMeta === 'function' && appMeta() && appMeta().version) ? appMeta().version : WEB_APP_META.version;
+      var devUid = localStorage.getItem('mishil_device_uid');
+      if (!devUid) {
+        devUid = 'msl_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now().toString(36);
+        localStorage.setItem('mishil_device_uid', devUid);
+      }
       window.sendMishilAnalyticsSignal = function(evtType) {
         try {
-          var _duid = localStorage.getItem('mishil_device_uid') || 'msl_anon';
+          var _duid = localStorage.getItem('mishil_device_uid') || devUid || 'msl_anon';
           var _ua = (navigator.userAgent || '').toLowerCase();
           var _os = _ua.indexOf('android') > -1 ? 'android' : (/iphone|ipad|ipod/.test(_ua) ? 'ios' : 'desktop');
           var _plat = !!(window.ReactNativeWebView || window.__MISHIL_APP__) ? (_os + '_native') : 'web_pwa';
@@ -11218,14 +11223,18 @@
       };
       window.syncSubscriberToAnalytics = function(meta) {
         try {
+          if (localStorage.getItem('mishil_reviewer_bypass') === '1') return;
           var _m = meta || window.__MISHIL_SUB_META__ || {};
-          var _duid = localStorage.getItem('mishil_device_uid') || 'msl_anon';
+          var _duid = localStorage.getItem('mishil_device_uid') || devUid || 'msl_anon';
           var _ua = (navigator.userAgent || '').toLowerCase();
           var _os = _ua.indexOf('android') > -1 ? 'android' : (/iphone|ipad|ipod/.test(_ua) ? 'ios' : 'ios');
           var _plat = (_m.platform || (_m.store && String(_m.store).toUpperCase().indexOf('PLAY') > -1 ? 'android' : _os)).toLowerCase();
+          var _verifiedSubId = _m.subscriberId || _m.originalTransactionId || _m.originalAppUserId || '';
+          if (!_verifiedSubId && !_m.purchaseToken) return;
+          if (_plat === 'ios' && String(_verifiedSubId).indexOf('DEV_') === 0) return;
           var _plan = _m.plan || localStorage.getItem('mishil_subscription_plan') || 'monthly';
           var _prodId = _m.productId || _m.product_id || (_plat === 'android' ? (_plan === 'yearly' ? 'misil' : 'misilaylik') : (_plan === 'yearly' ? 'misil_annual' : 'misil_monthly'));
-          var _subId = _m.subscriberId || _m.originalAppUserId || ('DEV_' + _plat.toUpperCase() + '_' + _duid);
+          var _subId = _verifiedSubId || ('GPA_TOKEN_' + String(_m.purchaseToken).slice(0, 24));
           var _pType = String(_m.periodType || 'TRIAL').toUpperCase();
           var _status = _m.status || (_pType === 'NORMAL' ? 'paid_active' : (_pType === 'PROMOTIONAL' ? 'offer_code_trial' : 'intro_free_trial'));
           fetch(apiBase + '/api/v1/analytics/subscriber-sync', {
@@ -11250,17 +11259,14 @@
       if ((localStorage.getItem('mishil_subscription_active') === 'true' || localStorage.getItem('mishil_sub_active') === 'true') && localStorage.getItem('mishil_vip_sig_v1') !== '1') {
         localStorage.setItem('mishil_vip_sig_v1', '1');
         window.sendMishilAnalyticsSignal('vip_started');
-        window.syncSubscriberToAnalytics(window.__MISHIL_SUB_META__);
+        if (window.__MISHIL_SUB_META__ && (window.__MISHIL_SUB_META__.purchaseToken || window.__MISHIL_SUB_META__.originalTransactionId || window.__MISHIL_SUB_META__.subscriberId)) {
+          window.syncSubscriberToAnalytics(window.__MISHIL_SUB_META__);
+        }
       }
       var _todayActiveKey = 'mishil_active_' + new Date(Date.now() + 3 * 3600000).toISOString().slice(0, 10);
       var _alreadyFirstOpen = (localStorage.getItem('mishil_first_open_v1') === '1');
       if (_alreadyFirstOpen && localStorage.getItem(_todayActiveKey) === '1') return;
       // _todayActiveKey set after successful response below
-      var devUid = localStorage.getItem('mishil_device_uid');
-      if (!devUid) {
-        devUid = 'msl_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now().toString(36);
-        localStorage.setItem('mishil_device_uid', devUid);
-      }
       var ua = (navigator.userAgent || '').toLowerCase();
       var osFam = ua.indexOf('android') > -1 ? 'android' : (/iphone|ipad|ipod/.test(ua) ? 'ios' : 'desktop');
       var isNative = !!(window.ReactNativeWebView || window.__MISHIL_APP__);

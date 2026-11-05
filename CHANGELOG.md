@@ -2,6 +2,19 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.27] - 2026-11-05
+### 📊 Kurucu Kokpiti (`/admin/analytics`) Resmi Mağaza Mutabakatı & Telemetri Düzeltme Paketi (`analytics.py`, `app.html`, `offlineHtml.generated.ts`)
+1. **İcra Modu:** Tek Ajan (Yalnızca Antigravity — Claude/Codex CLI çalıştırılmadı) (`[Solo-Antigravity]`).
+2. **`DEV_IOS_*` / `DEV_ANDROID_*` Hayalet Kayıt Temizliği & Kimliksiz Senkron Koruması (`_reconcile_ios_ledger_and_cancellations`, `sync_client_subscriber_ledger`, `app.html`):**
+   - İstemci `localStorage` üzerinden doğrulanmış mağaza makbuzu (`purchaseToken` / resmi `subscriber_id`) olmadan üretilen `DEV_IOS_*` ve `DEV_ANDROID_*` satırlarının `SubscriberLedger` tablosunu ve 7G Pipeline tutarını şişirmesi engellendi; mevcut 0 ₺'lik sentetik `DEV_%` satırlarını otomatik temizleyen mutabakat adımı eklendi.
+   - `public/app.html` içinde `mishil_device_uid` üretimi analitik sinyal fonksiyonlarının önüne taşındı (`msl_anon` önlemi) ve `syncSubscriberToAnalytics` yalnızca doğrulanmış mağaza işlemi mevcutsa çağrılacak şekilde sınırlandırıldı.
+3. **Gerçek Apple Deneme Abonesi (`#184012`) İptal Onarımı & Vade Günü Koruması (`analytics.py`):**
+   - `DEV_IOS_*` şişmesi nedeniyle vade gününde yanlışlıkla `cancelled` yapılan (Apple `SUBSCRIPTION_EVENT` raporunda `Cancel` kaydı bulunmayan) gerçek Apple 7G deneme abonesinin `active_trials_target` hedefiyle otomatik olarak `intro_free_trial` statüsüne geri yüklenmesi sağlandı; vade aşımı kontrolü `<= today_str` yerine `< today_str` yapılarak 7. gün mutabakatındaki abonelerin erken iptal edilmesi önlendi.
+4. **Yıllık Ücretli Abone (`#996540`) `auto_renew_enabled` & MRR/Kohort Onarımı (`analytics.py`):**
+   - Deneme süresi sonunda 599.99 ₺ ödemesi tahsil edilerek `paid_active` statüsüne geçen yıllık abonede `auto_renew_enabled = True` bayrağının güncellenmesi garanti altına alındı; böylece yıllık abonenin aylık MRR karşılığı (`+50.00 ₺` Brüt / `+27.71 ₺` Net) ve kohort tutundurma oranı (`active_retained`) düzeltildi.
+5. **ASO Attribution Tablosu iOS/Android Sinyal İzolasyonu (`analytics.py`):**
+   - `matched_meta_installs` ve `matched_ig_installs` hesaplamalarına `s.os_family == "ios"` filtresi eklenerek Android `first_open` sinyallerinin iOS Sosyal Yönlendirme (`r3_ref`) indirmelerini `apple_downloads` toplamının üzerine çıkarması giderildi (`31/31 pytest`, `10/10 Jest`, `tsc --noEmit` %100 yeşil).
+
 ## [4.46.26] - 2026-11-05
 ### 🛡️ 3 Ajanlı Konsensüs İptal Önleme (Retention), Above-the-Fold Paywall & Freemium "Aha! Moment" Paketi (`app.html`, `offlineHtml.generated.ts`)
 1. **3 Ajanlı Canlı Veri, İptal Kök Neden & CRO Denetimi (`task-115` Claude Code CLI + `task-100` Codex CLI `gpt-6-luna` + Antigravity):**

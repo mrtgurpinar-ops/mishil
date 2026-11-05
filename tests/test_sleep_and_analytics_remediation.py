@@ -847,10 +847,240 @@ def test_family_create_and_join_vip_inheritance_protection(client):
     assert r_join_vip.json()["family"]["subscription_plan"] == "yearly"
 
 
+def test_dashboard_audit_remediation_dev_purge_mrr_and_aso_ios_isolation(client, db_session):
+    """
+    Dashboard Mutabakat Denetimi (5 Kritik Düzeltme Doğrulaması):
+    1) DEV_IOS_* ve DEV_ANDROID_* hayalet/mükerrer istemci kayıtlarının temizlenmesi ve engellenmesi,
+    2) Yanlışlıkla iptal edilen gerçek Apple denemesinin (#184012) active_trials_target ile geri yüklenmesi,
+    3) Yıllık ücretli abonenin (#996540) auto_renew_enabled=True onarımı ve MRR/kohorta dahil edilmesi,
+    4) ASO Attribution tablosunda matched_meta_installs için yalnızca iOS sinyallerinin sayılması.
+    """
+    from app.db.models import SubscriberLedger, SubscriptionLifecycleEvent, AppInstallSignal, StoreDailyMetric
+    from app.api.v1.endpoints.analytics import (
+        _build_analytics_summary,
+        OFFICIAL_STORE_BASELINE,
+        _empty_store_state,
+        _BASELINE_LOCK,
+    )
 
+    SubscriberLedger.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    SubscriptionLifecycleEvent.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    AppInstallSignal.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    StoreDailyMetric.__table__.create(bind=db_session.get_bind(), checkfirst=True)
 
+    with _BASELINE_LOCK:
+        OFFICIAL_STORE_BASELINE.clear()
+        OFFICIAL_STORE_BASELINE.update(_empty_store_state())
+        OFFICIAL_STORE_BASELINE["apple_vip_active_trials"] = 3
+        OFFICIAL_STORE_BASELINE["apple_downloads_total"] = 136
+        OFFICIAL_STORE_BASELINE["apple_downloads_search"] = 70
+        OFFICIAL_STORE_BASELINE["apple_downloads_referrer"] = 50
+        OFFICIAL_STORE_BASELINE["apple_downloads_browse"] = 11
 
+    # 1) Aylık ücretli aktif (#813562) + Yıllık ücretli aktif (#996540 - auto_renew_enabled=False kalmış)
+    db_session.add_all([
+        SubscriberLedger(
+            subscriber_id="602650322813562",
+            platform="ios",
+            product_id="misil_monthly",
+            plan_label="Aylık Esnek VIP",
+            status="paid_active",
+            offer_type="standard_paid",
+            started_date="2026-10-20",
+            converted_or_renewed_date="2026-10-27",
+            maturity_or_renewal_date="2026-11-26",
+            auto_renew_enabled=True,
+            customer_price_try=149.99,
+            developer_proceeds_try=83.12,
+            expected_next_price_try=149.99,
+            expected_next_proceeds_try=83.12,
+            country="TR",
+            device_type="iPhone",
+        ),
+        SubscriberLedger(
+            subscriber_id="791488183996540",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Yıllık VIP",
+            status="paid_active",
+            offer_type="standard_paid",
+            started_date="2026-10-28",
+            converted_or_renewed_date="2026-11-04",
+            maturity_or_renewal_date="2027-11-04",
+            auto_renew_enabled=False,  # Hatalı False kalmış -> True'ya onarılmalı
+            customer_price_try=599.99,
+            developer_proceeds_try=332.49,
+            expected_next_price_try=599.99,
+            expected_next_proceeds_try=332.49,
+            country="TR",
+            device_type="iPhone",
+        ),
+        # 2) Yanlışlıkla iptal edilmiş gerçek Apple denemesi (#184012 - Cancel olayı yok)
+        SubscriberLedger(
+            subscriber_id="441709785184012",
+            platform="ios",
+            product_id="misil_monthly",
+            plan_label="Aylık Esnek VIP",
+            status="cancelled",
+            offer_type="intro_7d_trial",
+            started_date="2026-10-29",
+            maturity_or_renewal_date="2026-11-05",
+            auto_renew_enabled=False,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=0.0,
+            expected_next_proceeds_try=0.0,
+            country="TR",
+            device_type="iPhone",
+        ),
+        # 3) 2 aktif yıllık deneme (#786416 & #243135)
+        SubscriberLedger(
+            subscriber_id="259753775786416",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Yıllık VIP",
+            status="intro_free_trial",
+            offer_type="intro_7d_trial",
+            started_date="2026-10-30",
+            maturity_or_renewal_date="2026-11-06",
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=599.99,
+            expected_next_proceeds_try=332.50,
+            country="TR",
+            device_type="iPhone",
+        ),
+        SubscriberLedger(
+            subscriber_id="238741809243135",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Yıllık VIP",
+            status="intro_free_trial",
+            offer_type="intro_7d_trial",
+            started_date="2026-10-30",
+            maturity_or_renewal_date="2026-11-06",
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=599.99,
+            expected_next_proceeds_try=332.50,
+            country="TR",
+            device_type="iPhone",
+        ),
+        # 4) Gerçek iptal edilmiş deneme (2026-10-22 FR)
+        SubscriberLedger(
+            subscriber_id="307840202476306",
+            platform="ios",
+            product_id="misil_monthly",
+            plan_label="Aylık Esnek VIP",
+            status="cancelled",
+            offer_type="intro_7d_trial",
+            started_date="2026-10-22",
+            maturity_or_renewal_date="2026-10-29",
+            auto_renew_enabled=False,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=0.0,
+            expected_next_proceeds_try=0.0,
+            country="FR",
+            device_type="iPhone",
+        ),
+        # 5) Temizlenmesi gereken hayalet DEV_IOS_* ve DEV_ANDROID_* kayıtları
+        SubscriberLedger(
+            subscriber_id="DEV_IOS_msl_anon",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Yıllık VIP",
+            status="intro_free_trial",
+            offer_type="intro_7d_trial",
+            started_date="2026-10-31",
+            maturity_or_renewal_date="2026-11-07",
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=599.99,
+            expected_next_proceeds_try=332.50,
+            country="TR",
+            device_type="iPhone",
+        ),
+        SubscriberLedger(
+            subscriber_id="DEV_ANDROID_msl_ghost01",
+            platform="android",
+            product_id="misil",
+            plan_label="Mışıl Baby Yıllık VIP",
+            status="intro_free_trial",
+            offer_type="intro_7d_trial",
+            started_date="2026-10-31",
+            maturity_or_renewal_date="2026-11-07",
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=599.99,
+            expected_next_proceeds_try=436.20,
+            country="TR",
+            device_type="Android",
+        ),
+    ])
+    db_session.add(
+        SubscriptionLifecycleEvent(
+            event_date="2026-10-28",
+            event_type="EVENT:Cancel:2026-10-22:FR",
+            product_id="misil_monthly",
+            plan_label="Aylık Esnek VIP",
+            quantity=1,
+            country="FR",
+            days_before_canceling="6",
+            platform="ios",
+        )
+    )
+    # 40 adet Android first_open (matched_channel='meta_ads') r3_ref'i 50'nin üzerine şişirmemeli
+    for idx in range(40):
+        db_session.add(
+            AppInstallSignal(
+                device_uid=f"and_meta_dev_{idx}",
+                event_type="first_open",
+                os_family="android",
+                platform="android_native",
+                matched_channel="meta_ads",
+                match_confidence="high",
+            )
+        )
+    db_session.commit()
 
+    # Kimliksiz DEV_IOS_* senkron çağrısı reddedilmeli/yoksayılmalı
+    unv_res = client.post(
+        "/api/v1/analytics/subscriber-sync",
+        json={
+            "subscriber_id": "DEV_IOS_msl_newghost",
+            "device_uid": "msl_newghost",
+            "platform": "ios",
+            "product_id": "misil_annual",
+            "status": "intro_free_trial",
+        },
+    )
+    assert unv_res.status_code == 200
+    assert unv_res.json()["status"] == "ignored_unverified_dev_id"
 
+    summary = _build_analytics_summary(db_session, period="all")
+    fl = summary["financial_ledger"]
 
+    # DEV_* kayıtları silinmiş olmalı; 2 paid + 3 trial = 5 aktif VIP, 1 iptal = 6 toplam kayıt
+    assert fl["paid_subs_count"] == 2
+    assert fl["pipeline_7d_trials_count"] == 3
+    assert fl["active_vip_subs_count"] == 5
+    assert fl["cancelled_subs_count"] == 1
+    assert fl["total_vip_records_count"] == 6
+
+    # MRR: 149.99 + (599.99 / 12) = 199.99 Brüt, 83.12 + (332.49 / 12) = 110.83 Net
+    assert fl["active_paid_mrr_gross_try"] == 199.99
+    assert fl["active_paid_mrr_net_try"] == 110.83
+
+    # 7G Pipeline: 149.99 + 599.99 + 599.99 = 1349.97 Brüt, 83.12 + 332.50 + 332.50 = 748.12 Net
+    assert fl["pipeline_7d_mrr_gross_try"] == 1349.97
+    assert fl["pipeline_7d_mrr_net_try"] == 748.12
+
+    # ASO Sosyal Yönlendirme (r3_ref) Android sinyallerinden etkilenmeyip 50 kalmalı
+    social_row = next(r for r in summary["aso_attribution_matrix"] if "Sosyal Yönlendirme" in r["channel"])
+    assert social_row["downloads"] == 50
 
