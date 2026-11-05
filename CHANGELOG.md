@@ -2,6 +2,20 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.26] - 2026-11-05
+### 🛡️ 3 Ajanlı Konsensüs İptal Önleme (Retention), Above-the-Fold Paywall & Freemium "Aha! Moment" Paketi (`app.html`, `offlineHtml.generated.ts`)
+1. **3 Ajanlı Canlı Veri, İptal Kök Neden & CRO Denetimi (`task-115` Claude Code CLI + `task-100` Codex CLI `gpt-6-luna` + Antigravity):**
+   - Canlı Railway telemetrisi, Apple App Store Connect (`SUBSCRIPTION_EVENT`, `Days Before Canceling = 0`) ve Google Play verileri üzerinde yapılan denetim sonucunda 30 Ekim öncesi kohortlardaki Gün-0 iptallerini ve düşük ücretsiz➔VIP geçişini çözen 5 çekirdek optimizasyon uygulandı.
+2. **Ayarlar'da "İptal Et / Otomatik Yenilenir" Kaygısının Kaldırılması & Yıllık Plan Önceliği (`#acc-sub`, `updateSubscriptionStatusUI`, `#modal-sub-retention`):**
+   - Aktif VIP kullanıcılara Ayarlar sekmesinde geri sayım veya `(Otomatik Yenilenir)` uyarısı yerine doğrudan **`👑 Mışıl VIP Üyeliğiniz Aktif — Tüm Özellikler Açık`** gösterimi getirildi; aktif Yıllık VIP üyelerde gereksiz Aylık fiyat kartı gizlendi.
+   - Ayarlar > Abonelik (`#acc-sub`) içinde `0` iptal oranına sahip **Yıllık VIP Plan (`%67 TASARRUF • Ayda ₺49.99`)** en üste ve varsayılan (`settingsTargetPlan = 'yearly'`) konuma taşındı.
+   - Tam genişlikli `⚙️ Aboneliği Yönet / İptal Et` butonu kaldırılarak en altta sakin bir `Mağaza Abonelik Ayarları` bağlantısına dönüştürüldü; tıklandığında önce aktif VIP haklarını hatırlatan **engellemeyen (non-blocking) Değer Koruma Penceresi (`#modal-sub-retention`)** devreye alındı ve native WebView içinde `window.location.href` ezmesi önlendi (`proceedToStoreSubscriptionManagement`).
+3. **Onboarding Adım 5 Kaydırmasız (Above-the-Fold) Paywall & Değer Odaklı Zaman Çizelgesi (`#quiz-step-5`, `#onboarding-trial-timeline`):**
+   - Uyku Skoru ve 7 Günlük Hedef kartları tek kompakt yatay kartta birleştirilerek Yıllık/Aylık plan seçimi ve **`🎁 7 Gün Ücretsiz Dene ve Başlat (Yıllık • Bugün ₺0)`** butonunun kaydırmasız (above-the-fold) görünmesi sağlandı.
+   - Zaman çizelgesindeki `1–7. GÜN` maddesi iptal yönlendirmesi yerine ürün değerine (*"Bebeğinizin uyku ritmi, büyüme atakları ve Mışıl Dadı™ rehberliği kişiselleştirilir"*) dönüştürüldü; CTA altına *"🛡️ Bugün 0 ₺ ödersiniz • 7 gün boyunca kartınızdan ücret çekilmez"* güven şeridi eklendi.
+4. **Tadımlık Freemium Deneyim Kancaları ("Aha! Moment" — `submitDadiChat`, `openCryModal`, `switchTab`, `openAddRoutineModal`):**
+   - Ücretsiz kullanıcılara kapıda duvar örmek yerine değeri bizzat deneyimleten **1 ücretsiz Mışıl Dadı sorusu (`mishil_free_dadi_used`)**, **1 ücretsiz Akıllı Ağlama Analizi (`mishil_free_cry_used`)**, **Gelişim sekmesi genel bakış (Uyku & Ritim skoru)** ve **3 manuel rutin kaydı** hakkı tanımlandı; sonraki kullanımlarda bağlamsal VIP Paywall (`openVipRenewalModal`) tetiklenecek şekilde kurgulandı.
+
 ## [4.46.25] - 2026-11-03
 ### 🚀 3 Ajanlı Konsensüs Pazarlama (CRO / Gelir Koruması) & Gece 03:00 Ergonomi Paketi (`app.html`, `offlineHtml.generated.ts`)
 1. **3 Ajanlı Pazarlama & Ergonomi Denetimi (`task-709` Claude Code CLI + `task-710` Codex CLI `gpt-6-luna` + Antigravity):**
