@@ -23,7 +23,21 @@ import {
   syncCareNotifications,
   getStoredNotificationSettings,
   saveStoredNotificationSettings,
+  normalizeCareLang,
+  CareLang,
 } from '../features/notifications/careNotificationEngine';
+import { storage, APP_LANG_KEY } from '../lib/storage';
+
+function getSystemLocale(): string {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().locale || 'tr-TR';
+  } catch {
+    return 'tr-TR';
+  }
+}
+
+const DEVICE_LOCALE = getSystemLocale();
+const DEVICE_LANG: CareLang = DEVICE_LOCALE.toLowerCase().startsWith('tr') ? 'tr' : 'en';
 
 // Native sürüm bilgisini WebView'e sayfa yüklenmeden önce enjekte et (Settings sürüm rozeti + changelog dinamik)
 const APP_VERSION = Constants.expoConfig?.version ?? '0.0.0';
@@ -36,7 +50,14 @@ const APP_BUILD =
 const MISHIL_WEB_ORIGIN = 'https://mishil-production.up.railway.app';
 const MISHIL_WEB_URL = `${MISHIL_WEB_ORIGIN}/app?v=${APP_VERSION}_b${APP_BUILD}`;
 const INJECT_APP_META = `
-  window.__MISHIL_APP__ = { version: ${JSON.stringify(APP_VERSION)}, build: ${JSON.stringify(APP_BUILD)}, platform: ${JSON.stringify(Platform.OS)}, native: true };
+  window.__MISHIL_APP__ = {
+    version: ${JSON.stringify(APP_VERSION)},
+    build: ${JSON.stringify(APP_BUILD)},
+    platform: ${JSON.stringify(Platform.OS)},
+    deviceLocale: ${JSON.stringify(DEVICE_LOCALE)},
+    deviceLang: ${JSON.stringify(DEVICE_LANG)},
+    native: true
+  };
   window.MishilNative = window.MishilNative || {};
   window.MishilNative.isNative = true;
   window.MishilNative.audioBridge = true;
@@ -71,12 +92,31 @@ export default function MishilUnifiedWebView() {
   const [status, setStatus] = useState<Status>('loading');
   // Uzak sürüm tekrar tekrar başarısız olduğunda gömülü app.html'e düşülür
   const [useOffline, setUseOffline] = useState(false);
+  const [appLang, setAppLang] = useState<CareLang>(DEVICE_LANG);
+  const appLangRef = useRef<CareLang>(DEVICE_LANG);
   const retryCountRef = useRef(0);
   const autoRetryTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const watchdogTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reconnectTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   // Satın alma akışı devam ederken arka plan kontrollerinin araya girip lisansı ezmesini önleyen işlem kilidi
   const isPurchaseInProgressRef = useRef(false);
+
+  const updateNativeLang = useCallback((rawLang?: string | null) => {
+    const norm = normalizeCareLang(rawLang || DEVICE_LANG);
+    appLangRef.current = norm;
+    setAppLang(norm);
+    void storage.setAppLang(norm);
+    return norm;
+  }, []);
+
+  useEffect(() => {
+    storage.getAppLang().then((saved) => {
+      if (saved) {
+        appLangRef.current = saved;
+        setAppLang(saved);
+      }
+    }).catch(() => {});
+  }, []);
 
   const clearTimers = () => {
     if (autoRetryTimer.current) { clearTimeout(autoRetryTimer.current); autoRetryTimer.current = null; }
@@ -313,13 +353,20 @@ export default function MishilUnifiedWebView() {
   // AsyncStorage'dan profil ve onboarding durumunu WebView localStorage'ına hidrate et (Çift Katmanlı Koruma)
   const hydrateWebViewStorage = useCallback(async () => {
     try {
-      const [[, rawProfile], [, rawOnboarding], [, rawPlan]] = await AsyncStorage.multiGet([
+      const [[, rawProfile], [, rawOnboarding], [, rawPlan], [, rawSavedLang]] = await AsyncStorage.multiGet([
         '@mishil_baby_profile',
         '@mishil_onboarding_completed',
         '@mishil_subscription_plan',
+        APP_LANG_KEY,
       ]);
 
-      if (rawProfile || rawOnboarding === 'true') {
+      const resolvedSavedLang = rawSavedLang ? normalizeCareLang(rawSavedLang) : null;
+      if (resolvedSavedLang) {
+        appLangRef.current = resolvedSavedLang;
+        setAppLang(resolvedSavedLang);
+      }
+
+      if (rawProfile || rawOnboarding === 'true' || resolvedSavedLang) {
         let pObj: any = null;
         try { pObj = rawProfile ? JSON.parse(rawProfile) : null; } catch {}
         const nameVal = pObj?.babyName ? String(pObj.babyName).replace(/[`\\$]/g, '') : '';
@@ -332,6 +379,10 @@ export default function MishilUnifiedWebView() {
           (function() {
             try {
               var modified = false;
+              if (window.__MISHIL_APP__) {
+                window.__MISHIL_APP__.savedLang = ${JSON.stringify(resolvedSavedLang)};
+              }
+              ${resolvedSavedLang ? `if (!localStorage.getItem('mishil_lang')) { localStorage.setItem('mishil_lang', '${resolvedSavedLang}'); modified = true; }` : ''}
               ${nameVal ? `if (!localStorage.getItem('mishil_baby_name')) { localStorage.setItem('mishil_baby_name', '${nameVal}'); modified = true; }` : ''}
               ${bdateVal ? `if (!localStorage.getItem('mishil_baby_bdate')) { localStorage.setItem('mishil_baby_bdate', '${bdateVal}'); modified = true; }` : ''}
               ${roleVal ? `if (!localStorage.getItem('mishil_user_role')) { localStorage.setItem('mishil_user_role', '${roleVal}'); modified = true; }` : ''}
@@ -339,6 +390,7 @@ export default function MishilUnifiedWebView() {
               ${rawOnboarding === 'true' ? `if (!localStorage.getItem('mishil_onboarding_completed')) { localStorage.setItem('mishil_onboarding_completed', 'true'); modified = true; }` : ''}
               ${planVal ? `if (!localStorage.getItem('mishil_subscription_plan')) { localStorage.setItem('mishil_subscription_plan', '${planVal}'); modified = true; }` : ''}
               if (modified) {
+                if (typeof window.applyLanguage === 'function') window.applyLanguage(localStorage.getItem('mishil_lang') || '${resolvedSavedLang || DEVICE_LANG}');
                 if (typeof checkOnboardingState === 'function') checkOnboardingState();
                 if (typeof loadBabyProfile === 'function') loadBabyProfile();
                 if (typeof renderAllViews === 'function') renderAllViews();
@@ -381,9 +433,10 @@ export default function MishilUnifiedWebView() {
         const offerings = await getOfferings();
         const m = offerings.find(o => o.packageType === 'MONTHLY');
         const a = offerings.find(o => o.packageType === 'ANNUAL');
+        const isEn = appLangRef.current === 'en';
         const pricePayload = {
-          monthly: m?.priceString || '₺149,99/ay',
-          yearly: a?.priceString || '₺599,99/yıl',
+          monthly: m?.priceString || (isEn ? '$4.99/mo' : '₺149,99/ay'),
+          yearly: a?.priceString || (isEn ? '$29.99/yr' : '₺599,99/yıl'),
         };
         webviewRef.current?.injectJavaScript(`
           (function() {
@@ -405,7 +458,10 @@ export default function MishilUnifiedWebView() {
         try { pObj = rawProfile ? JSON.parse(rawProfile) : null; } catch {}
         const notifSettings = await getStoredNotificationSettings();
         if (pObj?.babyName) {
-          await syncCareNotifications({ babyName: pObj.babyName, babyBdate: pObj.babyBdate }, notifSettings);
+          await syncCareNotifications(
+            { babyName: pObj.babyName, babyBdate: pObj.babyBdate, lang: pObj.lang || appLangRef.current },
+            notifSettings
+          );
         }
         webviewRef.current?.injectJavaScript(`
           (function() {
@@ -418,7 +474,7 @@ export default function MishilUnifiedWebView() {
         `);
       } catch (e) {}
     })();
-  }, [syncEntitlementToWebView]);
+  }, [syncEntitlementToWebView, hydrateWebViewStorage]);
 
   // Ana çerçeve hatası (TLS, DNS, 5xx, timeout) → cold-start için sessiz retry,
   // denemeler tükenince gömülü çevrimdışı sürüme düş (boş ekran yerine)
@@ -554,27 +610,51 @@ export default function MishilUnifiedWebView() {
       const msg = JSON.parse(event.nativeEvent.data);
 
       switch (msg.type) {
+        case 'SET_LANGUAGE': {
+          const nextLang = updateNativeLang(msg.lang || msg.payload?.lang);
+          const rawProfile = await AsyncStorage.getItem('@mishil_baby_profile');
+          let pObj: any = null;
+          try { pObj = rawProfile ? JSON.parse(rawProfile) : null; } catch {}
+          if (pObj) {
+            pObj.lang = nextLang;
+            void AsyncStorage.setItem('@mishil_baby_profile', JSON.stringify(pObj));
+          }
+          const notifSettings = await getStoredNotificationSettings();
+          notifSettings.lang = nextLang;
+          await saveStoredNotificationSettings({ lang: nextLang });
+          await syncCareNotifications(
+            { babyName: pObj?.babyName, babyBdate: pObj?.babyBdate, lang: nextLang },
+            notifSettings
+          );
+          break;
+        }
+
+        case 'SYNC_CARE_NOTIFICATIONS':
         case 'SAVE_PROFILE':
           if (msg.payload) {
-            void AsyncStorage.setItem('@mishil_baby_profile', JSON.stringify(msg.payload));
+            const payloadLang = msg.payload.lang ? updateNativeLang(msg.payload.lang) : appLangRef.current;
+            const profileToStore = { ...msg.payload, lang: payloadLang };
+            void AsyncStorage.setItem('@mishil_baby_profile', JSON.stringify(profileToStore));
             void syncCareNotifications({
               babyName: msg.payload.babyName,
               babyBdate: msg.payload.babyBdate,
+              lang: payloadLang,
             });
           }
           break;
 
         case 'UPDATE_NOTIFICATION_SETTINGS':
           if (msg.payload) {
-            void saveStoredNotificationSettings(msg.payload).then(async (updatedSettings) => {
+            const nextLang = msg.payload.lang ? updateNativeLang(msg.payload.lang) : appLangRef.current;
+            void saveStoredNotificationSettings({ ...msg.payload, lang: nextLang }).then(async (updatedSettings) => {
               const rawProfile = await AsyncStorage.getItem('@mishil_baby_profile');
               let pObj: any = null;
               try { pObj = rawProfile ? JSON.parse(rawProfile) : null; } catch {}
               await syncCareNotifications(
-                { babyName: pObj?.babyName, babyBdate: pObj?.babyBdate },
+                { babyName: pObj?.babyName, babyBdate: pObj?.babyBdate, lang: nextLang },
                 updatedSettings
               );
-              webToast('✅ Bildirim tercihleri güncellendi.');
+              webToast(nextLang === 'en' ? '✅ Notification preferences updated.' : '✅ Bildirim tercihleri güncellendi.');
             });
           }
           break;
@@ -608,6 +688,7 @@ export default function MishilUnifiedWebView() {
 
         case 'PURCHASE_PACKAGE': {
           isPurchaseInProgressRef.current = true;
+          const isEn = appLangRef.current === 'en';
           // Web tarafına satın almanın native tarafta başladığını bildir
           webviewRef.current?.injectJavaScript(`
             (function() {
@@ -641,7 +722,7 @@ export default function MishilUnifiedWebView() {
 
             if (result.success && result.isActive) {
               // Yalnızca GERÇEKTEN aktif hak varsa VIP'yi aç
-              grantProInWebView(plan, '🎉 Mışıl VIP aktif edildi!');
+              grantProInWebView(plan, isEn ? '🎉 Mishil VIP activated!' : '🎉 Mışıl VIP aktif edildi!');
               const purchaseMeta = JSON.stringify({
                 plan,
                 productId: pkg?.identifier || (Platform.OS === 'android' ? (plan === 'yearly' ? 'misil' : 'misilaylik') : (plan === 'yearly' ? 'misil_annual' : 'misil_monthly')),
@@ -675,15 +756,25 @@ export default function MishilUnifiedWebView() {
             } else {
               console.warn('[Purchase] Satın alma tamamlanamadı:', result.error);
               const isIOS = Platform.OS === 'ios';
-              let errorMsg = '⚠️ Satın alma işlemi tamamlanamadı. Lütfen tekrar deneyiniz.';
+              let errorMsg = isEn
+                ? '⚠️ Purchase could not be completed. Please try again.'
+                : '⚠️ Satın alma işlemi tamamlanamadı. Lütfen tekrar deneyiniz.';
               if (result.error === 'no_package') {
                 errorMsg = isIOS
-                  ? '⚠️ Mağaza paketi hazırlanıyor, lütfen birkaç saniye sonra tekrar deneyiniz.'
-                  : '⚠️ Google Play mağazasına bağlanılamadı. Lütfen cihazınızda Google Play hesabınızın açık olduğunu ve internet bağlantınızı kontrol ediniz.';
+                  ? (isEn
+                      ? '⚠️ Store package is preparing, please try again in a few seconds.'
+                      : '⚠️ Mağaza paketi hazırlanıyor, lütfen birkaç saniye sonra tekrar deneyiniz.')
+                  : (isEn
+                      ? '⚠️ Could not connect to Google Play. Please verify your Google Play account and internet connection.'
+                      : '⚠️ Google Play mağazasına bağlanılamadı. Lütfen cihazınızda Google Play hesabınızın açık olduğunu ve internet bağlantınızı kontrol ediniz.');
               } else if (isIOS) {
-                errorMsg = '⚠️ Apple StoreKit işlemi tamamlanamadı. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.';
+                errorMsg = isEn
+                  ? '⚠️ Apple StoreKit transaction could not be completed. Please check your internet connection and Apple ID.'
+                  : '⚠️ Apple StoreKit işlemi tamamlanamadı. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.';
               } else {
-                errorMsg = '⚠️ Google Play ödeme işlemi tamamlanamadı. Lütfen Google Play Store uygulamasından hesabınızı kontrol edip tekrar deneyiniz.';
+                errorMsg = isEn
+                  ? '⚠️ Google Play billing could not be completed. Please check your Google Play Store account and try again.'
+                  : '⚠️ Google Play ödeme işlemi tamamlanamadı. Lütfen Google Play Store uygulamasından hesabınızı kontrol edip tekrar deneyiniz.';
               }
 
               webviewRef.current?.injectJavaScript(`
@@ -706,6 +797,7 @@ export default function MishilUnifiedWebView() {
         }
 
         case 'RESTORE_PURCHASES': {
+          const isEn = appLangRef.current === 'en';
           const result = await restorePurchases();
           if (result.success && result.isActive) {
             let detectedPlan: 'yearly' | 'monthly' = 'monthly';
@@ -714,9 +806,14 @@ export default function MishilUnifiedWebView() {
               const customerInfo = await Purchases.getCustomerInfo();
               detectedPlan = getPlanFromCustomerInfo(customerInfo);
             } catch {}
-            grantProInWebView(detectedPlan, '✅ Satın alımlar geri yüklendi (Mışıl Baby Pro Aktif)');
+            grantProInWebView(
+              detectedPlan,
+              isEn ? '✅ Purchases restored (Mishil Baby Pro Active)' : '✅ Satın alımlar geri yüklendi (Mışıl Baby Pro Aktif)'
+            );
           } else {
-            webToast('ℹ️ Bu hesapta geri yüklenecek aktif bir abonelik bulunamadı.');
+            webToast(
+              isEn ? 'ℹ️ No active subscription found on this account to restore.' : 'ℹ️ Bu hesapta geri yüklenecek aktif bir abonelik bulunamadı.'
+            );
           }
           break;
         }
@@ -742,26 +839,27 @@ export default function MishilUnifiedWebView() {
     } catch (e) {
       // Sessizce geç
     }
-  }, [webToast, grantProInWebView, sendAudioState]);
+  }, [webToast, grantProInWebView, sendAudioState, updateNativeLang]);
 
   const autoRetrying = status === 'error' && retryCountRef.current > 0 && retryCountRef.current <= MAX_AUTO_RETRY;
+  const isEnUI = appLang === 'en';
 
   // Hata durumunda gösterilecek ekran — GERÇEK yeniden deneme butonu ile
   const renderError = () => (
     <View style={styles.errorContainer}>
       <Text style={styles.errorIcon}>🌙</Text>
-      <Text style={styles.errorTitle}>Bağlantı Kurulamadı</Text>
+      <Text style={styles.errorTitle}>{isEnUI ? 'Connection Failed' : 'Bağlantı Kurulamadı'}</Text>
       <Text style={styles.errorSub}>
-        İnternet bağlantınızı kontrol edin.{'\n'}
+        {isEnUI ? 'Please check your internet connection.' : 'İnternet bağlantınızı kontrol edin.'}{'\n'}
         {autoRetrying
-          ? 'Sunucuya yeniden bağlanılıyor...'
-          : 'Aşağıdaki butonla tekrar deneyebilirsiniz.'}
+          ? (isEnUI ? 'Reconnecting to server...' : 'Sunucuya yeniden bağlanılıyor...')
+          : (isEnUI ? 'You can try again using the button below.' : 'Aşağıdaki butonla tekrar deneyebilirsiniz.')}
       </Text>
       {autoRetrying ? (
         <ActivityIndicator size="small" color="#E8A855" style={{ marginTop: 20 }} />
       ) : (
         <Pressable style={styles.retryBtn} onPress={doRetry} accessibilityRole="button">
-          <Text style={styles.retryBtnText}>Tekrar Dene</Text>
+          <Text style={styles.retryBtnText}>{isEnUI ? 'Try Again' : 'Tekrar Dene'}</Text>
         </Pressable>
       )}
     </View>
@@ -802,7 +900,9 @@ export default function MishilUnifiedWebView() {
         renderLoading={() => (
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#E8A855" />
-            <Text style={styles.loadingText}>Mışıl Baby Yükleniyor...</Text>
+            <Text style={styles.loadingText}>
+              {isEnUI ? 'Loading Mishil Baby...' : 'Mışıl Baby Yükleniyor...'}
+            </Text>
           </View>
         )}
         startInLoadingState={true}
@@ -829,7 +929,9 @@ export default function MishilUnifiedWebView() {
       {useOffline && (
         <Pressable style={styles.offlineBanner} onPress={doRetry} accessibilityRole="button">
           <Text style={styles.offlineBannerText}>
-            📴 Çevrimdışı sürüm • yeniden bağlanılıyor — dokunup tekrar dene
+            {isEnUI
+              ? '📴 Offline mode • reconnecting — tap to retry'
+              : '📴 Çevrimdışı sürüm • yeniden bağlanılıyor — dokunup tekrar dene'}
           </Text>
         </Pressable>
       )}

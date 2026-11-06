@@ -78,6 +78,71 @@ Kullanım Şartları (EULA): https://www.apple.com/legal/internet-services/itune
 
 ## 5. Abonelik ve Fiyatlandırma (Apple Guideline 3.1.2)
 
-- **Yıllık VIP (Önerilen):** ₺599.99 / Yıl *(3 Gün Ücretsiz Deneme ile • Aylık ₺49.99)*
+- **Yıllık VIP (Önerilen):** ₺599.99 / Yıl *(7 Gün Ücretsiz Deneme ile • Aylık ₺49.99)*
 - **Aylık VIP:** ₺149.99 / Ay *(Taahhütsüz)*
 - **Ömür Boyu VIP (Aile):** ₺2.499.99 *(Tüm Aile ve Gelecek Bebekler İçin Tek Seferlik Sonsuz Erişim)*
+
+---
+
+## 6. English (`en-US`) Localization — Apple App Store Connect
+
+### 6.1 Basic Information (`en-US`)
+
+| Field | Value |
+| :--- | :--- |
+| **App Name:** | `Mışıl Baby: Sleep & Sounds` *(26 / 30 Chars)* |
+| **Subtitle:** | `AI Cry Analyzer & White Noise` *(29 / 30 Chars)* |
+| **Primary Category:** | `Health & Fitness` / `Medical` |
+| **Secondary Category:** | `Lifestyle` |
+
+### 6.2 ASO Keywords (`en-US` - Max 100 Characters)
+```text
+baby sleep,white noise,cry translator,colic relief,lullaby,womb sound,wake windows,baby tracker,shush
+```
+
+### 6.3 Promotional Text (`en-US` - Max 170 Characters)
+```text
+Peaceful nights for parents and babies: AI-assisted cry cue analysis, 18+ studio white noise tracks, SweetSpot wake window tracking, and 24/7 AI sleep coaching.
+```
+
+### 6.4 Full Description (`en-US` - Guideline 3.1.2 & 1.3 Compliant)
+```text
+Mışıl Baby is a comprehensive parenting and baby sleep companion built for adult parents and caregivers, combining pediatric sleep science with acoustic soothing and AI-assisted cry cue analysis.
+
+Understand your baby's cues, follow age-appropriate circadian wake windows, track daily routines and vaccinations, and create a calming sleep environment with studio-grade white noise.
+
+─────────────────────────────────────────
+🆓 FREE CORE FEATURES FOR ALL PARENTS:
+─────────────────────────────────────────
+• SweetSpot™ Circadian Sleep Predictor: Track optimal wake windows and nap times tailored to your baby's exact age.
+• Essential Soothing Sounds: Calming foundational white noise and nature sounds.
+• Smart Nightlight: Warm, eye-friendly adjustable screen light for night feedings and diaper changes.
+• Pediatric Vaccination Schedule: Track age-based immunizations and receive gentle care reminders.
+• Daily Routine Tracker: Log sleep sessions, feedings, and diaper changes in seconds.
+• Smart Sleep Timer: Battery-friendly timer with smooth audio fade-out.
+
+─────────────────────────────────────────
+👑 MIŞIL VIP — FEATURES REQUIRING SUBSCRIPTION:
+─────────────────────────────────────────
+The following advanced AI and analytics features require an active Mışıl VIP subscription:
+• AI Cry Cue Analysis: Evaluates acoustic frequency and rhythm patterns in your baby's cry to highlight hunger, gas/colic, sleepiness, or discomfort cues. (Requires subscription)
+• Mışıl Nanny™ 24/7 AI Sleep & Care Coach: Personalized pediatric sleep guidance powered by your baby's age and daily routine logs. (Requires subscription)
+• 18+ Studio Acoustic Library & Multi-Track Mixer: Womb resonance, heartbeat, hair dryer, fan, 432 Hz lullabies, and multi-sound mixing. (Requires subscription)
+• 24-Hour Rhythm & Peak Hour Analytics: Discover your baby's biological rhythm across sleep, feeding, and fussiness hours. (Requires subscription)
+• Wonder Weeks™ Developmental Leaps: Forecast mental growth leaps and fussy phases in advance. (Requires subscription)
+
+💳 SUBSCRIPTION & FREE TRIAL TERMS:
+Mışıl VIP is available as an Annual Plan (including a 7-day free trial where eligible) or a flexible Monthly Plan. Payment will be charged to your Apple ID account at confirmation of purchase or at the end of the free trial period. Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period in your App Store Account Settings.
+
+🩺 MEDICAL DISCLAIMER:
+Mışıl Baby is designed for adult parents and caregivers and is not a medical diagnostic or treatment device. Acoustic cry analysis and sleep coaching are provided strictly for informational support. Always consult a qualified pediatrician for medical advice.
+
+🔒 PRIVACY & CHILD SAFETY:
+• Acoustic cry samples are processed ephemerally in memory; no raw voice recordings are permanently stored on external servers.
+• Fully compliant with COPPA, GDPR, and KVKK privacy standards.
+
+Developer: Levitas Enterprise Intelligence & Technology
+Support: support@levitas.tech
+Privacy Policy: https://mishil-production.up.railway.app/privacy?lang=en
+Terms of Use (Standard Apple EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+```

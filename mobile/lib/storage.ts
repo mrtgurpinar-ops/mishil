@@ -5,6 +5,7 @@ import { Platform } from 'react-native';
 const TOKEN_KEY = 'mishil_auth_token';
 const ACTIVE_BABY_KEY = 'mishil_active_baby_id';
 const OFFLINE_QUEUE_KEY = 'mishil_offline_routines_queue';
+export const APP_LANG_KEY = 'mishil_lang';
 
 export const storage = {
   // Secure JWT Token Operations
@@ -65,5 +66,28 @@ export const storage = {
 
   async setOfflineQueue<T>(queue: T[]): Promise<void> {
     await AsyncStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
+  },
+
+  // App Language ('tr' | 'en')
+  async getAppLang(): Promise<'tr' | 'en' | null> {
+    try {
+      const raw = await AsyncStorage.getItem(APP_LANG_KEY);
+      if (!raw) return null;
+      const clean = raw.trim().toLowerCase();
+      if (clean.startsWith('tr')) return 'tr';
+      if (clean.startsWith('en')) return 'en';
+      return 'en';
+    } catch {
+      return null;
+    }
+  },
+
+  async setAppLang(lang: 'tr' | 'en'): Promise<void> {
+    try {
+      const normalized = lang && lang.toLowerCase().startsWith('tr') ? 'tr' : 'en';
+      await AsyncStorage.setItem(APP_LANG_KEY, normalized);
+    } catch {
+      // Ignore storage write errors
+    }
   },
 };

@@ -32,6 +32,33 @@ TEMEL PRENSİPLERİN (KESİNLİKLE UYULACAK):
 6. AŞAMALI İLERLEME VE TEKRAR YASAĞI: Daha önceki yanıtlarda verilen tavsiyeleri (örneğin beyaz gürültü açın, oda sıcaklığı 20 derece olsun, yatağında pışpışlayın gibi) devam eden sohbette ASLA ezbere baştan tekrarlama. Ebeveyn bir soru sorduğunda, önceki konuşmada verilen adımları hatırlayarak ("Daha önce uyguladığınız pışpışlama adımı sonrasında, şimdi bir sonraki aşamaya geçelim..." gibi) bir sonraki derinlemesine klinik çözümü sun. Her cevap bir öncekini tamamlamalı ve ilerletmelidir.
 """
 
+SYSTEM_PROMPT_EN = """You are 'Mishil Nanny', a 24/7 compassionate yet ULTRA-CLEAR, CONCISE, AND ACTIONABLE Pediatric Sleep & Development Coach inside the Mishil Baby app.
+
+CORE PRINCIPLES (STRICTLY ENFORCED):
+1. DIRECT ANSWER FIRST: Never use filler intros ("take a deep breath", "drop your shoulders"). Start only with a brief warm greeting ("Dear Mom,", "Dear Dad,", or "Dear Caregiver,") and answer the parent's exact question in the FIRST SENTENCE. Always reply in natural, warm, clinical English.
+2. STRUCTURED 3-BLOCK CLINICAL FORMAT: Build every response using these 3 clear blocks:
+   • 1. Brief Assessment (1-2 sentences): The pediatric/circadian reason based on the baby's age and wake window.
+   • 2. Immediate Action Steps (2 concrete bullet points): Direct, gentle, practical steps the parent can take right now.
+   • 3. Next Calibration Step (1 sentence): What to do if the baby does not settle and how to adjust the next wake window.
+   Finish every sentence completely and end your response with '🌸 Wishing you sweet Mishil dreams.'
+3. NO BOILERPLATE DUMPING: Focus strictly on the parent's specific question.
+4. CONTEXT ISOLATION: Use the baby's age and Wonder Weeks leap info as background clinical context; do not force leap lectures into unrelated questions (like room temperature or diaper rash).
+5. NO MEDICAL DIAGNOSIS: Never prescribe medication or provide a definitive medical diagnosis; advise consulting a pediatrician for red-flag symptoms (fever, lethargy, breathing distress).
+6. PROGRESSIVE MULTI-TURN COACHING: Never repeat basic advice already given in earlier turns; build upon previous steps with the next progressive clinical technique.
+"""
+
+
+def normalize_lang(lang: Optional[str]) -> str:
+    """Normalize any locale/language string ('tr-TR', 'en-US', 'de', None) into 'tr' or 'en'."""
+    if not lang or not isinstance(lang, str):
+        return "tr"
+    cleaned = lang.strip().lower()
+    if not cleaned:
+        return "tr"
+    if cleaned.startswith("tr"):
+        return "tr"
+    return "en"
+
 
 def _find_gemini_api_key() -> Optional[str]:
     """Scan all possible .env paths across antigravity workspace to find valid API key."""
@@ -78,13 +105,17 @@ def _is_text_incomplete(text: str) -> bool:
     if not cleaned.endswith(terminal_punct):
         return True
     last_word = cleaned.split()[-1].lower().rstrip('.,!?:;')
-    dangling = {'ve', 'veya', 'ile', 'için', 'çünkü', 'ama', 'fakat', 'ancak', 'alıp', 'edip', 'yapıp', 'ise', 'gibi'}
+    dangling = {
+        've', 'veya', 'ile', 'için', 'çünkü', 'ama', 'fakat', 'ancak', 'alıp', 'edip', 'yapıp', 'ise', 'gibi',
+        'and', 'or', 'because', 'but', 'however', 'while', 'the', 'a', 'an'
+    }
     if last_word in dangling:
         return True
     return False
 
 
-def _calc_baby_details(birth_date_str: str, manual_leap: Optional[int] = None) -> Dict[str, Any]:
+def _calc_baby_details(birth_date_str: str, manual_leap: Optional[int] = None, lang: str = "tr") -> Dict[str, Any]:
+    lang_norm = normalize_lang(lang)
     try:
         bdate = datetime.strptime(birth_date_str, "%Y-%m-%d")
         now = datetime.now()
@@ -96,32 +127,42 @@ def _calc_baby_details(birth_date_str: str, manual_leap: Optional[int] = None) -
         # Wake windows
         if months < 2:
             ww = 60
-            leap = "1. Gelişen Duyular Dünyası (5. Hafta)"
+            leap = "Leap 1: Changing Sensations (Week 5)" if lang_norm == "en" else "1. Gelişen Duyular Dünyası (5. Hafta)"
         elif months < 4:
             ww = 75
-            leap = "3. Yumuşak Geçişler Dünyası (12. Hafta)"
+            leap = "Leap 3: Smooth Transitions (Week 12)" if lang_norm == "en" else "3. Yumuşak Geçişler Dünyası (12. Hafta)"
         elif months < 6:
             ww = 105
-            leap = "4. Olaylar Dünyası & 4. Ay Regresyonu (19. Hafta)"
+            leap = "Leap 4: Events & 4-Month Sleep Regression (Week 19)" if lang_norm == "en" else "4. Olaylar Dünyası & 4. Ay Regresyonu (19. Hafta)"
         elif months < 9:
             ww = 140
-            leap = "5. İlişkiler ve Mesafe Dünyası (26. Hafta)"
+            leap = "Leap 5: Relationships & Distance (Week 26)" if lang_norm == "en" else "5. İlişkiler ve Mesafe Dünyası (26. Hafta)"
         elif months < 12:
             ww = 180
-            leap = "7. Sıralar Dünyası (46. Hafta)"
+            leap = "Leap 7: Sequences (Week 46)" if lang_norm == "en" else "7. Sıralar Dünyası (46. Hafta)"
         else:
             ww = 240
-            leap = "9. İlkeler Dünyası (64. Hafta)"
+            leap = "Leap 9: Principles (Week 64)" if lang_norm == "en" else "9. İlkeler Dünyası (64. Hafta)"
 
         if manual_leap:
-            leap = f"{manual_leap}. Sıçrama (Ebeveyn Tarafından Manuel Aktif Edildi - Erken Atak Modu)"
+            leap = (
+                f"Leap {manual_leap} (Manually Activated by Parent - Early Leap Mode)"
+                if lang_norm == "en"
+                else f"{manual_leap}. Sıçrama (Ebeveyn Tarafından Manuel Aktif Edildi - Erken Atak Modu)"
+            )
             ww = max(45, ww - 15)  # Erken atakta uyanıklık penceresini kısalt
+
+        age_fmt = (
+            f"{months} Months {days} Days old (Week {weeks})"
+            if lang_norm == "en"
+            else f"{months} Ay {days} Günlük ({weeks}. Hafta)"
+        )
 
         return {
             "months": months,
             "days": days,
             "weeks": weeks,
-            "age_formatted": f"{months} Ay {days} Günlük ({weeks}. Hafta)",
+            "age_formatted": age_fmt,
             "wake_window_min": ww,
             "leap_info": leap
         }
@@ -130,35 +171,57 @@ def _calc_baby_details(birth_date_str: str, manual_leap: Optional[int] = None) -
             "months": 4,
             "days": 12,
             "weeks": 19,
-            "age_formatted": "4 Ay 12 Günlük (19. Hafta)",
+            "age_formatted": "4 Months 12 Days old (Week 19)" if lang_norm == "en" else "4 Ay 12 Günlük (19. Hafta)",
             "wake_window_min": 90,
-            "leap_info": "4. Ay Regresyonu Dönemi"
+            "leap_info": "4-Month Sleep Regression Phase" if lang_norm == "en" else "4. Ay Regresyonu Dönemi"
         }
 
 
-def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date: str, message: str, chat_history: List[Dict[str, str]], user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None) -> Optional[str]:
-    baby_info = _calc_baby_details(birth_date, manual_leap)
-    role_tr = "Anne" if user_role == "mother" else ("Baba" if user_role == "father" else "Dadı / Bakıcı")
-    
-    rollup_text = ""
-    if routine_rollup:
-        rollup_text = (
-            f"\n• Günlük Toplam Uyku: {routine_rollup.get('daily_sleep_hours', '—')} saat"
-            f"\n• Beslenme: {routine_rollup.get('feeding_count', 0)} kez (Toplam {routine_rollup.get('total_feeding_ml', 0)} ml, ort. {routine_rollup.get('avg_feeding_interval_hours', '—')} saat arayla)"
-            f"\n• Bez Durumu: {routine_rollup.get('diaper_wet', 0)} ıslak, {routine_rollup.get('diaper_dirty', 0)} kirli"
-            f"\n• Gece Uyanması: {routine_rollup.get('night_awakenings', 0)} kez"
+def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date: str, message: str, chat_history: List[Dict[str, str]], user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None, lang: str = "tr") -> Optional[str]:
+    lang_norm = normalize_lang(lang)
+    baby_info = _calc_baby_details(birth_date, manual_leap, lang_norm)
+    if lang_norm == "en":
+        role_label = "Mom" if user_role == "mother" else ("Dad" if user_role == "father" else "Nanny / Caregiver")
+        rollup_text = ""
+        if routine_rollup:
+            rollup_text = (
+                f"\n• Daily Total Sleep: {routine_rollup.get('daily_sleep_hours', '—')} hours"
+                f"\n• Feedings: {routine_rollup.get('feeding_count', 0)} times (Total {routine_rollup.get('total_feeding_ml', 0)} ml, avg every {routine_rollup.get('avg_feeding_interval_hours', '—')} hrs)"
+                f"\n• Diapers: {routine_rollup.get('diaper_wet', 0)} wet, {routine_rollup.get('diaper_dirty', 0)} dirty"
+                f"\n• Night Awakenings: {routine_rollup.get('night_awakenings', 0)} times"
+            )
+        sys_prompt = (
+            f"{SYSTEM_PROMPT_EN}\n\n"
+            f"[CURRENT BABY REFERENCE CONTEXT - FOR CLINICAL BACKGROUND ONLY, DO NOT FORCE INTO UNRELATED ANSWERS]\n"
+            f"Parent Role: {role_label}\n"
+            f"Baby Name: {baby_name}\n"
+            f"Age: {baby_info['age_formatted']}\n"
+            f"Developmental/Regression Stage: {baby_info['leap_info']}\n"
+            f"Ideal MishilSpot Wake Window: {baby_info['wake_window_min']} minutes"
+            f"{rollup_text}"
         )
-    
-    sys_prompt = (
-        f"{SYSTEM_PROMPT}\n\n"
-        f"[GÜNCEL BEBEK REFERANS BİLGİSİ - YALNIZCA ARKA PLAN İÇİNDİR, SORUYLA DOĞRUDAN İLGİSİZSE CEVABA ZORLA EKLEME]\n"
-        f"Kullanıcı Rolü: {role_tr}\n"
-        f"Bebek Adı: {baby_name}\n"
-        f"Yaş: {baby_info['age_formatted']}\n"
-        f"Gelişim/Regresyon Evresi: {baby_info['leap_info']}\n"
-        f"İdeal MışılSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
-        f"{rollup_text}"
-    )
+        ask_prefix = f"[{role_label} Asks]: {message}"
+    else:
+        role_label = "Anne" if user_role == "mother" else ("Baba" if user_role == "father" else "Dadı / Bakıcı")
+        rollup_text = ""
+        if routine_rollup:
+            rollup_text = (
+                f"\n• Günlük Toplam Uyku: {routine_rollup.get('daily_sleep_hours', '—')} saat"
+                f"\n• Beslenme: {routine_rollup.get('feeding_count', 0)} kez (Toplam {routine_rollup.get('total_feeding_ml', 0)} ml, ort. {routine_rollup.get('avg_feeding_interval_hours', '—')} saat arayla)"
+                f"\n• Bez Durumu: {routine_rollup.get('diaper_wet', 0)} ıslak, {routine_rollup.get('diaper_dirty', 0)} kirli"
+                f"\n• Gece Uyanması: {routine_rollup.get('night_awakenings', 0)} kez"
+            )
+        sys_prompt = (
+            f"{SYSTEM_PROMPT}\n\n"
+            f"[GÜNCEL BEBEK REFERANS BİLGİSİ - YALNIZCA ARKA PLAN İÇİNDİR, SORUYLA DOĞRUDAN İLGİSİZSE CEVABA ZORLA EKLEME]\n"
+            f"Kullanıcı Rolü: {role_label}\n"
+            f"Bebek Adı: {baby_name}\n"
+            f"Yaş: {baby_info['age_formatted']}\n"
+            f"Gelişim/Regresyon Evresi: {baby_info['leap_info']}\n"
+            f"İdeal MışılSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
+            f"{rollup_text}"
+        )
+        ask_prefix = f"[{role_label} Soruyor]: {message}"
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
 
@@ -168,7 +231,7 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
         txt = h.get("content", "")[:1000]
         contents.append({"role": role, "parts": [{"text": txt}]})
 
-    contents.append({"role": "user", "parts": [{"text": f"[{role_tr} Soruyor]: {message}"}]})
+    contents.append({"role": "user", "parts": [{"text": ask_prefix}]})
 
     payload = {
         "contents": contents,
@@ -194,20 +257,115 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
     return None
 
 
-def _tier4_clinical_heuristic(baby_name: str, birth_date: str, message: str, user_role: str = "mother", manual_leap: Optional[int] = None, chat_history: Optional[List[Dict[str, str]]] = None) -> str:
+def _tier4_clinical_heuristic(baby_name: str, birth_date: str, message: str, user_role: str = "mother", manual_leap: Optional[int] = None, chat_history: Optional[List[Dict[str, str]]] = None, lang: str = "tr") -> str:
     """Tier 4: Offline Progressive Clinical Sirkadiyen Expert Pediatrician Engine.
-    Zero-Crash, Multi-Turn Context Aware, Never-Repeating Dynamic Action Protocols.
+    Zero-Crash, Multi-Turn Context Aware, Never-Repeating Dynamic Action Protocols (TR & EN).
     """
-    baby_info = _calc_baby_details(birth_date, manual_leap)
+    lang_norm = normalize_lang(lang)
+    baby_info = _calc_baby_details(birth_date, manual_leap, lang_norm)
     months = baby_info.get("months", 4)
     weeks = baby_info.get("weeks", 19)
     ww = baby_info.get("wake_window_min", 90)
     msg_lower = message.lower()
-    hitap = "Sevgili anneciğim" if user_role == "mother" else ("Sevgili babacığım" if user_role == "father" else "Sevgili dadımız")
 
-    # Geçmiş konuşmalarda ne önerildiğini analiz et
     past_replies = " ".join([h.get("content", "").lower() for h in (chat_history or []) if h.get("role") in ("assistant", "model")])
     turn_count = len([h for h in (chat_history or []) if h.get("role") == "user"])
+
+    if lang_norm == "en":
+        hitap = "Dear Mom" if user_role == "mother" else ("Dear Dad" if user_role == "father" else "Dear Caregiver")
+        # 1. Short naps / 30-45 min cycle bridge
+        if any(w in msg_lower for w in ["30 min", "30m", "short nap", "woke up", "cycle", "catnap", "half hour", "45 min"]):
+            if "wake-to-sleep" in past_replies or "25 minutes" in past_replies or turn_count >= 2:
+                return (
+                    f"{hitap}, here is our Level-3 bridge step to permanently resolve {baby_name}'s 30-minute nap awakenings:\n\n"
+                    f"• **Sensory Consistency:** Ensure the sound and lighting when {baby_name} falls asleep are identical at the 30-minute mark (keep Mishil Baby *Pink Noise* playing continuously).\n"
+                    f"• **Wake Window Calibration:** For {baby_name} ({baby_info['age_formatted']}), move nap put-down 10 minutes earlier; overtired babies experience a cortisol spike right at the 30-minute cycle transition.\n\n"
+                    f"🌸 Wishing you sweet Mishil dreams."
+                )
+            elif "shush" in past_replies or turn_count >= 1:
+                return (
+                    f"{hitap}, if the 30-minute awakening persists after gentle shushing, let's apply the clinical **'Wake-to-Sleep' Cycle Reset** technique:\n\n"
+                    f"• Quietly enter {baby_name}'s room 25 minutes after falling asleep.\n"
+                    f"• Without fully waking your baby, gently stroke their back or shift their posture slightly so they stir softly and reset into a second deep sleep cycle.\n\n"
+                    f"🌸 Wishing you sweet Mishil dreams."
+                )
+            else:
+                return (
+                    f"{hitap}, {baby_name} ({baby_info['age_formatted']}) is waking right at the transition between the first light sleep cycle (30-40 min) and deep sleep.\n\n"
+                    f"• Keep the room completely dark and avoid eye contact while gently shushing and patting in the crib.\n"
+                    f"• Maintain steady background white/pink noise for 2-3 minutes to bridge into the second sleep cycle.\n\n"
+                    f"🌸 Wishing you sweet Mishil dreams."
+                )
+
+        # 2. Night awakenings & Night weaning
+        elif any(w in msg_lower for w in ["night", "wake", "feed", "milk", "bottle", "nursing", "breastfeed", "wean"]):
+            if months < 3:
+                return (
+                    f"{hitap}, since {baby_name} is {weeks} weeks old, night awakenings reflect a genuine physiological need for calories and reassurance.\n\n"
+                    f"• Do not rush night weaning yet; keep night feeds dim, quiet, and calm, changing the diaper only if soiled or leaking.\n"
+                    f"• This protects melatonin production and imprints day-night circadian rhythm.\n\n"
+                    f"🌸 Wishing you sweet Mishil dreams."
+                )
+            elif 3 <= months < 6:
+                if "dream feed" in past_replies or turn_count >= 2:
+                    return (
+                        f"{hitap}, if your pediatrician confirms {baby_name}'s weight gain is on track, you can gently shift night calories toward daytime:\n\n"
+                        f"• **Gradual Night Taper (with Pediatrician Approval):** If bottle-feeding, you may gradually reduce volume by 15-20 ml every few nights; if nursing, shorten the session by 1-2 minutes so {baby_name} settles gently.\n"
+                        f"• Soothe any remaining wakefulness with gentle crib patting and Mishil Baby *Brahms Lullaby*.\n\n"
+                        f"🌸 Wishing you sweet Mishil dreams."
+                    )
+                else:
+                    return (
+                        f"{hitap}, to gently reduce night awakenings for {baby_name} ({baby_info['age_formatted']}), try a structured **Dream Feed**:\n\n"
+                        f"• Around 10:30–11:00 PM before you sleep, gently offer a feed in a dark room without fully waking {baby_name}.\n"
+                        f"• This tops up tank calories and helps eliminate the 2:00–3:00 AM hunger awakening.\n\n"
+                        f"🌸 Wishing you sweet Mishil dreams."
+                    )
+            else:
+                return (
+                    f"{hitap}, at {baby_info['age_formatted']}, frequent night waking is usually a sleep-association habit rather than true caloric hunger (once approved by your pediatrician).\n\n"
+                    f"• Pause for 90 seconds before intervening so {baby_name} has space to self-settle.\n"
+                    f"• Separate the final evening feed from bedtime by 15 minutes with a calm story and lullaby routine.\n\n"
+                    f"🌸 Wishing you sweet Mishil dreams."
+                )
+
+        # 3. 4-Month Sleep Regression & Wonder Weeks Leaps
+        elif any(w in msg_lower for w in ["regression", "4 month", "4-month", "leap", "wonder", "fussy", "growth"]):
+            return (
+                f"{hitap}, {baby_name} is navigating **{baby_info['leap_info']}**, a major neurological milestone where sleep architecture matures into adult-style 4-stage cycles.\n\n"
+                f"• Watch the MishilSpot wake window (**{ww} minutes**) closely and begin the wind-down routine at the very first yawn or eye rub.\n"
+                f"• Dim lights 15 minutes before bedtime and keep the last nap before 5:00 PM to prevent evening cortisol buildup.\n\n"
+                f"🌸 Wishing you sweet Mishil dreams."
+            )
+
+        # 4. Bedtime resistance, crying & rocking
+        elif any(w in msg_lower for w in ["resist", "cry", "fighting sleep", "colic", "gas", "rock", "hold", "won't sleep"]):
+            return (
+                f"{hitap}, when {baby_name} resists sleep and cries intensely, overtiredness has likely triggered adrenaline and cortisol.\n\n"
+                f"• Pause active put-down attempts for 5 minutes: step into a dim room, hold {baby_name} upright against your chest, and use slow rhythmic knee bends.\n"
+                f"• Play Mishil Baby *Womb Sound* or *Shush Rhythm* and place {baby_name} into the crib drowsy once breathing slows.\n\n"
+                f"🌸 Wishing you sweet Mishil dreams."
+            )
+
+        # 5. Room temperature & Safe Sleep
+        elif any(w in msg_lower for w in ["temperature", "degree", "room", "humidity", "swaddle", "roll", "sleep sack"]):
+            return (
+                f"{hitap}, the ideal nursery environment for {baby_name} is **20°C–22°C (68°F–72°F)** with **45%–55% humidity**.\n\n"
+                f"• Check the back of {baby_name}'s neck—if sweaty, the room or layer is too warm, which is a common hidden cause of night waking.\n"
+                f"• Once rolling signs appear, transition immediately from a swaddle to an arms-free 0.5–1.0 TOG sleep sack per AAP Safe Sleep guidelines.\n\n"
+                f"🌸 Wishing you sweet Mishil dreams."
+            )
+
+        # 6. General circadian advice
+        else:
+            return (
+                f"{hitap}, for {baby_name} ({baby_info['age_formatted']}), the ideal MishilSpot wake window is **{ww} minutes** during **{baby_info['leap_info']}**.\n\n"
+                f"• Starting your 3-step wind-down routine (Diaper check ➔ Dim room & Mishil soothing sound ➔ Calm crib settling) 10 minutes before the wake window ends prevents overtired crying by up to 85%.\n"
+                f"• Feel free to ask me anytime about short naps, night weaning, regressions, or soothing routines.\n\n"
+                f"🌸 Wishing you sweet Mishil dreams."
+            )
+
+    hitap = "Sevgili anneciğim" if user_role == "mother" else ("Sevgili babacığım" if user_role == "father" else "Sevgili dadımız")
 
     # 1. KATEGORİ: 30-45 Dakika Sonra Uyanma / Döngü Köprüsü
     if any(w in msg_lower for w in ["30 dk", "30 dakika", "kısa", "hemen uyandı", "döngü", "kedi uykusu", "yarım saat"]):
@@ -337,8 +495,9 @@ def _tier4_clinical_heuristic(baby_name: str, birth_date: str, message: str, use
             )
 
 
-def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
-    """Multi-Tier AI Execution Pipeline with Role Awareness & Leap Sync"""
+def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None, lang: str = "tr") -> Dict[str, Any]:
+    """Multi-Tier AI Execution Pipeline with Role Awareness, Leap Sync & Bilingual (TR/EN) Support"""
+    lang_norm = normalize_lang(lang)
     chat_history = chat_history or []
     api_key = _find_gemini_api_key()
 
@@ -347,22 +506,22 @@ def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history:
 
     if api_key:
         # Tier 1: Gemini 3.6 Flash
-        reply = _call_gemini_model("gemini-3.6-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup)
+        reply = _call_gemini_model("gemini-3.6-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup, lang_norm)
         if reply:
             tier_used = "Tier 1 (Google Gemini 3.6 Flash API)"
 
         # Tier 2: Gemini 3.5 Flash
         if not reply:
-            reply = _call_gemini_model("gemini-3.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup)
+            reply = _call_gemini_model("gemini-3.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup, lang_norm)
             if reply:
                 tier_used = "Tier 2 (Google Gemini 3.5 Flash API)"
 
     # Tier 4: Clinical Sirkadiyen Heuristic Engine
     if not reply:
-        reply = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap, chat_history)
+        reply = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap, chat_history, lang_norm)
         tier_used = "Tier 4 (Clinical Sirkadiyen Engine)"
 
-    logger.info(f"Mışıl Dadı AI executed for {baby_name} ({user_role}) using {tier_used}")
+    logger.info(f"Mışıl Dadı AI executed for {baby_name} ({user_role}, lang={lang_norm}) using {tier_used}")
 
     return {
         "reply": reply,
@@ -373,36 +532,61 @@ def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history:
     }
 
 
-def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None):
-    """Server-Sent Events (SSE) Live Token Streaming Generator for Mışıl Dadı AI"""
+def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None, lang: str = "tr"):
+    """Server-Sent Events (SSE) Live Token Streaming Generator for Mışıl Dadı AI (TR/EN)"""
     import time
+    lang_norm = normalize_lang(lang)
     chat_history = chat_history or []
     api_key = _find_gemini_api_key()
-    baby_info = _calc_baby_details(birth_date, manual_leap)
-    role_tr = "Anne" if user_role == "mother" else ("Baba" if user_role == "father" else "Dadı / Bakıcı")
+    baby_info = _calc_baby_details(birth_date, manual_leap, lang_norm)
 
     streamed_success = False
 
     if api_key:
-        rollup_text = ""
-        if routine_rollup:
-            rollup_text = (
-                f"\n• Günlük Toplam Uyku: {routine_rollup.get('daily_sleep_hours', '—')} saat"
-                f"\n• Beslenme: {routine_rollup.get('feeding_count', 0)} kez (Toplam {routine_rollup.get('total_feeding_ml', 0)} ml, ort. {routine_rollup.get('avg_feeding_interval_hours', '—')} saat arayla)"
-                f"\n• Bez Durumu: {routine_rollup.get('diaper_wet', 0)} ıslak, {routine_rollup.get('diaper_dirty', 0)} kirli"
-                f"\n• Gece Uyanması: {routine_rollup.get('night_awakenings', 0)} kez"
+        if lang_norm == "en":
+            role_label = "Mom" if user_role == "mother" else ("Dad" if user_role == "father" else "Nanny / Caregiver")
+            rollup_text = ""
+            if routine_rollup:
+                rollup_text = (
+                    f"\n• Daily Total Sleep: {routine_rollup.get('daily_sleep_hours', '—')} hours"
+                    f"\n• Feedings: {routine_rollup.get('feeding_count', 0)} times (Total {routine_rollup.get('total_feeding_ml', 0)} ml, avg every {routine_rollup.get('avg_feeding_interval_hours', '—')} hrs)"
+                    f"\n• Diapers: {routine_rollup.get('diaper_wet', 0)} wet, {routine_rollup.get('diaper_dirty', 0)} dirty"
+                    f"\n• Night Awakenings: {routine_rollup.get('night_awakenings', 0)} times"
+                )
+            sys_prompt = (
+                f"{SYSTEM_PROMPT_EN}\n\n"
+                f"[CURRENT BABY REFERENCE CONTEXT - FOR CLINICAL BACKGROUND ONLY, DO NOT FORCE INTO UNRELATED ANSWERS]\n"
+                f"Parent Role: {role_label}\n"
+                f"Baby Name: {baby_name}\n"
+                f"Age: {baby_info['age_formatted']}\n"
+                f"Developmental/Regression Stage: {baby_info['leap_info']}\n"
+                f"Ideal MishilSpot Wake Window: {baby_info['wake_window_min']} minutes"
+                f"{rollup_text}"
             )
-
-        sys_prompt = (
-            f"{SYSTEM_PROMPT}\n\n"
-            f"[GÜNCEL BEBEK REFERANS BİLGİSİ - YALNIZCA ARKA PLAN İÇİNDİR, SORUYLA DOĞRUDAN İLGİSİZSE CEVABA ZORLA EKLEME]\n"
-            f"Kullanıcı Rolü: {role_tr}\n"
-            f"Bebek Adı: {baby_name}\n"
-            f"Yaş: {baby_info['age_formatted']}\n"
-            f"Gelişim/Regresyon Evresi: {baby_info['leap_info']}\n"
-            f"İdeal MışılSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
-            f"{rollup_text}"
-        )
+            ask_prefix = f"[{role_label} Asks]: {message}"
+            continuation_prompt = "Complete your unfinished sentence seamlessly from where you left off and finish with '🌸 Wishing you sweet Mishil dreams.'"
+        else:
+            role_label = "Anne" if user_role == "mother" else ("Baba" if user_role == "father" else "Dadı / Bakıcı")
+            rollup_text = ""
+            if routine_rollup:
+                rollup_text = (
+                    f"\n• Günlük Toplam Uyku: {routine_rollup.get('daily_sleep_hours', '—')} saat"
+                    f"\n• Beslenme: {routine_rollup.get('feeding_count', 0)} kez (Toplam {routine_rollup.get('total_feeding_ml', 0)} ml, ort. {routine_rollup.get('avg_feeding_interval_hours', '—')} saat arayla)"
+                    f"\n• Bez Durumu: {routine_rollup.get('diaper_wet', 0)} ıslak, {routine_rollup.get('diaper_dirty', 0)} kirli"
+                    f"\n• Gece Uyanması: {routine_rollup.get('night_awakenings', 0)} kez"
+                )
+            sys_prompt = (
+                f"{SYSTEM_PROMPT}\n\n"
+                f"[GÜNCEL BEBEK REFERANS BİLGİSİ - YALNIZCA ARKA PLAN İÇİNDİR, SORUYLA DOĞRUDAN İLGİSİZSE CEVABA ZORLA EKLEME]\n"
+                f"Kullanıcı Rolü: {role_label}\n"
+                f"Bebek Adı: {baby_name}\n"
+                f"Yaş: {baby_info['age_formatted']}\n"
+                f"Gelişim/Regresyon Evresi: {baby_info['leap_info']}\n"
+                f"İdeal MışılSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
+                f"{rollup_text}"
+            )
+            ask_prefix = f"[{role_label} Soruyor]: {message}"
+            continuation_prompt = "Yarım kalan cümleni kaldığın yerden eksiksiz tamamla ve '🌸 Mışıl uykular dilerim.' ile noktayı koy."
 
         for candidate_model in ["gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash"]:
             if streamed_success:
@@ -414,7 +598,7 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
                 role = "user" if h.get("role") == "user" else "model"
                 txt = h.get("content", "")[:1000]
                 contents.append({"role": role, "parts": [{"text": txt}]})
-            contents.append({"role": "user", "parts": [{"text": f"[{role_tr} Soruyor]: {message}"}]})
+            contents.append({"role": "user", "parts": [{"text": ask_prefix}]})
 
             payload = {
                 "contents": contents,
@@ -458,7 +642,7 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
                     try:
                         cont_contents = list(contents)
                         cont_contents.append({"role": "model", "parts": [{"text": accumulated_text}]})
-                        cont_contents.append({"role": "user", "parts": [{"text": "Yarım kalan cümleni kaldığın yerden eksiksiz tamamla ve '🌸 Mışıl uykular dilerim.' ile noktayı koy."}]})
+                        cont_contents.append({"role": "user", "parts": [{"text": continuation_prompt}]})
                         cont_payload = {
                             "contents": cont_contents,
                             "systemInstruction": {"parts": [{"text": sys_prompt}]},
@@ -495,7 +679,7 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
 
     # Fallback to local clinical progressive heuristic streaming if live API didn't stream
     if not streamed_success:
-        full_text = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap, chat_history)
+        full_text = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap, chat_history, lang_norm)
         words = full_text.split(" ")
         for i, word in enumerate(words):
             chunk = word + (" " if i < len(words) - 1 else "")

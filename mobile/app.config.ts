@@ -1,8 +1,8 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
 // Uygulama sürümü tek yerden — hem iOS buildNumber hem Android versionCode ile hizalı
-const APP_VERSION = '4.44.1';
-const BUILD_NUMBER = 63;
+const APP_VERSION = '4.47.0';
+const BUILD_NUMBER = 66;
 
 
 const IS_PRODUCTION = process.env.APP_ENV === 'production';
@@ -48,7 +48,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     buildNumber: String(BUILD_NUMBER),
     infoPlist: {
       CFBundleDevelopmentRegion: 'tr',
-      CFBundleLocalizations: ['tr'],
+      CFBundleLocalizations: ['tr', 'en'],
       NSMicrophoneUsageDescription: 'Mışıl Baby, bebeğinizin ağlama sesindeki akustik özellikleri analiz etmek için mikrofonunuza erişir. Sesler yalnızca yerel analiz amaçlı işlenir ve kaydedilmez.',
       UIBackgroundModes: ['audio'],
       // İhracat uyumluluğu: standart HTTPS dışında şifreleme kullanılmıyor →

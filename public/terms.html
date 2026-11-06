@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Kullanım Şartları (EULA) | Mışıl Baby - Levitas</title>
+  <title>Kullanım Şartları (EULA) / Terms of Use | Mışıl Baby - Levitas</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -31,6 +31,36 @@
       padding: 40px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     }
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .lang-toggle {
+      display: inline-flex;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      padding: 4px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .lang-btn.active {
+      background: rgba(232, 168, 85, 0.2);
+      color: var(--gold);
+    }
     h1, h2, h3 { font-family: 'Outfit', sans-serif; color: var(--gold); }
     h1 { font-size: 2.2rem; margin-bottom: 8px; }
     .subtitle { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
@@ -52,33 +82,114 @@
       font-size: 0.9rem;
     }
     a { color: var(--gold); text-decoration: none; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Kullanım Şartları & Son Kullanıcı Lisans Sözleşmesi (EULA)</h1>
-    <div class="subtitle">
-      Son Güncelleme: 23 Ağustos 2026 • Yayıncı: <strong>Levitas Enterprise Intelligence & Technology</strong>
+    <div class="top-bar">
+      <div class="lang-toggle" role="group" aria-label="Language Selector">
+        <button type="button" class="lang-btn active" id="btn-tr" onclick="setTermsLang('tr')">🇹🇷 Türkçe</button>
+        <button type="button" class="lang-btn" id="btn-en" onclick="setTermsLang('en')">🇬🇧 English</button>
+      </div>
     </div>
 
-    <div class="alert-box">
-      <strong>🩺 Önemli Tıbbi Feragatname:</strong> Mışıl Baby bir tıbbi tanı, teşhis veya tedavi cihazı değildir. Uygulamada sunulan akustik ağlama analizi ve uyku rehberliği yalnızca ebeveynlere yönelik bilgilendirme ve destek amaçlıdır. Bebeğinizin sağlığı ile ilgili herhangi bir şüphe durumunda daima yetkili bir çocuk doktoruna danışınız.
+    <!-- TURKISH CONTENT -->
+    <div id="content-tr">
+      <h1>Kullanım Şartları & Son Kullanıcı Lisans Sözleşmesi (EULA)</h1>
+      <div class="subtitle">
+        Son Güncelleme: 6 Kasım 2026 • Yayıncı: <strong>Levitas Enterprise Intelligence & Technology</strong>
+      </div>
+
+      <div class="alert-box">
+        <strong>🩺 Önemli Tıbbi Feragatname:</strong> Mışıl Baby bir tıbbi tanı, teşhis veya tedavi cihazı değildir. Uygulamada sunulan akustik ağlama analizi ve uyku rehberliği yalnızca ebeveynlere yönelik bilgilendirme ve destek amaçlıdır. Bebeğinizin sağlığı ile ilgili herhangi bir şüphe durumunda daima yetkili bir çocuk doktoruna danışınız.
+      </div>
+
+      <h2>1. Hizmetin Kapsamı</h2>
+      <p>Mışıl Baby, bebeklerin uyku ortamını desteklemek için beyaz gürültü sesleri, uyku zamanlayıcısı, gece lambası, pediatrik rutin takibi ve yapay zekâ destekli ağlama analizi sunan bir mobil uygulamadır.</p>
+
+      <h2>2. Abonelik ve Faturalandırma Şartları</h2>
+      <p>Mışıl Baby VIP özellikleri (Sınırsız AI Ağlama Analizi, Mışıl Dadı™ AI Uyku Koçu, Premium Ninni Kütüphanesi ve Akıllı Uyku Takibi) Apple App Store ve Google Play üzerinden sunulan otomatik yenilenen abonelik modelleriyle sağlanır:</p>
+      <p>• <strong>Yıllık Plan:</strong> Ücretsiz deneme süresi (uygun kullanıcılarda 7 günlük başlangıç teklifi) içerir; deneme süresinin bitiminden en az 24 saat önce iptal edilmediği takdirde yıllık abonelik ücreti otomatik olarak faturalandırılır.<br>
+         • <strong>İptal ve Yönetim:</strong> Aboneliğinizi dilediğiniz zaman Apple Kimliği / App Store veya Google Play hesap ayarlarınızdan yönetebilir veya iptal edebilirsiniz.</p>
+
+      <h2>3. Fikri Mülkiyet</h2>
+      <p>Mışıl Baby içerisindeki tüm ses kayıtları, algoritmalar, arayüz tasarımları ve markalama Levitas Enterprise Intelligence & Technology mülkiyetindedir.</p>
+
+      <footer>
+        © 2026 Levitas Enterprise Intelligence & Technology. Tüm Hakları Saklıdır.
+      </footer>
     </div>
 
-    <h2>1. Hizmetin Kapsamı</h2>
-    <p>Mışıl Baby, bebeklerin uyku ortamını desteklemek için beyaz gürültü sesleri, uyku zamanlayıcısı, gece lambası ve yapay zekâ destekli ağlama analizi sunan bir mobil uygulamadır.</p>
+    <!-- ENGLISH CONTENT -->
+    <div id="content-en" class="hidden">
+      <h1>Terms of Use & End User License Agreement (EULA)</h1>
+      <div class="subtitle">
+        Last Updated: November 6, 2026 • Publisher: <strong>Levitas Enterprise Intelligence & Technology</strong>
+      </div>
 
-    <h2>2. Abonelik ve Faturalandırma Şartları</h2>
-    <p>Mışıl Baby VIP özellikleri (Sınırsız AI Ağlama Analizi, Premium Ninni Kütüphanesi ve Akıllı Uyku Takibi) Apple App Store ve Google Play üzerinden sunulan otomatik yenilenen abonelik modelleriyle sağlanır:</p>
-    <p>• <strong>Yıllık Plan:</strong> 7 gün ücretsiz deneme içerir, süre sonunda yıllık ücret faturalandırılır.<br>
-       • <strong>İptal ve Yönetim:</strong> Aboneliğinizi dilediğiniz zaman App Store veya Google Play hesap ayarlarınızdan iptal edebilirsiniz.</p>
+      <div class="alert-box">
+        <strong>🩺 Important Medical Disclaimer:</strong> Mışıl Baby is not a medical diagnostic, monitoring, or treatment device. Acoustic cry analysis and sleep guidance provided in the application are strictly for informational and parenting support purposes. Always consult a qualified pediatrician regarding any medical concerns about your baby's health.
+      </div>
 
-    <h2>3. Fikri Mülkiyet</h2>
-    <p>Mışıl Baby içerisindeki tüm ses kayıtları, algoritmalar, arayüz tasarımları ve markalama Levitas Enterprise Intelligence & Technology mülkiyetindedir.</p>
+      <h2>1. Scope of Service</h2>
+      <p>Mışıl Baby is a mobile parenting assistant providing soothing white noise audio, smart sleep timers, a warm nightlight, pediatric routine & vaccine tracking, and AI-assisted cry analysis to support your baby's sleep environment.</p>
 
-    <footer>
-      © 2026 Levitas Enterprise Intelligence & Technology. Tüm Hakları Saklıdır.
-    </footer>
+      <h2>2. Subscription & Billing Terms</h2>
+      <p>Mışıl Baby VIP features (Unlimited AI Cry Analysis, Mışıl Nanny™ 24/7 AI Sleep Coach, Studio Acoustic Library & Mixer, and 24-Hour Rhythm Analytics) are offered via auto-renewing subscriptions through the Apple App Store and Google Play:</p>
+      <p>• <strong>Annual Plan:</strong> Includes a free trial period (7-day introductory offer where eligible), after which the annual subscription fee is billed automatically unless canceled at least 24 hours before the end of the trial.<br>
+         • <strong>Cancellation & Management:</strong> You can manage or cancel your subscription at any time in your Apple ID / App Store or Google Play account settings.</p>
+
+      <h2>3. Intellectual Property</h2>
+      <p>All audio recordings, acoustic synthesis engines, algorithms, interface designs, and branding within Mışıl Baby are the exclusive property of Levitas Enterprise Intelligence & Technology.</p>
+
+      <footer>
+        © 2026 Levitas Enterprise Intelligence & Technology. All Rights Reserved.
+      </footer>
+    </div>
   </div>
+
+  <script>
+    function setTermsLang(lang) {
+      var normalized = (lang === 'en') ? 'en' : 'tr';
+      document.documentElement.lang = normalized;
+      var trEl = document.getElementById('content-tr');
+      var enEl = document.getElementById('content-en');
+      var btnTr = document.getElementById('btn-tr');
+      var btnEn = document.getElementById('btn-en');
+      if (normalized === 'en') {
+        trEl.classList.add('hidden');
+        enEl.classList.remove('hidden');
+        btnEn.classList.add('active');
+        btnTr.classList.remove('active');
+        document.title = 'Terms of Use (EULA) | Mışıl Baby - Levitas';
+      } else {
+        enEl.classList.add('hidden');
+        trEl.classList.remove('hidden');
+        btnTr.classList.add('active');
+        btnEn.classList.remove('active');
+        document.title = 'Kullanım Şartları (EULA) | Mışıl Baby - Levitas';
+      }
+      try { localStorage.setItem('mishil_lang', normalized); } catch (e) {}
+    }
+
+    (function initLang() {
+      var params = new URLSearchParams(window.location.search);
+      var qLang = params.get('lang');
+      if (qLang === 'en' || qLang === 'tr') {
+        setTermsLang(qLang);
+        return;
+      }
+      try {
+        var saved = localStorage.getItem('mishil_lang');
+        if (saved === 'en' || saved === 'tr') {
+          setTermsLang(saved);
+          return;
+        }
+      } catch (e) {}
+      var nav = (navigator.language || 'tr').toLowerCase();
+      setTermsLang(nav.indexOf('tr') === 0 ? 'tr' : 'en');
+    })();
+  </script>
 </body>
 </html>

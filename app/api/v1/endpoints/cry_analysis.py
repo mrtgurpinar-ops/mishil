@@ -14,6 +14,7 @@ router = APIRouter(prefix="/cry-analysis", tags=["Cry Audio Analysis"])
 async def analyze_cry_audio(
     file: UploadFile = File(..., description="Bebek ağlama ses kaydı (WAV, M4A, MP3, maks 10MB)"),
     baby_id: Optional[int] = Form(None, description="Opsiyonel Bebek ID"),
+    lang: Optional[str] = Form("tr", description="Yanıt dili ('tr' veya 'en')"),
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_current_user),
 ):
@@ -31,7 +32,7 @@ async def analyze_cry_audio(
             )
 
     # Perform analysis
-    analysis_result = await CryAnalysisService.analyze_audio(file)
+    analysis_result = await CryAnalysisService.analyze_audio(file, lang=lang or "tr")
 
     # Persist CryEvent log
     try:

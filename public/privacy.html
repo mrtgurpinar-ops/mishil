@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Gizlilik Politikası | Mışıl Baby - Levitas</title>
+  <title>Gizlilik Politikası / Privacy Policy | Mışıl Baby - Levitas</title>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
@@ -31,6 +31,38 @@
       padding: 40px;
       box-shadow: 0 20px 40px rgba(0,0,0,0.5);
     }
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .lang-toggle {
+      display: inline-flex;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 999px;
+      padding: 4px;
+    }
+    .lang-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 5px 12px;
+      border-radius: 999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .lang-btn.active {
+      background: rgba(232, 168, 85, 0.2);
+      color: var(--gold);
+    }
     h1, h2, h3 { font-family: 'Outfit', sans-serif; color: var(--gold); }
     h1 { font-size: 2.2rem; margin-bottom: 8px; }
     .subtitle { color: var(--text-muted); font-size: 0.95rem; margin-bottom: 30px; border-bottom: 1px solid var(--border-color); padding-bottom: 15px; }
@@ -46,7 +78,6 @@
       border-radius: 12px;
       font-size: 0.85rem;
       font-weight: 600;
-      margin-bottom: 15px;
     }
     footer {
       margin-top: 40px;
@@ -58,41 +89,132 @@
     }
     a { color: var(--gold); text-decoration: none; }
     a:hover { text-decoration: underline; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
   <div class="container">
-    <span class="badge">Google Play & Apple App Store Onaylı</span>
-    <h1>Mışıl Baby: Gizlilik Politikası</h1>
-    <div class="subtitle">
-      Son Güncelleme: 23 Ağustos 2026 • Yayıncı: <strong>Levitas Enterprise Intelligence & Technology</strong>
+    <div class="top-bar">
+      <span class="badge" id="badge-text">Google Play & Apple App Store Onaylı</span>
+      <div class="lang-toggle" role="group" aria-label="Language Selector">
+        <button type="button" class="lang-btn active" id="btn-tr" onclick="setPrivacyLang('tr')">🇹🇷 Türkçe</button>
+        <button type="button" class="lang-btn" id="btn-en" onclick="setPrivacyLang('en')">🇬🇧 English</button>
+      </div>
     </div>
 
-    <p>Levitas Enterprise Intelligence & Technology ("Levitas", "biz") olarak, <strong>Mışıl Baby: Bebek Uyku & Ses</strong> mobil uygulamasını kullanan ebeveynlerin, çocukların ve ailelerin gizliliğini en yüksek standartta korumayı taahhüt ediyoruz.</p>
+    <!-- TURKISH CONTENT -->
+    <div id="content-tr">
+      <h1>Mışıl Baby: Gizlilik Politikası</h1>
+      <div class="subtitle">
+        Son Güncelleme: 6 Kasım 2026 • Yayıncı: <strong>Levitas Enterprise Intelligence & Technology</strong>
+      </div>
 
-    <h2>1. Çocuk Güvenliği ve Aile Politikası (COPPA / KVKK)</h2>
-    <p>Mışıl Baby, ebeveynler ve aile bireyleri tarafından kullanılmak üzere tasarlanmıştır. Uygulamamız 13 yaş altındaki çocuklardan doğrudan hiçbir kişisel kimlik bilgisi (isim, soyisim, doğum yeri, telefon veya tam konum) <strong>toplamaz, kaydetmez ve üçüncü taraflarla paylaşmaz.</strong></p>
+      <p>Levitas Enterprise Intelligence & Technology ("Levitas", "biz") olarak, <strong>Mışıl Baby: Bebek Uyku & Ses</strong> mobil uygulamasını kullanan ebeveynlerin, çocukların ve ailelerin gizliliğini en yüksek standartta korumayı taahhüt ediyoruz.</p>
 
-    <h2>2. Mikrofon Erişimi & Yerel Akustik Ağlama Analizi</h2>
-    <p>Uygulamamızdaki "Ağlama Analizi" özelliği, bebeğinizin ağlama sesinin akustik frekanslarını (açlık, gaz, uyku sinyalleri) değerlendirebilmek amacıyla mikrofon iznine ihtiyaç duyar.</p>
-    <ul>
-      <li><strong>Yerel RAM Analizi:</strong> Ses dalgaları mikrofon üzerinden yalnızca 5 saniye boyunca analiz edilir.</li>
-      <li><strong>Sıfır Kalıcı Kayıt:</strong> Ses verisi hiçbir zaman cihazın diskine yazılmaz veya sunuculara yüklenmez; analiz biter bitmez bellekten (RAM) kalıcı olarak silinir.</li>
-    </ul>
+      <h2>1. Çocuk Güvenliği ve Aile Politikası (COPPA / GDPR / KVKK)</h2>
+      <p>Mışıl Baby, yetişkin ebeveynler ve aile bireyleri tarafından kullanılmak üzere tasarlanmıştır. Uygulamamız 13 yaş altındaki çocuklardan doğrudan hiçbir kişisel kimlik bilgisi (isim, soyisim, doğum yeri, telefon veya tam konum) <strong>toplamaz, kaydetmez ve üçüncü taraflarla paylaşmaz.</strong></p>
 
-    <h2>3. Toplanan Anonim Veriler</h2>
-    <p>Uygulamanın kararlılığını sağlamak ve olası çökmeleri önlemek amacıyla yalnızca anonim teknik veriler (işletim sistemi sürümü, cihaz modeli ve anonim kullanım istatistikleri) işlenebilir. Bu veriler hiçbir şahsi veya biyometrik bilgi içermez.</p>
+      <h2>2. Mikrofon Erişimi & Yerel Akustik Ağlama Analizi</h2>
+      <p>Uygulamamızdaki "Ağlama Analizi" özelliği, bebeğinizin ağlama sesinin akustik frekanslarını (açlık, gaz, uyku sinyalleri) değerlendirebilmek amacıyla mikrofon iznine ihtiyaç duyar.</p>
+      <ul>
+        <li><strong>Yerel RAM Analizi:</strong> Ses dalgaları mikrofon üzerinden yalnızca 5 saniye boyunca analiz edilir.</li>
+        <li><strong>Sıfır Kalıcı Kayıt:</strong> Ses verisi hiçbir zaman cihazın diskine yazılmaz veya harici sunucularda kalıcı olarak depolanmaz; analiz biter bitmez bellekten (RAM) kalıcı olarak silinir.</li>
+      </ul>
 
-    <h2>4. Reklam ve Üçüncü Taraf Takipçiler</h2>
-    <p>Mışıl Baby içerisinde uygunsuz, kişiselleştirilmiş veya üçüncü taraf reklam ağlarına ait izleyiciler <strong>kesinlikle yer almaz.</strong> Tüm uygulama içi abonelikler Apple App Store ve Google Play faturalandırma altyapısı üzerinden güvenle yürütülür.</p>
+      <h2>3. Toplanan Anonim Veriler</h2>
+      <p>Uygulamanın kararlılığını sağlamak ve olası çökmeleri önlemek amacıyla yalnızca anonim teknik veriler (işletim sistemi sürümü, cihaz modeli ve anonim kullanım istatistikleri) işlenebilir. Bu veriler hiçbir şahsi veya biyometrik bilgi içermez.</p>
 
-    <h2>5. İletişim & Haklarınız</h2>
-    <p>Gizlilik haklarınızla ilgili her türlü soru, görüş ve talepleriniz için bize resmi e-posta adreslerimizden dilediğiniz zaman ulaşabilirsiniz:</p>
-    <p>📧 <strong>Destek & İletişim:</strong> <a href="mailto:support@levitas.tech">support@levitas.tech</a> / <a href="mailto:mrtgurpinar@gmail.com">mrtgurpinar@gmail.com</a></p>
+      <h2>4. Reklam ve Üçüncü Taraf Takipçiler</h2>
+      <p>Mışıl Baby içerisinde uygunsuz, kişiselleştirilmiş veya üçüncü taraf reklam ağlarına ait izleyiciler <strong>kesinlikle yer almaz.</strong> Tüm uygulama içi abonelikler Apple App Store ve Google Play faturalandırma altyapısı üzerinden güvenle yürütülür.</p>
 
-    <footer>
-      © 2026 Levitas Enterprise Intelligence & Technology. Tüm Hakları Saklıdır.
-    </footer>
+      <h2>5. İletişim & Haklarınız</h2>
+      <p>Gizlilik haklarınızla ilgili her türlü soru, görüş ve talepleriniz için bize resmi e-posta adreslerimizden dilediğiniz zaman ulaşabilirsiniz:</p>
+      <p>📧 <strong>Destek & İletişim:</strong> <a href="mailto:support@levitas.tech">support@levitas.tech</a> / <a href="mailto:mrtgurpinar@gmail.com">mrtgurpinar@gmail.com</a></p>
+
+      <footer>
+        © 2026 Levitas Enterprise Intelligence & Technology. Tüm Hakları Saklıdır.
+      </footer>
+    </div>
+
+    <!-- ENGLISH CONTENT -->
+    <div id="content-en" class="hidden">
+      <h1>Mışıl Baby: Privacy Policy</h1>
+      <div class="subtitle">
+        Last Updated: November 6, 2026 • Publisher: <strong>Levitas Enterprise Intelligence & Technology</strong>
+      </div>
+
+      <p>At Levitas Enterprise Intelligence & Technology ("Levitas", "we", "us"), we are committed to protecting the privacy of parents, children, and families using the <strong>Mışıl Baby: Baby Sleep & Sound</strong> mobile application to the highest privacy standards.</p>
+
+      <h2>1. Child Safety & Family Policy (COPPA / GDPR / KVKK)</h2>
+      <p>Mışıl Baby is designed for use by adult parents and caregivers. Our application <strong>does not collect, store, or share with third parties</strong> any personally identifiable information (such as full name, birthplace, phone number, or precise geolocation) from children under the age of 13.</p>
+
+      <h2>2. Microphone Access & Ephemeral Acoustic Cry Analysis</h2>
+      <p>The "AI Cry Analysis" feature in our app requires microphone permission solely to evaluate the acoustic frequencies of your baby's cry (hunger, gas/colic, sleepiness, discomfort cues).</p>
+      <ul>
+        <li><strong>Ephemeral In-Memory Processing:</strong> Audio waveforms are sampled through the microphone for only 5 seconds.</li>
+        <li><strong>Zero Persistent Audio Storage:</strong> Raw voice/cry recordings are never written to persistent disk or retained on external servers; audio buffers are permanently discarded from memory (RAM) immediately after acoustic feature extraction completes.</li>
+      </ul>
+
+      <h2>3. Anonymous Technical Diagnostics</h2>
+      <p>To ensure application stability and prevent crashes, only anonymous technical telemetry (OS version, device model, and aggregated usage diagnostics) may be processed. This data contains no personal or biometric identifiers.</p>
+
+      <h2>4. Zero Third-Party Ad Trackers</h2>
+      <p>Mışıl Baby contains <strong>no third-party advertising networks or behavioral trackers.</strong> All in-app subscriptions are processed securely through Apple App Store and Google Play billing infrastructures.</p>
+
+      <h2>5. Contact & Your Privacy Rights</h2>
+      <p>For any questions, requests, or inquiries regarding your privacy rights, you may contact us at any time via our official support channels:</p>
+      <p>📧 <strong>Support & Contact:</strong> <a href="mailto:support@levitas.tech">support@levitas.tech</a> / <a href="mailto:mrtgurpinar@gmail.com">mrtgurpinar@gmail.com</a></p>
+
+      <footer>
+        © 2026 Levitas Enterprise Intelligence & Technology. All Rights Reserved.
+      </footer>
+    </div>
   </div>
+
+  <script>
+    function setPrivacyLang(lang) {
+      var normalized = (lang === 'en') ? 'en' : 'tr';
+      document.documentElement.lang = normalized;
+      var trEl = document.getElementById('content-tr');
+      var enEl = document.getElementById('content-en');
+      var btnTr = document.getElementById('btn-tr');
+      var btnEn = document.getElementById('btn-en');
+      var badge = document.getElementById('badge-text');
+      if (normalized === 'en') {
+        trEl.classList.add('hidden');
+        enEl.classList.remove('hidden');
+        btnEn.classList.add('active');
+        btnTr.classList.remove('active');
+        badge.textContent = 'Google Play & Apple App Store Verified';
+        document.title = 'Privacy Policy | Mışıl Baby - Levitas';
+      } else {
+        enEl.classList.add('hidden');
+        trEl.classList.remove('hidden');
+        btnTr.classList.add('active');
+        btnEn.classList.remove('active');
+        badge.textContent = 'Google Play & Apple App Store Onaylı';
+        document.title = 'Gizlilik Politikası | Mışıl Baby - Levitas';
+      }
+      try { localStorage.setItem('mishil_lang', normalized); } catch (e) {}
+    }
+
+    (function initLang() {
+      var params = new URLSearchParams(window.location.search);
+      var qLang = params.get('lang');
+      if (qLang === 'en' || qLang === 'tr') {
+        setPrivacyLang(qLang);
+        return;
+      }
+      try {
+        var saved = localStorage.getItem('mishil_lang');
+        if (saved === 'en' || saved === 'tr') {
+          setPrivacyLang(saved);
+          return;
+        }
+      } catch (e) {}
+      var nav = (navigator.language || 'tr').toLowerCase();
+      setPrivacyLang(nav.indexOf('tr') === 0 ? 'tr' : 'en');
+    })();
+  </script>
 </body>
 </html>

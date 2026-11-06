@@ -71,3 +71,57 @@ Geliştirici & Destek: Levitas Enterprise Intelligence & Technology
 - **Uygulama Kategorisi:** `Ebeveynlik` (Parenting)
 - **İkincil Etiketler:** `Bebek Bakımı`, `Beyaz Gürültü`, `Uyku Takibi`, `Sağlık ve Yaşam`
 - **İletişim E-postası:** `mrtgurpinar@gmail.com` (veya `support@levitas.tech`)
+
+---
+
+## 4. English (`en-US`) Store Listing — Google Play Console
+
+### 📌 App Name (`en-US` - Max 30 Characters):
+```text
+Mışıl Baby: Sleep & Sounds
+```
+
+### 📌 Short Description (`en-US` - Max 80 Characters, Zero Superlatives):
+```text
+AI baby cry cue analyzer, 18+ white noise sounds & pediatric sleep tracker.
+```
+
+### 📌 Full Description (`en-US` - Max 4000 Characters, Policy Compliant):
+```text
+Mışıl Baby is a comprehensive baby sleep and care assistant designed for parents and caregivers, combining pediatric sleep science with studio-grade soothing sounds and AI-assisted cry cue analysis.
+
+Understand your baby's daily cues, build a consistent bedtime routine, and help your little one settle calmly with comforting acoustic sounds.
+
+🌟 KEY FEATURES FOR PARENTS:
+
+👶 1. AI-ASSISTED CRY CUE ANALYSIS
+Analyzes frequency and rhythm patterns in your baby's cry to highlight helpful care cues (Hunger, Gas/Colic, Sleepiness, Discomfort). Understand your baby's needs faster with our privacy-first acoustic engine.
+
+🎧 2. 18+ SOOTHING WHITE NOISE & MULTI-SOUND MIXER
+Studio-recorded sounds designed to recreate the comforting resonance of the womb:
+• White Noise, Pink Noise, Brown Noise
+• Womb Resonance & Maternal Heartbeat
+• Hair Dryer, Vacuum Cleaner, Fan, Shusher
+• Gentle Rain, Ocean Waves, Forest Breeze, Mountain Stream
+• 432 Hz Calming Lullabies & Music Box Melodies
+• Multi-Track Mixer: Combine multiple sounds at custom volume levels.
+
+🌙 3. SMART WARM NIGHTLIGHT
+Eye-friendly, dimmable warm screen light for middle-of-the-night feedings and diaper changes without overstimulating your baby.
+
+⏱️ 4. SLEEP TIMER & BACKGROUND PLAYBACK
+Continuous background audio playback with battery-saving sleep timers and gentle volume fade-out.
+
+📊 5. SWEETSPOT™ WAKE WINDOWS, ROUTINE & VACCINE TRACKER
+Age-tailored wake windows, daily sleep/feeding/diaper logs, Wonder Weeks developmental leap tracking, and pediatric immunization reminders.
+
+🔒 PRIVACY & MEDICAL DISCLAIMER:
+• Mışıl Baby is an informational parenting tool and is not a medical diagnostic device. Always consult your pediatrician for medical guidance.
+• Cry audio samples are processed ephemerally in memory and are never permanently stored or shared with third parties.
+• Compliant with COPPA, GDPR, and KVKK standards, with zero third-party ad trackers.
+
+Developer & Support: Levitas Enterprise Intelligence & Technology
+Contact: support@levitas.tech
+Privacy Policy: https://mishil-production.up.railway.app/privacy?lang=en
+Terms of Use: https://mishil-production.up.railway.app/terms?lang=en
+```

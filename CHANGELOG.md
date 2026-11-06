@@ -2,6 +2,23 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.47.0] - 2026-11-06
+### 🌐 Tam Çift Dilli (Türkçe `tr` & İngilizce `en`) Küresel Dil Motoru — 3 Katmanlı Hibrit Model (`app.html`, `ai_sleep_coach.py`, `cry_analysis.py`, `careNotificationEngine.ts`, `MishilUnifiedWebView.tsx`, `privacy.html`, `terms.html`)
+1. **3 Ajanlı Konsensüs Mimari Denetimi:** Planlama ve mimari denetim aşamasında **Claude Code CLI (`task-90`)** + **Codex CLI (`gpt-6-luna`, `task-87`)** + **Antigravity** 3'lü konsensüsü işletildi.
+2. **3 Katmanlı Hibrit Dil Seçim Mimarisi (`resolveInitialLanguage`, `setAppLanguage`, `toggleAppLanguage`, `applyStaticDomTranslations`):**
+   - **Katman 1 (Otomatik Sistem Dili Algılama):** İlk açılışta `localStorage.getItem('mishil_lang')` yoksa `window.__MISHIL_APP__.deviceLocale` (native `Intl.DateTimeFormat().resolvedOptions().locale`) veya `navigator.language` okunarak `tr*` ➔ `'tr'`, diğer tüm diller ➔ `'en'` olarak başlatılır.
+   - **Katman 2 (Onboarding Adım 1 Sağ Üst Hızlı Dil Hapı):** `#onboarding-lang-switch` (`🌐 TR | EN`) butonu ile kullanıcı ilk ekranda tek dokunuşla sayfa yenilemeden dili değiştirebilir.
+   - **Katman 3 (Ayarlar > Görünüm & Dil Kalıcı Seçici):** `#acc-theme` içerisine `#lang-chip-tr` (`🇹🇷 Türkçe`) ve `#lang-chip-en` (`🇬🇧 English`) rozetleri eklendi; dil değiştiğinde tüm mevcut bebek profili, rutin, aşı ve abonelik verileri %100 korunur ve tersinir DOM çeviricisi (`node.__trOrig`) ile anında uygulanır.
+3. **Backend AI Uyku Koçu (Mışıl Dadı™ / Mishil Nanny™) & Akustik Ağlama Analizi Çift Dil Desteği (`ai_sleep_coach.py`, `coach.py`, `cry_analysis.py`):**
+   - `SYSTEM_PROMPT_EN`, `normalize_lang`, çift dilli `_calc_baby_details`, `_call_gemini_model` ve çevrimdışı 7 kategorili `_tier4_clinical_heuristic` motoru eklendi.
+   - `POST /api/v1/coach/chat`, `POST /api/v1/coach/stream` ve `POST /api/v1/cry-analysis/analyze` uç noktalarına `lang` (`'tr' | 'en'`) parametresi eklendi; 6 ağlama kategorisi ve klinik tavsiyeler tam çift dilli hale getirildi.
+4. **Native Bildirim Motoru, WebView Köprüsü & iOS Lokalizasyon Beyanı (`careNotificationEngine.ts`, `MishilUnifiedWebView.tsx`, `storage.ts`, `app.config.ts`):**
+   - `VACCINE_MILESTONES` (`labelEn`), `LEAP_WEEKS` (`titleEn`) ve `buildCareNotificationPlan({ ..., lang })` ile yerel bildirimler Türkçe/İngilizce üretilirken bildirim kimlikleri (`mishil-care-vaccine-*`, `mishil-care-leap-*`) sabit tutularak mükerrer bildirim oluşumu engellendi.
+   - `MishilUnifiedWebView.tsx` içine `SET_LANGUAGE` köprüsü, `DEVICE_LOCALE` enjeksiyonu ve çift dilli native yükleme/çevrimdışı/satın alma bildirimleri eklendi; `app.config.ts` içine `CFBundleLocalizations: ['tr', 'en']` tanımlandı.
+5. **Dinamik Mağaza Fiyat Birimi, Yasal Sayfalar & Global ASO (`window.applyStorePrices`, `privacy.html`, `terms.html`, `APP_STORE_LISTING.md`, `STORE_LISTING.md`):**
+   - Apple Guideline 3.1.2c uyumu kapsamında Paywall deneme rozetleri (`BUGÜN ₺0` / `$0 TODAY`, `7 GÜN ₺0` / `7 DAYS $0`, `/yıl` / `/yr`, `/ay` / `/mo`, `%67 TASARRUF` / `SAVE 67%`) seçili dile göre dinamik güncellenir.
+   - `/privacy` ve `/terms` sayfalarına `🇹🇷 Türkçe | 🇬🇧 English` dil anahtarı ve `?lang=en` desteği; `APP_STORE_LISTING.md` ve `STORE_LISTING.md` belgelerine `en-US` mağaza metinleri eklendi (`5/5 pytest`, `12/12 Jest`, `tsc --noEmit`, `READY_FOR_RELEASE`).
+
 ## [4.46.28] - 2026-11-06
 ### 🔒 Tam Kilitli Vitrin Modu (Seçenek A — Strict Limited Showcase Mode) & Doğrulanmamış Kullanıcı Göçü (`app.html`, `MishilUnifiedWebView.tsx`, `offlineHtml.generated.ts`)
 1. **İcra Modu:** Tek Ajan (Yalnızca Antigravity — Claude/Codex CLI çalıştırılmadı) (`[Solo-Antigravity]`).

@@ -41,7 +41,7 @@
     "production": {
       "android": {
         "serviceAccountKeyPath": "./google-play-service-account.json",
-        "track": "closed"
+        "track": "production"
       },
       "ios": {
         "appleId": "mrtgurpinar@gmail.com",
