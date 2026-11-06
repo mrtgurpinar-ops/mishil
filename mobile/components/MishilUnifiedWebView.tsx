@@ -205,19 +205,36 @@ export default function MishilUnifiedWebView() {
       webviewRef.current?.injectJavaScript(`
         (function() {
           try {
-            localStorage.setItem('mishil_subscription_active', '${active ? 'true' : 'false'}');
-            ${planLine}
-            window.__MISHIL_SUB_META__ = ${subMetaJson};
-            if (${active ? 'true' : 'false'} && typeof window.syncSubscriberToAnalytics === 'function') {
-              window.syncSubscriberToAnalytics(window.__MISHIL_SUB_META__);
+            if (${active ? 'true' : 'false'}) {
+              localStorage.setItem('mishil_subscription_active', 'true');
+              localStorage.setItem('mishil_rc_verified', 'true');
+              localStorage.removeItem('mishil_limited_explore_mode');
+              ${planLine}
+              window.__MISHIL_SUB_META__ = ${subMetaJson};
+              if (typeof window.syncSubscriberToAnalytics === 'function') {
+                window.syncSubscriberToAnalytics(window.__MISHIL_SUB_META__);
+              }
+            } else {
+              var isRev = localStorage.getItem('mishil_reviewer_bypass') === '1';
+              var isFamVip = localStorage.getItem('mishil_subscription_plan') === 'family_vip';
+              if (!isRev && !isFamVip) {
+                localStorage.setItem('mishil_subscription_active', 'false');
+                localStorage.removeItem('mishil_trial_start');
+                localStorage.removeItem('mishil_rc_verified');
+                localStorage.setItem('mishil_subscription_plan', 'free');
+                window.__MISHIL_SUB_META__ = null;
+                if (typeof switchTab === 'function') {
+                  var coach = document.getElementById('view-coach');
+                  var analyticsView = document.getElementById('view-analytics');
+                  if ((coach && coach.classList.contains('active')) || (analyticsView && analyticsView.classList.contains('active'))) {
+                    switchTab('home');
+                  }
+                }
+              }
             }
+            if (typeof loadBabyProfile === 'function') loadBabyProfile();
             if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
-            ${active ? '' : `
-            // Hak yok → Pro özelliği kilitle: açık Mışıl Dadı sekmesinden çık.
-            if (typeof switchTab === 'function') {
-              var coach = document.getElementById('view-coach');
-              if (coach && coach.classList.contains('active')) switchTab('home');
-            }`}
+            if (typeof renderAllViews === 'function') renderAllViews();
           } catch (e) {}
           true;
         })();
@@ -257,9 +274,24 @@ export default function MishilUnifiedWebView() {
           webviewRef.current?.injectJavaScript(`
             (function() {
               try {
-                localStorage.setItem('mishil_subscription_active', '${active ? 'true' : 'false'}');
-                ${planLine}
+                if (${active ? 'true' : 'false'}) {
+                  localStorage.setItem('mishil_subscription_active', 'true');
+                  localStorage.setItem('mishil_rc_verified', 'true');
+                  localStorage.removeItem('mishil_limited_explore_mode');
+                  ${planLine}
+                } else {
+                  var isRev = localStorage.getItem('mishil_reviewer_bypass') === '1';
+                  var isFamVip = localStorage.getItem('mishil_subscription_plan') === 'family_vip';
+                  if (!isRev && !isFamVip) {
+                    localStorage.setItem('mishil_subscription_active', 'false');
+                    localStorage.removeItem('mishil_trial_start');
+                    localStorage.removeItem('mishil_rc_verified');
+                    localStorage.setItem('mishil_subscription_plan', 'free');
+                  }
+                }
+                if (typeof loadBabyProfile === 'function') loadBabyProfile();
                 if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
+                if (typeof renderAllViews === 'function') renderAllViews();
               } catch (e) {}
               true;
             })();

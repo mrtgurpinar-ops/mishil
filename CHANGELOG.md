@@ -2,6 +2,23 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.46.28] - 2026-11-06
+### 🔒 Tam Kilitli Vitrin Modu (Seçenek A — Strict Limited Showcase Mode) & Doğrulanmamış Kullanıcı Göçü (`app.html`, `MishilUnifiedWebView.tsx`, `offlineHtml.generated.ts`)
+1. **İcra Modu:** Tek Ajan (Yalnızca Antigravity — Claude/Codex CLI çalıştırılmadı) (`[Solo-Antigravity]`).
+2. **Sınırlı Modda Sıfır Sızıntı & Doğrudan VIP Paywall (`skipOnboardingToApp`, `isSubscriptionCurrentlyActive`, `getTrialStatus`):**
+   - `"Şimdilik Sınırlı Modda Keşfet ➔"` (`skipOnboardingToApp()`) tıklandığında `mishil_subscription_active = 'false'`, `mishil_subscription_plan = 'free'`, `mishil_limited_explore_mode = 'true'` atanması ve `mishil_trial_start` ile `mishil_rc_verified` bayraklarının temizlenmesi zorunlu hale getirildi.
+   - `getTrialStatus()` içinde `mishil_subscription_active !== 'true'` ise deneme süresinin aktif dönmemesi sağlandı; böylece eski bir `mishil_trial_start` zaman damgası kalsa bile sınırlı modda tüm özelliklerin açık kalması hatası kapatıldı.
+3. **Mevcut İndirip Abonelik Başlatmamış Kullanıcılar İçin Otomatik Göç (`enforceVerifiedSubscriptionMigration`, `MishilUnifiedWebView.tsx`):**
+   - Uygulamayı daha önce indirip StoreKit / Google Play (RevenueCat `mishil_rc_verified === 'true'`), Reviewer PIN (`mishil_reviewer_bypass === '1'`) veya VIP Aile Kodu (`family_vip`) doğrulaması olmadan yerel bayraklarla kullanan cihazları tespit edip Sınırlı Vitrin Moduna geçiren tek seferlik göç (`mishil_strict_sub_mig_v1`) ve canlı `syncEntitlementToWebView` temizliği devreye alındı.
+4. **Seçenek A — Tam Kilitli Vitrin Modu Kısıtlamaları (`app.html`):**
+   - **MışılSpot™ Hedef Uyku Saati:** Sınırlı modda ilk uykudan itibaren `14:•• 🔒` olarak maskelendi ve tıklanınca doğrudan `openVipRenewalModal('mishil_spot')` açılacak şekilde kilitlendi.
+   - **Canlı Uyku Takibi & Orta Hilal FAB (`toggleLiveSleep`):** Tıklanınca doğrudan VIP Paywall açılır.
+   - **Manuel Rutin & Uyku Kaydı / Hızlı Kayıt (`openAddRoutineModal`, `openEditRoutineModal`, `deleteRoutine`, `quickLog`, `switchHomeSegment('timeline')`):** 3 ücretsiz kayıt hakkı kaldırılarak doğrudan VIP Paywall'a (`routine_log`) bağlandı.
+   - **Akıllı Ağlama Rehberi (`openCryModal`), Mışıl Dadı™ (`switchTab('coach')`, `submitDadiChat`) ve Gelişim / Aşı / Sıçrama Detayları (`switchTab('analytics')`, `openLeapsQuickModal`, `openVaccineQuickModal`, `toggleEarlyLeap`, `toggleVaccine`):** Ücretsiz deneme hakları kaldırılarak doğrudan VIP Paywall'a bağlandı.
+   - **60 Saniyelik Stüdyo Ses Önizlemesi (`togglePlayTrack`, `startFreeSoundPreviewLimit`, `setTimer`):** Sınırlı modda 3 önizleme sesi (`FREE_TRACK_IDS`: Anne Karnı, 432Hz Pembe Gürültü, Brahms Ninni) `🎧 60 SN ÖNİZLEME` rozetiyle yalnızca **60 saniye** çalar (hem Web Audio hem Native arka plan ses motorunda `AUDIO_TIMER: minutes: 1`); 60 saniye dolduğunda ses otomatik durur ve VIP Paywall (`vip_sound`) açılır. Tüm kapanma zamanlayıcıları (`15dk/30dk/45dk/60dk`) VIP'e kilitlendi.
+5. **İlk Açılışta İnteraktif Anlatım Turu (Spotlight Walkthrough) Otomatik Başlatma Onarımı (`checkOnboardingState`, `commitOnboardingProfile`, `maybeStartFirstTimeSpotlightTour`):**
+   - Uygulama ilk açılışında (`checkOnboardingState` ve sayfa ilk yükleme sonu), aile kodu ile katılımda (`submitJoinFamily`), satın alma geri yüklemede (`restoreVipRenewalPurchases`), yönetici/incelemeci girişinde ve yeni onboarding tamamlandığında (`commitOnboardingProfile`) 4 adımlı interaktif anlatım turunun otomatik başlaması garanti altına alındı (`#spotlight-tour-overlay` `z-index: 15000`).
+
 ## [4.46.27] - 2026-11-05
 ### 📊 Kurucu Kokpiti (`/admin/analytics`) Resmi Mağaza Mutabakatı & Telemetri Düzeltme Paketi (`analytics.py`, `app.html`, `offlineHtml.generated.ts`)
 1. **İcra Modu:** Tek Ajan (Yalnızca Antigravity — Claude/Codex CLI çalıştırılmadı) (`[Solo-Antigravity]`).
