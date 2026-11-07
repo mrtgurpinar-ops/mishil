@@ -2,6 +2,21 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.48.0] - 2026-11-07
+### 🔄 3 Ajanlı Konsensüs Sürekli Giren Kullanıcı (Returning Users) Kohort Motoru & Paywall İptal Kurtarma (CRO) Paketi (`app.html`, `analytics.py`, `offlineHtml.generated.ts`, `test_sleep_and_analytics_remediation.py`)
+1. **3 Ajanlı Konsensüs & Seviye 3 Çapraz Denetim:** Analiz, planlama ve Seviye 3 kod denetiminde **Claude Code CLI (`task-166`, `task-303`)** + **Codex CLI (`gpt-5.6-terra`, `task-168`, `task-330`)** + **Antigravity** 3'lü konsensüsü işletildi.
+2. **Aylık Esnek VIP (`₺149.99/ay`) Varsayılan Plan & Ödeme Penceresi İptal Kurtarması (`#quiz-step-5`, `#vip-renewal-modal`, `onPurchaseCancelled`, `applyStorePrices`, `resetPurchaseButtons`):**
+   - Canlı telemetrideki `%84.2` ödeme penceresi iptalini (`16 / 19 CTA tıklaması`: `4/5` iOS, `12/14` Android) çözmek üzere hem Onboarding Adım 5 (`#quiz-step-5`) hem de bağımsız `#vip-renewal-modal` üzerinde **Aylık Esnek VIP (`🌙 Aylık VIP Plan` • `7 GÜN ₺0 • ESNEK` • `₺149.99/ay` / `$4.99/mo`)** varsayılan seçili kart haline getirildi (`generateSleepReport`, `vipRenewalSelectedPlan = 'monthly'`).
+   - Kullanıcı mağaza ödeme penceresini (`StoreKit` / `Google Play Billing`) Yıllık plandayken iptal ederse (`onPurchaseCancelled`), her iki paywall penceresi otomatik olarak **Aylık Esnek VIP** seçeneğine döner, `paywall_cancel_recovery_shown` sinyali gönderilir ve taahhütsüz aylık deneme bilgilendirmesi gösterilir.
+   - `#onboarding-skip-wrap` (`"Şimdilik Sınırlı Modda Keşfet ➔"`) görünürlük gecikmesi `4500ms`'den `8000ms`'ye çıkarıldı; İngilizce mağaza fiyat yedekleri (`$4.99/mo` ve `$29.99/yr`) `TR_TO_EN_EXACT_MAP` ile tam uyumlu hale getirildi.
+3. **Onboarding Adım 1 Hızlı Yaş Aralığı Çipleri (`applyQuickBabyAgeMonths`, `nextQuizStep`):**
+   - İlk açılıştan bebek profili oluşturmaya geçişteki `%57.9` kaybı (`95 ➔ 40`) azaltmak için `#quiz-step-1` tarih seçicisinin altına tek dokunuşla tarih dolduran 4 yaş çipi (`👶 0–3 Ay`, `🍼 4–6 Ay`, `🧸 7–12 Ay`, `🏃 1–2 Yaş`) eklendi; bebek ismi boş bırakılırsa `getDefaultBabyName()` ile otomatik tamamlanarak adım geçiş engeli kaldırıldı.
+4. **60 Saniyelik Ses Önizleme Bitişinde Kişiselleştirilmiş Paywall & Sinyal Kancaları (`startFreeSoundPreviewLimit`, `openVipRenewalModal`):**
+   - Sınırlı modda 60 saniyelik ses önizlemesi dolduğunda `window.__lastPreviewedSoundName__` kaydedilir, `sound_preview_60s_ended` sinyali gönderilir ve `openVipRenewalModal('sound_preview_ended')` ile bebeğin ve dinlenen sesin adını içeren kişiselleştirilmiş başlık (`🌙 ${babyName} "${previewTrackName}" Sesiyle Rahatladı — Kesintisiz Çalmaya Devam Edin`) açılır.
+   - `openVipRenewalModal` içerisine `cry_limit_reached`, `dadi_limit_reached` ve `routine_limit_reached` sinyalleri bağlandı.
+5. **Apple `r8` Tekrar Giren (Returning) Cihaz Kohortu & Kurucu Kokpiti Sekme 4 (`_aggregate_apple_r8_cohorts`, `analytics.py`):**
+   - Apple `r8` (`App Sessions Standard`) senkronizasyonunda tekil satır maksimumu (`2`) hatası düzeltilerek güvercin yuvası ilkesiyle (`_aggregate_apple_r8_cohorts`) `apple_sessions_optin_devices`, `apple_returning_optin_devices` (`2+` oturum), `apple_loyal_optin_devices` (`3+` oturum), `apple_returning_sessions_total` ve `apple_max_sessions_per_device` hesaplaması eklendi; Sekme 4 (`tabPane_tab4`) içine **"🔄 Sürekli Giren Kullanıcılar (Returning Users) & Paywall Dönüşüm / İptal Hunisi"** Bento kartı yerleştirildi (`22/22 pytest`, `12/12 Jest`, `tsc --noEmit`, `READY_FOR_RELEASE`).
+
 ## [4.47.0] - 2026-11-06
 ### 🌐 Tam Çift Dilli (Türkçe `tr` & İngilizce `en`) Küresel Dil Motoru — 3 Katmanlı Hibrit Model (`app.html`, `ai_sleep_coach.py`, `cry_analysis.py`, `careNotificationEngine.ts`, `MishilUnifiedWebView.tsx`, `privacy.html`, `terms.html`)
 1. **3 Ajanlı Konsensüs Mimari Denetimi:** Planlama ve mimari denetim aşamasında **Claude Code CLI (`task-90`)** + **Codex CLI (`gpt-6-luna`, `task-87`)** + **Antigravity** 3'lü konsensüsü işletildi.

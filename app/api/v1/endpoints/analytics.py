@@ -230,6 +230,10 @@ def _empty_store_state() -> Dict[str, Any]:
         "apple_sessions_total": 0,
         "apple_sessions_duration_sec": 0,
         "apple_sessions_optin_devices": 0,
+        "apple_returning_optin_devices": 0,
+        "apple_loyal_optin_devices": 0,
+        "apple_returning_sessions_total": 0,
+        "apple_max_sessions_per_device": 0,
         "apple_vip_activations_total": 0,
         "apple_vip_total_transactions": 0,
         "apple_vip_paid_conversions": 0,
@@ -272,6 +276,90 @@ def _empty_store_state() -> Dict[str, Any]:
 
 
 OFFICIAL_STORE_BASELINE: Dict[str, Any] = _empty_store_state()
+
+
+def _aggregate_apple_r8_cohorts(r8_daily_rows: Dict[tuple, tuple]) -> Dict[str, int]:
+    """
+    Apple r8 (App Sessions Standard) günlük satırlarını önce (Date + Download Date + Device + Platform Version + Source + Territory)
+    bazında tekilleştirir (farklı Page Type dilimlerinde aynı cihazın çift sayılmasını önler), ardından indirme kohortu bazında
+    güvercin yuvası ilkesiyle (Pigeonhole Principle) toplam opt-in cihaz, 2+ oturumlu tekrar giren (returning) cihaz,
+    3+ oturumlu sadık cihaz ve toplam süreyi hesaplar.
+    """
+    if not r8_daily_rows:
+        return {
+            "apple_sessions_optin_devices": 0,
+            "apple_returning_optin_devices": 0,
+            "apple_loyal_optin_devices": 0,
+            "apple_returning_sessions_total": 0,
+            "apple_max_sessions_per_device": 0,
+            "apple_sessions_duration_sec": 0,
+        }
+    daily_dedup: Dict[tuple, tuple] = {}
+    for (dt_s, dl_dt, dev_s, pver_s, src_s, terr_s, _page_s), (sess_v, dur_v, udev_v) in r8_daily_rows.items():
+        d_key = (dt_s, dl_dt, dev_s, pver_s, src_s, terr_s)
+        prev = daily_dedup.get(d_key)
+        if not prev or sess_v > prev[0]:
+            daily_dedup[d_key] = (sess_v, dur_v, max(prev[2] if prev else 0, udev_v))
+
+    cohorts_r8: Dict[tuple, Dict[str, Any]] = {}
+    total_r8_dur = 0
+    for (dt_s, dl_dt, dev_s, pver_s, src_s, terr_s), (sess_v, dur_v, udev_v) in daily_dedup.items():
+        total_r8_dur += dur_v
+        c_key = (dl_dt, dev_s, pver_s, src_s, terr_s)
+        c_item = cohorts_r8.setdefault(c_key, {"max_udev": 0, "sessions": 0, "days": set()})
+        c_item["max_udev"] = max(c_item["max_udev"], udev_v)
+        c_item["sessions"] += sess_v
+        if dt_s:
+            c_item["days"].add(dt_s)
+
+    optin_total_calc = 0
+    returning_optin_calc = 0
+    loyal_optin_calc = 0
+    returning_sess_calc = 0
+    max_sess_single_calc = 0
+    for v in cohorts_r8.values():
+        u = max(0, int(v["max_udev"]))
+        s = max(0, int(v["sessions"]))
+        d = len(v["days"])
+        if u <= 0:
+            continue
+        optin_total_calc += u
+        # Güvercin yuvası ilkesi: u > 1 olan bir segmentte toplam oturum s <= u ve gün sayısı d < 2 ise
+        # her cihaz 1'er kez girmiş olabilir (returning = 0). s > u veya d >= 2 ise tekrar giriş kesindir.
+        if u == 1:
+            ret_u = 1 if (s >= 2 or d >= 2) else 0
+            loy_u = 1 if s >= 3 else 0
+            est_max_single = s
+        else:
+            if s >= 2 * u:
+                ret_u = u
+            elif s > u:
+                ret_u = s - u
+            elif d >= 2:
+                ret_u = 1
+            else:
+                ret_u = 0
+            if s >= 3 * u:
+                loy_u = u
+            elif s > 2 * u:
+                loy_u = s - 2 * u
+            else:
+                loy_u = 0
+            est_max_single = round(s / u)
+        returning_optin_calc += ret_u
+        loyal_optin_calc += loy_u
+        if ret_u > 0:
+            returning_sess_calc += s
+        max_sess_single_calc = max(max_sess_single_calc, est_max_single)
+
+    return {
+        "apple_sessions_optin_devices": optin_total_calc,
+        "apple_returning_optin_devices": returning_optin_calc,
+        "apple_loyal_optin_devices": loyal_optin_calc,
+        "apple_returning_sessions_total": returning_sess_calc,
+        "apple_max_sessions_per_device": max_sess_single_calc,
+        "apple_sessions_duration_sec": total_r8_dur,
+    }
 
 
 class AppSignalPayload(BaseModel):
@@ -1101,7 +1189,7 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                 dl_search_by_date: Counter = Counter()
                 dl_ref_by_date: Counter = Counter()
                 dl_browse_by_date: Counter = Counter()
-                optin_devices_max = 0
+                r8_daily_rows: Dict[tuple, tuple] = {}
 
                 for arr_item in arr_items:
                     req_id = arr_item.get("id")
@@ -1211,10 +1299,20 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                     for ln in s_lines[1:]:
                                         row_d = dict(zip(s_hdr, ln.split("\t")))
                                         dt_s = (row_d.get("Date") or "").strip()
+                                        dl_dt = (row_d.get("Download Date") or "").strip()
+                                        dev_s = (row_d.get("Device") or "").strip()
+                                        pver_s = (row_d.get("Platform Version") or "").strip()
+                                        src_s = (row_d.get("Source Type") or "").strip()
+                                        terr_s = (row_d.get("Territory") or "").strip()
+                                        page_s = (row_d.get("Page Type") or "").strip()
                                         sess_v = int(float(row_d.get("Sessions") or 0))
+                                        dur_v = int(float(row_d.get("Total Session Duration") or 0))
                                         udev_v = int(float(row_d.get("Unique Devices") or 0))
                                         d_sess[dt_s] += sess_v
-                                        optin_devices_max = max(optin_devices_max, udev_v)
+                                        r8_key = (dt_s, dl_dt, dev_s, pver_s, src_s, terr_s, page_s)
+                                        prev_r8 = r8_daily_rows.get(r8_key)
+                                        if not prev_r8 or sess_v > prev_r8[0]:
+                                            r8_daily_rows[r8_key] = (sess_v, dur_v, udev_v)
                                     for dt_k, v_c in d_sess.items():
                                         sess_by_date[dt_k] = max(sess_by_date[dt_k], v_c)
                     except Exception as r8_exc:
@@ -1321,7 +1419,9 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                         OFFICIAL_STORE_BASELINE["apple_page_views_unique"] = sum(pv_uniq_by_date.values())
                         OFFICIAL_STORE_BASELINE["apple_taps_total"] = sum(taps_by_date.values())
                         OFFICIAL_STORE_BASELINE["apple_sessions_total"] = sum(sess_by_date.values())
-                        OFFICIAL_STORE_BASELINE["apple_sessions_optin_devices"] = optin_devices_max
+                        if r8_daily_rows:
+                            r8_agg = _aggregate_apple_r8_cohorts(r8_daily_rows)
+                            OFFICIAL_STORE_BASELINE.update(r8_agg)
                         if dl_search_by_date or dl_ref_by_date or dl_browse_by_date:
                             OFFICIAL_STORE_BASELINE["apple_downloads_search"] = sum(dl_search_by_date.values())
                             OFFICIAL_STORE_BASELINE["apple_downloads_referrer"] = sum(dl_ref_by_date.values())
@@ -2314,6 +2414,11 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     paywall_skipped_signals = [s for s in signals if s.event_type == "paywall_skipped"]
     purchase_cancelled_signals = [s for s in signals if s.event_type == "purchase_cancelled"]
     purchase_error_signals = [s for s in signals if s.event_type == "purchase_error"]
+    sound_preview_60s_ended_signals = [s for s in signals if s.event_type == "sound_preview_60s_ended"]
+    cry_limit_reached_signals = [s for s in signals if s.event_type == "cry_limit_reached"]
+    dadi_limit_reached_signals = [s for s in signals if s.event_type == "dadi_limit_reached"]
+    routine_limit_reached_signals = [s for s in signals if s.event_type == "routine_limit_reached"]
+    paywall_cancel_recovery_signals = [s for s in signals if s.event_type == "paywall_cancel_recovery_shown"]
     unmatched_organic_opens = len([
         s for s in first_opens if (s.match_confidence or "unmatched") == "unmatched"
     ])
@@ -2321,7 +2426,9 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         s.device_uid for s in signals
         if s.device_uid and s.event_type in (
             "first_open", "daily_active", "baby_created", "vip_started", "sleep_sound_play", "cry_analysis",
-            "paywall_viewed", "paywall_cta_clicked", "paywall_skipped", "purchase_cancelled", "purchase_error"
+            "paywall_viewed", "paywall_cta_clicked", "paywall_skipped", "purchase_cancelled", "purchase_error",
+            "sound_preview_60s_ended", "cry_limit_reached", "dadi_limit_reached", "routine_limit_reached",
+            "paywall_cancel_recovery_shown"
         )
     })
 
@@ -3012,12 +3119,45 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         overall_retention_pct = 0.0
         overall_retention_str = "Veri Yok"
 
+    optin_ios_total_dev = int(sb.get("apple_sessions_optin_devices", 0) or 0)
+    returning_optin_ios_dev = int(sb.get("apple_returning_optin_devices", 0) or 0)
+    loyal_optin_ios_dev = int(sb.get("apple_loyal_optin_devices", 0) or 0)
+    returning_sess_tot = int(sb.get("apple_returning_sessions_total", 0) or 0)
+    max_sess_single_dev = int(sb.get("apple_max_sessions_per_device", 0) or 0)
+    total_sess_dur_sec = int(sb.get("apple_sessions_duration_sec", 0) or 0)
+    distinct_daily_active_devs = len({s.device_uid for s in daily_actives if s.device_uid}) or len(daily_actives)
+    optin_ios_return_rate_pct = (
+        round((returning_optin_ios_dev / optin_ios_total_dev) * 100, 1)
+        if optin_ios_total_dev > 0
+        else 0.0
+    )
+    verified_returning_floor = max(returning_optin_ios_dev, distinct_daily_active_devs)
+    verified_returning_ceiling = returning_optin_ios_dev + distinct_daily_active_devs
+    est_total_returning_users = (
+        max(
+            verified_returning_floor,
+            round(total_cumulative_downloads * (returning_optin_ios_dev / optin_ios_total_dev) * 0.85),
+        )
+        if optin_ios_total_dev > 0
+        else verified_returning_floor
+    )
+
     product_retention = {
         "apple_official_sessions": apple_official_sessions,
         "total_tracked_sessions": apple_sessions,
-        "optin_active_devices": max(int(sb.get("apple_sessions_optin_devices", 0) or 0), distinct_signal_devices, db_babies_count),
+        "optin_active_devices": max(optin_ios_total_dev, distinct_signal_devices, db_babies_count),
+        "optin_ios_total_devices": optin_ios_total_dev,
+        "returning_optin_ios_devices": returning_optin_ios_dev,
+        "loyal_optin_ios_devices": loyal_optin_ios_dev,
+        "optin_ios_return_rate_pct": optin_ios_return_rate_pct,
+        "returning_sessions_total": returning_sess_tot,
+        "max_sessions_single_device": max_sess_single_dev,
+        "daily_active_signals_count": len(daily_actives),
+        "verified_returning_devices_floor": verified_returning_floor,
+        "verified_returning_devices_ceiling": verified_returning_ceiling,
+        "estimated_total_returning_users": est_total_returning_users,
         "avg_session_duration_sec": (
-            round(int(sb.get("apple_sessions_duration_sec", 0) or 0) / apple_official_sessions)
+            round(total_sess_dur_sec / apple_official_sessions)
             if apple_official_sessions > 0
             else 0
         ),
@@ -3307,7 +3447,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "vip_activations": apple_vip,
             "vip_total_records": all_total_rec,
             "vip_cancelled": cancelled_cnt,
-            "distinct_live_devices": max(int(sb.get("apple_sessions_optin_devices", 0) or 0), distinct_signal_devices, db_babies_count),
+            "distinct_live_devices": max(optin_ios_total_dev, distinct_signal_devices, db_babies_count),
         },
         "financial_ledger": financial_ledger,
         "subscriber_ledger": subscriber_ledger_list,
@@ -3380,6 +3520,16 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
                 "purchase_cancelled": len(purchase_cancelled_signals),
                 "purchase_error": len(purchase_error_signals),
                 "vip_started": len(vip_started_signals),
+                "cancel_rate_pct": (
+                    round((len(purchase_cancelled_signals) / max(1, len(paywall_cta_clicked_signals))) * 100, 1)
+                    if len(paywall_cta_clicked_signals) > 0
+                    else 0.0
+                ),
+                "sound_preview_60s_ended": len(sound_preview_60s_ended_signals),
+                "cry_limit_reached": len(cry_limit_reached_signals),
+                "dadi_limit_reached": len(dadi_limit_reached_signals),
+                "routine_limit_reached": len(routine_limit_reached_signals),
+                "paywall_cancel_recovery_shown": len(paywall_cancel_recovery_signals),
                 "ios": {
                     "paywall_viewed": len([s for s in paywall_viewed_signals if (s.os_family or "").lower() == "ios"]),
                     "paywall_cta_clicked": len([s for s in paywall_cta_clicked_signals if (s.os_family or "").lower() == "ios"]),
@@ -5770,23 +5920,23 @@ async def analytics_dashboard_page(
               <div class="card-label">📱 RESMİ UYGULAMA OTURUMLARI</div>
               <div class="big-num" style="color:#2563EB;">{pr['total_tracked_sessions']}</div>
               <div class="card-desc">
-                Apple r4 API doğrulanmış <strong>{pr['apple_official_sessions']} oturum</strong> / canlı telemetri maksimumu • Ortalama süre: <strong>{pr['avg_session_duration_sec']} saniye</strong>.
+                Apple r8 API doğrulanmış <strong>{pr['apple_official_sessions']} oturum</strong> ({pr['returning_sessions_total']} tekrar oturumu) • Ortalama süre: <strong>{pr['avg_session_duration_sec']} sn</strong>.
               </div>
             </div>
 
             <div class="bento-card" style="border-left: 4px solid #10B981;">
-              <div class="card-label">👶 AKTİF CİHAZ & BEBEK PROFİLİ</div>
-              <div class="big-num" style="color:#059669;">{pr['optin_active_devices']} Cihaz</div>
+              <div class="card-label">🔄 SÜREKLİ GİREN KULLANICILAR (RETURNING)</div>
+              <div class="big-num" style="color:#059669;">{pr['verified_returning_devices_floor']}–{pr['verified_returning_devices_ceiling']} Cihaz</div>
               <div class="card-desc">
-                Telemetri paylaşımı açık <strong>{sb.get('apple_sessions_optin_devices', 0)} iOS cihaz</strong> • Veritabanı kayıtlı bebek profili: <strong>{pr['babies_count']}</strong>.
+                Apple Opt-in: <strong>{pr['returning_optin_ios_devices']}/{pr['optin_ios_total_devices']} iPhone (%{pr['optin_ios_return_rate_pct']})</strong> • 3+ Oturum Sadık: <strong>{pr['loyal_optin_ios_devices']}</strong> • Opt-in Düzeltmeli Tahmin: <strong>~{pr['estimated_total_returning_users']} Ebeveyn</strong>.
               </div>
             </div>
 
             <div class="bento-card" style="border-left: 4px solid #8B5CF6;">
-              <div class="card-label">🌙 GECE NÖBETİ KULLANIMI (21:00–04:00)</div>
-              <div class="big-num" style="color:#7C3AED;">%{nvd['night_pct']}</div>
+              <div class="card-label">🌙 GECE NÖBETİ & BEBEK PROFİLİ</div>
+              <div class="big-num" style="color:#7C3AED;">%{nvd['night_pct']} • {pr['babies_count']} Bebek</div>
               <div class="card-desc">
-                <strong>{nvd['night_clicks']} Gece</strong> vs <strong>{nvd['day_clicks']} Gündüz</strong> ebeveyn etkileşimi • En yoğun saatler: <strong>{top_h1}</strong> ve <strong>{top_h2}</strong>.
+                <strong>{nvd['night_clicks']} Gece</strong> vs <strong>{nvd['day_clicks']} Gündüz</strong> etkileşimi • Kayıtlı bebek profili: <strong>{pr['babies_count']}</strong> ({top_h1} / {top_h2}).
               </div>
             </div>
 
@@ -5795,6 +5945,35 @@ async def analytics_dashboard_page(
               <div class="big-num" style="color:#D97706;">{html.escape(pr['overall_retention_str'])}</div>
               <div class="card-desc">
                 Toplam <strong>{len(pr['subscriber_cohorts'])} ayrı günlük kohorttaki {len(sub_ledger)} abonenin</strong> aktif tutundurma oranı (<strong>{fl['cancelled_subs_count']} İptal</strong>).
+              </div>
+            </div>
+          </div>
+
+          <div class="bento-card">
+            <div class="section-head">
+              <span>🔄 Sürekli Giren Kullanıcılar (Returning Users) & Paywall Dönüşüm / İptal Hunisi</span>
+              <span class="badge" style="background:rgba(37,99,235,0.12); color:#2563EB;">iOS Opt-in Geri Dönüş: %{pr['optin_ios_return_rate_pct']} • Maks Tekil Cihaz: {pr['max_sessions_single_device']} Oturum</span>
+            </div>
+            <div class="steps-grid">
+              <div class="step-box" style="border-left: 4px solid #10B981;">
+                <div class="step-num" style="color:#059669;">1. TEKRAR GİREN OPT-IN iOS</div>
+                <div class="step-val">{pr['returning_optin_ios_devices']} / {pr['optin_ios_total_devices']} Cihaz</div>
+                <div class="step-sub">2+ oturum açan doğrulanmış iPhone oranı <strong>%{pr['optin_ios_return_rate_pct']}</strong> ({pr['returning_sessions_total']} tekrar oturumu). <strong>{pr['loyal_optin_ios_devices']} cihaz</strong> 3+ kez girdi.</div>
+              </div>
+              <div class="step-box" style="border-left: 4px solid #3B82F6;">
+                <div class="step-num" style="color:#2563EB;">2. CANLI GERİ DÖNÜŞ & TAHMİN</div>
+                <div class="step-val">~{pr['estimated_total_returning_users']} Aktif Ebeveyn</div>
+                <div class="step-sub">Uygulama içi <code>daily_active</code>: <strong>{pr['daily_active_signals_count']} sinyal</strong> (Kesin taban: <strong>{pr['verified_returning_devices_floor']}–{pr['verified_returning_devices_ceiling']} cihaz</strong>; 213 kurulumda opt-in düzeltmeli ~64–100 kullanıcı).</div>
+              </div>
+              <div class="step-box" style="border-left: 4px solid #8B5CF6;">
+                <div class="step-num" style="color:#7C3AED;">3. PAYWALL & CTA HUNİSİ</div>
+                <div class="step-val">{pf['paywall_funnel']['paywall_viewed']} Görüntüleme ➔ {pf['paywall_funnel']['paywall_cta_clicked']} CTA</div>
+                <div class="step-sub">İlk Açılış: <strong>{pf['first_open_signals']}</strong> • Bebek Profili: <strong>{pr['babies_count']}</strong> • Paywall Atlama (Skip): <strong>{pf['paywall_funnel']['paywall_skipped']}</strong> • 60sn Ses Bitişi: <strong>{pf['paywall_funnel']['sound_preview_60s_ended']}</strong>.</div>
+              </div>
+              <div class="step-box" style="border-left: 4px solid #EF4444;">
+                <div class="step-num" style="color:#DC2626;">4. ÖDEME PENCERESİ İPTALİ</div>
+                <div class="step-val">{pf['paywall_funnel']['purchase_cancelled']} İptal (%{pf['paywall_funnel']['cancel_rate_pct']})</div>
+                <div class="step-sub">🍏 iOS: <strong>{pf['paywall_funnel']['ios']['purchase_cancelled']}/{pf['paywall_funnel']['ios']['paywall_cta_clicked']}</strong> • 🤖 Android: <strong>{pf['paywall_funnel']['android']['purchase_cancelled']}/{pf['paywall_funnel']['android']['paywall_cta_clicked']}</strong> • Kurtarma: <strong>{pf['paywall_funnel']['paywall_cancel_recovery_shown']}</strong> (Aylık Esnek VIP Varsayılan).</div>
               </div>
             </div>
           </div>

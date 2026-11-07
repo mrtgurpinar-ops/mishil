@@ -1084,3 +1084,96 @@ def test_dashboard_audit_remediation_dev_purge_mrr_and_aso_ios_isolation(client,
     social_row = next(r for r in summary["aso_attribution_matrix"] if "Sosyal Yönlendirme" in r["channel"])
     assert social_row["downloads"] == 50
 
+
+def test_v4_48_0_returning_users_and_paywall_cancellation_cro(client, db_session):
+    """v4.48.0: Apple r8 Tekrar Giren (Returning) Cihaz Kohortu, Paywall İptal Kurtarma ve Aylık Esnek VIP Varsayılanı."""
+    import os
+    from app.db.models import AppInstallSignal, StoreSyncState
+    from app.api.v1.endpoints.analytics import (
+        _aggregate_apple_r8_cohorts,
+        _build_analytics_summary,
+        _empty_store_state,
+        OFFICIAL_STORE_BASELINE,
+    )
+
+    # 1. _empty_store_state() sıfır statik veri ilkesi gereği 0 dönmeli
+    empty_st = _empty_store_state()
+    assert empty_st["apple_sessions_optin_devices"] == 0
+    assert empty_st["apple_returning_optin_devices"] == 0
+
+    # 2. _aggregate_apple_r8_cohorts() birim testi (boş küme, page_type örtüşmesi ve udev > 1 güvercin yuvası ilkesi)
+    assert _aggregate_apple_r8_cohorts({})["apple_sessions_optin_devices"] == 0
+    sample_r8 = {
+        # Kohort A: Aynı gün 2 farklı page_type dilimi (maksimumu alınmalı, çift toplanmamalı) + ertesi gün 2. oturum -> returning & loyal (toplam 3 oturum)
+        ("2026-11-01", "2026-10-30", "iPhone", "iOS 18.1", "App Store Search", "TR", "Product Page"): (2, 120, 1),
+        ("2026-11-01", "2026-10-30", "iPhone", "iOS 18.1", "App Store Search", "TR", "No Page"): (1, 60, 1),
+        ("2026-11-02", "2026-10-30", "iPhone", "iOS 18.1", "App Store Search", "TR", "Product Page"): (1, 90, 1),
+        # Kohort B: Unique Devices = 2 ve toplam Sessions = 2 (aynı gün) -> 2 farklı cihaz 1'er kez girmiş olabileceği için returning SAYILMAMALI (0)
+        ("2026-11-02", "2026-11-02", "iPhone", "iOS 18.0", "Web Referrer", "TR", "Product Page"): (2, 45, 2),
+        # Kohort C: Aynı gün 2 oturum açmış 1 cihaz -> returning (2+ oturum), fakat loyal (3+) değil
+        ("2026-11-03", "2026-11-03", "iPhone", "iOS 17.6", "App Store Browse", "TR", "Product Page"): (2, 80, 1),
+    }
+    agg = _aggregate_apple_r8_cohorts(sample_r8)
+    assert agg["apple_sessions_optin_devices"] == 4  # 1 (A) + 2 (B) + 1 (C)
+    assert agg["apple_returning_optin_devices"] == 2  # 1 (A) + 0 (B: 2 sess / 2 udev aynı gün) + 1 (C)
+    assert agg["apple_loyal_optin_devices"] == 1  # Sadece Kohort A (3 oturum >= 3)
+    assert agg["apple_returning_sessions_total"] == 5  # 3 (A) + 2 (C)
+    assert agg["apple_max_sessions_per_device"] == 3
+    assert agg["apple_sessions_duration_sec"] == 335
+
+    StoreSyncState.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    OFFICIAL_STORE_BASELINE.update(agg)
+
+    AppInstallSignal.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    for ev_type, os_fam in [
+        ("daily_active", "ios"),
+        ("daily_active", "android"),
+        ("paywall_cta_clicked", "ios"),
+        ("paywall_cta_clicked", "android"),
+        ("purchase_cancelled", "android"),
+        ("sound_preview_60s_ended", "ios"),
+        ("cry_limit_reached", "ios"),
+        ("dadi_limit_reached", "android"),
+        ("routine_limit_reached", "ios"),
+        ("paywall_cancel_recovery_shown", "android"),
+    ]:
+        db_session.add(
+            AppInstallSignal(
+                device_uid=f"v448_{ev_type}_{os_fam}",
+                event_type=ev_type,
+                os_family=os_fam,
+                platform=f"{os_fam}_native",
+            )
+        )
+    db_session.commit()
+
+    summary = _build_analytics_summary(db_session, period="all")
+    pr = summary["product_retention"]
+    pf = summary["product_funnel"]["paywall_funnel"]
+
+    assert pr["optin_ios_total_devices"] == 4
+    assert pr["returning_optin_ios_devices"] == 2
+    assert pr["loyal_optin_ios_devices"] == 1
+    assert pr["optin_ios_return_rate_pct"] == 50.0
+    assert pr["returning_sessions_total"] == 5
+    assert pr["max_sessions_single_device"] == 3
+    assert pr["verified_returning_devices_floor"] == 2
+
+    assert pf["sound_preview_60s_ended"] >= 1
+    assert pf["cry_limit_reached"] >= 1
+    assert pf["dadi_limit_reached"] >= 1
+    assert pf["routine_limit_reached"] >= 1
+    assert pf["paywall_cancel_recovery_shown"] >= 1
+    assert pf["cancel_rate_pct"] == 50.0
+
+    app_html_path = os.path.join(os.path.dirname(__file__), "..", "public", "app.html")
+    with open(app_html_path, "r", encoding="utf-8") as fh:
+        app_html = fh.read()
+
+    assert "applyQuickBabyAgeMonths(" in app_html
+    assert "vipRenewalSelectedPlan = 'monthly';" in app_html
+    assert "paywall_cancel_recovery_shown" in app_html
+    assert "sound_preview_60s_ended" in app_html
+    assert "version: '4.48.0'" in app_html
+
+
