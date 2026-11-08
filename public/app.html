@@ -4208,8 +4208,8 @@
         </div>
         <div class="settings-accordion-body">
           <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px; margin: 8px 0;">
-            <div style="color: var(--accent); cursor: pointer;" onclick="showToast('🔒 Sıfır-Depolama (Zero-Storage RAM) Gizlilik Politikası aktif')">🔒 Gizlilik Politikası (Privacy Policy) ➔</div>
-            <div style="color: var(--accent); cursor: pointer;" onclick="showToast('⚖️ Kullanım Koşulları ve Tıbbi Feragatname onaylıdır')">⚖️ Kullanım Koşulları & Tıbbi Feragatname ➔</div>
+            <div style="color: var(--accent); cursor: pointer;" onclick="showToast(isEn() ? '🔒 Zero-Storage RAM Privacy Policy is active' : '🔒 Sıfır-Depolama (Zero-Storage RAM) Gizlilik Politikası aktif')">🔒 Gizlilik Politikası (Privacy Policy) ➔</div>
+            <div style="color: var(--accent); cursor: pointer;" onclick="showToast(isEn() ? '⚖️ Terms of Use and Medical Disclaimer are accepted' : '⚖️ Kullanım Koşulları ve Tıbbi Feragatname onaylıdır')">⚖️ Kullanım Koşulları & Tıbbi Feragatname ➔</div>
             <div style="color: var(--danger); cursor: pointer; margin-top: 4px;" onclick="openDeleteAccountModal()">🗑️ Hesabımı ve Tüm Verilerimi Sil (Apple 5.1.1) ➔</div>
           </div>
         </div>
@@ -6695,21 +6695,22 @@
   let currentQuizStep = 1;
 
   function syncOnboardingHeaderUI(stepNum) {
-    currentQuizStep = stepNum;
+    const effectiveStep = (typeof stepNum === 'number' && !isNaN(stepNum)) ? stepNum : (currentQuizStep || 1);
+    currentQuizStep = effectiveStep;
     const ind = document.getElementById('quiz-step-indicator');
     const backBtn = document.getElementById('quiz-back-btn');
     const progFill = document.getElementById('onboarding-progress-fill');
     if (ind) {
-      ind.textContent = stepNum === 5
+      ind.textContent = effectiveStep === 5
         ? (isEn() ? 'PERSONAL SLEEP REPORT' : 'KİŞİSEL UYKU RAPORU')
-        : (isEn() ? `STEP ${stepNum} / 5` : `ADIM ${stepNum} / 5`);
+        : (isEn() ? `STEP ${effectiveStep} / 5` : `ADIM ${effectiveStep} / 5`);
     }
     if (backBtn) {
-      backBtn.style.display = stepNum > 1 ? 'inline-flex' : 'none';
+      backBtn.style.display = effectiveStep > 1 ? 'inline-flex' : 'none';
       backBtn.textContent = isEn() ? '← Back' : '← Geri';
     }
     if (progFill) {
-      const pct = Math.max(20, Math.min(100, stepNum * 20));
+      const pct = Math.max(20, Math.min(100, effectiveStep * 20));
       progFill.style.width = `${pct}%`;
     }
     const screen = document.getElementById('screen-onboarding');
@@ -7687,7 +7688,7 @@
     hapticPulse();
     localStorage.setItem('misil_rating_done', 'true');
 
-    const isIos = (typeof getAppPlatform === 'function' ? getAppPlatform() === 'ios' : ((window.__MISHIL_APP__ && window.__MISHIL_APP__.platform === 'ios') || /iPad|iPhone|iPod/.test(navigator.userAgent)));
+    const isIos = getAppPlatform() === 'ios';
     const storeUrl = isIos
       ? 'https://apps.apple.com/app/id6809223195?action=write-review'
       : 'https://play.google.com/store/apps/details?id=com.levitas.misilbaby';
