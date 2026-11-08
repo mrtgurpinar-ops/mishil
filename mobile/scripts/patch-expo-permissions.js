@@ -35,3 +35,26 @@ if (fs.existsSync(targetFile)) {
 } else {
   console.log('[patch-expo-permissions] PermissionsService.kt not found, skipping patch.');
 }
+
+// Patch Gradle Wrapper distributionUrl to resilient mirror when services.gradle.org returns HTTP 504
+const gradleWrapperProps = path.join(
+  __dirname,
+  '..',
+  'android',
+  'gradle',
+  'wrapper',
+  'gradle-wrapper.properties'
+);
+
+if (fs.existsSync(gradleWrapperProps)) {
+  let gwContent = fs.readFileSync(gradleWrapperProps, 'utf8');
+  if (gwContent.includes('services.gradle.org/distributions/')) {
+    gwContent = gwContent.replace(
+      /https\\?:\/\/services\.gradle\.org\/distributions\//g,
+      'https\\://mirrors.cloud.tencent.com/gradle/'
+    );
+    gwContent = gwContent.replace(/networkTimeout=\d+/g, 'networkTimeout=120000');
+    fs.writeFileSync(gradleWrapperProps, gwContent, 'utf8');
+    console.log('[patch-expo-permissions] Patched gradle-wrapper.properties to use resilient Gradle mirror.');
+  }
+}
