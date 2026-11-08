@@ -4597,20 +4597,20 @@
 
 <!-- BOTTOM CARD: ANNE DAYANIŞMASI & 5 YILDIZ ÇARKI (SMART RATING & FEEDBACK SHEET) -->
 <div id="sheet-rating-sentiment" style="display: none; position: fixed; bottom: 20px; left: 16px; right: 16px; max-width: 420px; margin: 0 auto; z-index: 10005; background: rgba(14, 19, 34, 0.96); border: 1px solid rgba(232, 168, 85, 0.35); border-radius: 20px; padding: 22px 20px; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); animation: slideUpRating 0.35s cubic-bezier(0.16, 1, 0.3, 1);">
-  <!-- Kapat Butonu -->
-  <button onclick="dismissRatingSheet(true)" style="position: absolute; top: 14px; right: 14px; background: none; border: none; color: rgba(255,255,255,0.4); font-size: 16px; cursor: pointer; padding: 4px;">✕</button>
+  <!-- Kapat Butonu (Kalıcı Kapatma: İstemiyor veya zaten puan vermiş kabul edilir) -->
+  <button onclick="dismissRatingSheet('permanent')" style="position: absolute; top: 14px; right: 14px; background: none; border: none; color: rgba(255,255,255,0.4); font-size: 16px; cursor: pointer; padding: 4px;">✕</button>
 
-  <!-- AŞAMA 1: DUYGU YOKLAMASI (Miniğin bu gece sakinleşti mi?) -->
+  <!-- AŞAMA 1: MEMNUNİYET YOKLAMASI (3. Giriş + Gündüz Saati Tek Kuralı) -->
   <div id="rating-step-question">
     <div style="font-size: 32px; text-align: center; margin-bottom: 8px;">🌙</div>
-    <div id="rating-question-title" style="font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #FFF; text-align: center; margin-bottom: 6px;">Miniğin bu gece sakinleşebildi mi?</div>
-    <div id="rating-question-sub" style="font-size: 12px; color: var(--text-muted); text-align: center; line-height: 17px; margin-bottom: 18px;">Uykusuz nöbetlerde sana destek olmak için buradayız.</div>
+    <div id="rating-question-title" style="font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #FFF; text-align: center; margin-bottom: 6px;">Mışıl Baby işinize yarıyor mu?</div>
+    <div id="rating-question-sub" style="font-size: 12px; color: var(--text-muted); text-align: center; line-height: 17px; margin-bottom: 18px;">Bebeğinizin uyku ve bakım düzeninde size destek olabildiysek ne mutlu bize.</div>
     <div style="display: flex; gap: 10px;">
       <button class="btn-primary" id="rating-btn-slept" onclick="handleSentimentAnswer('slept')" style="flex: 1; padding: 12px 10px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
-        <span>🤍</span> <span id="rating-btn-slept-label">Evet, Uyudu</span>
+        <span>🤍</span> <span id="rating-btn-slept-label">Evet, Çok Memnunum</span>
       </button>
       <button class="btn-secondary" id="rating-btn-awake" onclick="handleSentimentAnswer('awake')" style="flex: 1; padding: 12px 10px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
-        <span>🥱</span> <span id="rating-btn-awake-label">Hala Uyanık</span>
+        <span>💬</span> <span id="rating-btn-awake-label">Geliştirilmeli</span>
       </button>
     </div>
   </div>
@@ -4625,7 +4625,7 @@
     <button class="btn-primary" id="rating-btn-store" onclick="submitStoreRating()" style="width: 100%; padding: 14px; font-size: 14px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
       <span>⭐</span> <span id="rating-btn-store-label">5 Yıldız Ver</span>
     </button>
-    <div id="rating-btn-later" style="font-size: 11px; color: rgba(255,255,255,0.4); cursor: pointer;" onclick="dismissRatingSheet(false)">Daha Sonra Hatırlat</div>
+    <div id="rating-btn-later" style="font-size: 11px; color: rgba(255,255,255,0.4); cursor: pointer; padding: 4px;" onclick="dismissRatingSheet('later')">Daha Sonra Hatırlat</div>
   </div>
 
   <!-- AŞAMA 2B: NEGATİF KORUMA YOLU (İç Geri Bildirim Formu - Mağaza Korunur) -->
@@ -4640,7 +4640,7 @@
     <textarea id="mother-feedback-msg" rows="3" placeholder="Örn: Dalga sesini biraz daha tok yapabilir misiniz? Gaz sancısı için özel bir ritim gelse harika olur..." style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.35); color: #FFF; font-size: 13px; font-family: inherit; resize: none; margin-bottom: 10px; outline: none; box-sizing: border-box;"></textarea>
     <input type="text" id="mother-feedback-contact" placeholder="İletişim (İsteğe bağlı: E-posta veya @instagram)" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: #FFF; font-size: 12px; margin-bottom: 14px; outline: none; box-sizing: border-box;" />
     <div style="display: flex; gap: 8px;">
-      <button class="btn-secondary" id="btn-close-feedback" onclick="dismissRatingSheet(false)" style="flex: 1; padding: 12px; font-size: 13px;">Kapat</button>
+      <button class="btn-secondary" id="btn-close-feedback" onclick="dismissRatingSheet('permanent')" style="flex: 1; padding: 12px; font-size: 13px;">Kapat</button>
       <button class="btn-primary" onclick="sendMotherFeedback()" id="btn-send-feedback" style="flex: 2; padding: 12px; font-size: 13px; font-weight: 700;">Fısılda & Gönder 💌</button>
     </div>
   </div>
@@ -5316,7 +5316,8 @@
     { v: '4.48.2', date: '8 Kasım 2026', latest: true, items: [
       'Onboarding Gerçek MışılSpot™ Saat Hesabı & 2.5sn Akıllı Geçiş (S1–S3): İlk adıma 1 dokunuşla "Son Uyanma Zamanı" seçici eklenerek 5. adım Kişisel Uyku Raporunda bebeğin gerçek sıradaki MışılSpot™ uyku saati (örn. 14:30) ve uyanıklık penceresi canlı gösterildi; sınırlı modda ilk MışılSpot™ saati, 1 canlı uyku takibi ve 1 ağlama analizi tadımlık (1-Shot Aha!) olarak açıldı.',
       'Yıllık Plan Aylık Karşılık Çıpalama & 7 Günlük Biyometrik Uyku Kalibrasyonu (S4–S5): Yıllık VIP kartında aylık karşılık (49,99 ₺/ay • %67 Tasarruf) ve net deneme bitiş tarihi öne çıkarıldı; 0. gün erken iptalleri önlemek için ana ekrana "🧬 7 Günlük Biyometrik Uyku Kalibrasyonu (Gün 1/7)" ilerleme haritası eklendi.',
-      'Aile VIP Doğrulama Kilidi, Hayalet RCAnonymousID Temizliği & Güvenli Kota Koruması (S6–S8): Native AsyncStorage ve WebView üzerinde doğrulanmamış family_vip sızıntısı kapatıldı; iOS mutabakatında sıfır tutarlı hayalet RCAnonymousID satırları temizlendi ve Mışıl Dadı / Ağlama Analizi uç noktalarına gerçek VIP kullanıcıları engellemeyen IP bazlı bot koruma sınırı eklendi.'
+      'Aile VIP Doğrulama Kilidi, Hayalet RCAnonymousID Temizliği & Güvenli Kota Koruması (S6–S8): Native AsyncStorage ve WebView üzerinde doğrulanmamış family_vip sızıntısı kapatıldı; iOS mutabakatında sıfır tutarlı hayalet RCAnonymousID satırları temizlendi ve Mışıl Dadı / Ağlama Analizi uç noktalarına gerçek VIP kullanıcıları engellemeyen IP bazlı bot koruma sınırı eklendi.',
+      'Tek ve Sade 3. Giriş + Gündüz Saati Memnuniyet & Değerlendirme Kuralı: Karmaşık ses/uyku sayaç tetikleyicileri kaldırılarak yalnızca 3. farklı oturumda ve gündüz saatlerinde (08:00–21:59) 1 kez sorulan sıfır ısrarlı değerlendirme akışı devreye alındı.'
     ]},
     { v: '4.48.1', date: '8 Kasım 2026', items: [
       'Tam Dinamik Küresel Mağaza Fiyatlama & Para Birimi Motoru (getDynamicPricingState): Yurt dışı mağazalardan (ABD, Avrupa, İngiltere, İsviçre, Körfez, Kanada, Avustralya vb.) indiren kullanıcılar için telefon dili Türkçe veya İngilizce fark etmeksizin tüm fiyat kartları, 0 birimlik deneme rozetleri, aylık/günlük karşılıklar ve 8. gün bilgilendirme satırları StoreKit / Google Play (getOfferings) üzerinden %100 dinamik hale getirildi.',
@@ -7538,7 +7539,7 @@
   window.submitReviewerPin = submitReviewerPin;
 
   // =========================================================================
-  // ANNE DAYANIŞMASI & 5 YILDIZ ÇARKI (SMART STORE RATING & FEEDBACK GATE)
+  // ANNE DAYANIŞMASI & 5 YILDIZ ÇARKI (3. GİRİŞ + GÜNDÜZ SAATİ TEK KURALI)
   // =========================================================================
   let audioPlaybackStartTime = null;
 
@@ -7557,14 +7558,6 @@
     let totalMinutes = parseFloat(localStorage.getItem('misil_total_listen_mins') || '0');
     totalMinutes += durationMinutes;
     localStorage.setItem('misil_total_listen_mins', totalMinutes.toFixed(1));
-
-    // Akıllı Tetikleyici Eşiği:
-    // Anne bu seans en az 10 dakika (veya toplam dinleme 20+ dakika) dinledikten sonra durdurduysa
-    if (durationMinutes >= 10 || totalMinutes >= 20) {
-      setTimeout(() => {
-        triggerSentimentRatingSheet(false);
-      }, 1500);
-    }
   }
   window.onAudioPlaybackStopped = onAudioPlaybackStopped;
 
@@ -7585,15 +7578,15 @@
     }
     if (setCta) setCta.textContent = en ? 'Rate ›' : 'Puan Ver ›';
 
-    // Step 1: Question
+    // Step 1: Question (3. Giriş + Gündüz Saati Bağlamına Uygun Soru)
     const qTitle = document.getElementById('rating-question-title');
     const qSub = document.getElementById('rating-question-sub');
     const bSlept = document.getElementById('rating-btn-slept-label');
     const bAwake = document.getElementById('rating-btn-awake-label');
-    if (qTitle) qTitle.textContent = en ? 'Did your little one settle tonight?' : 'Miniğin bu gece sakinleşebildi mi?';
-    if (qSub) qSub.textContent = en ? 'We are here to support you through every sleepless night.' : 'Uykusuz nöbetlerde sana destek olmak için buradayız.';
-    if (bSlept) bSlept.textContent = en ? 'Yes, Asleep' : 'Evet, Uyudu';
-    if (bAwake) bAwake.textContent = en ? 'Still Awake' : 'Hala Uyanık';
+    if (qTitle) qTitle.textContent = en ? 'Is Mışıl Baby helping you?' : 'Mışıl Baby işinize yarıyor mu?';
+    if (qSub) qSub.textContent = en ? 'We love supporting you and your little one\'s daily sleep and care routine.' : 'Bebeğinizin uyku ve bakım düzeninde size destek olabildiysek ne mutlu bize.';
+    if (bSlept) bSlept.textContent = en ? 'Yes, Loving It' : 'Evet, Çok Memnunum';
+    if (bAwake) bAwake.textContent = en ? 'Could Be Better' : 'Geliştirilmeli';
 
     // Step 2A: Positive Store Rating (iOS App Store vs Android Google Play)
     const pTitle = document.getElementById('rating-positive-title');
@@ -7639,10 +7632,28 @@
 
   function triggerSentimentRatingSheet(force) {
     if (!force) {
+      // 1. Kalıcı Kilitler: Puan veren, geri bildirim gönderen veya X ile kapatan kişiye bir daha ASLA çıkmaz
       if (localStorage.getItem('misil_rating_done') === 'true') return;
       if (localStorage.getItem('misil_feedback_sent') === 'true') return;
+
+      // 2. Erteleme Kilidi: "Daha Sonra Hatırlat" diyen kişiye 7 gün (604800000 ms) geçmeden gösterme
       const postponed = parseInt(localStorage.getItem('misil_rating_postponed') || '0', 10);
-      if (Date.now() - postponed < 259200000) return; // 3 gün geçmeden tekrar gösterme
+      if (postponed > 0 && Date.now() - postponed < 604800000) return;
+
+      // 3. Gündüz Saati Kuralı (08:00 - 21:59): Gece yarısı uykusuz ebeveynin karşısına çıkma
+      const currentHour = new Date().getHours();
+      if (currentHour < 8 || currentHour >= 22) return;
+
+      // 4. Çakışma Kalkanı: Onboarding, Web Guard, Spotlight Turu, açık modal, canlı uyku veya ses çalarken açma
+      if (typeof isSleeping !== 'undefined' && isSleeping) return;
+      if (typeof currentTrackId !== 'undefined' && currentTrackId) return;
+      const onb = document.getElementById('screen-onboarding');
+      if (onb && onb.classList.contains('active')) return;
+      const guard = document.getElementById('web-guard-overlay');
+      if (guard && guard.classList.contains('active')) return;
+      const tour = document.getElementById('spotlight-tour-overlay');
+      if (tour && tour.classList.contains('active')) return;
+      if (document.querySelector('.modal-overlay.active')) return;
     }
 
     syncRatingSheetStoreAndLanguageUI();
@@ -7662,6 +7673,49 @@
     hapticPulse();
   }
   window.triggerSentimentRatingSheet = triggerSentimentRatingSheet;
+
+  let ratingAutoCheckTimer = null;
+  function recordDistinctVisitAndCheckRating() {
+    try {
+      const now = Date.now();
+      const MIN_SESSION_GAP_MS = 30 * 60 * 1000; // 30 dakika (sayfa yenilemelerini tek giriş sayar)
+      const lastVisitTs = parseInt(localStorage.getItem('mishil_last_visit_ts') || '0', 10);
+      let visitCountRaw = localStorage.getItem('mishil_distinct_visit_count');
+      let visitCount = parseInt(visitCountRaw || '0', 10);
+
+      // Mevcut düzenli kullanıcılar için geçiş: Daha önce uygulamayı açmış ve en az 2 kayıt/ses geçmişi varsa 2. girişten başlat
+      if (visitCountRaw === null) {
+        const hadFirstOpen = localStorage.getItem('mishil_first_open_v1') === '1';
+        const routineCount = (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines)) ? activeRoutines.length : 0;
+        const audioStarts = parseInt(localStorage.getItem('misil_audio_start_count') || '0', 10);
+        if (hadFirstOpen && (routineCount >= 2 || audioStarts >= 2)) {
+          visitCount = 2;
+        }
+      }
+
+      if (!lastVisitTs || (now - lastVisitTs) >= MIN_SESSION_GAP_MS) {
+        visitCount += 1;
+        localStorage.setItem('mishil_distinct_visit_count', String(visitCount));
+        localStorage.setItem('mishil_last_visit_ts', String(now));
+      }
+
+      // Tek ve Sade Kural: 3. (veya üzeri) girişte ve gündüz saatinde 1 kez sor
+      if (visitCount >= 3) {
+        if (ratingAutoCheckTimer) clearTimeout(ratingAutoCheckTimer);
+        ratingAutoCheckTimer = setTimeout(() => {
+          ratingAutoCheckTimer = null;
+          triggerSentimentRatingSheet(false);
+        }, 3000);
+      }
+    } catch (_rve) {}
+  }
+  window.recordDistinctVisitAndCheckRating = recordDistinctVisitAndCheckRating;
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      recordDistinctVisitAndCheckRating();
+    }
+  });
 
   function handleSentimentAnswer(answer) {
     hapticPulse();
@@ -7699,7 +7753,7 @@
       window.open(storeUrl, '_blank');
     }
 
-    dismissRatingSheet(false);
+    dismissRatingSheet('none');
     showToast(isEn()
       ? '🤍 Thank you so much for your love and support! ✨'
       : '🤍 Desteğin ve sevgin için sonsuz teşekkürler annecim! ✨');
@@ -7753,7 +7807,8 @@
 
       if (res.ok) {
         localStorage.setItem('misil_feedback_sent', 'true');
-        dismissRatingSheet(false);
+        localStorage.setItem('misil_rating_done', 'true');
+        dismissRatingSheet('none');
         showToast(isEn()
           ? '💌 Your whisper reached us. Wishing you and your little one a peaceful night 🌙'
           : '💌 Fısıltınız bize ulaştı. Miniğinize ve size huzurlu geceler dileriz 🌙');
@@ -7763,7 +7818,8 @@
     } catch (err) {
       console.warn('Feedback send error, fallback success:', err);
       localStorage.setItem('misil_feedback_sent', 'true');
-      dismissRatingSheet(false);
+      localStorage.setItem('misil_rating_done', 'true');
+      dismissRatingSheet('none');
       showToast(isEn()
         ? '💌 Your message has been safely saved. Thank you 🌙'
         : '💌 Mesajınız güvenle kaydedildi. Teşekkür ederiz 🌙');
@@ -7776,13 +7832,22 @@
   }
   window.sendMotherFeedback = sendMotherFeedback;
 
-  function dismissRatingSheet(postpone) {
+  function dismissRatingSheet(mode) {
     const sheet = document.getElementById('sheet-rating-sentiment');
     if (sheet) {
       sheet.style.display = 'none';
     }
-    if (postpone) {
-      localStorage.setItem('misil_rating_postponed', String(Date.now()));
+    if (mode === 'later') {
+      // Kullanıcı bizzat "Daha Sonra Hatırlat" dediyse: Sadece 1 kez 7 gün ertele; 2. kez ertelerse kalıcı kilitle
+      if (localStorage.getItem('misil_rating_snoozed_once') === 'true') {
+        localStorage.setItem('misil_rating_done', 'true');
+      } else {
+        localStorage.setItem('misil_rating_snoozed_once', 'true');
+        localStorage.setItem('misil_rating_postponed', String(Date.now()));
+      }
+    } else if (mode === 'permanent' || mode === true) {
+      // Sağ üstten X ile veya geri bildirimden Kapat ile kapattıysa: Bir daha otomatik olarak ASLA gösterme
+      localStorage.setItem('misil_rating_done', 'true');
     }
   }
   window.dismissRatingSheet = dismissRatingSheet;
@@ -10667,10 +10732,6 @@
             ? `💡 Long sleep logged (${totalMins} min). If you fell asleep too, you can adjust wake time here ✏️`
             : '💡 Uzun uyku kaydedildi (' + totalMins + ' dk). Uyuyakaldıysanız uyanış saatini buradan düzeltebilirsiniz ✏️');
         }, 450);
-      } else if (totalMins >= 25 && typeof triggerSentimentRatingSheet === 'function') {
-        setTimeout(() => {
-          triggerSentimentRatingSheet(false);
-        }, 1800);
       }
       try {
         var _sBase = (window.location && window.location.origin && window.location.origin.indexOf('http') === 0) ? '' : 'https://mishil-production.up.railway.app';
@@ -12672,6 +12733,10 @@
     'Reklam & Köprü Analitik Kokpiti (/ios & /download)': 'Ad & Attribution Analytics Cockpit (/ios & /download)',
     'Anne Geri Bildirimleri Paneli': 'Parent Feedback Panel',
     '⭐ 5 Yıldız Çarkını Canlı Önizle (Test)': '⭐ Preview 5-Star Rating Sheet (Test)',
+    'Mışıl Baby işinize yarıyor mu?': 'Is Mışıl Baby helping you?',
+    'Bebeğinizin uyku ve bakım düzeninde size destek olabildiysek ne mutlu bize.': 'We love supporting you and your little one\'s daily sleep and care routine.',
+    'Evet, Çok Memnunum': 'Yes, Loving It',
+    'Geliştirilmeli': 'Could Be Better',
     'Miniğin bu gece sakinleşebildi mi?': 'Did your little one settle tonight?',
     'Uykusuz nöbetlerde sana destek olmak için buradayız.': 'We are here to support you through every sleepless night.',
     'Evet, Uyudu': 'Yes, Asleep',
@@ -13011,6 +13076,7 @@
   checkWelcomeGuideVisibility();
   setupKeyboardAndViewportManager();
   if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
+  if (typeof recordDistinctVisitAndCheckRating === 'function') recordDistinctVisitAndCheckRating();
 
   // Tek El Başparmak Ergonomisi: Tüm alt pencerelerde (.modal-sheet) aşağı kaydırarak kapatma (Swipe-to-Dismiss)
   (function initModalSwipeToDismiss() {
