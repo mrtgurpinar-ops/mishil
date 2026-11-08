@@ -21,6 +21,8 @@ Tüm önemli değişiklikler bu dosyada belgelenecektir.
 8. **S7 & S8 — Güvenli Kota Koruma (Sıfır Yanlış Pozitif VIP Engeli) & Hayalet `RCAnonymousID` Temizliği (`coach.py`, `cry_analysis.py`, `analytics.py`):**
    - Gerçek VIP aboneleri webhook gecikmesi nedeniyle mağdur etmeden `/api/v1/coach/chat`, `/api/v1/coach/stream` ve `/api/v1/cry-analysis/analyze` uç noktalarına IP bazlı kayan pencere bot koruma sınırı eklendi.
    - `_reconcile_ios_ledger_and_cancellations` ve `sync_client_subscriber_ledger` içinde doğrulanmamış sıfır tutarlı iOS `RCAnonymousID:` hayalet satırları temizlenerek kokpitteki iptal sayısı resmi Apple raporuyla (`9`) birebir eşitlendi.
+9. **5 Yıldız & Anne Dayanışması Çarkı iOS / Android Mağaza İzolasyonu, TR/EN Dil Uyumu & Uyku Sonu Tetikleyicisi (`#sheet-rating-sentiment`, `syncRatingSheetStoreAndLanguageUI`, `toggleLiveSleep`):**
+   - `#rating-step-positive` ve Ayarlar > `#settings-rate-us-card` üzerinde Android cihazlarda sabit `"App Store"` yazması sorunu giderilerek `getStoreName()` üzerinden iOS'ta `"App Store"`, Android'de `"Google Play"` dinamik mağaza adı ve TR/EN çift dil desteği bağlandı; ses dinleme sonuna (`10+ dk`) ek olarak `25+ dk` başarılı canlı uyku kaydı sonrasında da tetiklenmesi sağlandı (`[Solo-Antigravity]`).
 
 ## [4.48.1] - 2026-11-08
 ### 🌍 Tam Dinamik Küresel Mağaza Fiyatlama, Para Birimi Senkronu & Sıfır Sabit Fiyat Motoru (`app.html`, `revenuecat.ts`, `MishilUnifiedWebView.tsx`, `offlineHtml.generated.ts`)

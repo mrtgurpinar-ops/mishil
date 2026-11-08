@@ -4227,6 +4227,18 @@
         <span style="color: var(--accent); font-weight: 700; font-size: 12px;">Başlat ›</span>
       </div>
 
+      <!-- 5 Yıldız & Anne Dayanışması Kartı (iOS App Store & Android Google Play Dinamik) -->
+      <div class="card" id="settings-rate-us-card" style="border: 1px solid rgba(232, 168, 85, 0.35); background: rgba(22, 29, 50, 0.95); cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;" onclick="triggerSentimentRatingSheet(true)">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 20px;">⭐</span>
+          <div>
+            <div id="settings-rate-us-title" style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: var(--heading-night);">5 Yıldızla Anne Dayanışması</div>
+            <div id="settings-rate-us-sub" style="font-size: 11px; color: var(--text-muted);">Mağazada 5 yıldız vererek diğer uykusuz annelere el uzatın</div>
+          </div>
+        </div>
+        <span id="settings-rate-us-cta" style="color: var(--accent); font-weight: 700; font-size: 12px;">Puan Ver ›</span>
+      </div>
+
       <!-- Sürüm & Neler Yeni Rozeti -->
       <div class="card" style="border: 1px solid var(--border-highlight); background: rgba(22, 29, 50, 0.95); cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;" onclick="openChangelogModal()">
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -4591,44 +4603,44 @@
   <!-- AŞAMA 1: DUYGU YOKLAMASI (Miniğin bu gece sakinleşti mi?) -->
   <div id="rating-step-question">
     <div style="font-size: 32px; text-align: center; margin-bottom: 8px;">🌙</div>
-    <div style="font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #FFF; text-align: center; margin-bottom: 6px;">Miniğin bu gece sakinleşebildi mi?</div>
-    <div style="font-size: 12px; color: var(--text-muted); text-align: center; line-height: 17px; margin-bottom: 18px;">Uykusuz nöbetlerde sana destek olmak için buradayız.</div>
+    <div id="rating-question-title" style="font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #FFF; text-align: center; margin-bottom: 6px;">Miniğin bu gece sakinleşebildi mi?</div>
+    <div id="rating-question-sub" style="font-size: 12px; color: var(--text-muted); text-align: center; line-height: 17px; margin-bottom: 18px;">Uykusuz nöbetlerde sana destek olmak için buradayız.</div>
     <div style="display: flex; gap: 10px;">
-      <button class="btn-primary" onclick="handleSentimentAnswer('slept')" style="flex: 1; padding: 12px 10px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
-        <span>🤍</span> Evet, Uyudu
+      <button class="btn-primary" id="rating-btn-slept" onclick="handleSentimentAnswer('slept')" style="flex: 1; padding: 12px 10px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <span>🤍</span> <span id="rating-btn-slept-label">Evet, Uyudu</span>
       </button>
-      <button class="btn-secondary" onclick="handleSentimentAnswer('awake')" style="flex: 1; padding: 12px 10px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
-        <span>🥱</span> Hala Uyanık
+      <button class="btn-secondary" id="rating-btn-awake" onclick="handleSentimentAnswer('awake')" style="flex: 1; padding: 12px 10px; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 6px;">
+        <span>🥱</span> <span id="rating-btn-awake-label">Hala Uyanık</span>
       </button>
     </div>
   </div>
 
-  <!-- AŞAMA 2A: POZİTİF YOL (App Store 5 Yıldız Anne Dayanışması) -->
+  <!-- AŞAMA 2A: POZİTİF YOL (iOS App Store & Android Google Play Dinamik 5 Yıldız Anne Dayanışması) -->
   <div id="rating-step-positive" style="display: none; text-align: center;">
     <div style="font-size: 34px; margin-bottom: 8px;">✨</div>
-    <div style="font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #FFF; margin-bottom: 6px;">Ne mutlu bize annecim! 🤍</div>
-    <div style="font-size: 12px; color: #C9CEDC; line-height: 18px; margin-bottom: 18px;">
-      Bu sessiz gece nöbetinde diğer uykusuz annelerin de Mışıl'ı bulabilmesi için bize App Store'da 5 yıldızla el uzatır mısın? Anne dayanışması gibisi yok.
+    <div id="rating-positive-title" style="font-family: 'Sora', sans-serif; font-size: 16px; font-weight: 700; color: #FFF; margin-bottom: 6px;">Ne mutlu bize annecim! 🤍</div>
+    <div id="rating-positive-desc" style="font-size: 12px; color: #C9CEDC; line-height: 18px; margin-bottom: 18px;">
+      Bu sessiz gece nöbetinde diğer uykusuz annelerin de Mışıl'ı bulabilmesi için bize mağazada 5 yıldızla el uzatır mısın? Anne dayanışması gibisi yok.
     </div>
-    <button class="btn-primary" onclick="submitStoreRating()" style="width: 100%; padding: 14px; font-size: 14px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
-      <span>⭐</span> 5 Yıldız Ver (App Store)
+    <button class="btn-primary" id="rating-btn-store" onclick="submitStoreRating()" style="width: 100%; padding: 14px; font-size: 14px; font-weight: 700; margin-bottom: 10px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <span>⭐</span> <span id="rating-btn-store-label">5 Yıldız Ver</span>
     </button>
-    <div style="font-size: 11px; color: rgba(255,255,255,0.4); cursor: pointer;" onclick="dismissRatingSheet(false)">Daha Sonra Hatırlat</div>
+    <div id="rating-btn-later" style="font-size: 11px; color: rgba(255,255,255,0.4); cursor: pointer;" onclick="dismissRatingSheet(false)">Daha Sonra Hatırlat</div>
   </div>
 
   <!-- AŞAMA 2B: NEGATİF KORUMA YOLU (İç Geri Bildirim Formu - Mağaza Korunur) -->
   <div id="rating-step-feedback" style="display: none;">
     <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
       <span style="font-size: 24px;">🫂</span>
-      <div style="font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: #FFF;">Yalnız değilsin annecim 🤍</div>
+      <div id="rating-feedback-title" style="font-family: 'Sora', sans-serif; font-size: 15px; font-weight: 700; color: #FFF;">Yalnız değilsin annecim 🤍</div>
     </div>
-    <div style="font-size: 12px; color: var(--text-muted); line-height: 17px; margin-bottom: 14px;">
+    <div id="rating-feedback-desc" style="font-size: 12px; color: var(--text-muted); line-height: 17px; margin-bottom: 14px;">
       Bu geceler geçici... Hangi ses veya özellik miniğine daha iyi gelirdi, bize fısılda hemen ekleyelim:
     </div>
     <textarea id="mother-feedback-msg" rows="3" placeholder="Örn: Dalga sesini biraz daha tok yapabilir misiniz? Gaz sancısı için özel bir ritim gelse harika olur..." style="width: 100%; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.35); color: #FFF; font-size: 13px; font-family: inherit; resize: none; margin-bottom: 10px; outline: none; box-sizing: border-box;"></textarea>
     <input type="text" id="mother-feedback-contact" placeholder="İletişim (İsteğe bağlı: E-posta veya @instagram)" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.25); color: #FFF; font-size: 12px; margin-bottom: 14px; outline: none; box-sizing: border-box;" />
     <div style="display: flex; gap: 8px;">
-      <button class="btn-secondary" onclick="dismissRatingSheet(false)" style="flex: 1; padding: 12px; font-size: 13px;">Kapat</button>
+      <button class="btn-secondary" id="btn-close-feedback" onclick="dismissRatingSheet(false)" style="flex: 1; padding: 12px; font-size: 13px;">Kapat</button>
       <button class="btn-primary" onclick="sendMotherFeedback()" id="btn-send-feedback" style="flex: 2; padding: 12px; font-size: 13px; font-weight: 700;">Fısılda & Gönder 💌</button>
     </div>
   </div>
@@ -5629,6 +5641,7 @@
   function renderAppMeta() {
     const line = document.getElementById('settings-version-line');
     if (line) line.textContent = appVersionLabel();
+    if (typeof syncRatingSheetStoreAndLanguageUI === 'function') syncRatingSheetStoreAndLanguageUI();
   }
 
   // =========================================================================
@@ -7548,6 +7561,75 @@
   }
   window.onAudioPlaybackStopped = onAudioPlaybackStopped;
 
+  function syncRatingSheetStoreAndLanguageUI() {
+    const en = typeof isEn === 'function' && isEn();
+    const storeName = typeof getStoreName === 'function' ? getStoreName() : 'App Store';
+    const storeInTr = storeName === 'App Store' ? "App Store'da" : "Google Play'de";
+
+    // Settings card
+    const setTitle = document.getElementById('settings-rate-us-title');
+    const setSub = document.getElementById('settings-rate-us-sub');
+    const setCta = document.getElementById('settings-rate-us-cta');
+    if (setTitle) setTitle.textContent = en ? `Rate 5 Stars on ${storeName}` : `5 Yıldızla Anne Dayanışması (${storeName})`;
+    if (setSub) {
+      setSub.textContent = en
+        ? `Help other exhausted parents discover Mışıl Baby on ${storeName}`
+        : `${storeInTr} 5 yıldız vererek diğer uykusuz annelere el uzatın`;
+    }
+    if (setCta) setCta.textContent = en ? 'Rate ›' : 'Puan Ver ›';
+
+    // Step 1: Question
+    const qTitle = document.getElementById('rating-question-title');
+    const qSub = document.getElementById('rating-question-sub');
+    const bSlept = document.getElementById('rating-btn-slept-label');
+    const bAwake = document.getElementById('rating-btn-awake-label');
+    if (qTitle) qTitle.textContent = en ? 'Did your little one settle tonight?' : 'Miniğin bu gece sakinleşebildi mi?';
+    if (qSub) qSub.textContent = en ? 'We are here to support you through every sleepless night.' : 'Uykusuz nöbetlerde sana destek olmak için buradayız.';
+    if (bSlept) bSlept.textContent = en ? 'Yes, Asleep' : 'Evet, Uyudu';
+    if (bAwake) bAwake.textContent = en ? 'Still Awake' : 'Hala Uyanık';
+
+    // Step 2A: Positive Store Rating (iOS App Store vs Android Google Play)
+    const pTitle = document.getElementById('rating-positive-title');
+    const pDesc = document.getElementById('rating-positive-desc');
+    const pBtn = document.getElementById('rating-btn-store-label');
+    const pLater = document.getElementById('rating-btn-later');
+    if (pTitle) pTitle.textContent = en ? 'We are so happy for you! 🤍' : 'Ne mutlu bize annecim! 🤍';
+    if (pDesc) {
+      pDesc.textContent = en
+        ? `Would you lend a hand with a 5-star review on ${storeName} so other tired parents can find Mışıl Baby during their night shifts?`
+        : `Bu sessiz gece nöbetinde diğer uykusuz annelerin de Mışıl'ı bulabilmesi için bize ${storeInTr} 5 yıldızla el uzatır mısın? Anne dayanışması gibisi yok.`;
+    }
+    if (pBtn) pBtn.textContent = en ? `Give 5 Stars (${storeName})` : `5 Yıldız Ver (${storeName})`;
+    if (pLater) pLater.textContent = en ? 'Remind Me Later' : 'Daha Sonra Hatırlat';
+
+    // Step 2B: Internal Feedback Form
+    const fTitle = document.getElementById('rating-feedback-title');
+    const fDesc = document.getElementById('rating-feedback-desc');
+    const fMsg = document.getElementById('mother-feedback-msg');
+    const fContact = document.getElementById('mother-feedback-contact');
+    const fClose = document.getElementById('btn-close-feedback');
+    const fSend = document.getElementById('btn-send-feedback');
+    if (fTitle) fTitle.textContent = en ? 'You are not alone 🤍' : 'Yalnız değilsin annecim 🤍';
+    if (fDesc) {
+      fDesc.textContent = en
+        ? 'These tough nights will pass... Tell us which sound or feature would help your baby most and we will add it right away:'
+        : 'Bu geceler geçici... Hangi ses veya özellik miniğine daha iyi gelirdi, bize fısılda hemen ekleyelim:';
+    }
+    if (fMsg) {
+      fMsg.placeholder = en
+        ? 'E.g., Could you make the ocean wave sound deeper? A special rhythm for gas pain would be wonderful...'
+        : 'Örn: Dalga sesini biraz daha tok yapabilir misiniz? Gaz sancısı için özel bir ritim gelse harika olur...';
+    }
+    if (fContact) {
+      fContact.placeholder = en
+        ? 'Contact (Optional: Email or @instagram)'
+        : 'İletişim (İsteğe bağlı: E-posta veya @instagram)';
+    }
+    if (fClose) fClose.textContent = en ? 'Close' : 'Kapat';
+    if (fSend && !fSend.disabled) fSend.textContent = en ? 'Whisper & Send 💌' : 'Fısılda & Gönder 💌';
+  }
+  window.syncRatingSheetStoreAndLanguageUI = syncRatingSheetStoreAndLanguageUI;
+
   function triggerSentimentRatingSheet(force) {
     if (!force) {
       if (localStorage.getItem('misil_rating_done') === 'true') return;
@@ -7555,6 +7637,8 @@
       const postponed = parseInt(localStorage.getItem('misil_rating_postponed') || '0', 10);
       if (Date.now() - postponed < 259200000) return; // 3 gün geçmeden tekrar gösterme
     }
+
+    syncRatingSheetStoreAndLanguageUI();
 
     const sheet = document.getElementById('sheet-rating-sentiment');
     if (!sheet) return;
@@ -7574,6 +7658,7 @@
 
   function handleSentimentAnswer(answer) {
     hapticPulse();
+    syncRatingSheetStoreAndLanguageUI();
     const stepQ = document.getElementById('rating-step-question');
     const stepPos = document.getElementById('rating-step-positive');
     const stepFb = document.getElementById('rating-step-feedback');
@@ -7596,7 +7681,7 @@
     hapticPulse();
     localStorage.setItem('misil_rating_done', 'true');
 
-    const isIos = (window.__MISHIL_APP__ && window.__MISHIL_APP__.platform === 'ios') || /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isIos = (typeof getAppPlatform === 'function' ? getAppPlatform() === 'ios' : ((window.__MISHIL_APP__ && window.__MISHIL_APP__.platform === 'ios') || /iPad|iPhone|iPod/.test(navigator.userAgent)));
     const storeUrl = isIos
       ? 'https://apps.apple.com/app/id6809223195?action=write-review'
       : 'https://play.google.com/store/apps/details?id=com.levitas.misilbaby';
@@ -7608,7 +7693,9 @@
     }
 
     dismissRatingSheet(false);
-    showToast('🤍 Desteğin ve sevgin için sonsuz teşekkürler annecim! ✨');
+    showToast(isEn()
+      ? '🤍 Thank you so much for your love and support! ✨'
+      : '🤍 Desteğin ve sevgin için sonsuz teşekkürler annecim! ✨');
   }
   window.submitStoreRating = submitStoreRating;
 
@@ -7622,14 +7709,14 @@
 
     if (!message) {
       hapticPulse();
-      showToast('🤍 Lütfen minik bir düşünce veya not yazın.');
+      showToast(isEn() ? '🤍 Please write a short note or thought.' : '🤍 Lütfen minik bir düşünce veya not yazın.');
       if (msgInput) msgInput.focus();
       return;
     }
 
     if (sendBtn) {
       sendBtn.disabled = true;
-      sendBtn.textContent = 'İletiliyor...';
+      sendBtn.textContent = isEn() ? 'Sending...' : 'İletiliyor...';
     }
 
     let babyAgeMonths = null;
@@ -7640,8 +7727,8 @@
       }
     } catch (e) {}
 
-    const platform = (window.__MISHIL_APP__ && window.__MISHIL_APP__.platform) || (/iPhone|iPad/.test(navigator.userAgent) ? 'ios' : 'web');
-    const appVersion = (window.__MISHIL_APP__ && window.__MISHIL_APP__.version) || 'v4.38.0';
+    const platform = (window.__MISHIL_APP__ && window.__MISHIL_APP__.platform) || (typeof getAppPlatform === 'function' ? getAppPlatform() : (/iPhone|iPad/.test(navigator.userAgent) ? 'ios' : 'web'));
+    const appVersion = (window.__MISHIL_APP__ && window.__MISHIL_APP__.version) || WEB_APP_META.version;
 
     try {
       const res = await fetch('/api/v1/feedback', {
@@ -7660,7 +7747,9 @@
       if (res.ok) {
         localStorage.setItem('misil_feedback_sent', 'true');
         dismissRatingSheet(false);
-        showToast('💌 Fısıltınız bize ulaştı. Miniğinize ve size huzurlu geceler dileriz 🌙');
+        showToast(isEn()
+          ? '💌 Your whisper reached us. Wishing you and your little one a peaceful night 🌙'
+          : '💌 Fısıltınız bize ulaştı. Miniğinize ve size huzurlu geceler dileriz 🌙');
       } else {
         throw new Error('Server response not ok');
       }
@@ -7668,11 +7757,13 @@
       console.warn('Feedback send error, fallback success:', err);
       localStorage.setItem('misil_feedback_sent', 'true');
       dismissRatingSheet(false);
-      showToast('💌 Mesajınız güvenle kaydedildi. Teşekkür ederiz 🌙');
+      showToast(isEn()
+        ? '💌 Your message has been safely saved. Thank you 🌙'
+        : '💌 Mesajınız güvenle kaydedildi. Teşekkür ederiz 🌙');
     } finally {
       if (sendBtn) {
         sendBtn.disabled = false;
-        sendBtn.textContent = 'Fısılda & Gönder 💌';
+        sendBtn.textContent = isEn() ? 'Whisper & Send 💌' : 'Fısılda & Gönder 💌';
       }
     }
   }
@@ -10567,6 +10658,10 @@
             ? `💡 Long sleep logged (${totalMins} min). If you fell asleep too, you can adjust wake time here ✏️`
             : '💡 Uzun uyku kaydedildi (' + totalMins + ' dk). Uyuyakaldıysanız uyanış saatini buradan düzeltebilirsiniz ✏️');
         }, 450);
+      } else if (totalMins >= 25 && typeof triggerSentimentRatingSheet === 'function') {
+        setTimeout(() => {
+          triggerSentimentRatingSheet(false);
+        }, 1800);
       }
       try {
         var _sBase = (window.location && window.location.origin && window.location.origin.indexOf('http') === 0) ? '' : 'https://mishil-production.up.railway.app';
