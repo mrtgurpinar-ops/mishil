@@ -5,6 +5,8 @@ export interface PackageOffer {
   identifier: string;
   packageType: 'WEEKLY' | 'MONTHLY' | 'ANNUAL' | 'LIFETIME';
   priceString: string;
+  price?: number;
+  currencyCode?: string;
   title: string;
   description: string;
   rawPackage?: any;
@@ -110,6 +112,8 @@ export const getOfferings = async (): Promise<PackageOffer[]> => {
         identifier: pkg.identifier,
         packageType: pkg.packageType,
         priceString: pkg.product.priceString || `${pkg.product.currencyCode} ${pkg.product.price}`,
+        price: typeof pkg.product.price === 'number' ? pkg.product.price : undefined,
+        currencyCode: pkg.product.currencyCode || undefined,
         title: pkg.product.title,
         description: pkg.product.description,
         rawPackage: pkg,

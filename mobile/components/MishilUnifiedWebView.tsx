@@ -433,10 +433,12 @@ export default function MishilUnifiedWebView() {
         const offerings = await getOfferings();
         const m = offerings.find(o => o.packageType === 'MONTHLY');
         const a = offerings.find(o => o.packageType === 'ANNUAL');
-        const isEn = appLangRef.current === 'en';
         const pricePayload = {
-          monthly: m?.priceString || (isEn ? '$4.99/mo' : '₺149,99/ay'),
-          yearly: a?.priceString || (isEn ? '$29.99/yr' : '₺599,99/yıl'),
+          monthly: m?.priceString || undefined,
+          yearly: a?.priceString || undefined,
+          monthlyPrice: m?.price,
+          yearlyPrice: a?.price,
+          currencyCode: m?.currencyCode || a?.currencyCode,
         };
         webviewRef.current?.injectJavaScript(`
           (function() {

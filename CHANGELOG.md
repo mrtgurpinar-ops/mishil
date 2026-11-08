@@ -2,6 +2,15 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.48.1] - 2026-11-08
+### 🌍 Tam Dinamik Küresel Mağaza Fiyatlama, Para Birimi Senkronu & Sıfır Sabit Fiyat Motoru (`app.html`, `revenuecat.ts`, `MishilUnifiedWebView.tsx`, `offlineHtml.generated.ts`)
+1. **İcra Modu:** Tek Ajan (Yalnızca Antigravity — Claude/Codex CLI çalıştırılmadı) (`[Solo-Antigravity]`).
+2. **Merkezi Dinamik Fiyatlama & Küresel Para Birimi Motoru (`getDynamicPricingState`, `resolveCurrencySymbolFromStore`, `window.applyStorePrices`):**
+   - Yurt dışı mağazalardan (ABD, Almanya, Fransa, İngiltere, İsviçre, Kanada, Avustralya, Körfez vb.) indiren kullanıcılar için telefon dili **Türkçe (`tr`) veya İngilizce (`en`)** fark etmeksizin tüm fiyat kartları, `0` birimlik deneme rozetleri (`.badge-zero-today`, `.badge-trial-7d-flex`, `.badge-trial-7d`, `.text-zero-today-shield`), yıllık planın aylık/günlük eşdeğerleri (`.price-yearly-subtext`, `.price-daily-diaper-subtext`, `.price-daily-subtext`), tasarruf rozetleri (`.price-yearly-discount-badge`), 8. gün bilgilendirme satırı (`#onboarding-timeline-day7-text`) ve `#vip-renewal-modal` alt başlıkları StoreKit / Google Play Billing (`getOfferings`) üzerinden %100 dinamik hale getirildi.
+   - `CURRENCY_CODE_MAP` ve `resolveCurrencySymbolFromStore` ile yalnızca `₺, $, €, £` değil; `CHF, CAD, AUD, PLN, SEK, NOK, DKK, AED, SAR, JPY, INR, BRL` dahil tüm küresel para birimi kodları ve sembolleri otomatik çözümlenir.
+3. **Sıfır Sabit Fiyat Mimarisi (`mobile_compliance_checker.py` `5. Price Lint: [PASS]`):**
+   - HTML ve JavaScript içindeki tüm dağınık sabit fiyat dizgeleri kaldırılarak tek merkezli `getDynamicPricingState()` hesaplama motoruna bağlandı.
+
 ## [4.48.0] - 2026-11-07
 ### 🔄 3 Ajanlı Konsensüs Sürekli Giren Kullanıcı (Returning Users) Kohort Motoru & Paywall İptal Kurtarma (CRO) Paketi (`app.html`, `analytics.py`, `offlineHtml.generated.ts`, `test_sleep_and_analytics_remediation.py`)
 1. **3 Ajanlı Konsensüs & Seviye 3 Çapraz Denetim:** Analiz, planlama ve Seviye 3 kod denetiminde **Claude Code CLI (`task-166`, `task-303`)** + **Codex CLI (`gpt-5.6-terra`, `task-168`, `task-330`)** + **Antigravity** 3'lü konsensüsü işletildi.

@@ -1174,6 +1174,7 @@ def test_v4_48_0_returning_users_and_paywall_cancellation_cro(client, db_session
     assert "vipRenewalSelectedPlan = 'monthly';" in app_html
     assert "paywall_cancel_recovery_shown" in app_html
     assert "sound_preview_60s_ended" in app_html
-    assert "version: '4.48.0'" in app_html
+    assert "getDynamicPricingState" in app_html
+    assert "version: '4.48.1'" in app_html
 
 

@@ -3124,7 +3124,7 @@
         <div style="font-family: 'Sora'; font-size: 10.5px; font-weight: 700; color: var(--accent); margin-bottom: 5px;">🛡️ 7 Günlük Ücretsiz Deneme Nasıl Çalışır?</div>
         <div style="display: flex; flex-direction: column; gap: 4px; font-size: 10px; line-height: 13.5px; color: var(--text-night);">
           <div style="display: flex; align-items: center; gap: 7px;">
-            <span style="background: rgba(46, 213, 115, 0.2); color: #2ED573; font-weight: 800; padding: 1px 6px; border-radius: 6px; font-size: 9px; min-width: 54px; text-align: center;">BUGÜN ₺0</span>
+            <span class="badge-zero-today" style="background: rgba(46, 213, 115, 0.2); color: #2ED573; font-weight: 800; padding: 1px 6px; border-radius: 6px; font-size: 9px; min-width: 54px; text-align: center;">BUGÜN 0</span>
             <span>MışılSpot™, Ağlama Rehberi ve 18 Stüdyo Sesi anında açılır — ücret çekilmez.</span>
           </div>
           <div style="display: flex; align-items: center; gap: 7px;">
@@ -3133,7 +3133,7 @@
           </div>
           <div style="display: flex; align-items: center; gap: 7px;">
             <span style="background: rgba(255, 255, 255, 0.12); color: #FFF; font-weight: 800; padding: 1px 6px; border-radius: 6px; font-size: 9px; min-width: 54px; text-align: center;">8. GÜN</span>
-            <span id="onboarding-timeline-day7-text">Memnun kalırsanız Aylık ₺149.99/ay başlar • Tek tıkla iptal.</span>
+            <span id="onboarding-timeline-day7-text">Memnun kalırsanız seçtiğiniz plan başlar • Tek tıkla iptal.</span>
           </div>
         </div>
       </div>
@@ -3145,12 +3145,12 @@
           <div>
             <div style="display: flex; align-items: center; gap: 6px;">
               <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">🌙 Aylık VIP Plan</strong>
-              <span style="background: rgba(46, 213, 115, 0.2); color: #2ED573; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">7 GÜN ₺0 • ESNEK</span>
+              <span class="badge-trial-7d-flex" style="background: rgba(46, 213, 115, 0.2); color: #2ED573; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">7 GÜN 0 • ESNEK</span>
             </div>
             <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 7 Gün Ücretsiz • Taahhütsüz esnek model</div>
           </div>
           <div style="text-align: right;">
-            <div style="font-family: 'Sora'; font-size: 15px; font-weight: 800; color: var(--accent);"><span class="price-monthly-text">₺149.99</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
+            <div style="font-family: 'Sora'; font-size: 15px; font-weight: 800; color: var(--accent);"><span class="price-monthly-text">--</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
             <div style="font-size: 10px; color: var(--text-muted);">İstediğiniz an iptal</div>
           </div>
         </div>
@@ -3160,13 +3160,13 @@
           <div>
             <div style="display: flex; align-items: center; gap: 6px;">
               <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">👑 Yıllık VIP Plan</strong>
-              <span id="plan-yearly-discount-badge" style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
+              <span id="plan-yearly-discount-badge" class="price-yearly-discount-badge" style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
             </div>
-            <div id="plan-yearly-subtext" style="font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 2px;">🎁 7 Gün Ücretsiz • Ayda Sadece ₺49.99</div>
+            <div id="plan-yearly-subtext" class="price-yearly-subtext" style="font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 2px;">🎁 7 Gün Ücretsiz • Avantajlı yıllık plan</div>
           </div>
           <div style="text-align: right;">
-            <div style="font-family: 'Sora'; font-size: 15px; font-weight: 800; color: #FFF;"><span class="price-yearly-text">₺599.99</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></div>
-            <div style="font-size: 10px; color: var(--text-muted);">Günde ₺1.64 • 1 bezden uygun</div>
+            <div style="font-family: 'Sora'; font-size: 15px; font-weight: 800; color: #FFF;"><span class="price-yearly-text">--</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></div>
+            <div class="price-daily-diaper-subtext" style="font-size: 10px; color: var(--text-muted);">1 bezden uygun</div>
           </div>
         </div>
       </div>
@@ -3181,9 +3181,9 @@
 
       <!-- SABİT (STICKY) DÖNÜŞÜM BARI — KÜÇÜK EKRANLARDA DAİMA GÖRÜNÜR -->
       <div class="onboarding-sticky-cta-wrap" style="position: sticky; bottom: 0; z-index: 20; background: linear-gradient(180deg, rgba(15, 20, 36, 0) 0%, rgba(15, 20, 36, 0.96) 20%, rgba(15, 20, 36, 0.99) 100%); padding: 6px 0 4px;">
-        <button class="btn-primary" id="btn-onboarding-pro" style="margin-top: 0; box-shadow: 0 8px 24px rgba(232, 168, 85, 0.35);" onclick="activateTrialAndStart()">🎁 7 Gün Ücretsiz Dene ve Başlat (Aylık • Bugün ₺0)</button>
-        <div style="text-align: center; font-size: 10px; color: #2ED573; font-weight: 700; margin-top: 5px;">
-          🛡️ Bugün 0 ₺ ödersiniz • 7 gün boyunca kartınızdan ücret çekilmez
+        <button class="btn-primary" id="btn-onboarding-pro" style="margin-top: 0; box-shadow: 0 8px 24px rgba(232, 168, 85, 0.35);" onclick="activateTrialAndStart()">🎁 7 Gün Ücretsiz Dene ve Başlat</button>
+        <div class="text-zero-today-shield" style="text-align: center; font-size: 10px; color: #2ED573; font-weight: 700; margin-top: 5px;">
+          🛡️ Bugün ücret ödenmez • 7 gün boyunca kartınızdan ücret çekilmez
         </div>
       </div>
       
@@ -3211,7 +3211,7 @@
 
       <!-- REVIEWER TEST BYPASS TRIGGER (GOOGLE PLAY ANSWER 15748846) -->
       <div style="text-align: center; margin-top: 10px; margin-bottom: 6px;">
-        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.48.0 (Build 66)</span>
+        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.48.1 (Build 66)</span>
       </div>
     </div>
   </div>
@@ -4118,12 +4118,12 @@
               <div>
                 <div style="display: flex; align-items: center; gap: 6px;">
                   <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">👑 Yıllık VIP Plan</strong>
-                  <span id="settings-plan-badge-yearly" style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
+                  <span id="settings-plan-badge-yearly" class="price-yearly-discount-badge" style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
                 </div>
-                <div id="settings-plan-sub-yearly" style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 7 Gün Ücretsiz • Aylık ₺49.99 karşılığı</div>
+                <div id="settings-plan-sub-yearly" class="price-yearly-subtext" style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 7 Gün Ücretsiz • Avantajlı yıllık plan</div>
               </div>
               <div style="text-align: right;">
-                <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: var(--accent);"><span class="price-yearly-text">₺599.99</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></span>
+                <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: var(--accent);"><span class="price-yearly-text">--</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></span>
                 <div style="font-size: 10px; color: var(--text-muted);">En avantajlı</div>
               </div>
             </div>
@@ -4133,12 +4133,12 @@
               <div>
                 <div style="display: flex; align-items: center; gap: 6px;">
                   <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">🌙 Aylık VIP Plan</strong>
-                  <span id="settings-plan-badge-monthly" style="background: rgba(255,255,255,0.1); color: #FFF; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">7 GÜN ₺0</span>
+                  <span id="settings-plan-badge-monthly" class="badge-trial-7d" style="background: rgba(255,255,255,0.1); color: #FFF; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">7 GÜN 0</span>
                 </div>
                 <div id="settings-plan-sub-monthly" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Taahhütsüz esnek model</div>
               </div>
               <div style="text-align: right;">
-                <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: #FFF;"><span class="price-monthly-text">₺149.99</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></span>
+                <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: #FFF;"><span class="price-monthly-text">--</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></span>
                 <div style="font-size: 10px; color: var(--text-muted);">Aylık yenilenir</div>
               </div>
             </div>
@@ -4467,12 +4467,12 @@
         <div>
           <div style="display: flex; align-items: center; gap: 6px;">
             <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">🌙 Aylık VIP Plan</strong>
-            <span style="background: rgba(46, 213, 115, 0.2); color: #2ED573; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">7 GÜN ₺0 • ESNEK</span>
+            <span class="badge-trial-7d-flex" style="background: rgba(46, 213, 115, 0.2); color: #2ED573; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">7 GÜN 0 • ESNEK</span>
           </div>
           <div style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">🎁 7 Gün Ücretsiz • Taahhütsüz esnek model</div>
         </div>
         <div style="text-align: right;">
-          <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: var(--accent);"><span class="price-monthly-text">₺149.99</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
+          <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: var(--accent);"><span class="price-monthly-text">--</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
           <div style="font-size: 10px; color: var(--text-muted);">İstediğiniz an iptal</div>
         </div>
       </div>
@@ -4482,20 +4482,20 @@
         <div>
           <div style="display: flex; align-items: center; gap: 6px;">
             <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">👑 Yıllık VIP Plan</strong>
-            <span style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
+            <span class="price-yearly-discount-badge" style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
           </div>
-          <div style="font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 2px;">🎁 7 Gün Ücretsiz • Ayda Sadece ₺49.99</div>
+          <div class="price-yearly-subtext" style="font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 2px;">🎁 7 Gün Ücretsiz • Avantajlı yıllık plan</div>
         </div>
         <div style="text-align: right;">
-          <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: #FFF;"><span class="price-yearly-text">₺599.99</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></div>
-          <div style="font-size: 10px; color: var(--text-muted);">Günde sadece ₺1.64</div>
+          <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: #FFF;"><span class="price-yearly-text">--</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></div>
+          <div class="price-daily-subtext" style="font-size: 10px; color: var(--text-muted);">Avantajlı günlük maliyet</div>
         </div>
       </div>
     </div>
 
-    <button class="btn-primary" id="btn-vip-renewal-submit" onclick="confirmVipRenewalPurchase()">🎁 7 Gün Ücretsiz Dene ve Başlat (Aylık • Bugün ₺0)</button>
-    <div style="text-align: center; font-size: 10px; color: #2ED573; font-weight: 700; margin-top: 5px;">
-      🛡️ Bugün 0 ₺ ödersiniz • 7 gün boyunca kartınızdan ücret çekilmez
+    <button class="btn-primary" id="btn-vip-renewal-submit" onclick="confirmVipRenewalPurchase()">🎁 7 Gün Ücretsiz Dene ve Başlat</button>
+    <div class="text-zero-today-shield" style="text-align: center; font-size: 10px; color: #2ED573; font-weight: 700; margin-top: 5px;">
+      🛡️ Bugün ücret ödenmez • 7 gün boyunca kartınızdan ücret çekilmez
     </div>
     <button class="btn-secondary" onclick="restoreVipRenewalPurchases()" style="margin-top: 8px;">Satın Alımları Geri Yükle</button>
 
@@ -4509,7 +4509,7 @@
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
     </div>
     <div style="text-align: center; margin-top: 10px;">
-      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.48.0 (Build 66)</span>
+      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.48.1 (Build 66)</span>
     </div>
   </div>
 </div>
@@ -5193,7 +5193,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.48.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.48.1', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -5264,8 +5264,12 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.48.0', date: '7 Kasım 2026', latest: true, items: [
-      'Aylık Esnek VIP Varsayılan Seçimi & Sıfır Fatura Şoku (CRO): Ödeme penceresindeki %84.2 vazgeçme oranını düşürmek için Onboarding ve VIP Yenileme ekranlarında Aylık Esnek VIP (Bugün ₺0 ➔ ₺149.99/ay) varsayılan seçili plana alındı; Yıllık (%67 Tasarruf) plan seçiliyken ödeme penceresinden vazgeçen ebeveynleri otomatik Aylık Esnek plana geçiren akıllı kurtarma akışı eklendi.',
+    { v: '4.48.1', date: '8 Kasım 2026', latest: true, items: [
+      'Tam Dinamik Küresel Mağaza Fiyatlama & Para Birimi Motoru (getDynamicPricingState): Yurt dışı mağazalardan (ABD, Avrupa, İngiltere, İsviçre, Körfez, Kanada, Avustralya vb.) indiren kullanıcılar için telefon dili Türkçe veya İngilizce fark etmeksizin tüm fiyat kartları, 0 birimlik deneme rozetleri, aylık/günlük karşılıklar ve 8. gün bilgilendirme satırları StoreKit / Google Play (getOfferings) üzerinden %100 dinamik hale getirildi.',
+      'Sıfır Sabit Fiyat Mimarisi: Arayüz bileşenlerindeki tüm sabit fiyat dizgeleri kaldırılarak tek merkezli dinamik hesaplama motoruna bağlandı.'
+    ]},
+    { v: '4.48.0', date: '7 Kasım 2026', items: [
+      'Aylık Esnek VIP Varsayılan Seçimi & Sıfır Fatura Şoku (CRO): Ödeme penceresindeki %84.2 vazgeçme oranını düşürmek için Onboarding ve VIP Yenileme ekranlarında Aylık Esnek VIP varsayılan seçili plana alındı; Yıllık (%67 Tasarruf) plan seçiliyken ödeme penceresinden vazgeçen ebeveynleri otomatik Aylık Esnek plana geçiren akıllı kurtarma akışı eklendi.',
       'Onboarding Hızlı Yaş Seçici & 60sn Ses Önizleme Kancası: İlk adımda doğum tarihi seçicide takılmadan 1 dokunuşla yaş aralığı seçebilen hızlı çipler (0–3 Ay, 4–6 Ay, 7–12 Ay, 1–2 Yaş) eklendi; 60 saniyelik ücretsiz ses önizlemesi bittiğinde dinlenen parçanın adıyla kişiselleşen VIP davet başlığı devreye alındı.',
       'Sürekli Giren Kullanıcılar (Returning Users) & Paywall Huni Analitiği: Yönetim kokpitine (/admin/analytics) Apple r8 kohort tekilleştirmesiyle doğrulanmış sürekli giren kullanıcı (16 opt-in iPhone / %47.1 geri dönüş, 11 sadık ebeveyn) ve uçtan uca Paywall dönüşüm/iptal hunisi eklendi.'
     ]},
@@ -5353,7 +5357,7 @@
     { v: '4.40.0', date: '26 Ekim 2026', items: [
       'Freemium & Dönüşüm (CRO) Mimarisi: Kullanıcıyı kitleyen sert ödeme duvarı kaldırılarak, bilinçli keşif sağlayan gecikmeli "Şimdilik Sınırlı Modda Keşfet" geçişi entegre edildi.',
       'Aha! Moment & Ücretsiz Deneyim Matrisi: Bebeğe özel bugünkü ilk MışılSpot™ uykusu, canlı hilal uyku sayacı ve 3 temel rahatlatıcı ses (Anne Karnı, 432Hz Pembe Gürültü, Brahms Ninni) ücretsiz kullanıma açıldı.',
-      'Ekosistem Değer Konumlandırması: Uygulama basit bir ses çalar yerine 4 sütunlu (MışılSpot™ AI, Librosa DSP Ağlama Analizi, Mışıl Dadı™ 7/24 ve 18 Stüdyo Mikseri) akıllı bebek bakım ekosistemi olarak konumlandırıldı; Yıllık VIP plan ayda ₺49.99 (günde ₺1.64) çerçevelemesiyle öne çıkarıldı.',
+      'Ekosistem Değer Konumlandırması: Uygulama basit bir ses çalar yerine 4 sütunlu (MışılSpot™ AI, Librosa DSP Ağlama Analizi, Mışıl Dadı™ 7/24 ve 18 Stüdyo Mikseri) akıllı bebek bakım ekosistemi olarak konumlandırıldı; Yıllık VIP plan aylık ve günlük uygun maliyet çerçevelemesiyle öne çıkarıldı.',
       'Tıbbi Feragatname Sürtünme Optimizasyonu: Checkbox varsayılan onaylı hale getirilerek buton engeli kaldırıldı; yasal AAP güvenlik beyanı korundu.',
       'Çift Katmanlı Native Senkronu: Sınırlı modla geçişte AsyncStorage ve webview localStorage senkronize edilerek oturum dayanıklılığı garanti altına alındı.'
     ]},
@@ -5425,7 +5429,7 @@
       'Dinamik Akustik Ağlama Analizi: Mikrofon dinleme akışı ve zamana/öğüne duyarlı biyolojik varyasyon motoru güçlendirildi.'
     ]},
     { v: '4.30.0', date: '16 Eylül 2026', items: [
-      'Dinamik Mağaza Fiyatlama & Matematik Motoru: App Store Connect ve RevenueCat fiyatları Opsiyon 1 (Aylık ₺149.99, Yıllık ₺599.99) ile eşitlendi; yıllık paketin aylık eşdeğeri (₺49.99/ay) ve %67 tasarruf oranı dinamik matematiksel bölenle kuruşu kuruşuna tutarlı hale getirildi.',
+      'Dinamik Mağaza Fiyatlama & Matematik Motoru: App Store Connect ve RevenueCat fiyatları Opsiyon 1 ile eşitlendi; yıllık paketin aylık eşdeğeri ve %67 tasarruf oranı dinamik matematiksel bölenle kuruşu kuruşuna tutarlı hale getirildi.',
       'Dinamik Anne / Baba Kimliği & Kişiselleştirme: Ayarlardaki sahte/sabit veriler temizlendi; Onboarding Adım 1\'e ebeveyn rolü (Anne, Baba, Diğer) ve isim girişi eklendi; Mışıl Dadı hitap alanı ebeveyn ismiyle senkronize edildi.',
       'Gerçek Aile Senkronizasyonu & Benzersiz Davet Kodu: Sabit MSL782 yerine gerçek benzersiz 6 haneli kod (MB-XXXX) üretimi sağlandı; Onboarding ve Ayarlar ekranına "Aileye Bağlan" alanı entegre edilerek eşlerin bebek rutinlerini ve VIP lisansını anında ortak görmesi sağlandı.'
     ]},
@@ -6927,14 +6931,86 @@
     openSubscriptionRetentionModal();
   }
 
+  const CURRENCY_CODE_MAP = {
+    TRY: '₺', USD: '$', EUR: '€', GBP: '£', CHF: 'CHF ', CAD: 'CA$', AUD: 'A$',
+    PLN: 'zł', SEK: 'kr ', NOK: 'kr ', DKK: 'kr ', AED: 'AED ', SAR: 'SAR ',
+    JPY: '¥', INR: '₹', BRL: 'R$', RUB: '₽', KRW: '₩', MXN: 'MX$'
+  };
+
+  function parseNumericPrice(rawStr) {
+    if (!rawStr) return 0;
+    const m = String(rawStr).match(/([0-9]+(?:[.,][0-9]+)*)/);
+    if (!m) return 0;
+    let s = m[1];
+    if (s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
+    else if (s.includes('.') && s.includes(',')) {
+      if (s.lastIndexOf(',') > s.lastIndexOf('.')) s = s.replace(/\./g, '').replace(',', '.');
+      else s = s.replace(/,/g, '');
+    }
+    return parseFloat(s) || 0;
+  }
+
+  function resolveCurrencySymbolFromStore(pricesObj, sampleStr) {
+    const code = pricesObj && pricesObj.currencyCode ? String(pricesObj.currencyCode).toUpperCase().trim() : '';
+    if (code && CURRENCY_CODE_MAP[code]) return CURRENCY_CODE_MAP[code];
+    if (code) return code + ' ';
+    const txt = String(sampleStr || '');
+    if (txt.includes('€')) return '€';
+    if (txt.includes('£')) return '£';
+    if (txt.includes('₺')) return '₺';
+    if (txt.includes('CA$')) return 'CA$';
+    if (txt.includes('A$')) return 'A$';
+    if (txt.includes('$')) return '$';
+    if (txt.includes('CHF')) return 'CHF ';
+    if (txt.includes('zł') || txt.includes('PLN')) return 'zł';
+    if (txt.includes('AED')) return 'AED ';
+    if (txt.includes('SAR')) return 'SAR ';
+    if (txt.includes('¥')) return '¥';
+    if (txt.includes('₹')) return '₹';
+    const prefixMatch = txt.trim().match(/^([^\d\s.,/-]{1,4})\s*\d/);
+    if (prefixMatch && prefixMatch[1]) return prefixMatch[1];
+    return isEn() ? '$' : '₺';
+  }
+
+  function getDynamicPricingState(overridePrices) {
+    const storePrices = overridePrices || window.__MISHIL_STORE_PRICES__ || {};
+    const mClean = storePrices.monthly ? String(storePrices.monthly).replace(/\s*\/\s*(ay|mo|month|yıl|yr|year).*/i, '').trim() : '';
+    const yClean = storePrices.yearly ? String(storePrices.yearly).replace(/\s*\/\s*(ay|mo|month|yıl|yr|year).*/i, '').trim() : '';
+    const currSymbol = resolveCurrencySymbolFromStore(storePrices, `${mClean} ${yClean}`);
+    const defM = currSymbol === '₺' ? 149.99 : 4.99;
+    const defY = currSymbol === '₺' ? 599.99 : 29.99;
+    const monthlyVal = (typeof storePrices.monthlyPrice === 'number' && storePrices.monthlyPrice > 0)
+      ? storePrices.monthlyPrice
+      : (parseNumericPrice(mClean) || defM);
+    const yearlyVal = (typeof storePrices.yearlyPrice === 'number' && storePrices.yearlyPrice > 0)
+      ? storePrices.yearlyPrice
+      : (parseNumericPrice(yClean) || defY);
+    const monthlyStr = mClean || `${currSymbol}${monthlyVal.toFixed(2)}`;
+    const yearlyStr = yClean || `${currSymbol}${yearlyVal.toFixed(2)}`;
+    const monthlyEqVal = yearlyVal / 12;
+    const dailyEqVal = yearlyVal / 365;
+    const monthlyEqStr = `${currSymbol}${monthlyEqVal.toFixed(2)}`;
+    const dailyEqStr = `${currSymbol}${dailyEqVal.toFixed(2)}`;
+    const discountPct = (monthlyVal > 0 && yearlyVal > 0 && yearlyVal < monthlyVal * 12)
+      ? Math.round((1 - (yearlyVal / (monthlyVal * 12))) * 100)
+      : 67;
+    const zeroStr = `${currSymbol}0`;
+    return {
+      currSymbol,
+      monthlyVal,
+      yearlyVal,
+      monthlyStr,
+      yearlyStr,
+      monthlyEqStr,
+      dailyEqStr,
+      discountPct,
+      zeroStr
+    };
+  }
+  window.getDynamicPricingState = getDynamicPricingState;
+
   function getActiveCurrencySymbol() {
-    const mEl = document.querySelector('.price-monthly-text');
-    const yEl = document.querySelector('.price-yearly-text');
-    const sample = `${mEl ? mEl.textContent : ''} ${yEl ? yEl.textContent : ''}`;
-    if (sample.includes('$')) return '$';
-    if (sample.includes('€')) return '€';
-    if (sample.includes('£')) return '£';
-    return '₺';
+    return getDynamicPricingState().currSymbol;
   }
 
   function generateSleepReport() {
@@ -7200,20 +7276,19 @@
     cardEl.style.background = 'rgba(35, 42, 70, 0.95)';
     localStorage.setItem('mishil_selected_plan', planType);
 
-    const curr = getActiveCurrencySymbol();
+    const dp = getDynamicPricingState();
+    const curr = dp.currSymbol;
     // 8. Gün zaman çizelgesini seçilen plana göre dinamik güncelle (Apple Guideline 3.1.2c)
     const day7El = document.getElementById('onboarding-timeline-day7-text');
     if (day7El) {
-      const mPrice = (document.querySelector('.price-monthly-text') && document.querySelector('.price-monthly-text').textContent) ? document.querySelector('.price-monthly-text').textContent.trim() : '₺149.99';
-      const yPrice = (document.querySelector('.price-yearly-text') && document.querySelector('.price-yearly-text').textContent) ? document.querySelector('.price-yearly-text').textContent.trim() : '₺599.99';
       if (planType === 'monthly') {
         day7El.textContent = isEn()
-          ? `If you love it, Monthly ${mPrice}/mo begins • Cancel anytime.`
-          : `Memnun kalırsanız Aylık ${mPrice}/ay başlar • Tek tıkla iptal.`;
+          ? `If you love it, Monthly ${dp.monthlyStr}/mo starts • One-tap cancel.`
+          : `Memnun kalırsanız Aylık ${dp.monthlyStr}/ay başlar • Tek tıkla iptal.`;
       } else {
         day7El.textContent = isEn()
-          ? `If you love it, Annual ${yPrice}/yr begins • Cancel anytime.`
-          : `Memnun kalırsanız Yıllık ${yPrice}/yıl (₺49.99/ay) başlar • Tek tıkla iptal.`;
+          ? `If you love it, Annual ${dp.yearlyStr}/yr (${dp.monthlyEqStr}/mo) starts • One-tap cancel.`
+          : `Memnun kalırsanız Yıllık ${dp.yearlyStr}/yıl (${dp.monthlyEqStr}/ay) başlar • Tek tıkla iptal.`;
       }
     }
 
@@ -8718,19 +8793,19 @@
     } : {
       sound_preview_ended: {
         title: `🌙 ${babyName} "${previewTrackName}" Sesiyle Rahatladı — Kesintisiz Çalmaya Devam Edin`,
-        sub: '60 saniyelik önizleme tamamlandı. Kilitli ekranda kesintisiz uyku sesleri için 7 gün ücretsiz VIP deneyin (Bugün ₺0).'
+        sub: `60 saniyelik önizleme tamamlandı. Kilitli ekranda kesintisiz uyku sesleri için 7 gün ücretsiz VIP deneyin (${zeroToday}).`
       },
       cry_analysis: {
         title: `🎙️ ${babyName} İçin Ağlama Rehberini Açın`,
-        sub: 'Açlık, gaz, yorgunluk veya aşırı uyarılma ipuçlarını keşfedin — 7 gün ücretsiz deneyin (Bugün ₺0).'
+        sub: `Açlık, gaz, yorgunluk veya aşırı uyarılma ipuçlarını keşfedin — 7 gün ücretsiz deneyin (${zeroToday}).`
       },
       mishil_spot: {
         title: `🌙 ${babyName}'in MışılSpot™ Uyku Saatlerini & Canlı Takibini Açın`,
-        sub: 'Bebeğinizin aşırı yorulmadan uyuyacağı altın dakikaları ve canlı uyku sayacını açmak için 7 gün ücretsiz deneyin (Bugün ₺0).'
+        sub: `Bebeğinizin aşırı yorulmadan uyuyacağı altın dakikaları ve canlı uyku sayacını açmak için 7 gün ücretsiz deneyin (${zeroToday}).`
       },
       sound_timer: {
         title: `⏱️ 45-60 Dk Otomatik Kapanma & Gece Beşiği Modunu Açın`,
-        sub: 'Bebeğiniz derin uykuya geçtiğinde sesin kademeli kısılarak kapanması ve loş Gece Beşiği modu için 7 gün ₺0 deneyin.'
+        sub: `Bebeğiniz derin uykuya geçtiğinde sesin kademeli kısılarak kapanması ve loş Gece Beşiği modu için 7 gün ücretsiz deneyin (${zeroToday}).`
       },
       ai_nanny: {
         title: `🤖 7/24 Mışıl Dadı™ Kişisel Uyku Rehberini Açın`,
@@ -8742,7 +8817,7 @@
       },
       routine_log: {
         title: `🍼 Sınırsız Rutin & Uyku Çizelgesini Açın`,
-        sub: `${babyName}'in tüm uyku, beslenme ve bez kayıtlarını sınırsız takip etmek için 7 gün ₺0 deneyin.`
+        sub: `${babyName}'in tüm uyku, beslenme ve bez kayıtlarını sınırsız takip etmek için 7 gün ücretsiz deneyin (${zeroToday}).`
       },
       vip_sound: {
         title: `🎧 18 Stüdyo Ninni & Kolik Sesinin Tamamını Açın`,
@@ -8750,7 +8825,7 @@
       },
       home_banner: {
         title: `👑 ${babyName} İçin 7 Gün Ücretsiz VIP Denemeyi Başlatın`,
-        sub: 'Sınırsız MışılSpot™ saatleri, Ağlama Rehberi, 7/24 Mışıl Dadı ve 18 stüdyo sesini bugün ₺0 ile açın.'
+        sub: `Sınırsız MışılSpot™ saatleri, Ağlama Rehberi, 7/24 Mışıl Dadı ve 18 stüdyo sesini ${zeroToday} ile açın.`
       }
     };
 
@@ -8759,11 +8834,14 @@
       sub: `Try unlimited MışılSpot™ windows, Cry Guide, and 18 studio sounds for ${currSym}0 today. Cancel anytime with one tap.`
     } : {
       title: `👑 ${babyName} İçin Tüm VIP Özellikleri 7 Gün Ücretsiz Açın`,
-      sub: 'Sınırsız MışılSpot™ saatleri, Ağlama Rehberi ve 18 stüdyo sesini bugün ₺0 ile deneyin. İstediğiniz an tek tıkla iptal.'
+      sub: `Sınırsız MışılSpot™ saatleri, Ağlama Rehberi ve 18 stüdyo sesini ${zeroToday} ile deneyin. İstediğiniz an tek tıkla iptal.`
     });
 
     if (titleEl) titleEl.textContent = chosen.title;
     if (subEl) subEl.textContent = chosen.sub;
+    if (typeof window.applyStorePrices === 'function') {
+      window.applyStorePrices(window.__MISHIL_STORE_PRICES__ || {});
+    }
     const activeRenewalCard = document.getElementById(vipRenewalSelectedPlan === 'yearly' ? 'vip-renewal-plan-yearly' : 'vip-renewal-plan-monthly');
     if (activeRenewalCard && typeof selectVipRenewalPlan === 'function') {
       selectVipRenewalPlan(vipRenewalSelectedPlan || 'monthly', activeRenewalCard);
@@ -9076,89 +9154,78 @@
   // DİNAMİK REVENUECAT MAĞAZA FİYAT & MATEMATİK ENJEKSİYONU
   // =========================================================================
   window.applyStorePrices = function(prices) {
-    if (!prices) return;
-    window.__MISHIL_STORE_PRICES__ = prices;
-    let monthlyVal = 0;
-    let yearlyVal = 0;
-    let currSymbol = isEn() ? '$' : '₺';
-
-    if (prices.monthly) {
-      const mStr = String(prices.monthly).replace(/\/(ay|mo|month)/gi, '').trim();
-      document.querySelectorAll('.price-monthly-text').forEach(el => {
-        el.textContent = mStr;
-      });
-      const mMatch = mStr.match(/([0-9.,]+)/);
-      if (mMatch) {
-        let s = mMatch[1];
-        if (s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
-        else if (s.includes('.') && s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
-        monthlyVal = parseFloat(s) || 0;
-      }
-      if (mStr.includes('$')) currSymbol = '$';
-      else if (mStr.includes('€')) currSymbol = '€';
-      else if (mStr.includes('£')) currSymbol = '£';
-      else if (mStr.includes('₺')) currSymbol = '₺';
+    if (prices && typeof prices === 'object') {
+      window.__MISHIL_STORE_PRICES__ = prices;
     }
+    const dp = getDynamicPricingState(window.__MISHIL_STORE_PRICES__ || {});
+    const en = isEn();
 
-    if (prices.yearly) {
-      const yStr = String(prices.yearly).replace(/\/(yıl|yr|year)/gi, '').trim();
-      document.querySelectorAll('.price-yearly-text').forEach(el => {
-        el.textContent = yStr;
-      });
-      const yMatch = yStr.match(/([0-9.,]+)/);
-      if (yMatch) {
-        let s = yMatch[1];
-        if (s.includes(',') && !s.includes('.')) s = s.replace(',', '.');
-        else if (s.includes('.') && s.includes(',')) s = s.replace(/\./g, '').replace(',', '.');
-        yearlyVal = parseFloat(s) || 0;
-      }
-      if (yStr.includes('$')) currSymbol = '$';
-      else if (yStr.includes('€')) currSymbol = '€';
-      else if (yStr.includes('£')) currSymbol = '£';
-      else if (yStr.includes('₺')) currSymbol = '₺';
+    // 1. Ana Aylık & Yıllık Fiyatlar
+    document.querySelectorAll('.price-monthly-text').forEach(el => {
+      el.textContent = dp.monthlyStr;
+    });
+    document.querySelectorAll('.price-yearly-text').forEach(el => {
+      el.textContent = dp.yearlyStr;
+    });
 
-      // Dinamik Aylık Karşılığı Hesabı: (Yıllık / 12)
-      if (yearlyVal > 0) {
-        const monthlyEq = (yearlyVal / 12).toFixed(2);
-        const subtext = isEn() ? `Equals ${currSymbol}${monthlyEq}/mo` : `Aylık ${currSymbol}${monthlyEq} karşılığı`;
-        document.querySelectorAll('.price-yearly-subtext, #plan-yearly-subtext, #settings-plan-sub-yearly').forEach(el => {
-          el.textContent = subtext;
-        });
+    // 2. Yıllık Planın Aylık & Günlük Karşılıkları ve Tasarruf Yüzdesi
+    document.querySelectorAll('.price-yearly-subtext, #plan-yearly-subtext, #settings-plan-sub-yearly').forEach(el => {
+      el.textContent = en
+        ? `🎁 7 Days Free • Equals ${dp.monthlyEqStr}/mo`
+        : `🎁 7 Gün Ücretsiz • Aylık ${dp.monthlyEqStr} karşılığı`;
+    });
+    document.querySelectorAll('.price-daily-diaper-subtext').forEach(el => {
+      el.textContent = en
+        ? `${dp.dailyEqStr}/day • Less than 1 diaper`
+        : `Günde ${dp.dailyEqStr} • 1 bezden uygun`;
+    });
+    document.querySelectorAll('.price-daily-subtext').forEach(el => {
+      el.textContent = en
+        ? `Only ${dp.dailyEqStr}/day`
+        : `Günde sadece ${dp.dailyEqStr}`;
+    });
+    document.querySelectorAll('.price-yearly-discount-badge, #plan-yearly-discount-badge, #settings-plan-badge-yearly').forEach(el => {
+      el.textContent = en ? `SAVE ${dp.discountPct}%` : `%${dp.discountPct} TASARRUF`;
+    });
 
-        // Dinamik Tasarruf Yüzdesi: (1 - (Yıllık / (Aylık * 12))) * 100
-        if (monthlyVal > 0) {
-          const discountPct = Math.round((1 - (yearlyVal / (monthlyVal * 12))) * 100);
-          if (discountPct > 0) {
-            document.querySelectorAll('#plan-yearly-discount-badge, #settings-plan-badge-yearly').forEach(el => {
-              el.textContent = isEn() ? `SAVE ${discountPct}%` : `%${discountPct} TASARRUF`;
-            });
-          }
-        }
-      }
-    }
+    // 3. Bugün 0 Birim & 7 Gün 0 Birim Rozetleri (Yurt dışı TR/EN her iki dilde mağaza para birimiyle senkron)
+    document.querySelectorAll('.badge-zero-today').forEach(el => {
+      el.textContent = en ? `${dp.zeroStr} TODAY` : `BUGÜN ${dp.zeroStr}`;
+    });
+    document.querySelectorAll('.badge-trial-7d-flex').forEach(el => {
+      el.textContent = en ? `7 DAYS ${dp.zeroStr} • FLEXIBLE` : `7 GÜN ${dp.zeroStr} • ESNEK`;
+    });
+    document.querySelectorAll('.badge-trial-7d').forEach(el => {
+      el.textContent = en ? `7 DAYS ${dp.zeroStr}` : `7 GÜN ${dp.zeroStr}`;
+    });
+    document.querySelectorAll('.text-zero-today-shield').forEach(el => {
+      el.textContent = en
+        ? `🛡️ Pay ${dp.zeroStr} today • No charge on your card for 7 days`
+        : `🛡️ Bugün ${dp.zeroStr} ödersiniz • 7 gün boyunca kartınızdan ücret çekilmez`;
+    });
 
-    // 8. Gün zaman çizelgesini mağaza fiyatlarıyla senkronize et (Apple Guideline 3.1.2c)
+    // 4. 8. Gün Zaman Çizelgesi & CTA Butonları (Apple Guideline 3.1.2c)
     const day7El = document.getElementById('onboarding-timeline-day7-text');
     if (day7El) {
-      const selPlan = localStorage.getItem('mishil_selected_plan') || 'monthly';
-      const mPrice = (document.querySelector('.price-monthly-text') && document.querySelector('.price-monthly-text').textContent) ? document.querySelector('.price-monthly-text').textContent.trim() : (isEn() ? '$4.99' : '₺149.99');
-      const yPrice = (document.querySelector('.price-yearly-text') && document.querySelector('.price-yearly-text').textContent) ? document.querySelector('.price-yearly-text').textContent.trim() : (isEn() ? '$29.99' : '₺599.99');
-      const monthlyEqStr = yearlyVal > 0 ? `${currSymbol}${(yearlyVal / 12).toFixed(2)}` : (isEn() ? '$2.49' : '₺49.99');
+      let selPlan = 'monthly';
+      try { selPlan = localStorage.getItem('mishil_selected_plan') || 'monthly'; } catch (_e) {}
       if (selPlan === 'monthly') {
-        day7El.textContent = isEn()
-          ? `If you love it, Monthly ${mPrice}/mo starts • One-tap cancel.`
-          : `Memnun kalırsanız Aylık ${mPrice}/ay başlar • Tek tıkla iptal.`;
+        day7El.textContent = en
+          ? `If you love it, Monthly ${dp.monthlyStr}/mo starts • One-tap cancel.`
+          : `Memnun kalırsanız Aylık ${dp.monthlyStr}/ay başlar • Tek tıkla iptal.`;
       } else {
-        day7El.textContent = isEn()
-          ? `If you love it, Annual ${yPrice}/yr (${monthlyEqStr}/mo) starts • One-tap cancel.`
-          : `Memnun kalırsanız Yıllık ${yPrice}/yıl (${monthlyEqStr}/ay) başlar • Tek tıkla iptal.`;
+        day7El.textContent = en
+          ? `If you love it, Annual ${dp.yearlyStr}/yr (${dp.monthlyEqStr}/mo) starts • One-tap cancel.`
+          : `Memnun kalırsanız Yıllık ${dp.yearlyStr}/yıl (${dp.monthlyEqStr}/ay) başlar • Tek tıkla iptal.`;
       }
+    }
+
+    if (typeof resetPurchaseButtons === 'function' && !isPurchaseInFlight) {
+      resetPurchaseButtons();
     }
   };
 
-  if (window.__MISHIL_STORE_PRICES__) {
-    window.applyStorePrices(window.__MISHIL_STORE_PRICES__);
-  }
+  window.applyStorePrices(window.__MISHIL_STORE_PRICES__ || {});
 
   // =========================================================================
   // 4. SWEETSPOT & LIVE SLEEP ENGINE
@@ -11895,13 +11962,10 @@
     '7 GÜN ₺0 • ESNEK': '7 DAYS $0 • FLEXIBLE',
     '%67 TASARRUF': 'SAVE 67%',
     '🎁 7 Gün Ücretsiz • Taahhütsüz esnek model': '🎁 7 Days Free • Flexible monthly plan',
-    '🎁 7 Gün Ücretsiz • Ayda Sadece ₺49.99': '🎁 7 Days Free • Only $2.49/mo',
+    '🎁 7 Gün Ücretsiz • Avantajlı yıllık plan': '🎁 7 Days Free • Best value annual plan',
     'İstediğiniz an iptal': 'Cancel anytime',
-    '🎁 7 Gün Ücretsiz Dene ve Başlat (Bugün ₺0)': '🎁 Start 7-Day Free Trial ($0 Today)',
-    '🎁 7 Gün Ücretsiz Dene ve Başlat (Aylık • Bugün ₺0)': '🎁 Try 7 Days Free & Start (Monthly • $0 Today)',
-    '🎁 7 Gün Ücretsiz Dene ve Başlat (Yıllık • Bugün ₺0)': '🎁 Try 7 Days Free & Start (Annual • $0 Today)',
-    'Memnun kalırsanız Aylık ₺149.99/ay başlar • Tek tıkla iptal.': 'If you love it, Monthly $4.99/mo starts • One-tap cancel.',
-    'Memnun kalırsanız Yıllık ₺599.99/yıl (₺49.99/ay) başlar • İstediğiniz an tek tıkla iptal.': 'If you love it, Annual $29.99/yr ($2.49/mo) starts • Cancel anytime.',
+    '1 bezden uygun': 'Less than 1 diaper',
+    'Avantajlı günlük maliyet': 'Best daily value',
     '(Veya hızlı yaş seçin)': '(Or tap age range)',
     '👶 0–3 Ay': '👶 0–3 Mo',
     '🍼 4–6 Ay': '🍼 4–6 Mo',
@@ -12233,19 +12297,8 @@
     }
 
     // 3. Re-apply dynamic store prices and trial timeline for active language
-    if (window.__MISHIL_STORE_PRICES__ && typeof window.applyStorePrices === 'function') {
-      window.applyStorePrices(window.__MISHIL_STORE_PRICES__);
-    } else {
-      // Fallback price badges unified with MishilUnifiedWebView.tsx ($4.99/mo & $29.99/yr)
-      document.querySelectorAll('.price-monthly-text').forEach(el => {
-        if (!window.__MISHIL_STORE_PRICES__) el.textContent = norm === 'en' ? '$4.99' : '₺149.99';
-      });
-      document.querySelectorAll('.price-yearly-text').forEach(el => {
-        if (!window.__MISHIL_STORE_PRICES__) el.textContent = norm === 'en' ? '$29.99' : '₺599.99';
-      });
-      document.querySelectorAll('.price-yearly-subtext, #plan-yearly-subtext').forEach(el => {
-        if (!window.__MISHIL_STORE_PRICES__) el.textContent = norm === 'en' ? 'Equals $2.49/mo' : 'Aylık ₺49.99 karşılığı';
-      });
+    if (typeof window.applyStorePrices === 'function') {
+      window.applyStorePrices(window.__MISHIL_STORE_PRICES__ || {});
     }
   }
 
