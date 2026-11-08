@@ -2,6 +2,26 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.48.2] - 2026-11-08
+### 🛡️ 3 Ajanlı Konsensüs Sızıntı & İptal/Dönüşüm 8 Maddeli Çözüm Paketi (`S1–S8`) (`app.html`, `MishilUnifiedWebView.tsx`, `analytics.py`, `coach.py`, `cry_analysis.py`, `offlineHtml.generated.ts`, `test_sleep_and_analytics_remediation.py`)
+1. **3 Ajanlı Konsensüs & 4 Boyutlu Denetim (Psikoloji, Satın Alma Davranışı, Mimari, Pazarlama):**
+   - **Claude Code CLI (`task-101` teknik denetim + `task-137` 4 boyutlu denetim)**, **Codex CLI (`gpt-6-luna`, `task-111` teknik denetim + `task-138` 4 boyutlu denetim)** ve **Antigravity** 3'lü konsensüsü ile uçtan uca tasarlandı ve doğrulandı.
+2. **S1 — Onboarding Adım 1 Son Uyanma Zamanı Seçicisi & Adım 5 Canlı İlk MışılSpot™ Saat Kartı (`#quiz-last-wake-chips`, `applyQuickLastWakeMinsAgo`, `#report-live-sweetspot-banner`, `calculateMışılSpot`):**
+   - `"📊 Kişisel Uyku Raporumu Oluştur"` butonunun psikolojik beklenti-ödül vaadini %100 karşılamak için Adım 1'e 1 dokunuşlu son uyanma çipleri (`☀️ Yeni Uyandı`, `⏱️ 45 dk önce`, `🕜 1.5 saat önce`, `😴 2.5+ saat`) eklendi; Adım 5'in en üstünde bebeğin hesaplanan gerçek sıradaki MışılSpot™ uyku saati (`#report-next-sweetspot-time`, örn. `14:30`) ve yaşa özel biyolojik uyanıklık penceresi (`#report-wake-window-min`) canlı olarak gösterilir.
+3. **S2 — `#onboarding-skip-wrap` 2.5sn Akıllı Geçiş & Aksiyon Odaklı Metin (`generateSleepReport`):**
+   - Paywall'daki `%78.6` (`99/126`) sessiz uygulama terkini önlemek için geçiş bağlantısının görünürlük gecikmesi `8000ms`'den **`2500ms`**'ye indirildi ve metni *"Şimdilik İlk MışılSpot™ Saatimle Başla ➔"* olarak güncellendi.
+4. **S3 — Kontrollü "İlk Aha! Anı" (1-Shot Trial) (`updateSubscriptionStatusUI`, `toggleLiveSleep`, `openCryModal`):**
+   - Sınırlı moddaki kullanıcılara ilk MışılSpot™ saati açık gösterilir (`mishil_first_spot_aha_used !== '1'`), **1 ücretsiz canlı uyku takibi (`mishil_free_sleep_trial_used !== '1'`)** ve **1 ücretsiz ağlama analizi (`mishil_free_cry_trial_used !== '1'`)** hakkı tanınır; ilk deneyim tamamlandığında 2. denemede bağlamsal VIP penceresi açılır (Sahiplenme Etkisi / Endowment Effect).
+5. **S4 — Yıllık Plan Aylık Karşılık Çıpalama (`49,99 ₺/ay`) & Net Deneme Bitiş Tarihi (`#onboarding-plan-yearly`, `#vip-renewal-plan-yearly`, `#onboarding-trial-end-text`, `applyStorePrices`):**
+   - Yıllık VIP kartında aylık eşdeğer fiyat (`.price-yearly-monthly-eq-text`, `49,99 ₺/ay` • `599,99 ₺/yıl faturalanır` • `%67 TASARRUF`) öne çıkarıldı ve `#onboarding-trial-end-text` yeniden bağlanarak 7 gün sonraki tam takvim tarihi (`örn. 15 Kasım 2026 tarihine kadar ₺0`) görünür kılındı.
+6. **S5 — 0. Gün İptal Önleyici "🧬 7 Günlük Biyometrik Uyku Kalibrasyonu (Gün 1/7)" Kartı (`#home-vip-first-night-card`, `#vip-calibration-progress-box`, `syncHomeConversionBanners`):**
+   - Apple'daki iptallerin `%66.7`'sinin (`6/9`) 0. günde (`DaysBeforeCancel=0`) gerçekleşmesini önlemek üzere aktif deneme kullanıcılarına `1. Gün: İlk MışılSpot™ ✓` ➔ `3. Gün: Gece Haritası ⏳` ➔ `7. Gün: Ritim Raporu 🔒` ilerleme çubuğu eklendi (Zeigarnik Etkisi).
+7. **S6 — `family_vip` Doğrulama Kilidi & Native `AsyncStorage` Sızıntı Koruması (`MishilUnifiedWebView.tsx`, `app.html`):**
+   - `MishilUnifiedWebView.tsx` içinde RevenueCat `active === false` döndüğünde `AsyncStorage.removeItem('@mishil_subscription_plan')` çağrılarak eski planın yeniden hidrate edilmesi engellendi; `isFamVip` ve `enforceVerifiedSubscriptionMigration` yalnızca buluttan doğrulanmış aktif VIP aile katılımında (`mishil_family_vip_verified === '1'`) geçerli olacak şekilde sıkılaştırıldı.
+8. **S7 & S8 — Güvenli Kota Koruma (Sıfır Yanlış Pozitif VIP Engeli) & Hayalet `RCAnonymousID` Temizliği (`coach.py`, `cry_analysis.py`, `analytics.py`):**
+   - Gerçek VIP aboneleri webhook gecikmesi nedeniyle mağdur etmeden `/api/v1/coach/chat`, `/api/v1/coach/stream` ve `/api/v1/cry-analysis/analyze` uç noktalarına IP bazlı kayan pencere bot koruma sınırı eklendi.
+   - `_reconcile_ios_ledger_and_cancellations` ve `sync_client_subscriber_ledger` içinde doğrulanmamış sıfır tutarlı iOS `RCAnonymousID:` hayalet satırları temizlenerek kokpitteki iptal sayısı resmi Apple raporuyla (`9`) birebir eşitlendi.
+
 ## [4.48.1] - 2026-11-08
 ### 🌍 Tam Dinamik Küresel Mağaza Fiyatlama, Para Birimi Senkronu & Sıfır Sabit Fiyat Motoru (`app.html`, `revenuecat.ts`, `MishilUnifiedWebView.tsx`, `offlineHtml.generated.ts`)
 1. **İcra Modu:** Tek Ajan (Yalnızca Antigravity — Claude/Codex CLI çalıştırılmadı) (`[Solo-Antigravity]`).

@@ -1,4 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+import os
+import time
+from collections import deque
+from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Any
@@ -7,6 +10,33 @@ from app.core.logging import get_logger
 
 logger = get_logger("coach_endpoint")
 router = APIRouter()
+
+_COACH_IP_BUCKETS: Dict[str, deque] = {}
+_COACH_WINDOW_SEC = 600.0
+_COACH_MAX_REQ_PER_WINDOW = 25
+
+
+def _enforce_coach_abuse_rate_limit(request: Optional[Request], lang_norm: str = "tr") -> None:
+    """
+    S7 Güvenli Kota Koruma: Gerçek VIP aboneleri webhook gecikmesi yüzünden 402/403 ile mağdur etmeden,
+    yalnızca otomatik bot/script tabanlı LLM kota sömürüsünü IP bazlı kayan pencere ile sınırlar.
+    """
+    if os.environ.get("PYTEST_CURRENT_TEST") or request is None:
+        return
+    forwarded = request.headers.get("x-forwarded-for") or ""
+    client_ip = (forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")) or "unknown"
+    now = time.monotonic()
+    bucket = _COACH_IP_BUCKETS.setdefault(client_ip, deque())
+    while bucket and (now - bucket[0]) > _COACH_WINDOW_SEC:
+        bucket.popleft()
+    if len(bucket) >= _COACH_MAX_REQ_PER_WINDOW:
+        detail_msg = (
+            "Rate limit exceeded. Please wait a few minutes before sending more questions."
+            if lang_norm == "en"
+            else "Kısa sürede çok fazla istek gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin."
+        )
+        raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=detail_msg)
+    bucket.append(now)
 
 
 class ChatMessage(BaseModel):
@@ -35,12 +65,13 @@ class CoachChatResponse(BaseModel):
 
 
 @router.post("/chat", response_model=CoachChatResponse, summary="Mışıl Dadı AI Ebeveyn Asistanına Soru Sor (JSON)")
-async def chat_with_coach(payload: CoachChatRequest):
+async def chat_with_coach(payload: CoachChatRequest, request: Request):
     """
     4 Katmanlı Gemini LLM Destekli Mışıl Dadı Servisi (Tek Parça JSON):
     Bebeğin adına, tam ayına, soruyu soran ebeveyn/dadı rolüne ve aktif gelişim sıçramasına özel şefkatli ve bilimsel çözümler sunar.
     """
     lang_norm = normalize_lang(payload.lang)
+    _enforce_coach_abuse_rate_limit(request, lang_norm)
     default_baby_name = "My Baby" if lang_norm == "en" and (not payload.baby_name or payload.baby_name == "Bebeğim") else (payload.baby_name or "Bebeğim")
     try:
         result = ask_mishil_dadi(
@@ -68,12 +99,13 @@ async def chat_with_coach(payload: CoachChatRequest):
 
 
 @router.post("/stream", summary="Mışıl Dadı AI Canlı Token Akışı (Server-Sent Events / SSE)")
-async def stream_coach_response(payload: CoachChatRequest):
+async def stream_coach_response(payload: CoachChatRequest, request: Request):
     """
     Gerçek Zamanlı Kelime Akışı (SSE Streaming):
     Kelimeleri 300ms içinde canlı canlı ekrana döker, kesintisiz ve sıfır gecikmeli danışmanlık sağlar.
     """
     lang_norm = normalize_lang(payload.lang)
+    _enforce_coach_abuse_rate_limit(request, lang_norm)
     default_baby_name = "My Baby" if lang_norm == "en" and (not payload.baby_name or payload.baby_name == "Bebeğim") else (payload.baby_name or "Bebeğim")
     try:
         generator = stream_mishil_dadi(

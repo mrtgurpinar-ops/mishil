@@ -503,11 +503,15 @@ def _reconcile_ios_ledger_and_cancellations(
     """
     changed = False
 
-    # 0) Doğrulanmamış istemci localStorage kaynaklı sentetik DEV_IOS_* / DEV_ANDROID_* hayalet/mükerrer kayıtları temizle
+    # 0) Doğrulanmamış istemci localStorage kaynaklı sentetik DEV_IOS_* / DEV_ANDROID_* ve sıfır tutarlı iOS RCAnonymousID hayalet/mükerrer kayıtları temizle
     dev_rows: List[SubscriberLedger] = (
         db.query(SubscriberLedger)
         .filter(
-            SubscriberLedger.subscriber_id.like("DEV_%"),
+            (SubscriberLedger.subscriber_id.like("DEV_%"))
+            | (
+                (SubscriberLedger.platform == "ios")
+                & (SubscriberLedger.subscriber_id.like("%RCAnonymousID:%"))
+            ),
             (SubscriberLedger.customer_price_try == 0.0) | (SubscriberLedger.customer_price_try.is_(None)),
         )
         .all()
@@ -516,7 +520,8 @@ def _reconcile_ios_ledger_and_cancellations(
         for dr in dev_rows:
             db.delete(dr)
         db.query(SubscriptionLifecycleEvent).filter(
-            SubscriptionLifecycleEvent.event_type.like("DEV_%")
+            (SubscriptionLifecycleEvent.event_type.like("DEV_%"))
+            | (SubscriptionLifecycleEvent.event_type.like("%RCAnonymousID:%"))
         ).delete(synchronize_session=False)
         db.flush()
         changed = True
@@ -3764,7 +3769,7 @@ async def sync_client_subscriber_ledger(
     )
     # Kimliksiz/doğrulanmamış istemci çağrılarının sahte tahsilat (paid_active) yazmasını, DEV_* hayalet satırı üretmesini veya resmi Apple satırlarını ezmesini engelle
     if not is_admin_authed and not verified_gp_token:
-        if clean_sid.upper().startswith("DEV_"):
+        if clean_sid.upper().startswith("DEV_") or "RCANONYMOUSID" in clean_sid.upper():
             return {
                 "ok": True,
                 "status": "ignored_unverified_dev_id",

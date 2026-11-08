@@ -2965,6 +2965,18 @@
           <button type="button" class="quiz-age-preset-chip" onclick="applyQuickBabyAgeMonths(9, this)" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--text-night); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 700; cursor: pointer;">🧸 7–12 Ay</button>
           <button type="button" class="quiz-age-preset-chip" onclick="applyQuickBabyAgeMonths(16, this)" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--text-night); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 700; cursor: pointer;">🏃 1–2 Yaş</button>
         </div>
+        <div style="margin-top: 10px;">
+          <label class="form-label" style="margin-bottom: 5px; display: flex; justify-content: space-between; align-items: center;">
+            <span>En Son Ne Zaman Uyandı?</span>
+            <span style="font-size: 10px; color: var(--accent); font-weight: 600;">(İlk MışılSpot™ Saati İçin)</span>
+          </label>
+          <div id="quiz-last-wake-chips" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+            <button type="button" class="quiz-wake-preset-chip" onclick="applyQuickLastWakeMinsAgo(15, this)" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--text-night); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 700; cursor: pointer;">☀️ Yeni Uyandı</button>
+            <button type="button" class="quiz-wake-preset-chip" onclick="applyQuickLastWakeMinsAgo(45, this)" style="background: rgba(232,168,85,0.2); border: 1px solid var(--accent); color: var(--accent); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 700; cursor: pointer;">⏱️ 45 dk önce</button>
+            <button type="button" class="quiz-wake-preset-chip" onclick="applyQuickLastWakeMinsAgo(90, this)" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--text-night); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 700; cursor: pointer;">🕜 1.5 saat önce</button>
+            <button type="button" class="quiz-wake-preset-chip" onclick="applyQuickLastWakeMinsAgo(150, this)" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--text-night); border-radius: 8px; padding: 6px 4px; font-size: 10px; font-weight: 700; cursor: pointer;">😴 2.5+ saat</button>
+          </div>
+        </div>
       </div>
       <button class="btn-primary" style="margin-top: 10px; margin-bottom: 10px;" onclick="nextQuizStep(2)">Devam Et ➔</button>
 
@@ -3084,6 +3096,18 @@
         </div>
       </div>
 
+      <!-- S1 CANLI HESAPLANAN İLK MIŞILSPOT SAATİ + KOMPAKT SKOR KARTI (AHA! MOMENT) -->
+      <div id="report-live-sweetspot-banner" style="background: linear-gradient(135deg, rgba(244, 162, 97, 0.22) 0%, rgba(30, 36, 60, 0.96) 100%); border: 1.5px solid var(--accent); border-radius: 12px; padding: 9px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+        <div>
+          <div style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.3px;">🌙 Hesaplanan İlk MışılSpot™ Uyku Vakti</div>
+          <div style="font-size: 10.5px; color: var(--text-night); margin-top: 2px;" id="report-wake-window-note">Yaşa özel biyolojik uyanıklık penceresi: <strong id="report-wake-window-min">90 dk</strong></div>
+        </div>
+        <div style="text-align: right; background: rgba(15, 20, 36, 0.75); border: 1px solid rgba(232, 168, 85, 0.45); border-radius: 10px; padding: 5px 10px; min-width: 74px;">
+          <div style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: var(--accent); line-height: 1.1;" id="report-next-sweetspot-time">14:30</div>
+          <div style="font-size: 8.5px; color: #2ED573; font-weight: 700;">✓ Hazır</div>
+        </div>
+      </div>
+
       <!-- KOMPAKT SKOR + 7 GÜNLÜK HEDEF KARTI (ABOVE-THE-FOLD OPTİMİZASYONU) -->
       <div class="card" style="background: rgba(30, 36, 60, 0.95); border: 1px solid var(--accent); padding: 10px 12px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px;">
         <div style="text-align: center; min-width: 82px; padding-right: 10px; border-right: 1px solid rgba(255,255,255,0.1);">
@@ -3163,10 +3187,11 @@
               <span id="plan-yearly-discount-badge" class="price-yearly-discount-badge" style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
             </div>
             <div id="plan-yearly-subtext" class="price-yearly-subtext" style="font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 2px;">🎁 7 Gün Ücretsiz • Avantajlı yıllık plan</div>
+            <div class="price-daily-diaper-subtext" style="font-size: 9.5px; color: var(--accent); margin-top: 1px;">1 bezden uygun</div>
           </div>
           <div style="text-align: right;">
-            <div style="font-family: 'Sora'; font-size: 15px; font-weight: 800; color: #FFF;"><span class="price-yearly-text">--</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></div>
-            <div class="price-daily-diaper-subtext" style="font-size: 10px; color: var(--text-muted);">1 bezden uygun</div>
+            <div style="font-family: 'Sora'; font-size: 15px; font-weight: 800; color: #FFF;"><span class="price-yearly-monthly-eq-text">--</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
+            <div style="font-size: 9.5px; color: var(--text-muted);"><span class="price-yearly-text">--</span>/yıl faturalanır</div>
           </div>
         </div>
       </div>
@@ -3183,14 +3208,14 @@
       <div class="onboarding-sticky-cta-wrap" style="position: sticky; bottom: 0; z-index: 20; background: linear-gradient(180deg, rgba(15, 20, 36, 0) 0%, rgba(15, 20, 36, 0.96) 20%, rgba(15, 20, 36, 0.99) 100%); padding: 6px 0 4px;">
         <button class="btn-primary" id="btn-onboarding-pro" style="margin-top: 0; box-shadow: 0 8px 24px rgba(232, 168, 85, 0.35);" onclick="activateTrialAndStart()">🎁 7 Gün Ücretsiz Dene ve Başlat</button>
         <div class="text-zero-today-shield" style="text-align: center; font-size: 10px; color: #2ED573; font-weight: 700; margin-top: 5px;">
-          🛡️ Bugün ücret ödenmez • 7 gün boyunca kartınızdan ücret çekilmez
+          🛡️ Bugün ücret ödenmez • <span id="onboarding-trial-end-text">7 gün</span> tarihine kadar ₺0
         </div>
       </div>
       
       <!-- GECİKMELİ ÜCRETSİZ SÜRÜMLE KEŞFET BAĞLANTISI (BİLİNÇLİ SEÇİM ENTEGRASYONU) -->
-      <div id="onboarding-skip-wrap" style="text-align: center; margin-top: 8px; opacity: 0; transition: opacity 0.8s ease;">
+      <div id="onboarding-skip-wrap" style="text-align: center; margin-top: 8px; opacity: 0; transition: opacity 0.5s ease;">
         <button type="button" onclick="skipOnboardingToApp()" style="background: none; border: none; color: var(--text-muted); font-size: 11px; cursor: pointer; text-decoration: underline; padding: 4px;">
-          Şimdilik Sınırlı Modda Keşfet ➔
+          Şimdilik İlk MışılSpot™ Saatimle Başla ➔
         </button>
       </div>
 
@@ -3211,7 +3236,7 @@
 
       <!-- REVIEWER TEST BYPASS TRIGGER (GOOGLE PLAY ANSWER 15748846) -->
       <div style="text-align: center; margin-top: 10px; margin-bottom: 6px;">
-        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.48.1 (Build 66)</span>
+        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.48.2 (Build 66)</span>
       </div>
     </div>
   </div>
@@ -3299,16 +3324,27 @@
           </div>
         </div>
 
-        <!-- SATIN ALMA SONRASI İLK GECE VIP EYLEM PLANI (%36 ERKEN İPTAL ÖNLEYİCİ ONBOARDING KARTI - 40PX KAPATMA HEDEFİ) -->
+        <!-- SATIN ALMA SONRASI İLK GECE VIP EYLEM PLANI & 7 GÜNLÜK BİYOMETRİK UYKU KALİBRASYONU (S5 DAY-0 İPTAL ÖNLEYİCİ KART) -->
         <div id="home-vip-first-night-card" class="card" style="display: none; background: linear-gradient(135deg, rgba(46, 213, 115, 0.14) 0%, rgba(22, 29, 50, 0.95) 100%); border: 1.5px solid #2ED573; border-radius: 16px; padding: 12px 14px; margin-bottom: 12px;">
           <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
             <div>
-              <div style="font-family: 'Sora'; font-size: 13px; font-weight: 800; color: #2ED573;">🎉 VIP Aktif! Bu Gece İçin 3 Adımlı Huzur Planınız</div>
-              <div style="font-size: 10.5px; color: var(--text-night); margin-top: 2px;">İlk 24 saatte en yüksek faydayı almak için hemen birini deneyin:</div>
+              <div style="font-family: 'Sora'; font-size: 13px; font-weight: 800; color: #2ED573;" id="vip-calibration-card-title">🧬 7 Günlük Biyometrik Uyku Kalibrasyonu (Gün 1/7)</div>
+              <div style="font-size: 10.5px; color: var(--text-night); margin-top: 2px;" id="vip-calibration-card-sub">Bebeğinizin sirkadiyen ritim haritası adım adım kalibre ediliyor:</div>
             </div>
             <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
               <button type="button" onclick="startSpotlightTour(true)" style="height: 32px; padding: 0 10px; border-radius: 16px; background: rgba(244,162,97,0.18); border: 1px solid var(--accent); color: var(--accent); font-size: 10.5px; font-weight: 800; cursor: pointer; white-space: nowrap;">🎓 Canlı Tur</button>
               <button type="button" aria-label="Rehberi Kapat" onclick="dismissVipFirstNightCard()" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); color: var(--text-muted); font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✕</button>
+            </div>
+          </div>
+          <!-- S5 7 GÜNLÜK KALİBRASYON İLERLEME ÇUBUĞU (ZEIGARNIK ETKİSİ & DAY-0 TUTUNDURMA) -->
+          <div id="vip-calibration-progress-box" style="background: rgba(15, 20, 36, 0.65); border: 1px solid rgba(46, 213, 115, 0.3); border-radius: 11px; padding: 8px 10px; margin-bottom: 8px;">
+            <div style="display: flex; justify-content: space-between; font-size: 9.5px; font-weight: 700; color: var(--text-night); margin-bottom: 5px;">
+              <span style="color: #2ED573;">✓ 1. Gün: İlk MışılSpot™</span>
+              <span id="vip-cal-step3-label" style="color: var(--accent);">⏳ 3. Gün: Gece Haritası</span>
+              <span id="vip-cal-step7-label" style="color: var(--text-muted);">🔒 7. Gün: Ritim Raporu</span>
+            </div>
+            <div class="progress-bar-wrap" style="height: 6px; background: rgba(255,255,255,0.08);">
+              <div class="progress-fill" id="vip-calibration-bar-fill" style="width: 18%; background: linear-gradient(90deg, #2ED573, var(--accent));"></div>
             </div>
           </div>
           <div style="display: flex; flex-direction: column; gap: 6px;">
@@ -4485,10 +4521,11 @@
             <span class="price-yearly-discount-badge" style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
           </div>
           <div class="price-yearly-subtext" style="font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 2px;">🎁 7 Gün Ücretsiz • Avantajlı yıllık plan</div>
+          <div class="price-daily-subtext" style="font-size: 9.5px; color: var(--accent); margin-top: 1px;">Avantajlı günlük maliyet</div>
         </div>
         <div style="text-align: right;">
-          <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: #FFF;"><span class="price-yearly-text">--</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></div>
-          <div class="price-daily-subtext" style="font-size: 10px; color: var(--text-muted);">Avantajlı günlük maliyet</div>
+          <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: #FFF;"><span class="price-yearly-monthly-eq-text">--</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
+          <div style="font-size: 9.5px; color: var(--text-muted);"><span class="price-yearly-text">--</span>/yıl faturalanır</div>
         </div>
       </div>
     </div>
@@ -4509,7 +4546,7 @@
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
     </div>
     <div style="text-align: center; margin-top: 10px;">
-      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.48.1 (Build 66)</span>
+      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.48.2 (Build 66)</span>
     </div>
   </div>
 </div>
@@ -5193,7 +5230,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.48.1', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.48.2', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -5264,7 +5301,12 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.48.1', date: '8 Kasım 2026', latest: true, items: [
+    { v: '4.48.2', date: '8 Kasım 2026', latest: true, items: [
+      'Onboarding Gerçek MışılSpot™ Saat Hesabı & 2.5sn Akıllı Geçiş (S1–S3): İlk adıma 1 dokunuşla "Son Uyanma Zamanı" seçici eklenerek 5. adım Kişisel Uyku Raporunda bebeğin gerçek sıradaki MışılSpot™ uyku saati (örn. 14:30) ve uyanıklık penceresi canlı gösterildi; sınırlı modda ilk MışılSpot™ saati, 1 canlı uyku takibi ve 1 ağlama analizi tadımlık (1-Shot Aha!) olarak açıldı.',
+      'Yıllık Plan Aylık Karşılık Çıpalama & 7 Günlük Biyometrik Uyku Kalibrasyonu (S4–S5): Yıllık VIP kartında aylık karşılık (49,99 ₺/ay • %67 Tasarruf) ve net deneme bitiş tarihi öne çıkarıldı; 0. gün erken iptalleri önlemek için ana ekrana "🧬 7 Günlük Biyometrik Uyku Kalibrasyonu (Gün 1/7)" ilerleme haritası eklendi.',
+      'Aile VIP Doğrulama Kilidi, Hayalet RCAnonymousID Temizliği & Güvenli Kota Koruması (S6–S8): Native AsyncStorage ve WebView üzerinde doğrulanmamış family_vip sızıntısı kapatıldı; iOS mutabakatında sıfır tutarlı hayalet RCAnonymousID satırları temizlendi ve Mışıl Dadı / Ağlama Analizi uç noktalarına gerçek VIP kullanıcıları engellemeyen IP bazlı bot koruma sınırı eklendi.'
+    ]},
+    { v: '4.48.1', date: '8 Kasım 2026', items: [
       'Tam Dinamik Küresel Mağaza Fiyatlama & Para Birimi Motoru (getDynamicPricingState): Yurt dışı mağazalardan (ABD, Avrupa, İngiltere, İsviçre, Körfez, Kanada, Avustralya vb.) indiren kullanıcılar için telefon dili Türkçe veya İngilizce fark etmeksizin tüm fiyat kartları, 0 birimlik deneme rozetleri, aylık/günlük karşılıklar ve 8. gün bilgilendirme satırları StoreKit / Google Play (getOfferings) üzerinden %100 dinamik hale getirildi.',
       'Sıfır Sabit Fiyat Mimarisi: Arayüz bileşenlerindeki tüm sabit fiyat dizgeleri kaldırılarak tek merkezli dinamik hesaplama motoruna bağlandı.'
     ]},
@@ -6516,7 +6558,7 @@
   // =========================================================================
   // 3. ONBOARDING & PROFILE ENGINE (ZERO-LEAK SECURITY)
   // =========================================================================
-  let quizAnswers = { babyName: '', babyBdate: '', sleepResistance: 'fast', nightWakes: 'low', struggleArea: 'routine' };
+  let quizAnswers = { babyName: '', babyBdate: '', lastWakeMinsAgo: 45, sleepResistance: 'fast', nightWakes: 'low', struggleArea: 'routine' };
 
   function initOnboardingInputs() {
     try {
@@ -6712,6 +6754,25 @@
   }
   window.applyQuickBabyAgeMonths = applyQuickBabyAgeMonths;
 
+  function applyQuickLastWakeMinsAgo(minsAgo, chipEl) {
+    hapticPulse();
+    const safeMins = Math.max(5, Math.min(360, Number(minsAgo) || 45));
+    quizAnswers.lastWakeMinsAgo = safeMins;
+    const wakeTs = Date.now() - (safeMins * 60000);
+    localStorage.setItem('mishil_onboarding_last_wake_ts', String(wakeTs));
+    document.querySelectorAll('.quiz-wake-preset-chip').forEach(el => {
+      el.style.borderColor = 'var(--border-night)';
+      el.style.background = 'rgba(255,255,255,0.05)';
+      el.style.color = 'var(--text-night)';
+    });
+    if (chipEl) {
+      chipEl.style.borderColor = 'var(--accent)';
+      chipEl.style.background = 'rgba(232, 168, 85, 0.2)';
+      chipEl.style.color = 'var(--accent)';
+    }
+  }
+  window.applyQuickLastWakeMinsAgo = applyQuickLastWakeMinsAgo;
+
   function nextQuizStep(stepNum) {
     hapticPulse();
     if (stepNum === 2) {
@@ -6741,6 +6802,9 @@
       localStorage.setItem('mishil_baby_bdate', bd);
       localStorage.setItem('mishil_user_role', selectedParentRole);
       localStorage.setItem('mishil_user_name', pName);
+      if (!localStorage.getItem('mishil_onboarding_last_wake_ts')) {
+        localStorage.setItem('mishil_onboarding_last_wake_ts', String(Date.now() - ((quizAnswers.lastWakeMinsAgo || 45) * 60000)));
+      }
 
       // Native köprüye anında gönder (Adım 1 tamamlandığı anda diske yazılır)
       if (window.ReactNativeWebView) {
@@ -7140,6 +7204,21 @@
     if (wakeEl) wakeEl.innerHTML = wakesText;
     if (extEl) extEl.innerHTML = extraText;
 
+    // S1: Hesaplanan gerçek İlk MışılSpot™ saatini ve yaşa özel uyanıklık penceresini Step 5 rapor kartına bas
+    try {
+      const calcSpot = typeof calculateMışılSpot === 'function' ? calculateMışılSpot(bdate || '2026-06-01') : null;
+      const spotTimeEl = document.getElementById('report-next-sweetspot-time');
+      const spotNoteEl = document.getElementById('report-wake-window-note');
+      if (calcSpot && spotTimeEl) {
+        spotTimeEl.textContent = calcSpot.sweetSpotTime;
+      }
+      if (calcSpot && spotNoteEl) {
+        spotNoteEl.innerHTML = en
+          ? `Age-specific biological wake window: <strong id="report-wake-window-min">${calcSpot.wakeWindowMin} min</strong>`
+          : `Yaşa özel biyolojik uyanıklık penceresi: <strong id="report-wake-window-min">${calcSpot.wakeWindowMin} dk</strong>`;
+      }
+    } catch (_s1e) {}
+
     // Varsayılan hedef planı Aylık Esnek VIP yap (Sıfır fatura şoku & yüksek deneme başlatma oranı)
     localStorage.setItem('mishil_selected_plan', 'monthly');
     const defaultMonthlyCard = document.getElementById('onboarding-plan-monthly');
@@ -7154,14 +7233,14 @@
       }
     } catch (_pve) {}
 
-    // 8 saniye sonra "Şimdilik Sınırlı Modda Keşfet" geçişini zarifçe görünür yap
+    // S2: 2.5 saniye sonra "Şimdilik İlk MışılSpot™ Saatimle Başla ➔" geçişini zarifçe görünür yap (%78.6 sessiz terk önleme)
     const skipWrap = document.getElementById('onboarding-skip-wrap');
     if (skipWrap) {
       skipWrap.style.opacity = '0';
       setTimeout(() => {
         const el = document.getElementById('onboarding-skip-wrap');
-        if (el) el.style.opacity = '0.75';
-      }, 8000);
+        if (el) el.style.opacity = '0.88';
+      }, 2500);
     }
 
     loadBabyProfile();
@@ -7320,6 +7399,7 @@
     localStorage.setItem('mishil_subscription_active', 'false');
     localStorage.removeItem('mishil_trial_start');
     localStorage.removeItem('mishil_rc_verified');
+    localStorage.removeItem('mishil_family_vip_verified');
     localStorage.setItem('mishil_subscription_plan', 'free');
     localStorage.setItem('mishil_limited_explore_mode', 'true');
     // Profil bilgilerini güvenle kalıcı hafızaya aktar
@@ -7827,11 +7907,15 @@
           const famIsVip = !!(fam.subscription_active === true || fam.subscription_active === 1 || (fam.subscription_plan && fam.subscription_plan !== 'free' && fam.subscription_plan !== 'none'));
           if (famIsVip) {
             localStorage.setItem('mishil_subscription_active', 'true'); // Yalnızca davet eden aile aktif VIP ise aktar
+            localStorage.setItem('mishil_family_vip_verified', '1');
             localStorage.removeItem('mishil_limited_explore_mode');
             localStorage.setItem('mishil_subscription_plan', fam.subscription_plan || 'family_vip');
-          } else if (localStorage.getItem('mishil_subscription_plan') === 'family_vip') {
-            localStorage.removeItem('mishil_subscription_active');
-            localStorage.removeItem('mishil_subscription_plan');
+          } else {
+            localStorage.removeItem('mishil_family_vip_verified');
+            if (localStorage.getItem('mishil_subscription_plan') === 'family_vip') {
+              localStorage.removeItem('mishil_subscription_active');
+              localStorage.removeItem('mishil_subscription_plan');
+            }
           }
           localStorage.setItem('mishil_onboarding_completed', 'true');
 
@@ -7901,11 +7985,15 @@
           const famIsVipSettings = !!(fam.subscription_active === true || fam.subscription_active === 1 || (fam.subscription_plan && fam.subscription_plan !== 'free' && fam.subscription_plan !== 'none'));
           if (famIsVipSettings) {
             localStorage.setItem('mishil_subscription_active', 'true');
+            localStorage.setItem('mishil_family_vip_verified', '1');
             localStorage.removeItem('mishil_limited_explore_mode');
             localStorage.setItem('mishil_subscription_plan', fam.subscription_plan || 'family_vip');
-          } else if (localStorage.getItem('mishil_subscription_plan') === 'family_vip') {
-            localStorage.removeItem('mishil_subscription_active');
-            localStorage.removeItem('mishil_subscription_plan');
+          } else {
+            localStorage.removeItem('mishil_family_vip_verified');
+            if (localStorage.getItem('mishil_subscription_plan') === 'family_vip') {
+              localStorage.removeItem('mishil_subscription_active');
+              localStorage.removeItem('mishil_subscription_plan');
+            }
           }
 
           if (Array.isArray(fam.members)) {
@@ -8679,14 +8767,15 @@
   (function enforceVerifiedSubscriptionMigration() {
     try {
       const isNativeEnv = !!(window.ReactNativeWebView || (window.__MISHIL_APP__ && window.__MISHIL_APP__.native));
-      if (isNativeEnv && localStorage.getItem('mishil_strict_sub_mig_v1') !== '1') {
-        localStorage.setItem('mishil_strict_sub_mig_v1', '1');
+      if (isNativeEnv && localStorage.getItem('mishil_strict_sub_mig_v2') !== '1') {
+        localStorage.setItem('mishil_strict_sub_mig_v2', '1');
         const hasReviewer = localStorage.getItem('mishil_reviewer_bypass') === '1';
-        const hasFamilyVip = localStorage.getItem('mishil_subscription_plan') === 'family_vip';
+        const hasFamilyVip = localStorage.getItem('mishil_subscription_plan') === 'family_vip' && localStorage.getItem('mishil_family_vip_verified') === '1';
         const hasRcVerified = localStorage.getItem('mishil_rc_verified') === 'true' || !!(window.__MISHIL_SUB_META__ && (window.__MISHIL_SUB_META__.subscriberId || window.__MISHIL_SUB_META__.purchaseToken || window.__MISHIL_SUB_META__.originalTransactionId));
         if (!hasReviewer && !hasFamilyVip && !hasRcVerified) {
           localStorage.setItem('mishil_subscription_active', 'false');
           localStorage.removeItem('mishil_trial_start');
+          localStorage.removeItem('mishil_family_vip_verified');
           localStorage.setItem('mishil_subscription_plan', 'free');
         }
       }
@@ -8705,6 +8794,7 @@
   function dismissVipFirstNightCard() {
     hapticPulse();
     localStorage.removeItem('mishil_show_vip_welcome_card');
+    localStorage.setItem('mishil_vip_calibration_dismissed', '1');
     const card = document.getElementById('home-vip-first-night-card');
     if (card) card.style.display = 'none';
   }
@@ -8729,8 +8819,38 @@
       freeBanner.style.display = (active || isSnoozed) ? 'none' : 'block';
     }
     if (vipCard) {
-      const showWelcome = active && localStorage.getItem('mishil_show_vip_welcome_card') === 'true';
+      const trialInfo = typeof getTrialStatus === 'function' ? getTrialStatus() : { isActive: false };
+      const calDismissed = localStorage.getItem('mishil_vip_calibration_dismissed') === '1';
+      const showWelcome = active && !calDismissed && (localStorage.getItem('mishil_show_vip_welcome_card') === 'true' || trialInfo.isActive);
       vipCard.style.display = showWelcome ? 'block' : 'none';
+      if (showWelcome) {
+        const tStart = localStorage.getItem('mishil_trial_start');
+        const elapsedDays = tStart ? Math.floor((Date.now() - new Date(tStart).getTime()) / 86400000) : 0;
+        const calDay = Math.max(1, Math.min(7, elapsedDays + 1));
+        const pct = Math.max(18, Math.min(100, Math.round((calDay / 7) * 100)));
+        const titleEl = document.getElementById('vip-calibration-card-title');
+        const barFill = document.getElementById('vip-calibration-bar-fill');
+        const step3El = document.getElementById('vip-cal-step3-label');
+        const step7El = document.getElementById('vip-cal-step7-label');
+        if (titleEl) {
+          titleEl.textContent = isEn()
+            ? `🧬 7-Day Biometric Sleep Calibration (Day ${calDay}/7)`
+            : `🧬 7 Günlük Biyometrik Uyku Kalibrasyonu (Gün ${calDay}/7)`;
+        }
+        if (barFill) barFill.style.width = `${pct}%`;
+        if (step3El) {
+          step3El.textContent = calDay >= 3
+            ? (isEn() ? '✓ Day 3: Night Map' : '✓ 3. Gün: Gece Haritası')
+            : (isEn() ? '⏳ Day 3: Night Map' : '⏳ 3. Gün: Gece Haritası');
+          step3El.style.color = calDay >= 3 ? '#2ED573' : 'var(--accent)';
+        }
+        if (step7El) {
+          step7El.textContent = calDay >= 7
+            ? (isEn() ? '✓ Day 7: Full Rhythm' : '✓ 7. Gün: Ritim Raporu')
+            : (isEn() ? '🔒 Day 7: Full Rhythm' : '🔒 7. Gün: Ritim Raporu');
+          step7El.style.color = calDay >= 7 ? '#2ED573' : 'var(--text-muted)';
+        }
+      }
     }
     checkWelcomeGuideVisibility();
   }
@@ -8990,9 +9110,11 @@
     }
 
     const isActive = localStorage.getItem('mishil_subscription_active') === 'true';
-    if (!isActive && localStorage.getItem('mishil_reviewer_bypass') !== '1' && localStorage.getItem('mishil_subscription_plan') !== 'family_vip') {
+    const isVerifiedFamilyVip = localStorage.getItem('mishil_subscription_plan') === 'family_vip' && localStorage.getItem('mishil_family_vip_verified') === '1';
+    if (!isActive && localStorage.getItem('mishil_reviewer_bypass') !== '1' && !isVerifiedFamilyVip) {
       localStorage.removeItem('mishil_trial_start');
       localStorage.removeItem('mishil_rc_verified');
+      localStorage.removeItem('mishil_family_vip_verified');
     }
     const plan = localStorage.getItem('mishil_subscription_plan') || 'monthly';
     const currSym = getActiveCurrencySymbol();
@@ -9056,11 +9178,13 @@
     syncHomeConversionBanners();
     if (typeof renderHomeCareSummaryAndCircadianStrip === 'function') renderHomeCareSummaryAndCircadianStrip();
     if (typeof renderSoundsList === 'function') renderSoundsList();
-    // Ana ekran MışılSpot başlık ve saat kilidini canlı güncelle
+    // Ana ekran MışılSpot başlık ve saat kilidini canlı güncelle (S3: İlk MışılSpot™ 1-Shot Aha! Hediyesi Açık)
     const baby = typeof getBaby === 'function' ? getBaby() : null;
     if (baby && typeof calculateMışılSpot === 'function' && !isSleeping) {
       const calc = calculateMışılSpot(baby.bdate);
-      const lockedSpot = !isSubscriptionCurrentlyActive();
+      const isSubActive = isSubscriptionCurrentlyActive();
+      const firstAhaAvailable = localStorage.getItem('mishil_first_spot_aha_used') !== '1';
+      const lockedSpot = !isSubActive && !firstAhaAvailable;
       const disp = document.getElementById('target-sleep-display');
       const sub = document.getElementById('target-sleep-subtext');
       const badge = document.getElementById('sweetspot-status-badge');
@@ -9084,6 +9208,12 @@
             : `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,168,85,0.18);border:1px solid var(--accent);color:var(--accent);padding:5px 12px;border-radius:999px;font-weight:700;font-size:11px;">🔓 MışılSpot™ Akıllı Uyku Saatlerini Aç (7 Gün ${currSym}0) ➔</span>`;
           sub.style.cursor = 'pointer';
           sub.onclick = () => openVipRenewalModal('mishil_spot');
+        } else if (!isSubActive && firstAhaAvailable) {
+          sub.textContent = isEn()
+            ? `${calc.statusNote} • 🎁 1st Live Sleep Trial Free`
+            : `${calc.statusNote} • 🎁 İlk Canlı Uyku Takibi Ücretsiz`;
+          sub.style.cursor = 'default';
+          sub.onclick = null;
         } else {
           sub.textContent = calc.statusNote;
           sub.style.cursor = 'default';
@@ -9093,9 +9223,11 @@
       if (badge) {
         badge.textContent = lockedSpot
           ? (isEn() ? '🔒 MışılSpot™ Sleep Window (VIP)' : '🔒 MışılSpot™ Uyku Saati (VIP)')
-          : (calc.isOverdue
-            ? (isEn() ? '⚠️ Sleep Window Overdue' : '⚠️ Uyku Vakti Aşıldı')
-            : (calc.isManual ? (isEn() ? '⚡ Early Leap Mode Active' : '⚡ Erken Atak Modu Aktif') : (isEn() ? 'MışılSpot™ Prediction Active' : 'MışılSpot™ Önerisi Aktif')));
+          : (!isSubActive && firstAhaAvailable
+            ? (isEn() ? '🎁 First MışılSpot™ Gift Unlocked' : '🎁 İlk MışılSpot™ Hediyeniz Açık')
+            : (calc.isOverdue
+              ? (isEn() ? '⚠️ Sleep Window Overdue' : '⚠️ Uyku Vakti Aşıldı')
+              : (calc.isManual ? (isEn() ? '⚡ Early Leap Mode Active' : '⚡ Erken Atak Modu Aktif') : (isEn() ? 'MışılSpot™ Prediction Active' : 'MışılSpot™ Önerisi Aktif'))));
       }
     }
   }
@@ -9160,12 +9292,15 @@
     const dp = getDynamicPricingState(window.__MISHIL_STORE_PRICES__ || {});
     const en = isEn();
 
-    // 1. Ana Aylık & Yıllık Fiyatlar
+    // 1. Ana Aylık & Yıllık Fiyatlar + Yıllık Planın Aylık Karşılık Çıpası (S4)
     document.querySelectorAll('.price-monthly-text').forEach(el => {
       el.textContent = dp.monthlyStr;
     });
     document.querySelectorAll('.price-yearly-text').forEach(el => {
       el.textContent = dp.yearlyStr;
+    });
+    document.querySelectorAll('.price-yearly-monthly-eq-text').forEach(el => {
+      el.textContent = dp.monthlyEqStr;
     });
 
     // 2. Yıllık Planın Aylık & Günlük Karşılıkları ve Tasarruf Yüzdesi
@@ -9198,11 +9333,20 @@
     document.querySelectorAll('.badge-trial-7d').forEach(el => {
       el.textContent = en ? `7 DAYS ${dp.zeroStr}` : `7 GÜN ${dp.zeroStr}`;
     });
-    document.querySelectorAll('.text-zero-today-shield').forEach(el => {
-      el.textContent = en
-        ? `🛡️ Pay ${dp.zeroStr} today • No charge on your card for 7 days`
-        : `🛡️ Bugün ${dp.zeroStr} ödersiniz • 7 gün boyunca kartınızdan ücret çekilmez`;
+    document.querySelectorAll('.text-zero-today-shield').forEach((el, idx) => {
+      if (idx === 0) {
+        el.innerHTML = en
+          ? `🛡️ Pay ${dp.zeroStr} today • ${dp.zeroStr} until <span id="onboarding-trial-end-text">7 days</span>`
+          : `🛡️ Bugün ${dp.zeroStr} ödersiniz • <span id="onboarding-trial-end-text">7 gün</span> tarihine kadar ${dp.zeroStr}`;
+      } else {
+        el.textContent = en
+          ? `🛡️ Pay ${dp.zeroStr} today • No charge on your card for 7 days`
+          : `🛡️ Bugün ${dp.zeroStr} ödersiniz • 7 gün boyunca kartınızdan ücret çekilmez`;
+      }
     });
+    if (typeof updateTrialEndDateDisplay === 'function') {
+      updateTrialEndDateDisplay();
+    }
 
     // 4. 8. Gün Zaman Çizelgesi & CTA Butonları (Apple Guideline 3.1.2c)
     const day7El = document.getElementById('onboarding-timeline-day7-text');
@@ -9288,10 +9432,28 @@
     }
 
     if (!nextSleepDate) {
-      nextSleepDate = new Date(now.getTime() + wakeWindowMinutes * 60000);
-      statusNote = isEn()
-        ? `MışılSpot™ Prediction • wake window ${wakeWindowMinutes} min`
-        : `MışılSpot™ Önerisi • uyanıklık penceresi ${wakeWindowMinutes} dk`;
+      const onbWakeRaw = localStorage.getItem('mishil_onboarding_last_wake_ts');
+      const onbWakeTs = onbWakeRaw ? Number(onbWakeRaw) : 0;
+      const onbElapsedMins = onbWakeTs > 0 ? Math.floor((now.getTime() - onbWakeTs) / 60000) : -1;
+      if (onbElapsedMins >= 0 && onbElapsedMins < 720) {
+        nextSleepDate = new Date(onbWakeTs + wakeWindowMinutes * 60000);
+        if (now.getTime() > nextSleepDate.getTime()) {
+          isOverdue = true;
+          statusNote = isEn()
+            ? `⚠️ Wake window (${wakeWindowMinutes} min) exceeded! Put baby to sleep now`
+            : `⚠️ Uyanıklık penceresi (${wakeWindowMinutes} dk) aşıldı! Bebeği hemen uyutun`;
+        } else {
+          const remMins = Math.max(1, Math.floor((nextSleepDate.getTime() - now.getTime()) / 60000));
+          statusNote = isEn()
+            ? `From last wake • sleep time in ${remMins} min`
+            : `Son uyanmadan itibaren • ${remMins} dk sonra uyku vakti`;
+        }
+      } else {
+        nextSleepDate = new Date(now.getTime() + wakeWindowMinutes * 60000);
+        statusNote = isEn()
+          ? `MışılSpot™ Prediction • wake window ${wakeWindowMinutes} min`
+          : `MışılSpot™ Önerisi • uyanıklık penceresi ${wakeWindowMinutes} dk`;
+      }
     }
 
     const th = String(nextSleepDate.getHours()).padStart(2, '0');
@@ -10233,8 +10395,16 @@
 
   function openCryModal() {
     hapticPulse();
-    if (!requireActiveSubscription('cry_analysis')) {
-      return;
+    if (!isSubscriptionCurrentlyActive()) {
+      if (localStorage.getItem('mishil_free_cry_trial_used') !== '1') {
+        localStorage.setItem('mishil_free_cry_trial_used', '1');
+        showToast(isEn()
+          ? '🎁 Your 1st Smart Cry Guide analysis is unlocked for free!'
+          : '🎁 İlk Akıllı Ağlama Rehberi analiz hakkınız ücretsiz açıldı!');
+      } else {
+        openVipRenewalModal('cry_analysis');
+        return;
+      }
     }
     editingRoutineId = null;
     const headerTitle = document.getElementById('routine-modal-header-title');
@@ -10255,8 +10425,13 @@
 
   async function toggleLiveSleep() {
     hapticPulse();
-    if (!isSleeping && !requireActiveSubscription('mishil_spot')) {
-      return;
+    if (!isSleeping && !isSubscriptionCurrentlyActive()) {
+      if (localStorage.getItem('mishil_free_sleep_trial_used') !== '1') {
+        // S3: İlk canlı uyku takip seansına ücretsiz izin ver (Endowment Effect & İlk Aha! Anı)
+      } else {
+        openVipRenewalModal('mishil_spot');
+        return;
+      }
     }
     isSleeping = !isSleeping;
     updateFabSleepState(isSleeping);
@@ -10347,11 +10522,15 @@
       targetDisp.style.color = 'var(--heading-night)';
       liveTimer.style.display = 'none';
 
-      // Dinamik MışılSpot: Bebeğin uyanıklık penceresi kadar ekle (Sınırlı Modda kilitli)
+      // Dinamik MışılSpot: Bebeğin uyanıklık penceresi kadar ekle (S3: İlk seans tamamlandıktan sonra 2. MışılSpot kilitlenir)
       const _baby = getBaby();
       const _calc = _baby ? calculateMışılSpot(_baby.bdate) : { wakeWindowMin: 90 };
       const nextSleepDate = new Date(endTime.getTime() + _calc.wakeWindowMin * 60000);
       const nextSleepFormatted = `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
+      if (!isSubscriptionCurrentlyActive()) {
+        localStorage.setItem('mishil_free_sleep_trial_used', '1');
+        localStorage.setItem('mishil_first_spot_aha_used', '1');
+      }
       const lockedSpot = !isSubscriptionCurrentlyActive();
       const currSym = getActiveCurrencySymbol();
       if (lockedSpot) {
@@ -12028,6 +12207,17 @@
     'Görünüm & Tema': 'Appearance & Theme',
     'Gece beslenmelerinde göz yormayan Koyu Mod veya aydınlık gündüz kullanımını seçin.': 'Choose eye-friendly Dark Mode for night feedings or bright Day Mode.',
     'Şimdilik Sınırlı Modda Keşfet ➔': 'Explore in Limited Mode for Now ➔',
+    'Şimdilik İlk MışılSpot™ Saatimle Başla ➔': 'Start with My First MışılSpot™ Window for Now ➔',
+    'En Son Ne Zaman Uyandı?': 'When Did Your Baby Last Wake Up?',
+    '(İlk MışılSpot™ Saati İçin)': '(For 1st MışılSpot™ Window)',
+    '☀️ Yeni Uyandı': '☀️ Just Woke Up',
+    '⏱️ 45 dk önce': '⏱️ 45 min ago',
+    '🕜 1.5 saat önce': '🕜 1.5h ago',
+    '😴 2.5+ saat': '😴 2.5h+ ago',
+    '🌙 Hesaplanan İlk MışılSpot™ Uyku Vakti': '🌙 Calculated First MışılSpot™ Sleep Window',
+    '✓ Hazır': '✓ Ready',
+    'Bebeğinizin sirkadiyen ritim haritası adım adım kalibre ediliyor:': 'Your baby\'s circadian rhythm map is calibrating step by step:',
+    '✓ 1. Gün: İlk MışılSpot™': '✓ Day 1: 1st MışılSpot™',
     'Önceki Satın Alımları Geri Yükle': 'Restore Previous Purchases',
     '⚖️ Kullanım Koşulları (EULA)': '⚖️ Terms of Use (EULA)',
     '🔒 Gizlilik Politikası': '🔒 Privacy Policy',

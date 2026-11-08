@@ -1171,10 +1171,61 @@ def test_v4_48_0_returning_users_and_paywall_cancellation_cro(client, db_session
         app_html = fh.read()
 
     assert "applyQuickBabyAgeMonths(" in app_html
+    assert "applyQuickLastWakeMinsAgo(" in app_html
     assert "vipRenewalSelectedPlan = 'monthly';" in app_html
     assert "paywall_cancel_recovery_shown" in app_html
     assert "sound_preview_60s_ended" in app_html
     assert "getDynamicPricingState" in app_html
-    assert "version: '4.48.1'" in app_html
+    assert "report-next-sweetspot-time" in app_html
+    assert "onboarding-trial-end-text" in app_html
+    assert "vip-calibration-progress-box" in app_html
+    assert "mishil_family_vip_verified" in app_html
+    assert "mishil_free_sleep_trial_used" in app_html
+    assert "mishil_free_cry_trial_used" in app_html
+    assert "version: '4.48.2'" in app_html
+
+
+def test_s8_ios_rc_anonymous_id_ghost_purge_and_unverified_sync_ignore(client, db_session):
+    """S8: Doğrulanmamış sıfır tutarlı iOS RCAnonymousID hayalet satırlarının temizlendiğini ve istemci sync'te reddedildiğini doğrular."""
+    from app.db.models import SubscriberLedger
+    from app.api.v1.endpoints.analytics import _build_analytics_summary
+
+    ghost_sid = "$RCAnonymousID:03541926461e499fb7b22b285ec26174"
+    db_session.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == ghost_sid).delete()
+    db_session.add(
+        SubscriberLedger(
+            subscriber_id=ghost_sid,
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Mışıl Baby Yıllık VIP",
+            status="cancelled",
+            offer_type="intro_free_trial",
+            started_date="2026-09-16",
+            maturity_or_renewal_date="2026-09-23",
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            auto_renew_enabled=False,
+        )
+    )
+    db_session.commit()
+
+    # Mutabakat çalıştığında 0 TL'lik iOS RCAnonymousID hayalet kaydı silinmeli
+    _ = _build_analytics_summary(db_session, period="all")
+    remaining = db_session.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == ghost_sid).first()
+    assert remaining is None
+
+    # Doğrulanmamış istemci /subscriber-sync çağrısı RCAnonymousID gönderdiğinde yoksayılmalı
+    res = client.post(
+        "/api/v1/analytics/subscriber-sync",
+        json={
+            "subscriber_id": "$RCAnonymousID:ghost_test_999",
+            "platform": "ios",
+            "product_id": "misil_annual",
+            "status": "intro_free_trial",
+        },
+    )
+    assert res.status_code == 200
+    assert res.json()["status"] == "ignored_unverified_dev_id"
+
 
 
