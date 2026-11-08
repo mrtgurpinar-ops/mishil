@@ -5038,7 +5038,7 @@
         }
       } catch (_fse) {}
       try { localStorage.setItem('mishil_vip_sig_v1', '1'); if (typeof window.sendMishilAnalyticsSignal === 'function') window.sendMishilAnalyticsSignal('vip_started'); if (typeof window.syncSubscriberToAnalytics === 'function') window.syncSubscriberToAnalytics(data || { plan: plan, isActive: true }); } catch (_vse) {}
-      showToast('🎉 Mışıl VIP aktif edildi!');
+      showToast(isEn() ? '🎉 Mışıl VIP activated!' : '🎉 Mışıl VIP aktif edildi!');
       if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
     },
 
@@ -5146,10 +5146,10 @@
       closeAdminGateModal();
       const overlay = document.getElementById('web-guard-overlay');
       if (overlay) overlay.classList.remove('active');
-      showToast('🔓 Yönetici erişimi aktif edildi');
+      showToast(isEn() ? '🔓 Admin access enabled' : '🔓 Yönetici erişimi aktif edildi');
       if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
     } else {
-      showToast('❌ Hatalı şifre');
+      showToast(isEn() ? '❌ Incorrect password' : '❌ Hatalı şifre');
       if (input) input.value = '';
     }
   }
@@ -5217,10 +5217,10 @@
           if (typeof isSubscriptionCurrentlyActive === 'function' && !isSubscriptionCurrentlyActive()) {
             openVipRenewalModal('vip_sound');
           } else if (typeof notifyTimerStoppedOnce === 'function') {
-            notifyTimerStoppedOnce((typeof timerFadeOutEnabled !== 'undefined' && timerFadeOutEnabled) ? '💤 Ses kademeli kısılarak kapatıldı' : '💤 Kapanma zamanlayıcısı sesi durdurdu');
+            notifyTimerStoppedOnce((typeof timerFadeOutEnabled !== 'undefined' && timerFadeOutEnabled) ? (isEn() ? '💤 Sound gently faded out and stopped' : '💤 Ses kademeli kısılarak kapatıldı') : (isEn() ? '💤 Sleep timer stopped the sound' : '💤 Kapanma zamanlayıcısı sesi durdurdu'));
           }
         }
-        if (!msg.playing && msg.reason === 'error') showToast('⚠️ Bu ses şu an oynatılamadı, başka bir parça deneyin');
+        if (!msg.playing && msg.reason === 'error') showToast(isEn() ? '⚠️ Could not play this sound right now, please try another track' : '⚠️ Bu ses şu an oynatılamadı, başka bir parça deneyin');
       }
     } catch(e) {}
   });
@@ -6183,7 +6183,7 @@
               currentTrackId = null;
               resetActiveTimerUI(false);
               updatePlayerUI();
-              notifyTimerStoppedOnce('💤 Ses kademeli kısılarak kapatıldı');
+              notifyTimerStoppedOnce(isEn() ? '💤 Sound gently faded out and stopped' : '💤 Ses kademeli kısılarak kapatıldı');
             }
           }, stepMs);
         }, fadeStartDelayMs);
@@ -6202,7 +6202,7 @@
             currentTrackId = null;
             resetActiveTimerUI(false);
             updatePlayerUI();
-            notifyTimerStoppedOnce('💤 Ses kademeli kısılarak kapatıldı');
+            notifyTimerStoppedOnce(isEn() ? '💤 Sound gently faded out and stopped' : '💤 Ses kademeli kısılarak kapatıldı');
           });
         } else {
           resetActiveTimerUI(false);
@@ -6217,7 +6217,7 @@
           currentTrackId = null;
           resetActiveTimerUI(false);
           updatePlayerUI();
-          notifyTimerStoppedOnce('💤 Kapanma zamanlayıcısı sesi durdurdu');
+          notifyTimerStoppedOnce(isEn() ? '💤 Sleep timer stopped the sound' : '💤 Kapanma zamanlayıcısı sesi durdurdu');
         } else {
           resetActiveTimerUI(false);
         }
@@ -6331,12 +6331,18 @@
     }
   }
 
+  const AI_CHIP_PROMPTS_EN = {
+    '🌙 Bebeğim 30 dk sonra ağlayarak uyandı, ne yapmalıyım?': '🌙 My baby woke up crying after 30 minutes, what should I do?',
+    '🍼 Gece beslenmesini nasıl kademeli azaltırım?': '🍼 How can I gradually reduce night feedings?',
+    '⚠️ 4. ay uyku regresyonu nedir ve ne kadar sürer?': '⚠️ What is the 4-month sleep regression and how long does it last?'
+  };
   function askAiPrompt(question) {
     if (isDadiGenerating) return;
     hapticPulse();
+    const finalQuestion = (isEn() && AI_CHIP_PROMPTS_EN[question]) ? AI_CHIP_PROMPTS_EN[question] : question;
     const input = document.getElementById('chat-user-input');
-    if (input) input.value = question;
-    submitDadiChat(question);
+    if (input) input.value = finalQuestion;
+    submitDadiChat(finalQuestion);
   }
 
   function handleSendAiMessage(e) {
@@ -7959,17 +7965,17 @@
     const codeInput = document.getElementById('join-family-code');
     const nameInput = document.getElementById('join-parent-name');
     if (!codeInput || !codeInput.value.trim()) {
-      showToast('⚠️ Lütfen 6 haneli Aile Kodunu giriniz.');
+      showToast(isEn() ? '⚠️ Please enter the 6-character Family Code.' : '⚠️ Lütfen 6 haneli Aile Kodunu giriniz.');
       return;
     }
     const code = codeInput.value.trim().toUpperCase();
-    const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : (selectedJoinRole === 'father' ? 'Baba' : 'Anne');
-    const roleText = selectedJoinRole === 'mother' ? 'Anne 👩' : (selectedJoinRole === 'father' ? 'Baba 👨' : 'Dadı / Bakıcı 👵');
+    const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : (selectedJoinRole === 'father' ? (isEn() ? 'Dad' : 'Baba') : (isEn() ? 'Mom' : 'Anne'));
+    const roleText = formatFamilyRoleLabel(selectedJoinRole);
 
     const btn = document.getElementById('btn-submit-join-family');
     if (btn) {
       btn.disabled = true;
-      btn.innerHTML = '🔄 Aileye Bağlanılıyor...';
+      btn.innerHTML = isEn() ? '🔄 Connecting to Family...' : '🔄 Aileye Bağlanılıyor...';
     }
 
     try {
@@ -8013,7 +8019,7 @@
           if (Array.isArray(fam.members)) {
             const mappedMembers = fam.members.map(m => ({
               name: m.name,
-              role: m.role === 'mother' ? 'Anne 👩' : (m.role === 'father' ? 'Baba 👨' : 'Dadı / Bakıcı 👵'),
+              role: formatFamilyRoleLabel(m.role),
               isSelf: m.name === name
             }));
             localStorage.setItem('mishil_family_members', JSON.stringify(mappedMembers));
@@ -8026,18 +8032,18 @@
           loadBabyProfile();
           renderFamilyMembers();
           renderAllViews();
-          showToast(`🎉 ${fam.baby.name}'in ailesine başarıyla bağlandınız!`);
+          showToast(isEn() ? `🎉 Connected to ${fam.baby.name}'s family!` : `🎉 ${fam.baby.name}'in ailesine başarıyla bağlandınız!`);
           if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
           return;
         }
       }
-      showToast('⚠️ Aile kodu bulunamadı. Lütfen eşinizin ekranındaki kodu kontrol ediniz.');
+      showToast(isEn() ? '⚠️ Family code not found. Please check the code on your partner\'s screen.' : '⚠️ Aile kodu bulunamadı. Lütfen eşinizin ekranındaki kodu kontrol ediniz.');
     } catch (e) {
-      showToast('⚠️ Bağlantı hatası. Lütfen internet bağlantınızı kontrol edip tekrar deneyiniz.');
+      showToast(isEn() ? '⚠️ Connection error. Please check your internet connection and try again.' : '⚠️ Bağlantı hatası. Lütfen internet bağlantınızı kontrol edip tekrar deneyiniz.');
     } finally {
       if (btn) {
         btn.disabled = false;
-        btn.innerHTML = '🔗 Aileye Bağlan ve Bebeği Senkronize Et';
+        btn.innerHTML = isEn() ? '🔗 Join Family & Sync Baby' : '🔗 Aileye Bağlan ve Bebeği Senkronize Et';
       }
     }
   }
@@ -8046,12 +8052,12 @@
     hapticPulse();
     const input = document.getElementById('settings-join-family-code');
     if (!input || !input.value.trim()) {
-      showToast('⚠️ Lütfen bağlanmak istediğiniz Aile Kodunu giriniz.');
+      showToast(isEn() ? '⚠️ Please enter the Family Code you want to join.' : '⚠️ Lütfen bağlanmak istediğiniz Aile Kodunu giriniz.');
       return;
     }
     const code = input.value.trim().toUpperCase();
     const currentRole = localStorage.getItem('mishil_user_role') || 'father';
-    const currentName = localStorage.getItem('mishil_user_name') || (currentRole === 'father' ? 'Baba' : 'Anne');
+    const currentName = localStorage.getItem('mishil_user_name') || (currentRole === 'father' ? (isEn() ? 'Dad' : 'Baba') : (isEn() ? 'Mom' : 'Anne'));
 
     try {
       const url = `${getApiBaseUrl()}/family/join`;
@@ -8090,7 +8096,7 @@
           if (Array.isArray(fam.members)) {
             const mappedMembers = fam.members.map(m => ({
               name: m.name,
-              role: m.role === 'mother' ? 'Anne 👩' : (m.role === 'father' ? 'Baba 👨' : 'Dadı / Bakıcı 👵'),
+              role: formatFamilyRoleLabel(m.role),
               isSelf: m.name === currentName
             }));
             localStorage.setItem('mishil_family_members', JSON.stringify(mappedMembers));
@@ -8099,13 +8105,13 @@
           loadBabyProfile();
           renderFamilyMembers();
           renderAllViews();
-          showToast(`✅ ${fam.baby.name}'in ailesine başarıyla bağlandınız!`);
+          showToast(isEn() ? `✅ Connected to ${fam.baby.name}'s family!` : `✅ ${fam.baby.name}'in ailesine başarıyla bağlandınız!`);
           return;
         }
       }
-      showToast('⚠️ Aile kodu bulunamadı. Lütfen kodu kontrol ediniz.');
+      showToast(isEn() ? '⚠️ Family code not found. Please check the code.' : '⚠️ Aile kodu bulunamadı. Lütfen kodu kontrol ediniz.');
     } catch (e) {
-      showToast('⚠️ Bağlantı hatası, lütfen tekrar deneyiniz.');
+      showToast(isEn() ? '⚠️ Connection error, please try again.' : '⚠️ Bağlantı hatası, lütfen tekrar deneyiniz.');
     }
   }
 
@@ -8113,16 +8119,16 @@
     hapticPulse();
     const input = document.getElementById('new-family-member-name');
     if (!input || !input.value.trim()) {
-      showToast('⚠️ Lütfen üye veya dadı adını giriniz.');
+      showToast(isEn() ? '⚠️ Please enter a family member or nanny name.' : '⚠️ Lütfen üye veya dadı adını giriniz.');
       return;
     }
     const name = input.value.trim();
     const members = getFamilyMembers();
-    members.push({ name, role: 'Dadı / Bakıcı 👵' });
+    members.push({ name, role: formatFamilyRoleLabel('nanny') });
     localStorage.setItem('mishil_family_members', JSON.stringify(members));
     input.value = '';
     renderFamilyMembers();
-    showToast(`✅ ${name} aile listesine eklendi.`);
+    showToast(isEn() ? `✅ ${name} added to family list.` : `✅ ${name} aile listesine eklendi.`);
   }
 
   function removeFamilyMember(idx) {
@@ -8131,18 +8137,20 @@
     members.splice(idx, 1);
     localStorage.setItem('mishil_family_members', JSON.stringify(members));
     renderFamilyMembers();
-    showToast('Üye silindi.');
+    showToast(isEn() ? 'Member removed.' : 'Üye silindi.');
   }
 
   function shareFamilyInviteLink() {
     hapticPulse();
-    const baby = getBaby() || { name: 'Bebeğim' };
+    const baby = getBaby() || { name: getDefaultBabyName() };
     const code = getOrGenerateFamilyCode();
     const inviteUrl = `https://mishil-production.up.railway.app/app?code=${code}&baby=${encodeURIComponent(baby.name)}`;
     if (navigator.share) {
       navigator.share({
-        title: `Mışıl Baby — ${baby.name} İçin Aile & Dadı Daveti`,
-        text: `Mışıl Baby'de ${baby.name}'in uyku, beslenme ve aşı takibini birlikte yapalım! Aile Paylaşım Kodu: ${code}`,
+        title: isEn() ? `Mışıl Baby — Family & Nanny Invite for ${baby.name}` : `Mışıl Baby — ${baby.name} İçin Aile & Dadı Daveti`,
+        text: isEn()
+          ? `Let's track ${baby.name}'s sleep, feeding, and vaccines together on Mışıl Baby! Family Invite Code: ${code}`
+          : `Mışıl Baby'de ${baby.name}'in uyku, beslenme ve aşı takibini birlikte yapalım! Aile Paylaşım Kodu: ${code}`,
         url: inviteUrl
       }).catch(() => copyFamilyInviteLink(inviteUrl));
     } else {
@@ -8153,7 +8161,7 @@
   function copyFamilyInviteLink(url) {
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url).then(() => {
-        showToast('📋 Davet bağlantısı panoya kopyalandı!');
+        showToast(isEn() ? '📋 Invite link copied to clipboard!' : '📋 Davet bağlantısı panoya kopyalandı!');
       }).catch(() => showToast(`📋 Link: ${url}`));
     } else {
       showToast(`📋 Link: ${url}`);
@@ -11681,7 +11689,9 @@
     }
     const last = sleepLogs[0];
     const dMins = last.durationMins || 0;
-    const dText = Math.floor(dMins / 60) > 0 ? `${Math.floor(dMins / 60)}s ${dMins % 60}dk` : `${dMins} dk`;
+    const dText = Math.floor(dMins / 60) > 0
+      ? (isEn() ? `${Math.floor(dMins / 60)}h ${dMins % 60}m` : `${Math.floor(dMins / 60)}s ${dMins % 60}dk`)
+      : (isEn() ? `${dMins} min` : `${dMins} dk`);
     const extracted = extractSleepStartEnd(last);
     const range = `${extracted.start} - ${extracted.end} (${dText})`;
     sumEl.textContent = range;
@@ -11750,10 +11760,10 @@
       const hrs = String(Math.floor(diff / 3600)).padStart(2, '0');
       const mins = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
       const secs = String(diff % 60).padStart(2, '0');
-      liveTimer.textContent = `💤 Canlı Uyku: ${hrs}:${mins}:${secs}`;
+      liveTimer.textContent = isEn() ? `💤 Live Sleep: ${hrs}:${mins}:${secs}` : `💤 Canlı Uyku: ${hrs}:${mins}:${secs}`;
     }
     closeLiveSleepStartEditModal();
-    showToast(`✅ Uyku başlangıç saati ${val} olarak güncellendi`);
+    showToast(isEn() ? `✅ Sleep start time updated to ${val}` : `✅ Uyku başlangıç saati ${val} olarak güncellendi`);
   }
 
   function openEditRoutineModal(id) {
@@ -12480,7 +12490,283 @@
     '10 Büyük Zihinsel Sıçrama & Atak Takvimi': '10 Mental Growth Leaps & Schedule',
     '🎙️ Akıllı Ağlama Rehberi': '🎙️ Smart Cry Guide',
     '💾 Bebek Profilini Güncelle': '💾 Update Baby Profile',
-    'Değişiklikleri Kaydet': 'Save Changes'
+    'Değişiklikleri Kaydet': 'Save Changes',
+// --- ONBOARDING 5-ADIM ANKET & RAPOR TAM ÇEVİRİ SETİ (v4.48.2+) ---
+    'BUGÜN 0': '$0 TODAY',
+    '7 GÜN 0 • ESNEK': '7 DAYS $0 • FLEXIBLE',
+    '7 GÜN 0': '7 DAYS $0',
+    '✅ İşlem Başarılı': '✅ Action Completed',
+    'ADIM 1 / 5': 'STEP 1 / 5',
+    'ADIM 2 / 5': 'STEP 2 / 5',
+    'ADIM 3 / 5': 'STEP 3 / 5',
+    'ADIM 4 / 5': 'STEP 4 / 5',
+    'ADIM 5 / 5': 'STEP 5 / 5',
+    '🌟 Kişiselleştirilmiş Plan': '🌟 Personalized Plan',
+    'Hoş Geldiniz! Sizi ve Bebeğinizi Tanıyalım': 'Welcome! Let\'s Meet You and Your Baby',
+    'Mışıl Baby ve Mışıl Dadı, kişiselleştirilmiş rehberliğini ve uyanıklık takvimini ailenize özel hazırlar.': 'Mışıl Baby and Mışıl Nanny tailor personalized sleep guidance and wake windows to your family.',
+    'Sizin Rolünüz': 'Your Role',
+    '(Mışıl Dadı Hitabı)': '(For Mışıl Nanny)',
+    'Sizin Adınız': 'Your Name',
+    'Doğum Tarihi': 'Birth Date',
+    'Devam Et ➔': 'Continue ➔',
+    '👨‍👩‍👧 Eşinizin oluşturduğu Aile Paylaşım Kodu mu var? Buradan Katılın': '👨‍👩‍👧 Have a Family Invite Code from your partner? Join Here',
+    'Uykuya dalarken ne kadar direniyor/ağlıyor?': 'How much does your baby resist or cry at bedtime?',
+    'Çok rahat ve huzurlu dalıyor (5-10 dk)': 'Falls asleep very calmly and peacefully (5–10 min)',
+    'Yatağına bırakınca kendi kendine sakinleşiyor': 'Settles independently when placed in the crib',
+    'Kolay dalıyor (10-15 dk)': 'Falls asleep easily (10–15 min)',
+    'Hafif pışpışlama veya ninni yetiyor': 'Gentle shushing or a lullaby is enough',
+    'Zorlanıyor (30-45 dk)': 'Struggles to fall asleep (30–45 min)',
+    'Sürekli kucakta sallama ve pışpış istiyor': 'Needs constant rocking in arms and shushing',
+    'Ağlama krizleri (1 saat+)': 'Crying spells (1 hour+)',
+    'Aşırı yorulup uykuya şiddetle direniyor': 'Gets overtired and strongly fights sleep',
+    'Geceleri kaç kez uyanıyor?': 'How many times does your baby wake at night?',
+    'Deliksiz uyuyor veya en fazla 1 rüya öğünü (0 - 1 kez)': 'Sleeps through or at most 1 dream feed (0–1x)',
+    '1 - 2 kez (Beslenip hemen geri dalıyor)': '1–2 times (Feeds and falls right back asleep)',
+    '3 - 4 kez (Desteksiz yeniden dalamıyor)': '3–4 times (Cannot resettle without help)',
+    '5+ kez (Saat başı uyanma / Gece nöbeti)': '5+ times (Hourly waking / Night shift)',
+    'Bebeğinizin gelişiminde öncelikli odağınız nedir?': 'What is your top priority in your baby\'s development?',
+    'Düzenli Uyku & Sağlıklı Sirkadiyen Ritim': 'Consistent Sleep & Healthy Circadian Rhythm',
+    'MışılSpot™ biyolojik uyku pencerelerini yakalama': 'Catching MışılSpot™ biological sleep windows',
+    'Gelişim Takibi & Zihinsel Sıçramalar': 'Development Tracking & Mental Leaps',
+    'BabySteps™ 10 gelişim atağı ve motor beceriler': 'BabySteps™ 10 mental leaps and motor milestones',
+    'Ağlama & Uyku Direncini Azaltma': 'Reducing Crying & Bedtime Resistance',
+    'Aşırı yorulmadan sakin ve huzurlu dalış': 'Calm and peaceful settling before overtiredness',
+    'Ağlama İpuçlarını & İhtiyaçları Anlama': 'Understanding Cry Cues & Baby Needs',
+    'Açlık, gaz ve yorgunluk akustik analizi': 'Acoustic analysis for hunger, gas, and tiredness',
+    '📊 Kişisel Uyku Raporumu Oluştur': '📊 Generate My Personal Sleep Report',
+    '📊 KİŞİSEL UYKU & HUZUR RAPORU': '📊 PERSONAL SLEEP & CALM REPORT',
+    '✏️ Yanıtlarımı Düzenle': '✏️ Edit My Answers',
+    'Bebeğiniz İçin Uyku Analizi': 'Sleep Analysis for Your Baby',
+    'Yaşa özel biyolojik uyanıklık penceresi:': 'Age-specific biological wake window:',
+    '90 dk': '90 min',
+    'Uyku Skoru': 'Sleep Score',
+    '⚠️ Yorgunluk Riski': '⚠️ Overtiredness Risk',
+    '🎯 7 Günlük Kişisel Hedef:': '🎯 7-Day Personal Goal:',
+    '✓ Uykuya dalma:': '✓ Time to fall asleep:',
+    '45 dk ➔ 12 dk': '45 min ➔ 12 min',
+    '✓ Gece uyanması:': '✓ Night wakings:',
+    '4 kez ➔ 1 kez': '4x ➔ 1x',
+    '✓ MışılSpot™ ile huzurlu uyku ritmi': '✓ Peaceful sleep rhythm with MışılSpot™',
+    '🌙 MışılSpot™ Saatleri': '🌙 MışılSpot™ Windows',
+    'Yaşına özel en ideal uyku vakti': 'Ideal sleep time tailored to age',
+    'Açlık, gaz ve uyku ipucu tespiti': 'Hunger, gas & sleep cue detection',
+    '🤖 Mışıl Dadı™ 7/24': '🤖 Mışıl Nanny™ 24/7',
+    "Gece 03:00'te anında kişisel yanıt": 'Instant personal guidance at 3:00 AM',
+    '🎧 18 Stüdyo Sesi': '🎧 18 Studio Sounds',
+    'Kilitli ekranda anne karnı & pışpış': 'Womb & shush sounds on lock screen',
+    '🛡️ 7 Günlük Ücretsiz Deneme Nasıl Çalışır?': '🛡️ How Does Your 7-Day Free Trial Work?',
+    'MışılSpot™, Ağlama Rehberi ve 18 Stüdyo Sesi anında açılır — ücret çekilmez.': 'MışılSpot™, Cry Guide, and 18 Studio Sounds unlock immediately — no charge today.',
+    '1–7. GÜN': 'DAYS 1–7',
+    'Bebeğinizin uyku ritmi, büyüme atakları ve Mışıl Dadı™ rehberliği kişiselleştirilir.': 'Your baby\'s sleep rhythm, growth leaps, and Mışıl Nanny™ guidance are personalized.',
+    '8. GÜN': 'DAY 8',
+    'Memnun kalırsanız seçtiğiniz plan başlar • Tek tıkla iptal.': 'If you love it, your selected plan starts • One-tap cancel.',
+    '/yıl faturalanır': '/yr billed annually',
+    '🩺 Tıbbi Feragatname:': '🩺 Medical Disclaimer:',
+    'Mışıl Baby tıbbi teşhis aracı değildir; uyku pencereleri hekim tavsiyesi yerine geçmez. Kabul ediyorum.': 'Mışıl Baby is not a medical diagnostic tool; sleep windows do not replace pediatric advice. I agree.',
+    '🎁 7 Gün Ücretsiz Dene ve Başlat': '🎁 Try 7 Days Free & Start',
+    '🛡️ Bugün ücret ödenmez •': '🛡️ No charge today •',
+    '7 gün': '7 days',
+    'tarihine kadar ₺0': '$0 until then',
+    'Otomatik Yenileme:': 'Auto-Renewal:',
+    '7 günlük ücretsiz deneme süresi bitiminde seçilen plan üzerinden mağaza hesabınıza yansıtılır. Mevcut dönemin bitiminden en az 24 saat önce iptal edilmediği sürece abonelik otomatik yenilenir.': 'Charged to your store account via your selected plan after the 7-day free trial ends. Automatically renews unless canceled at least 24 hours before the end of the current period.',
+
+    // --- ANA EKRAN, ANALİZ, MIŞIL DADI & AYARLAR EK DİZGELER ---
+    '⏱️ Bugünkü Uykular (': '⏱️ Today\'s Sleeps (',
+    'Mışıl Spot™ Biyolojik Ritim': 'MışılSpot™ Biological Rhythm',
+    'Sonraki En İdeal Uyku Vakti (1 saat 15 dk kaldı)': 'Next Ideal Sleep Window (1h 15m left)',
+    '💤 Canlı Uyku: 00:00:00': '💤 Live Sleep: 00:00:00',
+    '🕓 Başlangıç:': '🕓 Started:',
+    '🌙 Son Uyku:': '🌙 Last Sleep:',
+    '🧬 7 Günlük Biyometrik Uyku Kalibrasyonu (Gün 1/7)': '🧬 7-Day Biometric Sleep Calibration (Day 1/7)',
+    '⏳ 3. Gün: Gece Haritası': '⏳ Day 3: Night Map',
+    '🔒 7. Gün: Ritim Raporu': '🔒 Day 7: Full Rhythm',
+    '🟢 Ritimde': '🟢 In Rhythm',
+    '0dk (0 uyku)': '0m (0 naps)',
+    'MışılSpot™ Takvimde ›': 'MışılSpot™ Schedule ›',
+    'Zihinsel sıçrama takvimi...': 'Mental leaps schedule...',
+    'Pediatrik aşı takvimi...': 'Pediatric vaccine schedule...',
+    'Kalan Gündüz Napı:': 'Remaining Daytime Naps:',
+    '2 Nap': '2 Naps',
+    '• Gece Uykusu Hedefi:': '• Bedtime Goal:',
+    '🌟 Denge Skoru: —': '🌟 Balance Score: —',
+    'Günlük uykular ve beslenmeler kaydedildikçe hesaplanır': 'Calculated as daily sleeps and feedings are logged',
+    'Bekleniyor ⏳': 'Pending ⏳',
+    'Takvimde ➔': 'On Schedule ➔',
+    'Sakin Dönem': 'Calm Phase',
+    '0 saat': '0 hrs',
+    'En uzun: —': 'Longest: —',
+    '0 kez (0 ml)': '0x (0 ml)',
+    'İlk kayıtlar bekleniyor': 'Awaiting first logs',
+    '🚼 Alt Değişimi': '🚼 Diaper Changes',
+    '0 bez': '0 diapers',
+    '0 ıslak / 0 kirli': '0 wet / 0 dirty',
+    '0 kez': '0x',
+    'Ortalama:': 'Average:',
+    'Kayıt biriktikçe hesaplanır': 'Calculated as logs accumulate',
+    'Takvim Aktif': 'Schedule Active',
+    '⚡ ERKEN ATAK': '⚡ EARLY LEAP',
+    'Merhaba sevgili anneciğim/babacığım!': 'Hello dear parent!',
+    'Ben Mışıl Dadı.': 'I am Mışıl Nanny. I know',
+    'Bebeğiniz': 'your baby',
+    "'in sirkadiyen ritmine, ayına ve uyku geçmişine hakimim. Uykuya direnişler, gece bölünmeleri veya beslenme düzeniyle ilgili aklınıza takılan her şeyi bana sorabilirsiniz.": "'s circadian rhythm, age, and sleep history inside out. Ask me anything about bedtime resistance, night wakings, or feeding schedules.",
+    'Koyu Gece Modu': 'Dark Night Mode',
+    'Profil eklenmedi': 'No profile added',
+    'Akıllı Bildirimler & Bakım Radarı': 'Smart Notifications & Care Radar',
+    'Aşı, Atak ve Uyku Bildirimleri Aktif': 'Vaccines, Leaps, Bedtime Alerts Active',
+    'T.C. Sağlık Bakanlığı aşı takvimi, büyüme sıçramaları ve akşam uyku kontrolü bildirimleri tamamen cihazınızda yerel ve gizli olarak planlanır.': 'Pediatric immunization reminders, mental leap alerts, and evening bedtime check-ins are scheduled locally and privately on your device.',
+    'Bulut Kodu:': 'Cloud Code:',
+    '• 2 Üye Bağlı': '• 2 Members Connected',
+    'Anne, baba ve dadı aynı bebeğin uykusunu, beslenmesini, aşılarını ve Mışıl Dadı koçluğunu canlı senkron takip eder.': 'Mom, dad, and nanny track the same baby\'s sleep, feedings, vaccines, and Mışıl Nanny coaching in live sync.',
+    'Eşinizin cihazındaki 6 haneli kodu girerek aynı bebeğin verilerine ortak bağlanın.': 'Enter the 6-character code from your partner\'s device to sync with the same baby.',
+    'Bebeğinizin uyku düzeni değiştikçe analiz testini tekrar çözüp güncel Uyku Sağlığı Skorunuzu görüntüleyin.': 'Retake the sleep assessment anytime as your baby\'s routine evolves to update your Sleep Health Score.',
+    'Yükleniyor...': 'Loading...',
+    'Abonelik Planınız ve Mağaza Durumu:': 'Your Subscription Plan & Store Status:',
+    '🎁 Yıllık VIP (Tasarruflu) Başlat': '🎁 Start Annual VIP (Best Value)',
+    '🔒 Gizlilik Politikası (Privacy Policy) ➔': '🔒 Privacy Policy ➔',
+    '⚖️ Kullanım Koşulları & Tıbbi Feragatname ➔': '⚖️ Terms of Use & Medical Disclaimer ➔',
+    '5 Yıldızla Anne Dayanışması': 'Rate 5 Stars & Support Parents',
+    'Mağazada 5 yıldız vererek diğer uykusuz annelere el uzatın': 'Help other tired parents discover Mışıl Baby with a 5-star review',
+    'Puan Ver ›': 'Rate ›',
+    '✨ Adım 1 / 4': '✨ Step 1 / 4',
+    '🌙 MışılSpot™ Altın Uyku Saati': '🌙 MışılSpot™ Golden Sleep Window',
+    'Bebeğinizin aşırı yorulmadan en kolay uykuya dalacağı dakika burada geri sayar.': 'Counts down to the exact minute your baby will fall asleep easiest without getting overtired.',
+    '🎹 Brahms Uyku Ninnisi': '🎹 Brahms Sleep Lullaby',
+    'Stüdyo Master • Kesintisiz Döngü': 'Studio Master • Continuous Loop',
+    'Bebeğinizin aşılarını tamamlandıkça işaretleyin. Takvim anında güncellenir ve Sağlık & Gelişim skoru beslenir.': 'Check off your baby\'s vaccines as they are completed. The schedule and Health & Development score update automatically.',
+
+    // --- ALT PENCERELER (MODALS: AĞLAMA, AİLE, RUTİN, CANLI UYKU, VIP, SİLME) ---
+    'Sıfır-Depolama Gizlilik Güvencesi:': 'Zero-Storage Privacy Guarantee:',
+    'Bebeğinizin ses kaydı sunucu veya cihaz diskine asla kaydedilmez; yalnızca 5 saniye boyunca anlık dinlenip derhal kalıcı olarak silinir.': 'Your baby\'s audio is never stored on any server or disk; it is analyzed in real time for 5 seconds and permanently discarded.',
+    'Dinlemek İçin Dokunun': 'Tap to Listen',
+    '5 saniye boyunca bebeğinizin ses tonunu ve ritmini dinleyerek açlık, gaz veya uyku ipucunu keşfeder.': 'Listens to your baby\'s pitch and rhythm for 5 seconds to identify hunger, gas, or sleep cues.',
+    'Olası İhtiyaç İpuçları': 'Possible Need Cues',
+    '● AKILLI SES İPUCU ANALİZİ': '● SMART ACOUSTIC CUE ANALYSIS',
+    'Akustik Ses Tespiti:': 'Acoustic Cue Detection:',
+    'Ses dalgası nöral yapay zekâ ile dinlendi.': 'Sound wave analyzed by neural acoustic AI.',
+    '🥱 Yorgunluk / Uyku İhtiyacı': '🥱 Tiredness / Sleep Need',
+    '🍼 Açlık Belirtisi': '🍼 Hunger Cue',
+    '💨 Gaz / Kolik': '💨 Gas / Colic',
+    'Mışıl Dadı Klinik Tavsiyesi:': 'Mışıl Nanny Clinical Tip:',
+    'Bebeğin biyolojik sinyalleri taranıyor...': 'Scanning biological cues...',
+    '🌙 Ninnileri Başlat & Uykuya Geç': '🌙 Start Lullabies & Soothe to Sleep',
+    '🔄 Yeniden Dinle': '🔄 Listen Again',
+    '🌸 Yenilikler & İyileştirmeler': '🌸 What\'s New & Improvements',
+    'Kapat': 'Close',
+    '🎁 7 Gün Ücretsiz Mışıl VIP Başlatın': '🎁 Start Your 7-Day Free Mışıl VIP Trial',
+    '★★★★★ 5.0 Mağaza Puanı': '★★★★★ 5.0 Store Rating',
+    'İlk 7 Gün ₺0 • Tek Tıkla İptal': 'First 7 Days $0 • One-Tap Cancel',
+    'Bebeğinizin yaşına özel uyku saatleri,': 'Age-specific sleep windows,',
+    'Akıllı Ağlama Rehberi': 'Smart Cry Guide',
+    '7/24 Mışıl Dadı': '24/7 Mışıl Nanny',
+    've 18 stüdyo sesine bugün ₺0 ile tam erişim.': 'and all 18 studio sounds for $0 today.',
+    'MışılSpot™ Saatleri': 'MışılSpot™ Windows',
+    'Günün Tüm Uyku Vakitleri': 'All Daily Sleep Windows',
+    'Açlık, Gaz & Uyku İpucu': 'Hunger, Gas & Sleep Cues',
+    'Mışıl Dadı™': 'Mışıl Nanny™',
+    '7/24 Dijital Gece Dadınız': 'Your 24/7 Digital Night Nanny',
+    '18 Stüdyo Sesi': '18 Studio Sounds',
+    '45/60 dk Sayaç & Gece Modu': '45/60m Timer & Night Crib Mode',
+    '🛡️ Bugün ücret ödenmez • 7 gün boyunca kartınızdan ücret çekilmez': '🛡️ Pay $0 today • No charge on your card for 7 days',
+    'Aboneliğiniz dönem sonunda otomatik yenilenir. İstediğiniz an mağaza hesap ayarlarınızdan tek tıkla iptal edebilirsiniz.': 'Your subscription renews automatically at the end of the period. Cancel anytime with one tap in your store account settings.',
+    'Reklam & Köprü Analitik Kokpiti (/ios & /download)': 'Ad & Attribution Analytics Cockpit (/ios & /download)',
+    'Anne Geri Bildirimleri Paneli': 'Parent Feedback Panel',
+    '⭐ 5 Yıldız Çarkını Canlı Önizle (Test)': '⭐ Preview 5-Star Rating Sheet (Test)',
+    'Miniğin bu gece sakinleşebildi mi?': 'Did your little one settle tonight?',
+    'Uykusuz nöbetlerde sana destek olmak için buradayız.': 'We are here to support you through every sleepless night.',
+    'Evet, Uyudu': 'Yes, Asleep',
+    'Hala Uyanık': 'Still Awake',
+    'Ne mutlu bize annecim! 🤍': 'We are so happy for you! 🤍',
+    "Bu sessiz gece nöbetinde diğer uykusuz annelerin de Mışıl'ı bulabilmesi için bize mağazada 5 yıldızla el uzatır mısın? Anne dayanışması gibisi yok.": 'Would you lend a hand with a 5-star review on the store so other tired parents can find Mışıl Baby during their night shifts?',
+    '5 Yıldız Ver': 'Give 5 Stars',
+    'Daha Sonra Hatırlat': 'Remind Me Later',
+    'Yalnız değilsin annecim 🤍': 'You are not alone 🤍',
+    'Bu geceler geçici... Hangi ses veya özellik miniğine daha iyi gelirdi, bize fısılda hemen ekleyelim:': 'These tough nights will pass... Tell us which sound or feature would help your baby most and we will add it right away:',
+    'Fısılda & Gönder 💌': 'Whisper & Send 💌',
+    '👨‍👩‍👧 Aileye / Bebeğe Bağlan': '👨‍👩‍👧 Join Family / Sync Baby',
+    'Eşinizin veya ailenizin paylaştığı 6 haneli Aile Paylaşım Kodunu girerek bebeğin uyku, rutin ve MışılSpot takibine anında canlı bağlanın.': 'Enter the 6-character Family Invite Code shared by your partner or family to connect to live sleep, routine, and MışılSpot tracking.',
+    'Adınız': 'Your Name',
+    '6 Haneli Aile Kodu': '6-Character Family Code',
+    '🔗 Aileye Bağlan ve Bebeği Senkronize Et': '🔗 Join Family & Sync Baby',
+    'Vazgeç': 'Cancel',
+    '+ Manuel Rutin & Uyku Ekle': '+ Add Routine & Sleep Log',
+    'Rutin Türü (Tek Dokunuşla Seçin)': 'Routine Type (One-Tap Select)',
+    'Uyku': 'Sleep',
+    'Bez': 'Diaper',
+    'Diğer': 'Other',
+    '🌙 Gündüz Uykusu': '🌙 Daytime Nap',
+    '🍼 Beslenme (Anne Sütü / Mama)': '🍼 Feeding (Breast Milk / Formula)',
+    '✨ Diğer Özel Rutin': '✨ Other Custom Routine',
+    'Uyku Başlangıç Saati': 'Sleep Start Time',
+    'Uyanış Saati': 'Wake-Up Time',
+    '⚡ Hızlı Saat Düzeltme (Uyuyakaldıysanız uyanışı geri çekin):': '⚡ Quick Time Adjust (Roll back wake time if you fell asleep):',
+    'Uyanış -15 dk': 'Wake -15m',
+    'Uyanış -30 dk': 'Wake -30m',
+    'Uyanış -1 saat': 'Wake -1h',
+    'Başlangıç -15 dk': 'Start -15m',
+    'Uyku Kalitesi': 'Sleep Quality',
+    '💤 Kesintisiz Derin Uyku': '💤 Uninterrupted Deep Sleep',
+    '⚡ Kısa Güç Şekerlemesi (Catnap)': '⚡ Short Power Nap (Catnap)',
+    '🥱 Bölünmüş / Destekli Uyku': '🥱 Interrupted / Assisted Sleep',
+    '🌙 Gece Uykusu': '🌙 Night Sleep',
+    'Hesaplanan Uyku Süresi:': 'Calculated Sleep Duration:',
+    '1 saat 15 dk (75 dk)': '1 hr 15 min (75 min)',
+    'Besleme Türü': 'Feeding Method',
+    '🤱 Anne Sütü (Emzirme)': '🤱 Breast Milk (Nursing)',
+    '🍼 Biberon — Sağılmış Anne Sütü': '🍼 Bottle — Pumped Breast Milk',
+    '🍼 Biberon — Mama': '🍼 Bottle — Formula',
+    '🥣 Katı / Ek Gıda': '🥣 Solid Food / Puree',
+    'Miktar (ml)': 'Amount (ml)',
+    'Süre (dk)': 'Duration (min)',
+    'Not (opsiyonel)': 'Note (optional)',
+    'Bez Durumu': 'Diaper Status',
+    '💧 Islak / Temiz Çiş Bezi': '💧 Wet / Pee Diaper',
+    '💩 Kirli Bez': '💩 Dirty / Poop Diaper',
+    '💧+💩 Dolu Bez Değişimi': '💧+💩 Both (Wet + Dirty)',
+    'Açıklama': 'Description',
+    'Kayıt Saati': 'Log Time',
+    '💾 Rutini Kaydet & Çizelgeye Ekle': '💾 Save Routine to Timeline',
+    '🕓 Canlı Uyku Başlangıç Saatini Düzelt': '🕓 Adjust Live Sleep Start Time',
+    'Bebeğiniz uykuya daldıktan sonra sayacı başlatmayı unuttuysanız veya geç bastıysanız gerçek uyku başlangıç saatini seçin:': 'If you forgot to start the timer or tapped late after your baby fell asleep, select the actual sleep start time:',
+    'Uykuya Dalma Saati': 'Fell Asleep At',
+    '⚡ Hızlı Geri Çek:': '⚡ Quick Rollback:',
+    '-10 dk': '-10m',
+    '-15 dk': '-15m',
+    '-30 dk': '-30m',
+    '-45 dk': '-45m',
+    '💾 Başlangıç Saatini Güncelle': '💾 Update Start Time',
+    'Resmi mağaza hesabınız taranıyor... Önceki Mışıl Baby VIP aboneliğiniz doğrulanmaktadır.': 'Scanning your official store account... Verifying your previous Mışıl Baby VIP subscription.',
+    '✓ Aboneliği Doğrula & Aktif Et': '✓ Verify & Activate Subscription',
+    '👑 VIP Üyelik & Mağaza Ayarları': '👑 VIP Membership & Store Settings',
+    'Bebeğiniz için kişiselleştirilmiş tüm Mışıl Baby VIP özellikleri şu anda hesabınızda aktif ve kullanıma açıktır:': 'All personalized Mışıl Baby VIP features for your baby are currently active and unlocked on your account:',
+    'MışılSpot™ Saatleri:': 'MışılSpot™ Windows:',
+    'Günün tüm ideal uyku pencereleri': 'All ideal daily sleep windows',
+    'Akıllı Ağlama Rehberi:': 'Smart Cry Guide:',
+    '5 saniyede açlık, gaz ve uyku tespiti': 'Hunger, gas & sleep detection in 5s',
+    'Mışıl Dadı™ 7/24:': 'Mışıl Nanny™ 24/7:',
+    'Gece yarısı anında kişisel danışmanlık': 'Instant personal coaching at midnight',
+    '18 Stüdyo Sesi:': '18 Studio Sounds:',
+    'Kilitli ekranda kesintisiz uyku sesleri': 'Uninterrupted lock-screen sleep sounds',
+    '✨ VIP Özelliklerimi Kullanmaya Devam Et': '✨ Keep Using My VIP Features',
+    'Mağaza Abonelik Ayarlarına Git ↗': 'Go to Store Subscription Settings ↗',
+    'Hesap ve Veri Silme': 'Delete Account & Data',
+    'Bu işlem bebeğinize ait tüm uyku günlüklerini ve profil verilerini kalıcı olarak silecektir. (Apple Guideline 5.1.1).': 'This action will permanently delete all sleep logs and profile data for your baby. (Apple Guideline 5.1.1).',
+    '🗑️ Kalıcı Olarak Sil': '🗑️ Delete Permanently',
+    'Mobil Uygulamaya Özel Deneyim': 'Mobile App Exclusive Experience',
+    'Kişiselleştirilmiş MışılSpot™ sirkadiyen uyku takibi, 18 stüdyo ninnisi ve yapay zekâ ağlama analizi yalnızca': 'Personalized MışılSpot™ circadian sleep tracking, 18 studio lullabies, and AI cry analysis are available exclusively on our',
+    'iOS ve Android': 'iOS and Android',
+    'uygulamalarımızda kullanılabilir.': 'mobile apps.',
+    'MışılSpot™:': 'MışılSpot™:',
+    'Bebeğinizin bir sonraki uyku vaktini milimetrik hesaplar': 'Calculates your baby\'s next sleep window with pinpoint precision',
+    '5 saniyede açlık, gaz ve uyku ipucu tespiti': 'Detects hunger, gas, and sleep cues in 5 seconds',
+    'Kilitli Ekranda Müzik:': 'Lock-Screen Audio:',
+    '18 stüdyo sesi arka planda kesintisiz çalar': '18 studio sounds play seamlessly in the background',
+    'İndirin': 'Download on',
+    '© 2026 Levitas Enterprise • Tüm Hakları Saklıdır': '© 2026 Levitas Enterprise • All Rights Reserved',
+    'Yönetici Önizleme Girişi': 'Admin Preview Login',
+    'Tarayıcıdan tam uygulamaya erişmek için şifrenizi girin.': 'Enter your password to access the full app in the browser.',
+    'Giriş Yap': 'Sign In',
+    '💤 Bebek Derin Uykuda • Melatonin Koruması Aktif': '💤 Baby in Deep Sleep • Melatonin Protection Active',
+    '✕ Ekrana dokunarak uyan': '✕ Tap screen to wake',
   };
 
   const EN_TO_TR_EXACT_MAP = {};
@@ -12501,7 +12787,18 @@
     'Ses veya melodi ara (örn: ninni, yağmur, kalp)...': 'Search sounds or melodies (e.g., lullaby, rain, womb)...',
     'Bebeğinizin adı': 'Your baby\'s name',
     'Örn: D Vitamini, Gaz Damlası, Banyo...': 'e.g., Vitamin D, Gas Drops, Bath...',
-    'Opsiyonel not...': 'Optional note...'
+    'Opsiyonel not...': 'Optional note...',
+    'Adınız (Örn: Merve, Ahmet)': 'Your name (e.g., Emma, Alex)',
+    'Bebeğinizin adı (Örn: Mina, Can)': 'Your baby\'s name (e.g., Leo, Mia)',
+    'Örn: Dalga sesini biraz daha tok yapabilir misiniz? Gaz sancısı için özel bir ritim gelse harika olur...': 'e.g., Could you make the ocean wave sound deeper? A special rhythm for gas pain would be wonderful...',
+    'İletişim (İsteğe bağlı: E-posta veya @instagram)': 'Contact (Optional: Email or @instagram)',
+    'Örn: Emre, Ahmet...': 'e.g., Alex, Sam...',
+    'Örn: MB-8429': 'e.g., MB-8429',
+    'Örn: 140': 'e.g., 140',
+    'Örn: 20': 'e.g., 20',
+    'Örn: sağ göğüs, huzursuzdu': 'e.g., right breast, fussy',
+    'Örn: D vitamini damlası, banyo vb.': 'e.g., Vitamin D drops, bath, etc.',
+    'Şifrenizi girin': 'Enter password'
   };
 
   function syncLanguageUIButtons(lang) {
@@ -12562,7 +12859,8 @@
       }
 
       if (norm === 'en') {
-        const sourceTr = (node.__trOrig !== undefined ? node.__trOrig : raw).trim();
+        const sourceTrRaw = (node.__trOrig !== undefined ? node.__trOrig : raw).trim();
+        const sourceTr = TR_TO_EN_EXACT_MAP[sourceTrRaw] ? sourceTrRaw : sourceTrRaw.replace(/\s+/g, ' ');
         if (TR_TO_EN_EXACT_MAP[sourceTr]) {
           let translated = TR_TO_EN_EXACT_MAP[sourceTr];
           if (currSym !== '$') {
