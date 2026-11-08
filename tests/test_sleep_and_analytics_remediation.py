@@ -1228,4 +1228,118 @@ def test_s8_ios_rc_anonymous_id_ghost_purge_and_unverified_sync_ignore(client, d
     assert res.json()["status"] == "ignored_unverified_dev_id"
 
 
+def test_dashboard_6_anomalies_remediation_and_live_polling(client, db_session):
+    """
+    Kurucu Kokpiti 6 Anomali Onarımı Doğrulaması:
+    1) Redundant '🔄 Senkronize Et' butonunun kaldırılması ve 15sn canlı telemetrinin (pollLiveTelemetry)
+       livePeriodSub / convCum4 / liveClicksTbody alanlarını bozmadan güncellemesi,
+    2) Apple Sales TSV (indirme > 0) gelmiş ancak Apple r14 Analytics (impressions = 0) 24s gecikmeli
+       günde is_r14_pending=True işaretlenerek Gösterim sparkline'ının 0'a çakılmasının önlenmesi,
+    3) Sosyal köprü tıklamalarının (9.487 tık) Mağaza Gösterimi (5.782) paydasına bölünerek %177.6
+       üretmesinin engellenmesi (vis_of_imp_pct <= 100.0 ve imp_breakdown_label ayrımı),
+    4) Sekme 3 Keşfet (Browse) satırında '0 Cihaz' hatasının giderilmesi,
+    5) Sekme 4 içinde sabit '213 kurulumda opt-in düzeltmeli ~64–100 kullanıcı' metninin dinamikleştirilmesi.
+    """
+    from app.db.models import StoreDailyMetric, BridgeClick
+    from app.api.v1.endpoints.analytics import (
+        _build_analytics_summary,
+        OFFICIAL_STORE_BASELINE,
+        _empty_store_state,
+        _BASELINE_LOCK,
+    )
+
+    StoreDailyMetric.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    BridgeClick.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+
+    db_session.query(StoreDailyMetric).delete()
+    db_session.add_all([
+        StoreDailyMetric(
+            metric_date="2026-11-05",
+            platform="ios",
+            impressions=600,
+            page_views=90,
+            downloads_total=12,
+            downloads_search=8,
+            downloads_referrer=3,
+            downloads_browse=1,
+            active_sessions=40,
+        ),
+        StoreDailyMetric(
+            metric_date="2026-11-06",
+            platform="ios",
+            impressions=680,
+            page_views=110,
+            downloads_total=10,
+            downloads_search=7,
+            downloads_referrer=2,
+            downloads_browse=1,
+            active_sessions=45,
+        ),
+        # 2026-11-07: Apple Sales TSV indirmesi (8) gelmiş fakat r14 impressions (0) henüz gelmemiş
+        StoreDailyMetric(
+            metric_date="2026-11-07",
+            platform="ios",
+            impressions=0,
+            page_views=0,
+            downloads_total=8,
+            downloads_search=5,
+            downloads_referrer=3,
+            downloads_browse=0,
+            active_sessions=0,
+        ),
+    ])
+    # Çok sayıda sosyal köprü tıklaması eklendiğinde bile vis_of_imp_pct %100'ü aşmamalı
+    for idx in range(25):
+        db_session.add(
+            BridgeClick(
+                route_path="/ios",
+                channel="meta_ads_ios",
+                os_family="ios" if idx % 2 == 0 else "android",
+                device_detail="iPhone",
+                app_webview="Instagram",
+                target_store="app_store" if idx % 2 == 0 else "google_play",
+                is_bot=False,
+                is_unique=True,
+                ip_masked=f"192.0.2.{idx}#u{idx}",
+            )
+        )
+    db_session.commit()
+
+    with _BASELINE_LOCK:
+        OFFICIAL_STORE_BASELINE.clear()
+        OFFICIAL_STORE_BASELINE.update(_empty_store_state())
+        OFFICIAL_STORE_BASELINE["apple_impressions_total"] = 1280
+        OFFICIAL_STORE_BASELINE["apple_page_views_total"] = 200
+        OFFICIAL_STORE_BASELINE["apple_taps_total"] = 75
+        OFFICIAL_STORE_BASELINE["apple_taps_unique"] = 68
+
+    summary = _build_analytics_summary(db_session, period="all")
+    t_days = {d["date"]: d for d in summary["timeline_days"]}
+    assert "2026-11-07" in t_days
+    assert t_days["2026-11-07"]["is_store_pending"] is False
+    assert t_days["2026-11-07"]["is_r14_pending"] is True
+    assert t_days["2026-11-06"]["is_r14_pending"] is False
+
+    ps_all = summary["platform_split"]["all"]
+    ps_ios = summary["platform_split"]["ios"]
+    assert 0.0 < ps_all["vis_of_imp_pct"] <= 100.0
+    assert 0.0 < ps_ios["vis_of_imp_pct"] <= 100.0
+    assert "Mağaza:" in ps_all["imp_breakdown_label"]
+    assert "Köprü" in ps_all["imp_breakdown_label"]
+
+    browse_row = next(r for r in summary["aso_attribution_matrix"] if "Keşfet" in r["channel"])
+    assert "(0 Cihaz)" not in browse_row["page_views_or_clicks"]
+    assert "Bio Köprü Tıkı" in browse_row["page_views_or_clicks"]
+
+    dash_html = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"}).text
+    assert "🔄 Senkronize Et" not in dash_html
+    assert "213 kurulumda opt-in düzeltmeli" not in dash_html
+    assert 'id="convBridge1Sub"' in dash_html
+    assert 'id="liveClicksTbody"' in dash_html
+    assert 'id="liveClicksHeadSpan"' in dash_html
+    assert "if (isPolling || document.hidden) return;" in dash_html
+    assert "if (cc4) cc4.textContent = '%' + vipOfVis;" in dash_html
+
+
+
 

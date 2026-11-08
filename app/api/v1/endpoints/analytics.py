@@ -1191,6 +1191,7 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                 imp_browse_by_date: Counter = Counter()
                 imp_ref_by_date: Counter = Counter()
                 taps_by_date: Counter = Counter()
+                taps_uniq_by_date: Counter = Counter()
                 dl_search_by_date: Counter = Counter()
                 dl_ref_by_date: Counter = Counter()
                 dl_browse_by_date: Counter = Counter()
@@ -1234,6 +1235,7 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                     d_browse: Counter = Counter()
                                     d_ref: Counter = Counter()
                                     d_taps: Counter = Counter()
+                                    d_taps_u: Counter = Counter()
                                     for ln in s_lines[1:]:
                                         row_d = dict(zip(s_hdr, ln.split("\t")))
                                         dt_s = (row_d.get("Date") or "").strip()
@@ -1255,6 +1257,7 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                             d_pv_u[dt_s] += ucnt_v
                                         elif ev_s == "Tap":
                                             d_taps[dt_s] += cnt_v
+                                            d_taps_u[dt_s] += ucnt_v
                                     for dt_k, v_c in d_imp.items():
                                         imp_by_date[dt_k] = max(imp_by_date[dt_k], v_c)
                                     for dt_k, v_c in d_imp_u.items():
@@ -1271,6 +1274,8 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                         imp_ref_by_date[dt_k] = max(imp_ref_by_date[dt_k], v_c)
                                     for dt_k, v_c in d_taps.items():
                                         taps_by_date[dt_k] = max(taps_by_date[dt_k], v_c)
+                                    for dt_k, v_c in d_taps_u.items():
+                                        taps_uniq_by_date[dt_k] = max(taps_uniq_by_date[dt_k], v_c)
                     except Exception as r14_exc:
                         logger.debug("Apple r14 analytics sync info (%s): %s", req_id, r14_exc)
 
@@ -1423,6 +1428,7 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                         OFFICIAL_STORE_BASELINE["apple_page_views_total"] = sum(pv_by_date.values())
                         OFFICIAL_STORE_BASELINE["apple_page_views_unique"] = sum(pv_uniq_by_date.values())
                         OFFICIAL_STORE_BASELINE["apple_taps_total"] = sum(taps_by_date.values())
+                        OFFICIAL_STORE_BASELINE["apple_taps_unique"] = sum(taps_uniq_by_date.values())
                         OFFICIAL_STORE_BASELINE["apple_sessions_total"] = sum(sess_by_date.values())
                         if r8_daily_rows:
                             r8_agg = _aggregate_apple_r8_cohorts(r8_daily_rows)
@@ -2289,14 +2295,14 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     all_clicks: List[BridgeClick] = (
         db.query(BridgeClick)
         .order_by(desc(BridgeClick.created_at))
-        .limit(10000)
+        .limit(100000)
         .all()
     )
 
     signals: List[AppInstallSignal] = (
         db.query(AppInstallSignal)
         .order_by(desc(AppInstallSignal.created_at))
-        .limit(5000)
+        .limit(100000)
         .all()
     )
 
@@ -2548,12 +2554,18 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
 
     pre_start_clicks = sum(cnt for dt_k, cnt in clicks_by_date.items() if dt_k < start_date_str)
 
-    # Apple TSV raporunun ulaştığı son kesinleşmiş günü tespit et
+    # Apple TSV raporunun ulaştığı son kesinleşmiş günü ve r14 Analytics (gösterim) raporunun ulaştığı günü ayrı ayrı tespit et
     confirmed_store_dates = [
         d_k for d_k, d_v in daily_series_merged.items()
         if int(d_v.get("ios_downloads", 0) or 0) > 0
     ]
     latest_confirmed_store_date = max(confirmed_store_dates) if confirmed_store_dates else ""
+
+    confirmed_r14_dates = [
+        d_k for d_k, d_v in daily_series_merged.items()
+        if int(d_v.get("impressions", 0) or 0) > 0 or int(d_v.get("page_views", 0) or 0) > 0
+    ]
+    latest_confirmed_r14_date = max(confirmed_r14_dates) if confirmed_r14_dates else latest_confirmed_store_date
 
     # T2: Tarihsiz Android kurulumlarını son güne yığmak yerine gerçek sinyal/aktif mağaza günlerine dağıt
     explicit_and_by_day: Dict[str, int] = {}
@@ -2608,6 +2620,14 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             and d_str > latest_confirmed_store_date
             and day_ios_dl == 0
         )
+        is_r14_pending = bool(
+            is_store_pending
+            or (
+                latest_confirmed_r14_date
+                and d_str > latest_confirmed_r14_date
+                and day_imp == 0
+            )
+        )
 
         timeline_days.append({
             "date": d_str,
@@ -2621,6 +2641,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "daily_android_downloads": day_and_dl,
             "daily_downloads": day_total_dl,
             "is_store_pending": is_store_pending,
+            "is_r14_pending": is_r14_pending,
             "cum_ios_downloads": cum_ios_dl,
             "cum_android_downloads": cum_and_dl,
             "cum_impressions": cum_imp,
@@ -3029,7 +3050,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "channel": "🔍 App Store Arama (Search)",
             "source_badge": "Apple API + Kampanya DB",
             "impressions": f"{imp_search_val:,}",
-            "page_views_or_clicks": f"Toplam {apple_page_views} Sayfa ({sb.get('apple_page_views_unique', 0)} Cihaz)",
+            "page_views_or_clicks": f"Toplam {apple_page_views} Sayfa ({sb.get('apple_page_views_unique', 0) or apple_page_views} Cihaz) • {apple_taps} Dokunma",
             "downloads": r3_search,
             "cvr_pct": round((r3_search / imp_search_val) * 100, 2) if imp_search_val > 0 else 0.0,
             "cvr_basis": "Görüntülenme ➔ İndirme",
@@ -3069,7 +3090,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "channel": "✨ App Store Keşfet (Browse / Organik)",
             "source_badge": "Apple API + Bio Köprü",
             "impressions": f"{imp_browse_val:,}",
-            "page_views_or_clicks": f"Toplam {apple_taps} Dokunma ({sb.get('apple_taps_unique', 0)} Cihaz)",
+            "page_views_or_clicks": f"{len(ig_unique)} Bio Köprü Tıkı + Keşfet Vitrin",
             "downloads": r3_browse,
             "cvr_pct": round((r3_browse / imp_browse_val) * 100, 1) if imp_browse_val > 0 else 0.0,
             "cvr_basis": "Görüntülenme ➔ İndirme",
@@ -3179,7 +3200,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
 
     # Son 3 aktif gün vs önceki günler ivmesi (Sparkline & Delta Rozeti için)
     settled_days = [d for d in timeline_days if not d.get("is_store_pending")]
-    recent_3d_imp = sum(d.get("daily_impressions", 0) for d in settled_days[-3:]) if settled_days else 0
+    r14_settled_days = [d for d in timeline_days if not d.get("is_r14_pending")] or settled_days
+    recent_3d_imp = sum(d.get("daily_impressions", 0) for d in r14_settled_days[-3:]) if r14_settled_days else 0
     recent_3d_dl = sum(d.get("daily_downloads", 0) for d in settled_days[-3:]) if settled_days else 0
     latest_store_metric_date = settled_days[-1]["date"] if settled_days else ""
 
@@ -3190,6 +3212,15 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
 
     # P1: Simpson Paradoksu & 24s Gecikme Ayrımı — Mağaza Sayfası CVR vs Sosyal Köprü CVR vs Kesinleşen Günler CVR
     apple_page_views_uniq = max(1, int(sb.get("apple_page_views_unique", 0) or apple_page_views))
+    store_imp_to_pv_pct = (
+        min(100.0, round((apple_page_views / max(1, apple_impressions)) * 100, 1))
+        if apple_page_views > 0 and apple_impressions > 0
+        else (
+            min(100.0, round((total_cumulative_visits_and_clicks / max(1, total_cumulative_impressions)) * 100, 1))
+            if total_cumulative_impressions > 0
+            else 0.0
+        )
+    )
     store_page_cvr_pct = (
         min(100.0, round((apple_downloads / max(1, apple_page_views)) * 100, 1))
         if apple_page_views > 0
@@ -3284,7 +3315,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "downloads": total_cumulative_downloads,
             "downloads_display": f"{total_cumulative_downloads}",
             "downloads_sub": f"🍏 {apple_downloads} iOS (%{round((apple_downloads / max(1, total_cumulative_downloads)) * 100)}) • 🤖 {google_play_downloads} Android (%{round((google_play_downloads / max(1, total_cumulative_downloads)) * 100)})",
-            "vis_of_imp_pct": round((total_cumulative_visits_and_clicks / max(1, total_cumulative_impressions)) * 100, 1),
+            "vis_of_imp_pct": store_imp_to_pv_pct,
+            "imp_breakdown_label": f"Mağaza: %{store_imp_to_pv_pct} + {len(unique_human):,} Köprü",
             "cvr_pct": round((total_cumulative_downloads / max(1, total_cumulative_visits_and_clicks)) * 100, 1),
             "store_cvr_pct": store_page_cvr_pct,
             "store_unique_cvr_pct": store_unique_cvr_pct,
@@ -3321,7 +3353,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "downloads": apple_downloads,
             "downloads_display": f"{apple_downloads}",
             "downloads_sub": f"{r3_search} Arama • {r3_ref} Sosyal Referans • {recent_ios_dl} Doğrudan Sales API",
-            "vis_of_imp_pct": round((ios_touchpoints / max(1, apple_impressions)) * 100, 1),
+            "vis_of_imp_pct": store_imp_to_pv_pct,
+            "imp_breakdown_label": f"Mağaza: %{store_imp_to_pv_pct} + {ios_bridge_uniq:,} Köprü",
             "cvr_pct": round((apple_downloads / max(1, ios_touchpoints)) * 100, 1),
             "store_cvr_pct": store_page_cvr_pct,
             "store_unique_cvr_pct": store_unique_cvr_pct,
@@ -3356,6 +3389,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "downloads_display": f"{google_play_downloads}",
             "downloads_sub": f"{google_play_downloads} Doğrulanmış Android Kurulum ({android_signal_opens} Canlı İlk Açılış Sinyali)",
             "vis_of_imp_pct": 100.0 if android_bridge_uniq > 0 else 0.0,
+            "imp_breakdown_label": "Sosyal Köprü Yönlendirmesi",
             "cvr_pct": round((google_play_downloads / max(1, android_touchpoints)) * 100, 1),
             "store_cvr_pct": android_bridge_cvr_pct,
             "store_unique_cvr_pct": android_bridge_cvr_pct,
@@ -4091,7 +4125,7 @@ async def export_analytics_csv(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz Yönetici PIN kodu.")
 
     ensure_historical_seed(db)
-    clicks = db.query(BridgeClick).order_by(desc(BridgeClick.created_at)).limit(10000).all()
+    clicks = db.query(BridgeClick).order_by(desc(BridgeClick.created_at)).limit(100000).all()
     tz_tr = timezone(timedelta(hours=3))
 
     output = io.StringIO()
@@ -4353,7 +4387,7 @@ async def analytics_dashboard_page(
     max_daily_dl = max(1, max((d["daily_downloads"] for d in t_days), default=1))
     max_daily_clicks = max(1, max((d["daily_visits_clicks"] for d in t_days), default=1))
 
-    spark_imp_svg = _build_svg_sparkline([d.get("daily_impressions", 0) for d in t_days if not d.get("is_store_pending")], "#E8A855", "spImp")
+    spark_imp_svg = _build_svg_sparkline([d.get("daily_impressions", 0) for d in t_days if not d.get("is_r14_pending")], "#E8A855", "spImp")
     spark_vis_svg = _build_svg_sparkline([d.get("daily_visits_clicks", 0) for d in t_days], "#60A5FA", "spVis")
     spark_dl_svg = _build_svg_sparkline([d.get("daily_downloads", 0) for d in t_days if not d.get("is_store_pending")], "#34D399", "spDl")
     spark_vip_svg = _build_svg_sparkline([d.get("cum_downloads", 0) for d in t_days], "#C084FC", "spVip")
@@ -4495,7 +4529,7 @@ async def analytics_dashboard_page(
     if not reviews_html:
         reviews_html = """
         <div class="bento-card" style="grid-column: 1 / -1; text-align:center; color:var(--text-muted);">
-          Henüz senkronize edilmiş mağaza yorumu bulunmuyor. Canlı mağaza verilerini çekmek için üstteki <strong>Mağazaları Güncelle</strong> butonunu kullanabilirsiniz.
+          Henüz senkronize edilmiş mağaza yorumu bulunmuyor. Arka plan mağaza senkronizasyonu tamamlandığında yorumlar otomatik listelenir.
         </div>
         """
 
@@ -4527,7 +4561,7 @@ async def analytics_dashboard_page(
     f_dl = kpis["downloads_total"]
     f_vip = kpis["vip_activations"]
 
-    vis_of_imp_pct = round((f_vis / f_imp) * 100, 1) if f_imp > 0 else 0
+    vis_of_imp_pct = s.get("platform_split", {}).get("all", {}).get("vis_of_imp_pct", 0.0)
     dl_of_vis_pct = round((f_dl / f_vis) * 100, 1) if f_vis > 0 else 0
     dl_of_imp_pct = round((f_dl / f_imp) * 100, 2) if f_imp > 0 else 0
     vip_of_dl_pct = round((f_vip / f_dl) * 100, 1) if f_dl > 0 else 0
@@ -5465,18 +5499,17 @@ async def analytics_dashboard_page(
               <div class="brand-icon">🌙</div>
               <div>
                 <h1>Mışıl Baby — Kurumsal Büyüme, Abone Defteri & Ürün Analitiği</h1>
-                <p>Son Senkron: {html.escape(str(sb.get('last_synced_at', '')))} • App Store Connect & Google Play Developer API</p>
+                <p>Otomatik Senkron Aktif (Son Mağaza API: {html.escape(str(sb.get('last_synced_at', '')))}) • Köprü & Telemetri: 15sn Canlı</p>
               </div>
             </div>
             <div class="actions">
               <button type="button" class="btn btn-pres hide-in-pres" onclick="togglePresentationMode()" id="presModeBtn" title="Yönetim kurulu / yatırımcı sunumu için kontrol kalabalığını gizler">📽️ Sunum Modu</button>
               <button type="button" class="btn hide-in-pres" onclick="toggleTheme()" id="themeToggleBtn" title="Gündüz (Airy Daylight) ve Gece (Soft Slate) görünümü arasında geçiş yap">☀️ / 🌙 Tema</button>
-              <div class="live-pill" onclick="toggleAutoRefresh()" id="liveToggleBtn" title="Sayfayı yenilemeden arka planda canlı JSON telemetri senkronizasyonu yapar">
+              <div class="live-pill" onclick="toggleAutoRefresh()" id="liveToggleBtn" title="Her 15 saniyede bir veritabanındaki yeni köprü tıklamalarını, uygulama içi sinyalleri ve KPI sayaçlarını sayfayı yenilemeden günceller">
                 <span class="pulse-dot" id="liveDot"></span>
                 <span id="liveCountdown">Canlı: 15s</span>
               </div>
               <a href="/api/v1/analytics/export.csv" class="btn hide-in-pres">📥 CSV</a>
-              <a href="/api/v1/analytics/dashboard?sync=1&period={clean_period}" class="btn hide-in-pres">🔄 Senkronize Et</a>
             </div>
           </div>
           <!-- KOMPAKT VERİ KAYNAKLARI DURUM ŞERİDİ (ÜZERİNE GELİNCE DETAY GÖSTERİR) -->
@@ -5540,8 +5573,9 @@ async def analytics_dashboard_page(
 
             <!-- KÖPRÜ 1: GÖSTERİM ➔ TIK (TEK YERDE) -->
             <div class="conv-connector">
-              <span class="conv-conn-lbl">Gösterim ➔ Tık</span>
+              <span class="conv-conn-lbl">Gösterim ➔ Sayfa</span>
               <span class="conv-conn-pill" style="color:var(--stage-2); border-color:rgba(37,99,235,0.28);" id="convBridge1">%{vis_of_imp_pct} ➔</span>
+              <span class="conv-conn-lbl" style="font-size:9.5px; color:var(--stage-2); font-weight:700;" id="convBridge1Sub">{ps_all.get('imp_breakdown_label', '')}</span>
             </div>
 
             <!-- ADIM 2: İNCELEME & SOSYAL TIK -->
@@ -5968,7 +6002,7 @@ async def analytics_dashboard_page(
               <div class="step-box" style="border-left: 4px solid #3B82F6;">
                 <div class="step-num" style="color:#2563EB;">2. CANLI GERİ DÖNÜŞ & TAHMİN</div>
                 <div class="step-val">~{pr['estimated_total_returning_users']} Aktif Ebeveyn</div>
-                <div class="step-sub">Uygulama içi <code>daily_active</code>: <strong>{pr['daily_active_signals_count']} sinyal</strong> (Kesin taban: <strong>{pr['verified_returning_devices_floor']}–{pr['verified_returning_devices_ceiling']} cihaz</strong>; 213 kurulumda opt-in düzeltmeli ~64–100 kullanıcı).</div>
+                <div class="step-sub">Uygulama içi <code>daily_active</code>: <strong>{pr['daily_active_signals_count']} sinyal</strong> (Kesin taban: <strong>{pr['verified_returning_devices_floor']}–{pr['verified_returning_devices_ceiling']} cihaz</strong>; {f_dl} kurulumda opt-in düzeltmeli ~{pr['estimated_total_returning_users']} aktif ebeveyn).</div>
               </div>
               <div class="step-box" style="border-left: 4px solid #8B5CF6;">
                 <div class="step-num" style="color:#7C3AED;">3. PAYWALL & CTA HUNİSİ</div>
@@ -6051,7 +6085,7 @@ async def analytics_dashboard_page(
 
           <div class="bento-card">
             <div class="section-head">
-              <span>⚡ Son Sosyal Medya Tıklama Kayıtları ({html.escape(s['period_label'])}: {s['active_human_count']} Tekil Kişi / Kümülatif: {s['total_raw']} Ham)</span>
+              <span id="liveClicksHeadSpan">⚡ Son Sosyal Medya Tıklama Kayıtları ({html.escape(s['period_label'])}: {s['active_human_count']} Tekil Kişi / Kümülatif: {s['total_raw']} Ham)</span>
               <a href="/api/v1/analytics/export.csv" class="btn">📥 Tümünü Excel/CSV İndir</a>
             </div>
             <div class="table-wrap">
@@ -6065,7 +6099,7 @@ async def analytics_dashboard_page(
                     <th>Ülke</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody id="liveClicksTbody">
                   {rows_html}
                 </tbody>
               </table>
@@ -6200,18 +6234,20 @@ async def analytics_dashboard_page(
           if (csVipImp) csVipImp.textContent = '%' + vipOfImp;
 
           var cb1 = document.getElementById('convBridge1');
+          var cb1Sub = document.getElementById('convBridge1Sub');
           var cb2 = document.getElementById('convBridge2');
           var cb2Sub = document.getElementById('convBridge2Sub');
           var cb3 = document.getElementById('convBridge3');
           var csStorePill = document.getElementById('convStoreCvrPill');
           if (cb1) cb1.textContent = '%' + visOfImp + ' ➔';
+          if (cb1Sub && p.imp_breakdown_label) cb1Sub.textContent = p.imp_breakdown_label;
           if (cb2) cb2.textContent = '%' + dlOfVis + ' ➔';
           if (cb2Sub && p.cvr_breakdown_label) cb2Sub.textContent = p.cvr_breakdown_label;
           if (cb3) cb3.textContent = '%' + vipOfDl + ' ➔';
           if (csStorePill && p.store_cvr_pct !== undefined) csStorePill.textContent = '%' + p.store_cvr_pct;
 
           var cc4 = document.getElementById('convCum4');
-          if (cc4) cc4.textContent = '%' + vipOfImp + ' • %' + vipOfVis;
+          if (cc4) cc4.textContent = '%' + vipOfVis;
 
           if (!skipChartSync) {{
             if (plat === 'ios') switchChartMode('ios');
@@ -6296,7 +6332,19 @@ async def analytics_dashboard_page(
             }}
           }}
 
+          var isPolling = false;
+          function escapeHtmlJs(str) {{
+            return String(str || '')
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;')
+              .replace(/'/g, '&#39;');
+          }}
+
           async function pollLiveTelemetry() {{
+            if (isPolling || document.hidden) return;
+            isPolling = true;
             try {{
               var res = await fetch('/api/v1/analytics/summary?period={clean_period}', {{
                 headers: {{ 'Accept': 'application/json' }},
@@ -6310,9 +6358,49 @@ async def analytics_dashboard_page(
               }}
               var elSub = document.getElementById('livePeriodSub');
               if (elSub) {{
-                elSub.textContent = '(' + (data.active_human_count || 0) + ' Tekil İnsan • Bugün: ' + (data.today_unique_clicks || 0) + ' • Dün: ' + (data.yesterday_unique_clicks || 0) + ')';
+                elSub.textContent = (data.period_label || '{html.escape(s["period_label"])}') + ' • ' + (data.active_human_count || 0) + ' Tekil Tık (Bugün: ' + (data.today_unique_clicks || 0) + ')';
               }}
-            }} catch (_err) {{}}
+              var dl2 = document.getElementById('kpiDelta2');
+              if (dl2 && data.today_unique_clicks !== undefined) {{
+                dl2.textContent = '+' + data.today_unique_clicks + ' Bugün';
+              }}
+              var headSpan = document.getElementById('liveClicksHeadSpan');
+              if (headSpan) {{
+                headSpan.textContent = '⚡ Son Sosyal Medya Tıklama Kayıtları (' + (data.period_label || '{html.escape(s["period_label"])}') + ': ' + (data.active_human_count || 0) + ' Tekil Kişi / Kümülatif: ' + (data.total_raw || 0) + ' Ham)';
+              }}
+              var tbody = document.getElementById('liveClicksTbody');
+              if (tbody && Array.isArray(data.recent_clicks)) {{
+                var rowsOut = '';
+                var list = data.recent_clicks.slice(0, 60);
+                for (var i = 0; i < list.length; i++) {{
+                  var c = list[i];
+                  if (c.is_bot || !c.is_unique) continue;
+                  var dtStr = '';
+                  try {{
+                    var dObj = new Date(c.created_at);
+                    dtStr = dObj.toLocaleString('tr-TR', {{ timeZone: 'Europe/Istanbul', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }}).replace(',', '');
+                  }} catch (_de) {{
+                    dtStr = String(c.created_at || '').slice(5, 16);
+                  }}
+                  var cPlat = (c.os_family === 'ios' || c.target_store === 'app_store') ? 'ios' : 'android';
+                  var rowDisp = (currentPlatform === 'all' || currentPlatform === cPlat) ? '' : 'display:none;';
+                  var storeStr = (c.target_store === 'app_store') ? '🍏 App Store (iPhone)' : '🤖 Google Play (Android)';
+                  var devPrefix = (c.os_family === 'ios') ? '🍏 ' : '🤖 ';
+                  var stColor = (cPlat === 'ios') ? '#059669' : '#2563EB';
+                  rowsOut += '<tr data-platform="' + cPlat + '" style="' + rowDisp + '">' +
+                    '<td style="color:var(--text-secondary); font-weight:600; font-variant-numeric:tabular-nums;">' + escapeHtmlJs(dtStr) + '</td>' +
+                    '<td>' + devPrefix + escapeHtmlJs(c.device_detail || 'Telefon') + '</td>' +
+                    '<td>' + escapeHtmlJs(c.app_webview || 'Tarayıcı') + '</td>' +
+                    '<td style="color:' + stColor + '; font-weight:700;">' + storeStr + '</td>' +
+                    '<td style="color:var(--text-muted);">' + escapeHtmlJs(c.country || 'TR') + '</td>' +
+                    '</tr>';
+                }}
+                if (rowsOut) tbody.innerHTML = rowsOut;
+              }}
+            }} catch (_err) {{
+            }} finally {{
+              isPolling = false;
+            }}
           }}
 
           window.toggleAutoRefresh = function() {{
@@ -6325,7 +6413,7 @@ async def analytics_dashboard_page(
           updateUi();
 
           setInterval(function() {{
-            if (!autoRefreshEnabled) return;
+            if (!autoRefreshEnabled || document.hidden) return;
             secondsLeft -= 1;
             if (secondsLeft <= 0) {{
               secondsLeft = 15;
