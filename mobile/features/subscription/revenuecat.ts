@@ -1,5 +1,10 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import type {
+  CustomerInfo,
+  PurchasesPackage,
+  PurchasesStoreTransaction,
+} from 'react-native-purchases';
 
 export interface PackageOffer {
   identifier: string;
@@ -9,7 +14,7 @@ export interface PackageOffer {
   currencyCode?: string;
   title: string;
   description: string;
-  rawPackage?: any;
+  rawPackage?: PurchasesPackage;
 }
 
 export interface PurchaseResult {
@@ -17,6 +22,8 @@ export interface PurchaseResult {
   isActive: boolean;     // kullanıcının GERÇEKTEN aktif bir hak sahibi olup olmadığı
   cancelled?: boolean;
   error?: string;
+  customerInfo?: CustomerInfo;
+  transaction?: PurchasesStoreTransaction;
 }
 
 // RevenueCat entitlement adı (panelde tanımlı). hasActiveEntitlement önce bunu arar.
@@ -132,8 +139,14 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
 
     // 1. Yol: RevenueCat rawPackage varsa doğrudan purchasePackage çağır
     if (rawPackage) {
-      const { customerInfo } = await Purchases.purchasePackage(rawPackage);
-      return { success: true, isActive: hasActiveEntitlement(customerInfo) };
+      const purchaseRes = await Purchases.purchasePackage(rawPackage);
+      const customerInfo = purchaseRes?.customerInfo;
+      return {
+        success: true,
+        isActive: hasActiveEntitlement(customerInfo),
+        customerInfo,
+        transaction: purchaseRes?.transaction || purchaseRes?.storeTransaction,
+      };
     }
 
     // 2. Yol: rawPackage yoksa (StoreKit / Google Play doğrudan çoklu ürün fallback'i)
@@ -165,8 +178,14 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
           } else {
             purchasePromise = Purchases.purchaseStoreProduct(products[0]);
           }
-          const { customerInfo } = await purchasePromise;
-          return { success: true, isActive: hasActiveEntitlement(customerInfo) };
+          const purchaseRes = await purchasePromise;
+          const customerInfo = purchaseRes?.customerInfo;
+          return {
+            success: true,
+            isActive: hasActiveEntitlement(customerInfo),
+            customerInfo,
+            transaction: purchaseRes?.transaction || purchaseRes?.storeTransaction,
+          };
         } else {
           console.warn('[RevenueCat] Aday ID\'lerin hiçbiri mağazada bulunamadı:', candidateProductIds);
         }
@@ -200,7 +219,7 @@ export const restorePurchases = async (): Promise<PurchaseResult> => {
     const Purchases = require('react-native-purchases').default;
     const customerInfo = await Purchases.restorePurchases();
     // restore "başarılı" olsa bile hak yoksa Pro AÇILMAMALI
-    return { success: true, isActive: hasActiveEntitlement(customerInfo) };
+    return { success: true, isActive: hasActiveEntitlement(customerInfo), customerInfo };
   } catch (err) {
     console.log('[RevenueCat] Geri yükleme hatası:', err);
     return { success: false, isActive: false, error: String(err) };

@@ -1181,7 +1181,7 @@ def test_v4_48_0_returning_users_and_paywall_cancellation_cro(client, db_session
     assert "vip-calibration-progress-box" in app_html
     assert "mishil_family_vip_verified" in app_html
     assert "mishil_free_sleep_trial_used" in app_html
-    assert "mishil_free_cry_trial_used" in app_html
+    assert "mishil_free_cry_used" in app_html
     assert "version: '4.48.2'" in app_html
 
 
@@ -1339,6 +1339,218 @@ def test_dashboard_6_anomalies_remediation_and_live_polling(client, db_session):
     assert 'id="liveClicksHeadSpan"' in dash_html
     assert "if (isPolling || document.hidden) return;" in dash_html
     assert "if (cc4) cc4.textContent = '%' + vipOfVis;" in dash_html
+
+
+def test_apple_t1_lag_period_revenue_reconciliation_and_rc_v2_bridge(client, db_session):
+    """
+    Apple App Store Connect Trends (1 Gün / T-1 PST Gecikmeli) & Google Play Console & RevenueCat V2
+    gelir mutabakatı doğrulaması:
+    1) Tüm Zamanlar (period=all) 27 Ekim (149.99 ₺ / 83.12 ₺) + 04 Kasım (599.99 ₺ / 332.49 ₺) = 749.98 ₺ Brüt / 415.61 ₺ Net (~$17.50 / ~$9.70),
+    2) Son 7 Gün (period=7d, Apple T-1 penceresi: 2026-11-01 ➔ 2026-11-07) yalnızca 04 Kasım tahsilatını içerir = 599.99 ₺ Brüt / 332.49 ₺ Net (~$14.00 / ~$7.76),
+    3) RC_T0_* geçici köprü kaydının resmi Apple SUBSCRIBER TSV satırı geldiğinde otomatik tekilleştirilmesi (deduplication),
+    4) Dashboard HTML (GET /api/v1/analytics/dashboard?period=7d) üzerinde storeReconciliationCard render kontrolü.
+    """
+    from app.db.models import StoreDailyMetric, SubscriberLedger
+    from app.api.v1.endpoints.analytics import (
+        _build_analytics_summary,
+        _reconcile_ios_ledger_and_cancellations,
+        OFFICIAL_STORE_BASELINE,
+        _empty_store_state,
+        _BASELINE_LOCK,
+    )
+
+    StoreDailyMetric.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    SubscriberLedger.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+
+    db_session.query(StoreDailyMetric).delete()
+    db_session.query(SubscriberLedger).delete()
+
+    # Son kesinleşen Apple rapor tarihi T-1 = 2026-11-07 olarak simüle edilir
+    db_session.add(
+        StoreDailyMetric(
+            metric_date="2026-11-07",
+            platform="ios",
+            impressions=520,
+            page_views=85,
+            downloads_total=9,
+            downloads_search=6,
+            downloads_referrer=2,
+            downloads_browse=1,
+            active_sessions=40,
+        )
+    )
+
+    # 1) 2026-10-27 Aylık Ücretli (149.99 ₺ Brüt / 83.12 ₺ Net) — Son 7 Gün (01–07 Kasım) dışında
+    # 2) 2026-11-04 Yıllık Ücretli (599.99 ₺ Brüt / 332.49 ₺ Net) — Son 7 Gün (01–07 Kasım) içinde
+    # 3) DamlaEge2026 Yıllık Kodlu fakat RevenueCat V2 will_change_product ile 149.99 ₺ Aylık pakete geçiş planlamış abone
+    # 4) Aynı gün (2026-11-07) için hem RC_T0_* geçici köprü kaydı hem resmi Apple SUBSCRIBER satırı (dedup testi)
+    db_session.add_all([
+        SubscriberLedger(
+            subscriber_id="420003382813562",
+            platform="ios",
+            product_id="misil_monthly",
+            plan_label="Aylık VIP",
+            status="paid_active",
+            offer_type="standard_paid",
+            started_date="2026-10-20",
+            converted_or_renewed_date="2026-10-27",
+            maturity_or_renewal_date="2026-11-27",
+            auto_renew_enabled=True,
+            customer_price_try=149.99,
+            developer_proceeds_try=83.12,
+            expected_next_price_try=149.99,
+            expected_next_proceeds_try=83.12,
+            country="TR",
+            device_type="iPhone",
+        ),
+        SubscriberLedger(
+            subscriber_id="540002819996540",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Yıllık VIP",
+            status="paid_active",
+            offer_type="standard_paid",
+            started_date="2026-10-28",
+            converted_or_renewed_date="2026-11-04",
+            maturity_or_renewal_date="2027-11-04",
+            auto_renew_enabled=True,
+            customer_price_try=599.99,
+            developer_proceeds_try=332.49,
+            expected_next_price_try=599.99,
+            expected_next_proceeds_try=332.49,
+            country="TR",
+            device_type="iPhone",
+        ),
+        SubscriberLedger(
+            subscriber_id="540002813825863",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Yıllık VIP (Kod ➔ Aylık VIP Geçişi Planlı)",
+            status="offer_code_trial",
+            offer_type="offer_code_trial",
+            offer_code_name="DamlaEge2026",
+            started_date="2026-10-22",
+            converted_or_renewed_date="2026-10-22",
+            maturity_or_renewal_date="2027-10-22",
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=149.99,
+            expected_next_proceeds_try=83.12,
+            country="TR",
+            device_type="iPhone",
+        ),
+        SubscriberLedger(
+            subscriber_id="RC_T0_9988776655",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Yıllık VIP",
+            status="intro_free_trial",
+            offer_type="intro_7d_trial",
+            started_date="2026-11-07",
+            converted_or_renewed_date="2026-11-07",
+            maturity_or_renewal_date="2026-11-14",
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=599.99,
+            expected_next_proceeds_try=332.49,
+            country="TR",
+            device_type="iPhone",
+        ),
+        SubscriberLedger(
+            subscriber_id="RC_T0_9988776699",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Yıllık VIP",
+            status="intro_free_trial",
+            offer_type="intro_7d_trial",
+            started_date="2026-11-07",
+            converted_or_renewed_date="2026-11-07",
+            maturity_or_renewal_date="2026-11-14",
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=599.99,
+            expected_next_proceeds_try=332.49,
+            country="TR",
+            device_type="iPhone",
+        ),
+        SubscriberLedger(
+            subscriber_id="440002975544332",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Yıllık VIP",
+            status="intro_free_trial",
+            offer_type="intro_7d_trial",
+            started_date="2026-11-07",
+            converted_or_renewed_date="2026-11-07",
+            maturity_or_renewal_date="2026-11-14",
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=599.99,
+            expected_next_proceeds_try=332.49,
+            country="TR",
+            device_type="iPhone",
+        ),
+    ])
+    db_session.commit()
+
+    # Resmi Apple SUBSCRIBER satırı (440002975544332, 1 adet) mevcutken 2 adet RC_T0_* kaydından yalnızca 1'i silinmeli, 2. abone korunmalı
+    _reconcile_ios_ledger_and_cancellations(db_session)
+    db_session.commit()
+    remaining_ids = {r.subscriber_id for r in db_session.query(SubscriberLedger).all()}
+    assert "RC_T0_9988776655" not in remaining_ids
+    assert "RC_T0_9988776699" in remaining_ids
+    assert "440002975544332" in remaining_ids
+
+    with _BASELINE_LOCK:
+        OFFICIAL_STORE_BASELINE.clear()
+        OFFICIAL_STORE_BASELINE.update(_empty_store_state())
+        OFFICIAL_STORE_BASELINE["apple_latest_report_date"] = "2026-11-07"
+        OFFICIAL_STORE_BASELINE["apple_report_lag_days"] = 1
+
+    sum_all = _build_analytics_summary(db_session, period="all")
+    fl_all = sum_all["financial_ledger"]
+    sr = fl_all["store_reconciliation"]
+
+    assert fl_all["realized_gross_try"] == 749.98
+    assert fl_all["realized_net_proceeds_try"] == 415.61
+    assert fl_all["period_realized_gross_try"] == 749.98
+    assert fl_all["period_realized_net_proceeds_try"] == 415.61
+    assert sr["all_time"]["gross_try"] == 749.98
+    assert sr["all_time"]["net_try"] == 415.61
+    assert sr["last_7d_t1"]["gross_try"] == 599.99
+    assert sr["last_7d_t1"]["net_try"] == 332.49
+    assert sr["rc_v2_crossgrades_count"] == 1
+    assert sr["rc_v2_crossgrades_net_try"] == 83.12
+
+    sum_7d = _build_analytics_summary(db_session, period="7d")
+    fl_7d = sum_7d["financial_ledger"]
+    assert fl_7d["period_realized_gross_try"] == 599.99
+    assert fl_7d["period_realized_net_proceeds_try"] == 332.49
+    assert fl_7d["realized_gross_try"] == 749.98
+    assert fl_7d["realized_net_proceeds_try"] == 415.61
+
+    dash_7d = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842", "period": "7d"})
+    assert dash_7d.status_code == 200
+    assert 'id="storeReconciliationCard"' in dash_7d.text
+    assert 'id="countryRevenueCard"' in dash_7d.text
+    assert 'id="tab2SubNav"' in dash_7d.text
+    assert "332.49 ₺" in dash_7d.text
+    assert "415.61 ₺" in dash_7d.text
+    assert fl_all["paid_countries_count"] == 1
+    assert len(fl_all["country_revenue_breakdown"]) >= 1
+    tr_row = next(r for r in fl_all["country_revenue_breakdown"] if r["code"] == "TR")
+    assert tr_row["paid_subs_count"] == 2
+    assert tr_row["paid_annual_count"] == 1
+    assert tr_row["paid_monthly_count"] == 1
+    assert tr_row["realized_gross_try"] == 749.98
+    assert tr_row["realized_net_try"] == 415.61
+    assert tr_row["share_of_revenue_pct"] == 100.0
+
+
 
 
 

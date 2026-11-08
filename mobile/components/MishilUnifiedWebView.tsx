@@ -205,8 +205,8 @@ export default function MishilUnifiedWebView() {
     try {
       const ent = customerInfo?.entitlements?.active?.[PRO_ENTITLEMENT_ID] || customerInfo?.entitlements?.active?.['mışıl_baby_pro'];
       const prodId = ent?.productIdentifier || (Array.isArray(customerInfo?.activeSubscriptions) && customerInfo.activeSubscriptions[0]) || '';
-      const lower = String(prodId).toLowerCase();
-      if (lower.includes('year') || lower.includes('annual')) return 'yearly';
+      const lower = String(prodId).toLowerCase().trim();
+      if (lower.includes('year') || lower.includes('annual') || lower === 'misil' || lower.startsWith('misil:')) return 'yearly';
       return 'monthly';
     } catch {
       return 'monthly';
@@ -230,7 +230,7 @@ export default function MishilUnifiedWebView() {
       }
       const activeEnts = customerInfo?.entitlements?.active || {};
       const firstEntKey = Object.keys(activeEnts)[0];
-      const firstEnt = firstEntKey ? activeEnts[firstEntKey] : null;
+      const firstEnt = activeEnts[PRO_ENTITLEMENT_ID] || activeEnts['mışıl_baby_pro'] || (firstEntKey ? activeEnts[firstEntKey] : null);
       const subMetaJson = active && firstEnt ? JSON.stringify({
         subscriberId: customerInfo?.originalAppUserId || undefined,
         productId: firstEnt?.productIdentifier || undefined,
@@ -726,7 +726,7 @@ export default function MishilUnifiedWebView() {
                 const Purchases = require('react-native-purchases').default;
                 const info = await Purchases.getCustomerInfo();
                 if (hasActiveEntitlement(info)) {
-                  result = { success: true, isActive: true };
+                  result = { success: true, isActive: true, customerInfo: info };
                 }
               } catch (retryErr) {}
             }
@@ -734,12 +734,24 @@ export default function MishilUnifiedWebView() {
             if (result.success && result.isActive) {
               // Yalnızca GERÇEKTEN aktif hak varsa VIP'yi aç
               grantProInWebView(plan, isEn ? '🎉 Mishil VIP activated!' : '🎉 Mışıl VIP aktif edildi!');
+              const cInfo = result.customerInfo;
+              const activeEnts = cInfo?.entitlements?.active || {};
+              const firstEntKey = Object.keys(activeEnts)[0];
+              const firstEnt = activeEnts[PRO_ENTITLEMENT_ID] || activeEnts['mışıl_baby_pro'] || (firstEntKey ? activeEnts[firstEntKey] : null);
+              const txObj = result.transaction;
               const purchaseMeta = JSON.stringify({
+                subscriberId: cInfo?.originalAppUserId || undefined,
+                originalAppUserId: cInfo?.originalAppUserId || undefined,
+                originalTransactionId: txObj?.transactionIdentifier || undefined,
+                purchaseToken: txObj?.purchaseToken || txObj?.transactionIdentifier || undefined,
                 plan,
-                productId: pkg?.identifier || (Platform.OS === 'android' ? (plan === 'yearly' ? 'misil' : 'misilaylik') : (plan === 'yearly' ? 'misil_annual' : 'misil_monthly')),
+                productId: firstEnt?.productIdentifier || pkg?.identifier || (Platform.OS === 'android' ? (plan === 'yearly' ? 'misil' : 'misilaylik') : (plan === 'yearly' ? 'misil_annual' : 'misil_monthly')),
                 platform: Platform.OS === 'android' ? 'android' : 'ios',
-                store: Platform.OS === 'android' ? 'PLAY_STORE' : 'APP_STORE',
-                periodType: 'TRIAL',
+                store: firstEnt?.store || (Platform.OS === 'android' ? 'PLAY_STORE' : 'APP_STORE'),
+                periodType: firstEnt?.periodType || 'TRIAL',
+                willRenew: firstEnt ? firstEnt.willRenew !== false : true,
+                originalPurchaseDate: firstEnt?.originalPurchaseDate || undefined,
+                expirationDate: firstEnt?.expirationDate || undefined,
                 isActive: true,
               });
               webviewRef.current?.injectJavaScript(`
@@ -751,6 +763,7 @@ export default function MishilUnifiedWebView() {
                   true;
                 })();
               `);
+              isPurchaseInProgressRef.current = false;
               void syncEntitlementToWebView();
             } else if (result.cancelled) {
               // Kullanıcı ödeme penceresini kapattı veya vazgeçti — sıfır sahte hata, butonu sessizce normale döndür

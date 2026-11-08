@@ -119,6 +119,14 @@ FX_RATES_TO_TRY: Dict[str, float] = {
     "CHF": float(os.environ.get("MISIL_FX_CHF_TRY", "39.50")),
 }
 
+# App Store Connect Sales & Trends ve RevenueCat V2 USD/TRY referans paritesi (149.99 ₺ ≈ $3.50, 599.99 ₺ ≈ $14.00)
+APPLE_TRENDS_USD_TRY_RATE: float = float(os.environ.get("MISIL_APPLE_USD_TRY", "42.85"))
+
+
+def _convert_try_to_usd(amount_try: float) -> float:
+    return round(float(amount_try or 0.0) / max(1.0, APPLE_TRENDS_USD_TRY_RATE), 2)
+
+
 # Doğrulanmış App Store / Google Play katalog tarife referansı (Brüt TRY, Net Hakediş TRY)
 DEFAULT_PLAN_PRICING_TRY: Dict[str, tuple] = {
     "misil_monthly": (149.99, 83.12),
@@ -198,6 +206,23 @@ COUNTRY_META: Dict[str, Dict[str, str]] = {
     "AU": {"flag": "🇦🇺", "name": "Avustralya"},
     "GB": {"flag": "🇬🇧", "name": "Birleşik Krallık"},
     "NL": {"flag": "🇳🇱", "name": "Hollanda"},
+    "CH": {"flag": "🇨🇭", "name": "İsviçre"},
+    "CA": {"flag": "🇨🇦", "name": "Kanada"},
+    "AT": {"flag": "🇦🇹", "name": "Avusturya"},
+    "BE": {"flag": "🇧🇪", "name": "Belçika"},
+    "SE": {"flag": "🇸🇪", "name": "İsveç"},
+    "NO": {"flag": "🇳🇴", "name": "Norveç"},
+    "IT": {"flag": "🇮🇹", "name": "İtalya"},
+    "ES": {"flag": "🇪🇸", "name": "İspanya"},
+    "AE": {"flag": "🇦🇪", "name": "BAE"},
+    "SA": {"flag": "🇸🇦", "name": "Suudi Arabistan"},
+    "KZ": {"flag": "🇰🇿", "name": "Kazakistan"},
+    "CY": {"flag": "🇨🇾", "name": "Kıbrıs"},
+    "PL": {"flag": "🇵🇱", "name": "Polonya"},
+    "RO": {"flag": "🇷🇴", "name": "Romanya"},
+    "RU": {"flag": "🇷🇺", "name": "Rusya"},
+    "GR": {"flag": "🇬🇷", "name": "Yunanistan"},
+    "IE": {"flag": "🇮🇪", "name": "İrlanda"},
 }
 
 
@@ -243,6 +268,10 @@ def _empty_store_state() -> Dict[str, Any]:
         "apple_vip_offer_code_name": "-",
         "apple_vip_active_trials": 0,
         "apple_vip_by_plan": {},
+        "apple_latest_report_date": "",
+        "apple_report_lag_days": 1,
+        "rc_v2_sync_status": "BEKLİYOR (RevenueCat REST API v2)",
+        "rc_v2_pending_crossgrades": [],
         "google_play_downloads_baseline": 0,
         "google_play_subscriptions_catalog": [
             {
@@ -487,6 +516,399 @@ def _convert_to_try(amount: float, currency_code: Optional[str]) -> float:
     return round(float(amount or 0.0) * rate, 2)
 
 
+REVENUECAT_V2_PROJECT_ID = os.environ.get("REVENUECAT_PROJECT_ID", "proja1528882")
+_KNOWN_RC_PRODUCTION_CUSTOMERS = (
+    "$RCAnonymousID:e8431b5b8c7c41288d675b9bf48b6007",
+    "$RCAnonymousID:7c117007c62646838d032dd07dc05bc2",
+    "$RCAnonymousID:e232bd0ecdb8410ba4c86d78a6a066aa",
+    "$RCAnonymousID:058a41e899994a1f885f30064bd8a316",
+    "$RCAnonymousID:77e71b1615804f3fb273d59017f70e10",
+    "$RCAnonymousID:d4017db6201f4455becf6bc33c7701df",
+)
+
+
+def _get_revenuecat_v2_secret_key() -> Optional[str]:
+    """RevenueCat REST API v2 Secret Key (sk_...) anahtarını ortam değişkeninden veya kasadan okur."""
+    for env_k in ("REVENUECAT_SECRET_KEY", "REVENUECAT_API_V2_KEY", "RC_SECRET_KEY"):
+        val = (os.environ.get(env_k) or "").strip()
+        if val.startswith("sk_"):
+            return val
+    project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+    sec_candidates = [
+        os.path.join(project_root, "..", "..", "storage", "secrets.json"),
+        os.path.join(project_root, "storage", "secrets.json"),
+    ]
+    for sp in sec_candidates:
+        if os.path.exists(sp):
+            try:
+                with open(sp, "r", encoding="utf-8") as sf:
+                    sec_data = json.load(sf)
+                rc_sk = str(sec_data.get("REVENUECAT_SECRET_KEY") or "").strip()
+                if rc_sk.startswith("sk_"):
+                    return rc_sk
+            except Exception:
+                pass
+    return None
+
+
+def _parse_rc_v2_ms(raw_val: Any) -> int:
+    """RevenueCat V2 zaman damgalarını (epoch ms integer veya ISO-8601 string) güvenli şekilde epoch ms'e çevirir."""
+    if raw_val is None or raw_val == "":
+        return 0
+    if isinstance(raw_val, (int, float)):
+        return int(raw_val)
+    s_val = str(raw_val).strip()
+    if s_val.isdigit():
+        return int(s_val)
+    try:
+        dt_obj = datetime.fromisoformat(s_val.replace("Z", "+00:00"))
+        return int(dt_obj.timestamp() * 1000)
+    except Exception:
+        return 0
+
+
+def _parse_rc_v2_date(raw_val: Any) -> str:
+    """RevenueCat V2 zaman damgasını Türkiye saat diliminde (UTC+3) YYYY-MM-DD tarihine dönüştürür."""
+    ms = _parse_rc_v2_ms(raw_val)
+    if ms <= 0:
+        s_val = str(raw_val or "").strip()
+        if len(s_val) >= 10 and s_val[4:5] == "-" and s_val[7:8] == "-":
+            return s_val[:10]
+        return ""
+    tz_tr = timezone(timedelta(hours=3))
+    return datetime.fromtimestamp(ms / 1000.0, tz=tz_tr).strftime("%Y-%m-%d")
+
+
+def verify_revenuecat_v2_customer(customer_id: str) -> Optional[Dict[str, Any]]:
+    """
+    RevenueCat REST API v2 üzerinden tekil müşterinin aboneliklerini sorgular.
+    Yalnızca environment == 'production' olan gerçek mağaza işlemlerini döndürür;
+    Sandbox test satın almalarını kesin olarak filtreler.
+    """
+    clean_cid = (customer_id or "").strip()
+    sk = _get_revenuecat_v2_secret_key()
+    if not clean_cid or not sk:
+        return None
+    try:
+        url = (
+            f"https://api.revenuecat.com/v2/projects/{REVENUECAT_V2_PROJECT_ID}"
+            f"/customers/{urllib.parse.quote(clean_cid, safe='')}/subscriptions"
+        )
+        req = urllib.request.Request(
+            url,
+            headers={"Authorization": f"Bearer {sk}", "Accept": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=4) as resp:
+            if resp.status != 200:
+                return None
+            payload = json.loads(resp.read().decode("utf-8"))
+        items = payload.get("items") or []
+        prod_subs = [it for it in items if str(it.get("environment") or "").lower() == "production"]
+        if not prod_subs:
+            return None
+        # Aktif/deneme aboneliğini süresi dolmuş (expired) aboneliklerin önüne koy, ardından dönem başlangıcına göre sırala
+        prod_subs.sort(
+            key=lambda x: (
+                1 if str(x.get("status") or "").lower() in ("active", "trialing", "in_grace_period", "in_billing_retry") else 0,
+                _parse_rc_v2_ms(x.get("current_period_starts_at") or x.get("starts_at")),
+            ),
+            reverse=True,
+        )
+        sub = prod_subs[0]
+        store_raw = str(sub.get("store") or "").lower()
+        plat = "android" if "play" in store_raw else "ios"
+        rc_prod_id = str(sub.get("product_id") or "")
+        if _is_annual_product(rc_prod_id):
+            norm_prod_id = "misil" if plat == "android" else "misil_annual"
+        else:
+            norm_prod_id = "misilaylik" if plat == "android" else "misil_monthly"
+        start_dt = _parse_rc_v2_date(sub.get("starts_at"))
+        period_start_dt = _parse_rc_v2_date(sub.get("current_period_starts_at")) or start_dt
+        exp_dt = _parse_rc_v2_date(sub.get("current_period_ends_at"))
+        rc_status = str(sub.get("status") or "").lower()
+        ar_status = str(sub.get("auto_renewal_status") or "").lower()
+        rev_usd = sub.get("total_revenue_in_usd") or {}
+        gross_usd = float(rev_usd.get("gross") or 0.0)
+        proc_usd = float(rev_usd.get("proceeds") or 0.0)
+        pending_chg = sub.get("pending_changes") or {}
+        pending_prod = (pending_chg.get("product") or {}).get("id") if isinstance(pending_chg, dict) else None
+        return {
+            "customer_id": clean_cid,
+            "platform": plat,
+            "store": store_raw,
+            "product_id": norm_prod_id,
+            "rc_status": rc_status,
+            "auto_renewal_status": ar_status,
+            "auto_renew_enabled": ar_status in ("will_renew", "will_change_product", "has_already_renewed"),
+            "starts_at_date": start_dt,
+            "current_period_starts_at_date": period_start_dt,
+            "ends_at_date": exp_dt,
+            "store_subscription_identifier": str(sub.get("store_subscription_identifier") or ""),
+            "country": str(sub.get("country") or "TR").upper(),
+            "gross_usd": gross_usd,
+            "proceeds_usd": proc_usd,
+            "pending_product_id": pending_prod,
+        }
+    except Exception as exc:
+        logger.debug("RevenueCat V2 customer verify info (%s): %s", clean_cid, exc)
+        return None
+
+
+def sync_revenuecat_v2_production_bridge(
+    db: Session,
+    latest_apple_report_date: str = "",
+) -> Dict[str, Any]:
+    """
+    Apple App Store Connect'in 1 günlük (T-1 PST) rapor gecikmesini ve Google Play canlı aboneliklerini
+    RevenueCat REST API v2 üzerinden (yalnızca environment=='production') tamamlar:
+    1) Son 72 saat içinde aktif olan müşterileri + bilinen production aboneleri tarar (sayfalı tarama).
+    2) Apple TSV rapor tarihinden (latest_apple_report_date) sonra başlayan T-0 iOS aboneliklerini
+       'RC_T0_{store_subscription_identifier}' anahtarıyla geçici köprü kaydı olarak ekler;
+       Apple TSV raporu ertesi gün ulaştığında otomatik tekilleştirilir (çift sayım olmaz).
+    3) Google Play (play_store) production aboneliklerini doğrudan SubscriberLedger'a yazar.
+    4) Yıllık promosyon kodlu (DamlaEge2026) olup sonraki yenileme planını 'misil_monthly' (149.99 TL)
+       olarak değiştiren (will_change_product) aboneleri yakalar.
+    """
+    sk = _get_revenuecat_v2_secret_key()
+    if not sk:
+        return {"connected": False, "reason": "No RevenueCat V2 secret key"}
+
+    now_ms = int(time.time() * 1000)
+    cutoff_recent_ms = now_ms - (72 * 3600 * 1000)
+    candidate_cids: List[str] = list(_KNOWN_RC_PRODUCTION_CUSTOMERS)
+    recent_scored: List[tuple] = []
+
+    try:
+        next_url: Optional[str] = f"https://api.revenuecat.com/v2/projects/{REVENUECAT_V2_PROJECT_ID}/customers?limit=100"
+        pages_fetched = 0
+        while next_url and pages_fetched < 3:
+            pages_fetched += 1
+            req = urllib.request.Request(
+                next_url,
+                headers={"Authorization": f"Bearer {sk}", "Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=4) as resp:
+                if resp.status != 200:
+                    break
+                data = json.loads(resp.read().decode("utf-8"))
+                for c_item in data.get("items") or []:
+                    cid = str(c_item.get("id") or "").strip()
+                    last_seen = _parse_rc_v2_ms(c_item.get("last_seen_at"))
+                    if cid and last_seen >= cutoff_recent_ms:
+                        recent_scored.append((last_seen, cid))
+                raw_next = data.get("next_page")
+                if raw_next and isinstance(raw_next, str):
+                    next_url = raw_next if raw_next.startswith("http") else f"https://api.revenuecat.com{raw_next}"
+                else:
+                    next_url = None
+    except Exception as exc:
+        logger.debug("RevenueCat V2 customer list info: %s", exc)
+
+    recent_scored.sort(key=lambda x: x[0], reverse=True)
+    for _, cid in recent_scored:
+        if cid not in candidate_cids:
+            candidate_cids.append(cid)
+
+    prod_ios_count = 0
+    prod_android_count = 0
+    t0_bridge_upserts = 0
+    pending_crossgrades: List[Dict[str, Any]] = []
+
+    for cid in candidate_cids[:40]:
+        v_sub = verify_revenuecat_v2_customer(cid)
+        if not v_sub:
+            continue
+        plat = v_sub["platform"]
+        st_date = v_sub["starts_at_date"]
+        conv_date = v_sub.get("current_period_starts_at_date") or st_date
+        exp_date = v_sub["ends_at_date"]
+        store_sub_id = v_sub["store_subscription_identifier"]
+        ar_status = v_sub["auto_renewal_status"]
+        rc_status = v_sub["rc_status"]
+        prod_id = v_sub["product_id"]
+
+        if plat == "ios":
+            prod_ios_count += 1
+            if ar_status == "will_change_product":
+                pending_crossgrades.append({
+                    "customer_id": cid,
+                    "store_subscription_identifier": store_sub_id,
+                    "started_date": st_date,
+                    "renewal_date": exp_date,
+                    "from_product_id": prod_id,
+                    "to_product_id": "misil_monthly",
+                    "expected_next_price_try": 149.99,
+                    "expected_next_proceeds_try": 83.12,
+                })
+            # Apple 1 günlük gecikme (T-0) köprüsü: Sadece latest_apple_report_date'den yeni olanları köprüle
+            if latest_apple_report_date and st_date > latest_apple_report_date and store_sub_id:
+                bridge_sid = f"RC_T0_{store_sub_id}"[:128]
+                # Aynı gün ve ürün için resmi Apple kayıt sayısı mevcut RC_T0_* sayısından azsa veya mevcut köprü kaydı varsa güncelle/ekle
+                official_cnt = (
+                    db.query(SubscriberLedger)
+                    .filter(
+                        SubscriberLedger.platform == "ios",
+                        SubscriberLedger.product_id == prod_id,
+                        SubscriberLedger.started_date == st_date,
+                        ~SubscriberLedger.subscriber_id.like("RC_T0_%"),
+                    )
+                    .count()
+                )
+                bridge_cnt = (
+                    db.query(SubscriberLedger)
+                    .filter(
+                        SubscriberLedger.platform == "ios",
+                        SubscriberLedger.product_id == prod_id,
+                        SubscriberLedger.started_date == st_date,
+                        SubscriberLedger.subscriber_id.like("RC_T0_%"),
+                        SubscriberLedger.subscriber_id != bridge_sid,
+                    )
+                    .count()
+                )
+                existing_b = db.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == bridge_sid).first()
+                if existing_b is not None or official_cnt <= bridge_cnt:
+                    is_paid = v_sub["gross_usd"] > 0
+                    std_g, std_n = _resolve_expected_trial_pricing(prod_id, 0.0, 0.0, "ios")
+                    c_gross = std_g if is_paid else 0.0
+                    c_net = std_n if is_paid else 0.0
+                    st_val = (
+                        "cancelled"
+                        if rc_status in ("expired", "unsubscribed") or not v_sub["auto_renew_enabled"]
+                        else ("paid_active" if is_paid else "intro_free_trial")
+                    )
+                    if existing_b:
+                        existing_b.product_id = prod_id
+                        existing_b.plan_label = "Yıllık VIP" if _is_annual_product(prod_id) else "Aylık Esnek VIP"
+                        existing_b.status = st_val
+                        existing_b.offer_type = "standard_paid" if is_paid else "intro_7d_trial"
+                        existing_b.auto_renew_enabled = v_sub["auto_renew_enabled"]
+                        existing_b.maturity_or_renewal_date = exp_date or st_date
+                        if is_paid:
+                            existing_b.customer_price_try = c_gross
+                            existing_b.developer_proceeds_try = c_net
+                            existing_b.converted_or_renewed_date = conv_date or existing_b.converted_or_renewed_date or st_date
+                        existing_b.expected_next_price_try = std_g if v_sub["auto_renew_enabled"] else 0.0
+                        existing_b.expected_next_proceeds_try = std_n if v_sub["auto_renew_enabled"] else 0.0
+                        existing_b.country = v_sub["country"]
+                        t0_bridge_upserts += 1
+                    else:
+                        db.add(
+                            SubscriberLedger(
+                                subscriber_id=bridge_sid,
+                                platform="ios",
+                                product_id=prod_id,
+                                plan_label="Yıllık VIP" if _is_annual_product(prod_id) else "Aylık Esnek VIP",
+                                status=st_val,
+                                offer_type="standard_paid" if is_paid else "intro_7d_trial",
+                                offer_code_name="RevenueCat T-0 Canlı Köprü",
+                                started_date=st_date,
+                                converted_or_renewed_date=conv_date if is_paid else None,
+                                maturity_or_renewal_date=exp_date or st_date,
+                                auto_renew_enabled=v_sub["auto_renew_enabled"],
+                                customer_price_try=c_gross,
+                                developer_proceeds_try=c_net,
+                                expected_next_price_try=std_g if v_sub["auto_renew_enabled"] else 0.0,
+                                expected_next_proceeds_try=std_n if v_sub["auto_renew_enabled"] else 0.0,
+                                country=v_sub["country"],
+                                device_type="iPhone",
+                            )
+                        )
+                        t0_bridge_upserts += 1
+        elif plat == "android":
+            prod_android_count += 1
+            and_sid = (store_sub_id or cid)[:128]
+            is_paid = v_sub["gross_usd"] > 0
+            std_g, std_n = _resolve_expected_trial_pricing(prod_id, 0.0, 0.0, "android")
+            c_gross = std_g if is_paid else 0.0
+            c_net = std_n if is_paid else 0.0
+            st_val = (
+                "cancelled"
+                if rc_status in ("expired", "unsubscribed") or not v_sub["auto_renew_enabled"]
+                else ("paid_active" if is_paid else "intro_free_trial")
+            )
+            existing_and = db.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == and_sid).first()
+            if existing_and:
+                existing_and.product_id = prod_id
+                existing_and.plan_label = "Mışıl Baby Yıllık VIP" if _is_annual_product(prod_id) else "Mışıl Baby Aylık VIP"
+                existing_and.status = st_val
+                existing_and.offer_type = "standard_paid" if is_paid else "intro_7d_trial"
+                existing_and.auto_renew_enabled = v_sub["auto_renew_enabled"]
+                existing_and.maturity_or_renewal_date = exp_date or st_date
+                if is_paid:
+                    existing_and.customer_price_try = c_gross
+                    existing_and.developer_proceeds_try = c_net
+                    existing_and.converted_or_renewed_date = conv_date or existing_and.converted_or_renewed_date or st_date
+                existing_and.expected_next_price_try = std_g if v_sub["auto_renew_enabled"] else 0.0
+                existing_and.expected_next_proceeds_try = std_n if v_sub["auto_renew_enabled"] else 0.0
+                existing_and.country = v_sub["country"]
+                t0_bridge_upserts += 1
+            else:
+                db.add(
+                    SubscriberLedger(
+                        subscriber_id=and_sid,
+                        platform="android",
+                        product_id=prod_id,
+                        plan_label="Mışıl Baby Yıllık VIP" if _is_annual_product(prod_id) else "Mışıl Baby Aylık VIP",
+                        status=st_val,
+                        offer_type="standard_paid" if is_paid else "intro_7d_trial",
+                        offer_code_name="Google Play / RevenueCat V2",
+                        started_date=st_date,
+                        converted_or_renewed_date=conv_date if is_paid else None,
+                        maturity_or_renewal_date=exp_date or st_date,
+                        auto_renew_enabled=v_sub["auto_renew_enabled"],
+                        customer_price_try=c_gross,
+                        developer_proceeds_try=c_net,
+                        expected_next_price_try=std_g if v_sub["auto_renew_enabled"] else 0.0,
+                        expected_next_proceeds_try=std_n if v_sub["auto_renew_enabled"] else 0.0,
+                        country=v_sub["country"],
+                        device_type="Android",
+                    )
+                )
+                t0_bridge_upserts += 1
+
+    # Yıllık promosyon kodlu (DamlaEge2026) olup RevenueCat V2'de 'will_change_product' (misil_monthly) seçenleri işaretle
+    if pending_crossgrades:
+        code_rows: List[SubscriberLedger] = (
+            db.query(SubscriberLedger)
+            .filter(
+                SubscriberLedger.platform == "ios",
+                SubscriberLedger.status == "offer_code_trial",
+            )
+            .order_by(SubscriberLedger.started_date.asc(), SubscriberLedger.subscriber_id.asc())
+            .all()
+        )
+        for cg in pending_crossgrades:
+            cg_start = cg.get("started_date") or ""
+            # Aynı başlangıç gününe sahip veya henüz plan değişimi işlenmemiş kodlu aboneyi eşleştir
+            target_row = next(
+                (
+                    r for r in code_rows
+                    if (r.started_date == cg_start or not cg_start)
+                    and (r.expected_next_price_try or 0.0) == 0.0
+                ),
+                None,
+            )
+            if target_row:
+                target_row.expected_next_price_try = 149.99
+                target_row.expected_next_proceeds_try = 83.12
+                base_code = (target_row.offer_code_name or "DamlaEge2026").split(" ➔")[0].strip()
+                target_row.offer_code_name = f"{base_code} ➔ Aylık VIP (149.99 ₺)"[:95]
+
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+
+    return {
+        "connected": True,
+        "prod_ios_checked": prod_ios_count,
+        "prod_android_checked": prod_android_count,
+        "t0_bridge_upserts": t0_bridge_upserts,
+        "pending_crossgrades": pending_crossgrades,
+    }
+
+
+
 def _reconcile_ios_ledger_and_cancellations(
     db: Session,
     cancel_cohorts: Optional[Counter] = None,
@@ -534,6 +956,28 @@ def _reconcile_ios_ledger_and_cancellations(
     )
     if not ios_rows:
         return changed
+
+    # 0b) Apple TSV (SUBSCRIBER 1_3) resmi kaydı ulaştığında, o gün için açılmış geçici RC_T0_* köprü kaydını sayısal kohort (Counter) ile tekilleştir
+    official_cohort_counts: Counter = Counter()
+    for r in ios_rows:
+        if not str(r.subscriber_id or "").startswith("RC_T0_"):
+            official_cohort_counts[(r.product_id or "misil_monthly", r.started_date or "")] += 1
+
+    bridge_dups: List[SubscriberLedger] = []
+    for r in ios_rows:
+        if str(r.subscriber_id or "").startswith("RC_T0_"):
+            c_key = (r.product_id or "misil_monthly", r.started_date or "")
+            if official_cohort_counts[c_key] > 0:
+                official_cohort_counts[c_key] -= 1
+                bridge_dups.append(r)
+
+    if bridge_dups:
+        for bd in bridge_dups:
+            db.delete(bd)
+            ios_rows.remove(bd)
+        db.flush()
+        changed = True
+
 
     refunded_sids = {
         (ev.event_type or "").split(":")[0]
@@ -1584,6 +2028,88 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
 
     tz_tr = timezone(timedelta(hours=3))
     synced_at_str = datetime.now(tz_tr).strftime("%d.%m.%Y %H:%M TSİ")
+    today_sync_d = datetime.now(tz_tr).date()
+
+    # Adım 3: RevenueCat REST API v2 (T-0 Canlı Köprü & Google Play Production Senkronizasyonu)
+    # ve SubscriberLedger -> StoreDailyMetric günlük gelir serisi mutabakatı
+    latest_apple_rep_date = ""
+    apple_lag_days_calc = 1
+    rc_bridge_res: Dict[str, Any] = {}
+    calc_ios_gross_try = 0.0
+    calc_ios_proceeds_try = 0.0
+    calc_ios_paid_tx = 0
+    calc_ios_by_plan: Dict[str, int] = {}
+
+    try:
+        db_fin = SessionLocal()
+        try:
+            ios_dm_dates = [
+                r[0]
+                for r in db_fin.query(StoreDailyMetric.metric_date)
+                .filter(StoreDailyMetric.platform == "ios", StoreDailyMetric.downloads_total > 0)
+                .all()
+                if r[0]
+            ]
+            if ios_dm_dates:
+                latest_apple_rep_date = max(ios_dm_dates)
+                try:
+                    rep_dt_obj = datetime.strptime(latest_apple_rep_date, "%Y-%m-%d").date()
+                    apple_lag_days_calc = max(1, (today_sync_d - rep_dt_obj).days)
+                except Exception:
+                    apple_lag_days_calc = 1
+
+            rc_bridge_res = sync_revenuecat_v2_production_bridge(
+                db_fin, latest_apple_report_date=latest_apple_rep_date
+            )
+            if rc_bridge_res.get("connected"):
+                synced_sources.append("RevenueCat REST API v2 (T-0 Production Bridge)")
+
+            # SubscriberLedger üzerindeki gerçekleşmiş ödemeleri (customer_price_try > 0)
+            # işlem gününe (converted_or_renewed_date / started_date) göre StoreDailyMetric'e işle
+            all_ledger_rows: List[SubscriberLedger] = db_fin.query(SubscriberLedger).all()
+            daily_rev_by_plat_date: Dict[tuple, List[float]] = {}
+            for lr in all_ledger_rows:
+                l_plat = "android" if (lr.platform or "ios").lower() == "android" else "ios"
+                if l_plat == "ios" and lr.status != "cancelled" and lr.auto_renew_enabled:
+                    p_key = lr.product_id or "misil_monthly"
+                    calc_ios_by_plan[p_key] = calc_ios_by_plan.get(p_key, 0) + 1
+                c_pr = float(lr.customer_price_try or 0.0)
+                d_pr = float(lr.developer_proceeds_try or 0.0)
+                if c_pr > 0:
+                    tx_dt = (lr.converted_or_renewed_date or lr.started_date or "").strip()[:10]
+                    if len(tx_dt) == 10:
+                        bucket = daily_rev_by_plat_date.setdefault((l_plat, tx_dt), [0.0, 0.0])
+                        bucket[0] = round(bucket[0] + c_pr, 2)
+                        bucket[1] = round(bucket[1] + d_pr, 2)
+                    if l_plat == "ios":
+                        calc_ios_gross_try = round(calc_ios_gross_try + c_pr, 2)
+                        calc_ios_proceeds_try = round(calc_ios_proceeds_try + d_pr, 2)
+                        calc_ios_paid_tx += 1
+
+            for (r_plat, r_dt), (g_val, n_val) in daily_rev_by_plat_date.items():
+                dm_row = (
+                    db_fin.query(StoreDailyMetric)
+                    .filter(StoreDailyMetric.metric_date == r_dt, StoreDailyMetric.platform == r_plat)
+                    .first()
+                )
+                if dm_row:
+                    dm_row.gross_revenue_try = g_val
+                    dm_row.net_proceeds_try = n_val
+                else:
+                    db_fin.add(
+                        StoreDailyMetric(
+                            metric_date=r_dt,
+                            platform=r_plat,
+                            downloads_total=0,
+                            gross_revenue_try=g_val,
+                            net_proceeds_try=n_val,
+                        )
+                    )
+            db_fin.commit()
+        finally:
+            db_fin.close()
+    except Exception as fin_sync_exc:
+        logger.debug("Financial daily series & RC V2 bridge sync info: %s", fin_sync_exc)
 
     # Kısa süreli kilit altında bellek içi ve DB StoreSyncState güncellemesi
     with _BASELINE_LOCK:
@@ -1591,6 +2117,18 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
             OFFICIAL_STORE_BASELINE["apple_sync_status"] = "CONNECTED (Apple App Store Connect API)"
         if google_connected:
             OFFICIAL_STORE_BASELINE["google_sync_status"] = "CONNECTED (Google Play Developer API)"
+        if rc_bridge_res.get("connected"):
+            OFFICIAL_STORE_BASELINE["rc_v2_sync_status"] = "CONNECTED (RevenueCat REST API v2 • Production)"
+            OFFICIAL_STORE_BASELINE["rc_v2_pending_crossgrades"] = rc_bridge_res.get("pending_crossgrades", [])
+        if latest_apple_rep_date:
+            OFFICIAL_STORE_BASELINE["apple_latest_report_date"] = latest_apple_rep_date
+            OFFICIAL_STORE_BASELINE["apple_report_lag_days"] = apple_lag_days_calc
+        if calc_ios_gross_try > 0:
+            OFFICIAL_STORE_BASELINE["apple_vip_paid_customer_price_try"] = calc_ios_gross_try
+            OFFICIAL_STORE_BASELINE["apple_vip_paid_proceeds_try"] = calc_ios_proceeds_try
+            OFFICIAL_STORE_BASELINE["apple_vip_total_transactions"] = calc_ios_paid_tx
+        if calc_ios_by_plan:
+            OFFICIAL_STORE_BASELINE["apple_vip_by_plan"] = calc_ios_by_plan
         if fetched_apple_reviews or fetched_gp_reviews:
             existing_revs = OFFICIAL_STORE_BASELINE.get("store_reviews", [])
             keep_gp = fetched_gp_reviews if fetched_gp_reviews else [x for x in existing_revs if x.get("store") == "Google Play"]
@@ -2941,10 +3479,258 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     else:
         apple_vip = max(int(sb.get("apple_vip_activations_total", 0) or 0), db_subs_count, len(vip_started_signals))
     sb["apple_vip_activations_total"] = apple_vip
+    if plat_fin["ios"]["realized_gross"] > 0:
+        sb["apple_vip_paid_customer_price_try"] = round(plat_fin["ios"]["realized_gross"], 2)
+        sb["apple_vip_paid_proceeds_try"] = round(plat_fin["ios"]["realized_net"], 2)
+        sb["apple_vip_total_transactions"] = int(plat_fin["ios"]["paid_cnt"])
+
+    # Apple App Store Connect 1 Günlük (T-1 PST) Rapor Gecikmesi ve Periyot Duyarlı Gelir Mutabakatı
+    apple_anchor_str = latest_confirmed_store_date or str(sb.get("apple_latest_report_date") or "") or yesterday_str
+    try:
+        apple_anchor_dt = datetime.strptime(apple_anchor_str, "%Y-%m-%d").date()
+    except Exception:
+        apple_anchor_dt = (now_tr - timedelta(days=1)).date()
+        apple_anchor_str = apple_anchor_dt.strftime("%Y-%m-%d")
+    apple_lag_days = max(1, (now_tr.date() - apple_anchor_dt).days)
+    apple_7d_start_str = (apple_anchor_dt - timedelta(days=6)).strftime("%Y-%m-%d")
+    sb["apple_latest_report_date"] = apple_anchor_str
+    sb["apple_report_lag_days"] = apple_lag_days
+
+    def _in_period_window(dt_val: str, plat_val: str, target_period: str) -> bool:
+        if not dt_val or len(dt_val) < 10:
+            return target_period == "all"
+        d_clean = dt_val[:10]
+        is_ios_plat = (plat_val or "ios").lower() != "android"
+        if target_period == "all":
+            return True
+        if target_period == "today":
+            return d_clean == today_str
+        if target_period == "yesterday":
+            # Apple Connect'te "Yesterday (Dün)" son kesinleşen tekil rapor gününü (T-1: apple_anchor_str) ifade eder
+            return (d_clean == apple_anchor_str) if is_ios_plat else (d_clean == yesterday_str)
+        if target_period == "7d":
+            # Apple Connect Trends "Last 7 Days" son kesinleşen rapor gününden geriye 7 günü [T-7..T-1] + T-0 canlı köprüyü kapsar
+            start_b = apple_7d_start_str if is_ios_plat else cutoff_7d_date
+            return start_b <= d_clean <= today_str
+        return True
+
+    def _calc_window_revenue(win_key: str) -> Dict[str, Any]:
+        g_try = 0.0
+        n_try = 0.0
+        ios_g = 0.0
+        ios_n = 0.0
+        and_g = 0.0
+        and_n = 0.0
+        p_cnt = 0
+        tr_cnt = 0
+        cd_cnt = 0
+        cn_cnt = 0
+        tx_items: List[str] = []
+        for lr in ledger_rows_db:
+            l_pl = "android" if (lr.platform or "ios").lower() == "android" else "ios"
+            c_p = float(lr.customer_price_try or 0.0)
+            d_p = float(lr.developer_proceeds_try or 0.0)
+            tx_d = (lr.converted_or_renewed_date or lr.started_date or "").strip()[:10]
+            st_d = (lr.started_date or "").strip()[:10]
+            if c_p > 0 and _in_period_window(tx_d, l_pl, win_key):
+                g_try = round(g_try + c_p, 2)
+                n_try = round(n_try + d_p, 2)
+                p_cnt += 1
+                if l_pl == "android":
+                    and_g = round(and_g + c_p, 2)
+                    and_n = round(and_n + d_p, 2)
+                else:
+                    ios_g = round(ios_g + c_p, 2)
+                    ios_n = round(ios_n + d_p, 2)
+                tx_items.append(f"{tx_d}: #{lr.subscriber_id[-6:]} ({lr.plan_label} • {c_p:.2f} ₺ Brüt / {d_p:.2f} ₺ Net)")
+            if _in_period_window(st_d, l_pl, win_key):
+                if lr.status == "intro_free_trial" and lr.auto_renew_enabled:
+                    tr_cnt += 1
+                elif lr.status == "offer_code_trial":
+                    cd_cnt += 1
+                elif lr.status == "cancelled" or not lr.auto_renew_enabled:
+                    cn_cnt += 1
+        return {
+            "gross_try": round(g_try, 2),
+            "net_try": round(n_try, 2),
+            "gross_usd": _convert_try_to_usd(g_try),
+            "net_usd": _convert_try_to_usd(n_try),
+            "ios_gross_try": round(ios_g, 2),
+            "ios_net_try": round(ios_n, 2),
+            "ios_gross_usd": _convert_try_to_usd(ios_g),
+            "ios_net_usd": _convert_try_to_usd(ios_n),
+            "android_gross_try": round(and_g, 2),
+            "android_net_try": round(and_n, 2),
+            "paid_count": p_cnt,
+            "new_trials_count": tr_cnt,
+            "new_codes_count": cd_cnt,
+            "cancelled_count": cn_cnt,
+            "transactions": tx_items,
+        }
+
+    win_all = _calc_window_revenue("all")
+    win_7d = _calc_window_revenue("7d")
+    win_yesterday = _calc_window_revenue("yesterday")
+    win_today = _calc_window_revenue("today")
+    win_selected = (
+        win_all if period == "all"
+        else (win_7d if period == "7d" else (win_yesterday if period == "yesterday" else win_today))
+    )
+
+    if period == "all":
+        period_win_label = f"Tüm Zamanlar (Kümülatif • Son Kesinleşen Apple Raporu: {apple_anchor_str})"
+    elif period == "7d":
+        period_win_label = f"Son 7 Gün (Apple Connect Trends T-1 Penceresi: {apple_7d_start_str} ➔ {apple_anchor_str} + T-0 Canlı)"
+    elif period == "yesterday":
+        period_win_label = f"Dün / Apple Son Kesinleşen Rapor Günü (T-1: {apple_anchor_str} • Android: {yesterday_str})"
+    else:
+        period_win_label = f"Bugün TSİ ({today_str} T-0 Canlı Köprü • Apple Resmi TSV 1 Gün Gecikmeli: {apple_anchor_str})"
+
+    crossgrade_rows = [
+        r for r in ledger_rows_db
+        if r.status == "offer_code_trial" and (r.expected_next_price_try or 0.0) > 0
+    ]
+    crossgrade_gross_try = round(sum(float(r.expected_next_price_try or 0.0) for r in crossgrade_rows), 2)
+    crossgrade_net_try = round(sum(float(r.expected_next_proceeds_try or 0.0) for r in crossgrade_rows), 2)
+
+    # Ülke bazlı ücretli alım sayısı ve gelir/abone dağılımı (Country Revenue & Subscriber Breakdown)
+    dl_by_country_map: Dict[str, Dict[str, Any]] = {}
+    for c_entry in (sb.get("apple_downloads_by_country") or []):
+        cc = str(c_entry.get("code") or "TR").strip().upper()
+        dl_by_country_map[cc] = {
+            "count": int(c_entry.get("count", 0) or 0),
+            "flag": str(c_entry.get("flag") or COUNTRY_META.get(cc, {}).get("flag") or "🌍"),
+            "name": str(c_entry.get("name") or COUNTRY_META.get(cc, {}).get("name") or cc),
+        }
+
+    country_agg: Dict[str, Dict[str, Any]] = {}
+    all_country_codes = set(dl_by_country_map.keys()) | {
+        str(r.country or "TR").strip().upper() for r in ledger_rows_db
+    }
+    if not all_country_codes:
+        all_country_codes = {"TR"}
+
+    for cc in all_country_codes:
+        c_meta = dl_by_country_map.get(cc) or {}
+        c_flag = c_meta.get("flag") or COUNTRY_META.get(cc, {}).get("flag") or "🌍"
+        c_name = c_meta.get("name") or COUNTRY_META.get(cc, {}).get("name") or cc
+        c_dl = int(c_meta.get("count", 0) or 0)
+        if cc == "TR":
+            c_dl += int(google_play_downloads or 0)
+        country_agg[cc] = {
+            "code": cc,
+            "flag": c_flag,
+            "name": c_name,
+            "downloads": c_dl,
+            "paid_subs_count": 0,
+            "paid_annual_count": 0,
+            "paid_monthly_count": 0,
+            "trial_subs_count": 0,
+            "offer_code_subs_count": 0,
+            "cancelled_subs_count": 0,
+            "active_vip_count": 0,
+            "realized_gross_try": 0.0,
+            "realized_net_try": 0.0,
+            "expected_mrr_gross_try": 0.0,
+            "expected_mrr_net_try": 0.0,
+        }
+
+    for lr in ledger_rows_db:
+        cc = str(lr.country or "TR").strip().upper() or "TR"
+        ca = country_agg[cc]
+        c_p = float(lr.customer_price_try or 0.0)
+        d_p = float(lr.developer_proceeds_try or 0.0)
+        exp_g = float(lr.expected_next_price_try or 0.0)
+        exp_n = float(lr.expected_next_proceeds_try or 0.0)
+        is_ann_lr = _is_annual_product(lr.product_id)
+
+        if lr.status == "paid_active" and c_p > 0:
+            ca["paid_subs_count"] += 1
+            ca["active_vip_count"] += 1
+            if is_ann_lr:
+                ca["paid_annual_count"] += 1
+            else:
+                ca["paid_monthly_count"] += 1
+            ca["realized_gross_try"] = round(ca["realized_gross_try"] + c_p, 2)
+            ca["realized_net_try"] = round(ca["realized_net_try"] + d_p, 2)
+            if lr.auto_renew_enabled:
+                m_div = 12.0 if is_ann_lr else 1.0
+                ca["expected_mrr_gross_try"] = round(ca["expected_mrr_gross_try"] + (c_p / m_div), 2)
+                ca["expected_mrr_net_try"] = round(ca["expected_mrr_net_try"] + (d_p / m_div), 2)
+        elif lr.status == "intro_free_trial" and lr.auto_renew_enabled:
+            ca["trial_subs_count"] += 1
+            ca["active_vip_count"] += 1
+            ca["expected_mrr_gross_try"] = round(ca["expected_mrr_gross_try"] + exp_g, 2)
+            ca["expected_mrr_net_try"] = round(ca["expected_mrr_net_try"] + exp_n, 2)
+        elif lr.status == "offer_code_trial":
+            ca["offer_code_subs_count"] += 1
+            ca["active_vip_count"] += 1
+            if exp_g > 0 and lr.auto_renew_enabled:
+                ca["expected_mrr_gross_try"] = round(ca["expected_mrr_gross_try"] + exp_g, 2)
+                ca["expected_mrr_net_try"] = round(ca["expected_mrr_net_try"] + exp_n, 2)
+        elif lr.status == "cancelled" or not lr.auto_renew_enabled:
+            ca["cancelled_subs_count"] += 1
+
+    country_revenue_breakdown: List[Dict[str, Any]] = []
+    for cc, ca in country_agg.items():
+        g_t = ca["realized_gross_try"]
+        n_t = ca["realized_net_try"]
+        ca["realized_gross_usd"] = _convert_try_to_usd(g_t)
+        ca["realized_net_usd"] = _convert_try_to_usd(n_t)
+        ca["share_of_revenue_pct"] = round((g_t / realized_gross_try) * 100.0, 1) if realized_gross_try > 0 else 0.0
+        plan_parts: List[str] = []
+        if ca["paid_annual_count"] > 0:
+            plan_parts.append(f"{ca['paid_annual_count']} Yıllık (599.99 ₺)")
+        if ca["paid_monthly_count"] > 0:
+            plan_parts.append(f"{ca['paid_monthly_count']} Aylık (149.99 ₺)")
+        ca["paid_plans_label"] = " + ".join(plan_parts) if plan_parts else "Henüz Ücretli Alım Yok"
+        country_revenue_breakdown.append(ca)
+
+    country_revenue_breakdown.sort(
+        key=lambda x: (x["realized_gross_try"], x["active_vip_count"], x["downloads"]),
+        reverse=True,
+    )
+    paid_countries_count = sum(1 for c in country_revenue_breakdown if c["paid_subs_count"] > 0)
+    vip_countries_count = sum(1 for c in country_revenue_breakdown if c["active_vip_count"] > 0)
+    download_countries_count = sum(1 for c in country_revenue_breakdown if c["downloads"] > 0 or c["active_vip_count"] > 0)
+
+    store_reconciliation = {
+        "apple_latest_report_date": apple_anchor_str,
+        "apple_lag_days": apple_lag_days,
+        "apple_7d_window_start": apple_7d_start_str,
+        "apple_7d_window_end": apple_anchor_str,
+        "usd_try_rate": APPLE_TRENDS_USD_TRY_RATE,
+        "period_window_label": period_win_label,
+        "all_time": win_all,
+        "last_7d_t1": win_7d,
+        "yesterday_t1": win_yesterday,
+        "today_t0": win_today,
+        "period_selected": win_selected,
+        "rc_v2_crossgrades_count": len(crossgrade_rows),
+        "rc_v2_crossgrades_gross_try": crossgrade_gross_try,
+        "rc_v2_crossgrades_net_try": crossgrade_net_try,
+        "paid_countries_count": paid_countries_count,
+        "vip_countries_count": vip_countries_count,
+        "download_countries_count": download_countries_count,
+        "country_revenue_breakdown": country_revenue_breakdown,
+    }
 
     financial_ledger = {
         "realized_gross_try": round(realized_gross_try, 2),
         "realized_net_proceeds_try": round(realized_net_try, 2),
+        "realized_gross_usd": _convert_try_to_usd(realized_gross_try),
+        "realized_net_proceeds_usd": _convert_try_to_usd(realized_net_try),
+        "period_realized_gross_try": win_selected["gross_try"],
+        "period_realized_net_proceeds_try": win_selected["net_try"],
+        "period_realized_gross_usd": win_selected["gross_usd"],
+        "period_realized_net_proceeds_usd": win_selected["net_usd"],
+        "period_paid_subs_count": win_selected["paid_count"],
+        "period_window_label": period_win_label,
+        "paid_countries_count": paid_countries_count,
+        "vip_countries_count": vip_countries_count,
+        "download_countries_count": download_countries_count,
+        "country_revenue_breakdown": country_revenue_breakdown,
+        "store_reconciliation": store_reconciliation,
         "active_paid_mrr_gross_try": round(active_paid_mrr_gross, 2),
         "active_paid_mrr_net_try": round(active_paid_mrr_net, 2),
         "active_paid_arr_net_try": round(active_paid_mrr_net * 12, 2),
@@ -3801,8 +4587,35 @@ async def sync_client_subscriber_ledger(
     is_admin_authed = authorize_admin_request(
         request, None, request.headers.get("x-admin-pin"), request.cookies.get(_ADMIN_SESSION_COOKIE)
     )
+    verified_rc_v2 = False
+    if (
+        not is_admin_authed
+        and not verified_gp_token
+        and "RCANONYMOUSID" in payload.subscriber_id.upper()
+        and not os.environ.get("PYTEST_CURRENT_TEST")
+    ):
+        rc_v2 = await run_in_threadpool(verify_revenuecat_v2_customer, payload.subscriber_id.strip())
+        if isinstance(rc_v2, dict) and rc_v2.get("store_subscription_identifier"):
+            verified_rc_v2 = True
+            plat = rc_v2["platform"]
+            prod_id = rc_v2["product_id"]
+            store_sub_id = str(rc_v2["store_subscription_identifier"])
+            clean_sid = (f"RC_T0_{store_sub_id}" if plat == "ios" else store_sub_id)[:128]
+            auto_renew = bool(rc_v2["auto_renew_enabled"])
+            if rc_v2.get("starts_at_date"):
+                start_dt_str = rc_v2["starts_at_date"]
+            if rc_v2.get("ends_at_date"):
+                mat_dt_str = rc_v2["ends_at_date"]
+            if rc_v2["rc_status"] in ("expired", "unsubscribed") or not auto_renew:
+                st_val = "cancelled"
+            elif float(rc_v2.get("gross_usd") or 0.0) > 0:
+                st_val = "paid_active"
+            else:
+                st_val = "intro_free_trial"
+            offer_code_nm = "RevenueCat T-0 Canlı Köprü" if plat == "ios" else "Google Play / RevenueCat V2"
+
     # Kimliksiz/doğrulanmamış istemci çağrılarının sahte tahsilat (paid_active) yazmasını, DEV_* hayalet satırı üretmesini veya resmi Apple satırlarını ezmesini engelle
-    if not is_admin_authed and not verified_gp_token:
+    if not is_admin_authed and not verified_gp_token and not verified_rc_v2:
         if clean_sid.upper().startswith("DEV_") or "RCANONYMOUSID" in clean_sid.upper():
             return {
                 "ok": True,
@@ -3837,11 +4650,18 @@ async def sync_client_subscriber_ledger(
         mat_dt_str = (dt_s + timedelta(days=days_add)).strftime("%Y-%m-%d")
 
     std_gross, std_net = _resolve_expected_trial_pricing(
-        prod_id, payload.customer_price_try, payload.developer_proceeds_try, plat
+        prod_id,
+        0.0 if verified_rc_v2 else payload.customer_price_try,
+        0.0 if verified_rc_v2 else payload.developer_proceeds_try,
+        plat,
     )
     net_ratio = 0.727 if plat == "android" else 0.55417
-    c_gross = round(float(payload.customer_price_try or (std_gross if st_val == "paid_active" else 0.0)), 2)
-    c_net = round(float(payload.developer_proceeds_try or (round(c_gross * net_ratio, 2) if c_gross > 0 else 0.0)), 2)
+    if verified_rc_v2:
+        c_gross = std_gross if st_val == "paid_active" else 0.0
+        c_net = std_net if st_val == "paid_active" else 0.0
+    else:
+        c_gross = round(float(payload.customer_price_try or (std_gross if st_val == "paid_active" else 0.0)), 2)
+        c_net = round(float(payload.developer_proceeds_try or (round(c_gross * net_ratio, 2) if c_gross > 0 else 0.0)), 2)
 
     if st_val == "cancelled" or not auto_renew:
         exp_gross, exp_net = 0.0, 0.0
@@ -3860,7 +4680,7 @@ async def sync_client_subscriber_ledger(
     dev_clean = (payload.device_type or ("Android" if plat == "android" else "iPhone")).strip()[:64]
 
     existing = db.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == clean_sid).first()
-    if existing and not is_admin_authed and not verified_gp_token:
+    if existing and not is_admin_authed and not verified_gp_token and not verified_rc_v2:
         # Resmi mağaza API'lerinden (Apple SUBSCRIBER 1_3 veya RevenueCat Webhook) gelen kayıtların kimliksiz istemci tarafından ezilmesini engelle
         if not clean_sid.startswith("DEV_"):
             return {
@@ -4774,6 +5594,192 @@ async def analytics_dashboard_page(
         else f"🔍 <strong>Neden Android'de 0 Abone Görünüyor? (Canlı API Teşhisi):</strong> Google Play Developer API (<code>monetization.subscriptions</code>) üzerinde <strong>Mışıl Baby Yıllık VIP (599.99 ₺ + 7G Ücretsiz Deneme)</strong> ve <strong>Mışıl Baby Aylık VIP (149.99 ₺ + 7G Ücretsiz Deneme)</strong> paketleriniz <strong>ACTIVE (Yayında)</strong> durumdadır. Ancak <strong>{ps_and.get('touchpoints', 0)} Android köprü tıklamasından</strong> gelen <strong>{kpis['android_downloads']} Android kurulumu</strong> içerisinden henüz Google Play faturalandırmasını (7G deneme veya ücretli) başlatan kullanıcı olmamıştır (<strong>0 Aktif Android Abone</strong>). Yeni bir Android abonesi başladığında bu tabloya otomatik olarak düşer."
     )
 
+    sr = fl.get("store_reconciliation") or {}
+    sr_all = sr.get("all_time") or {}
+    sr_7d = sr.get("last_7d_t1") or {}
+    sr_yest = sr.get("yesterday_t1") or {}
+    sr_today = sr.get("today_t0") or {}
+    sr_sel = sr.get("period_selected") or sr_all
+    sr_anchor = html.escape(str(sr.get("apple_latest_report_date") or "-"))
+    sr_7d_start = html.escape(str(sr.get("apple_7d_window_start") or "-"))
+    sr_lag = int(sr.get("apple_lag_days", 1) or 1)
+    sr_win_lbl = html.escape(str(sr.get("period_window_label") or s.get("period_label") or "Tüm Zamanlar"))
+    sr_cg_cnt = int(sr.get("rc_v2_crossgrades_count", 0) or 0)
+    sr_cg_gross = float(sr.get("rc_v2_crossgrades_gross_try", 0.0) or 0.0)
+    sr_cg_net = float(sr.get("rc_v2_crossgrades_net_try", 0.0) or 0.0)
+
+    if clean_period == "all":
+        card1_big_html = (
+            f"{fl['realized_net_proceeds_try']:.2f} ₺ <span style='font-size:15px; color:var(--text-muted);'>Net</span> "
+            f"<span style='font-size:13px; color:#059669; font-weight:700;'>(~${fl.get('realized_net_proceeds_usd', 0.0):.2f})</span>"
+        )
+        card1_desc_html = (
+            f"Tüm Zamanlar Brüt: <strong>{fl['realized_gross_try']:.2f} ₺ (~${fl.get('realized_gross_usd', 0.0):.2f} Sales)</strong> • "
+            f"Son 7G (Apple T-1): <strong>{sr_7d.get('gross_try', 0.0):.2f} ₺ Brüt / {sr_7d.get('net_try', 0.0):.2f} ₺ Net (~${sr_7d.get('net_usd', 0.0):.2f})</strong> • "
+            f"Aktif MRR: <strong>{fl['active_paid_mrr_net_try']:.2f} ₺ Net/Ay</strong> (<strong>{fl['paid_subs_count']} Ücretli</strong>)."
+        )
+    else:
+        card1_big_html = (
+            f"{fl.get('period_realized_net_proceeds_try', 0.0):.2f} ₺ <span style='font-size:15px; color:var(--text-muted);'>Net ({html.escape(s['period_label'])})</span> "
+            f"<span style='font-size:13px; color:#059669; font-weight:700;'>(~${fl.get('period_realized_net_proceeds_usd', 0.0):.2f})</span>"
+        )
+        card1_desc_html = (
+            f"Seçili Dönem Brüt: <strong>{fl.get('period_realized_gross_try', 0.0):.2f} ₺ (~${fl.get('period_realized_gross_usd', 0.0):.2f} Sales • {fl.get('period_paid_subs_count', 0)} Tahsilat)</strong> • "
+            f"Kümülatif Tüm Zamanlar: <strong>{fl['realized_gross_try']:.2f} ₺ Brüt / {fl['realized_net_proceeds_try']:.2f} ₺ Net (~${fl.get('realized_net_proceeds_usd', 0.0):.2f})</strong>."
+        )
+
+    paid_countries_cnt = int(fl.get("paid_countries_count", 0) or 0)
+    vip_countries_cnt = int(fl.get("vip_countries_count", 0) or 0)
+    dl_countries_cnt = int(fl.get("download_countries_count", len(countries_list)) or 0)
+    country_rev_list = fl.get("country_revenue_breakdown") or []
+
+    country_rev_rows_html = ""
+    for cr in country_rev_list:
+        c_flag = html.escape(str(cr.get("flag") or "🌍"))
+        c_name = html.escape(str(cr.get("name") or cr.get("code") or "TR"))
+        c_code = html.escape(str(cr.get("code") or "TR"))
+        c_dl = int(cr.get("downloads", 0) or 0)
+        c_paid = int(cr.get("paid_subs_count", 0) or 0)
+        c_trial = int(cr.get("trial_subs_count", 0) or 0)
+        c_code_cnt = int(cr.get("offer_code_subs_count", 0) or 0)
+        c_gross = float(cr.get("realized_gross_try", 0.0) or 0.0)
+        c_net = float(cr.get("realized_net_try", 0.0) or 0.0)
+        c_net_usd = float(cr.get("realized_net_usd", 0.0) or 0.0)
+        c_gross_usd = float(cr.get("realized_gross_usd", 0.0) or 0.0)
+        c_share = float(cr.get("share_of_revenue_pct", 0.0) or 0.0)
+        c_mrr_net = float(cr.get("expected_mrr_net_try", 0.0) or 0.0)
+        c_plans_lbl = html.escape(str(cr.get("paid_plans_label") or "Henüz Ücretli Alım Yok"))
+
+        if c_paid > 0:
+            paid_cell = (
+                f"<span class='badge' style='background:rgba(16,185,129,0.15); color:#059669;'>💳 {c_paid} Ücretli Abone</span> "
+                f"<span style='font-size:11.5px; color:var(--text-secondary); font-weight:600; margin-left:4px;'>({c_plans_lbl})</span>"
+            )
+            rev_cell = (
+                f"<strong style='color:#059669;'>{c_gross:.2f} ₺</strong> Brüt / "
+                f"<strong style='color:#059669;'>{c_net:.2f} ₺</strong> Net "
+                f"<span style='font-size:11.5px; color:var(--text-muted);'>(~${c_gross_usd:.2f} Sales / ${c_net_usd:.2f} Proceeds • %{c_share})</span>"
+            )
+        else:
+            paid_cell = "<span style='color:var(--text-muted); font-size:12px;'>0 Ücretli Alım</span>"
+            rev_cell = "<span style='color:var(--text-muted);'>0.00 ₺ ($0.00)</span>"
+
+        vip_pipe_parts: List[str] = []
+        if c_trial > 0:
+            vip_pipe_parts.append(f"⏳ {c_trial} Deneme (7G)")
+        if c_code_cnt > 0:
+            vip_pipe_parts.append(f"🎟️ {c_code_cnt} Kodlu")
+        vip_pipe_str = " + ".join(vip_pipe_parts) if vip_pipe_parts else "—"
+
+        mrr_cell = (
+            f"<strong style='color:#7C3AED;'>{c_mrr_net:.2f} ₺ Net/Ay</strong>"
+            if c_mrr_net > 0
+            else "<span style='color:var(--text-muted);'>0.00 ₺</span>"
+        )
+
+        country_rev_rows_html += f"""
+        <tr style="{'background:rgba(16,185,129,0.06);' if c_paid > 0 else ''}">
+          <td>{c_flag} <strong>{c_name}</strong> <span style="color:var(--text-muted); font-size:11.5px;">({c_code})</span></td>
+          <td style="font-weight:700; color:var(--text-primary); font-variant-numeric:tabular-nums;">{c_dl} Kurulum</td>
+          <td>{paid_cell}</td>
+          <td style="color:var(--text-secondary); font-weight:600;">{vip_pipe_str}</td>
+          <td style="font-variant-numeric:tabular-nums;">{rev_cell}</td>
+          <td style="font-variant-numeric:tabular-nums;">{mrr_cell}</td>
+        </tr>
+        """
+
+    country_revenue_html = f"""
+          <div class="bento-card tab2-sec tab2-sec-country" id="countryRevenueCard" style="border-left: 4px solid #2563EB;">
+            <div class="section-head">
+              <div>
+                <span>🌍 Kategori 2B — Ülke Bazlı Ücretli Alım Sayısı & Gelir Dağılımı ({paid_countries_cnt} Ücretli Alım Yapılan Ülke / {dl_countries_cnt} Toplam Ülke)</span>
+                <div style="font-size:12px; color:var(--text-muted); font-weight:500; margin-top:3px;">
+                  Hangi ülkelerden kaç gerçek ücretli abonelik alındığını, paket kırılımını (Yıllık / Aylık), tahsil edilen ₺ / $ tutarını ve ülke bazlı beklenen aylık net geliri (MRR) tek tabloda gösterir.
+                </div>
+              </div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <span class="badge" style="background:rgba(16,185,129,0.15); color:#059669;">💳 Ücretli Alım: {paid_countries_cnt} Ülke ({fl['paid_subs_count']} Abone)</span>
+                <span class="badge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">👑 Aktif VIP: {vip_countries_cnt} Ülke ({f_vip} VIP)</span>
+                <span class="badge badge-meta">🌍 Kurulum: {dl_countries_cnt} Ülke ({f_dl} İndirme)</span>
+              </div>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Ülke</th>
+                    <th>Toplam Kurulum</th>
+                    <th>Ücretli Alım & Paket Dağılımı</th>
+                    <th>Deneme / Kodlu VIP</th>
+                    <th>Tahsil Edilen Gelir (Brüt / Net ₺ & ~$USD)</th>
+                    <th>Beklenen Aylık Gelir (MRR Net)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {country_rev_rows_html}
+                </tbody>
+              </table>
+            </div>
+          </div>
+    """
+
+    store_reconciliation_html = f"""
+          <div class="bento-card tab2-sec tab2-sec-reconcile" id="storeReconciliationCard" style="border-left: 4px solid #059669;">
+            <div class="section-head">
+              <div>
+                <span>⚖️ Kategori 2A — Mağaza Mutabakatı: App Store Connect Trends (1 Gün / T-1 Gecikmeli) & Google Play Console</span>
+                <div style="font-size:12px; color:var(--text-muted); font-weight:500; margin-top:3px;">
+                  Aktif Dönem: <strong>{sr_win_lbl}</strong> • Apple Connect Trends varsayılan olarak <strong>Son 7 Gün (T-1: {sr_7d_start} ➔ {sr_anchor})</strong> penceresini gösterirken, burada hem <strong>Son 7 Gün</strong> hem <strong>Tüm Zamanlar Kümülatif</strong> tahsilatı yan yana görebilirsiniz.
+                </div>
+              </div>
+              <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">Apple Son Rapor: {sr_anchor} (T-{sr_lag} PST) • RC V2 T-0 Köprü Aktif</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Zaman Penceresi & Mağaza Karşılığı</th>
+                    <th>🍏 Apple App Store (Brüt / Net ₺)</th>
+                    <th>🍏 Connect Trends (~USD Sales / Proceeds)</th>
+                    <th>🤖 Google Play Console (Brüt / Net ₺)</th>
+                    <th>🌐 Toplam Tahsilat & Abone Hareketi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="{'background:rgba(16,185,129,0.06);' if clean_period == 'today' else ''}">
+                    <td><strong>📅 Bugün (T-0 Canlı Köprü)</strong> <span style="font-size:11px; color:var(--text-muted);">(Apple TSV Yarın Gelir)</span></td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong>{sr_today.get('ios_gross_try', 0.0):.2f} ₺</strong> Brüt / <strong style="color:#059669;">{sr_today.get('ios_net_try', 0.0):.2f} ₺</strong> Net</td>
+                    <td style="font-variant-numeric:tabular-nums; color:var(--text-secondary);">${sr_today.get('ios_gross_usd', 0.0):.2f} Sales / <strong>${sr_today.get('ios_net_usd', 0.0):.2f}</strong> Proceeds</td>
+                    <td style="font-variant-numeric:tabular-nums;">{sr_today.get('android_gross_try', 0.0):.2f} ₺ Brüt / {sr_today.get('android_net_try', 0.0):.2f} ₺ Net</td>
+                    <td><span class="badge badge-meta">{sr_today.get('paid_count', 0)} Tahsilat • +{sr_today.get('new_trials_count', 0)} Yeni Deneme</span></td>
+                  </tr>
+                  <tr style="{'background:rgba(16,185,129,0.06);' if clean_period == 'yesterday' else ''}">
+                    <td><strong>⏮️ Dün / Son Kesinleşen Apple Günü (T-1: {sr_anchor})</strong></td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong>{sr_yest.get('ios_gross_try', 0.0):.2f} ₺</strong> Brüt / <strong style="color:#059669;">{sr_yest.get('ios_net_try', 0.0):.2f} ₺</strong> Net</td>
+                    <td style="font-variant-numeric:tabular-nums; color:var(--text-secondary);">${sr_yest.get('ios_gross_usd', 0.0):.2f} Sales / <strong>${sr_yest.get('ios_net_usd', 0.0):.2f}</strong> Proceeds</td>
+                    <td style="font-variant-numeric:tabular-nums;">{sr_yest.get('android_gross_try', 0.0):.2f} ₺ Brüt / {sr_yest.get('android_net_try', 0.0):.2f} ₺ Net</td>
+                    <td><span class="badge badge-meta">{sr_yest.get('paid_count', 0)} Tahsilat • +{sr_yest.get('new_trials_count', 0)} Yeni Deneme</span></td>
+                  </tr>
+                  <tr style="{'background:rgba(16,185,129,0.08);' if clean_period == '7d' else ''}">
+                    <td><strong>📆 Son 7 Gün (Connect Trends Varsayılan T-1: {sr_7d_start} ➔ {sr_anchor})</strong></td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong>{sr_7d.get('ios_gross_try', 0.0):.2f} ₺</strong> Brüt / <strong style="color:#059669;">{sr_7d.get('ios_net_try', 0.0):.2f} ₺</strong> Net</td>
+                    <td style="font-variant-numeric:tabular-nums; color:#059669; font-weight:700;">${sr_7d.get('ios_gross_usd', 0.0):.2f} Sales / ${sr_7d.get('ios_net_usd', 0.0):.2f} Proceeds</td>
+                    <td style="font-variant-numeric:tabular-nums;">{sr_7d.get('android_gross_try', 0.0):.2f} ₺ Brüt / {sr_7d.get('android_net_try', 0.0):.2f} ₺ Net</td>
+                    <td><span class="badge badge-gp">{sr_7d.get('paid_count', 0)} Ücretli Tahsilat • +{sr_7d.get('new_trials_count', 0)} Aktif Deneme</span></td>
+                  </tr>
+                  <tr style="{'background:rgba(16,185,129,0.08);' if clean_period == 'all' else ''}">
+                    <td><strong>♾️ Tüm Zamanlar (Kümülatif — 27 Ekim + 04 Kasım Tahsilatları Dahil)</strong></td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong>{sr_all.get('ios_gross_try', 0.0):.2f} ₺</strong> Brüt / <strong style="color:#059669;">{sr_all.get('ios_net_try', 0.0):.2f} ₺</strong> Net</td>
+                    <td style="font-variant-numeric:tabular-nums; color:#059669; font-weight:700;">${sr_all.get('ios_gross_usd', 0.0):.2f} Sales / ${sr_all.get('ios_net_usd', 0.0):.2f} Proceeds</td>
+                    <td style="font-variant-numeric:tabular-nums;">{sr_all.get('android_gross_try', 0.0):.2f} ₺ Brüt / {sr_all.get('android_net_try', 0.0):.2f} ₺ Net</td>
+                    <td><span class="badge" style="background:rgba(16,185,129,0.15); color:#059669;">{sr_all.get('paid_count', 0)} Ücretli + {fl['pipeline_7d_trials_count']} Deneme + {fl['offer_code_subs_count']} Kodlu ({sr_cg_cnt} Plan Geçişi: +{sr_cg_net:.2f} ₺ Net)</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+    """
+
     dashboard_response = HTMLResponse(f"""
     <!DOCTYPE html>
     <html lang="tr">
@@ -4834,6 +5840,84 @@ async def analytics_dashboard_page(
         .container {{
           max-width: 1320px;
           margin: 0 auto;
+        }}
+        .cat-header {{
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 10px;
+          padding: 10px 14px;
+          margin: 6px 0 12px;
+          border-radius: 12px;
+          background: var(--bg-cell);
+          border: 1px solid var(--border-subtle);
+          border-left: 4px solid var(--brand-indigo);
+          font-size: 13px;
+          font-weight: 800;
+          color: var(--text-primary);
+          letter-spacing: -0.01em;
+        }}
+        .cat-header span.cat-sub {{
+          font-size: 11.5px;
+          font-weight: 600;
+          color: var(--text-muted);
+        }}
+        .subcat-bar {{
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          gap: 8px;
+          padding: 10px 12px;
+          margin-bottom: 14px;
+          border-radius: 14px;
+          background: var(--bg-card);
+          border: 1px solid var(--border-subtle);
+          box-shadow: var(--card-shadow);
+        }}
+        .subcat-label {{
+          font-size: 11.5px;
+          font-weight: 800;
+          color: var(--text-muted);
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          margin-right: 4px;
+        }}
+        .subcat-pill {{
+          border: 1px solid var(--border-subtle);
+          background: var(--bg-cell);
+          color: var(--text-secondary);
+          padding: 7px 13px;
+          border-radius: 999px;
+          font-size: 12px;
+          font-weight: 700;
+          cursor: pointer;
+          transition: all 0.15s ease;
+          font-family: inherit;
+        }}
+        .subcat-pill:hover {{
+          border-color: var(--brand-indigo);
+          color: var(--text-primary);
+        }}
+        .subcat-pill.active {{
+          background: var(--brand-indigo);
+          color: #FFFFFF;
+          border-color: var(--brand-indigo);
+          box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+        }}
+        .collapse-btn {{
+          border: 1px solid var(--border-subtle);
+          background: var(--bg-cell);
+          color: var(--brand-indigo);
+          padding: 5px 11px;
+          border-radius: 8px;
+          font-size: 11.5px;
+          font-weight: 800;
+          cursor: pointer;
+          font-family: inherit;
+          transition: all 0.15s ease;
+        }}
+        .collapse-btn:hover {{
+          background: rgba(79, 70, 229, 0.1);
         }}
 
         /* SUNUM MODU (BOARDROOM / KEYNOTE PRESENTATION MODE) */
@@ -5716,17 +6800,21 @@ async def analytics_dashboard_page(
           </div>
         </div>
 
-        <!-- 5 SEKMELİ YALIN NAVİGASYON BARI (SAYAÇ TEKRARLARI TEMİZLENDİ) -->
+        <!-- 5 ANA KATEGORİ SEKMESİ (SADE VE NET BAŞLIKLAR) -->
         <div class="tabs-nav" role="tablist">
-          <button class="tab-btn active" id="tabBtn_tab1" onclick="switchTab('tab1')">🧭 1. Büyüme & Trendler</button>
-          <button class="tab-btn" id="tabBtn_tab2" onclick="switchTab('tab2')">💎 2. Gelir & Abone Defteri</button>
-          <button class="tab-btn" id="tabBtn_tab3" onclick="switchTab('tab3')">🎯 3. Kanal & ASO Attribution</button>
-          <button class="tab-btn" id="tabBtn_tab4" onclick="switchTab('tab4')">🍼 4. Ürün Nabzı & Kohort</button>
-          <button class="tab-btn" id="tabBtn_tab5" onclick="switchTab('tab5')">⭐ 5. Yorumlar ({avg_stars_label}) & Akış</button>
+          <button class="tab-btn active" id="tabBtn_tab1" onclick="switchTab('tab1')">📊 1. Büyüme & İndirmeler</button>
+          <button class="tab-btn" id="tabBtn_tab2" onclick="switchTab('tab2')">💰 2. Gelir, Mağaza & Ülkeler ({paid_countries_cnt} Ülke)</button>
+          <button class="tab-btn" id="tabBtn_tab3" onclick="switchTab('tab3')">🎯 3. Reklam & Kanallar</button>
+          <button class="tab-btn" id="tabBtn_tab4" onclick="switchTab('tab4')">🍼 4. Kullanım & Sadakat</button>
+          <button class="tab-btn" id="tabBtn_tab5" onclick="switchTab('tab5')">⭐ 5. Yorumlar ({avg_stars_label}) & Trafik</button>
         </div>
 
         <!-- SEKME 1: BÜYÜME & TRENDLER (DOĞRUDAN GRAFİKLERLE AÇILIR) -->
         <div id="tabPane_tab1" class="tab-pane active">
+          <div class="cat-header">
+            <span>📈 Kategori 1A — Günlük İndirme & Kurulum Trendi</span>
+            <span class="cat-sub">Apple App Store + Google Play Store Birleşik Kurulum Grafiği</span>
+          </div>
 
           <div class="bento-card">
             <div class="section-head">
@@ -5760,6 +6848,11 @@ async def analytics_dashboard_page(
             </div>
           </div>
 
+          <div class="cat-header">
+            <span>🍩 Kategori 1B — Hızlı Dağılım Özeti (Kaynak, Ülke ve Saat)</span>
+            <span class="cat-sub">İndirenlerin geldiği kanal, coğrafya ve aktif saat dilimi</span>
+          </div>
+
           <div class="donuts-grid">
             <div class="bento-card">
               <div class="section-head"><span>🍩 1. Nereden İndirdiler?</span></div>
@@ -5778,22 +6871,32 @@ async def analytics_dashboard_page(
           </div>
         </div>
 
-        <!-- SEKME 2: GELİR, MRR & ABONE DEFTERİ -->
+        <!-- SEKME 2: GELİR, MAĞAZA MUTABAKATI & ÜLKE DAĞILIMI (KATEGORİLİ SADE GÖRÜNÜM) -->
         <div id="tabPane_tab2" class="tab-pane">
+          <!-- ALT KATEGORİ FİLTRE BARI: EKRANI SADELEŞTİRİR -->
+          <div class="subcat-bar" id="tab2SubNav">
+            <span class="subcat-label">📂 Gelir Kategorisi:</span>
+            <button type="button" class="subcat-pill active" id="subcatBtn_all" onclick="filterTab2Category('all')">🌐 Tümünü Göster (Özet)</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_country" onclick="filterTab2Category('country')">🌍 1. Ülke Bazlı Ücretli Alım ({paid_countries_cnt} Ülke)</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_reconcile" onclick="filterTab2Category('reconcile')">⚖️ 2. Mağaza Mutabakatı (Connect T-1 & Play)</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_calendar" onclick="filterTab2Category('calendar')">📅 3. 7G Tahsilat Takvimi</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_ledger" onclick="filterTab2Category('ledger')">📒 4. Tekil Abone Defteri & Paketler ({len(sub_ledger)})</button>
+          </div>
+
           <div class="kpi-grid">
             <div class="bento-card" style="border-left: 4px solid #10B981;">
-              <div class="card-label">💵 1. TAHSİL EDİLEN KESİN GELİR</div>
-              <div class="big-num" style="color:#059669;">{fl['realized_net_proceeds_try']:.2f} ₺ <span style="font-size:15px; color:var(--text-muted);">Net</span></div>
+              <div class="card-label">💵 1. TAHSİL EDİLEN KESİN GELİR ({html.escape(s['period_label'])})</div>
+              <div class="big-num" style="color:#059669;">{card1_big_html}</div>
               <div class="card-desc">
-                Brüt Tahsilat: <strong>{fl['realized_gross_try']:.2f} ₺</strong> • Aktif Yinelenen MRR: <strong>{fl['active_paid_mrr_net_try']:.2f} ₺ Net/Ay</strong> (<strong>{fl['paid_subs_count']} Ücretli Abone</strong>).
+                {card1_desc_html}
               </div>
             </div>
 
             <div class="bento-card" style="border-left: 4px solid #3B82F6;">
-              <div class="card-label">🔄 2. APPLE MUTABAKATINDA (VADESİ DOLAN)</div>
-              <div class="big-num" style="color:#2563EB;">+{fl['reconciling_7d_mrr_net_try']:.2f} ₺ <span style="font-size:15px; color:var(--text-muted);">Net</span></div>
+              <div class="card-label">🌍 2. ÜCRETLİ ALIM YAPILAN ÜLKE SAYISI</div>
+              <div class="big-num" style="color:#2563EB;">{paid_countries_cnt} Ülke <span style="font-size:15px; color:var(--text-muted);">({paid_conv} Ücretli Abone)</span></div>
               <div class="card-desc">
-                7 günlük denemesi dolmuş ve oto-yenilemesi açık <strong>{fl['reconciling_7d_trials_count']} abone</strong> (Brüt <strong>{fl['reconciling_7d_mrr_gross_try']:.2f} ₺</strong>) • Apple 24–48s tahsilat raporu bekleniyor.
+                VIP başlatılan toplam <strong>{vip_countries_cnt} ülke</strong> • İndirme yapılan <strong>{dl_countries_cnt} ülke</strong> • Vadesi dolan deneme: <strong>+{fl['reconciling_7d_mrr_net_try']:.2f} ₺ Net</strong> ({fl['reconciling_7d_trials_count']} abone).
               </div>
             </div>
 
@@ -5814,9 +6917,13 @@ async def analytics_dashboard_page(
             </div>
           </div>
 
-          <div class="bento-card" id="appleRenewalCard">
+          {country_revenue_html}
+
+          {store_reconciliation_html}
+
+          <div class="bento-card tab2-sec tab2-sec-calendar" id="appleRenewalCard">
             <div class="section-head">
-              <span>📅 🍏 Apple App Store — 7 Günlük Deneme ➔ Ücretli Tahsilat Takvimi (SUBSCRIBER 1_3 Vade Projeksiyonu)</span>
+              <span>📅 Kategori 3 — 7 Günlük Deneme ➔ Ücretli Tahsilat Takvimi (Gün-Gün Vade Projeksiyonu)</span>
               <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">Toplam Pipeline: +{fl['pipeline_7d_mrr_gross_try']:.2f} ₺ Brüt / +{fl['pipeline_7d_mrr_net_try']:.2f} ₺ Net</span>
             </div>
             <div class="steps-grid">
@@ -5824,12 +6931,15 @@ async def analytics_dashboard_page(
             </div>
           </div>
 
-          <div class="bento-card" id="appleLedgerCard">
+          <div class="bento-card tab2-sec tab2-sec-ledger" id="appleLedgerCard">
             <div class="section-head">
-              <span>📒 🍏 Apple App Store & Android — Doğrulanmış Tekil Abone Defteri ({f_vip} Aktif VIP / Toplam {len(sub_ledger)} Kayıt • {fl.get('cancelled_subs_count', 0)} İptal)</span>
-              <span class="badge badge-meta">Vendor #94806500 & Google Play • Dinamik DB</span>
+              <span>📒 Kategori 4A — Doğrulanmış Tekil Abone Defteri ({f_vip} Aktif VIP / Toplam {len(sub_ledger)} Kayıt • {fl.get('cancelled_subs_count', 0)} İptal)</span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="badge badge-meta">Vendor #94806500 & Google Play</span>
+                <button type="button" class="collapse-btn" id="btnToggleAppleLedger" onclick="toggleDetailWrap('appleLedgerTableWrap', 'btnToggleAppleLedger')">▼ Tabloyu Aç / Gizle ({len(sub_ledger)} Kayıt)</button>
+              </div>
             </div>
-            <div class="table-wrap">
+            <div class="table-wrap" id="appleLedgerTableWrap" style="display:none;">
               <table>
                 <thead>
                   <tr>
@@ -5854,15 +6964,18 @@ async def analytics_dashboard_page(
           </div>
 
           <!-- GOOGLE PLAY STORE ABONELİK PAKETLERİ VE ANDROID FATURALANDIRMA DEFTERİ -->
-          <div class="bento-card" id="googlePlayLedgerCard">
+          <div class="bento-card tab2-sec tab2-sec-ledger" id="googlePlayLedgerCard">
             <div class="section-head">
-              <span>🤖 Google Play Store — Canlı Abonelik Paketleri & Android Faturalandırma Defteri (<code>com.levitas.misilbaby</code>)</span>
-              <span class="badge badge-gp">Google Play Developer API (Monetization Subscriptions) • {len(gp_catalog)} Aktif Paket • {ps_and.get('vip_count', 0)} Aktif Abone</span>
+              <span>🤖 Kategori 4B — Google Play Store Abonelik Paketleri & Android Defteri (<code>com.levitas.misilbaby</code>)</span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <span class="badge badge-gp">{len(gp_catalog)} Aktif Paket • {ps_and.get('vip_count', 0)} Aktif Abone</span>
+                <button type="button" class="collapse-btn" id="btnToggleGpLedger" onclick="toggleDetailWrap('gpLedgerTableWrap', 'btnToggleGpLedger')">▼ Paket Tablosunu Aç / Gizle</button>
+              </div>
             </div>
             <div style="padding:12px 16px; border-radius:12px; background:var(--bg-cell); border:1px solid var(--border-subtle); margin-bottom:12px; font-size:12.5px; color:var(--text-secondary); line-height:1.55;">
               {gp_diag_html}
             </div>
-            <div class="table-wrap">
+            <div class="table-wrap" id="gpLedgerTableWrap" style="display:none;">
               <table>
                 <thead>
                   <tr>
@@ -5888,6 +7001,10 @@ async def analytics_dashboard_page(
 
         <!-- SEKME 3: KANAL, ASO & KOD ATTRIBUTION -->
         <div id="tabPane_tab3" class="tab-pane">
+          <div class="cat-header">
+            <span>🎯 Kategori 3A — Edinim & Büyüme Kanalları Özeti</span>
+            <span class="cat-sub">Görüntülenme ➔ Tıklama ➔ Kurulum ➔ VIP Dönüşüm Matrisi</span>
+          </div>
           <div class="bento-card">
             <div class="section-head">
               <span>🎯 Kanal Bazlı Tam Büyüme & ASO Attribution Matrisi (Görüntülenme ➔ Tık ➔ İndirme ➔ VIP)</span>
@@ -6111,6 +7228,50 @@ async def analytics_dashboard_page(
       <script>
         var PLATFORM_SPLIT = {ps_json_str};
         var currentPlatform = 'all';
+
+        function toggleDetailWrap(wrapId, btnId) {{
+          var wrap = document.getElementById(wrapId);
+          var btn = document.getElementById(btnId);
+          if (!wrap) return;
+          var isHidden = (wrap.style.display === 'none' || wrap.style.display === '');
+          wrap.style.display = isHidden ? 'block' : 'none';
+          if (btn) {{
+            var txt = btn.textContent || '';
+            if (isHidden) {{
+              btn.textContent = txt.replace('▼', '▲');
+            }} else {{
+              btn.textContent = txt.replace('▲', '▼');
+            }}
+          }}
+        }}
+
+        function filterTab2Category(cat) {{
+          var pills = ['all', 'country', 'reconcile', 'calendar', 'ledger'];
+          for (var i = 0; i < pills.length; i++) {{
+            var b = document.getElementById('subcatBtn_' + pills[i]);
+            if (b) {{
+              if (pills[i] === cat) b.classList.add('active');
+              else b.classList.remove('active');
+            }}
+          }}
+          var secs = document.querySelectorAll('#tabPane_tab2 .tab2-sec');
+          for (var j = 0; j < secs.length; j++) {{
+            var el = secs[j];
+            if (cat === 'all') {{
+              el.style.display = 'block';
+            }} else if (el.classList.contains('tab2-sec-' + cat)) {{
+              el.style.display = 'block';
+            }} else {{
+              el.style.display = 'none';
+            }}
+          }}
+          if (cat === 'ledger') {{
+            var w1 = document.getElementById('appleLedgerTableWrap');
+            var w2 = document.getElementById('gpLedgerTableWrap');
+            if (w1) w1.style.display = 'block';
+            if (w2) w2.style.display = 'block';
+          }}
+        }}
 
         function toggleTheme() {{
           document.body.classList.toggle('theme-slate');
