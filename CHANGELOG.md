@@ -2,8 +2,8 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
-## [4.48.2] - 2026-11-08
-### 🛡️ 3 Ajanlı Konsensüs Sızıntı & İptal/Dönüşüm 8 Maddeli Çözüm Paketi (`S1–S8`) (`app.html`, `MishilUnifiedWebView.tsx`, `analytics.py`, `coach.py`, `cry_analysis.py`, `offlineHtml.generated.ts`, `test_sleep_and_analytics_remediation.py`)
+## [4.48.2] - 2026-11-08 (Build 67)
+### 🛡️ 3 Ajanlı Konsensüs Sızıntı & İptal/Dönüşüm 8 Maddeli Çözüm Paketi (`S1–S8`) (`app.config.ts`, `app.html`, `MishilUnifiedWebView.tsx`, `analytics.py`, `coach.py`, `cry_analysis.py`, `offlineHtml.generated.ts`, `test_sleep_and_analytics_remediation.py`)
 1. **3 Ajanlı Konsensüs & 4 Boyutlu Denetim (Psikoloji, Satın Alma Davranışı, Mimari, Pazarlama):**
    - **Claude Code CLI (`task-101` teknik denetim + `task-137` 4 boyutlu denetim)**, **Codex CLI (`gpt-6-luna`, `task-111` teknik denetim + `task-138` 4 boyutlu denetim)** ve **Antigravity** 3'lü konsensüsü ile uçtan uca tasarlandı ve doğrulandı.
 2. **S1 — Onboarding Adım 1 Son Uyanma Zamanı Seçicisi & Adım 5 Canlı İlk MışılSpot™ Saat Kartı (`#quiz-last-wake-chips`, `applyQuickLastWakeMinsAgo`, `#report-live-sweetspot-banner`, `calculateMışılSpot`):**
