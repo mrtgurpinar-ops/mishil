@@ -1630,6 +1630,72 @@ def test_ppp_store_pricing_invariants_and_multicurrency_fx():
         assert _convert_to_try(100.0, req_ccy) > 0.0
 
 
+def test_cockpit_v3_ssot_no_ratchet_and_data_architecture_tab(client, db_session):
+    """
+    3 Ajanlı Konsensüs (Claude task-48 + Codex task-54 + Antigravity) Doğrulaması:
+    1) StoreDailyMetric resmi iOS indirme verisi (15) mevcutken 25 adet first_open istemci sinyaliyle
+       max() alınarak resmi iOS indirme sayısının 25'e şişirilmemesi (SSOT korunması),
+    2) Üst barda referans kartı kalabalığının kaldırılması ve 5. sekmenin '🏛️ 5. Referanslar & Veri Mimarisi'
+       olarak Hangi Veri, Hangi Yöntemle, Ne Frekansta Güncellenir? tablosunu içermesi.
+    """
+    from app.db.models import StoreDailyMetric, AppInstallSignal
+    from app.api.v1.endpoints.analytics import (
+        _build_analytics_summary,
+        OFFICIAL_STORE_BASELINE,
+        _empty_store_state,
+        _BASELINE_LOCK,
+    )
+
+    StoreDailyMetric.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    AppInstallSignal.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    db_session.query(StoreDailyMetric).delete()
+    db_session.query(AppInstallSignal).delete()
+
+    with _BASELINE_LOCK:
+        OFFICIAL_STORE_BASELINE.clear()
+        OFFICIAL_STORE_BASELINE.update(_empty_store_state())
+
+    db_session.add(
+        StoreDailyMetric(
+            metric_date="2026-11-08",
+            platform="ios",
+            impressions=400,
+            page_views=80,
+            downloads_total=15,
+            active_sessions=30,
+        )
+    )
+    for idx in range(25):
+        db_session.add(
+            AppInstallSignal(
+                device_uid=f"ios_sig_dev_{idx}",
+                event_type="first_open",
+                os_family="ios",
+                platform="ios_native",
+            )
+        )
+    db_session.commit()
+
+    summary = _build_analytics_summary(db_session, period="all")
+    # Resmi iOS indirmesi StoreDailyMetric (15) olmalı, 25 istemci sinyaliyle şişirilmemeli;
+    # first_open_signals ise kendi T-0 alanında 25 olarak görünmeli.
+    assert summary["cumulative_kpis"]["ios_downloads"] == 15
+    assert summary["product_funnel"]["first_open_signals"] == 25
+    assert len(summary["data_governance_matrix"]) == 6
+    assert len(summary["architecture_principles"]) == 4
+
+    dash_res = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"})
+    assert dash_res.status_code == 200
+    html_txt = dash_res.text
+    assert '<div class="freshness-strip' not in html_txt
+    assert "🏛️ 5. Referanslar & Veri Mimarisi" in html_txt
+    assert 'id="dataGovernanceMatrixCard"' in html_txt
+    assert 'id="architecturePrinciplesCard"' in html_txt
+    assert 'id="syncPipelinesStatusCard"' in html_txt
+    assert "Hangi Veri, Hangi Yöntemle, Ne Frekansta Güncellenir?" in html_txt
+
+
+
 
 
 

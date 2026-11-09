@@ -3098,21 +3098,20 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             db_android_dl += row_dl
 
     sb["daily_store_series"] = daily_series_merged
-    apple_impressions = max(int(sb.get("apple_impressions_total", 0) or 0), db_ios_imp)
-    apple_page_views = max(int(sb.get("apple_page_views_total", 0) or 0), db_ios_pv)
+    # SSOT Kuralı: StoreDailyMetric (DB) birincil otoritedir; yalnızca tablo boşsa son resmi snapshot (sb) kullanılır.
+    # Canlı istemci telemetrisi (first_open) resmi mağaza indirme sayısını max() ile şişirmez; yalnızca resmi veri 0 ise yedek olur.
+    apple_impressions = db_ios_imp if db_ios_imp > 0 else int(sb.get("apple_impressions_total", 0) or 0)
+    apple_page_views = db_ios_pv if db_ios_pv > 0 else int(sb.get("apple_page_views_total", 0) or 0)
     apple_taps = int(sb.get("apple_taps_total", 0) or 0)
     ios_signal_opens = len([s for s in first_opens if s.os_family == "ios"])
     android_signal_opens = len([s for s in first_opens if s.os_family == "android"])
-    apple_downloads = max(int(sb.get("apple_downloads_total", 0) or 0), db_ios_dl, ios_signal_opens)
-    apple_official_sessions = max(int(sb.get("apple_sessions_total", 0) or 0), db_ios_sess)
+    official_ios_dl = db_ios_dl if db_ios_dl > 0 else int(sb.get("apple_downloads_total", 0) or 0)
+    apple_downloads = official_ios_dl if official_ios_dl > 0 else ios_signal_opens
+    apple_official_sessions = db_ios_sess if db_ios_sess > 0 else int(sb.get("apple_sessions_total", 0) or 0)
     live_telemetry_sessions = len(first_opens) + len(daily_actives)
-    # P1-4: Çift sayımı önlemek için resmi oturumlar ile canlı telemetri oturumlarının maksimumu alınır
-    apple_sessions = max(apple_official_sessions, live_telemetry_sessions)
-    google_play_downloads = max(
-        int(sb.get("google_play_downloads_baseline", 0) or 0),
-        db_android_dl,
-        android_signal_opens,
-    )
+    apple_sessions = apple_official_sessions if apple_official_sessions > 0 else live_telemetry_sessions
+    official_android_dl = db_android_dl if db_android_dl > 0 else int(sb.get("google_play_downloads_baseline", 0) or 0)
+    google_play_downloads = max(official_android_dl, android_signal_opens)
 
     sb["apple_impressions_total"] = apple_impressions
     sb["apple_page_views_total"] = apple_page_views
@@ -3166,25 +3165,18 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     ]
     latest_confirmed_r14_date = max(confirmed_r14_dates) if confirmed_r14_dates else latest_confirmed_store_date
 
-    # T2: Tarihsiz Android kurulumlarını son güne yığmak yerine gerçek sinyal/aktif mağaza günlerine dağıt
+    # Günlük Android kurulumları yalnızca o güne ait StoreDailyMetric veya o günün gerçek first_open sinyalinden okunur (sentetik modulo dağıtımı yapılmaz)
     explicit_and_by_day: Dict[str, int] = {}
     for i in range(num_days):
         d_str = (start_dt + timedelta(days=i)).strftime("%Y-%m-%d")
         st_and = int(daily_series_merged.get(d_str, {}).get("android_downloads", 0) or 0)
         sig_and = int(android_opens_by_date.get(d_str, 0) or 0)
-        explicit_and_by_day[d_str] = max(st_and, sig_and)
+        explicit_and_by_day[d_str] = st_and if st_and > 0 else sig_and
 
     rem_android = max(0, google_play_downloads - sum(explicit_and_by_day.values()))
     if rem_android > 0:
-        active_ios_days = [
-            (start_dt + timedelta(days=i)).strftime("%Y-%m-%d")
-            for i in range(num_days)
-            if int(daily_series_merged.get((start_dt + timedelta(days=i)).strftime("%Y-%m-%d"), {}).get("ios_downloads", 0) or 0) > 0
-        ]
-        target_days = active_ios_days if active_ios_days else [(start_dt + timedelta(days=max(0, num_days - 1))).strftime("%Y-%m-%d")]
-        for idx_rem in range(rem_android):
-            t_day = target_days[idx_rem % len(target_days)]
-            explicit_and_by_day[t_day] = explicit_and_by_day.get(t_day, 0) + 1
+        anchor_and_day = start_dt.strftime("%Y-%m-%d")
+        explicit_and_by_day[anchor_and_day] = explicit_and_by_day.get(anchor_and_day, 0) + rem_android
 
     timeline_days = []
     cum_imp = 0
@@ -4291,6 +4283,94 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         },
     ]
 
+    data_governance_matrix = [
+        {
+            "id": "gov_bridge_clicks",
+            "domain": "1. Sosyal Köprü & Kampanya Tıklamaları",
+            "metrics": "Tekil Tık, Ham İstek, Bot Filtresi, /ios & /download Yönlendirmeleri",
+            "ssot_table": "bridge_clicks (PostgreSQL)",
+            "update_method": "FastAPI Redirect Middleware (record_bridge_click — Bot & 15sn IP/UA tekilleştirmeli)",
+            "frequency": "Anlık (Olay Anında) • Kokpitte 15 sn'de bir canlı polling",
+            "latency_class": "⚡ T-0 (Gerçek Zamanlı)",
+            "last_sync": f"Canlı ({today_str} • {len(unique_human)} Tekil Tık)",
+            "consistency_rule": "Organik mağaza gösterim (r14) paydasına bölünmez; kendi köprü dönüşüm hunisinde izlenir.",
+        },
+        {
+            "id": "gov_app_telemetry",
+            "domain": "2. Uygulama İçi Cihaz & Ürün Telemetrisi",
+            "metrics": "first_open, daily_active, paywall_viewed/cta/cancelled, Uyku, Ağlama AI, Rutin, Dadı AI",
+            "ssot_table": "app_install_signals + babies, sleep_logs, cry_events, routine_logs, dadi_chat_history",
+            "update_method": "Mobil Uygulama / WebView POST /api/v1/analytics/app-open-signal & /usage-signal",
+            "frequency": "Anlık (Olay Anında) • Kokpitte 15 sn'de bir canlı polling",
+            "latency_class": "⚡ T-0 (Gerçek Zamanlı)",
+            "last_sync": f"Canlı ({len(first_opens)} İlk Açılış • {len(daily_actives)} Günlük Aktif)",
+            "consistency_rule": "Resmi mağaza indirmesi (StoreDailyMetric) mevcutken max() ile resmi indirme sayısını ezmez; ayrı T-0 sinyal olarak raporlanır.",
+        },
+        {
+            "id": "gov_live_sub_bridge",
+            "domain": "3. Canlı Abonelik & Tahsilat Köprüsü (iOS + Android)",
+            "metrics": "Yeni 7G Deneme, İlk Ücretli Alım, Plan Değişimi (Crossgrade), Google Play Aktif Abone",
+            "ssot_table": "subscriber_ledger (RC_T0_* & Google Play subscriptionsv2)",
+            "update_method": "POST /api/v1/analytics/subscriber-sync + RevenueCat REST API v2 (production) & Google Play API",
+            "frequency": "Satın Alma Anında (T-0) + 6 Saatte Bir Otomatik Arka Plan Senkronu",
+            "latency_class": "⚡ T-0 (Canlı Köprü)",
+            "last_sync": f"Son Senkron: {sb.get('last_synced_at') or today_str}",
+            "consistency_rule": "Apple T-1 raporu gelene kadar yeni aboneyi anında gösterir; T-1 SUBSCRIBER raporu geldiğinde RC_T0_* kaydı otomatik tekilleştirilir.",
+        },
+        {
+            "id": "gov_apple_official_sales",
+            "domain": "4. Resmi Apple İndirme, Satış & Abone Defteri",
+            "metrics": "Resmi iOS İndirme (Units), Tahsil Edilen Gelir (Brüt/Net ₺ & $), Abone Yaşam Döngüsü & İptaller",
+            "ssot_table": "store_daily_metrics + subscriber_ledger + subscription_lifecycle_events",
+            "update_method": "App Store Connect API (ES256 .p8 JWT — SALES, SUBSCRIBER v1_3, SUBSCRIPTION_EVENT v1_3)",
+            "frequency": "6 Saatte Bir Otomatik Kontrol (run_periodic_store_sync_loop) • Apple Günde 1 Kez Yayınlar",
+            "latency_class": "🏛️ T-1 (1 Gün PST Gecikmeli — Resmi Kesinleşen)",
+            "last_sync": f"Son Kesinleşen Rapor: {latest_store_metric_date or sr.get('apple_latest_report_date') or '-'}",
+            "consistency_rule": "Finansal ve resmi indirme otoritesidir. Kartlarda son kesinleşen rapor tarihi açıkça belirtilir.",
+        },
+        {
+            "id": "gov_apple_analytics_r14_r8_r3",
+            "domain": "5. Resmi Apple Mağaza Hunisi & Sadakat Analitiği",
+            "metrics": "Mağaza Gösterimi (r14), Ürün Sayfası Ziyareti (r14), Oturum & Geri Dönen Cihaz (r8), Kanal İndirme (r3)",
+            "ssot_table": "store_daily_metrics + store_sync_states (r8_loyalty_summary, r3_channel_summary)",
+            "update_method": "App Store Connect analyticsReportRequests (r14 Discovery, r8 Sessions, r3 Downloads TSV)",
+            "frequency": "6 Saatte Bir Sunucu Kontrolü • Apple Analytics Segmentleri 24–48 Saatte Bir Güncellenir",
+            "latency_class": "🏛️ T-1 / T-2 (24–48s Gecikmeli — Resmi Analitik)",
+            "last_sync": f"Son r14/r8 Tarihi: {latest_confirmed_r14_date or latest_store_metric_date or '-'}",
+            "consistency_rule": "Sales TSV gelip r14 henüz gelmediğinde gün 'is_r14_pending' olarak işaretlenir; 0 gösterim olarak grafiği çökertmez.",
+        },
+        {
+            "id": "gov_google_play_and_reviews",
+            "domain": "6. Google Play Katalog, Android Kurulum & Mağaza Yorumları",
+            "metrics": "Google Play Paket Kataloğu (misil, misilaylik), Android Kurulum, App Store & Play Yorumları",
+            "ssot_table": "store_sync_states + store_daily_metrics + subscriber_ledger",
+            "update_method": "Google Play Developer API (androidpublisher/v3 RS256) & Apple customerReviews API",
+            "frequency": "6 Saatte Bir Otomatik Arka Plan Döngüsü + Manuel Tetikleme (/trigger-sync)",
+            "latency_class": "🏛️ 6 Saatlik Periyodik",
+            "last_sync": f"{len(gp_catalog)} Paket • {len(all_reviews)} Yorum ({ios_reviews_cnt} iOS + {android_reviews_cnt} Play)",
+            "consistency_rule": "Tarihsiz Android kurulumları aktif iOS günlerine sentetik olarak dağıtılmaz; gerçek sinyal/kayıt gününde gösterilir.",
+        },
+    ]
+
+    architecture_principles = [
+        {
+            "title": "1. T-0 Canlı Telemetri ile T-1 Resmi Mağaza Verisi Karıştırılmaz",
+            "desc": "Uygulama içi sinyaller (first_open, daily_active) ve sosyal köprü tıklamaları T-0 anlık veridir; Apple App Store Connect raporları ise T-1/T-2 kesinleşen resmi veridir. Resmi mağaza verisi mevcutken canlı sinyal ile max() alınarak sayılar şişirilmez.",
+        },
+        {
+            "title": "2. Tek Doğruluk Kaynağı (Single Source of Truth — SSOT)",
+            "desc": "Her metrik kümesinin tek bir veritabanı tablosu vardır: Köprü tıkları bridge_clicks, mağaza günlük serisi store_daily_metrics, abone ve gelir defteri subscriber_ledger tablosundan okunur.",
+        },
+        {
+            "title": "3. Çift Katmanlı Otomatik Güncelleme (15sn Canlı + 6 Saat Mağaza)",
+            "desc": "Tarayıcı açıkken her 15 saniyede bir /api/v1/analytics/summary çağrılarak T-0 tıklama ve canlı sayaçlar sayfa yenilenmeden güncellenir. Resmi Apple/Google API senkronu ise sunucuda her 6 saatte bir (run_periodic_store_sync_loop) otomatik çalışır.",
+        },
+        {
+            "title": "4. Dönem Seçici (Period) ve Zaman Penceresi Tutarlılığı",
+            "desc": "Üstteki 4 Kuzey Yıldızı kartı kümülatif portföy büyüklüğünü, dönem filtreleri (Bugün, Dün, Son 7 Gün, Tüm Zamanlar) ise ilgili dönemin tahsilat ve trafik akışını standart zaman penceresiyle sunar.",
+        },
+    ]
+
     return {
         "period": period,
         "period_label": period_label,
@@ -4306,6 +4386,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         "total_all_spend_usd": total_all_spend_usd,
         "blended_cpi_usd": blended_cpi_usd,
         "source_freshness": source_freshness,
+        "data_governance_matrix": data_governance_matrix,
+        "architecture_principles": architecture_principles,
         "platform_split": platform_split,
         "google_play_subscriptions_catalog": gp_catalog,
         "kpi_deltas": {
@@ -5273,14 +5355,49 @@ async def analytics_dashboard_page(
     spark_dl_svg = _build_svg_sparkline([d.get("daily_downloads", 0) for d in t_days if not d.get("is_store_pending")], "#34D399", "spDl")
     spark_vip_svg = _build_svg_sparkline([d.get("cum_downloads", 0) for d in t_days], "#C084FC", "spVip")
 
-    freshness_strip_html = ""
+    sync_sources_rows_html = ""
     for fs in s.get("source_freshness", []):
-        st_cls = "fs-realtime" if fs["status"] == "realtime" else ("fs-reconciling" if fs["status"] == "reconciling" else "fs-synced")
-        freshness_strip_html += f"""
-        <div class="fs-chip {st_cls}" title="{html.escape(str(fs['detail']))}">
-          <span class="fs-dot"></span>
-          <span class="fs-lbl">{html.escape(str(fs['label']))}</span>
-          <span class="fs-badge">{html.escape(str(fs['badge']))}</span>
+        st_badge_col = "#059669" if fs["status"] == "realtime" else ("#2563EB" if fs["status"] == "reconciling" else "#D97706")
+        st_badge_bg = "rgba(16,185,129,0.14)" if fs["status"] == "realtime" else ("rgba(37,99,235,0.14)" if fs["status"] == "reconciling" else "rgba(217,119,6,0.14)")
+        sync_sources_rows_html += f"""
+        <tr>
+          <td><strong>{html.escape(str(fs['label']))}</strong></td>
+          <td><code>{html.escape(str(fs['id']))}</code></td>
+          <td><span class="badge" style="background:{st_badge_bg}; color:{st_badge_col};">{html.escape(str(fs['badge']))}</span></td>
+          <td style="color:var(--text-secondary);">{html.escape(str(fs['detail']))}</td>
+        </tr>
+        """
+
+    gov_rows_html = ""
+    for gm in s.get("data_governance_matrix", []):
+        lat_str = str(gm.get("latency_class", ""))
+        is_t0 = "T-0" in lat_str
+        lat_bg = "rgba(16,185,129,0.14)" if is_t0 else "rgba(37,99,235,0.14)"
+        lat_col = "#059669" if is_t0 else "#2563EB"
+        gov_rows_html += f"""
+        <tr>
+          <td>
+            <strong>{html.escape(str(gm.get('domain', '')))}</strong>
+            <div style="font-size:11.5px; color:var(--text-muted); margin-top:3px;">{html.escape(str(gm.get('metrics', '')))}</div>
+          </td>
+          <td><code>{html.escape(str(gm.get('ssot_table', '')))}</code></td>
+          <td style="color:var(--text-secondary);">{html.escape(str(gm.get('update_method', '')))}</td>
+          <td style="font-weight:700; color:var(--text-primary);">{html.escape(str(gm.get('frequency', '')))}</td>
+          <td><span class="badge" style="background:{lat_bg}; color:{lat_col};">{html.escape(lat_str)}</span></td>
+          <td style="font-variant-numeric:tabular-nums; color:var(--text-secondary);">{html.escape(str(gm.get('last_sync', '')))}</td>
+          <td style="font-size:12px; color:var(--text-secondary);">{html.escape(str(gm.get('consistency_rule', '')))}</td>
+        </tr>
+        """
+
+    arch_cards_html = ""
+    arch_colors = ["#10B981", "#3B82F6", "#8B5CF6", "#F59E0B"]
+    for idx_ap, ap in enumerate(s.get("architecture_principles", [])):
+        ac_col = arch_colors[idx_ap % len(arch_colors)]
+        arch_cards_html += f"""
+        <div class="step-box" style="border-left: 4px solid {ac_col};">
+          <div class="step-num" style="color:{ac_col};">MİMARİ İLKE #{idx_ap + 1}</div>
+          <div class="step-val" style="font-size:16px; line-height:1.35; margin-bottom:6px;">{html.escape(str(ap.get('title', '')))}</div>
+          <div class="step-sub">{html.escape(str(ap.get('desc', '')))}</div>
         </div>
         """
 
@@ -6637,7 +6754,7 @@ async def analytics_dashboard_page(
     <body>
       <button type="button" class="pres-exit-fab" onclick="togglePresentationMode()">📽️ Sunum Modundan Çık (ESC)</button>
       <div class="container">
-        <!-- BİRLEŞİK EXECUTIVE HEADER (MARKA + AKSİYONLAR + KOMPAKT VERİ DURUMU ŞERİDİ) -->
+        <!-- BİRLEŞİK EXECUTIVE HEADER (MARKA + AKSİYONLAR — SIFIR REFERANS KARTI KALABALIĞI) -->
         <div class="topbar">
           <div class="topbar-main">
             <div class="brand">
@@ -6656,10 +6773,6 @@ async def analytics_dashboard_page(
               </div>
               <a href="/api/v1/analytics/export.csv" class="btn hide-in-pres">📥 CSV</a>
             </div>
-          </div>
-          <!-- KOMPAKT VERİ KAYNAKLARI DURUM ŞERİDİ (ÜZERİNE GELİNCE DETAY GÖSTERİR) -->
-          <div class="freshness-strip hide-in-pres">
-            {freshness_strip_html}
           </div>
         </div>
 
@@ -6861,16 +6974,16 @@ async def analytics_dashboard_page(
           </div>
         </div>
 
-        <!-- 5 ANA KATEGORİ SEKMESİ (SADE VE NET BAŞLIKLAR) -->
+        <!-- 5 ANA KATEGORİ SEKMESİ (SADE, TUTARLI VE VERİ MİMARİSİ REFERANSLI) -->
         <div class="tabs-nav" role="tablist">
-          <button class="tab-btn active" id="tabBtn_tab1" onclick="switchTab('tab1')">📊 1. Büyüme & İndirmeler</button>
-          <button class="tab-btn" id="tabBtn_tab2" onclick="switchTab('tab2')">💰 2. Gelir, Mağaza & Ülkeler ({paid_countries_cnt} Ülke)</button>
-          <button class="tab-btn" id="tabBtn_tab3" onclick="switchTab('tab3')">🎯 3. Reklam & Kanallar</button>
-          <button class="tab-btn" id="tabBtn_tab4" onclick="switchTab('tab4')">🍼 4. Kullanım & Sadakat</button>
-          <button class="tab-btn" id="tabBtn_tab5" onclick="switchTab('tab5')">⭐ 5. Yorumlar ({avg_stars_label}) & Trafik</button>
+          <button class="tab-btn active" id="tabBtn_tab1" onclick="switchTab('tab1')">📊 1. Büyüme & Kanallar</button>
+          <button class="tab-btn" id="tabBtn_tab2" onclick="switchTab('tab2')">💰 2. Gelir, Abonelik & Mutabakat ({paid_countries_cnt} Ülke)</button>
+          <button class="tab-btn" id="tabBtn_tab3" onclick="switchTab('tab3')">🍼 3. Ürün Kullanımı & Sadakat</button>
+          <button class="tab-btn" id="tabBtn_tab4" onclick="switchTab('tab4')">⭐ 4. Yorumlar ({avg_stars_label}) & Trafik</button>
+          <button class="tab-btn" id="tabBtn_tab5" onclick="switchTab('tab5')">🏛️ 5. Referanslar & Veri Mimarisi</button>
         </div>
 
-        <!-- SEKME 1: BÜYÜME & TRENDLER (DOĞRUDAN GRAFİKLERLE AÇILIR) -->
+        <!-- SEKME 1: BÜYÜME, İNDİRME TRENDİ & EDİNME KANALLARI (BİRLEŞİK SADE GÖRÜNÜM) -->
         <div id="tabPane_tab1" class="tab-pane active">
           <div class="cat-header">
             <span>📈 Kategori 1A — Günlük İndirme & Kurulum Trendi</span>
@@ -6930,6 +7043,74 @@ async def analytics_dashboard_page(
               {donut_night_day}
             </div>
           </div>
+
+          <div class="cat-header">
+            <span>🎯 Kategori 1C — Edinim & Büyüme Kanalları Attribution Matrisi</span>
+            <span class="cat-sub">Görüntülenme ➔ Tıklama ➔ Kurulum ➔ VIP Dönüşüm Özeti</span>
+          </div>
+
+          <div class="bento-card">
+            <div class="section-head">
+              <span>🎯 Kanal Bazlı Tam Büyüme & ASO Attribution Matrisi (Görüntülenme ➔ Tık ➔ İndirme ➔ VIP)</span>
+              <span class="badge badge-gp">Toplam {f_dl} Kurulum ({kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Edinim / Büyüme Kanalı</th>
+                    <th>Doğrulama Kaynağı</th>
+                    <th>Mağaza Gösterimi</th>
+                    <th>Sayfa Ziyareti / Sosyal Tık</th>
+                    <th>Gerçek İndirme</th>
+                    <th>Dönüşüm Oranı (CVR)</th>
+                    <th>VIP & Abonelik Etkisi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {aso_rows_html}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="donuts-grid">
+            <div class="bento-card">
+              <div class="section-head"><span>📲 Sosyal Medya Köprü Hunisi ({html.escape(s['period_label'])}: {s['active_human_count']} Tekil İnsan)</span></div>
+              <div class="steps-grid">
+                <div class="step-box" style="border-left: 4px solid #3B82F6;">
+                  <div class="step-num" style="color:#2563EB;">META REKLAM KÖPRÜSÜ (/ios)</div>
+                  <div class="step-val">{meta['unique_clicks']} Tekil Kişi</div>
+                  <div class="step-sub"><strong>{meta['ios_clicks']} iPhone</strong> App Store'a + <strong>{meta['android_clicks']} Android</strong> telefon otomatik Google Play'e yönlendirildi.</div>
+                  <span class="step-rate">Toplam {meta['raw_hits']} Ham İstek</span>
+                </div>
+                <div class="step-box" style="border-left: 4px solid #8B5CF6;">
+                  <div class="step-num" style="color:#7C3AED;">INSTAGRAM BIO (/download)</div>
+                  <div class="step-val">{ig['unique_clicks']} Tekil Kişi</div>
+                  <div class="step-sub"><strong>{ig['ios_clicks']} iPhone</strong> + <strong>{ig['android_clicks']} Android</strong> organik profil ziyaretçisi yönlendirildi.</div>
+                  <span class="step-rate">🤖 {s['total_bots']} Bot İsteği Filtrelendi</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="bento-card">
+              <div class="section-head"><span>🌍 {len(countries_list)} Ülke Resmi App Store İndirme Dağılımı</span></div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Ülke</th>
+                      <th>Resmi İndirme</th>
+                      <th>Pay (%)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {country_rows_html}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- SEKME 2: GELİR, MAĞAZA MUTABAKATI & ÜLKE DAĞILIMI (KATEGORİLİ SADE GÖRÜNÜM) -->
@@ -6938,8 +7119,8 @@ async def analytics_dashboard_page(
           <div class="subcat-bar" id="tab2SubNav">
             <span class="subcat-label">📂 Gelir Kategorisi:</span>
             <button type="button" class="subcat-pill active" id="subcatBtn_all" onclick="filterTab2Category('all')">🌐 Tümünü Göster (Özet)</button>
-            <button type="button" class="subcat-pill" id="subcatBtn_country" onclick="filterTab2Category('country')">🌍 1. Ülke Bazlı Ücretli Alım ({paid_countries_cnt} Ülke)</button>
-            <button type="button" class="subcat-pill" id="subcatBtn_reconcile" onclick="filterTab2Category('reconcile')">⚖️ 2. Mağaza Mutabakatı (Connect T-1 & Play)</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_reconcile" onclick="filterTab2Category('reconcile')">⚖️ 1. Mağaza Mutabakatı (Connect T-1 & Play)</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_country" onclick="filterTab2Category('country')">🌍 2. Ülke Bazlı Ücretli Alım ({paid_countries_cnt} Ülke)</button>
             <button type="button" class="subcat-pill" id="subcatBtn_calendar" onclick="filterTab2Category('calendar')">📅 3. 7G Tahsilat Takvimi</button>
             <button type="button" class="subcat-pill" id="subcatBtn_ledger" onclick="filterTab2Category('ledger')">📒 4. Tekil Abone Defteri & Paketler ({len(sub_ledger)})</button>
           </div>
@@ -6978,9 +7159,9 @@ async def analytics_dashboard_page(
             </div>
           </div>
 
-          {country_revenue_html}
-
           {store_reconciliation_html}
+
+          {country_revenue_html}
 
           <div class="bento-card tab2-sec tab2-sec-calendar" id="appleRenewalCard">
             <div class="section-head">
@@ -7060,78 +7241,8 @@ async def analytics_dashboard_page(
           </div>
         </div>
 
-        <!-- SEKME 3: KANAL, ASO & KOD ATTRIBUTION -->
+        <!-- SEKME 3: ÜRÜN KULLANIMI, PAYWALL & KOHORT TUTUNDURMA -->
         <div id="tabPane_tab3" class="tab-pane">
-          <div class="cat-header">
-            <span>🎯 Kategori 3A — Edinim & Büyüme Kanalları Özeti</span>
-            <span class="cat-sub">Görüntülenme ➔ Tıklama ➔ Kurulum ➔ VIP Dönüşüm Matrisi</span>
-          </div>
-          <div class="bento-card">
-            <div class="section-head">
-              <span>🎯 Kanal Bazlı Tam Büyüme & ASO Attribution Matrisi (Görüntülenme ➔ Tık ➔ İndirme ➔ VIP)</span>
-              <span class="badge badge-gp">Toplam {f_dl} Kurulum ({kpis['ios_downloads']} iOS + {kpis['android_downloads']} Android)</span>
-            </div>
-            <div class="table-wrap">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Edinim / Büyüme Kanalı</th>
-                    <th>Doğrulama Kaynağı</th>
-                    <th>Mağaza Gösterimi</th>
-                    <th>Sayfa Ziyareti / Sosyal Tık</th>
-                    <th>Gerçek İndirme</th>
-                    <th>Dönüşüm Oranı (CVR)</th>
-                    <th>VIP & Abonelik Etkisi</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {aso_rows_html}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="donuts-grid">
-            <div class="bento-card">
-              <div class="section-head"><span>📲 Sosyal Medya Köprü Hunisi ({html.escape(s['period_label'])}: {s['active_human_count']} Tekil İnsan)</span></div>
-              <div class="steps-grid">
-                <div class="step-box" style="border-left: 4px solid #3B82F6;">
-                  <div class="step-num" style="color:#2563EB;">META REKLAM KÖPRÜSÜ (/ios)</div>
-                  <div class="step-val">{meta['unique_clicks']} Tekil Kişi</div>
-                  <div class="step-sub"><strong>{meta['ios_clicks']} iPhone</strong> App Store'a + <strong>{meta['android_clicks']} Android</strong> telefon otomatik Google Play'e yönlendirildi.</div>
-                  <span class="step-rate">Toplam {meta['raw_hits']} Ham İstek</span>
-                </div>
-                <div class="step-box" style="border-left: 4px solid #8B5CF6;">
-                  <div class="step-num" style="color:#7C3AED;">INSTAGRAM BIO (/download)</div>
-                  <div class="step-val">{ig['unique_clicks']} Tekil Kişi</div>
-                  <div class="step-sub"><strong>{ig['ios_clicks']} iPhone</strong> + <strong>{ig['android_clicks']} Android</strong> organik profil ziyaretçisi yönlendirildi.</div>
-                  <span class="step-rate">🤖 {s['total_bots']} Bot İsteği Filtrelendi</span>
-                </div>
-              </div>
-            </div>
-
-            <div class="bento-card">
-              <div class="section-head"><span>🌍 {len(countries_list)} Ülke Resmi App Store İndirme Dağılımı</span></div>
-              <div class="table-wrap">
-                <table>
-                  <thead>
-                    <tr>
-                      <th>Ülke</th>
-                      <th>Resmi İndirme</th>
-                      <th>Pay (%)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {country_rows_html}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SEKME 4: ÜRÜN İÇİ NABIZ & KOHORT TUTUNDURMA -->
-        <div id="tabPane_tab4" class="tab-pane">
           <div class="kpi-grid">
             <div class="bento-card" style="border-left: 4px solid #3B82F6;">
               <div class="card-label">📱 RESMİ UYGULAMA OTURUMLARI</div>
@@ -7249,8 +7360,8 @@ async def analytics_dashboard_page(
           </div>
         </div>
 
-        <!-- SEKME 5: YORUMLAR & CANLI AKIŞ -->
-        <div id="tabPane_tab5" class="tab-pane">
+        <!-- SEKME 4: MAĞAZA YORUMLARI & CANLI SOSYAL KÖPRÜ TRAFİĞİ -->
+        <div id="tabPane_tab4" class="tab-pane">
           <div class="bento-card">
             <div class="section-head">
               <span>⭐ Annelerin Resmi Mağaza Yorumları ({reviews_total_cnt} Yorum)</span>
@@ -7279,6 +7390,85 @@ async def analytics_dashboard_page(
                 </thead>
                 <tbody id="liveClicksTbody">
                   {rows_html}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- SEKME 5: REFERANSLAR & VERİ MİMARİSİ (HANGİ VERİ HANGİ YÖNTEMLE NE FREKANSTA GÜNCELLENİR?) -->
+        <div id="tabPane_tab5" class="tab-pane">
+          <div class="cat-header">
+            <span>🏛️ Kategori 5A — Veri Yönetişimi & Güncellenme Frekansı Matrisi (Single Source of Truth)</span>
+            <span class="cat-sub">Hangi veri, hangi veritabanı tablosundan, hangi yöntemle ve ne sıklıkta güncellenir?</span>
+          </div>
+
+          <div class="bento-card" id="dataGovernanceMatrixCard" style="border-left: 4px solid #2563EB;">
+            <div class="section-head">
+              <div>
+                <span>📋 Hangi Veri, Hangi Yöntemle, Ne Frekansta Güncellenir? (Kurucu Kokpiti Veri Sözlüğü)</span>
+                <div style="font-size:12px; color:var(--text-muted); font-weight:500; margin-top:3px;">
+                  Kokpitteki tüm metriklerin otorite kaynağı (SSOT), veri akış yöntemi, yenilenme periyodu ve T-0 / T-1 ayrım kuralı aşağıda tanımlanmıştır.
+                </div>
+              </div>
+              <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">3 Ajanlı Konsensüs Standardı • Sıfır Çakışma</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Veri Kümesi & Kapsanan Metrikler</th>
+                    <th>Tek Doğruluk Kaynağı (DB Tablosu)</th>
+                    <th>Güncelleme Yöntemi (Nasıl Gelir?)</th>
+                    <th>Güncellenme Frekansı</th>
+                    <th>Gecikme Sınıfı</th>
+                    <th>Son Veri & Durum</th>
+                    <th>Tutarlılık & İzolasyon Kuralı</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {gov_rows_html}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="cat-header">
+            <span>🧭 Kategori 5B — Kokpit Tutarlılık Anayasası & Hesaplama İlkeleri</span>
+            <span class="cat-sub">Sayıların birbirine karışmasını ve yapay şişmesini önleyen 4 temel mimari kural</span>
+          </div>
+
+          <div class="bento-card" id="architecturePrinciplesCard">
+            <div class="section-head">
+              <span>🧭 Sıfır Çakışma & Tutarlılık İlkeleri (Neden Sayılar Artık Karışmaz?)</span>
+            </div>
+            <div class="steps-grid">
+              {arch_cards_html}
+            </div>
+          </div>
+
+          <div class="cat-header">
+            <span>🔌 Kategori 5C — Veri Kaynakları Canlı Senkronizasyon & Tazelik Durumu</span>
+            <span class="cat-sub">Arka plan senkronizasyon hatlarının anlık durumu ve kapsamı</span>
+          </div>
+
+          <div class="bento-card" id="syncPipelinesStatusCard">
+            <div class="section-head">
+              <span>🔌 Aktif Veri Hatları & Senkronizasyon Durum Özeti</span>
+              <span class="badge badge-meta">Son Mağaza Senkronu: {html.escape(str(sb.get('last_synced_at', '-')))}</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Veri Hattı (Pipeline)</th>
+                    <th>Sistem Anahtarı</th>
+                    <th>Güncel Durum & Son Veri</th>
+                    <th>Kapsam & Detay</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sync_sources_rows_html}
                 </tbody>
               </table>
             </div>
