@@ -1695,6 +1695,30 @@ def test_cockpit_v3_ssot_no_ratchet_and_data_architecture_tab(client, db_session
     assert "Hangi Veri, Hangi Yöntemle, Ne Frekansta Güncellenir?" in html_txt
 
 
+def test_cockpit_v4_executive_app_shell_progressive_disclosure_and_search(client):
+    """
+    v4.56.0 3-Ajanlı Konsensüs Executive App Shell UI Denetimi:
+    1. Sol yapışkan sidebar (.cockpit-shell & .cockpit-sidebar) aktif olmalı,
+    2. Kuzey Yıldızı hunisi daraltılabilir (toggleHeroFunnel / btnToggleHeroFunnel) olmalı,
+    3. Yoğun tablolarda canlı arama (filterTableByQuery) ve sabit yükseklikli kaydırma (table-scroll-bounded) bulunmalı,
+    4. Gereksiz ara 'cat-header' şeritleri DOM'dan temizlenmiş olmalı.
+    """
+    dash_res = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"})
+    assert dash_res.status_code == 200
+    html_txt = dash_res.text
+
+    assert 'class="cockpit-shell"' in html_txt
+    assert 'class="cockpit-sidebar hide-in-pres"' in html_txt
+    assert 'id="btnToggleHeroFunnel"' in html_txt
+    assert "function toggleHeroFunnel()" in html_txt
+    assert "function filterTableByQuery(inputEl, tbodyId)" in html_txt
+    assert 'id="countryRevenueTableBody"' in html_txt
+    assert 'id="appleLedgerTbody"' in html_txt
+    assert 'class="table-wrap table-scroll-bounded"' in html_txt
+    assert '<div class="cat-header">' not in html_txt
+
+
+
 
 
 
