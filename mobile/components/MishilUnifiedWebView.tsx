@@ -470,7 +470,12 @@ export default function MishilUnifiedWebView() {
         const notifSettings = await getStoredNotificationSettings();
         if (pObj?.babyName) {
           await syncCareNotifications(
-            { babyName: pObj.babyName, babyBdate: pObj.babyBdate, lang: pObj.lang || appLangRef.current },
+            {
+              babyName: pObj.babyName,
+              babyBdate: pObj.babyBdate,
+              lang: pObj.lang || appLangRef.current,
+              vaccineCountry: pObj.vaccineCountry || notifSettings.vaccineCountry,
+            },
             notifSettings
           );
         }
@@ -634,7 +639,12 @@ export default function MishilUnifiedWebView() {
           notifSettings.lang = nextLang;
           await saveStoredNotificationSettings({ lang: nextLang });
           await syncCareNotifications(
-            { babyName: pObj?.babyName, babyBdate: pObj?.babyBdate, lang: nextLang },
+            {
+              babyName: pObj?.babyName,
+              babyBdate: pObj?.babyBdate,
+              lang: nextLang,
+              vaccineCountry: pObj?.vaccineCountry || notifSettings.vaccineCountry,
+            },
             notifSettings
           );
           break;
@@ -646,10 +656,14 @@ export default function MishilUnifiedWebView() {
             const payloadLang = msg.payload.lang ? updateNativeLang(msg.payload.lang) : appLangRef.current;
             const profileToStore = { ...msg.payload, lang: payloadLang };
             void AsyncStorage.setItem('@mishil_baby_profile', JSON.stringify(profileToStore));
+            if (msg.payload.vaccineCountry) {
+              void saveStoredNotificationSettings({ vaccineCountry: msg.payload.vaccineCountry });
+            }
             void syncCareNotifications({
               babyName: msg.payload.babyName,
               babyBdate: msg.payload.babyBdate,
               lang: payloadLang,
+              vaccineCountry: msg.payload.vaccineCountry,
             });
           }
           break;
@@ -662,7 +676,12 @@ export default function MishilUnifiedWebView() {
               let pObj: any = null;
               try { pObj = rawProfile ? JSON.parse(rawProfile) : null; } catch {}
               await syncCareNotifications(
-                { babyName: pObj?.babyName, babyBdate: pObj?.babyBdate, lang: nextLang },
+                {
+                  babyName: pObj?.babyName,
+                  babyBdate: pObj?.babyBdate,
+                  lang: nextLang,
+                  vaccineCountry: msg.payload.vaccineCountry || pObj?.vaccineCountry || updatedSettings.vaccineCountry,
+                },
                 updatedSettings
               );
               webToast(nextLang === 'en' ? '✅ Notification preferences updated.' : '✅ Bildirim tercihleri güncellendi.');

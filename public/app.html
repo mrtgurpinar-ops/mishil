@@ -3759,12 +3759,15 @@
         <!-- PEDİATRİK AŞI TAKVİMİ -->
         <div class="card" id="vaccine-schedule-card" style="margin-bottom: 12px;">
           <div class="spotlight-glow"></div>
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
+            <div style="flex: 1; min-width: 0;">
               <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">Bebek Aşı Takvimi 💉</div>
-              <div style="font-size: 10px; color: var(--text-muted);">T.C. Sağlık Bakanlığı & DSÖ Takvimi</div>
+              <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+                <span style="font-size: 10px; color: var(--text-muted);" id="vaccine-authority-subtitle">T.C. Sağlık Bakanlığı & DSÖ Takvimi</span>
+                <select id="vaccine-country-select" onchange="changeVaccineCountry(this.value)" aria-label="Ülke Aşı Protokolü" style="font-size: 9.5px; background: rgba(255,255,255,0.06); color: var(--accent); border: 1px solid rgba(232,168,85,0.28); border-radius: 6px; padding: 1px 5px; font-weight: 600; cursor: pointer; outline: none; max-width: 155px;"></select>
+              </div>
             </div>
-            <span style="font-size: 9px; background: rgba(46,213,115,0.18); color: #2ED573; padding: 3px 6px; border-radius: 6px; font-weight: 700;" id="vaccine-status-summary">Takvim Aktif</span>
+            <span style="font-size: 9px; background: rgba(46,213,115,0.18); color: #2ED573; padding: 3px 6px; border-radius: 6px; font-weight: 700; white-space: nowrap;" id="vaccine-status-summary">Takvim Aktif</span>
           </div>
 
           <div style="font-size: 11px; color: var(--text-night); line-height: 15px; margin-bottom: 8px;" id="vaccine-baby-summary">
@@ -3773,6 +3776,13 @@
 
           <div id="vaccine-items-container" style="display: flex; flex-direction: column; gap: 6px; max-height: 320px; overflow-y: auto; padding-right: 4px;" class="no-scrollbar">
             <!-- Rendered by JS -->
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.06);">
+            <div style="font-size: 9.5px; color: var(--text-muted); line-height: 13px; flex: 1;" id="vaccine-medical-disclaimer">
+              ℹ️ Takip amaçlıdır; kesin uygulama takvimi için çocuk doktorunuza danışın.
+            </div>
+            <button type="button" onclick="promptAddCustomVaccine()" id="btn-add-custom-vaccine" style="font-size: 10px; background: rgba(232,168,85,0.14); color: var(--accent); border: 1px solid rgba(232,168,85,0.3); border-radius: 6px; padding: 4px 8px; font-weight: 700; cursor: pointer; white-space: nowrap;">+ Özel Aşı Ekle</button>
           </div>
         </div>
 
@@ -4340,17 +4350,26 @@
 <div class="modal-overlay" id="modal-vaccine-schedule" onclick="closeModalOnOverlay(event, 'modal-vaccine-schedule')">
   <div class="modal-sheet no-scrollbar" style="max-height: 85vh;">
     <div class="modal-header">
-      <div>
+      <div style="flex: 1; min-width: 0;">
         <div style="font-family: 'Sora'; font-size: 16px; font-weight: 700; color: var(--heading-night);">💉 Bebek Aşı Takip Defteri</div>
-        <div style="font-size: 11px; color: var(--text-muted);">T.C. Sağlık Bakanlığı & DSÖ Onaylı Takvim</div>
+        <div style="display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 2px;">
+          <span style="font-size: 11px; color: var(--text-muted);" id="quick-vaccine-authority-subtitle">T.C. Sağlık Bakanlığı & DSÖ Onaylı Takvim</span>
+          <select id="quick-vaccine-country-select" onchange="changeVaccineCountry(this.value)" aria-label="Ülke Aşı Protokolü" style="font-size: 10px; background: rgba(255,255,255,0.06); color: var(--accent); border: 1px solid rgba(232,168,85,0.28); border-radius: 6px; padding: 2px 6px; font-weight: 600; cursor: pointer; outline: none; max-width: 165px;"></select>
+        </div>
       </div>
       <button class="modal-close" onclick="closeVaccineQuickModal()">✕</button>
     </div>
     <div style="font-size: 11px; color: var(--text-night); line-height: 15px; margin-bottom: 10px; background: rgba(255,255,255,0.03); padding: 8px 10px; border-radius: 8px;">
       Bebeğinizin aşılarını tamamlandıkça işaretleyin. Takvim anında güncellenir ve Sağlık & Gelişim skoru beslenir.
     </div>
-    <div id="quick-vaccine-items-container" style="display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: 60vh; padding-right: 4px;" class="no-scrollbar">
+    <div id="quick-vaccine-items-container" style="display: flex; flex-direction: column; gap: 6px; overflow-y: auto; max-height: 55vh; padding-right: 4px;" class="no-scrollbar">
       <!-- Rendered by JS -->
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08);">
+      <div style="font-size: 9.5px; color: var(--text-muted); line-height: 13px; flex: 1;" id="quick-vaccine-medical-disclaimer">
+        ℹ️ Takip amaçlıdır; kesin uygulama takvimi için çocuk doktorunuza danışın.
+      </div>
+      <button type="button" onclick="promptAddCustomVaccine()" id="btn-quick-add-custom-vaccine" style="font-size: 10.5px; background: rgba(232,168,85,0.14); color: var(--accent); border: 1px solid rgba(232,168,85,0.3); border-radius: 6px; padding: 5px 9px; font-weight: 700; cursor: pointer; white-space: nowrap;">+ Özel Aşı Ekle</button>
     </div>
   </div>
 </div>
@@ -5318,7 +5337,8 @@
       'Ana Ekran & Ses Kartları Bilişsel Sadeleştirme: Ana ekranın en üstündeki kalabalık reklam/kalibrasyon/rehber kartları kaldırılarak ekran doğrudan nefes alan MışılSpot™ Hero kartıyla başlatıldı; 18 stüdyo ses kartının üzerindeki VIP / 60 SN ÖNİZLEME rozetleri temizlenerek dingin tasarım sağlandı.',
       'Aile VIP Doğrulama Kilidi, Hayalet RCAnonymousID Temizliği & Güvenli Kota Koruması (S6–S8): Native AsyncStorage ve WebView üzerinde doğrulanmamış family_vip sızıntısı kapatıldı; iOS mutabakatında sıfır tutarlı hayalet RCAnonymousID satırları temizlendi ve Mışıl Dadı / Ağlama Analizi uç noktalarına gerçek VIP kullanıcıları engellemeyen IP bazlı bot koruma sınırı eklendi.',
       'Tek ve Sade 3. Giriş + Gündüz Saati Memnuniyet & Değerlendirme Kuralı: Karmaşık ses/uyku sayaç tetikleyicileri kaldırılarak yalnızca 3. farklı oturumda ve gündüz saatlerinde (08:00–21:59) 1 kez sorulan sıfır ısrarlı değerlendirme akışı devreye alındı.',
-      'Satın Alma Gücü Paritesi (PPP) & Rakiplerden Uygun 174 Ülke Fiyatlama Motoru: Türkiye (149,99 ₺ / 599,99 ₺) ve İsviçre (CHF 5.00 / 25.00) tabanları korunarak Orta Asya, Güney Asya, Latin Amerika, Doğu Avrupa ve Batı ülkelerinde en uygun fiyatlı rakiplerin altında kalan yerel mağaza tarifeleri ve 32 para birimi sembol/kur desteği (KZT, AZN, UZS, RON, PLN, INR, BRL, MXN vb.) entegre edildi.'
+      'Satın Alma Gücü Paritesi (PPP) & Rakiplerden Uygun 174 Ülke Fiyatlama Motoru: Türkiye (149,99 ₺ / 599,99 ₺) ve İsviçre (CHF 5.00 / 25.00) tabanları korunarak Orta Asya, Güney Asya, Latin Amerika, Doğu Avrupa ve Batı ülkelerinde en uygun fiyatlı rakiplerin altında kalan yerel mağaza tarifeleri ve 32 para birimi sembol/kur desteği (KZT, AZN, UZS, RON, PLN, INR, BRL, MXN vb.) entegre edildi.',
+      '174 Ülke Sıfır-Seçimli Otomatik Pediatrik Aşı Kartı & Özel Doktor Aşısı Motoru: Cihazın IANA saat dilimi, mağaza para birimi ve işletim sistemi bölge kodundan kullanıcının bulunduğu ülkeyi ilk açılışta otomatik tespit edip seyahatlerde değişmemesi için sabitleyen; Türkiye (T.C. Sağlık Bakanlığı), ABD/Kanada (CDC/NACI), İngiltere/İrlanda (NHS 8-12-16H), Avrupa/Almanya (STIKO 2+1), İsviçre (BAG), Doğu Avrupa, Türk Devletleri (AZ, KZ, UZ), Avustralya (NIP), Körfez ve DSÖ (WHO EPI) ulusal aşı takvimlerini yerel bildirim motoruyla (careNotificationEngine) senkronize eden çok ülkeli aşı kartı devreye alındı.'
     ]},
     { v: '4.48.1', date: '8 Kasım 2026', items: [
       'Tam Dinamik Küresel Mağaza Fiyatlama & Para Birimi Motoru (getDynamicPricingState): Yurt dışı mağazalardan (ABD, Avrupa, İngiltere, İsviçre, Körfez, Kanada, Avustralya vb.) indiren kullanıcılar için telefon dili Türkçe veya İngilizce fark etmeksizin tüm fiyat kartları, 0 birimlik deneme rozetleri, aylık/günlük karşılıklar ve 8. gün bilgilendirme satırları StoreKit / Google Play (getOfferings) üzerinden %100 dinamik hale getirildi.',
@@ -6692,7 +6712,7 @@
       try {
         window.ReactNativeWebView.postMessage(JSON.stringify({
           type: 'SAVE_PROFILE',
-          payload: { babyName: nm, babyBdate: bd, userRole: pRole, userName: pName, lang: getAppLang() }
+          payload: { babyName: nm, babyBdate: bd, userRole: pRole, userName: pName, lang: getAppLang(), vaccineCountry: typeof getVaccineCountryCode === 'function' ? getVaccineCountryCode() : 'TR' }
         }));
         window.ReactNativeWebView.postMessage(JSON.stringify({
           type: 'ONBOARDING_COMPLETED'
@@ -6853,7 +6873,7 @@
         try {
           window.ReactNativeWebView.postMessage(JSON.stringify({
             type: 'SAVE_PROFILE',
-            payload: { babyName: nm, babyBdate: bd, userRole: selectedParentRole, userName: pName, lang: getAppLang() }
+            payload: { babyName: nm, babyBdate: bd, userRole: selectedParentRole, userName: pName, lang: getAppLang(), vaccineCountry: typeof getVaccineCountryCode === 'function' ? getVaccineCountryCode() : 'TR' }
           }));
         } catch (e) {}
       }
@@ -7479,7 +7499,8 @@
               babyBdate: baby.bdate,
               userRole: selectedParentRole,
               userName: localStorage.getItem('mishil_user_name') || '',
-              lang: getAppLang()
+              lang: getAppLang(),
+              vaccineCountry: typeof getVaccineCountryCode === 'function' ? getVaccineCountryCode() : 'TR'
             }
           }));
         }
@@ -8335,15 +8356,17 @@
   }
 
   // =========================================================================
-  // PEDİATRİK AŞI TAKVİMİ (SAĞLIK BAKANLIĞI & DSÖ ONAYLI)
+  // 174 ÜLKE SIFIR-SEÇİMLİ OTOMATİK PEDİATRİK AŞI TAKVİMİ MOTORU
+  // İlk açılışta IANA Saat Dilimi > Mağaza Para Birimi > OS Bölge Kodu ile
+  // ülkeyi otomatik tespit eder ve seyahatlerde değişmemesi için cihaza sabitler.
   // =========================================================================
-  const VACCINE_SCHEDULE = [
+  const TR_VACCINE_SCHEDULE = [
     { id: 'hep_b_1', name: 'Hepatit B (1. Doz)', nameEn: 'Hepatitis B (1st Dose)', month: 0, desc: 'Doğumda hastanede uygulanır.', descEn: 'Administered at birth in the hospital.' },
-    { id: 'hep_b_2', name: 'Hepatit B (2. Doz)', nameEn: 'Hepatitis B (2nd Dose)', month: 1, desc: '1. ayın sonunda sağlık ocağında yapılır.', descEn: 'Administered at the end of the 1st month.' },
+    { id: 'hep_b_2', name: 'Hepatit B (2. Doz)', nameEn: 'Hepatitis B (2nd Dose)', month: 1, desc: '1. ayın sonunda uygulanır.', descEn: 'Administered at the end of the 1st month.' },
     { id: 'bcg', name: 'BCG (Verem)', nameEn: 'BCG (Tuberculosis)', month: 2, desc: 'Sol omuzdan cilt içine uygulanır.', descEn: 'Intradermal injection on the left shoulder.' },
     { id: 'dabt_1', name: '5\'li Karma Aşı (1. Doz)', nameEn: 'DTaP-IPV-Hib 5-in-1 (1st Dose)', month: 2, desc: 'Difteri, Boğmaca, Tetanoz, Çocuk Felci, Hib.', descEn: 'Diphtheria, Pertussis, Tetanus, Polio, Hib.' },
     { id: 'kpa_1', name: 'KPA (Zatürre - 1. Doz)', nameEn: 'PCV (Pneumococcal - 1st Dose)', month: 2, desc: 'Konjuge Pnömokok aşısı.', descEn: 'Pneumococcal conjugate vaccine.' },
-    { id: 'rota_1', name: 'Rotavirüs (1. Doz)', nameEn: 'Rotavirus (1st Dose)', month: 2, desc: 'Ağızdan damla (özel/önerilen rota aşısı).', descEn: 'Oral drops (recommended rotavirus vaccine).' },
+    { id: 'rota_1', name: 'Rotavirüs (1. Doz)', nameEn: 'Rotavirus (1st Dose)', month: 2, desc: 'Ağızdan damla (önerilen rota aşısı).', descEn: 'Oral drops (recommended rotavirus vaccine).' },
     { id: 'dabt_2', name: '5\'li Karma Aşı (2. Doz)', nameEn: 'DTaP-IPV-Hib 5-in-1 (2nd Dose)', month: 4, desc: 'Difteri, Boğmaca, Tetanoz, Polio, Hib.', descEn: 'Diphtheria, Pertussis, Tetanus, Polio, Hib.' },
     { id: 'kpa_2', name: 'KPA (Zatürre - 2. Doz)', nameEn: 'PCV (Pneumococcal - 2nd Dose)', month: 4, desc: 'Pnömokok 2. doz.', descEn: 'Pneumococcal 2nd dose.' },
     { id: 'rota_2', name: 'Rotavirüs (2. Doz)', nameEn: 'Rotavirus (2nd Dose)', month: 4, desc: 'Ağızdan damla 2. doz.', descEn: 'Oral drops 2nd dose.' },
@@ -8351,7 +8374,7 @@
     { id: 'opa_1', name: 'OPA (Çocuk Felci - 1. Doz)', nameEn: 'OPV (Oral Polio - 1st Dose)', month: 6, desc: 'Ağızdan canlı polio damlası.', descEn: 'Oral live polio vaccine drops.' },
     { id: 'hep_b_3', name: 'Hepatit B (3. Doz)', nameEn: 'Hepatitis B (3rd Dose)', month: 6, desc: 'Hepatit B serisinin tamamlanması.', descEn: 'Completion of the Hepatitis B series.' },
     { id: 'mening_1', name: 'Meningokok (1. Doz)', nameEn: 'Meningococcal (1st Dose)', month: 9, desc: 'Menenjit koruması (doktor tavsiyesiyle).', descEn: 'Meningitis protection (per pediatrician guidance).' },
-    { id: 'kkk', name: 'KKK (Kızamık-Kızamıkçık-Kabakulak)', nameEn: 'MMR (Measles-Mumps-Rubella)', month: 12, desc: '1 yaş aşısı.', descEn: '12-month immunization.' },
+    { id: 'kkk', name: 'KKK (Kızamık-Kızamıkçık-Kabakulak)', nameEn: 'MMR (Measles-Mumps-Rubella)', month: 12, desc: '12. ay 1 yaş aşısı.', descEn: '12-month immunization.' },
     { id: 'kpa_rep', name: 'KPA Rapel (Pekiştirme)', nameEn: 'PCV Booster', month: 12, desc: 'Zatürre pekiştirme dozu.', descEn: 'Pneumococcal booster dose.' },
     { id: 'sucicegi', name: 'Suçiçeği Aşısı', nameEn: 'Varicella (Chickenpox)', month: 12, desc: 'Suçiçeği koruma aşısı.', descEn: 'Varicella immunization.' },
     { id: 'dabt_rep', name: '5\'li Karma Rapel', nameEn: 'DTaP-IPV-Hib Booster', month: 18, desc: '18. ay pekiştirme dozu.', descEn: '18-month booster dose.' },
@@ -8359,6 +8382,498 @@
     { id: 'hep_a_1', name: 'Hepatit A (1. Doz)', nameEn: 'Hepatitis A (1st Dose)', month: 18, desc: 'Hepatit A sarılık aşısı.', descEn: 'Hepatitis A immunization (1st dose).' },
     { id: 'hep_a_2', name: 'Hepatit A (2. Doz)', nameEn: 'Hepatitis A (2nd Dose)', month: 24, desc: 'Hepatit A serisinin tamamlanması.', descEn: 'Completion of the Hepatitis A series.' }
   ];
+
+  const VACCINE_PROTOCOLS = {
+    TR: TR_VACCINE_SCHEDULE,
+    // ABD & Kuzey Amerika (CDC / AAP)
+    US_CDC: [
+      { id: 'hep_b_1', name: 'Hepatit B (1. Doz)', nameEn: 'Hepatitis B (1st Dose)', month: 0, desc: 'Doğumda hastanede uygulanır.', descEn: 'Administered at birth in the hospital.' },
+      { id: 'us_rsv_0', name: 'RSV Antikor (Beyfortus)', nameEn: 'RSV Immunization (Nirsevimab)', month: 0, desc: 'Yenidoğan RSV solunum koruması.', descEn: 'Newborn RSV respiratory protection.' },
+      { id: 'hep_b_2', name: 'Hepatit B (2. Doz)', nameEn: 'Hepatitis B (2nd Dose)', month: 1, desc: '1–2. ay kontrolünde uygulanır.', descEn: 'Administered at 1–2 month well-baby visit.' },
+      { id: 'dabt_1', name: 'DTaP + IPV + Hib (1. Doz)', nameEn: 'DTaP + IPV + Hib (1st Dose)', month: 2, desc: 'Difteri, Tetanoz, Boğmaca, Polio (IPV), Hib.', descEn: 'Diphtheria, Tetanus, Pertussis, Inactivated Polio, Hib.' },
+      { id: 'kpa_1', name: 'PCV15/PCV20 (Pnömokok 1. Doz)', nameEn: 'PCV15/PCV20 (Pneumococcal 1st Dose)', month: 2, desc: 'Konjuge Pnömokok 1. doz.', descEn: 'Pneumococcal conjugate 1st dose.' },
+      { id: 'rota_1', name: 'Rotavirüs (1. Doz)', nameEn: 'Rotavirus (1st Dose)', month: 2, desc: 'Ağızdan damla 1. doz.', descEn: 'Oral rotavirus drops 1st dose.' },
+      { id: 'dabt_2', name: 'DTaP + IPV + Hib (2. Doz)', nameEn: 'DTaP + IPV + Hib (2nd Dose)', month: 4, desc: '4. ay karma koruma 2. doz.', descEn: '4-month DTaP, IPV, Hib 2nd dose.' },
+      { id: 'kpa_2', name: 'PCV15/PCV20 (Pnömokok 2. Doz)', nameEn: 'PCV15/PCV20 (Pneumococcal 2nd Dose)', month: 4, desc: 'Konjuge Pnömokok 2. doz.', descEn: 'Pneumococcal conjugate 2nd dose.' },
+      { id: 'rota_2', name: 'Rotavirüs (2. Doz)', nameEn: 'Rotavirus (2nd Dose)', month: 4, desc: 'Ağızdan damla 2. doz.', descEn: 'Oral rotavirus drops 2nd dose.' },
+      { id: 'dabt_3', name: 'DTaP + IPV + Hib (3. Doz)', nameEn: 'DTaP + IPV + Hib (3rd Dose)', month: 6, desc: '6. ay karma koruma 3. doz.', descEn: '6-month DTaP, IPV, Hib 3rd dose.' },
+      { id: 'us_pcv_3', name: 'PCV15/PCV20 (Pnömokok 3. Doz)', nameEn: 'PCV15/PCV20 (Pneumococcal 3rd Dose)', month: 6, desc: 'Pnömokok 3. doz.', descEn: 'Pneumococcal conjugate 3rd dose.' },
+      { id: 'hep_b_3', name: 'Hepatit B (3. Doz)', nameEn: 'Hepatitis B (3rd Dose)', month: 6, desc: 'Hepatit B serisinin tamamlanması.', descEn: 'Completion of Hepatitis B series.' },
+      { id: 'us_flu_6m', name: 'İnfluenza (Grip Aşısı)', nameEn: 'Influenza (Seasonal Flu)', month: 6, desc: '6. aydan itibaren yıllık grip koruması.', descEn: 'Annual seasonal flu protection starting at 6m.' },
+      { id: 'kkk', name: 'MMR (Kızamık-Kızamıkçık-Kabakulak)', nameEn: 'MMR (Measles-Mumps-Rubella 1st Dose)', month: 12, desc: '12–15. ay 1. doz.', descEn: '12–15 month 1st dose.' },
+      { id: 'sucicegi', name: 'Suçiçeği (Varicella 1. Doz)', nameEn: 'Varicella (Chickenpox 1st Dose)', month: 12, desc: '12–15. ay suçiçeği aşısı.', descEn: '12–15 month varicella immunization.' },
+      { id: 'kpa_rep', name: 'PCV Pekiştirme (4. Doz)', nameEn: 'PCV Booster (4th Dose)', month: 12, desc: '12–15. ay pnömokok rapel.', descEn: '12–15 month pneumococcal booster.' },
+      { id: 'hep_a_1', name: 'Hepatit A (1. Doz)', nameEn: 'Hepatitis A (1st Dose)', month: 12, desc: '12. ay Hepatit A 1. doz.', descEn: '12-month Hepatitis A 1st dose.' },
+      { id: 'us_dtap_15m', name: 'DTaP + Hib Pekiştirme', nameEn: 'DTaP + Hib Booster', month: 15, desc: '15–18. ay pekiştirme dozu.', descEn: '15–18 month booster dose.' },
+      { id: 'hep_a_2', name: 'Hepatit A (2. Doz)', nameEn: 'Hepatitis A (2nd Dose)', month: 18, desc: 'İlk dozdan 6 ay sonra 2. doz.', descEn: '2nd dose 6 months after 1st dose.' }
+    ],
+    // Birleşik Krallık & İrlanda (NHS / HSE: 8, 12, 16 Hafta = 2, 3, 4. Ay Şeması)
+    UK_NHS: [
+      { id: 'dabt_1', name: '6\'lı Karma Aşı (1. Doz - 8. Hafta)', nameEn: '6-in-1 Vaccine (1st Dose - 8 Weeks)', month: 2, desc: 'DTaP, IPV, Hib ve Hepatit B (8. hafta).', descEn: 'Diphtheria, Tetanus, Pertussis, Polio, Hib, HepB (8w).' },
+      { id: 'rota_1', name: 'Rotavirüs (1. Doz - 8. Hafta)', nameEn: 'Rotavirus (1st Dose - 8 Weeks)', month: 2, desc: 'Ağızdan damla 1. doz.', descEn: 'Oral rotavirus drops 1st dose.' },
+      { id: 'uk_menb_1', name: 'MenB (Menenjit B - 1. Doz)', nameEn: 'MenB (Meningococcal B - 1st Dose)', month: 2, desc: '8. hafta MenB menenjit aşısı.', descEn: '8-week Meningococcal B 1st dose.' },
+      { id: 'uk_6in1_2', name: '6\'lı Karma Aşı (2. Doz - 12. Hafta)', nameEn: '6-in-1 Vaccine (2nd Dose - 12 Weeks)', month: 3, desc: '12. hafta (3. ay) 6\'lı karma 2. doz.', descEn: '12-week (Month 3) 6-in-1 2nd dose.' },
+      { id: 'kpa_1', name: 'PCV (Pnömokok 1. Doz - 12. Hafta)', nameEn: 'PCV (Pneumococcal 1st Dose - 12 Weeks)', month: 3, desc: '12. hafta zatürre/pnömokok 1. doz.', descEn: '12-week pneumococcal conjugate 1st dose.' },
+      { id: 'rota_2', name: 'Rotavirüs (2. Doz - 12. Hafta)', nameEn: 'Rotavirus (2nd Dose - 12 Weeks)', month: 3, desc: '12. hafta ağızdan damla 2. doz.', descEn: '12-week oral rotavirus drops 2nd dose.' },
+      { id: 'uk_6in1_3', name: '6\'lı Karma Aşı (3. Doz - 16. Hafta)', nameEn: '6-in-1 Vaccine (3rd Dose - 16 Weeks)', month: 4, desc: '16. hafta (4. ay) 6\'lı karma 3. doz.', descEn: '16-week (Month 4) 6-in-1 3rd dose.' },
+      { id: 'uk_menb_2', name: 'MenB (Menenjit B - 2. Doz)', nameEn: 'MenB (Meningococcal B - 2nd Dose)', month: 4, desc: '16. hafta MenB 2. doz.', descEn: '16-week Meningococcal B 2nd dose.' },
+      { id: 'uk_hib_menc', name: 'Hib / MenC Rapel (1 Yaş)', nameEn: 'Hib / MenC Booster (1 Year)', month: 12, desc: '12. ay Hib ve Menenjit C pekiştirme.', descEn: '12-month Hib and Meningococcal C booster.' },
+      { id: 'kpa_rep', name: 'PCV Rapel (Pnömokok - 1 Yaş)', nameEn: 'PCV Booster (Pneumococcal - 1 Year)', month: 12, desc: '12. ay pnömokok pekiştirme dozu.', descEn: '12-month pneumococcal booster dose.' },
+      { id: 'kkk', name: 'MMR (Kızamık-Kızamıkçık-Kabakulak 1. Doz)', nameEn: 'MMR (Measles-Mumps-Rubella 1st Dose)', month: 12, desc: '12. ay 1 yaş MMR aşısı.', descEn: '12-month MMR 1st dose.' },
+      { id: 'uk_menb_3', name: 'MenB Rapel (Menenjit B - 1 Yaş)', nameEn: 'MenB Booster (Meningococcal B - 1 Year)', month: 12, desc: '12. ay MenB pekiştirme dozu.', descEn: '12-month Meningococcal B booster.' }
+    ],
+    // Avrupa Birliği / Almanya (STIKO / ECDC 2+1 Şeması: 2, 4, 11-12, 15. Ay)
+    EU_2PLUS1: [
+      { id: 'dabt_1', name: '6\'lı Karma Aşı (1. Doz)', nameEn: '6-in-1 Hexavalent (1st Dose)', month: 2, desc: 'DTaP, IPV, Hib, Hepatit B (2. ay).', descEn: 'Diphtheria, Tetanus, Pertussis, IPV, Hib, HepB (Month 2).' },
+      { id: 'kpa_1', name: 'Pnömokok / PCV (1. Doz)', nameEn: 'PCV (Pneumococcal 1st Dose)', month: 2, desc: '2. ay konjuge pnömokok 1. doz.', descEn: 'Month 2 pneumococcal conjugate 1st dose.' },
+      { id: 'rota_1', name: 'Rotavirüs (1. Doz)', nameEn: 'Rotavirus (1st Dose)', month: 2, desc: 'Ağızdan rotavirüs aşısı 1. doz.', descEn: 'Oral rotavirus vaccine 1st dose.' },
+      { id: 'dabt_2', name: '6\'lı Karma Aşı (2. Doz)', nameEn: '6-in-1 Hexavalent (2nd Dose)', month: 4, desc: '4. ay 6\'lı karma 2. doz (2+1 şeması).', descEn: 'Month 4 hexavalent 2nd dose (2+1 schedule).' },
+      { id: 'kpa_2', name: 'Pnömokok / PCV (2. Doz)', nameEn: 'PCV (Pneumococcal 2nd Dose)', month: 4, desc: '4. ay pnömokok 2. doz.', descEn: 'Month 4 pneumococcal conjugate 2nd dose.' },
+      { id: 'rota_2', name: 'Rotavirüs (2. Doz)', nameEn: 'Rotavirus (2nd Dose)', month: 4, desc: '4. ay ağızdan rotavirüs 2. doz.', descEn: 'Month 4 oral rotavirus 2nd dose.' },
+      { id: 'eu_hexa_3', name: '6\'lı Karma Aşı (3. Doz / Rapel)', nameEn: '6-in-1 Hexavalent (3rd Dose / Booster)', month: 11, desc: '11. ay 2+1 şeması tamamlayıcı doz.', descEn: 'Month 11 hexavalent 3rd booster dose.' },
+      { id: 'eu_pcv_3', name: 'Pnömokok / PCV (3. Doz / Rapel)', nameEn: 'PCV Booster (3rd Dose)', month: 11, desc: '11. ay pnömokok pekiştirme dozu.', descEn: 'Month 11 pneumococcal booster dose.' },
+      { id: 'eu_mmr_1', name: 'MMR (Kızamık-Kızamıkçık-Kabakulak 1. Doz)', nameEn: 'MMR (Measles-Mumps-Rubella 1st Dose)', month: 11, desc: '11. ay MMR 1. doz.', descEn: 'Month 11 MMR 1st dose.' },
+      { id: 'eu_var_1', name: 'Suçiçeği (Varicella 1. Doz)', nameEn: 'Varicella (Chickenpox 1st Dose)', month: 11, desc: '11. ay suçiçeği 1. doz.', descEn: 'Month 11 varicella 1st dose.' },
+      { id: 'kkk', name: 'Meningokok C / B (12. Ay)', nameEn: 'Meningococcal C / B (Month 12)', month: 12, desc: '12. ay menenjit koruma aşısı.', descEn: 'Month 12 meningococcal immunization.' },
+      { id: 'eu_mmr_2', name: 'MMR (2. Doz)', nameEn: 'MMR (2nd Dose)', month: 15, desc: '15. ay MMR 2. doz.', descEn: 'Month 15 MMR 2nd dose.' },
+      { id: 'eu_var_2', name: 'Suçiçeği (Varicella 2. Doz)', nameEn: 'Varicella (Chickenpox 2nd Dose)', month: 15, desc: '15. ay suçiçeği 2. doz.', descEn: 'Month 15 varicella 2nd dose.' }
+    ],
+    // İsviçre & Lihtenştayn (BAG / EKIF)
+    CH_BAG: [
+      { id: 'dabt_1', name: '6\'lı Karma Aşı (1. Doz)', nameEn: '6-in-1 Hexavalent (1st Dose)', month: 2, desc: 'DTPa-IPV-Hib-HBV (2. ay).', descEn: 'DTPa-IPV-Hib-HBV (Month 2).' },
+      { id: 'kpa_1', name: 'PCV (Pnömokok 1. Doz)', nameEn: 'PCV (Pneumococcal 1st Dose)', month: 2, desc: '2. ay pnömokok 1. doz.', descEn: 'Month 2 pneumococcal 1st dose.' },
+      { id: 'rota_1', name: 'Rotavirüs (1. Doz)', nameEn: 'Rotavirus (1st Dose)', month: 2, desc: '2. ay rotavirüs 1. doz.', descEn: 'Month 2 oral rotavirus 1st dose.' },
+      { id: 'dabt_2', name: '6\'lı Karma Aşı (2. Doz)', nameEn: '6-in-1 Hexavalent (2nd Dose)', month: 4, desc: '4. ay 6\'lı karma 2. doz.', descEn: 'Month 4 hexavalent 2nd dose.' },
+      { id: 'kpa_2', name: 'PCV (Pnömokok 2. Doz)', nameEn: 'PCV (Pneumococcal 2nd Dose)', month: 4, desc: '4. ay pnömokok 2. doz.', descEn: 'Month 4 pneumococcal 2nd dose.' },
+      { id: 'rota_2', name: 'Rotavirüs (2. Doz)', nameEn: 'Rotavirus (2nd Dose)', month: 4, desc: '4. ay rotavirüs 2. doz.', descEn: 'Month 4 oral rotavirus 2nd dose.' },
+      { id: 'ch_mmr_1', name: 'MMR (1. Doz - 9. Ay)', nameEn: 'MMR (1st Dose - Month 9)', month: 9, desc: 'İsviçre BAG 9. ay MMR 1. doz.', descEn: 'Swiss BAG Month 9 MMR 1st dose.' },
+      { id: 'dabt_3', name: '6\'lı Karma Aşı (3. Doz / Rapel)', nameEn: '6-in-1 Hexavalent (3rd Dose)', month: 12, desc: '12. ay 6\'lı karma tamamlayıcı doz.', descEn: 'Month 12 hexavalent 3rd dose.' },
+      { id: 'kpa_rep', name: 'PCV Rapel (Pnömokok 3. Doz)', nameEn: 'PCV Booster (3rd Dose)', month: 12, desc: '12. ay pnömokok rapel.', descEn: 'Month 12 pneumococcal booster.' },
+      { id: 'kkk', name: 'MMR (2. Doz - 12. Ay)', nameEn: 'MMR (2nd Dose - Month 12)', month: 12, desc: '12. ay MMR 2. doz.', descEn: 'Month 12 MMR 2nd dose.' },
+      { id: 'sucicegi', name: 'Suçiçeği (Varicella 1. Doz)', nameEn: 'Varicella (Chickenpox 1st Dose)', month: 12, desc: '12. ay suçiçeği aşısı.', descEn: 'Month 12 varicella immunization.' },
+      { id: 'ch_men_12m', name: 'MenACWY / MenB (12–15. Ay)', nameEn: 'MenACWY / MenB (12–15 Months)', month: 12, desc: 'Menenjit tamamlayıcı koruma.', descEn: 'Meningococcal protection.' }
+    ],
+    // Doğu Avrupa & Balkanlar (PL, RO, BG, RS, HR, BA, AL, MK, LT, LV, EE)
+    EU_EAST: [
+      { id: 'hep_b_1', name: 'Hepatit B (1. Doz)', nameEn: 'Hepatitis B (1st Dose)', month: 0, desc: 'Doğumda hastanede uygulanır.', descEn: 'Administered at birth in the hospital.' },
+      { id: 'bcg', name: 'BCG (Verem)', nameEn: 'BCG (Tuberculosis)', month: 0, desc: 'Doğumda taburcu olmadan uygulanır.', descEn: 'Administered in the maternity ward after birth.' },
+      { id: 'dabt_1', name: '6\'lı / 5\'li Karma Aşı (1. Doz)', nameEn: '6-in-1 / 5-in-1 (1st Dose)', month: 2, desc: 'Difteri, Tetanoz, Boğmaca, Polio, Hib, HepB.', descEn: 'DTaP, IPV, Hib, HepB 1st dose.' },
+      { id: 'kpa_1', name: 'PCV (Pnömokok 1. Doz)', nameEn: 'PCV (Pneumococcal 1st Dose)', month: 2, desc: '2. ay pnömokok 1. doz.', descEn: 'Month 2 pneumococcal 1st dose.' },
+      { id: 'rota_1', name: 'Rotavirüs (1. Doz)', nameEn: 'Rotavirus (1st Dose)', month: 2, desc: 'Ağızdan rotavirüs 1. doz.', descEn: 'Oral rotavirus 1st dose.' },
+      { id: 'dabt_2', name: '6\'lı / 5\'li Karma Aşı (2. Doz)', nameEn: '6-in-1 / 5-in-1 (2nd Dose)', month: 4, desc: '4. ay karma aşı 2. doz.', descEn: 'Month 4 hexavalent/pentavalent 2nd dose.' },
+      { id: 'kpa_2', name: 'PCV (Pnömokok 2. Doz)', nameEn: 'PCV (Pneumococcal 2nd Dose)', month: 4, desc: '4. ay pnömokok 2. doz.', descEn: 'Month 4 pneumococcal 2nd dose.' },
+      { id: 'rota_2', name: 'Rotavirüs (2. Doz)', nameEn: 'Rotavirus (2nd Dose)', month: 4, desc: '4. ay ağızdan rotavirüs 2. doz.', descEn: 'Month 4 oral rotavirus 2nd dose.' },
+      { id: 'dabt_3', name: '6\'lı / 5\'li Karma Aşı (3. Doz)', nameEn: '6-in-1 / 5-in-1 (3rd Dose)', month: 6, desc: '6. ay karma aşı 3. doz ve Hepatit B.', descEn: 'Month 6 hexavalent/pentavalent 3rd dose.' },
+      { id: 'kkk', name: 'MMR (Kızamık-Kızamıkçık-Kabakulak)', nameEn: 'MMR (Measles-Mumps-Rubella)', month: 12, desc: '12–13. ay MMR 1. doz.', descEn: '12–13 month MMR 1st dose.' },
+      { id: 'kpa_rep', name: 'PCV Rapel (Pnömokok Pekiştirme)', nameEn: 'PCV Booster', month: 12, desc: '12. ay pnömokok pekiştirme dozu.', descEn: 'Month 12 pneumococcal booster.' },
+      { id: 'sucicegi', name: 'Suçiçeği (Varicella)', nameEn: 'Varicella (Chickenpox)', month: 12, desc: '12. ay suçiçeği aşısı.', descEn: 'Month 12 varicella immunization.' },
+      { id: 'dabt_rep', name: 'Karma Aşı Rapel (16–18. Ay)', nameEn: 'DTaP-IPV-Hib Booster (16–18m)', month: 18, desc: '16–18. ay pekiştirme dozu.', descEn: '16–18 month booster dose.' }
+    ],
+    // Türk Devletleri, Kafkasya & BDT (AZ, KZ, UZ, KG, TM, GE, RU, UA)
+    CIS_TURKIC: [
+      { id: 'hep_b_1', name: 'Hepatit B (1. Doz)', nameEn: 'Hepatitis B (1st Dose)', month: 0, desc: 'Doğumdan sonraki ilk 24 saatte uygulanır.', descEn: 'Administered within 24 hours of birth.' },
+      { id: 'bcg', name: 'BCG (Verem)', nameEn: 'BCG (Tuberculosis)', month: 0, desc: 'Doğum evinde 3–5. günde uygulanır.', descEn: 'Administered in maternity hospital (Days 3–5).' },
+      { id: 'dabt_1', name: 'Karma Aşı / Hekzavalan (1. Doz)', nameEn: 'Hexavalent / Pentavalent (1st Dose)', month: 2, desc: '2. ay DTP, Polio, Hib, Hepatit B 1. doz.', descEn: 'Month 2 DTP, Polio, Hib, HepB 1st dose.' },
+      { id: 'kpa_1', name: 'KPA / Pnömokok (1. Doz)', nameEn: 'PCV (Pneumococcal 1st Dose)', month: 2, desc: '2. ay pnömokok 1. doz.', descEn: 'Month 2 pneumococcal 1st dose.' },
+      { id: 'rota_1', name: 'Rotavirüs (1. Doz)', nameEn: 'Rotavirus (1st Dose)', month: 2, desc: '2. ay ağızdan rotavirüs 1. doz.', descEn: 'Month 2 oral rotavirus 1st dose.' },
+      { id: 'cis_penta_2', name: 'Karma Aşı (2. Doz - 3. Ay)', nameEn: 'Hexavalent / Pentavalent (2nd Dose - Month 3)', month: 3, desc: '3. ay karma aşı 2. doz.', descEn: 'Month 3 DTP-IPV-Hib 2nd dose.' },
+      { id: 'rota_2', name: 'Rotavirüs (2. Doz)', nameEn: 'Rotavirus (2nd Dose)', month: 3, desc: '3–4. ay rotavirüs 2. doz.', descEn: 'Month 3–4 oral rotavirus 2nd dose.' },
+      { id: 'dabt_2', name: 'Karma Aşı (3. Doz - 4. Ay)', nameEn: 'Hexavalent / Pentavalent (3rd Dose - Month 4)', month: 4, desc: '4. ay karma aşı 3. doz.', descEn: 'Month 4 DTP-IPV-Hib 3rd dose.' },
+      { id: 'kpa_2', name: 'KPA / Pnömokok (2. Doz)', nameEn: 'PCV (Pneumococcal 2nd Dose)', month: 4, desc: '4. ay pnömokok 2. doz.', descEn: 'Month 4 pneumococcal 2nd dose.' },
+      { id: 'hep_b_3', name: 'Hepatit B (3. Doz) & Polio', nameEn: 'Hepatitis B (3rd Dose) & Polio', month: 6, desc: '6. ay Hepatit B ve çocuk felci dozu.', descEn: 'Month 6 Hepatitis B 3rd dose & Polio.' },
+      { id: 'kkk', name: 'KKK / MMR (Kızamık-Kızamıkçık-Kabakulak)', nameEn: 'MMR (Measles-Mumps-Rubella)', month: 12, desc: '12. ay 1 yaş aşısı.', descEn: 'Month 12 MMR immunization.' },
+      { id: 'kpa_rep', name: 'Pnömokok Rapel (12. Ay)', nameEn: 'PCV Booster (Month 12)', month: 12, desc: '12. ay zatürre/pnömokok pekiştirme.', descEn: 'Month 12 pneumococcal booster.' },
+      { id: 'dabt_rep', name: 'Karma Aşı & Polio Pekiştirme (18. Ay)', nameEn: 'DTP-Polio-Hib Booster (Month 18)', month: 18, desc: '18. ay pekiştirme ve Hepatit A.', descEn: 'Month 18 booster & Hepatitis A.' }
+    ],
+    // Avustralya & Yeni Zelanda (NIP)
+    AU_NIP: [
+      { id: 'hep_b_1', name: 'Hepatit B (Doğum Dozu)', nameEn: 'Hepatitis B (Birth Dose)', month: 0, desc: 'Doğumda ilk 7 gün içinde uygulanır.', descEn: 'Administered at birth.' },
+      { id: 'dabt_1', name: '6\'lı Karma Aşı (1. Doz - 6–8 Hafta)', nameEn: '6-in-1 DTPa-hepB-IPV-Hib (1st Dose)', month: 2, desc: '2. ay 6\'lı karma 1. doz.', descEn: 'Month 2 hexavalent 1st dose.' },
+      { id: 'kpa_1', name: 'PCV (Pnömokok 1. Doz)', nameEn: 'PCV (Pneumococcal 1st Dose)', month: 2, desc: '2. ay pnömokok 1. doz.', descEn: 'Month 2 pneumococcal 1st dose.' },
+      { id: 'rota_1', name: 'Rotavirüs (1. Doz)', nameEn: 'Rotavirus (1st Dose)', month: 2, desc: '2. ay rotavirüs 1. doz.', descEn: 'Month 2 oral rotavirus 1st dose.' },
+      { id: 'dabt_2', name: '6\'lı Karma Aşı (2. Doz)', nameEn: '6-in-1 DTPa-hepB-IPV-Hib (2nd Dose)', month: 4, desc: '4. ay 6\'lı karma 2. doz.', descEn: 'Month 4 hexavalent 2nd dose.' },
+      { id: 'kpa_2', name: 'PCV (Pnömokok 2. Doz)', nameEn: 'PCV (Pneumococcal 2nd Dose)', month: 4, desc: '4. ay pnömokok 2. doz.', descEn: 'Month 4 pneumococcal 2nd dose.' },
+      { id: 'rota_2', name: 'Rotavirüs (2. Doz)', nameEn: 'Rotavirus (2nd Dose)', month: 4, desc: '4. ay rotavirüs 2. doz.', descEn: 'Month 4 oral rotavirus 2nd dose.' },
+      { id: 'dabt_3', name: '6\'lı Karma Aşı (3. Doz)', nameEn: '6-in-1 DTPa-hepB-IPV-Hib (3rd Dose)', month: 6, desc: '6. ay 6\'lı karma 3. doz.', descEn: 'Month 6 hexavalent 3rd dose.' },
+      { id: 'kkk', name: 'MMR & MenACWY (12. Ay)', nameEn: 'MMR & MenACWY (Month 12)', month: 12, desc: '12. ay MMR ve Menenjit ACWY.', descEn: 'Month 12 MMR & Meningococcal ACWY.' },
+      { id: 'kpa_rep', name: 'PCV Rapel (12. Ay)', nameEn: 'PCV Booster (Month 12)', month: 12, desc: '12. ay pnömokok pekiştirme.', descEn: 'Month 12 pneumococcal booster.' },
+      { id: 'dabt_rep', name: 'MMRV + DTPa + Hib (18. Ay)', nameEn: 'MMRV + DTPa + Hib Booster (Month 18)', month: 18, desc: '18. ay suçiçeği/MMR ve karma rapel.', descEn: 'Month 18 MMRV, DTPa & Hib booster.' }
+    ],
+    // Körfez & Orta Doğu / MENA (AE, SA, QA, KW, EG, MA, IL vb.)
+    MENA_GCC: [
+      { id: 'hep_b_1', name: 'Hepatit B & BCG (Doğum)', nameEn: 'Hepatitis B & BCG (At Birth)', month: 0, desc: 'Doğumda hastanede uygulanır.', descEn: 'Administered at birth.' },
+      { id: 'dabt_1', name: '6\'lı Karma + PCV + Rota (2. Ay)', nameEn: '6-in-1 + PCV + Rotavirus (Month 2)', month: 2, desc: '2. ay karma, pnömokok ve rotavirüs 1. doz.', descEn: 'Month 2 hexavalent, PCV & rotavirus 1st dose.' },
+      { id: 'dabt_2', name: '6\'lı Karma + PCV + Rota (4. Ay)', nameEn: '6-in-1 + PCV + Rotavirus (Month 4)', month: 4, desc: '4. ay karma, pnömokok ve rotavirüs 2. doz.', descEn: 'Month 4 hexavalent, PCV & rotavirus 2nd dose.' },
+      { id: 'dabt_3', name: '6\'lı Karma + PCV + OPV (6. Ay)', nameEn: '6-in-1 + PCV + Polio (Month 6)', month: 6, desc: '6. ay 3. doz aşılar.', descEn: 'Month 6 3rd dose immunizations.' },
+      { id: 'mening_1', name: 'Kızamık / Meningokok (9. Ay)', nameEn: 'Measles / Meningococcal (Month 9)', month: 9, desc: '9. ay koruma dozu.', descEn: 'Month 9 immunization.' },
+      { id: 'kkk', name: 'MMR + Suçiçeği + PCV Rapel (12. Ay)', nameEn: 'MMR + Varicella + PCV Booster (Month 12)', month: 12, desc: '12. ay 1 yaş aşıları.', descEn: 'Month 12 immunizations.' },
+      { id: 'dabt_rep', name: 'Karma Rapel + MMR-2 + Hepatit A (18. Ay)', nameEn: 'Hexa/Penta Booster + MMR-2 + HepA (Month 18)', month: 18, desc: '18. ay pekiştirme dozları.', descEn: 'Month 18 booster doses.' },
+      { id: 'hep_a_2', name: 'Hepatit A (2. Doz - 24. Ay)', nameEn: 'Hepatitis A (2nd Dose - Month 24)', month: 24, desc: '24. ay Hepatit A 2. doz.', descEn: 'Month 24 Hepatitis A 2nd dose.' }
+    ],
+    // Küresel DSÖ Standart Takvimi (WHO EPI — Asya, LATAM, Afrika ve Diğer Ülkeler)
+    WHO_EPI: [
+      { id: 'hep_b_1', name: 'Hepatit B & BCG (Doğum)', nameEn: 'Hepatitis B & BCG (Birth Dose)', month: 0, desc: 'DSÖ doğumda ilk 24 saat BCG ve Hepatit B dozu.', descEn: 'WHO birth dose BCG & Hepatitis B.' },
+      { id: 'dabt_1', name: 'Karma Aşı (DTP-HepB-Hib) + Polio (1. Doz)', nameEn: 'Pentavalent/Hexavalent + Polio (1st Dose)', month: 2, desc: '6–8. hafta (2. ay) 1. doz karma aşı.', descEn: '6–8 weeks (Month 2) 1st dose.' },
+      { id: 'kpa_1', name: 'PCV (Pnömokok 1. Doz) & Rotavirüs 1', nameEn: 'PCV (Pneumococcal 1) & Rotavirus 1', month: 2, desc: '2. ay pnömokok ve rotavirüs 1. doz.', descEn: 'Month 2 PCV & rotavirus 1st dose.' },
+      { id: 'dabt_2', name: 'Karma Aşı + Polio + PCV + Rota (2. Doz)', nameEn: 'Pentavalent/Hexavalent + PCV + Rota (2nd Dose)', month: 4, desc: '10–16. hafta (4. ay) 2. doz aşılar.', descEn: 'Month 4 2nd dose immunizations.' },
+      { id: 'dabt_3', name: 'Karma Aşı + Polio + PCV (3. Doz)', nameEn: 'Pentavalent/Hexavalent + Polio + PCV (3rd Dose)', month: 6, desc: '14. hafta / 6. ay 3. doz aşılar.', descEn: 'Month 6 3rd dose immunizations.' },
+      { id: 'mening_1', name: 'Kızamık / MR (1. Doz - 9. Ay)', nameEn: 'Measles / MR (1st Dose - Month 9)', month: 9, desc: 'DSÖ 9. ay kızamık/meningokok koruması.', descEn: 'WHO Month 9 Measles/Rubella 1st dose.' },
+      { id: 'kkk', name: 'MMR + Suçiçeği + PCV Rapel (12. Ay)', nameEn: 'MMR + Varicella + PCV Booster (Month 12)', month: 12, desc: '12. ay 1 yaş bağışıklama dozları.', descEn: 'Month 12 immunizations.' },
+      { id: 'dabt_rep', name: 'Karma Aşı Rapel & MMR-2 (15–18. Ay)', nameEn: 'DTP Booster & MMR-2 (15–18 Months)', month: 18, desc: '15–18. ay pekiştirme dozları.', descEn: '15–18 month booster immunizations.' }
+    ]
+  };
+
+  // Tam IANA Saat Dilimi -> ISO-3166-1 Ülke Kodu Eşleme Sözlüğü (Prefix Tahmini Yok)
+  const IANA_TZ_TO_COUNTRY = {
+    'Europe/Istanbul': 'TR', 'Asia/Istanbul': 'TR', 'Asia/Nicosia': 'CY', 'Europe/Nicosia': 'CY', 'Asia/Famagusta': 'CY',
+    'Europe/Berlin': 'DE', 'Europe/Busingen': 'DE',
+    'Europe/Zurich': 'CH', 'Europe/Vaduz': 'LI',
+    'Europe/Vienna': 'AT', 'Europe/Amsterdam': 'NL', 'Europe/Brussels': 'BE', 'Europe/Luxembourg': 'LU',
+    'Europe/Paris': 'FR', 'Europe/Monaco': 'MC',
+    'Europe/London': 'GB', 'Europe/Belfast': 'GB', 'Europe/Guernsey': 'GB', 'Europe/Isle_of_Man': 'GB', 'Europe/Jersey': 'GB',
+    'Europe/Dublin': 'IE',
+    'Europe/Rome': 'IT', 'Europe/Vatican': 'IT', 'Europe/San_Marino': 'IT',
+    'Europe/Madrid': 'ES', 'Africa/Ceuta': 'ES', 'Atlantic/Canary': 'ES',
+    'Europe/Lisbon': 'PT', 'Atlantic/Madeira': 'PT', 'Atlantic/Azores': 'PT',
+    'Europe/Athens': 'GR', 'Europe/Malta': 'MT',
+    'Europe/Stockholm': 'SE', 'Europe/Oslo': 'NO', 'Europe/Copenhagen': 'DK', 'Europe/Helsinki': 'FI', 'Atlantic/Reykjavik': 'IS',
+    'Europe/Warsaw': 'PL', 'Europe/Prague': 'CZ', 'Europe/Bratislava': 'SK', 'Europe/Budapest': 'HU',
+    'Europe/Bucharest': 'RO', 'Europe/Sofia': 'BG', 'Europe/Belgrade': 'RS', 'Europe/Zagreb': 'HR',
+    'Europe/Ljubljana': 'SI', 'Europe/Sarajevo': 'BA', 'Europe/Skopje': 'MK', 'Europe/Tirane': 'AL', 'Europe/Podgorica': 'ME',
+    'Europe/Tallinn': 'EE', 'Europe/Riga': 'LV', 'Europe/Vilnius': 'LT', 'Europe/Chisinau': 'MD',
+    'Asia/Baku': 'AZ',
+    'Asia/Almaty': 'KZ', 'Asia/Qyzylorda': 'KZ', 'Asia/Qostanay': 'KZ', 'Asia/Aqtobe': 'KZ', 'Asia/Aqtau': 'KZ', 'Asia/Atyrau': 'KZ', 'Asia/Oral': 'KZ',
+    'Asia/Tashkent': 'UZ', 'Asia/Samarkand': 'UZ',
+    'Asia/Bishkek': 'KG', 'Asia/Ashgabat': 'TM', 'Asia/Dushanbe': 'TJ',
+    'Asia/Tbilisi': 'GE', 'Asia/Yerevan': 'AM',
+    'Europe/Moscow': 'RU', 'Europe/Kaliningrad': 'RU', 'Europe/Samara': 'RU', 'Asia/Yekaterinburg': 'RU', 'Asia/Novosibirsk': 'RU', 'Asia/Krasnoyarsk': 'RU', 'Asia/Irkutsk': 'RU', 'Asia/Vladivostok': 'RU',
+    'Europe/Kyiv': 'UA', 'Europe/Kiev': 'UA', 'Europe/Minsk': 'BY',
+    'America/New_York': 'US', 'America/Chicago': 'US', 'America/Denver': 'US', 'America/Los_Angeles': 'US', 'America/Phoenix': 'US',
+    'America/Anchorage': 'US', 'Pacific/Honolulu': 'US', 'America/Detroit': 'US', 'America/Indiana/Indianapolis': 'US', 'America/Boise': 'US',
+    'America/Toronto': 'CA', 'America/Vancouver': 'CA', 'America/Montreal': 'CA', 'America/Edmonton': 'CA', 'America/Winnipeg': 'CA', 'America/Halifax': 'CA', 'America/St_Johns': 'CA', 'America/Regina': 'CA',
+    'America/Mexico_City': 'MX', 'America/Cancun': 'MX', 'America/Monterrey': 'MX', 'America/Tijuana': 'MX', 'America/Chihuahua': 'MX', 'America/Hermosillo': 'MX',
+    'America/Sao_Paulo': 'BR', 'America/Fortaleza': 'BR', 'America/Recife': 'BR', 'America/Bahia': 'BR', 'America/Belem': 'BR', 'America/Manaus': 'BR', 'America/Cuiaba': 'BR',
+    'America/Argentina/Buenos_Aires': 'AR', 'America/Buenos_Aires': 'AR', 'America/Argentina/Cordoba': 'AR',
+    'America/Bogota': 'CO', 'America/Santiago': 'CL', 'America/Lima': 'PE', 'America/Montevideo': 'UY', 'America/Guayaquil': 'EC', 'America/Caracas': 'VE', 'America/Panama': 'PA', 'America/Costa_Rica': 'CR',
+    'Australia/Sydney': 'AU', 'Australia/Melbourne': 'AU', 'Australia/Brisbane': 'AU', 'Australia/Perth': 'AU', 'Australia/Adelaide': 'AU', 'Australia/Hobart': 'AU', 'Australia/Darwin': 'AU',
+    'Pacific/Auckland': 'NZ',
+    'Asia/Dubai': 'AE', 'Asia/Riyadh': 'SA', 'Asia/Qatar': 'QA', 'Asia/Kuwait': 'KW', 'Asia/Bahrain': 'BH', 'Asia/Muscat': 'OM',
+    'Asia/Amman': 'JO', 'Asia/Beirut': 'LB', 'Asia/Baghdad': 'IQ', 'Asia/Jerusalem': 'IL', 'Asia/Tel_Aviv': 'IL',
+    'Africa/Cairo': 'EG', 'Africa/Casablanca': 'MA', 'Africa/Algiers': 'DZ', 'Africa/Tunis': 'TN',
+    'Africa/Johannesburg': 'ZA', 'Africa/Lagos': 'NG', 'Africa/Nairobi': 'KE', 'Africa/Accra': 'GH', 'Africa/Addis_Ababa': 'ET', 'Africa/Dar_es_Salaam': 'TZ',
+    'Asia/Tokyo': 'JP', 'Asia/Seoul': 'KR', 'Asia/Singapore': 'SG', 'Asia/Hong_Kong': 'HK', 'Asia/Taipei': 'TW',
+    'Asia/Kolkata': 'IN', 'Asia/Calcutta': 'IN', 'Asia/Karachi': 'PK', 'Asia/Dhaka': 'BD', 'Asia/Colombo': 'LK',
+    'Asia/Jakarta': 'ID', 'Asia/Makassar': 'ID', 'Asia/Jayapura': 'ID',
+    'Asia/Kuala_Lumpur': 'MY', 'Asia/Manila': 'PH', 'Asia/Bangkok': 'TH', 'Asia/Ho_Chi_Minh': 'VN', 'Asia/Saigon': 'VN', 'Asia/Shanghai': 'CN', 'Asia/Ulaanbaatar': 'MN'
+  };
+
+  const CURRENCY_TO_COUNTRY_FALLBACK = {
+    TRY: 'TR', CHF: 'CH', GBP: 'GB', PLN: 'PL', RON: 'RO', KZT: 'KZ', AZN: 'AZ', UZS: 'UZ',
+    CAD: 'CA', AUD: 'AU', NZD: 'NZ', SEK: 'SE', NOK: 'NO', DKK: 'DK', AED: 'AE', SAR: 'SA',
+    QAR: 'QA', JPY: 'JP', KRW: 'KR', INR: 'IN', BRL: 'BR', MXN: 'MX', RUB: 'RU', UAH: 'UA',
+    GEL: 'GE', IDR: 'ID', MYR: 'MY', PHP: 'PH', THB: 'TH', VND: 'VN', PKR: 'PK', EGP: 'EG',
+    ZAR: 'ZA', NGN: 'NG', ILS: 'IL', BGN: 'BG', HUF: 'HU', CZK: 'CZ', COP: 'CO', CLP: 'CL',
+    PEN: 'PE', ARS: 'AR', MAD: 'MA', DZD: 'DZ', JOD: 'JO', IQD: 'IQ', KES: 'KE', GHS: 'GH',
+    TZS: 'TZ', ETB: 'ET', BDT: 'BD', LKR: 'LK', SGD: 'SG', HKD: 'HK', TWD: 'TW', RSD: 'RS'
+  };
+
+  const COUNTRY_METADATA = {
+    TR: { tr: 'Türkiye', en: 'Turkey', authTr: 'T.C. Sağlık Bakanlığı Takvimi', authEn: 'Turkish Ministry of Health Schedule', proto: 'TR' },
+    CY: { tr: 'KKTC / Kıbrıs', en: 'Cyprus', authTr: 'Sağlık Bakanlığı Aşı Takvimi', authEn: 'Ministry of Health Schedule', proto: 'TR' },
+    DE: { tr: 'Almanya', en: 'Germany', authTr: 'Almanya STIKO (RKI) Aşı Takvimi', authEn: 'Germany STIKO (RKI) Schedule', proto: 'EU_2PLUS1' },
+    CH: { tr: 'İsviçre', en: 'Switzerland', authTr: 'İsviçre BAG / EKIF Aşı Takvimi', authEn: 'Swiss BAG / EKIF Schedule', proto: 'CH_BAG' },
+    AT: { tr: 'Avusturya', en: 'Austria', authTr: 'Avusturya Ulusal Aşı Takvimi (BMSGPK)', authEn: 'Austrian National Schedule', proto: 'EU_2PLUS1' },
+    NL: { tr: 'Hollanda', en: 'Netherlands', authTr: 'Hollanda RVP (RIVM) Aşı Takvimi', authEn: 'Dutch RVP (RIVM) Schedule', proto: 'EU_2PLUS1' },
+    BE: { tr: 'Belçika', en: 'Belgium', authTr: 'Belçika CSS / HGR Aşı Takvimi', authEn: 'Belgian National Schedule', proto: 'EU_2PLUS1' },
+    FR: { tr: 'Fransa', en: 'France', authTr: 'Fransa HAS Sağlık Bakanlığı Takvimi', authEn: 'French Ministry of Health Schedule', proto: 'EU_2PLUS1' },
+    GB: { tr: 'Birleşik Krallık', en: 'United Kingdom', authTr: 'İngiltere NHS Aşı Takvimi (8-12-16H)', authEn: 'UK NHS Immunisation Schedule', proto: 'UK_NHS' },
+    IE: { tr: 'İrlanda', en: 'Ireland', authTr: 'İrlanda HSE Aşı Takvimi', authEn: 'Ireland HSE Immunisation Schedule', proto: 'UK_NHS' },
+    US: { tr: 'ABD', en: 'United States', authTr: 'ABD CDC / AAP Pediatrik Takvim', authEn: 'US CDC / AAP Pediatric Schedule', proto: 'US_CDC' },
+    CA: { tr: 'Kanada', en: 'Canada', authTr: 'Kanada NACI Pediatrik Takvim', authEn: 'Canada NACI Pediatric Schedule', proto: 'US_CDC' },
+    AU: { tr: 'Avustralya', en: 'Australia', authTr: 'Avustralya NIP Ulusal Aşı Takvimi', authEn: 'Australia NIP Immunisation Schedule', proto: 'AU_NIP' },
+    NZ: { tr: 'Yeni Zelanda', en: 'New Zealand', authTr: 'Yeni Zelanda Ulusal Aşı Takvimi', authEn: 'New Zealand National Schedule', proto: 'AU_NIP' },
+    IT: { tr: 'İtalya', en: 'Italy', authTr: 'İtalya PNPV Ulusal Aşı Takvimi', authEn: 'Italian PNPV National Schedule', proto: 'EU_2PLUS1' },
+    ES: { tr: 'İspanya', en: 'Spain', authTr: 'İspanya AEP / Sağlık Bakanlığı Takvimi', authEn: 'Spanish AEP National Schedule', proto: 'EU_2PLUS1' },
+    PT: { tr: 'Portekiz', en: 'Portugal', authTr: 'Portekiz PNV Ulusal Aşı Takvimi', authEn: 'Portuguese PNV Schedule', proto: 'EU_2PLUS1' },
+    SE: { tr: 'İsveç', en: 'Sweden', authTr: 'İsveç Folkhälsomyndigheten Takvimi', authEn: 'Swedish National Schedule', proto: 'EU_2PLUS1' },
+    NO: { tr: 'Norveç', en: 'Norway', authTr: 'Norveç FHI Çocukluk Aşı Takvimi', authEn: 'Norwegian FHI Schedule', proto: 'EU_2PLUS1' },
+    DK: { tr: 'Danimarka', en: 'Denmark', authTr: 'Danimarka SSI Ulusal Aşı Takvimi', authEn: 'Danish SSI Schedule', proto: 'EU_2PLUS1' },
+    FI: { tr: 'Finlandiya', en: 'Finland', authTr: 'Finlandiya THL Ulusal Aşı Takvimi', authEn: 'Finnish THL Schedule', proto: 'EU_2PLUS1' },
+    GR: { tr: 'Yunanistan', en: 'Greece', authTr: 'Yunanistan Ulusal Aşı Takvimi', authEn: 'Greek National Schedule', proto: 'EU_2PLUS1' },
+    PL: { tr: 'Polonya', en: 'Poland', authTr: 'Polonya PSO Ulusal Aşı Takvimi', authEn: 'Polish PSO National Schedule', proto: 'EU_EAST' },
+    RO: { tr: 'Romanya', en: 'Romania', authTr: 'Romanya PNI Ulusal Aşı Takvimi', authEn: 'Romanian PNI Schedule', proto: 'EU_EAST' },
+    BG: { tr: 'Bulgaristan', en: 'Bulgaria', authTr: 'Bulgaristan Ulusal Aşı Takvimi', authEn: 'Bulgarian National Schedule', proto: 'EU_EAST' },
+    CZ: { tr: 'Çekya', en: 'Czechia', authTr: 'Çekya Ulusal Aşı Takvimi', authEn: 'Czech National Schedule', proto: 'EU_2PLUS1' },
+    HU: { tr: 'Macaristan', en: 'Hungary', authTr: 'Macaristan Ulusal Aşı Takvimi', authEn: 'Hungarian National Schedule', proto: 'EU_2PLUS1' },
+    AZ: { tr: 'Azerbaycan', en: 'Azerbaijan', authTr: 'Azerbaycan Səhiyyə Nazirliyi Takvimi', authEn: 'Azerbaijan Ministry of Health Schedule', proto: 'CIS_TURKIC' },
+    KZ: { tr: 'Kazakistan', en: 'Kazakhstan', authTr: 'Kazakistan Sağlık Bakanlığı Takvimi', authEn: 'Kazakhstan Ministry of Health Schedule', proto: 'CIS_TURKIC' },
+    UZ: { tr: 'Özbekistan', en: 'Uzbekistan', authTr: 'Özbekistan SSV Ulusal Aşı Takvimi', authEn: 'Uzbekistan Ministry of Health Schedule', proto: 'CIS_TURKIC' },
+    KG: { tr: 'Kırgızistan', en: 'Kyrgyzstan', authTr: 'Kırgızistan Sağlık Bakanlığı Takvimi', authEn: 'Kyrgyzstan National Schedule', proto: 'CIS_TURKIC' },
+    TM: { tr: 'Türkmenistan', en: 'Turkmenistan', authTr: 'Türkmenistan Ulusal Aşı Takvimi', authEn: 'Turkmenistan National Schedule', proto: 'CIS_TURKIC' },
+    GE: { tr: 'Gürcistan', en: 'Georgia', authTr: 'Gürcistan NCDC Ulusal Aşı Takvimi', authEn: 'Georgia NCDC Schedule', proto: 'CIS_TURKIC' },
+    RU: { tr: 'Rusya', en: 'Russia', authTr: 'Ulusal Bağışıklama Takvimi', authEn: 'National Immunization Schedule', proto: 'CIS_TURKIC' },
+    UA: { tr: 'Ukrayna', en: 'Ukraine', authTr: 'Ukrayna MOZ Ulusal Aşı Takvimi', authEn: 'Ukraine MOZ Schedule', proto: 'CIS_TURKIC' },
+    AE: { tr: 'BAE (Dubai)', en: 'UAE', authTr: 'BAE MOHAP Ulusal Aşı Takvimi', authEn: 'UAE MOHAP National Schedule', proto: 'MENA_GCC' },
+    SA: { tr: 'Suudi Arabistan', en: 'Saudi Arabia', authTr: 'Suudi Arabistan MOH Aşı Takvimi', authEn: 'Saudi MOH National Schedule', proto: 'MENA_GCC' },
+    QA: { tr: 'Katar', en: 'Qatar', authTr: 'Katar MOPH Ulusal Aşı Takvimi', authEn: 'Qatar MOPH Schedule', proto: 'MENA_GCC' },
+    KW: { tr: 'Kuveyt', en: 'Kuwait', authTr: 'Kuveyt MOH Ulusal Aşı Takvimi', authEn: 'Kuwait MOH Schedule', proto: 'MENA_GCC' },
+    EG: { tr: 'Mısır', en: 'Egypt', authTr: 'Mısır MOHP Ulusal Aşı Takvimi', authEn: 'Egypt MOHP Schedule', proto: 'MENA_GCC' },
+    JP: { tr: 'Japonya', en: 'Japan', authTr: 'Japonya MHLW Pediatrik Takvim', authEn: 'Japan MHLW Pediatric Schedule', proto: 'WHO_EPI' },
+    KR: { tr: 'Güney Kore', en: 'South Korea', authTr: 'Güney Kore KDCA NIP Takvimi', authEn: 'Korea KDCA NIP Schedule', proto: 'WHO_EPI' },
+    IN: { tr: 'Hindistan', en: 'India', authTr: 'Hindistan UIP / IAP Aşı Takvimi', authEn: 'India UIP / IAP Schedule', proto: 'WHO_EPI' },
+    BR: { tr: 'Brezilya', en: 'Brazil', authTr: 'Brezilya PNI / SBP Aşı Takvimi', authEn: 'Brazil PNI / SBP Schedule', proto: 'WHO_EPI' },
+    MX: { tr: 'Meksika', en: 'Mexico', authTr: 'Meksika Ulusal Aşı Kartı (CNS)', authEn: 'Mexico National Schedule', proto: 'WHO_EPI' },
+    WHO: { tr: 'Küresel (DSÖ)', en: 'Global (WHO)', authTr: 'DSÖ (WHO EPI) Küresel Aşı Takvimi', authEn: 'WHO EPI Global Schedule', proto: 'WHO_EPI' }
+  };
+
+  function isoToFlagEmoji(code) {
+    if (!code || code === 'WHO' || code.length !== 2) return '🌍';
+    const upper = code.toUpperCase();
+    return String.fromCodePoint(0x1F1E6 + upper.charCodeAt(0) - 65, 0x1F1E6 + upper.charCodeAt(1) - 65);
+  }
+
+  function resolveCountryInfo(countryCode) {
+    const code = (countryCode || 'TR').toUpperCase();
+    if (COUNTRY_METADATA[code]) {
+      const m = COUNTRY_METADATA[code];
+      return {
+        code,
+        flag: isoToFlagEmoji(code),
+        name: isEn() ? m.en : m.tr,
+        authority: isEn() ? m.authEn : m.authTr,
+        proto: m.proto
+      };
+    }
+    let displayName = code;
+    try {
+      if (typeof Intl !== 'undefined' && Intl.DisplayNames) {
+        const dn = new Intl.DisplayNames([isEn() ? 'en' : 'tr'], { type: 'region' });
+        displayName = dn.of(code) || code;
+      }
+    } catch (e) {}
+    return {
+      code,
+      flag: isoToFlagEmoji(code),
+      name: displayName,
+      authority: isEn() ? `${displayName} • National & WHO EPI Schedule` : `${displayName} • Ulusal & DSÖ Aşı Takvimi`,
+      proto: 'WHO_EPI'
+    };
+  }
+
+  function detectInitialVaccineCountry() {
+    // 1. Öncelik: Daha önce tespit edilip sabitlenmiş (veya kullanıcı tarafından seçilmiş) ülke kodu (Seyahat Koruması)
+    try {
+      const saved = localStorage.getItem('mishil_vaccine_country');
+      if (saved && /^[A-Z]{2,3}$/.test(saved.trim().toUpperCase())) {
+        return saved.trim().toUpperCase();
+      }
+    } catch (e) {}
+
+    // 2. Öncelik: Tam IANA Saat Dilimi -> Ülke Kodu (Fiziksel İkamet Sinyali)
+    let tzCountry = '';
+    try {
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      if (tz && IANA_TZ_TO_COUNTRY[tz]) {
+        tzCountry = IANA_TZ_TO_COUNTRY[tz];
+      }
+    } catch (e) {}
+
+    // Mevcut kullanıcı koruması: Halihazırda işaretlenmiş TR aşısı varsa ve saat dilimi yabancı bir ülke değilse TR sabitle
+    try {
+      const existingCompleted = localStorage.getItem('mishil_completed_vaccines');
+      if (existingCompleted && existingCompleted.length > 5 && (!tzCountry || tzCountry === 'TR')) {
+        localStorage.setItem('mishil_vaccine_country', 'TR');
+        return 'TR';
+      }
+    } catch (e) {}
+
+    if (tzCountry) {
+      try { localStorage.setItem('mishil_vaccine_country', tzCountry); } catch (e) {}
+      return tzCountry;
+    }
+
+    // 3. Öncelik: Mağaza Para Birimi (Tek ülkeli para birimleri)
+    try {
+      const storePrices = window.__MISHIL_STORE_PRICES__ || {};
+      const curr = storePrices.currencyCode ? String(storePrices.currencyCode).trim().toUpperCase() : '';
+      if (curr && CURRENCY_TO_COUNTRY_FALLBACK[curr]) {
+        const cCode = CURRENCY_TO_COUNTRY_FALLBACK[curr];
+        localStorage.setItem('mishil_vaccine_country', cCode);
+        return cCode;
+      }
+    } catch (e) {}
+
+    // 4. Öncelik: İşletim Sistemi Bölge Kodu (deviceLocale / navigator.language)
+    try {
+      const meta = window.__MISHIL_APP__;
+      const rawLoc = (meta && meta.deviceLocale) || navigator.language || '';
+      const match = String(rawLoc).match(/[-_]([A-Za-z]{2})\b/);
+      if (match && match[1]) {
+        const reg = match[1].toUpperCase();
+        if (reg !== 'ZZ') {
+          localStorage.setItem('mishil_vaccine_country', reg);
+          return reg;
+        }
+      }
+    } catch (e) {}
+
+    const fallback = isEn() ? 'US' : 'TR';
+    try { localStorage.setItem('mishil_vaccine_country', fallback); } catch (e) {}
+    return fallback;
+  }
+
+  let activeVaccineCountry = detectInitialVaccineCountry();
+
+  function getVaccineCountryCode() {
+    try {
+      const saved = localStorage.getItem('mishil_vaccine_country');
+      if (saved) activeVaccineCountry = saved.trim().toUpperCase();
+    } catch (e) {}
+    return activeVaccineCountry || 'TR';
+  }
+  window.getVaccineCountryCode = getVaccineCountryCode;
+
+  function getCustomVaccines() {
+    try {
+      const raw = localStorage.getItem('mishil_custom_vaccines');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {}
+    return [];
+  }
+
+  function getActiveVaccineSchedule() {
+    const code = getVaccineCountryCode();
+    const info = resolveCountryInfo(code);
+    const baseList = VACCINE_PROTOCOLS[info.proto] || VACCINE_PROTOCOLS.WHO_EPI;
+    const customList = getCustomVaccines();
+    if (!customList.length) return baseList;
+    return [...baseList, ...customList].sort((a, b) => (a.month || 0) - (b.month || 0));
+  }
+  window.getActiveVaccineSchedule = getActiveVaccineSchedule;
+
+  // Geriye dönük uyumluluk için VACCINE_SCHEDULE referansı
+  const VACCINE_SCHEDULE = TR_VACCINE_SCHEDULE;
+
+  function populateVaccineCountrySelectors() {
+    const currentCode = getVaccineCountryCode();
+    const priorityCodes = [
+      'TR', 'DE', 'CH', 'NL', 'AT', 'BE', 'FR', 'GB', 'IE', 'US', 'CA', 'AU', 'NZ',
+      'AZ', 'KZ', 'UZ', 'KG', 'TM', 'IT', 'ES', 'PT', 'SE', 'NO', 'DK', 'FI', 'PL',
+      'RO', 'BG', 'GR', 'CZ', 'HU', 'RU', 'UA', 'GE', 'AE', 'SA', 'QA', 'KW', 'EG',
+      'JP', 'KR', 'IN', 'BR', 'MX', 'WHO'
+    ];
+    if (!priorityCodes.includes(currentCode)) {
+      priorityCodes.unshift(currentCode);
+    }
+    const optionsHtml = priorityCodes.map(c => {
+      const inf = resolveCountryInfo(c);
+      return `<option value="${c}" ${c === currentCode ? 'selected' : ''} style="background: #141829; color: #FFF;">${inf.flag} ${escapeHtml(inf.name)}</option>`;
+    }).join('');
+
+    const sel1 = document.getElementById('vaccine-country-select');
+    const sel2 = document.getElementById('quick-vaccine-country-select');
+    if (sel1) sel1.innerHTML = optionsHtml;
+    if (sel2) sel2.innerHTML = optionsHtml;
+
+    const info = resolveCountryInfo(currentCode);
+    const sub1 = document.getElementById('vaccine-authority-subtitle');
+    const sub2 = document.getElementById('quick-vaccine-authority-subtitle');
+    if (sub1) sub1.textContent = `${info.flag} ${info.authority}`;
+    if (sub2) sub2.textContent = `${info.flag} ${info.authority}`;
+
+    const disc1 = document.getElementById('vaccine-medical-disclaimer');
+    const disc2 = document.getElementById('quick-vaccine-medical-disclaimer');
+    const discText = isEn()
+      ? 'ℹ️ For informational tracking; always follow your pediatrician or clinic schedule.'
+      : 'ℹ️ Takip amaçlıdır; kesin uygulama takvimi için çocuk doktorunuza danışın.';
+    if (disc1) disc1.textContent = discText;
+    if (disc2) disc2.textContent = discText;
+
+    const btn1 = document.getElementById('btn-add-custom-vaccine');
+    const btn2 = document.getElementById('btn-quick-add-custom-vaccine');
+    const btnText = isEn() ? '+ Add Custom Vaccine' : '+ Özel Aşı Ekle';
+    if (btn1) btn1.textContent = btnText;
+    if (btn2) btn2.textContent = btnText;
+  }
+
+  function changeVaccineCountry(newCode) {
+    if (!newCode) return;
+    hapticPulse();
+    const clean = String(newCode).trim().toUpperCase();
+    activeVaccineCountry = clean;
+    try {
+      localStorage.setItem('mishil_vaccine_country', clean);
+    } catch (e) {}
+    renderVaccineSchedule();
+    const info = resolveCountryInfo(clean);
+    showToast(isEn()
+      ? `${info.flag} Switched to ${info.name} vaccine schedule`
+      : `${info.flag} ${info.name} aşı takvimine geçildi`);
+
+    // Native bildirim motoruna yeni ülke kodunu senkronize et
+    if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+      try {
+        const baby = getBaby();
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'SAVE_PROFILE',
+          payload: {
+            babyName: baby ? baby.name : '',
+            babyBdate: baby ? baby.bdate : '',
+            lang: getAppLang(),
+            vaccineCountry: clean
+          }
+        }));
+      } catch (e) {}
+    }
+  }
+  window.changeVaccineCountry = changeVaccineCountry;
+
+  function promptAddCustomVaccine() {
+    hapticPulse();
+    if (!requireActiveSubscription('analytics')) return;
+    const namePrompt = isEn()
+      ? 'Enter custom/doctor vaccine name (e.g. Bexsero MenB Dose 1):'
+      : 'Doktorunuzun önerdiği özel aşının adını girin (Örn: Bexsero MenB 1. Doz):';
+    const rawName = window.prompt(namePrompt);
+    if (!rawName || !rawName.trim()) return;
+    const monthPrompt = isEn()
+      ? 'Which month will this vaccine be administered? (0 to 36):'
+      : 'Bu aşı bebeğiniz kaç aylıkken uygulanacak? (0 ile 36 arası ay girin):';
+    const rawMonth = window.prompt(monthPrompt, '6');
+    if (rawMonth === null) return;
+    const monthNum = Math.max(0, Math.min(48, parseInt(rawMonth, 10) || 0));
+    const customList = getCustomVaccines();
+    const cleanName = rawName.trim().slice(0, 60);
+    customList.push({
+      id: 'custom_' + Date.now(),
+      name: cleanName,
+      nameEn: cleanName,
+      month: monthNum,
+      desc: `${monthNum}. ay özel doktor aşısı.`,
+      descEn: `Month ${monthNum} pediatrician custom vaccine.`,
+      isCustom: true
+    });
+    try {
+      localStorage.setItem('mishil_custom_vaccines', JSON.stringify(customList));
+    } catch (e) {}
+    renderVaccineSchedule();
+    showToast(isEn() ? '✅ Custom vaccine added to schedule' : '✅ Özel aşı takvime eklendi');
+  }
+  window.promptAddCustomVaccine = promptAddCustomVaccine;
+
+  function removeCustomVaccine(vacId) {
+    hapticPulse();
+    const customList = getCustomVaccines().filter(v => v.id !== vacId);
+    try {
+      localStorage.setItem('mishil_custom_vaccines', JSON.stringify(customList));
+    } catch (e) {}
+    renderVaccineSchedule();
+    showToast(isEn() ? 'Custom vaccine removed' : 'Özel aşı kaldırıldı');
+  }
+  window.removeCustomVaccine = removeCustomVaccine;
 
   function getVaccineName(v) {
     return (isEn() && v.nameEn) ? v.nameEn : v.name;
@@ -8401,10 +8916,12 @@
   }
 
   function renderVaccineSchedule() {
+    populateVaccineCountrySelectors();
     const container = document.getElementById('vaccine-items-container');
     if (!container) return;
     const baby = getBaby();
     const completed = getCompletedVaccines();
+    const activeSchedule = getActiveVaccineSchedule();
 
     let bDateObj = new Date();
     if (baby && baby.bdate) {
@@ -8417,7 +8934,7 @@
     let dueCount = 0;
     const monthsList = getShortMonthsList();
 
-    container.innerHTML = VACCINE_SCHEDULE.map(v => {
+    container.innerHTML = activeSchedule.map(v => {
       const isDone = !!completed[v.id];
       const doneObj = (typeof completed[v.id] === 'object' && completed[v.id] !== null) ? completed[v.id] : null;
       const doneLabel = doneObj && doneObj.date
@@ -8432,6 +8949,9 @@
       if (!isDone) pendingCount++;
 
       const dateStr = `${vacDate.getDate()} ${monthsList[vacDate.getMonth()]} ${vacDate.getFullYear()}`;
+      const deleteBtn = v.isCustom
+        ? `<button type="button" onclick="removeCustomVaccine('${v.id}')" style="background:none;border:none;color:var(--text-muted);font-size:11px;cursor:pointer;padding:2px 4px;" title="Sil">✕</button>`
+        : '';
 
       let badge = isDone
         ? `<span style="font-size: 9px; background: rgba(46,213,115,0.2); color: #2ED573; padding: 2px 6px; border-radius: 4px; font-weight: 700;">${doneLabel}</span>`
@@ -8448,7 +8968,7 @@
               <div style="font-size: 10px; color: var(--text-muted);">${escapeHtml(getVaccineDesc(v))}</div>
             </div>
           </div>
-          <div>${badge}</div>
+          <div style="display:flex;align-items:center;gap:4px;">${badge}${deleteBtn}</div>
         </div>
       `;
     }).join('');
@@ -8614,10 +9134,12 @@
   }
 
   function renderQuickVaccineSchedule() {
+    populateVaccineCountrySelectors();
     const container = document.getElementById('quick-vaccine-items-container');
     if (!container) return;
     const baby = getBaby();
     const completed = getCompletedVaccines();
+    const activeSchedule = getActiveVaccineSchedule();
 
     let bDateObj = new Date();
     if (baby && baby.bdate) {
@@ -8628,7 +9150,7 @@
     const now = new Date();
     const monthsList = getShortMonthsList();
 
-    container.innerHTML = VACCINE_SCHEDULE.map(v => {
+    container.innerHTML = activeSchedule.map(v => {
       const isDone = !!completed[v.id];
       const doneObj = (typeof completed[v.id] === 'object' && completed[v.id] !== null) ? completed[v.id] : null;
       const doneLabel = doneObj && doneObj.date
@@ -8640,6 +9162,9 @@
       const isDue = vacDate <= now && !isDone;
 
       const dateStr = `${vacDate.getDate()} ${monthsList[vacDate.getMonth()]} ${vacDate.getFullYear()}`;
+      const deleteBtn = v.isCustom
+        ? `<button type="button" onclick="removeCustomVaccine('${v.id}')" style="background:none;border:none;color:var(--text-muted);font-size:12px;cursor:pointer;padding:2px 4px;" title="Sil">✕</button>`
+        : '';
 
       let badge = isDone
         ? `<span style="font-size: 9px; background: rgba(46,213,115,0.2); color: #2ED573; padding: 2px 6px; border-radius: 4px; font-weight: 700;">${doneLabel}</span>`
@@ -8656,7 +9181,7 @@
               <div style="font-size: 10px; color: var(--text-muted); line-height: 14px; margin-top: 2px;">${escapeHtml(getVaccineDesc(v))}</div>
             </div>
           </div>
-          <div>${badge}</div>
+          <div style="display:flex;align-items:center;gap:4px;">${badge}${deleteBtn}</div>
         </div>
       `;
     }).join('');
@@ -8679,12 +9204,13 @@
     if (isNaN(bDateObj.getTime())) return;
 
     const completed = getCompletedVaccines();
+    const activeSchedule = getActiveVaccineSchedule();
     const now = new Date();
 
     let nextVaccine = null;
     let dueCount = 0;
 
-    for (const v of VACCINE_SCHEDULE) {
+    for (const v of activeSchedule) {
       const isDone = !!completed[v.id];
       if (isDone) continue;
 
@@ -10315,8 +10841,9 @@
     }
     if (badgeVaccine) {
       const completed = getCompletedVaccines();
-      const completedCount = Object.keys(completed).length;
-      badgeVaccine.textContent = isEn() ? `${completedCount}/${VACCINE_SCHEDULE.length} Done ➔` : `${completedCount}/${VACCINE_SCHEDULE.length} Yapıldı ➔`;
+      const activeSched = getActiveVaccineSchedule();
+      const completedCount = activeSched.filter(v => !!completed[v.id]).length;
+      badgeVaccine.textContent = isEn() ? `${completedCount}/${activeSched.length} Done ➔` : `${completedCount}/${activeSched.length} Yapıldı ➔`;
     }
   }
 
@@ -11452,7 +11979,7 @@
       try {
         window.ReactNativeWebView.postMessage(JSON.stringify({
           type: 'SAVE_PROFILE',
-          payload: { babyName: nm, babyBdate: bd, lang: getAppLang() }
+          payload: { babyName: nm, babyBdate: bd, lang: getAppLang(), vaccineCountry: getVaccineCountryCode() }
         }));
       } catch (err) {}
     }
@@ -11511,6 +12038,7 @@
       routineSleepEnabled: rToggle ? rToggle.checked : true,
       leapWeeksEnabled: lToggle ? lToggle.checked : true,
       routineTime: (tInput && tInput.value) || '20:30',
+      vaccineCountry: getVaccineCountryCode(),
     };
 
     localStorage.setItem('mishil_notification_settings', JSON.stringify(settings));
