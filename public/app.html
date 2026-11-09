@@ -5317,7 +5317,8 @@
       'Asimetrik 3 Hak Freemium Mimarisi & Ses-2 Önizleme (S1–S3): İlk adıma 1 dokunuşla "Son Uyanma Zamanı" seçici eklenerek 5. adım Kişisel Uyku Raporunda bebeğin gerçek sıradaki MışılSpot™ uyku saati (örn. 14:30) canlı gösterildi; sınırlı modda 1. MışılSpot™ saati + 1 canlı uyku takibi (ve ilk uykunun saat düzenlemesi), 1 tamamlanmış Akıllı Ağlama Rehberi analizi ve 18 stüdyo sesinden seçilen 1 parçada 60 saniyelik önizleme (Ses-2) tadımlık olarak açıldı.',
       'Ana Ekran & Ses Kartları Bilişsel Sadeleştirme: Ana ekranın en üstündeki kalabalık reklam/kalibrasyon/rehber kartları kaldırılarak ekran doğrudan nefes alan MışılSpot™ Hero kartıyla başlatıldı; 18 stüdyo ses kartının üzerindeki VIP / 60 SN ÖNİZLEME rozetleri temizlenerek dingin tasarım sağlandı.',
       'Aile VIP Doğrulama Kilidi, Hayalet RCAnonymousID Temizliği & Güvenli Kota Koruması (S6–S8): Native AsyncStorage ve WebView üzerinde doğrulanmamış family_vip sızıntısı kapatıldı; iOS mutabakatında sıfır tutarlı hayalet RCAnonymousID satırları temizlendi ve Mışıl Dadı / Ağlama Analizi uç noktalarına gerçek VIP kullanıcıları engellemeyen IP bazlı bot koruma sınırı eklendi.',
-      'Tek ve Sade 3. Giriş + Gündüz Saati Memnuniyet & Değerlendirme Kuralı: Karmaşık ses/uyku sayaç tetikleyicileri kaldırılarak yalnızca 3. farklı oturumda ve gündüz saatlerinde (08:00–21:59) 1 kez sorulan sıfır ısrarlı değerlendirme akışı devreye alındı.'
+      'Tek ve Sade 3. Giriş + Gündüz Saati Memnuniyet & Değerlendirme Kuralı: Karmaşık ses/uyku sayaç tetikleyicileri kaldırılarak yalnızca 3. farklı oturumda ve gündüz saatlerinde (08:00–21:59) 1 kez sorulan sıfır ısrarlı değerlendirme akışı devreye alındı.',
+      'Satın Alma Gücü Paritesi (PPP) & Rakiplerden Uygun 174 Ülke Fiyatlama Motoru: Türkiye (149,99 ₺ / 599,99 ₺) ve İsviçre (CHF 5.00 / 25.00) tabanları korunarak Orta Asya, Güney Asya, Latin Amerika, Doğu Avrupa ve Batı ülkelerinde en uygun fiyatlı rakiplerin altında kalan yerel mağaza tarifeleri ve 32 para birimi sembol/kur desteği (KZT, AZN, UZS, RON, PLN, INR, BRL, MXN vb.) entegre edildi.'
     ]},
     { v: '4.48.1', date: '8 Kasım 2026', items: [
       'Tam Dinamik Küresel Mağaza Fiyatlama & Para Birimi Motoru (getDynamicPricingState): Yurt dışı mağazalardan (ABD, Avrupa, İngiltere, İsviçre, Körfez, Kanada, Avustralya vb.) indiren kullanıcılar için telefon dili Türkçe veya İngilizce fark etmeksizin tüm fiyat kartları, 0 birimlik deneme rozetleri, aylık/günlük karşılıklar ve 8. gün bilgilendirme satırları StoreKit / Google Play (getOfferings) üzerinden %100 dinamik hale getirildi.',
@@ -7038,8 +7039,11 @@
 
   const CURRENCY_CODE_MAP = {
     TRY: '₺', USD: '$', EUR: '€', GBP: '£', CHF: 'CHF ', CAD: 'CA$', AUD: 'A$',
-    PLN: 'zł', SEK: 'kr ', NOK: 'kr ', DKK: 'kr ', AED: 'AED ', SAR: 'SAR ',
-    JPY: '¥', INR: '₹', BRL: 'R$', RUB: '₽', KRW: '₩', MXN: 'MX$'
+    PLN: 'zł', RON: 'lei ', KZT: '₸', AZN: '₼', UZS: 'UZS ',
+    SEK: 'kr ', NOK: 'kr ', DKK: 'kr ', AED: 'AED ', SAR: 'SAR ',
+    JPY: '¥', INR: '₹', BRL: 'R$', RUB: '₽', KRW: '₩', MXN: 'MX$',
+    BGN: 'лв ', HUF: 'Ft ', CZK: 'Kč ', UAH: '₴', GEL: '₾',
+    IDR: 'Rp ', PKR: 'Rs ', PHP: '₱', EGP: 'E£', COP: 'COL$'
   };
 
   function parseNumericPrice(rawStr) {
@@ -7063,6 +7067,10 @@
     if (txt.includes('€')) return '€';
     if (txt.includes('£')) return '£';
     if (txt.includes('₺')) return '₺';
+    if (txt.includes('₸') || txt.includes('KZT')) return '₸';
+    if (txt.includes('₼') || txt.includes('AZN')) return '₼';
+    if (txt.includes('UZS')) return 'UZS ';
+    if (txt.includes('lei') || txt.includes('RON')) return 'lei ';
     if (txt.includes('CA$')) return 'CA$';
     if (txt.includes('A$')) return 'A$';
     if (txt.includes('$')) return '$';
@@ -7083,7 +7091,7 @@
     const yClean = storePrices.yearly ? String(storePrices.yearly).replace(/\s*\/\s*(ay|mo|month|yıl|yr|year).*/i, '').trim() : '';
     const currSymbol = resolveCurrencySymbolFromStore(storePrices, `${mClean} ${yClean}`);
     const defM = currSymbol === '₺' ? 149.99 : 4.99;
-    const defY = currSymbol === '₺' ? 599.99 : 29.99;
+    const defY = currSymbol === '₺' ? 599.99 : 24.99;
     const monthlyVal = (typeof storePrices.monthlyPrice === 'number' && storePrices.monthlyPrice > 0)
       ? storePrices.monthlyPrice
       : (parseNumericPrice(mClean) || defM);

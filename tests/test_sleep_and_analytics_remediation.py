@@ -1551,6 +1551,86 @@ def test_apple_t1_lag_period_revenue_reconciliation_and_rc_v2_bridge(client, db_
     assert tr_row["share_of_revenue_pct"] == 100.0
 
 
+def test_ppp_store_pricing_invariants_and_multicurrency_fx():
+    """
+    PPP Küresel Mağaza Fiyatlandırma Motoru ve Çoklu Para Birimi (FX_RATES_TO_TRY) Bütünlük Testi:
+    1) TR (149.99 / 599.99 TRY) ve CH (5.00 / 25.00 CHF) koruma kilitlerinin doğrulanması,
+    2) Tüm hedef ülkelerde (UZ, AZ, KZ, IN, BR, MX, PL, RO, DE, GB, US, AE, SA) en ucuz rakibin altında kalındığının doğrulanması,
+    3) Google Play 174 bölge yapılandırıcısının (build_google_play_174_configs) ve FX_RATES_TO_TRY dönüşümlerinin doğrulanması.
+    """
+    from app.api.v1.endpoints.analytics import FX_RATES_TO_TRY, _convert_to_try
+    from scripts.sync_ppp_store_pricing import (
+        APPLE_PPP_TARGETS,
+        GOOGLE_PLAY_EXPLICIT_TARGETS,
+        assert_tr_ch_invariants,
+        build_google_play_174_configs,
+        float_to_gp_price,
+        gp_price_to_float,
+    )
+
+    assert_tr_ch_invariants()
+
+    # En ucuz rakip tavanları (Aylık, Yıllık): Mışıl Baby daima <= olmalı
+    cheapest_competitor_ceilings = {
+        "UZ": (2.99, 13.99),
+        "AZ": (2.99, 19.99),
+        "KZ": (1490.0, 9990.0),
+        "IN": (199.0, 1200.0),
+        "BR": (22.90, 69.90),
+        "MX": (49.0, 399.0),
+        "PL": (14.99, 99.99),
+        "RO": (14.99, 99.99),
+        "DE": (4.99, 38.49),
+        "GB": (4.99, 31.99),
+        "US": (4.99, 39.99),
+        "AE": (17.99, 119.99),
+    }
+    for cc, (comp_m, comp_y) in cheapest_competitor_ceilings.items():
+        m_val, y_val, _ = APPLE_PPP_TARGETS[cc]
+        assert m_val <= comp_m, f"{cc} aylık fiyat ({m_val}) rakip tavanını ({comp_m}) aşıyor!"
+        assert y_val < comp_y, f"{cc} yıllık fiyat ({y_val}) rakip tavanının ({comp_y}) altında değil!"
+
+    # Google Play Money dönüşümü ve 174 bölge şablon testi
+    sample_template = [
+        {"regionCode": "TR", "price": float_to_gp_price(719.99, "TRY")},
+        {"regionCode": "CH", "price": float_to_gp_price(10.0, "CHF")},
+        {"regionCode": "DE", "price": float_to_gp_price(12.99, "EUR")},
+        {"regionCode": "BG", "price": float_to_gp_price(12.99, "EUR")},
+        {"regionCode": "UZ", "price": float_to_gp_price(166560.0, "UZS")},
+        {"regionCode": "AZ", "price": float_to_gp_price(21.06, "AZN")},
+        {"regionCode": "PL", "price": float_to_gp_price(56.99, "PLN")},
+        {"regionCode": "JP", "price": {"currencyCode": "JPY", "units": "2120", "nanos": 0}},
+        {"regionCode": "CL", "price": {"currencyCode": "CLP", "units": "13800", "nanos": 0}},
+    ]
+    gp_ann = build_google_play_174_configs(sample_template, is_annual=True)
+    gp_mon = build_google_play_174_configs(sample_template, is_annual=False)
+    ann_map = {x["regionCode"]: gp_price_to_float(x["price"]) for x in gp_ann}
+    mon_map = {x["regionCode"]: gp_price_to_float(x["price"]) for x in gp_mon}
+    mon_raw_map = {x["regionCode"]: x["price"] for x in gp_mon}
+
+    assert ann_map["TR"] == (599.99, "TRY")
+    assert mon_map["TR"] == (149.99, "TRY")
+    assert ann_map["CH"] == (25.00, "CHF")
+    assert mon_map["CH"] == (5.00, "CHF")
+    assert ann_map["DE"] == (29.99, "EUR")
+    assert mon_map["DE"] == (4.99, "EUR")
+    assert ann_map["BG"] == (16.99, "EUR")
+    assert mon_map["BG"] == (3.49, "EUR")
+    assert ann_map["PL"] == (69.99, "PLN")
+    assert mon_map["PL"] == (14.99, "PLN")
+    assert mon_raw_map["JP"]["nanos"] == 0
+    assert mon_raw_map["CL"]["nanos"] == 0 and int(mon_raw_map["CL"]["units"]) % 100 == 0
+
+    # FX_RATES_TO_TRY çoklu para birimi ve USD<->TRY parite mutabakat kontrolü
+    from app.api.v1.endpoints.analytics import APPLE_TRENDS_USD_TRY_RATE, _convert_try_to_usd
+    assert abs(FX_RATES_TO_TRY["USD"] - APPLE_TRENDS_USD_TRY_RATE) < 1e-4
+    assert _convert_try_to_usd(_convert_to_try(100.0, "USD")) == 100.0
+    for req_ccy in ("PLN", "RON", "KZT", "UZS", "AZN", "INR", "BRL", "MXN", "AED", "SAR"):
+        assert req_ccy in FX_RATES_TO_TRY
+        assert _convert_to_try(100.0, req_ccy) > 0.0
+
+
+
 
 
 
