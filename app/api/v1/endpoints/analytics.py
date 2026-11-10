@@ -4141,6 +4141,12 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         else f"0 Aktif Abone • Google Play API'de {len(gp_catalog)} Aktif Paket (599.99 ₺/Yıl & 149.99 ₺/Ay + 7G Deneme) Yayında"
     )
 
+    imp_search_pct_calc = (
+        round((imp_search_val / max(1, imp_search_val + imp_browse_val)) * 100)
+        if (imp_search_val + imp_browse_val) > 0
+        else 89
+    )
+
     platform_split = {
         "all": {
             "key": "all",
@@ -4179,6 +4185,14 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "mrr_gross_try": financial_ledger["projected_total_mrr_gross_try"],
             "realized_net_try": financial_ledger["realized_net_proceeds_try"],
             "reviews_count": len(all_reviews),
+            "meta_chips_1": [f"{int(sb.get('apple_impressions_unique', 0) or 0):,} Tekil Cihaz", f"%{imp_search_pct_calc} Arama"],
+            "meta_chips_2": [f"{apple_page_views} Mağaza", f"{len(unique_human):,} Köprü"],
+            "meta_chips_3": [f"🍏 {apple_downloads} iOS", f"🤖 {google_play_downloads} Android"],
+            "meta_chips_4": [
+                f"💳 {financial_ledger['paid_subs_count']} Ücretli",
+                f"⏳ {financial_ledger['pipeline_7d_trials_count']} Deneme",
+                f"🎟️ {financial_ledger['offer_code_subs_count']} Kod",
+            ],
         },
         "ios": {
             "key": "ios",
@@ -4214,6 +4228,10 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "mrr_gross_try": ios_mrr_gross,
             "realized_net_try": ios_realized_net,
             "reviews_count": ios_reviews_cnt,
+            "meta_chips_1": [f"{int(sb.get('apple_impressions_unique', 0) or 0):,} Tekil iPhone", f"%{imp_search_pct_calc} Arama"],
+            "meta_chips_2": [f"{apple_page_views} Mağaza", f"{ios_bridge_uniq:,} iOS Köprü"],
+            "meta_chips_3": [f"🔍 {r3_search} Arama", f"📲 {r3_ref} Sosyal", f"📅 {recent_ios_dl} Sales"],
+            "meta_chips_4": [f"💳 {ios_paid_cnt} Ücretli", f"⏳ {ios_trial_cnt} Deneme", f"🎟️ {ios_code_cnt} Kod"],
         },
         "android": {
             "key": "android",
@@ -4249,6 +4267,10 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "mrr_gross_try": and_mrr_gross,
             "realized_net_try": and_realized_net,
             "reviews_count": android_reviews_cnt,
+            "meta_chips_1": [f"{android_bridge_uniq:,} Köprü Yönlendirme", "Play Organik"],
+            "meta_chips_2": [f"{len(meta_android):,} Meta (/ios)", f"{len(ig_android):,} Bio (/download)"],
+            "meta_chips_3": [f"🤖 {google_play_downloads} Play Kurulum", f"⚡ {android_signal_opens} İlk Açılış"],
+            "meta_chips_4": [f"💳 {and_paid_cnt} Ücretli", f"⏳ {and_trial_cnt} Deneme", f"📦 {len(gp_catalog)} Paket"],
         },
     }
 
@@ -4557,6 +4579,7 @@ async def get_analytics_summary(
         dt_tr = dt_utc.astimezone(tz_tr)
         recent_serialized.append({
             "id": c.id,
+            "created_at": dt_utc.isoformat(),
             "time_tr": dt_tr.strftime("%d.%m.%Y %H:%M:%S"),
             "route_path": c.route_path,
             "channel": c.channel,
@@ -7147,15 +7170,15 @@ async def analytics_dashboard_page(
                 <div style="font-size:10px; font-weight:800; text-transform:uppercase; color:#64748B; letter-spacing:0.5px;">Özet</div>
                 <div class="sidebar-kpi-row">
                   <span>Kurulum</span>
-                  <strong style="color:#34D399;">{f_dl}</strong>
+                  <strong style="color:#34D399;" id="sideKpiDl">{f_dl}</strong>
                 </div>
                 <div class="sidebar-kpi-row">
                   <span>Aktif VIP</span>
-                  <strong style="color:#C084FC;">{f_vip}</strong>
+                  <strong style="color:#C084FC;" id="sideKpiVip">{f_vip}</strong>
                 </div>
                 <div class="sidebar-kpi-row">
                   <span>Net MRR</span>
-                  <strong style="color:#F8FAFC;">{fl['projected_total_mrr_net_try']:.2f} ₺</strong>
+                  <strong style="color:#F8FAFC;" id="sideKpiMrr">{fl['projected_total_mrr_net_try']:.2f} ₺</strong>
                 </div>
               </div>
 
@@ -7216,7 +7239,7 @@ async def analytics_dashboard_page(
                   <div class="big-num" style="color:var(--stage-1);" id="kpiImpressions">{f_imp:,}</div>
                   {spark_imp_svg}
                 </div>
-                <div class="kpi-micro-meta">
+                <div class="kpi-micro-meta" id="kpiMeta1">
                   <span class="kpi-micro-chip">{kpis['impressions_unique']:,} Tekil Cihaz</span>
                   <span class="kpi-micro-chip">%{imp_search_pct} Arama</span>
                 </div>
@@ -7242,7 +7265,7 @@ async def analytics_dashboard_page(
                   <div class="big-num" style="color:var(--stage-2);" id="kpiVisitsClicks">{f_vis:,}</div>
                   {spark_vis_svg}
                 </div>
-                <div class="kpi-micro-meta">
+                <div class="kpi-micro-meta" id="kpiMeta2">
                   <span class="kpi-micro-chip">{kpis['store_page_views']} Mağaza</span>
                   <span class="kpi-micro-chip">{kpis['bridge_unique_clicks']} Köprü</span>
                 </div>
@@ -7268,7 +7291,7 @@ async def analytics_dashboard_page(
                   <div class="big-num" style="color:var(--stage-3);" id="kpiDownloads">{f_dl}</div>
                   {spark_dl_svg}
                 </div>
-                <div class="kpi-micro-meta">
+                <div class="kpi-micro-meta" id="kpiMeta3">
                   <span class="kpi-micro-chip">🍏 {kpis['ios_downloads']} iOS</span>
                   <span class="kpi-micro-chip">🤖 {kpis['android_downloads']} Android</span>
                 </div>
@@ -7293,7 +7316,7 @@ async def analytics_dashboard_page(
                   <div class="big-num" style="color:var(--stage-4);" id="kpiVip">{f_vip}</div>
                   {spark_vip_svg}
                 </div>
-                <div class="kpi-micro-meta">
+                <div class="kpi-micro-meta" id="kpiMeta4">
                   <span class="kpi-micro-chip">💳 {paid_conv} Ücretli</span>
                   <span class="kpi-micro-chip">⏳ {active_trials} Deneme</span>
                   <span class="kpi-micro-chip">🎟️ {offer_code_subs} Kod</span>
@@ -7327,7 +7350,7 @@ async def analytics_dashboard_page(
                   <td style="font-weight:800; color:#D97706;">{f_imp:,} Gösterim</td>
                   <td style="font-weight:700; color:#059669;">{f_imp:,} ({kpis['impressions_unique']:,} Cihaz)</td>
                   <td style="color:var(--text-secondary);">Play Organik + {ps_and.get('touchpoints', 0)} Köprü</td>
-                  <td><span class="badge" style="background:rgba(217,119,6,0.14); color:#D97706;">Apple r14 API (%89 Arama)</span></td>
+                  <td><span class="badge" style="background:rgba(217,119,6,0.14); color:#D97706;">Apple r14 API (%{imp_search_pct} Arama)</span></td>
                 </tr>
                 <tr>
                   <td><strong>2. İnceleme & Sosyal Tık</strong></td>
@@ -7407,19 +7430,19 @@ async def analytics_dashboard_page(
             </div>
 
             <div class="bento-card">
-              <div class="section-head"><span>📲 Sosyal Köprü ({s['active_human_count']} Tekil)</span></div>
+              <div class="section-head"><span id="socialBridgeHeadSpan">📲 Sosyal Köprü ({s['active_human_count']} Tekil)</span></div>
               <div class="steps-grid">
                 <div class="step-box">
                   <div class="step-num" style="color:#2563EB;">META REKLAM (/ios)</div>
-                  <div class="step-val">{meta['unique_clicks']} Kişi</div>
+                  <div class="step-val" id="metaUniqueClicksVal">{meta['unique_clicks']} Kişi</div>
                   <div class="step-sub"><strong>{meta['ios_clicks']} iPhone</strong> App Store'a + <strong>{meta['android_clicks']} Android</strong> telefon otomatik Google Play'e yönlendirildi.</div>
-                  <span class="step-rate">🍏 {meta['ios_clicks']} iOS • 🤖 {meta['android_clicks']} And</span>
+                  <span class="step-rate" id="metaSplitRate">🍏 {meta['ios_clicks']} iOS • 🤖 {meta['android_clicks']} And</span>
                 </div>
                 <div class="step-box">
                   <div class="step-num" style="color:#7C3AED;">INSTAGRAM BIO (/download)</div>
-                  <div class="step-val">{ig['unique_clicks']} Kişi</div>
+                  <div class="step-val" id="igUniqueClicksVal">{ig['unique_clicks']} Kişi</div>
                   <div class="step-sub"><strong>{ig['ios_clicks']} iPhone</strong> + <strong>{ig['android_clicks']} Android</strong> organik profil ziyaretçisi yönlendirildi.</div>
-                  <span class="step-rate">🍏 {ig['ios_clicks']} iOS • 🤖 {ig['android_clicks']} And</span>
+                  <span class="step-rate" id="igSplitRate">🍏 {ig['ios_clicks']} iOS • 🤖 {ig['android_clicks']} And</span>
                 </div>
               </div>
             </div>
@@ -8057,6 +8080,15 @@ async def analytics_dashboard_page(
           scrollTimelineToLatest();
         }}
 
+        function escapeHtmlJs(str) {{
+          return String(str || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        }}
+
         function switchPlatform(plat, skipChartSync) {{
           if (!PLATFORM_SPLIT || !PLATFORM_SPLIT[plat]) plat = 'all';
           currentPlatform = plat;
@@ -8078,10 +8110,31 @@ async def analytics_dashboard_page(
           if (elImp) elImp.textContent = p.impressions_display;
           if (elVis) elVis.textContent = p.touchpoints_display;
           if (elDl) elDl.textContent = p.downloads_display;
+          var vipNum = (p.vip_count !== undefined) ? p.vip_count : ((p.vip !== undefined) ? p.vip : String(p.vip_display || '').replace(' Aktif VIP', '').replace(' VIP', ''));
           if (elVip) {{
-            var vipNum = (p.vip !== undefined) ? p.vip : String(p.vip_display || '').replace(' Aktif VIP', '');
-            elVip.innerHTML = vipNum + '<span class="big-num-unit">Aktif VIP</span>';
+            elVip.textContent = String(vipNum);
           }}
+
+          var sDl = document.getElementById('sideKpiDl');
+          var sVip = document.getElementById('sideKpiVip');
+          var sMrr = document.getElementById('sideKpiMrr');
+          if (sDl) sDl.textContent = p.downloads_display;
+          if (sVip) sVip.textContent = String(vipNum);
+          if (sMrr) sMrr.textContent = Number(p.mrr_net_try || 0).toFixed(2) + ' ₺';
+
+          function renderMetaChips(containerId, chipsArr) {{
+            var cEl = document.getElementById(containerId);
+            if (!cEl || !Array.isArray(chipsArr)) return;
+            var htmlStr = '';
+            for (var ci = 0; ci < chipsArr.length; ci++) {{
+              htmlStr += '<span class="kpi-micro-chip">' + escapeHtmlJs(chipsArr[ci]) + '</span>';
+            }}
+            cEl.innerHTML = htmlStr;
+          }}
+          renderMetaChips('kpiMeta1', p.meta_chips_1);
+          renderMetaChips('kpiMeta2', p.meta_chips_2);
+          renderMetaChips('kpiMeta3', p.meta_chips_3);
+          renderMetaChips('kpiMeta4', p.meta_chips_4);
 
           var d1 = document.getElementById('kpiDesc1');
           var d2 = document.getElementById('kpiDesc2');
@@ -8224,14 +8277,6 @@ async def analytics_dashboard_page(
           }}
 
           var isPolling = false;
-          function escapeHtmlJs(str) {{
-            return String(str || '')
-              .replace(/&/g, '&amp;')
-              .replace(/</g, '&lt;')
-              .replace(/>/g, '&gt;')
-              .replace(/"/g, '&quot;')
-              .replace(/'/g, '&#39;');
-          }}
 
           async function pollLiveTelemetry() {{
             if (isPolling || document.hidden) return;
@@ -8257,7 +8302,23 @@ async def analytics_dashboard_page(
               }}
               var headSpan = document.getElementById('liveClicksHeadSpan');
               if (headSpan) {{
-                headSpan.textContent = '⚡ Son Sosyal Medya Tıklama Kayıtları (' + (data.period_label || '{html.escape(s["period_label"])}') + ': ' + (data.active_human_count || 0) + ' Tekil Kişi / Kümülatif: ' + (data.total_raw || 0) + ' Ham)';
+                headSpan.textContent = '⚡ Canlı Trafik (' + (data.active_human_count || 0) + ' Tekil / ' + (data.total_raw || 0) + ' Ham)';
+              }}
+              var sbHead = document.getElementById('socialBridgeHeadSpan');
+              if (sbHead && data.active_human_count !== undefined) {{
+                sbHead.textContent = '📲 Sosyal Köprü (' + data.active_human_count + ' Tekil)';
+              }}
+              if (data.meta_ads) {{
+                var mVal = document.getElementById('metaUniqueClicksVal');
+                var mRate = document.getElementById('metaSplitRate');
+                if (mVal && data.meta_ads.unique_clicks !== undefined) mVal.textContent = data.meta_ads.unique_clicks + ' Kişi';
+                if (mRate) mRate.textContent = '🍏 ' + (data.meta_ads.ios_clicks || 0) + ' iOS • 🤖 ' + (data.meta_ads.android_clicks || 0) + ' And';
+              }}
+              if (data.instagram_bio) {{
+                var igVal = document.getElementById('igUniqueClicksVal');
+                var igRate = document.getElementById('igSplitRate');
+                if (igVal && data.instagram_bio.unique_clicks !== undefined) igVal.textContent = data.instagram_bio.unique_clicks + ' Kişi';
+                if (igRate) igRate.textContent = '🍏 ' + (data.instagram_bio.ios_clicks || 0) + ' iOS • 🤖 ' + (data.instagram_bio.android_clicks || 0) + ' And';
               }}
               var tbody = document.getElementById('liveClicksTbody');
               if (tbody && Array.isArray(data.recent_clicks)) {{
@@ -8267,11 +8328,15 @@ async def analytics_dashboard_page(
                   var c = list[i];
                   if (c.is_bot || !c.is_unique) continue;
                   var dtStr = '';
-                  try {{
-                    var dObj = new Date(c.created_at);
-                    dtStr = dObj.toLocaleString('tr-TR', {{ timeZone: 'Europe/Istanbul', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }}).replace(',', '');
-                  }} catch (_de) {{
-                    dtStr = String(c.created_at || '').slice(5, 16);
+                  if (c.time_tr && String(c.time_tr).length >= 16) {{
+                    dtStr = String(c.time_tr).slice(0, 5) + ' ' + String(c.time_tr).slice(11, 16);
+                  }} else {{
+                    try {{
+                      var dObj = new Date(c.created_at);
+                      dtStr = dObj.toLocaleString('tr-TR', {{ timeZone: 'Europe/Istanbul', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }}).replace(',', '');
+                    }} catch (_de) {{
+                      dtStr = String(c.created_at || '').slice(5, 16);
+                    }}
                   }}
                   var cPlat = (c.os_family === 'ios' || c.target_store === 'app_store') ? 'ios' : 'android';
                   var rowDisp = (currentPlatform === 'all' || currentPlatform === cPlat) ? '' : 'display:none;';
