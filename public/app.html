@@ -3157,7 +3157,7 @@
           </div>
           <div style="display: flex; align-items: center; gap: 7px;">
             <span style="background: rgba(255, 255, 255, 0.12); color: #FFF; font-weight: 800; padding: 1px 6px; border-radius: 6px; font-size: 9px; min-width: 54px; text-align: center;">8. GÜN</span>
-            <span id="onboarding-timeline-day7-text">Memnun kalırsanız seçtiğiniz plan başlar • Tek tıkla iptal.</span>
+            <span id="onboarding-timeline-day7-text">Memnun kalırsanız seçtiğiniz plan başlar.</span>
           </div>
         </div>
       </div>
@@ -3175,7 +3175,7 @@
           </div>
           <div style="text-align: right;">
             <div style="font-family: 'Sora'; font-size: 15px; font-weight: 800; color: var(--accent);"><span class="price-monthly-text">--</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
-            <div style="font-size: 10px; color: var(--text-muted);">İstediğiniz an iptal</div>
+            <div style="font-size: 10px; color: var(--text-muted);">Aylık esnek plan</div>
           </div>
         </div>
 
@@ -4505,7 +4505,7 @@
     <div style="display: inline-flex; align-items: center; gap: 6px; margin-bottom: 8px; background: rgba(232, 168, 85, 0.14); border: 1px solid rgba(232, 168, 85, 0.35); border-radius: 999px; padding: 3px 10px; font-size: 10px; font-weight: 700; color: var(--accent);">
       <span>★★★★★ 5.0 Mağaza Puanı</span>
       <span style="opacity: 0.6;">•</span>
-      <span style="color: var(--heading-night);">İlk 7 Gün ₺0 • Tek Tıkla İptal</span>
+      <span style="color: var(--heading-night);">İlk 7 Gün ₺0 • Tam VIP Erişim</span>
     </div>
 
     <div id="vip-renewal-subtext" style="font-size: 12px; line-height: 18px; color: #C9CEDC; margin-bottom: 12px;">
@@ -4540,7 +4540,7 @@
         </div>
         <div style="text-align: right;">
           <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: var(--accent);"><span class="price-monthly-text">--</span><span style="font-size: 10px; color: var(--text-muted);">/ay</span></div>
-          <div style="font-size: 10px; color: var(--text-muted);">İstediğiniz an iptal</div>
+          <div style="font-size: 10px; color: var(--text-muted);">Aylık esnek plan</div>
         </div>
       </div>
 
@@ -4569,7 +4569,7 @@
 
     <!-- APPLE GUIDELINE 3.1.2(c) ZORUNLU YASAL BİLGİLENDİRME & BAĞLANTILAR -->
     <div style="font-size: 10px; color: var(--text-muted); line-height: 15px; margin-top: 10px; text-align: center;">
-      Aboneliğiniz dönem sonunda otomatik yenilenir. İstediğiniz an mağaza hesap ayarlarınızdan tek tıkla iptal edebilirsiniz.
+      Aboneliğiniz dönem sonunda otomatik yenilenir. Abonelik tercihlerinizi mağaza hesap ayarlarınızdan yönetebilirsiniz.
     </div>
     <div class="paywall-legal-links" style="display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 8px; font-size: 11px;">
       <a href="https://mishil-production.up.railway.app/terms" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/terms')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">⚖️ Kullanım Koşulları (EULA)</a>
@@ -5079,8 +5079,8 @@
         if (typeof showToast === 'function') {
           const currSym = typeof getActiveCurrencySymbol === 'function' ? getActiveCurrencySymbol() : '₺';
           showToast(typeof isEn === 'function' && isEn()
-            ? `💡 Switched to Flexible Monthly VIP (${currSym}0 Today) — cancel anytime with no annual commitment.`
-            : `💡 Yıllık taahhüt yerine Aylık Esnek VIP (Bugün ${currSym}0) seçildi — istediğiniz an iptal edebilirsiniz.`);
+            ? `💡 Switched to Flexible Monthly VIP (${currSym}0 Today) — 7 days free with no annual commitment.`
+            : `💡 Yıllık taahhüt yerine Aylık Esnek VIP (Bugün ${currSym}0) seçildi — 7 gün ücretsiz deneyebilirsiniz.`);
         }
       }
       if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
@@ -5231,11 +5231,8 @@
         if (erroredId) markTrackUnavailable(erroredId);
         updatePlayerUI();
         if (!msg.playing && msg.reason === 'timer') {
-          if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer();
           if (typeof resetActiveTimerUI === 'function') resetActiveTimerUI(true);
-          if (typeof isSubscriptionCurrentlyActive === 'function' && !isSubscriptionCurrentlyActive()) {
-            openVipRenewalModal('vip_sound');
-          } else if (typeof notifyTimerStoppedOnce === 'function') {
+          if (typeof notifyTimerStoppedOnce === 'function') {
             notifyTimerStoppedOnce((typeof timerFadeOutEnabled !== 'undefined' && timerFadeOutEnabled) ? (isEn() ? '💤 Sound gently faded out and stopped' : '💤 Ses kademeli kısılarak kapatıldı') : (isEn() ? '💤 Sleep timer stopped the sound' : '💤 Kapanma zamanlayıcısı sesi durdurdu'));
           }
         }
@@ -5330,10 +5327,147 @@
   window.isEn = isEn;
   window.trOrEn = trOrEn;
 
+  // =========================================================================
+  // 24 SAATLİK KARTSIZ TAM VIP (MODEL A — SOFT VIP) & MIŞIL DADI 1 SORU MOTORU
+  // =========================================================================
+  var SOFT_VIP_DURATION_MS = 24 * 60 * 60 * 1000; // 24 Saat (86.400.000 ms)
+  var SOFT_VIP_CRY_MAX = 5; // 24s Soft VIP süresince görünmez anti-bot analiz tavanı
+  var softVipExpiryTimeout = null;
+
+  function isPaidOrVerifiedVip() {
+    try {
+      if (localStorage.getItem('mishil_reviewer_bypass') === '1') return true;
+      if (localStorage.getItem('mishil_admin_gate') === 'unlocked' && localStorage.getItem('mishil_limited_explore_mode') !== 'true') return true;
+      if (typeof isPurchaseInFlight !== 'undefined' && isPurchaseInFlight) return true;
+      if (localStorage.getItem('mishil_subscription_active') === 'true' && (localStorage.getItem('mishil_limited_explore_mode') !== 'true' || localStorage.getItem('mishil_rc_verified') === 'true')) return true;
+      if (localStorage.getItem('mishil_subscription_plan') === 'family_vip' && localStorage.getItem('mishil_family_vip_verified') === '1') return true;
+    } catch (_pve) {}
+    return false;
+  }
+
+  function getSoftVip24hStatus() {
+    try {
+      var hasGranted = localStorage.getItem('mishil_soft_vip_24h_granted') === '1';
+      var startMs = parseInt(localStorage.getItem('mishil_soft_vip_24h_start_ms') || '0', 10);
+      if (!hasGranted || !startMs || isNaN(startMs)) {
+        return { isActive: false, hasGranted: false, isExpired: false, startMs: 0, remainingMs: 0, remainingHours: 0, remainingMins: 0, text: '' };
+      }
+      var now = Date.now();
+      var lastSeenMs = parseInt(localStorage.getItem('mishil_soft_vip_24h_last_ms') || '0', 10) || 0;
+      var remainingMs = 0;
+      // Saat geri alma (clock-rollback) suistimal koruması (±10 dk NTP toleranslı)
+      if (now >= startMs - 10 * 60000) {
+        var effectiveNow = Math.max(now, lastSeenMs, startMs);
+        if (now > lastSeenMs && now <= startMs + SOFT_VIP_DURATION_MS + 3600000) {
+          localStorage.setItem('mishil_soft_vip_24h_last_ms', String(now));
+        }
+        remainingMs = Math.max(0, SOFT_VIP_DURATION_MS - (effectiveNow - startMs));
+      }
+      if (remainingMs > 0) {
+        var totalRemMins = Math.max(1, Math.ceil(remainingMs / 60000));
+        var remHrs = Math.floor(totalRemMins / 60);
+        var remMins = totalRemMins % 60;
+        var timeText = isEn()
+          ? (remHrs > 0 ? (remHrs + 'h ' + remMins + 'm') : (totalRemMins + 'm'))
+          : (remHrs > 0 ? (remHrs + 's ' + remMins + 'dk') : (totalRemMins + 'dk'));
+        return {
+          isActive: true,
+          hasGranted: true,
+          isExpired: false,
+          startMs: startMs,
+          remainingMs: remainingMs,
+          remainingHours: remHrs,
+          remainingMins: remMins,
+          text: timeText
+        };
+      }
+      return {
+        isActive: false,
+        hasGranted: true,
+        isExpired: true,
+        startMs: startMs,
+        remainingMs: 0,
+        remainingHours: 0,
+        remainingMins: 0,
+        text: isEn() ? 'Ended' : 'Tamamlandı'
+      };
+    } catch (_sve) {
+      return { isActive: false, hasGranted: false, isExpired: false, startMs: 0, remainingMs: 0, remainingHours: 0, remainingMins: 0, text: '' };
+    }
+  }
+
+  function scheduleSoftVipExpiryRefresh() {
+    if (softVipExpiryTimeout) {
+      clearTimeout(softVipExpiryTimeout);
+      softVipExpiryTimeout = null;
+    }
+    if (isPaidOrVerifiedVip()) return;
+    var st = getSoftVip24hStatus();
+    if (st.isActive && st.remainingMs > 0) {
+      softVipExpiryTimeout = setTimeout(function() {
+        softVipExpiryTimeout = null;
+        // Gece koruması: Aktif canlı uykuyu (isSleeping) veya çalan ninniyi (currentTrackId) ASLA aniden kesmez;
+        // sayaçsız çalan bir parça varsa bebeğin uyku döngüsü bitene dek 60 dk kademeli kapanış tavanı kurar ve rozetleri tazeler.
+        if (typeof currentTrackId !== 'undefined' && currentTrackId && typeof activeTimerMinutes !== 'undefined' && activeTimerMinutes === 0 && typeof scheduleTimerWithRemainingMs === 'function') {
+          activeTimerMinutes = 60;
+          timerEndTimeMs = Date.now() + 60 * 60000;
+          scheduleTimerWithRemainingMs(60 * 60000, true);
+        }
+        if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
+        if (typeof loadBabyProfile === 'function') loadBabyProfile();
+        if (typeof updateDadiFreeQuotaUI === 'function') updateDadiFreeQuotaUI();
+        if (typeof renderSoundsList === 'function') renderSoundsList();
+        if (typeof updatePlayerUI === 'function') updatePlayerUI();
+      }, Math.min(st.remainingMs + 300, 90000000));
+    }
+  }
+
+  function grantSoftVip24hOnce() {
+    try {
+      if (isPaidOrVerifiedVip()) return false;
+      if (localStorage.getItem('mishil_soft_vip_24h_granted') === '1') {
+        scheduleSoftVipExpiryRefresh();
+        return false;
+      }
+      var nowMs = Date.now();
+      localStorage.setItem('mishil_soft_vip_24h_granted', '1');
+      localStorage.setItem('mishil_soft_vip_24h_start_ms', String(nowMs));
+      localStorage.setItem('mishil_soft_vip_24h_last_ms', String(nowMs));
+      scheduleSoftVipExpiryRefresh();
+      return true;
+    } catch (_gse) {
+      return false;
+    }
+  }
+
+  function hasUsedFreeDadiQuestion() {
+    try { return localStorage.getItem('mishil_free_dadi_question_used') === '1'; } catch (_de) { return false; }
+  }
+
+  function canAccessCoachTab() {
+    return isPaidOrVerifiedVip() || getSoftVip24hStatus().isActive || !hasUsedFreeDadiQuestion();
+  }
+
+  function canAskDadiQuestion() {
+    if (isPaidOrVerifiedVip()) return true;
+    return !hasUsedFreeDadiQuestion();
+  }
+
+  function markFreeDadiQuestionUsedIfNeeded() {
+    if (isPaidOrVerifiedVip()) return;
+    try { localStorage.setItem('mishil_free_dadi_question_used', '1'); } catch (_mde) {}
+    if (typeof updateDadiFreeQuotaUI === 'function') updateDadiFreeQuotaUI();
+  }
+
+  window.isPaidOrVerifiedVip = isPaidOrVerifiedVip;
+  window.getSoftVip24hStatus = getSoftVip24hStatus;
+  window.grantSoftVip24hOnce = grantSoftVip24hOnce;
+
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.48.2', date: '9 Kasım 2026', latest: true, items: [
-      'Asimetrik 3 Hak Freemium Mimarisi & Ses-2 Önizleme (S1–S3): İlk adıma 1 dokunuşla "Son Uyanma Zamanı" seçici eklenerek 5. adım Kişisel Uyku Raporunda bebeğin gerçek sıradaki MışılSpot™ uyku saati (örn. 14:30) canlı gösterildi; sınırlı modda 1. MışılSpot™ saati + 1 canlı uyku takibi (ve ilk uykunun saat düzenlemesi), 1 tamamlanmış Akıllı Ağlama Rehberi analizi ve 18 stüdyo sesinden seçilen 1 parçada 60 saniyelik önizleme (Ses-2) tadımlık olarak açıldı.',
+    { v: '4.48.2', date: '10 Kasım 2026', latest: true, items: [
+      '24 Saatlik Kartsız Tam VIP Deneyimi (Model A — Reverse Trial) & Mışıl Dadı™ 1 Soru Sınırı: Onboarding 5. adımda resmi 7 günlük mağaza denemesini şimdilik atlayan kullanıcılara cihaz başına 1 kez 24 saat boyunca kartsız Tam VIP (sınırsız MışılSpot™ canlı uyku, kesintisiz 18 stüdyo sesi, zamanlayıcılar, rutin/aşı/atak takibi ve Ağlama Rehberi) tanımlandı; Freemium ve 24s kartsız VIP süresince Mışıl Dadı™ 1 ücretsiz soru ile sınırlandırıldı (2. soruda VIP Paywall), 24. saat bebek uyurken veya ninni çalarken dolduğunda uykuyu/sesi yarıda kesmeyen Gece Koruması (Mid-Sleep Grace) eklendi ve Paywall ekranlarındaki "Tek tıkla iptal" ifadeleri kaldırıldı.',
+      'Sonraki MışılSpot™ Uyku Saati Açık Görünürlüğü & Saat/Veri Koruması: 24 saatlik kartsız VIP süresi tamamlandığında ebeveynin girdiği uyku/beslenme/bez kayıtları ve hesaplanan sıradaki MışılSpot™ uyku saati (örn. 14:30) silinmeden veya maskelenmeden açık görünür tutuldu; yeni aksiyonlarda bebeğin adıyla kişiselleştirilmiş VIP Paywall devreye alındı.',
       'Ana Ekran & Ses Kartları Bilişsel Sadeleştirme: Ana ekranın en üstündeki kalabalık reklam/kalibrasyon/rehber kartları kaldırılarak ekran doğrudan nefes alan MışılSpot™ Hero kartıyla başlatıldı; 18 stüdyo ses kartının üzerindeki VIP / 60 SN ÖNİZLEME rozetleri temizlenerek dingin tasarım sağlandı.',
       'Aile VIP Doğrulama Kilidi, Hayalet RCAnonymousID Temizliği & Güvenli Kota Koruması (S6–S8): Native AsyncStorage ve WebView üzerinde doğrulanmamış family_vip sızıntısı kapatıldı; iOS mutabakatında sıfır tutarlı hayalet RCAnonymousID satırları temizlendi ve Mışıl Dadı / Ağlama Analizi uç noktalarına gerçek VIP kullanıcıları engellemeyen IP bazlı bot koruma sınırı eklendi.',
       'Tek ve Sade 3. Giriş + Gündüz Saati Memnuniyet & Değerlendirme Kuralı: Karmaşık ses/uyku sayaç tetikleyicileri kaldırılarak yalnızca 3. farklı oturumda ve gündüz saatlerinde (08:00–21:59) 1 kez sorulan sıfır ısrarlı değerlendirme akışı devreye alındı.',
@@ -5973,59 +6107,6 @@
     if (disp) disp.textContent = isEn() ? 'Continuous Loop' : 'Sürekli Çal';
   }
 
-  let freeSoundPreviewTimeout = null;
-
-  function clearFreeSoundPreviewTimer() {
-    if (freeSoundPreviewTimeout) {
-      clearTimeout(freeSoundPreviewTimeout);
-      freeSoundPreviewTimeout = null;
-    }
-  }
-
-  function startFreeSoundPreviewLimit() {
-    clearFreeSoundPreviewTimer();
-    localStorage.setItem('mishil_free_sound_used', '1');
-    const disp = document.getElementById('timer-display');
-    if (disp) disp.textContent = isEn() ? '60s Preview (Unlimited with VIP)' : '60 sn Önizleme (VIP ile Kesintisiz)';
-    showToast(isEn()
-      ? '🎧 60s preview started. Try 7 days free VIP for continuous sleep sounds.'
-      : '🎧 60 sn önizleme başladı. Kesintisiz uyku sesleri için 7 gün ücretsiz VIP deneyin.');
-    if (isNativeAudio()) {
-      nativeAudioSend({ type: 'AUDIO_TIMER', minutes: 1, fadeOut: true });
-    }
-    freeSoundPreviewTimeout = setTimeout(() => {
-      freeSoundPreviewTimeout = null;
-      if (isSubscriptionCurrentlyActive() || !currentTrackId) return;
-      const finishedTrack = (typeof SOUND_TRACKS !== 'undefined' && Array.isArray(SOUND_TRACKS))
-        ? SOUND_TRACKS.find(t => t.id === currentTrackId)
-        : null;
-      window.__lastPreviewedSoundName__ = finishedTrack
-        ? (isEn() ? (finishedTrack.titleEn || finishedTrack.title) : finishedTrack.title)
-        : '';
-      try {
-        if (typeof window.sendMishilAnalyticsSignal === 'function') {
-          window.sendMishilAnalyticsSignal('sound_preview_60s_ended');
-        }
-      } catch (_spe) {}
-      if (isNativeAudio()) {
-        nativeAudioSend({ type: 'AUDIO_STOP' });
-        nativeAudioSend({ type: 'AUDIO_VOLUME', value: 1.0 });
-        currentTrackId = null;
-        resetActiveTimerUI(false);
-        updatePlayerUI();
-        openVipRenewalModal('sound_preview_ended');
-      } else if (audioMap[currentTrackId]) {
-        const audToStop = audioMap[currentTrackId];
-        fadeOutAudio(audToStop, 800, () => {
-          currentTrackId = null;
-          resetActiveTimerUI(false);
-          updatePlayerUI();
-          openVipRenewalModal('sound_preview_ended');
-        });
-      }
-    }, 60000);
-  }
-
   function togglePlayTrack(trackId) {
     hapticSelection();
     const track = SOUND_TRACKS.find(t => t.id === trackId);
@@ -6039,35 +6120,20 @@
 
     const isStoppingSameTrack = (currentTrackId === trackId);
     if (!isStoppingSameTrack && !isSubscriptionCurrentlyActive()) {
-      if (localStorage.getItem('mishil_free_sound_used') === '1') {
-        clearFreeSoundPreviewTimer();
-        if (currentTrackId) {
-          if (isNativeAudio()) {
-            nativeAudioSend({ type: 'AUDIO_STOP' });
-            nativeAudioSend({ type: 'AUDIO_VOLUME', value: 1.0 });
-          } else if (audioMap[currentTrackId]) {
-            fadeOutAudio(audioMap[currentTrackId], 400);
-          }
-          currentTrackId = null;
-          resetActiveTimerUI(false);
-          updatePlayerUI();
-        }
-        openVipRenewalModal('vip_sound');
-        return;
-      }
+      // Model A: 24 saatlik kartsız VIP deneyimi tamamlandıktan sonra yeni ses başlatmada doğrudan VIP Paywall açılır (çalan ses varsa kesilmez)
+      openVipRenewalModal('vip_sound');
+      return;
     }
 
     // Native mod: ses çalma arka planda/kilitli ekranda çalışsın diye native tarafta
     if (isNativeAudio()) {
       if (currentTrackId === trackId) {
-        clearFreeSoundPreviewTimer();
         resetActiveTimerUI(true);
         nativeAudioSend({ type: 'AUDIO_TIMER', minutes: 0, fadeOut: timerFadeOutEnabled });
         nativeAudioSend({ type: 'AUDIO_STOP' });
         currentTrackId = null;
         if (typeof onAudioPlaybackStopped === 'function') onAudioPlaybackStopped();
       } else {
-        clearFreeSoundPreviewTimer();
         lastTrackStartAt = Date.now();
         if (isTimerVolumeFading) {
           isTimerVolumeFading = false;
@@ -6075,9 +6141,7 @@
         }
         nativeAudioSend({ type: 'AUDIO_PLAY', id: trackId, url: absSoundUrl(track.file) });
         currentTrackId = trackId;
-        if (!isSubscriptionCurrentlyActive()) {
-          startFreeSoundPreviewLimit();
-        } else if (activeTimerMinutes > 0 && timerEndTimeMs > Date.now()) {
+        if (activeTimerMinutes > 0 && timerEndTimeMs > Date.now()) {
           scheduleTimerWithRemainingMs(Math.max(1000, timerEndTimeMs - Date.now()), false);
         }
         if (typeof onAudioPlaybackStarted === 'function') onAudioPlaybackStarted();
@@ -6090,7 +6154,6 @@
     if (!aud) return;
 
     if (currentTrackId === trackId) {
-      clearFreeSoundPreviewTimer();
       resetActiveTimerUI(false);
       fadeOutAudio(aud, 600, () => {
         currentTrackId = null;
@@ -6099,7 +6162,6 @@
       currentTrackId = null;
       if (typeof onAudioPlaybackStopped === 'function') onAudioPlaybackStopped();
     } else {
-      clearFreeSoundPreviewTimer();
       lastTrackStartAt = Date.now();
       const oldAud = currentTrackId ? audioMap[currentTrackId] : null;
       if (oldAud) {
@@ -6108,9 +6170,7 @@
       aud.currentTime = 0;
       fadeInAudio(aud, 1, 700);
       currentTrackId = trackId;
-      if (!isSubscriptionCurrentlyActive()) {
-        startFreeSoundPreviewLimit();
-      } else if (activeTimerMinutes > 0 && timerEndTimeMs > Date.now()) {
+      if (activeTimerMinutes > 0 && timerEndTimeMs > Date.now()) {
         scheduleTimerWithRemainingMs(Math.max(1000, timerEndTimeMs - Date.now()), false);
       }
       if (typeof onAudioPlaybackStarted === 'function') onAudioPlaybackStarted();
@@ -6131,9 +6191,9 @@
     if (currentTrackId) {
       const track = SOUND_TRACKS.find(t => t.id === currentTrackId);
       const dispTitle = track ? (isEn() ? (track.titleEn || track.title) : track.title) : (isEn() ? 'Playing' : 'Çalıyor');
-      const timerTag = !isSubscriptionCurrentlyActive()
-        ? (isEn() ? ' • ⏱️ 60s Preview' : ' • ⏱️ 60 sn Önizleme')
-        : (activeTimerMinutes > 0 ? (isEn() ? ` • ⏱️ ${activeTimerMinutes} min` : ` • ⏱️ ${activeTimerMinutes} dk`) : (isEn() ? ' • Continuous Loop' : ' • Kesintisiz Döngü'));
+      const timerTag = activeTimerMinutes > 0
+        ? (isEn() ? ` • ⏱️ ${activeTimerMinutes} min` : ` • ⏱️ ${activeTimerMinutes} dk`)
+        : (isEn() ? ' • Continuous Loop' : ' • Kesintisiz Döngü');
       if (floatingBar) floatingBar.style.display = 'flex';
       if (miniName) miniName.textContent = dispTitle;
       if (miniStatus) miniStatus.textContent = `${isEn() ? 'Studio Master' : 'Stüdyo Master'}${timerTag}`;
@@ -6378,12 +6438,31 @@
     '🍼 Gece beslenmesini nasıl kademeli azaltırım?': '🍼 How can I gradually reduce night feedings?',
     '⚠️ 4. ay uyku regresyonu nedir ve ne kadar sürer?': '⚠️ What is the 4-month sleep regression and how long does it last?'
   };
+  function updateDadiFreeQuotaUI() {
+    const input = document.getElementById('chat-user-input');
+    if (!input) return;
+    if (isPaidOrVerifiedVip()) {
+      const stdPh = isEn() ? "Ask Mışıl Nanny about your baby's sleep..." : "Mışıl Dadı'ya bebeğinizin uykusunu sorun...";
+      input.setAttribute('placeholder', stdPh);
+    } else if (!hasUsedFreeDadiQuestion()) {
+      const freePh = isEn() ? '🎁 Ask your 1st free question to Mışıl Nanny...' : "🎁 Mışıl Dadı'ya 1 ücretsiz sorunuzu yazın...";
+      input.setAttribute('placeholder', freePh);
+    } else {
+      const lockedPh = isEn() ? '👑 Start 7-day free VIP for unlimited 24/7 Mışıl Nanny...' : '👑 Sınırsız 7/24 Mışıl Dadı için VIP başlatın (7 gün ücretsiz)...';
+      input.setAttribute('placeholder', lockedPh);
+    }
+  }
+
   function askAiPrompt(question) {
     if (isDadiGenerating) return;
     hapticPulse();
+    if (!canAskDadiQuestion()) {
+      openVipRenewalModal('ai_nanny');
+      return;
+    }
     const finalQuestion = (isEn() && AI_CHIP_PROMPTS_EN[question]) ? AI_CHIP_PROMPTS_EN[question] : question;
     const input = document.getElementById('chat-user-input');
-    if (input) input.value = finalQuestion;
+    if (input) input.value = '';
     submitDadiChat(finalQuestion);
   }
 
@@ -6393,13 +6472,18 @@
     const input = document.getElementById('chat-user-input');
     const msg = input ? input.value.trim() : '';
     if (!msg) return;
+    if (!canAskDadiQuestion()) {
+      openVipRenewalModal('ai_nanny');
+      return;
+    }
     if (input) input.value = '';
     submitDadiChat(msg);
   }
 
   async function submitDadiChat(userText) {
     if (isDadiGenerating) return;
-    if (!requireActiveSubscription('ai_nanny')) {
+    if (!canAskDadiQuestion()) {
+      openVipRenewalModal('ai_nanny');
       return;
     }
     isDadiGenerating = true;
@@ -6433,9 +6517,11 @@
 
     let dadiBubble = null;
     let accumulatedText = '';
+    const abortCtrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    const streamTimeoutId = abortCtrl ? setTimeout(() => { try { abortCtrl.abort(); } catch (_ae) {} }, 25000) : null;
 
     try {
-      const response = await fetch(`${API_BASE}/api/v1/coach/stream`, {
+      const fetchOpts = {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -6449,7 +6535,9 @@
           chat_history: dadiChatHistory.slice(-8),
           lang: getAppLang()
         })
-      });
+      };
+      if (abortCtrl) fetchOpts.signal = abortCtrl.signal;
+      const response = await fetch(`${API_BASE}/api/v1/coach/stream`, fetchOpts);
 
       if (!response.ok || !response.body) {
         throw new Error('Streaming response not available');
@@ -6477,15 +6565,15 @@
                 if (parsed.text) {
                   if (typingIndicator) typingIndicator.style.display = 'none';
 
-                  if (!dadiBubble) {
+                  if (!dadiBubble && container) {
                     dadiBubble = document.createElement('div');
                     dadiBubble.className = 'chat-bubble-dadi';
                     container.appendChild(dadiBubble);
                   }
 
                   accumulatedText += parsed.text;
-                  dadiBubble.innerHTML = formatMarkdown(accumulatedText);
-                  container.scrollTop = container.scrollHeight;
+                  if (dadiBubble) dadiBubble.innerHTML = formatMarkdown(accumulatedText);
+                  if (container) container.scrollTop = container.scrollHeight;
                 }
               } catch (e) {}
             }
@@ -6495,16 +6583,21 @@
 
       if (accumulatedText) {
         dadiChatHistory.push({ role: 'assistant', content: accumulatedText });
+        markFreeDadiQuestionUsedIfNeeded();
         hapticPulse();
       } else {
         fallbackDadiLocalResponse(babyName, birthDate, userText);
       }
     } catch (err) {
       console.warn('Streaming error, falling back to local heuristic:', err);
-      if (!dadiBubble || !accumulatedText) {
+      if (dadiBubble && accumulatedText) {
+        dadiChatHistory.push({ role: 'assistant', content: accumulatedText });
+        markFreeDadiQuestionUsedIfNeeded();
+      } else {
         fallbackDadiLocalResponse(babyName, birthDate, userText);
       }
     } finally {
+      if (streamTimeoutId) clearTimeout(streamTimeoutId);
       isDadiGenerating = false;
       setDadiChipsState(true);
       if (typingIndicator) typingIndicator.style.display = 'none';
@@ -6514,6 +6607,7 @@
 
   function renderDadiReply(replyText) {
     const container = document.getElementById('chat-messages-container');
+    if (!container) return;
     const dadiBubble = document.createElement('div');
     dadiBubble.className = 'chat-bubble-dadi';
     dadiBubble.innerHTML = formatMarkdown(replyText);
@@ -6573,10 +6667,11 @@
         }
         renderDadiReply(replyEn);
         dadiChatHistory.push({ role: 'assistant', content: replyEn });
+        markFreeDadiQuestionUsedIfNeeded();
         return;
       }
 
-      let reply = `🌸 Sevgili anneciğim/babacığım, ${babyName} (${calc.babyAgeFormatted || ''}) için Mışıl Dadı yanınızda!\n\n`;
+      let reply = `🌸 Sevgili anneciğim/babacığım, ${babyName} (${calc.ageFormatted || ''}) için Mışıl Dadı yanınızda!\n\n`;
 
       if (q.includes('30 dk') || q.includes('kısa uyku') || q.includes('erken uyandı') || q.includes('ağlayarak')) {
         reply += `${babyName} henüz 30-45 dakikalık 1. hafif uyku döngüsünden derin REM döngüsüne geçişte zorlanıyor.\n\n` +
@@ -6613,6 +6708,7 @@
 
       renderDadiReply(reply);
       dadiChatHistory.push({ role: 'assistant', content: reply });
+      markFreeDadiQuestionUsedIfNeeded();
     }, 500);
   }
 
@@ -6647,6 +6743,18 @@
     } catch (e) {}
   }
 
+  function ensureExistingFreemiumSoftVip() {
+    try {
+      const babyName = localStorage.getItem('mishil_baby_name');
+      const hasProfile = !!(babyName && babyName.trim().length > 0);
+      if (localStorage.getItem('mishil_onboarding_completed') === 'true' && hasProfile && !isPaidOrVerifiedVip()) {
+        grantSoftVip24hOnce();
+      }
+    } catch (_efsv) {}
+  }
+  window.canAccessCoachTab = canAccessCoachTab;
+  window.canAskDadiQuestion = canAskDadiQuestion;
+
   function checkOnboardingState() {
     const isSubscribed = localStorage.getItem('mishil_subscription_active') === 'true';
     const isCompleted = localStorage.getItem('mishil_onboarding_completed') === 'true';
@@ -6660,6 +6768,7 @@
     // Ana ekrana geçiş YALNIZCA kullanıcı aktif aboneyse veya süreci açıkça tamamladıysa
     // VE geçerli bir bebek profili varsa mümkündür.
     if ((isSubscribed || isCompleted) && hasProfile) {
+      ensureExistingFreemiumSoftVip();
       screenEl.classList.remove('active');
       if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
       return;
@@ -7008,7 +7117,7 @@
 
   function openSubscriptionRetentionModal() {
     hapticPulse();
-    if (!isSubscriptionCurrentlyActive()) {
+    if (!isPaidOrVerifiedVip()) {
       proceedToStoreSubscriptionManagement();
       return;
     }
@@ -7442,12 +7551,12 @@
     if (day7El) {
       if (planType === 'monthly') {
         day7El.textContent = isEn()
-          ? `If you love it, Monthly ${dp.monthlyStr}/mo starts • One-tap cancel.`
-          : `Memnun kalırsanız Aylık ${dp.monthlyStr}/ay başlar • Tek tıkla iptal.`;
+          ? `If you love it, Monthly ${dp.monthlyStr}/mo starts.`
+          : `Memnun kalırsanız Aylık ${dp.monthlyStr}/ay başlar.`;
       } else {
         day7El.textContent = isEn()
-          ? `If you love it, Annual ${dp.yearlyStr}/yr (${dp.monthlyEqStr}/mo) starts • One-tap cancel.`
-          : `Memnun kalırsanız Yıllık ${dp.yearlyStr}/yıl (${dp.monthlyEqStr}/ay) başlar • Tek tıkla iptal.`;
+          ? `If you love it, Annual ${dp.yearlyStr}/yr (${dp.monthlyEqStr}/mo) starts.`
+          : `Memnun kalırsanız Yıllık ${dp.yearlyStr}/yıl (${dp.monthlyEqStr}/ay) başlar.`;
       }
     }
 
@@ -7485,6 +7594,8 @@
     // Profil bilgilerini güvenle kalıcı hafızaya aktar
     commitOnboardingProfile();
     localStorage.setItem('mishil_onboarding_completed', 'true');
+    // Model A: Cihaz başına 1 kez kartsız 24 Saat Tam VIP deneyimini mühürle
+    const newlyGranted = grantSoftVip24hOnce();
 
     // Native AsyncStorage ve köprü senkronu (Codex konsensüs kuralı)
     if (window.ReactNativeWebView) {
@@ -7513,9 +7624,15 @@
     loadBabyProfile();
     updateSubscriptionStatusUI();
     renderAllViews();
-    showToast(isEn()
-      ? '🔒 Limited preview mode. Start your 7-day free VIP trial anytime to unlock all features.'
-      : '🔒 Sınırlı vitrin modundasınız. Tüm özellikleri açmak için 7 gün ücretsiz VIP başlatabilirsiniz.');
+    if (newlyGranted || getSoftVip24hStatus().isActive) {
+      showToast(isEn()
+        ? '🎁 Your 24-Hour Free VIP Preview Started! All sleep, sound & routine tools unlocked (no card required).'
+        : '🎁 24 Saatlik Kartsız Tam VIP Deneyiminiz Başladı! Tüm uyku, ses ve rutin araçları açık.');
+    } else {
+      showToast(isEn()
+        ? '🔒 Limited preview mode. Start your 7-day free VIP trial anytime to unlock all features.'
+        : '🔒 Sınırlı vitrin modundasınız. Tüm özellikleri açmak için 7 gün ücretsiz VIP başlatabilirsiniz.');
+    }
     if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
   }
 
@@ -8056,8 +8173,9 @@
   async function syncFamilyToCloud(code, babyName, birthDate, creatorRole, creatorName) {
     try {
       const url = `${getApiBaseUrl()}/family/create`;
-      const isVipNow = typeof isSubscriptionCurrentlyActive === 'function' ? isSubscriptionCurrentlyActive() : (localStorage.getItem('mishil_subscription_active') === 'true');
-      const planNow = isVipNow ? (localStorage.getItem('mishil_subscription_plan') || localStorage.getItem('mishil_selected_plan') || 'yearly') : 'free';
+      const isVipNow = typeof isPaidOrVerifiedVip === 'function' ? isPaidOrVerifiedVip() : (localStorage.getItem('mishil_subscription_active') === 'true');
+      const rawPlan = localStorage.getItem('mishil_subscription_plan');
+      const planNow = isVipNow ? ((rawPlan && rawPlan !== 'free') ? rawPlan : (localStorage.getItem('mishil_selected_plan') || 'yearly')) : 'free';
       const res = await fetchWithTimeout(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -9503,18 +9621,18 @@
       }
     } catch (_me) {}
   })();
+  ensureExistingFreemiumSoftVip();
+  scheduleSoftVipExpiryRefresh();
 
   function isSubscriptionCurrentlyActive() {
-    if (localStorage.getItem('mishil_limited_explore_mode') === 'true') return false;
-    if (localStorage.getItem('mishil_reviewer_bypass') === '1') return true;
-    if (localStorage.getItem('mishil_admin_gate') === 'unlocked') return true;
-    if (typeof isPurchaseInFlight !== 'undefined' && isPurchaseInFlight) return true;
-    if (localStorage.getItem('mishil_subscription_active') === 'true') return true;
-    return false;
+    if (isPaidOrVerifiedVip()) return true;
+    return getSoftVip24hStatus().isActive;
   }
+  window.isSubscriptionCurrentlyActive = isSubscriptionCurrentlyActive;
 
   function isMishilSpotLocked() {
-    return !isSubscriptionCurrentlyActive() && localStorage.getItem('mishil_first_spot_aha_used') === '1';
+    // Freemium'da sonraki MışılSpot™ uyku saati (örn. 14:30) açık görünür; 24 saat sonrasında yeni canlı uyku başlatma VIP kilitlidir.
+    return false;
   }
 
   function dismissVipFirstNightCard() {
@@ -9561,8 +9679,21 @@
     const currSym = getActiveCurrencySymbol();
     const zeroToday = isEn() ? `${currSym}0 Today` : `Bugün ${currSym}0`;
     const previewTrackName = window.__lastPreviewedSoundName__ || (isEn() ? 'Soothing Lullaby' : 'Sakinleştirici Ninni');
+    const usedFreeDadi = hasUsedFreeDadiQuestion();
+
+    let effectiveFeature = contextFeature;
+    try {
+      if (!isPaidOrVerifiedVip() && getSoftVip24hStatus().isExpired && contextFeature !== 'ai_nanny' && localStorage.getItem('mishil_soft_vip_expired_modal_seen') !== '1') {
+        localStorage.setItem('mishil_soft_vip_expired_modal_seen', '1');
+        effectiveFeature = 'soft_vip_expired';
+      }
+    } catch (_sfe) {}
 
     const contextMap = isEn() ? {
+      soft_vip_expired: {
+        title: `🌙 Your 24-Hour VIP Preview for ${babyName} Has Ended`,
+        sub: `All your logs are safe! Start your 7-day free VIP trial (${zeroToday}) to continue seamless sleep tracking, 18 sounds, and Mışıl Nanny.`
+      },
       sound_preview_ended: {
         title: `🌙 ${babyName} Relaxed with "${previewTrackName}" — Continue Seamlessly`,
         sub: `Your 60s preview finished. Start your 7-day free trial (${zeroToday}) for uninterrupted sleep sounds and lock-screen play.`
@@ -9579,7 +9710,10 @@
         title: `⏱️ Unlock 45-60 Min Auto-Off & Night Crib Mode`,
         sub: `Try 7 days free (${zeroToday}) for gentle audio fade-out once your baby is in deep sleep and dim Night Crib mode.`
       },
-      ai_nanny: {
+      ai_nanny: usedFreeDadi ? {
+        title: `🤖 Continue Unlimited 24/7 Mışıl Nanny™ for ${babyName}`,
+        sub: `You used your 1 free Mışıl Nanny question. Start your 7-day free VIP trial (${zeroToday}) for unlimited 24/7 personal sleep coaching.`
+      } : {
         title: `🤖 Unlock 24/7 Mışıl Nanny™ Personal Sleep Coach`,
         sub: `Get instant guidance tailored to ${babyName}'s age and sleep logs even at 3:00 AM — 7 days free.`
       },
@@ -9600,6 +9734,10 @@
         sub: `Unlock unlimited MışılSpot™ windows, Cry Guide, 24/7 Mışıl Nanny, and 18 studio sounds for ${currSym}0 today.`
       }
     } : {
+      soft_vip_expired: {
+        title: `🌙 ${babyName} İçin 24 Saatlik VIP Deneyiminiz Tamamlandı`,
+        sub: `Girdiğiniz tüm kayıtlar güvende! Kesintisiz uyku takibi, 18 stüdyo sesi ve Mışıl Dadı için 7 gün ücretsiz VIP başlatın (${zeroToday}).`
+      },
       sound_preview_ended: {
         title: `🌙 ${babyName} "${previewTrackName}" Sesiyle Rahatladı — Kesintisiz Çalmaya Devam Edin`,
         sub: `60 saniyelik önizleme tamamlandı. Kilitli ekranda kesintisiz uyku sesleri için 7 gün ücretsiz VIP deneyin (${zeroToday}).`
@@ -9616,7 +9754,10 @@
         title: `⏱️ 45-60 Dk Otomatik Kapanma & Gece Beşiği Modunu Açın`,
         sub: `Bebeğiniz derin uykuya geçtiğinde sesin kademeli kısılarak kapanması ve loş Gece Beşiği modu için 7 gün ücretsiz deneyin (${zeroToday}).`
       },
-      ai_nanny: {
+      ai_nanny: usedFreeDadi ? {
+        title: `🤖 ${babyName} İçin Sınırsız 7/24 Mışıl Dadı™ Rehberliğini Açın`,
+        sub: `1 ücretsiz Mışıl Dadı soru hakkınızı kullandınız. Gece gündüz sınırsız kişisel uyku koçluğu için 7 gün ücretsiz VIP başlatın (${zeroToday}).`
+      } : {
         title: `🤖 7/24 Mışıl Dadı™ Kişisel Uyku Rehberini Açın`,
         sub: `Gece 03:00'te bile ${babyName}'in yaşına ve uyku geçmişine özel anında yanıt alın — 7 gün ücretsiz.`
       },
@@ -9638,12 +9779,12 @@
       }
     };
 
-    const chosen = (contextFeature && contextMap[contextFeature]) ? contextMap[contextFeature] : (isEn() ? {
+    const chosen = (effectiveFeature && contextMap[effectiveFeature]) ? contextMap[effectiveFeature] : (isEn() ? {
       title: `👑 Unlock All VIP Features 7 Days Free for ${babyName}`,
-      sub: `Try unlimited MışılSpot™ windows, Cry Guide, and 18 studio sounds for ${currSym}0 today. Cancel anytime with one tap.`
+      sub: `Try unlimited MışılSpot™ windows, Cry Guide, and 18 studio sounds for ${currSym}0 today.`
     } : {
       title: `👑 ${babyName} İçin Tüm VIP Özellikleri 7 Gün Ücretsiz Açın`,
-      sub: `Sınırsız MışılSpot™ saatleri, Ağlama Rehberi ve 18 stüdyo sesini ${zeroToday} ile deneyin. İstediğiniz an tek tıkla iptal.`
+      sub: `Sınırsız MışılSpot™ saatleri, Ağlama Rehberi ve 18 stüdyo sesini ${zeroToday} ile deneyin.`
     });
 
     if (titleEl) titleEl.textContent = chosen.title;
@@ -9805,10 +9946,12 @@
       localStorage.removeItem('mishil_rc_verified');
       localStorage.removeItem('mishil_family_vip_verified');
     }
+    const paidVip = isPaidOrVerifiedVip();
+    const softVip = getSoftVip24hStatus();
     const plan = localStorage.getItem('mishil_subscription_plan') || 'monthly';
     const currSym = getActiveCurrencySymbol();
 
-    if (isActive) {
+    if (paidVip) {
       if (subEl) {
         subEl.textContent = isEn() ? '👑 Your Mışıl VIP Membership is Active — All Features Unlocked' : '👑 Mışıl VIP Üyeliğiniz Aktif — Tüm Özellikler Açık';
         subEl.style.color = 'var(--success)';
@@ -9818,9 +9961,14 @@
           ? '👑 <strong style="color:var(--success);">Your Mışıl VIP Membership is Active:</strong> All sleep windows, cry guide, Mışıl Nanny™ and 18 studio sounds are unlocked.'
           : '👑 <strong style="color:var(--success);">Mışıl VIP Üyeliğiniz Aktif:</strong> Tüm uyku saatleri, ağlama rehberi, Mışıl Dadı™ ve 18 stüdyo sesi hesabınızda açıktır.';
       }
-      if (plan === 'yearly') {
+      if (plan === 'yearly' || plan === 'family_vip') {
         if (badgeY) { badgeY.textContent = isEn() ? '✓ ACTIVE PLAN' : '✓ AKTİF PLANINIZ'; badgeY.style.background = 'var(--success)'; badgeY.style.color = '#FFF'; }
-        if (subY) { subY.textContent = isEn() ? 'Your Annual VIP Membership is Active' : 'Yıllık VIP Üyeliğiniz Aktif'; subY.style.color = 'var(--success)'; }
+        if (subY) {
+          subY.textContent = plan === 'family_vip'
+            ? (isEn() ? 'Family Partner VIP Access Active' : 'Eş & Bakıcı Aile VIP Erişimi Aktif')
+            : (isEn() ? 'Your Annual VIP Membership is Active' : 'Yıllık VIP Üyeliğiniz Aktif');
+          subY.style.color = 'var(--success)';
+        }
         if (cardY) { cardY.style.borderColor = 'var(--success)'; cardY.style.background = 'rgba(46, 204, 113, 0.1)'; }
         if (cardM) { cardM.style.display = 'none'; }
         settingsTargetPlan = 'yearly';
@@ -9837,7 +9985,17 @@
       const trial = getTrialStatus();
       if (cardM) cardM.style.display = 'flex';
       if (subEl) {
-        if (trial.isActive) {
+        if (softVip.isActive) {
+          subEl.textContent = isEn()
+            ? `🎁 24-Hour Free VIP Preview Active (${softVip.text} left)`
+            : `🎁 24 Saat Ücretsiz VIP Deneyimi Aktif (${softVip.text} kaldı)`;
+          subEl.style.color = 'var(--accent)';
+        } else if (softVip.isExpired) {
+          subEl.textContent = isEn()
+            ? '🌙 24h Preview Ended — Start 7-Day Free VIP'
+            : '🌙 24 Saatlik Deneyim Tamamlandı — 7 Gün Ücretsiz VIP Başlatın';
+          subEl.style.color = 'var(--accent)';
+        } else if (trial.isActive) {
           subEl.textContent = isEn() ? '👑 Your Mışıl VIP Membership is Active — All Features Unlocked' : '👑 Mışıl VIP Üyeliğiniz Aktif — Tüm Özellikler Açık';
           subEl.style.color = 'var(--success)';
         } else if (trial.hasStarted) {
@@ -9849,7 +10007,9 @@
         }
       }
       if (infoEl) {
-        infoEl.textContent = isEn() ? 'Choose Your 7-Day Free Trial or VIP Plan:' : '7 Günlük Deneme veya VIP Abonelik Modelinizi Seçin:';
+        infoEl.textContent = softVip.isActive
+          ? (isEn() ? 'Continue seamlessly after your 24h preview with a 7-Day Free VIP Plan:' : '24 saatlik deneyiminizin ardından kesintisiz devam için 7 Gün Ücretsiz VIP seçin:')
+          : (isEn() ? 'Choose Your 7-Day Free Trial or VIP Plan:' : '7 Günlük Deneme veya VIP Abonelik Modelinizi Seçin:');
       }
       if (badgeY) { badgeY.textContent = isEn() ? 'SAVE 67%' : '%67 TASARRUF'; badgeY.style.background = 'var(--accent)'; badgeY.style.color = '#141B2E'; }
       if (badgeM) { badgeM.textContent = isEn() ? `7 DAYS ${currSym}0` : `7 GÜN ${currSym}0`; badgeM.style.background = 'rgba(255,255,255,0.1)'; badgeM.style.color = '#FFF'; }
@@ -9865,58 +10025,33 @@
 
     updateSettingsSubActionBtn();
     syncHomeConversionBanners();
+    if (typeof updateDadiFreeQuotaUI === 'function') updateDadiFreeQuotaUI();
     if (typeof renderHomeCareSummaryAndCircadianStrip === 'function') renderHomeCareSummaryAndCircadianStrip();
     if (typeof renderSoundsList === 'function') renderSoundsList();
-    // Ana ekran MışılSpot başlık ve saat kilidini canlı güncelle (S3: İlk MışılSpot™ 1-Shot Aha! Hediyesi Açık)
+    // Ana ekran MışılSpot başlık ve saatini canlı güncelle (Sonraki uyku saati daima açık görünür)
     const baby = typeof getBaby === 'function' ? getBaby() : null;
     if (baby && typeof calculateMışılSpot === 'function' && !isSleeping) {
       const calc = calculateMışılSpot(baby.bdate);
-      const isSubActive = isSubscriptionCurrentlyActive();
-      const lockedSpot = isMishilSpotLocked();
-      const firstAhaAvailable = !isSubActive && !lockedSpot;
       const disp = document.getElementById('target-sleep-display');
       const sub = document.getElementById('target-sleep-subtext');
       const badge = document.getElementById('sweetspot-status-badge');
       if (disp) {
-        if (lockedSpot) {
-          disp.textContent = `${calc.sweetSpotTime.slice(0, 3)}•• 🔒`;
-          disp.style.color = 'var(--accent)';
-          disp.style.cursor = 'pointer';
-          disp.onclick = () => openVipRenewalModal('mishil_spot');
-        } else {
-          disp.textContent = calc.sweetSpotTime;
-          disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
-          disp.style.cursor = 'default';
-          disp.onclick = null;
-        }
+        disp.textContent = calc.sweetSpotTime;
+        disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
+        disp.style.cursor = 'default';
+        disp.onclick = null;
       }
       if (sub) {
-        if (lockedSpot) {
-          sub.innerHTML = isEn()
-            ? `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,168,85,0.18);border:1px solid var(--accent);color:var(--accent);padding:5px 12px;border-radius:999px;font-weight:700;font-size:11px;">🔓 Unlock MışılSpot™ Smart Sleep Windows (7 Days ${currSym}0) ➔</span>`
-            : `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,168,85,0.18);border:1px solid var(--accent);color:var(--accent);padding:5px 12px;border-radius:999px;font-weight:700;font-size:11px;">🔓 MışılSpot™ Akıllı Uyku Saatlerini Aç (7 Gün ${currSym}0) ➔</span>`;
-          sub.style.cursor = 'pointer';
-          sub.onclick = () => openVipRenewalModal('mishil_spot');
-        } else if (firstAhaAvailable) {
-          sub.textContent = isEn()
-            ? `${calc.statusNote} • 🎁 1st Live Sleep Trial Free`
-            : `${calc.statusNote} • 🎁 İlk Canlı Uyku Takibi Ücretsiz`;
-          sub.style.cursor = 'default';
-          sub.onclick = null;
-        } else {
-          sub.textContent = calc.statusNote;
-          sub.style.cursor = 'default';
-          sub.onclick = null;
-        }
+        sub.textContent = (!paidVip && softVip.isActive)
+          ? (isEn() ? `${calc.statusNote} • 🎁 VIP Preview (${softVip.text})` : `${calc.statusNote} • 🎁 VIP Deneyimi (${softVip.text})`)
+          : calc.statusNote;
+        sub.style.cursor = 'default';
+        sub.onclick = null;
       }
       if (badge) {
-        badge.textContent = lockedSpot
-          ? (isEn() ? '🔒 MışılSpot™ Sleep Window (VIP)' : '🔒 MışılSpot™ Uyku Saati (VIP)')
-          : (firstAhaAvailable
-            ? (isEn() ? '🎁 First MışılSpot™ Gift Unlocked' : '🎁 İlk MışılSpot™ Hediyeniz Açık')
-            : (calc.isOverdue
-              ? (isEn() ? '⚠️ Sleep Window Overdue' : '⚠️ Uyku Vakti Aşıldı')
-              : (calc.isManual ? (isEn() ? '⚡ Early Leap Mode Active' : '⚡ Erken Atak Modu Aktif') : (isEn() ? 'MışılSpot™ Prediction Active' : 'MışılSpot™ Önerisi Aktif'))));
+        badge.textContent = calc.isOverdue
+          ? (isEn() ? '⚠️ Sleep Window Overdue' : '⚠️ Uyku Vakti Aşıldı')
+          : (calc.isManual ? (isEn() ? '⚡ Early Leap Mode Active' : '⚡ Erken Atak Modu Aktif') : (isEn() ? 'MışılSpot™ Prediction Active' : 'MışılSpot™ Önerisi Aktif'));
       }
     }
   }
@@ -10044,12 +10179,12 @@
       try { selPlan = localStorage.getItem('mishil_selected_plan') || 'monthly'; } catch (_e) {}
       if (selPlan === 'monthly') {
         day7El.textContent = en
-          ? `If you love it, Monthly ${dp.monthlyStr}/mo starts • One-tap cancel.`
-          : `Memnun kalırsanız Aylık ${dp.monthlyStr}/ay başlar • Tek tıkla iptal.`;
+          ? `If you love it, Monthly ${dp.monthlyStr}/mo starts.`
+          : `Memnun kalırsanız Aylık ${dp.monthlyStr}/ay başlar.`;
       } else {
         day7El.textContent = en
-          ? `If you love it, Annual ${dp.yearlyStr}/yr (${dp.monthlyEqStr}/mo) starts • One-tap cancel.`
-          : `Memnun kalırsanız Yıllık ${dp.yearlyStr}/yıl (${dp.monthlyEqStr}/ay) başlar • Tek tıkla iptal.`;
+          ? `If you love it, Annual ${dp.yearlyStr}/yr (${dp.monthlyEqStr}/mo) starts.`
+          : `Memnun kalırsanız Yıllık ${dp.yearlyStr}/yıl (${dp.monthlyEqStr}/ay) başlar.`;
       }
     }
 
@@ -10494,13 +10629,10 @@
         const [th, tm] = calc.sweetSpotTime.split(':').map(Number);
         const tMin = (th || 0) * 60 + (tm || 0);
         const leftPct = Math.max(0, Math.min(95, (tMin / 1440) * 100));
-        const lockedSpot = isMishilSpotLocked();
-        const blockTitle = lockedSpot ? '🔒 MışılSpot™ (VIP)' : `MışılSpot™: ${calc.sweetSpotTime}`;
+        const blockTitle = `MışılSpot™: ${calc.sweetSpotTime}`;
         html += `<div title="${blockTitle}" style="position:absolute; top:1px; bottom:1px; left:${leftPct.toFixed(1)}%; width:4.2%; background:rgba(244, 162, 97, 0.45); border:1.5px dashed var(--accent); border-radius:5px;"></div>`;
         if (stripSum) {
-          stripSum.textContent = lockedSpot
-            ? (isEn() ? '🔒 Next MışılSpot™ (VIP) ›' : '🔒 Sıradaki MışılSpot™ (VIP) ›')
-            : `🌙 MışılSpot™: ${calc.sweetSpotTime} ›`;
+          stripSum.textContent = `🌙 MışılSpot™: ${calc.sweetSpotTime} ›`;
         }
       }
     } else if (isSleeping && stripSum) {
@@ -11085,14 +11217,16 @@
 
   function openCryModal() {
     hapticPulse();
-    if (!isSubscriptionCurrentlyActive()) {
-      if (localStorage.getItem('mishil_free_cry_used') === '1') {
+    if (!isPaidOrVerifiedVip()) {
+      if (!getSoftVip24hStatus().isActive) {
         openVipRenewalModal('cry_analysis');
         return;
       }
-      showToast(isEn()
-        ? '🎁 Your 1st Smart Cry Guide analysis is unlocked for free!'
-        : '🎁 İlk Akıllı Ağlama Rehberi analiz hakkınız ücretsiz açıldı!');
+      const usedCryCount = parseInt(localStorage.getItem('mishil_soft_vip_cry_count') || '0', 10) || 0;
+      if (usedCryCount >= SOFT_VIP_CRY_MAX) {
+        openVipRenewalModal('cry_analysis');
+        return;
+      }
     }
     editingRoutineId = null;
     const headerTitle = document.getElementById('routine-modal-header-title');
@@ -11114,12 +11248,8 @@
   async function toggleLiveSleep() {
     hapticPulse();
     if (!isSleeping && !isSubscriptionCurrentlyActive()) {
-      if (localStorage.getItem('mishil_free_sleep_trial_used') !== '1') {
-        // S3: İlk canlı uyku takip seansına ücretsiz izin ver (Endowment Effect & İlk Aha! Anı)
-      } else {
-        openVipRenewalModal('mishil_spot');
-        return;
-      }
+      openVipRenewalModal('mishil_spot');
+      return;
     }
     isSleeping = !isSleeping;
     updateFabSleepState(isSleeping);
@@ -11138,17 +11268,23 @@
       localStorage.setItem('mishil_live_sleep_start', sleepStartTime.toISOString());
       const organicHero = document.getElementById('home-organic-hero');
       if (organicHero) organicHero.classList.add('sleeping-hero');
-      circle.classList.add('sleeping');
+      if (circle) circle.classList.add('sleeping');
       if (beamWrap) beamWrap.classList.add('active-beam');
-      shape.setAttribute('fill', '#A569BD');
-      btn.style.background = 'linear-gradient(135deg, #2ED573 0%, #10AC84 100%)';
-      btn.innerHTML = isEn()
-        ? '<span>☀️ Baby Woke Up (Complete & Save Sleep)</span>'
-        : '<span>☀️ Bebek Uyandı (Uykuyu Tamamla & Kaydet)</span>';
-      targetDisp.textContent = isEn() ? 'Sleeping... 💤' : 'Uyuyor... 💤';
-      targetDisp.style.color = '#A569BD';
-      targetSub.textContent = isEn() ? 'Deep sleep session in progress' : 'Derin uyku seansı devam ediyor';
-      liveTimer.style.display = 'block';
+      if (shape) shape.setAttribute('fill', '#A569BD');
+      if (btn) {
+        btn.style.background = 'linear-gradient(135deg, #2ED573 0%, #10AC84 100%)';
+        btn.innerHTML = isEn()
+          ? '<span>☀️ Baby Woke Up (Complete & Save Sleep)</span>'
+          : '<span>☀️ Bebek Uyandı (Uykuyu Tamamla & Kaydet)</span>';
+      }
+      if (targetDisp) {
+        targetDisp.textContent = isEn() ? 'Sleeping... 💤' : 'Uyuyor... 💤';
+        targetDisp.style.color = '#A569BD';
+      }
+      if (targetSub) {
+        targetSub.textContent = isEn() ? 'Deep sleep session in progress' : 'Derin uyku seansı devam ediyor';
+      }
+      if (liveTimer) liveTimer.style.display = 'block';
 
       if (sleepInterval) clearInterval(sleepInterval);
       sleepInterval = setInterval(() => {
@@ -11156,7 +11292,7 @@
         const hrs = String(Math.floor(diff / 3600)).padStart(2, '0');
         const mins = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
         const secs = String(diff % 60).padStart(2, '0');
-        liveTimer.textContent = isEn() ? `💤 Live Sleep: ${hrs}:${mins}:${secs}` : `💤 Canlı Uyku: ${hrs}:${mins}:${secs}`;
+        if (liveTimer) liveTimer.textContent = isEn() ? `💤 Live Sleep: ${hrs}:${mins}:${secs}` : `💤 Canlı Uyku: ${hrs}:${mins}:${secs}`;
       }, 1000);
 
       showToast(isEn() ? '🌙 Baby fell asleep, live tracking started' : '🌙 Bebek uykuya daldı, canlı takip başladı');
@@ -11200,53 +11336,40 @@
 
       activeRoutines.unshift(newSleepLog);
       localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+      if (!isSubscriptionCurrentlyActive()) {
+        localStorage.setItem('mishil_grace_sleep_routine_id', newSleepLog.id);
+      }
       hapticSuccess();
 
-      circle.classList.remove('sleeping');
+      if (circle) circle.classList.remove('sleeping');
       if (beamWrap) beamWrap.classList.remove('active-beam');
-      shape.setAttribute('fill', '#E8A855');
-      btn.style.background = 'linear-gradient(135deg, #F3B96E 0%, #E8A855 100%)';
-      btn.innerHTML = isEn() ? '<span>🌙 Sleeping Now (Start Live Tracker)</span>' : '<span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>';
-      targetDisp.style.color = 'var(--heading-night)';
-      liveTimer.style.display = 'none';
+      if (shape) shape.setAttribute('fill', '#E8A855');
+      if (btn) {
+        btn.style.background = 'linear-gradient(135deg, #F3B96E 0%, #E8A855 100%)';
+        btn.innerHTML = isEn() ? '<span>🌙 Sleeping Now (Start Live Tracker)</span>' : '<span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>';
+      }
+      if (targetDisp) targetDisp.style.color = 'var(--heading-night)';
+      if (liveTimer) liveTimer.style.display = 'none';
 
-      // Dinamik MışılSpot: Bebeğin uyanıklık penceresi kadar ekle (S3: İlk seans tamamlandıktan sonra 2. MışılSpot kilitlenir)
       const _baby = getBaby();
       const _calc = _baby ? calculateMışılSpot(_baby.bdate) : { wakeWindowMin: 90 };
       const nextSleepDate = new Date(endTime.getTime() + _calc.wakeWindowMin * 60000);
       const nextSleepFormatted = `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
-      if (!isSubscriptionCurrentlyActive()) {
-        localStorage.setItem('mishil_free_sleep_trial_used', '1');
-        localStorage.setItem('mishil_first_spot_aha_used', '1');
-        localStorage.setItem('mishil_free_sleep_routine_id', newSleepLog.id);
-      }
-      const lockedSpot = isMishilSpotLocked();
-      const currSym = getActiveCurrencySymbol();
-      if (lockedSpot) {
-        targetDisp.textContent = `${nextSleepFormatted.slice(0, 3)}•• 🔒`;
-        targetDisp.style.cursor = 'pointer';
-        targetDisp.onclick = () => openVipRenewalModal('mishil_spot');
-        targetSub.textContent = isEn()
-          ? `🔒 Tap to unlock MışılSpot™ smart sleep windows (7 Days ${currSym}0)`
-          : '🔒 MışılSpot™ akıllı uyku saatlerini açmak için dokunun (7 Gün ₺0)';
-        targetSub.style.cursor = 'pointer';
-        targetSub.onclick = () => openVipRenewalModal('mishil_spot');
-        showToast(isEn()
-          ? `☀️ ${totalMins} min sleep logged! Try VIP 7 Days Free to see the next MışılSpot™ time.`
-          : `☀️ ${totalMins} dk uyku kaydedildi! Sıradaki MışılSpot™ saatini görmek için VIP 7 Gün Ücretsiz deneyin.`);
-      } else {
+      if (targetDisp) {
         targetDisp.textContent = nextSleepFormatted;
         targetDisp.style.cursor = 'default';
         targetDisp.onclick = null;
+      }
+      if (targetSub) {
         targetSub.textContent = isEn()
           ? `MışılSpot™ Ideal Sleep Window (in ${_calc.wakeWindowMin} min)`
           : `MışılSpot™ İdeal Uyku Vakti (${_calc.wakeWindowMin} dk sonra)`;
         targetSub.style.cursor = 'default';
         targetSub.onclick = null;
-        showToast(isEn()
-          ? `☀️ Good morning! ${totalMins} min sleep logged. Next MışılSpot: ${nextSleepFormatted}`
-          : `☀️ Günaydın! ${totalMins} dk uyku kaydedildi. Sıradaki MışılSpot: ${nextSleepFormatted}`);
       }
+      showToast(isEn()
+        ? `☀️ Good morning! ${totalMins} min sleep logged. Next MışılSpot: ${nextSleepFormatted}`
+        : `☀️ Günaydın! ${totalMins} dk uyku kaydedildi. Sıradaki MışılSpot: ${nextSleepFormatted}`);
       broadcastRealtimeEvent('SLEEP_COMPLETED', { by: role, duration_mins: totalMins });
       if (typeof updateLiveSleepStartUI === 'function') updateLiveSleepStartUI();
       if (totalMins >= 180 && typeof openEditRoutineModal === 'function') {
@@ -11284,6 +11407,12 @@
     if (!savedStart) return;
     const parsedStart = new Date(savedStart);
     if (isNaN(parsedStart.getTime())) {
+      localStorage.removeItem('mishil_live_sleep_start');
+      return;
+    }
+    const softSt = getSoftVip24hStatus();
+    const startedWithinSoftVip = softSt.hasGranted && softSt.startMs > 0 && parsedStart.getTime() <= (softSt.startMs + SOFT_VIP_DURATION_MS + 60000);
+    if (!isSubscriptionCurrentlyActive() && !startedWithinSoftVip) {
       localStorage.removeItem('mishil_live_sleep_start');
       return;
     }
@@ -11575,8 +11704,9 @@
   }
 
   function renderCryResults(data) {
-    if (!isSubscriptionCurrentlyActive()) {
-      localStorage.setItem('mishil_free_cry_used', '1');
+    if (!isPaidOrVerifiedVip()) {
+      const nextCryCount = (parseInt(localStorage.getItem('mishil_soft_vip_cry_count') || '0', 10) || 0) + 1;
+      localStorage.setItem('mishil_soft_vip_cry_count', String(nextCryCount));
     }
     document.getElementById('cry-recorder').style.display = 'none';
     document.getElementById('cry-result').style.display = 'block';
@@ -11679,10 +11809,13 @@
   }
 
   function resetCryRecorder() {
-    if (!isSubscriptionCurrentlyActive() && localStorage.getItem('mishil_free_cry_used') === '1') {
-      closeCryModal();
-      openVipRenewalModal('cry_analysis');
-      return;
+    if (!isPaidOrVerifiedVip()) {
+      const usedCryCount = parseInt(localStorage.getItem('mishil_soft_vip_cry_count') || '0', 10) || 0;
+      if (!getSoftVip24hStatus().isActive || usedCryCount >= SOFT_VIP_CRY_MAX) {
+        closeCryModal();
+        openVipRenewalModal('cry_analysis');
+        return;
+      }
     }
     document.getElementById('cry-result').style.display = 'none';
     document.getElementById('cry-recorder').style.display = 'block';
@@ -11767,12 +11900,16 @@
   }
 
   function switchTab(tabName) {
-    // Sınırlı Modda (Seçenek A — Tam Kilitli Vitrin Modu) Gelişim/Analiz ve Mışıl Dadı sekmeleri doğrudan VIP Paywall açar:
+    // Gelişim/Analiz sekmesi 24s Soft VIP veya tam VIP aktifken açık; Mışıl Dadı sekmesi 24s Soft VIP içindeyken veya 1 ücretsiz soru hakkı duruyorsa açık:
     if (tabName === 'analytics' && !requireActiveSubscription('analytics')) {
       return;
     }
-    if (tabName === 'coach' && !requireActiveSubscription('ai_nanny')) {
-      return;
+    if (tabName === 'coach') {
+      if (!canAccessCoachTab()) {
+        openVipRenewalModal('ai_nanny');
+        return;
+      }
+      if (typeof updateDadiFreeQuotaUI === 'function') updateDadiFreeQuotaUI();
     }
 
     if (tabName !== 'settings') {
@@ -11909,49 +12046,25 @@
       if (badge) badge.textContent = isEn() ? 'Profile pending' : 'Profil bekleniyor';
     } else {
       const calc = calculateMışılSpot(baby.bdate);
-      const isSubActive = isSubscriptionCurrentlyActive();
-      const lockedSpot = isMishilSpotLocked();
-      const firstAhaAvailable = !isSubActive && !lockedSpot;
+      const paidVip = isPaidOrVerifiedVip();
+      const softVip = getSoftVip24hStatus();
       if (disp && !isSleeping) {
-        if (lockedSpot) {
-          disp.textContent = `${calc.sweetSpotTime.slice(0, 3)}•• 🔒`;
-          disp.style.color = 'var(--accent)';
-          disp.style.cursor = 'pointer';
-          disp.onclick = () => openVipRenewalModal('mishil_spot');
-        } else {
-          disp.textContent = calc.sweetSpotTime;
-          disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
-          disp.style.cursor = 'default';
-          disp.onclick = null;
-        }
+        disp.textContent = calc.sweetSpotTime;
+        disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
+        disp.style.cursor = 'default';
+        disp.onclick = null;
       }
       if (sub && !isSleeping) {
-        if (lockedSpot) {
-          sub.innerHTML = isEn()
-            ? `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,168,85,0.18);border:1px solid var(--accent);color:var(--accent);padding:5px 12px;border-radius:999px;font-weight:700;font-size:11px;">🔓 Unlock MışılSpot™ Smart Sleep Windows (7 Days ${currSym}0) ➔</span>`
-            : `<span style="display:inline-flex;align-items:center;gap:6px;background:rgba(232,168,85,0.18);border:1px solid var(--accent);color:var(--accent);padding:5px 12px;border-radius:999px;font-weight:700;font-size:11px;">🔓 MışılSpot™ Akıllı Uyku Saatlerini Aç (7 Gün ${currSym}0) ➔</span>`;
-          sub.style.cursor = 'pointer';
-          sub.onclick = () => openVipRenewalModal('mishil_spot');
-        } else if (firstAhaAvailable) {
-          sub.textContent = isEn()
-            ? `${calc.statusNote} • 🎁 1st Live Sleep Trial Free`
-            : `${calc.statusNote} • 🎁 İlk Canlı Uyku Takibi Ücretsiz`;
-          sub.style.cursor = 'default';
-          sub.onclick = null;
-        } else {
-          sub.textContent = calc.statusNote;
-          sub.style.cursor = 'default';
-          sub.onclick = null;
-        }
+        sub.textContent = (!paidVip && softVip.isActive)
+          ? (isEn() ? `${calc.statusNote} • 🎁 VIP Preview (${softVip.text})` : `${calc.statusNote} • 🎁 VIP Deneyimi (${softVip.text})`)
+          : calc.statusNote;
+        sub.style.cursor = 'default';
+        sub.onclick = null;
       }
       if (badge) {
-        badge.textContent = lockedSpot
-          ? (isEn() ? '🔒 MışılSpot™ Sleep Window (VIP)' : '🔒 MışılSpot™ Uyku Saati (VIP)')
-          : (firstAhaAvailable
-            ? (isEn() ? '🎁 First MışılSpot™ Gift Unlocked' : '🎁 İlk MışılSpot™ Hediyeniz Açık')
-            : (calc.isOverdue
-              ? (isEn() ? '⚠️ Sleep Window Overdue' : '⚠️ Uyku Vakti Aşıldı')
-              : (calc.isManual ? (isEn() ? '⚡ Early Leap Mode Active' : '⚡ Erken Atak Modu Aktif') : (isEn() ? 'MışılSpot™ Prediction Active' : 'MışılSpot™ Önerisi Aktif'))));
+        badge.textContent = calc.isOverdue
+          ? (isEn() ? '⚠️ Sleep Window Overdue' : '⚠️ Uyku Vakti Aşıldı')
+          : (calc.isManual ? (isEn() ? '⚡ Early Leap Mode Active' : '⚡ Erken Atak Modu Aktif') : (isEn() ? 'MışılSpot™ Prediction Active' : 'MışılSpot™ Önerisi Aktif'));
       }
     }
 
@@ -12358,6 +12471,7 @@
     sleepStartTime = newStart;
     localStorage.setItem('mishil_live_sleep_start', sleepStartTime.toISOString());
     updateLiveSleepStartUI();
+    if (typeof renderHomeCareSummaryAndCircadianStrip === 'function') renderHomeCareSummaryAndCircadianStrip();
     const liveTimer = document.getElementById('live-sleep-timer');
     if (liveTimer) {
       const diff = Math.max(0, Math.floor((Date.now() - sleepStartTime.getTime()) / 1000));
@@ -12372,10 +12486,10 @@
 
   function openEditRoutineModal(id) {
     hapticPulse();
-    const isFreeFirstSleepEdit = !isSubscriptionCurrentlyActive()
+    const isGraceSleepEdit = !isSubscriptionCurrentlyActive()
       && id
-      && id === localStorage.getItem('mishil_free_sleep_routine_id');
-    if (!isFreeFirstSleepEdit && !requireActiveSubscription('routine_log')) return;
+      && id === localStorage.getItem('mishil_grace_sleep_routine_id');
+    if (!isGraceSleepEdit && !requireActiveSubscription('routine_log')) return;
     const item = (Array.isArray(activeRoutines) ? activeRoutines : []).find(r => r.id === id);
     if (!item) return;
     editingRoutineId = item.id;
@@ -12496,7 +12610,7 @@
       loadBabyProfile();
       const _baby = getBaby();
       const _calc = _baby ? calculateMışılSpot(_baby.bdate) : { sweetSpotTime: '--:--', wakeWindowMin: 90 };
-      const _spotText = isMishilSpotLocked() ? `${_calc.sweetSpotTime.slice(0, 3)}•• 🔒` : _calc.sweetSpotTime;
+      const _spotText = _calc.sweetSpotTime;
       showToast(isEditing
         ? (isEn() ? `✅ Sleep time updated (${start} - ${end} • ${durMins} min). Next MışılSpot: ${_spotText}` : `✅ Uyku saati güncellendi (${start} - ${end} • ${durMins} dk). Sıradaki MışılSpot: ${_spotText}`)
         : (isEn() ? `🌙 ${durMins} min sleep logged! Next MışılSpot: ${_spotText}` : `🌙 ${durMins} dk uyku kaydedildi! Sıradaki MışılSpot: ${_spotText}`));
@@ -12796,7 +12910,30 @@
 
   function openDeleteAccountModal() { document.getElementById('modal-delete').classList.add('active'); }
   function closeDeleteModal() { document.getElementById('modal-delete').classList.remove('active'); }
-  function confirmDeleteAccount() { localStorage.clear(); closeDeleteModal(); showToast(isEn() ? '🗑️ All your data has been permanently deleted' : '🗑️ Tüm verileriniz kalıcı olarak silindi'); setTimeout(() => location.reload(), 1500); }
+  function confirmDeleteAccount() {
+    const preservedDeviceQuotaKeys = [
+      'mishil_soft_vip_24h_granted',
+      'mishil_soft_vip_24h_start_ms',
+      'mishil_soft_vip_24h_last_ms',
+      'mishil_free_dadi_question_used',
+      'mishil_soft_vip_cry_count',
+      'mishil_strict_sub_mig_v2'
+    ];
+    const preserved = {};
+    try {
+      preservedDeviceQuotaKeys.forEach(k => {
+        const val = localStorage.getItem(k);
+        if (val !== null) preserved[k] = val;
+      });
+    } catch (_pde) {}
+    localStorage.clear();
+    try {
+      Object.keys(preserved).forEach(k => localStorage.setItem(k, preserved[k]));
+    } catch (_rde) {}
+    closeDeleteModal();
+    showToast(isEn() ? '🗑️ All your data has been permanently deleted' : '🗑️ Tüm verileriniz kalıcı olarak silindi');
+    setTimeout(() => location.reload(), 1500);
+  }
 
   // =========================================================================
   // ÇİFT DİL (TR / EN) STATİK DOM & CANLI GEÇİŞ MOTORU (i18n v4.47.0)
@@ -12842,7 +12979,7 @@
     'Bugün: Anında Tam Erişim (₺0)': 'Today: Instant Full Access ($0)',
     'MışılSpot™ uyku saatleri, Ağlama Rehberi, Mışıl Dadı™ ve 18 ses açılır.': 'MışılSpot™ sleep windows, Cry Guide, Mışıl Nanny™, and 18 studio sounds unlock.',
     '6. Gün: Deneme Bitmeden Bilgi': 'Day 6: Reminder Before Trial Ends',
-    'App Store / Google Play ayarlarından dilediğiniz an tek tıkla iptal edebilirsiniz.': 'Cancel anytime with one tap in App Store / Google Play settings.',
+    'App Store / Google Play ayarlarından aboneliğinizi dilediğiniz an yönetebilirsiniz.': 'Manage your subscription anytime in App Store / Google Play settings.',
     '8. Gün: Seçtiğiniz Plan Başlar': 'Day 8: Your Selected Plan Begins',
     'Yıllık VIP Plan': 'Annual VIP Plan',
     'Aylık VIP Plan': 'Monthly VIP Plan',
@@ -12855,7 +12992,7 @@
     '%67 TASARRUF': 'SAVE 67%',
     '🎁 7 Gün Ücretsiz • Taahhütsüz esnek model': '🎁 7 Days Free • Flexible monthly plan',
     '🎁 7 Gün Ücretsiz • Avantajlı yıllık plan': '🎁 7 Days Free • Best value annual plan',
-    'İstediğiniz an iptal': 'Cancel anytime',
+    'Aylık esnek plan': 'Flexible monthly',
     '1 bezden uygun': 'Less than 1 diaper',
     'Avantajlı günlük maliyet': 'Best daily value',
     '(Veya hızlı yaş seçin)': '(Or tap age range)',
@@ -12863,7 +13000,7 @@
     '🍼 4–6 Ay': '🍼 4–6 Mo',
     '🧸 7–12 Ay': '🧸 7–12 Mo',
     '🏃 1–2 Yaş': '🏃 1–2 Yr',
-    '🔒 Bugün hiçbir ücret çekilmez • App Store / Google Play güvencesiyle tek tıkla iptal': '🔒 No charge today • Cancel anytime with one tap via App Store / Google Play',
+    '🔒 Bugün hiçbir ücret çekilmez • App Store / Google Play güvencesi': '🔒 No charge today • Secured by App Store / Google Play',
     'Satın Alımları Geri Yükle': 'Restore Purchases',
     'Kullanım Koşulları (EULA)': 'Terms of Use (EULA)',
     'Gizlilik Politikası': 'Privacy Policy',
@@ -13167,7 +13304,7 @@
     '1–7. GÜN': 'DAYS 1–7',
     'Bebeğinizin uyku ritmi, büyüme atakları ve Mışıl Dadı™ rehberliği kişiselleştirilir.': 'Your baby\'s sleep rhythm, growth leaps, and Mışıl Nanny™ guidance are personalized.',
     '8. GÜN': 'DAY 8',
-    'Memnun kalırsanız seçtiğiniz plan başlar • Tek tıkla iptal.': 'If you love it, your selected plan starts • One-tap cancel.',
+    'Memnun kalırsanız seçtiğiniz plan başlar.': 'If you love it, your selected plan starts.',
     '/yıl faturalanır': '/yr billed annually',
     '🩺 Tıbbi Feragatname:': '🩺 Medical Disclaimer:',
     'Mışıl Baby tıbbi teşhis aracı değildir; uyku pencereleri hekim tavsiyesi yerine geçmez. Kabul ediyorum.': 'Mışıl Baby is not a medical diagnostic tool; sleep windows do not replace pediatric advice. I agree.',
@@ -13262,7 +13399,7 @@
     'Kapat': 'Close',
     '🎁 7 Gün Ücretsiz Mışıl VIP Başlatın': '🎁 Start Your 7-Day Free Mışıl VIP Trial',
     '★★★★★ 5.0 Mağaza Puanı': '★★★★★ 5.0 Store Rating',
-    'İlk 7 Gün ₺0 • Tek Tıkla İptal': 'First 7 Days $0 • One-Tap Cancel',
+    'İlk 7 Gün ₺0 • Tam VIP Erişim': 'First 7 Days $0 • Full VIP Access',
     'Bebeğinizin yaşına özel uyku saatleri,': 'Age-specific sleep windows,',
     'Akıllı Ağlama Rehberi': 'Smart Cry Guide',
     '7/24 Mışıl Dadı': '24/7 Mışıl Nanny',
@@ -13275,7 +13412,7 @@
     '18 Stüdyo Sesi': '18 Studio Sounds',
     '45/60 dk Sayaç & Gece Modu': '45/60m Timer & Night Crib Mode',
     '🛡️ Bugün ücret ödenmez • 7 gün boyunca kartınızdan ücret çekilmez': '🛡️ Pay $0 today • No charge on your card for 7 days',
-    'Aboneliğiniz dönem sonunda otomatik yenilenir. İstediğiniz an mağaza hesap ayarlarınızdan tek tıkla iptal edebilirsiniz.': 'Your subscription renews automatically at the end of the period. Cancel anytime with one tap in your store account settings.',
+    'Aboneliğiniz dönem sonunda otomatik yenilenir. Abonelik tercihlerinizi mağaza hesap ayarlarınızdan yönetebilirsiniz.': 'Your subscription renews automatically at the end of the period. You can manage your subscription preferences in your store account settings.',
     'Reklam & Köprü Analitik Kokpiti (/ios & /download)': 'Ad & Attribution Analytics Cockpit (/ios & /download)',
     'Anne Geri Bildirimleri Paneli': 'Parent Feedback Panel',
     '⭐ 5 Yıldız Çarkını Canlı Önizle (Test)': '⭐ Preview 5-Star Rating Sheet (Test)',

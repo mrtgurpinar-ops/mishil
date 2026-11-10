@@ -270,7 +270,9 @@ export default function MishilUnifiedWebView() {
                 if (typeof switchTab === 'function') {
                   var coach = document.getElementById('view-coach');
                   var analyticsView = document.getElementById('view-analytics');
-                  if ((coach && coach.classList.contains('active')) || (analyticsView && analyticsView.classList.contains('active'))) {
+                  var softActive = typeof isSubscriptionCurrentlyActive === 'function' && isSubscriptionCurrentlyActive();
+                  var coachAllowed = typeof canAccessCoachTab === 'function' ? canAccessCoachTab() : softActive;
+                  if ((analyticsView && analyticsView.classList.contains('active') && !softActive) || (coach && coach.classList.contains('active') && !coachAllowed)) {
                     switchTab('home');
                   }
                 }
