@@ -1697,11 +1697,12 @@ def test_cockpit_v3_ssot_no_ratchet_and_data_architecture_tab(client, db_session
 
 def test_cockpit_v4_executive_app_shell_progressive_disclosure_and_search(client):
     """
-    v4.56.0 3-Ajanlı Konsensüs Executive App Shell UI Denetimi:
-    1. Sol yapışkan sidebar (.cockpit-shell & .cockpit-sidebar) aktif olmalı,
-    2. Kuzey Yıldızı hunisi daraltılabilir (toggleHeroFunnel / btnToggleHeroFunnel) olmalı,
-    3. Yoğun tablolarda canlı arama (filterTableByQuery) ve sabit yükseklikli kaydırma (table-scroll-bounded) bulunmalı,
-    4. Gereksiz ara 'cat-header' şeritleri DOM'dan temizlenmiş olmalı.
+    v4.56.1 3-Ajanlı Konsensüs Full-Viewport App Shell & Minimalist Bento UI Denetimi:
+    1. Sol sabit 100vh koyu sidebar (.cockpit-shell & .cockpit-sidebar, position: fixed) ve 2 sütunlu Bento (.bento-split-2col) aktif olmalı,
+    2. Uzun açıklama paragrafları (.sr-only, .card-desc, .step-sub) gizlenip tek satırlık mikro çipler (.kpi-micro-meta / .kpi-micro-chip) gösterilmeli,
+    3. Kuzey Yıldızı hunisi daraltılabilir (toggleHeroFunnel / btnToggleHeroFunnel) olmalı,
+    4. Yoğun tablolarda canlı arama (filterTableByQuery) ve sabit yükseklikli kaydırma (table-scroll-bounded) bulunmalı,
+    5. Gereksiz ara 'cat-header' şeritleri DOM'dan temizlenmiş olmalı.
     """
     dash_res = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"})
     assert dash_res.status_code == 200
@@ -1709,6 +1710,11 @@ def test_cockpit_v4_executive_app_shell_progressive_disclosure_and_search(client
 
     assert 'class="cockpit-shell"' in html_txt
     assert 'class="cockpit-sidebar hide-in-pres"' in html_txt
+    assert 'class="cockpit-main"' in html_txt
+    assert 'class="bento-split-2col"' in html_txt
+    assert 'class="bento-split-2col-equal"' in html_txt
+    assert 'class="kpi-micro-meta"' in html_txt
+    assert 'class="kpi-micro-chip"' in html_txt
     assert 'id="btnToggleHeroFunnel"' in html_txt
     assert "function toggleHeroFunnel()" in html_txt
     assert "function filterTableByQuery(inputEl, tbodyId)" in html_txt
