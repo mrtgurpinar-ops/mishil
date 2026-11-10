@@ -6618,13 +6618,34 @@ async def analytics_dashboard_page(
         }}
         .timeline-scroll {{
           width: 100%;
+          max-width: 100%;
           overflow-x: auto;
-          padding-bottom: 4px;
+          overflow-y: hidden;
+          padding-bottom: 8px;
+          -webkit-overflow-scrolling: touch;
+          scrollbar-width: thin;
+          scrollbar-color: #94A3B8 var(--bg-cell);
+        }}
+        .timeline-scroll::-webkit-scrollbar {{
+          height: 7px;
+        }}
+        .timeline-scroll::-webkit-scrollbar-track {{
+          background: var(--bg-cell);
+          border-radius: 99px;
+        }}
+        .timeline-scroll::-webkit-scrollbar-thumb {{
+          background: #94A3B8;
+          border-radius: 99px;
+        }}
+        .timeline-scroll::-webkit-scrollbar-thumb:hover {{
+          background: #64748B;
         }}
         .timeline-grid {{
           display: grid;
-          grid-template-columns: repeat({max(1, len(t_days))}, minmax(56px, 1fr));
-          gap: 6px;
+          grid-template-columns: repeat({max(1, len(t_days))}, minmax(36px, 1fr));
+          min-width: max-content;
+          width: 100%;
+          gap: 4px;
           height: 224px;
           padding: 14px 10px;
           background: var(--bg-cell);
@@ -6637,7 +6658,7 @@ async def analytics_dashboard_page(
           align-items: stretch;
           justify-items: center;
           height: 100%;
-          padding: 2px;
+          padding: 2px 1px;
           border-radius: 8px;
         }}
         .t-today {{
@@ -6648,7 +6669,7 @@ async def analytics_dashboard_page(
           background: rgba(245, 158, 11, 0.06);
         }}
         .t-top-val {{
-          font-size: 11px;
+          font-size: 10.5px;
           font-weight: 800;
           line-height: 22px;
           white-space: nowrap;
@@ -6663,13 +6684,13 @@ async def analytics_dashboard_page(
           padding: 2px 0;
         }}
         .t-bar {{
-          width: 68%;
-          max-width: 30px;
+          width: 72%;
+          max-width: 26px;
           border-radius: 6px 6px 2px 2px;
           transition: height 0.25s ease;
         }}
         .t-lbl {{
-          font-size: 11px;
+          font-size: 10px;
           color: var(--text-muted);
           line-height: 22px;
           font-weight: 700;
@@ -7001,6 +7022,8 @@ async def analytics_dashboard_page(
           border-radius: 16px !important;
           border: 1px solid var(--border-subtle) !important;
           box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03) !important;
+          min-width: 0 !important;
+          max-width: 100% !important;
         }}
         .section-head {{
           margin-bottom: 14px !important;
@@ -7018,17 +7041,17 @@ async def analytics_dashboard_page(
           justify-content: space-between;
           gap: 6px;
         }}
-        /* 2 SÜTUNLU YAN YANA BENTO YERLEŞİMİ (ALT ALTA YIĞILMAYI BİTİRİR) */
+        /* 2 SÜTUNLU YAN YANA BENTO YERLEŞİMİ (ALT ALTA YIĞILMAYI VE YATAY TAŞMAYI BİTİRİR) */
         .bento-split-2col {{
           display: grid;
-          grid-template-columns: 1.35fr 1fr;
+          grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
           gap: 20px;
           align-items: start;
           margin-bottom: 20px;
         }}
         .bento-split-2col-equal {{
           display: grid;
-          grid-template-columns: 1fr 1fr;
+          grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
           gap: 20px;
           align-items: start;
           margin-bottom: 20px;
@@ -7036,6 +7059,7 @@ async def analytics_dashboard_page(
         .bento-split-2col > .bento-card,
         .bento-split-2col-equal > .bento-card {{
           margin-bottom: 0 !important;
+          min-width: 0 !important;
         }}
         .conv-bridge-card {{
           margin-bottom: 20px;
@@ -7357,6 +7381,8 @@ async def analytics_dashboard_page(
                   </div>
                 </div>
                 <div class="chart-toggle">
+                  <button type="button" onclick="scrollTimelineBy(-260)" title="Eski Günlere Kaydır">◀</button>
+                  <button type="button" onclick="scrollTimelineBy(260)" title="Yeni Günlere Kaydır">▶</button>
                   <button id="btnCumChart" class="active" onclick="switchChartMode('cum')">🌐 Tümü ({f_dl})</button>
                   <button id="btnIosChart" onclick="switchChartMode('ios')">🍏 iOS ({kpis['ios_downloads']})</button>
                   <button id="btnAndChart" onclick="switchChartMode('android')">🤖 Android ({kpis['android_downloads']})</button>
@@ -7364,7 +7390,7 @@ async def analytics_dashboard_page(
                 </div>
               </div>
 
-              <div class="timeline-scroll">
+              <div class="timeline-scroll" id="timelineScrollWrap">
                 <div id="chartCumWrap" class="timeline-grid">
                   {cum_bars_html}
                 </div>
@@ -7989,6 +8015,24 @@ async def analytics_dashboard_page(
           }}
         }}
 
+        function scrollTimelineToLatest() {{
+          var ts = document.getElementById('timelineScrollWrap');
+          if (!ts) return;
+          setTimeout(function() {{
+            ts.scrollLeft = ts.scrollWidth;
+          }}, 20);
+        }}
+
+        function scrollTimelineBy(dx) {{
+          var ts = document.getElementById('timelineScrollWrap');
+          if (!ts) return;
+          try {{
+            ts.scrollBy({{ left: dx, behavior: 'smooth' }});
+          }} catch (_se) {{
+            ts.scrollLeft += dx;
+          }}
+        }}
+
         function switchChartMode(mode) {{
           var wraps = {{
             'cum': document.getElementById('chartCumWrap'),
@@ -8010,6 +8054,7 @@ async def analytics_dashboard_page(
             }}
           }}
           localStorage.setItem('mishil_dash_chart_mode', mode);
+          scrollTimelineToLatest();
         }}
 
         function switchPlatform(plat, skipChartSync) {{
@@ -8136,6 +8181,18 @@ async def analytics_dashboard_page(
           var savedChartMode = localStorage.getItem('mishil_dash_chart_mode');
           if (savedChartMode === 'daily' || savedChartMode === 'cum' || savedChartMode === 'ios' || savedChartMode === 'android') {{
             switchChartMode(savedChartMode);
+          }} else {{
+            scrollTimelineToLatest();
+          }}
+
+          var tsWrap = document.getElementById('timelineScrollWrap');
+          if (tsWrap) {{
+            tsWrap.addEventListener('wheel', function(ev) {{
+              if (Math.abs(ev.deltaY) > Math.abs(ev.deltaX) && tsWrap.scrollWidth > tsWrap.clientWidth) {{
+                ev.preventDefault();
+                tsWrap.scrollLeft += ev.deltaY;
+              }}
+            }}, {{ passive: false }});
           }}
 
           var savedScrollY = sessionStorage.getItem('mishil_dash_scroll_y');
