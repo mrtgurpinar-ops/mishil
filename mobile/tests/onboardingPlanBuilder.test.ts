@@ -324,4 +324,117 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     // Cleared in clearOnboardingLiveSleepDraftIfAny, onPurchaseSuccess, activateTrialAndStart, skipOnboardingToApp, submitReviewerPin, restoreVipRenewalPurchases, and checkAndRestoreLiveSleep
     expect(clearMatches.length).toBeGreaterThanOrEqual(7);
   });
+
+  it('splits Step 8 (Personal Report) and Step 9 (Focused Paywall) with Apple 3.1.2c annual price primacy and immediate skip', () => {
+    const htmlPath = path.resolve(__dirname, '../../public/app.html');
+    const html = fs.readFileSync(htmlPath, 'utf8');
+    const step8Idx = html.indexOf('id="quiz-step-8"');
+    const step9Idx = html.indexOf('id="quiz-step-9"');
+    const mainIdx = html.indexOf('id="main-app-screen"');
+    expect(step8Idx).toBeGreaterThan(-1);
+    expect(step9Idx).toBeGreaterThan(step8Idx);
+    expect(mainIdx).toBeGreaterThan(step9Idx);
+
+    const step8Html = html.slice(step8Idx, step9Idx);
+    const step9Html = html.slice(step9Idx, mainIdx);
+
+    // Step 8 focuses strictly on personal report + locked evening roadmap CTA, with zero plan cards
+    expect(step8Html.includes('id="report-next-sweetspot-time"')).toBe(true);
+    expect(step8Html.includes('id="report-locked-roadmap-card"')).toBe(true);
+    expect(step8Html.includes('id="btn-report-unlock-plan"')).toBe(true);
+    expect(step8Html.includes('id="onboarding-plan-monthly"')).toBe(false);
+
+    // Step 9 contains focused paywall, immediate skip (opacity: 1), legal links, and Reviewer PIN trigger
+    expect(step9Html.includes('id="onboarding-plan-monthly"')).toBe(true);
+    expect(step9Html.includes('id="onboarding-plan-yearly"')).toBe(true);
+    expect(step9Html.includes('id="btn-onboarding-pro"')).toBe(true);
+    expect(step9Html.includes('id="onboarding-skip-wrap" style="text-align: center; margin-top: 8px; opacity: 1;"')).toBe(true);
+    expect(step9Html.includes('id="paywall-version-trigger"')).toBe(true);
+
+    // Apple Guideline 3.1.2c: total annual billed amount (.price-yearly-text) must precede monthly equivalent (.price-yearly-monthly-eq-text)
+    const yearlyCardStart = step9Html.indexOf('id="onboarding-plan-yearly"');
+    const yearlySlice = step9Html.slice(yearlyCardStart, yearlyCardStart + 1400);
+    expect(yearlySlice.indexOf('price-yearly-text')).toBeGreaterThan(-1);
+    expect(yearlySlice.indexOf('price-yearly-monthly-eq-text')).toBeGreaterThan(yearlySlice.indexOf('price-yearly-text'));
+  });
+
+  it('computePersonalReportInsights distinguishes estimated vs logged wake and generates locked evening roadmap & tr/en/de chips', () => {
+    const { sandbox } = createOnboardingEngineSandbox();
+    const now = new Date(2026, 10, 11, 14, 0, 0); // 14:00
+
+    // Case 1: User skipped Step 2 (no wake log, not sleeping) -> honest isEstimatedWake: true
+    const estReportEn = sandbox.computePersonalReportInsights({
+      lang: 'en',
+      nowDate: now,
+      bdate: '2026-07-11', // 4 months -> wakeWindow 95m, bedtime 19:30 -> 19:••
+      routines: [],
+      checkedLeaps: {},
+      completedVaccines: {},
+      schedule: SAMPLE_TR_VACCINES,
+      leapsList: SAMPLE_LEAPS,
+    });
+    expect(estReportEn.isEstimatedWake).toBe(true);
+    expect(estReportEn.hasLoggedWake).toBe(false);
+    expect(estReportEn.wakeSourceLine).toContain('initial estimate');
+    expect(estReportEn.nextNapLockedMask).toMatch(/^\d{2}:••$/);
+    expect(estReportEn.idealBedtimeMask).toBe('19:••');
+    expect(estReportEn.chips.feedChip).toContain('Feeding');
+    expect(estReportEn.chips.vaccineChip).toContain('Due');
+
+    // Case 2: Logged wake in German -> hasLoggedWake: true, isEstimatedWake: false
+    const wakeTs = new Date(2026, 10, 11, 13, 0, 0).getTime();
+    const loggedDe = sandbox.computePersonalReportInsights({
+      lang: 'de',
+      nowDate: now,
+      bdate: '2026-07-11',
+      lastWakeTs: wakeTs,
+      routines: [{ id: 'onb_slp_init', type: 'sleep', endTs: wakeTs, timestamp: wakeTs, time: '13:00' }],
+      checkedLeaps: { '1': true },
+      completedVaccines: {
+        v_hepb_1: { done: true },
+        v_hepb_2: { done: true },
+        v_bcg: { done: true },
+        v_karma_1: { done: true },
+        v_karma_2: { done: true },
+      },
+      schedule: SAMPLE_TR_VACCINES,
+      leapsList: SAMPLE_LEAPS,
+    });
+    expect(loggedDe.hasLoggedWake).toBe(true);
+    expect(loggedDe.isEstimatedWake).toBe(false);
+    expect(loggedDe.sweetSpotTimeStr).toBe('14:45');
+    expect(loggedDe.nextNapLockedMask).toBe('17:••');
+    expect(loggedDe.chips.vaccineChip).toBe('💉 Impfpass aktuell ✓');
+  });
+
+  it('enforces honest 1-shot Freemium value gate without 24h cardless Soft VIP trial cannibalization', () => {
+    const htmlPath = path.resolve(__dirname, '../../public/app.html');
+    const html = fs.readFileSync(htmlPath, 'utf8');
+    expect(html.includes('var SOFT_VIP_DURATION_MS = 0;')).toBe(true);
+    expect(html.includes('return !isSubscriptionCurrentlyActive() && hasUsedFirstFreeSpotAha();')).toBe(true);
+    expect(html.includes("localStorage.setItem('mishil_first_spot_aha_used', '1');")).toBe(true);
+    expect(html.includes("localStorage.setItem('mishil_free_sound_used', '1');")).toBe(true);
+    expect(html.includes("localStorage.setItem('mishil_free_cry_used', '1');")).toBe(true);
+    expect(html.includes('mishil_onb_live_sleep_promoted')).toBe(true);
+    expect(html.includes('skipQuotaConsume: true')).toBe(true);
+    expect(html.includes('freeSoundPreviewTrackId')).toBe(true);
+    expect(html.includes('chk-medical-disclaimer')).toBe(false);
+    expect(html.includes('toggleDisclaimerConsent')).toBe(false);
+
+    // Multi-surface paywall compliance on #vip-renewal-modal as well
+    const modalIdx = html.indexOf('id="vip-renewal-modal"');
+    expect(modalIdx).toBeGreaterThan(0);
+    const modalChunk = html.slice(modalIdx, modalIdx + 12000);
+    expect(modalChunk.indexOf('price-yearly-text')).toBeGreaterThan(0);
+    expect(modalChunk.indexOf('price-yearly-text')).toBeLessThan(modalChunk.indexOf('price-yearly-monthly-eq-text'));
+    expect(modalChunk.includes('id="vip-renewal-timeline-day7-text"')).toBe(true);
+    expect(modalChunk.includes('/terms')).toBe(true);
+    expect(modalChunk.includes('/privacy')).toBe(true);
+    expect(modalChunk.includes('handleReviewerTap()')).toBe(true);
+
+    // Cross-language Back navigation (Step 9 -> Step 8) & Native Build 68 post-paywall naming sync
+    expect(html.includes('generateSleepReport({ preservePlan: true, silentHaptic: true })')).toBe(true);
+    expect(html.includes('window.__mishilWasExitingOnboarding')).toBe(true);
+    expect(html.includes('openVipRenewalModal(lastVipRenewalFeature, { silentRefresh: true })')).toBe(true);
+  });
 });
