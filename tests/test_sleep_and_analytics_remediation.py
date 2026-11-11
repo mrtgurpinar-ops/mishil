@@ -1180,9 +1180,9 @@ def test_v4_48_0_returning_users_and_paywall_cancellation_cro(client, db_session
     assert "onboarding-trial-end-text" in app_html
     assert "vip-calibration-progress-box" in app_html
     assert "mishil_family_vip_verified" in app_html
-    assert "mishil_free_sleep_trial_used" in app_html
-    assert "mishil_free_cry_used" in app_html
-    assert "version: '4.48.2'" in app_html
+    assert "mishil_soft_vip_24h_granted" in app_html
+    assert "mishil_soft_vip_cry_count" in app_html
+    assert "version: '4.50.0'" in app_html
 
 
 def test_s8_ios_rc_anonymous_id_ghost_purge_and_unverified_sync_ignore(client, db_session):

@@ -97,8 +97,9 @@
     <div class="top-bar">
       <span class="badge" id="badge-text">Google Play & Apple App Store Onaylı</span>
       <div class="lang-toggle" role="group" aria-label="Language Selector">
-        <button type="button" class="lang-btn active" id="btn-tr" onclick="setPrivacyLang('tr')">🇹🇷 Türkçe</button>
-        <button type="button" class="lang-btn" id="btn-en" onclick="setPrivacyLang('en')">🇬🇧 English</button>
+        <button type="button" class="lang-btn active" id="btn-tr" onclick="setPrivacyLang('tr', true)">🇹🇷 Türkçe</button>
+        <button type="button" class="lang-btn" id="btn-en" onclick="setPrivacyLang('en', true)">🇬🇧 English</button>
+        <button type="button" class="lang-btn" id="btn-de" onclick="setPrivacyLang('de', true)">🇩🇪 Deutsch</button>
       </div>
     </div>
 
@@ -169,51 +170,97 @@
         © 2026 Levitas Enterprise Intelligence & Technology. All Rights Reserved.
       </footer>
     </div>
+
+    <!-- GERMAN CONTENT (DSGVO / CH-DSG / COPPA) -->
+    <div id="content-de" class="hidden">
+      <h1>Mışıl Baby: Datenschutzerklärung</h1>
+      <div class="subtitle">
+        Stand: 11. November 2026 • Herausgeber: <strong>Levitas Enterprise Intelligence & Technology</strong>
+      </div>
+
+      <p>Bei Levitas Enterprise Intelligence & Technology („Levitas“, „wir“) verpflichten wir uns, die Privatsphäre von Eltern, Kindern und Familien bei der Nutzung der mobilen Anwendung <strong>Mışıl Baby: Baby Schlaf & Klang</strong> nach höchsten Datenschutzstandards (DSGVO, Schweizer DSG und COPPA) zu schützen.</p>
+
+      <h2>1. Kinderschutz & Familienrichtlinie (DSGVO / CH-DSG / COPPA)</h2>
+      <p>Mışıl Baby wurde für erwachsene Eltern und Bezugspersonen entwickelt. Unsere Anwendung <strong>erhebt, speichert oder teilt keinerlei personenbezogene Identifikationsdaten</strong> (wie vollständige Namen, Geburtsorte, Telefonnummern oder genaue Standortdaten) von Kindern unter 13 Jahren mit Dritten.</p>
+
+      <h2>2. Mikrofonzugriff & Flüchtige Akustische Schreianalyse</h2>
+      <p>Die Funktion „KI-Schreianalyse“ benötigt Mikrofonzugriff ausschließlich zur Auswertung akustischer Frequenzen des Babyweinens (Hinweise auf Hunger, Bauchweh, Müdigkeit oder Unwohlsein).</p>
+      <ul>
+        <li><strong>Flüchtige Verarbeitung im Arbeitsspeicher (RAM):</strong> Schallwellen werden über das Mikrofon lediglich für 5 Sekunden erfasst.</li>
+        <li><strong>Keine dauerhafte Speicherung von Sprach-/Audiodaten:</strong> Roh-Audioaufnahmen werden niemals dauerhaft auf dem Gerät oder auf externen Servern gespeichert; Audiopuffer werden unmittelbar nach der akustischen Merkmalsextraktion vollständig gelöscht.</li>
+      </ul>
+
+      <h2>3. Anonyme Technische Diagnosedaten</h2>
+      <p>Zur Sicherstellung der App-Stabilität und Fehlerbehebung können ausschließlich anonymisierte technische Diagnosedaten (Betriebssystemversion, Gerätemodell und aggregierte Nutzungsstatistiken) verarbeitet werden. Diese enthalten keine persönlichen oder biometrischen Merkmale.</p>
+
+      <h2>4. Keine Werbenetzwerke oder Drittanbieter-Tracker</h2>
+      <p>Mışıl Baby enthält <strong>keine Werbenetzwerke von Drittanbietern und kein Verhaltens-Tracking.</strong> Alle In-App-Abonnements werden sicher über die Abrechnungssysteme des Apple App Store und von Google Play abgewickelt.</p>
+
+      <h2>5. Kontakt & Ihre Datenschutzrechte</h2>
+      <p>Bei Fragen oder Anliegen zu Ihren Datenschutzrechten (Auskunft, Berichtigung, Löschung gemäß DSGVO) erreichen Sie uns jederzeit über unsere offiziellen Kontaktadressen:</p>
+      <p>📧 <strong>Support & Datenschutz:</strong> <a href="mailto:support@levitas.tech">support@levitas.tech</a> / <a href="mailto:mrtgurpinar@gmail.com">mrtgurpinar@gmail.com</a></p>
+
+      <footer>
+        © 2026 Levitas Enterprise Intelligence & Technology. Alle Rechte vorbehalten.
+      </footer>
+    </div>
   </div>
 
   <script>
-    function setPrivacyLang(lang) {
-      var normalized = (lang === 'en') ? 'en' : 'tr';
+    function setPrivacyLang(lang, explicit) {
+      var normalized = (lang === 'de') ? 'de' : ((lang === 'en') ? 'en' : 'tr');
       document.documentElement.lang = normalized;
       var trEl = document.getElementById('content-tr');
       var enEl = document.getElementById('content-en');
+      var deEl = document.getElementById('content-de');
       var btnTr = document.getElementById('btn-tr');
       var btnEn = document.getElementById('btn-en');
+      var btnDe = document.getElementById('btn-de');
       var badge = document.getElementById('badge-text');
-      if (normalized === 'en') {
-        trEl.classList.add('hidden');
-        enEl.classList.remove('hidden');
-        btnEn.classList.add('active');
-        btnTr.classList.remove('active');
+      trEl.classList.toggle('hidden', normalized !== 'tr');
+      enEl.classList.toggle('hidden', normalized !== 'en');
+      deEl.classList.toggle('hidden', normalized !== 'de');
+      btnTr.classList.toggle('active', normalized === 'tr');
+      btnEn.classList.toggle('active', normalized === 'en');
+      btnDe.classList.toggle('active', normalized === 'de');
+      if (normalized === 'de') {
+        badge.textContent = 'Google Play & Apple App Store Geprüft';
+        document.title = 'Datenschutzerklärung | Mışıl Baby - Levitas';
+      } else if (normalized === 'en') {
         badge.textContent = 'Google Play & Apple App Store Verified';
         document.title = 'Privacy Policy | Mışıl Baby - Levitas';
       } else {
-        enEl.classList.add('hidden');
-        trEl.classList.remove('hidden');
-        btnTr.classList.add('active');
-        btnEn.classList.remove('active');
         badge.textContent = 'Google Play & Apple App Store Onaylı';
         document.title = 'Gizlilik Politikası | Mışıl Baby - Levitas';
       }
-      try { localStorage.setItem('mishil_lang', normalized); } catch (e) {}
+      try {
+        localStorage.setItem('mishil_lang', normalized);
+        if (explicit) localStorage.setItem('mishil_lang_explicit', '1');
+      } catch (e) {}
     }
 
     (function initLang() {
       var params = new URLSearchParams(window.location.search);
       var qLang = params.get('lang');
-      if (qLang === 'en' || qLang === 'tr') {
-        setPrivacyLang(qLang);
+      if (qLang === 'de' || qLang === 'en' || qLang === 'tr') {
+        setPrivacyLang(qLang, true);
         return;
       }
       try {
         var saved = localStorage.getItem('mishil_lang');
-        if (saved === 'en' || saved === 'tr') {
-          setPrivacyLang(saved);
+        var isExplicit = localStorage.getItem('mishil_lang_explicit') === '1';
+        var navRaw = (navigator.language || '').toLowerCase();
+        if (!isExplicit && saved === 'en' && navRaw.indexOf('de') === 0) {
+          setPrivacyLang('de', false);
+          return;
+        }
+        if (saved === 'de' || saved === 'en' || saved === 'tr') {
+          setPrivacyLang(saved, false);
           return;
         }
       } catch (e) {}
       var nav = (navigator.language || 'tr').toLowerCase();
-      setPrivacyLang(nav.indexOf('tr') === 0 ? 'tr' : 'en');
+      setPrivacyLang(nav.indexOf('tr') === 0 ? 'tr' : (nav.indexOf('de') === 0 ? 'de' : 'en'), false);
     })();
   </script>
 </body>

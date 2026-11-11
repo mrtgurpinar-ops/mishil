@@ -125,3 +125,57 @@ Contact: support@levitas.tech
 Privacy Policy: https://mishil-production.up.railway.app/privacy?lang=en
 Terms of Use: https://mishil-production.up.railway.app/terms?lang=en
 ```
+
+---
+
+## 5. Deutsch (`de-DE` — DACH) Store Listing — Google Play Console
+
+### 📌 App-Name (`de-DE` - Max. 30 Zeichen, Keine Superlative):
+```text
+Mışıl Baby: Schlaf & Klänge
+```
+
+### 📌 Kurzbeschreibung (`de-DE` - Max. 80 Zeichen, Keine Superlative):
+```text
+KI-Schreianalyse, Einschlafhilfe, Wachfenster, Impfpass & sanftes Rauschen.
+```
+
+### 📌 Vollständige Beschreibung (`de-DE` - Max. 4000 Zeichen, Richtlinienkonform):
+```text
+Mışıl Baby ist ein ruhiger Schlaf- und Alltagsbegleiter für Eltern und Bezugspersonen. Die App kombiniert pädiatrische Schlafroutinen mit beruhigenden Einschlafklängen und einer KI-gestützten Einordnung von Baby-Weinsignalen.
+
+Verstehen Sie die täglichen Signale Ihres Babys entspannter, gestalten Sie eine verlässliche Abendroutine und unterstützen Sie das Einschlafen mit sanften akustischen Klängen.
+
+🌟 WICHTIGE FUNKTIONEN FÜR ELTERN:
+
+👶 1. KI-GESTÜTZTE SCHREIANALYSE
+Wertet Frequenz- und Rhythmusmuster im Weinen Ihres Babys aus und gibt Orientierung zu möglichen Bedürfnissen (Hunger, Bauchweh/Kolik, Müdigkeit, Unwohlsein oder Nähebedürfnis) – datenschutzfreundlich ohne dauerhafte Speicherung von Sprachaufnahmen.
+
+🎧 2. 18+ EINSCHLAFKLÄNGE & MEHRSPUR-MIXER
+Studio-Klänge, die an die vertraute Geborgenheit im Mutterleib erinnern:
+• Weißes, Rosa und Braunes Rauschen
+• Mutterleibsklänge & Herzschlag
+• Föhn, Staubsauger, Ventilator & rhythmisches Sch-Sch
+• Sanfter Regen, Meereswellen, Waldbach
+• Beruhigende 432-Hz-Wiegenlieder & Spieluhrmelodien
+• Individueller Klang-Mixer mit separater Lautstärkeregelung
+
+🌙 3. SANFTES NACHTLICHT
+Augenschonendes, warmes Bildschirmlicht für nächtliches Stillen, Fläschchengeben und Wickeln.
+
+⏱️ 4. EINSCHLAFTIMER & HINTERGRUNDWIEDERGABE
+Unterbrechungsfreie Wiedergabe bei gesperrtem Bildschirm inklusive sanftem Ausblenden (Fade-Out).
+
+📊 5. MIŞILSPOT™ WACHFENSTER, TAGESPROTOKOLL & IMPFPASS (STIKO / BAG)
+Altersgerechte Wachfenster (inkl. Frühchen-Korrektur), Dokumentation von Schlaf, Mahlzeiten und Windeln, Begleitung der 10 BabySteps™-Entwicklungssprünge sowie Impfkalender-Erinnerungen für Deutschland, Österreich und die Schweiz.
+
+🔒 DATENSCHUTZ & MEDIZINISCHER HINWEIS:
+• Mışıl Baby ist eine Informations- und Orientierungshilfe für erwachsene Eltern und kein Medizinprodukt. Wenden Sie sich bei gesundheitlichen Fragen stets an Ihre Kinderärztin oder Ihren Kinderarzt.
+• Audio-Analysen erfolgen flüchtig im Arbeitsspeicher; Roh-Aufnahmen werden nicht dauerhaft gespeichert oder an Dritte weitergegeben.
+• DSGVO-, CH-DSG- und COPPA-konform, frei von Drittanbieter-Werbetrackern.
+
+Entwickler & Support: Levitas Enterprise Intelligence & Technology
+Kontakt: support@levitas.tech
+Datenschutzerklärung: https://mishil-production.up.railway.app/privacy?lang=de
+Nutzungsbedingungen: https://mishil-production.up.railway.app/terms?lang=de
+```

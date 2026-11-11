@@ -40,36 +40,66 @@ class CryAnalysisService:
     """
 
     @classmethod
-    async def validate_audio_file(cls, file: UploadFile) -> bytes:
+    async def validate_audio_file(cls, file: UploadFile, lang: str = "tr") -> bytes:
         """Validate content type and file size."""
+        lang_norm = normalize_lang(lang)
         if not file.filename:
+            detail_msg = (
+                "Audio-Dateiname darf nicht leer sein."
+                if lang_norm == "de"
+                else ("Audio filename cannot be empty." if lang_norm == "en" else "Ses dosyası adı boş olamaz.")
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Ses dosyası adı boş olamaz."
+                detail=detail_msg
             )
 
         # Check content type if provided
         content_type = file.content_type or ""
         is_allowed = any(ct in content_type.lower() for ct in ["audio/", "octet-stream", "mp4", "webm", "ogg"])
         if content_type and not is_allowed:
+            detail_msg = (
+                f"Nicht unterstütztes Audioformat: {content_type}. Bitte WAV, M4A, WEBM oder MP3 hochladen."
+                if lang_norm == "de"
+                else (
+                    f"Unsupported audio format: {content_type}. Please upload WAV, M4A, WEBM, or MP3."
+                    if lang_norm == "en"
+                    else f"Desteklenmeyen ses formatı: {content_type}. Lütfen WAV, M4A, WEBM veya MP3 yükleyin."
+                )
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Desteklenmeyen ses formatı: {content_type}. Lütfen WAV, M4A, WEBM veya MP3 yükleyin."
+                detail=detail_msg
             )
 
         contents = await file.read()
         file_size = len(contents)
 
         if file_size == 0:
+            detail_msg = (
+                "Die hochgeladene Audiodatei ist leer."
+                if lang_norm == "de"
+                else ("Uploaded audio file is empty." if lang_norm == "en" else "Yüklenen ses dosyası boş.")
+            )
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Yüklenen ses dosyası boş."
+                detail=detail_msg
             )
 
         if file_size > settings.MAX_AUDIO_UPLOAD_SIZE_BYTES:
+            mb = file_size / (1024 * 1024)
+            detail_msg = (
+                f"Datei zu groß ({mb:.1f} MB). Das maximale Limit beträgt 10 MB."
+                if lang_norm == "de"
+                else (
+                    f"File size too large ({mb:.1f}MB). Maximum limit is 10MB."
+                    if lang_norm == "en"
+                    else f"Dosya boyutu çok büyük ({mb:.1f}MB). Maksimum sınır 10MB'dır."
+                )
+            )
             raise HTTPException(
                 status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                detail=f"Dosya boyutu çok büyük ({file_size / (1024*1024):.1f}MB). Maksimum sınır 10MB'dır."
+                detail=detail_msg
             )
 
         return contents
@@ -217,8 +247,36 @@ class CryAnalysisService:
         total_exp = sum(exp_scores.values())
         prob_dict = {k: round(v / total_exp, 3) for k, v in exp_scores.items()}
 
-        # Descriptions & Titles map (TR & EN)
-        if lang_norm == "en":
+        # Descriptions & Titles map (TR, EN & DE)
+        if lang_norm == "de":
+            meta_map: Dict[CryType, Tuple[str, str]] = {
+                CryType.HUNGRY: (
+                    "Hunger-Weinen (Neh-Reflex)",
+                    "Rhythmisches, schrittweise ansteigendes Hunger-Weinmuster erkannt."
+                ),
+                CryType.TIRED: (
+                    "Müdigkeit / Schlafbedürfnis (Owh)",
+                    "Anhaltende, gähnähnliche Müdigkeits- und Einschlafsignale überwiegen."
+                ),
+                CryType.PAIN_COLIC: (
+                    "Bauchweh / Kolik-Unruhe (Eairh)",
+                    "Hochfrequente Spitzen deuten auf Blähungen oder Bauchspannung hin."
+                ),
+                CryType.DISCOMFORT: (
+                    "Körperliches Unwohlsein (Heh)",
+                    "Hinweise auf eine nasse Windel, Raumtemperatur oder drückende Kleidung."
+                ),
+                CryType.BURPING_NEEDED: (
+                    "Bäuerchen nötig (Eh)",
+                    "Kurze akustische Impulse aus dem oberen Brustbereich durch geschluckte Luft."
+                ),
+                CryType.OVERSTIMULATED: (
+                    "Überreizung (Reizüberflutung)",
+                    "Sensorische Überlastung durch helles Licht, Geräusche oder ein langes Wachfenster."
+                ),
+            }
+            default_meta = ("Unbestimmt", "Allgemeine Säuglingslautäußerung.")
+        elif lang_norm == "en":
             meta_map: Dict[CryType, Tuple[str, str]] = {
                 CryType.HUNGRY: (
                     "Hunger Cry (Neh Reflex)",
@@ -295,9 +353,47 @@ class CryAnalysisService:
     def get_recommendation(
         cls, dominant_cause: CryType, lang: str = "tr"
     ) -> Tuple[str, SoundType, str]:
-        """Generate concrete parental action & soothing audio recommendation (TR & EN)."""
+        """Generate concrete parental action & soothing audio recommendation (TR, EN & DE)."""
         lang_norm = normalize_lang(lang)
-        if lang_norm == "en":
+        if lang_norm == "de":
+            actions: Dict[CryType, Tuple[str, SoundType, str]] = {
+                CryType.HUNGRY: (
+                    "Biete in Ruhe eine Mahlzeit an oder prüfe die Anlegeposition. Kontrolliere den Abstand zur letzten Mahlzeit.",
+                    SoundType.HEARTBEAT_CALM,
+                    "/sounds/heartbeat_calm.mp3"
+                ),
+                CryType.TIRED: (
+                    "Das Wachfenster ist wahrscheinlich erreicht. Dunkle das Zimmer ab, zieh den Schlafsack an und starte Rosa Rauschen oder Sch-Sch.",
+                    SoundType.PINK_NOISE_432HZ,
+                    "/sounds/pink_noise_432hz.mp3"
+                ),
+                CryType.PAIN_COLIC: (
+                    "Halte dein Baby aufrecht, bewege sanft die Beinchen im Fahrrad-Rhythmus oder massiere den Bauch im Uhrzeigersinn.",
+                    SoundType.WOMB_SOUNDS,
+                    "/sounds/womb_sounds.mp3"
+                ),
+                CryType.DISCOMFORT: (
+                    "Prüfe die Windel, kontrolliere die Raumtemperatur (ideal 18–20°C) und den Nacken auf Überwärmung.",
+                    SoundType.RAIN_GENTLE,
+                    "/sounds/rain_gentle.mp3"
+                ),
+                CryType.BURPING_NEEDED: (
+                    "Nimm dein Baby aufrecht an die Schulter und klopfe oder streiche sanft den Rücken von unten nach oben aus.",
+                    SoundType.SHUSHING_RHYTHMIC,
+                    "/sounds/shushing_rhythmic.mp3"
+                ),
+                CryType.OVERSTIMULATED: (
+                    "Reduziere sofort äußere Reize: Licht dimmen, Geräusche senken und dein Baby in einem ruhigen Raum nah am Körper halten.",
+                    SoundType.PINK_NOISE_432HZ,
+                    "/sounds/pink_noise_432hz.mp3"
+                ),
+            }
+            default_action = (
+                "Halte dein Baby nah bei dir (Haut-zu-Haut) und beruhige es mit ruhiger, gleichmäßiger Stimme.",
+                SoundType.PINK_NOISE_432HZ,
+                "https://cdn.mishil.app/sounds/pink_noise_432hz.mp3"
+            )
+        elif lang_norm == "en":
             actions: Dict[CryType, Tuple[str, SoundType, str]] = {
                 CryType.HUNGRY: (
                     "Offer a calm feed or check latch position. Review the time since your baby's last feeding.",
@@ -398,7 +494,23 @@ class CryAnalysisService:
 
         audio_b64 = base64.b64encode(audio_bytes).decode("utf-8")
 
-        if lang_norm == "en":
+        if lang_norm == "de":
+            prompt = (
+                "Du bist ein pädiatrischer Akustik-Experte für Säuglingsweinen (Dunstan Baby Language & Pädiatrische Schrei-Akustik).\n"
+                "Höre dir diese Aufnahme direkt an und analysiere die akustischen Merkmale (Grundfrequenz F0, Tonhöhenverlauf, Hochfrequenzspitzen, Atempausen und Rhythmus).\n"
+                "Gib die Wahrscheinlichkeitsverteilung (0.0 bis 1.0, Summe 1.0) über die Ursachen (tired, hungry, pain_colic, discomfort, burping_needed, overstimulated) auf Deutsch exakt in diesem JSON-Schema zurück:\n"
+                "{\n"
+                '  "dominant_cause": "tired | hungry | pain_colic | discomfort | burping_needed | overstimulated",\n'
+                '  "confidence": 0.85,\n'
+                '  "acoustic_observations": "Objektive akustische Merkmale auf Deutsch (z. B. Rhythmische Neh-Impulse im mittleren Frequenzbereich erkannt)",\n'
+                '  "causes": [\n'
+                '    {"cause": "pain_colic", "cause_title": "Bauchweh / Kolik-Unruhe", "likelihood": 0.50, "description": "Deutsche Erklärung..."}\n'
+                "  ],\n"
+                '  "recommended_action": "Konkreter, sanfter Beruhigungsschritt für die Eltern auf Deutsch"\n'
+                "}\n"
+                "Gib ausschließlich gültiges JSON zurück."
+            )
+        elif lang_norm == "en":
             prompt = (
                 "You are an expert pediatric acoustic cry analyst (Dunstan Baby Language & Pediatric Cry Acoustics).\n"
                 "Listen directly to this infant cry recording and analyze its acoustic properties (fundamental frequency F0, pitch glides, high-frequency bursts, breath intervals, vocal fry, and rhythm).\n"
@@ -472,11 +584,15 @@ class CryAnalysisService:
         - Tier 4: Circadian Heuristic Engine (Offline fallback)
         """
         lang_norm = normalize_lang(lang)
-        audio_bytes = await cls.validate_audio_file(file)
+        audio_bytes = await cls.validate_audio_file(file, lang_norm)
         confidence_note = (
-            "This guidance is an observational parenting aid and not a medical diagnosis."
-            if lang_norm == "en"
-            else "Bu tahmin klinik bir teşhis veya tıbbi tanı değildir; ebeveynlere yönelik rehberlik ipucu niteliğindedir."
+            "Diese Einschätzung dient als Orientierungshilfe für Eltern und ersetzt keine ärztliche Diagnose."
+            if lang_norm == "de"
+            else (
+                "This guidance is an observational parenting aid and not a medical diagnosis."
+                if lang_norm == "en"
+                else "Bu tahmin klinik bir teşhis veya tıbbi tanı değildir; ebeveynlere yönelik rehberlik ipucu niteliğindedir."
+            )
         )
         
         # 1. Tier 1 / Tier 2: Try Direct Multimodal Audio Listening
@@ -504,9 +620,13 @@ class CryAnalysisService:
                     
                 duration = max(1.0, round(len(audio_bytes) / 44100.0, 2))
                 default_obs = (
-                    "Acoustic pitch and rhythmic cry pattern analyzed by neural audio model."
-                    if lang_norm == "en"
-                    else "Akustik perde ve ritmik ağlama paterni nöral model tarafından analiz edildi."
+                    "Tonhöhe und rhythmisches Weinmuster durch neuronales Audiomodell analysiert."
+                    if lang_norm == "de"
+                    else (
+                        "Acoustic pitch and rhythmic cry pattern analyzed by neural audio model."
+                        if lang_norm == "en"
+                        else "Akustik perde ve ritmik ağlama paterni nöral model tarafından analiz edildi."
+                    )
                 )
                 
                 return CryAnalysisResponse(
@@ -534,9 +654,13 @@ class CryAnalysisService:
         sc_mean = features.get("spectral_centroid_mean", 2000.0)
         zcr_mean = features.get("zcr_mean", 0.08)
         dsp_obs = (
-            f"Spectral Centroid: {sc_mean:.0f} Hz, Zero-Crossing Rate (ZCR): {zcr_mean:.3f}. Frequency distribution analyzed mathematically."
-            if lang_norm == "en"
-            else f"Spektral Merkez Frekansı: {sc_mean:.0f} Hz, Sıfır Geçiş Oranı (ZCR): {zcr_mean:.3f}. Frekans dağılımı matematiksel olarak analiz edildi."
+            f"Spektraler Schwerpunkt: {sc_mean:.0f} Hz, Nulldurchgangsrate (ZCR): {zcr_mean:.3f}. Frequenzverteilung mathematisch ausgewertet."
+            if lang_norm == "de"
+            else (
+                f"Spectral Centroid: {sc_mean:.0f} Hz, Zero-Crossing Rate (ZCR): {zcr_mean:.3f}. Frequency distribution analyzed mathematically."
+                if lang_norm == "en"
+                else f"Spektral Merkez Frekansı: {sc_mean:.0f} Hz, Sıfır Geçiş Oranı (ZCR): {zcr_mean:.3f}. Frekans dağılımı matematiksel olarak analiz edildi."
+            )
         )
 
         return CryAnalysisResponse(

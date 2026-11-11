@@ -2,6 +2,7 @@ import os
 import time
 from collections import deque
 from fastapi import APIRouter, HTTPException, Request, status
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Any
@@ -31,9 +32,13 @@ def _enforce_coach_abuse_rate_limit(request: Optional[Request], lang_norm: str =
         bucket.popleft()
     if len(bucket) >= _COACH_MAX_REQ_PER_WINDOW:
         detail_msg = (
-            "Rate limit exceeded. Please wait a few minutes before sending more questions."
-            if lang_norm == "en"
-            else "Kısa sürede çok fazla istek gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin."
+            "Anfragelimit erreicht. Bitte warte ein paar Minuten, bevor du weitere Fragen sendest."
+            if lang_norm == "de"
+            else (
+                "Rate limit exceeded. Please wait a few minutes before sending more questions."
+                if lang_norm == "en"
+                else "Kısa sürede çok fazla istek gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin."
+            )
         )
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=detail_msg)
     bucket.append(now)
@@ -53,7 +58,7 @@ class CoachChatRequest(BaseModel):
     routine_rollup: Optional[Dict[str, Any]] = Field(default=None, description="Bebeğin son rutin rollup özeti (uyku, beslenme ml, bez, gece uyanma)")
     message: str = Field(..., min_length=1, max_length=4000, description="Ebeveynin/Dadının Mışıl Dadı'ya sorusu")
     chat_history: Optional[List[Dict[str, str]]] = Field(default=[], description="Önceki sohbet geçmişi")
-    lang: Optional[str] = Field(default="tr", description="Yanıt dili ('tr' veya 'en')")
+    lang: Optional[str] = Field(default="tr", description="Yanıt dili ('tr', 'en' veya 'de')")
 
 
 class CoachChatResponse(BaseModel):
@@ -64,6 +69,18 @@ class CoachChatResponse(BaseModel):
     timestamp: str
 
 
+def _resolve_default_baby_name(raw_name: Optional[str], lang_norm: str) -> str:
+    cleaned = (raw_name or "").strip()
+    generic_defaults = {"", "Bebeğim", "Bebeğiniz", "My Baby", "Your Baby", "Mein Baby", "Dein Baby", "Ihr Baby"}
+    if cleaned and cleaned not in generic_defaults:
+        return cleaned
+    if lang_norm == "de":
+        return "Dein Baby"
+    if lang_norm == "en":
+        return "My Baby"
+    return "Bebeğim"
+
+
 @router.post("/chat", response_model=CoachChatResponse, summary="Mışıl Dadı AI Ebeveyn Asistanına Soru Sor (JSON)")
 async def chat_with_coach(payload: CoachChatRequest, request: Request):
     """
@@ -72,9 +89,10 @@ async def chat_with_coach(payload: CoachChatRequest, request: Request):
     """
     lang_norm = normalize_lang(payload.lang)
     _enforce_coach_abuse_rate_limit(request, lang_norm)
-    default_baby_name = "My Baby" if lang_norm == "en" and (not payload.baby_name or payload.baby_name == "Bebeğim") else (payload.baby_name or "Bebeğim")
+    default_baby_name = _resolve_default_baby_name(payload.baby_name, lang_norm)
     try:
-        result = ask_mishil_dadi(
+        result = await run_in_threadpool(
+            ask_mishil_dadi,
             baby_name=default_baby_name,
             birth_date=payload.birth_date,
             message=payload.message,
@@ -82,15 +100,19 @@ async def chat_with_coach(payload: CoachChatRequest, request: Request):
             user_role=payload.user_role,
             manual_leap=payload.manual_leap,
             routine_rollup=payload.routine_rollup,
-            lang=lang_norm
+            lang=lang_norm,
         )
         return CoachChatResponse(**result)
     except Exception as e:
         logger.error(f"Coach chat error: {str(e)}", exc_info=True)
         err_msg = (
-            "Mishil Nanny is experiencing high traffic right now. Please try again in a moment."
-            if lang_norm == "en"
-            else "Mışıl Dadı şu an yanıt üretirken geçici bir yoğunluk yaşıyor, lütfen birazdan tekrar deneyin."
+            "Mışıl Nanny ist gerade stark ausgelastet. Bitte versuche es in einem Moment erneut."
+            if lang_norm == "de"
+            else (
+                "Mishil Nanny is experiencing high traffic right now. Please try again in a moment."
+                if lang_norm == "en"
+                else "Mışıl Dadı şu an yanıt üretirken geçici bir yoğunluk yaşıyor, lütfen birazdan tekrar deneyin."
+            )
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -106,7 +128,7 @@ async def stream_coach_response(payload: CoachChatRequest, request: Request):
     """
     lang_norm = normalize_lang(payload.lang)
     _enforce_coach_abuse_rate_limit(request, lang_norm)
-    default_baby_name = "My Baby" if lang_norm == "en" and (not payload.baby_name or payload.baby_name == "Bebeğim") else (payload.baby_name or "Bebeğim")
+    default_baby_name = _resolve_default_baby_name(payload.baby_name, lang_norm)
     try:
         generator = stream_mishil_dadi(
             baby_name=default_baby_name,
@@ -130,9 +152,13 @@ async def stream_coach_response(payload: CoachChatRequest, request: Request):
     except Exception as e:
         logger.error(f"Coach stream error: {str(e)}", exc_info=True)
         err_msg = (
-            "Mishil Nanny live response stream could not be started right now. Please try again."
-            if lang_norm == "en"
-            else "Mışıl Dadı canlı yanıt akışı şu an başlatılamadı, lütfen tekrar deneyin."
+            "Der Live-Antwortstream von Mışıl Nanny konnte gerade nicht gestartet werden. Bitte erneut versuchen."
+            if lang_norm == "de"
+            else (
+                "Mishil Nanny live response stream could not be started right now. Please try again."
+                if lang_norm == "en"
+                else "Mışıl Dadı canlı yanıt akışı şu an başlatılamadı, lütfen tekrar deneyin."
+            )
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

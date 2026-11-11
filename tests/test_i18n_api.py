@@ -41,20 +41,27 @@ def test_normalize_lang():
     assert normalize_lang("en") == "en"
     assert normalize_lang("en-US") == "en"
     assert normalize_lang("en-GB") == "en"
-    assert normalize_lang("de-DE") == "en"
+    assert normalize_lang("de") == "de"
+    assert normalize_lang("de-DE") == "de"
+    assert normalize_lang("de-CH") == "de"
+    assert normalize_lang("de-AT") == "de"
+    assert normalize_lang("fr-FR") == "en"
     assert normalize_lang(None) == "tr"
 
 
-def test_calc_baby_details_bilingual():
+def test_calc_baby_details_trilingual():
     tr_info = _calc_baby_details("2026-08-01", manual_leap=None, lang="tr")
     en_info = _calc_baby_details("2026-08-01", manual_leap=None, lang="en")
+    de_info = _calc_baby_details("2026-08-01", manual_leap=None, lang="de")
     assert "Günlük" in tr_info["age_formatted"]
     assert "Days old" in en_info["age_formatted"]
-    assert tr_info["wake_window_min"] == en_info["wake_window_min"]
+    assert "Tage" in de_info["age_formatted"]
+    assert tr_info["wake_window_min"] == en_info["wake_window_min"] == de_info["wake_window_min"]
     assert tr_info["leap_info"] != en_info["leap_info"]
+    assert de_info["leap_info"] != en_info["leap_info"]
 
 
-def test_tier4_clinical_heuristic_bilingual():
+def test_tier4_clinical_heuristic_trilingual():
     tr_reply = _tier4_clinical_heuristic(
         baby_name="Can",
         birth_date="2026-08-01",
@@ -69,12 +76,21 @@ def test_tier4_clinical_heuristic_bilingual():
         user_role="mother",
         lang="en",
     )
+    de_reply = _tier4_clinical_heuristic(
+        baby_name="Emilia",
+        birth_date="2026-08-01",
+        message="Mein Baby hat Blähungen und Bauchweh",
+        user_role="mother",
+        lang="de",
+    )
     assert "Anneciğim" in tr_reply or "Sevgili" in tr_reply
     assert "Dear Mom" in en_reply
     assert "Wishing you sweet Mishil dreams" in en_reply
+    assert "Liebe Mama" in de_reply
+    assert "Emilia" in de_reply
 
 
-def test_cry_analysis_probabilities_bilingual():
+def test_cry_analysis_probabilities_trilingual():
     sample_features = {
         "spectral_centroid_mean": 2950.0,
         "zcr_mean": 0.14,
@@ -82,27 +98,31 @@ def test_cry_analysis_probabilities_bilingual():
     }
     probs_tr = CryAnalysisService.evaluate_probabilities(sample_features, lang="tr")
     probs_en = CryAnalysisService.evaluate_probabilities(sample_features, lang="en")
+    probs_de = CryAnalysisService.evaluate_probabilities(sample_features, lang="de")
 
-    assert len(probs_tr) == len(probs_en) == 6
-    assert probs_tr[0].cause == probs_en[0].cause
+    assert len(probs_tr) == len(probs_en) == len(probs_de) == 6
+    assert probs_tr[0].cause == probs_en[0].cause == probs_de[0].cause
     assert probs_tr[0].description != probs_en[0].description
+    assert probs_de[0].description != probs_en[0].description
 
 
-def test_coach_and_legal_endpoints_bilingual(monkeypatch):
+def test_coach_and_legal_endpoints_trilingual(monkeypatch):
     monkeypatch.setattr(CryAnalysisService, "_analyze_with_gemini_multimodal", classmethod(lambda cls, *args, **kwargs: None))
     client = TestClient(app)
 
-    # Privacy & Terms pages contain both TR and EN toggles
-    resp_priv = client.get("/privacy?lang=en")
+    # Privacy & Terms pages contain TR, EN, and DE sections
+    resp_priv = client.get("/privacy?lang=de")
     assert resp_priv.status_code == 200
     assert "Mışıl Baby: Privacy Policy" in resp_priv.text
     assert "Mışıl Baby: Gizlilik Politikası" in resp_priv.text
+    assert "Datenschutzerklärung" in resp_priv.text
 
-    resp_terms = client.get("/terms?lang=en")
+    resp_terms = client.get("/terms?lang=de")
     assert resp_terms.status_code == 200
     assert "Terms of Use & End User License Agreement (EULA)" in resp_terms.text
+    assert "Nutzungsbedingungen" in resp_terms.text
 
-    # Cry Analysis endpoint with lang='en' (parameter name is 'file')
+    # Cry Analysis endpoint with lang='en', 'tr', and 'de'
     wav_bytes = _generate_test_wav_bytes()
     resp_cry_en = client.post(
         "/api/v1/cry-analysis/analyze",
@@ -113,7 +133,6 @@ def test_coach_and_legal_endpoints_bilingual(monkeypatch):
     body_en = resp_cry_en.json()
     assert "medical diagnosis" in body_en["confidence_note"].lower()
 
-    # Cry Analysis endpoint with lang='tr'
     resp_cry_tr = client.post(
         "/api/v1/cry-analysis/analyze",
         data={"lang": "tr"},
@@ -122,3 +141,14 @@ def test_coach_and_legal_endpoints_bilingual(monkeypatch):
     assert resp_cry_tr.status_code == 200
     body_tr = resp_cry_tr.json()
     assert body_tr["recommended_action"] != body_en["recommended_action"]
+
+    resp_cry_de = client.post(
+        "/api/v1/cry-analysis/analyze",
+        data={"lang": "de-DE"},
+        files={"file": ("cry.wav", wav_bytes, "audio/wav")},
+    )
+    assert resp_cry_de.status_code == 200
+    body_de = resp_cry_de.json()
+    assert "ärztliche diagnose" in body_de["confidence_note"].lower()
+    assert body_de["recommended_action"] != body_en["recommended_action"]
+    assert body_de["recommended_action"] != body_tr["recommended_action"]

@@ -89,8 +89,9 @@
   <div class="container">
     <div class="top-bar">
       <div class="lang-toggle" role="group" aria-label="Language Selector">
-        <button type="button" class="lang-btn active" id="btn-tr" onclick="setTermsLang('tr')">🇹🇷 Türkçe</button>
-        <button type="button" class="lang-btn" id="btn-en" onclick="setTermsLang('en')">🇬🇧 English</button>
+        <button type="button" class="lang-btn active" id="btn-tr" onclick="setTermsLang('tr', true)">🇹🇷 Türkçe</button>
+        <button type="button" class="lang-btn" id="btn-en" onclick="setTermsLang('en', true)">🇬🇧 English</button>
+        <button type="button" class="lang-btn" id="btn-de" onclick="setTermsLang('de', true)">🇩🇪 Deutsch</button>
       </div>
     </div>
 
@@ -147,48 +148,86 @@
         © 2026 Levitas Enterprise Intelligence & Technology. All Rights Reserved.
       </footer>
     </div>
+
+    <!-- GERMAN CONTENT (EULA) -->
+    <div id="content-de" class="hidden">
+      <h1>Nutzungsbedingungen & Endbenutzer-Lizenzvertrag (EULA)</h1>
+      <div class="subtitle">
+        Stand: 11. November 2026 • Herausgeber: <strong>Levitas Enterprise Intelligence & Technology</strong>
+      </div>
+
+      <div class="alert-box">
+        <strong>🩺 Wichtiger medizinischer Hinweis:</strong> Mışıl Baby ist kein Medizinprodukt und dient weder der medizinischen Diagnose, Überwachung noch Behandlung. Die akustische Schreianalyse sowie die Schlaf- und Entwicklungshinweise dienen ausschließlich der allgemeinen Information und Orientierung für Eltern. Wenden Sie sich bei gesundheitlichen Fragen oder Beschwerden Ihres Kindes stets an eine Kinderärztin oder einen Kinderarzt.
+      </div>
+
+      <h2>1. Leistungsumfang</h2>
+      <p>Mışıl Baby ist ein digitaler Elternbegleiter mit beruhigenden Schlafklängen, intelligenten Einschlaftimern, sanftem Nachtlicht, Routine- & Impfpass-Begleitung (STIKO / BAG) sowie KI-gestützter Schreianalyse zur Unterstützung einer ruhigen Schlafumgebung.</p>
+
+      <h2>2. Abonnement- und Abrechnungsbedingungen</h2>
+      <p>Die Mışıl Baby VIP-Funktionen (Unbegrenzte KI-Schreianalyse, Mışıl Nanny™ 24/7 KI-Schlafcoach, Studio-Klangbibliothek & Mixer sowie 24-Stunden-Rhythmusanalyse) werden als automatisch verlängernde Abonnements über den Apple App Store und Google Play angeboten:</p>
+      <p>• <strong>Jahrespaket:</strong> Beinhaltet eine kostenlose Testphase (7 Tage Einführungsangebot, sofern berechtigt). Erfolgt nicht mindestens 24 Stunden vor Ablauf des Testzeitraums eine Kündigung, wird der Jahresbetrag automatisch über Ihr Store-Konto abgerechnet.<br>
+         • <strong>Verwaltung & Kündigung:</strong> Sie können Ihr Abonnement jederzeit in Ihren Apple-ID- / App-Store- oder Google-Play-Kontoeinstellungen verwalten oder kündigen. Ergänzend gilt die <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" target="_blank" rel="noopener">Standard-EULA von Apple</a>.</p>
+
+      <h2>3. Geistiges Eigentum</h2>
+      <p>Sämtliche Tonaufnahmen, Synthese-Algorithmen, Oberflächendesigns und Markenkennzeichen innerhalb von Mışıl Baby sind ausschließliches Eigentum von Levitas Enterprise Intelligence & Technology.</p>
+
+      <footer>
+        © 2026 Levitas Enterprise Intelligence & Technology. Alle Rechte vorbehalten.
+      </footer>
+    </div>
   </div>
 
   <script>
-    function setTermsLang(lang) {
-      var normalized = (lang === 'en') ? 'en' : 'tr';
+    function setTermsLang(lang, explicit) {
+      var normalized = (lang === 'de') ? 'de' : ((lang === 'en') ? 'en' : 'tr');
       document.documentElement.lang = normalized;
       var trEl = document.getElementById('content-tr');
       var enEl = document.getElementById('content-en');
+      var deEl = document.getElementById('content-de');
       var btnTr = document.getElementById('btn-tr');
       var btnEn = document.getElementById('btn-en');
-      if (normalized === 'en') {
-        trEl.classList.add('hidden');
-        enEl.classList.remove('hidden');
-        btnEn.classList.add('active');
-        btnTr.classList.remove('active');
+      var btnDe = document.getElementById('btn-de');
+      trEl.classList.toggle('hidden', normalized !== 'tr');
+      enEl.classList.toggle('hidden', normalized !== 'en');
+      deEl.classList.toggle('hidden', normalized !== 'de');
+      btnTr.classList.toggle('active', normalized === 'tr');
+      btnEn.classList.toggle('active', normalized === 'en');
+      btnDe.classList.toggle('active', normalized === 'de');
+      if (normalized === 'de') {
+        document.title = 'Nutzungsbedingungen (EULA) | Mışıl Baby - Levitas';
+      } else if (normalized === 'en') {
         document.title = 'Terms of Use (EULA) | Mışıl Baby - Levitas';
       } else {
-        enEl.classList.add('hidden');
-        trEl.classList.remove('hidden');
-        btnTr.classList.add('active');
-        btnEn.classList.remove('active');
         document.title = 'Kullanım Şartları (EULA) | Mışıl Baby - Levitas';
       }
-      try { localStorage.setItem('mishil_lang', normalized); } catch (e) {}
+      try {
+        localStorage.setItem('mishil_lang', normalized);
+        if (explicit) localStorage.setItem('mishil_lang_explicit', '1');
+      } catch (e) {}
     }
 
     (function initLang() {
       var params = new URLSearchParams(window.location.search);
       var qLang = params.get('lang');
-      if (qLang === 'en' || qLang === 'tr') {
-        setTermsLang(qLang);
+      if (qLang === 'de' || qLang === 'en' || qLang === 'tr') {
+        setTermsLang(qLang, true);
         return;
       }
       try {
         var saved = localStorage.getItem('mishil_lang');
-        if (saved === 'en' || saved === 'tr') {
-          setTermsLang(saved);
+        var isExplicit = localStorage.getItem('mishil_lang_explicit') === '1';
+        var navRaw = (navigator.language || '').toLowerCase();
+        if (!isExplicit && saved === 'en' && navRaw.indexOf('de') === 0) {
+          setTermsLang('de', false);
+          return;
+        }
+        if (saved === 'de' || saved === 'en' || saved === 'tr') {
+          setTermsLang(saved, false);
           return;
         }
       } catch (e) {}
       var nav = (navigator.language || 'tr').toLowerCase();
-      setTermsLang(nav.indexOf('tr') === 0 ? 'tr' : 'en');
+      setTermsLang(nav.indexOf('tr') === 0 ? 'tr' : (nav.indexOf('de') === 0 ? 'de' : 'en'), false);
     })();
   </script>
 </body>

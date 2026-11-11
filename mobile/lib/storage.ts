@@ -6,6 +6,7 @@ const TOKEN_KEY = 'mishil_auth_token';
 const ACTIVE_BABY_KEY = 'mishil_active_baby_id';
 const OFFLINE_QUEUE_KEY = 'mishil_offline_routines_queue';
 export const APP_LANG_KEY = 'mishil_lang';
+export type AppLang = 'tr' | 'en' | 'de';
 
 export const storage = {
   // Secure JWT Token Operations
@@ -68,13 +69,14 @@ export const storage = {
     await AsyncStorage.setItem(OFFLINE_QUEUE_KEY, JSON.stringify(queue));
   },
 
-  // App Language ('tr' | 'en')
-  async getAppLang(): Promise<'tr' | 'en' | null> {
+  // App Language ('tr' | 'en' | 'de')
+  async getAppLang(): Promise<AppLang | null> {
     try {
       const raw = await AsyncStorage.getItem(APP_LANG_KEY);
       if (!raw) return null;
       const clean = raw.trim().toLowerCase();
       if (clean.startsWith('tr')) return 'tr';
+      if (clean.startsWith('de')) return 'de';
       if (clean.startsWith('en')) return 'en';
       return 'en';
     } catch {
@@ -82,9 +84,10 @@ export const storage = {
     }
   },
 
-  async setAppLang(lang: 'tr' | 'en'): Promise<void> {
+  async setAppLang(lang: AppLang): Promise<void> {
     try {
-      const normalized = lang && lang.toLowerCase().startsWith('tr') ? 'tr' : 'en';
+      const clean = (lang || '').trim().toLowerCase();
+      const normalized: AppLang = clean.startsWith('tr') ? 'tr' : (clean.startsWith('de') ? 'de' : 'en');
       await AsyncStorage.setItem(APP_LANG_KEY, normalized);
     } catch {
       // Ignore storage write errors

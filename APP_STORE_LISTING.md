@@ -146,3 +146,67 @@ Support: support@levitas.tech
 Privacy Policy: https://mishil-production.up.railway.app/privacy?lang=en
 Terms of Use (Standard Apple EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 ```
+
+---
+
+## 7. Deutsch (`de-DE` — DACH) Localization — Apple App Store Connect
+
+### 7.1 Basisinformationen (`de-DE`)
+
+| Feld | Wert |
+| :--- | :--- |
+| **App-Name:** | `Mışıl Baby: Schlaf & Klänge` *(27 / 30 Zeichen)* |
+| **Untertitel:** | `KI-Schreianalyse & Einschlafen` *(30 / 30 Zeichen)* |
+| **Primäre Kategorie:** | `Gesundheit und Fitness` / `Medizin` |
+| **Sekundäre Kategorie:** | `Lifestyle` |
+
+### 7.2 ASO-Schlagwörter (`de-DE` - Max. 100 Zeichen)
+```text
+babyschlaf,einschlafhilfe,weißes rauschen,schreianalyse,wachfenster,kolik,wiegenlied,impfpass,baby
+```
+
+### 7.3 Werbetext (`de-DE` - Max. 170 Zeichen)
+```text
+Ruhige Nächte für Eltern und Babys: KI-gestützte Schreianalyse, 18+ Einschlafklänge, MışılSpot-Wachfenster, STIKO-/BAG-Impfkalender und 24/7 KI-Schlafcoach.
+```
+
+### 7.4 Vollständige Beschreibung (`de-DE` - Guideline 3.1.2 & 1.3 Konform, DSGVO / CH-DSG)
+```text
+Mışıl Baby ist ein umfassender Schlaf- und Pflegebegleiter für erwachsene Eltern und Bezugspersonen. Die App verbindet Erkenntnisse der pädiatrischen Schlafforschung mit beruhigenden Studio-Klängen und einer KI-gestützten Analyse von Wein-Signalen.
+
+Verstehen Sie die Signale Ihres Babys leichter, verfolgen Sie altersgerechte Wachfenster, dokumentieren Sie Stillzeiten, Windelwechsel und Impftermine (inkl. STIKO & Schweizer BAG) und schaffen Sie eine geborgene Schlafumgebung.
+
+─────────────────────────────────────────
+🆓 KOSTENLOSE GRUNDFUNKTIONEN FÜR ELTERN:
+─────────────────────────────────────────
+• MışılSpot™ Wachfenster-Begleiter: Altersgerechte Wach- und Einschlafzeiten auf Basis des Geburtsdatums (inkl. Frühchen-Korrektur).
+• Beruhigende Einschlafklänge: Ausgewählte Grundklänge wie sanftes Rauschen und Naturgeräusche.
+• Sanftes Nachtlicht: Augenfreundliches, dimmbares Bildschirmlicht für nächtliches Stillen und Wickeln.
+• Digitaler Impfpass & Erinnerungen: Übersicht über empfohlene Kinderimpfungen (STIKO 2+1, Schweizer BAG u. a.) mit Terminerinnerungen.
+• Tagesprotokoll: Schnelle Erfassung von Schlaf, Mahlzeiten (Muttermilch, Pre-Nahrung, Beikost) und Windelwechseln.
+• Smarter Einschlaftimer: Akku-schonender Timer mit sanftem Ausblenden (Fade-Out) im Hintergrund.
+
+─────────────────────────────────────────
+👑 MIŞIL VIP — FUNKTIONEN MIT ABONNEMENT:
+─────────────────────────────────────────
+Für die folgenden erweiterten KI- und Analysefunktionen ist ein aktives Mışıl-VIP-Abonnement erforderlich:
+• KI-gestützte Schreianalyse: Wertet akustische Frequenz- und Rhythmusmuster aus, um Hinweise auf Hunger, Bauchweh/Kolik, Müdigkeit oder Nähebedürfnis einzuordnen. (Abonnement erforderlich)
+• Mışıl Nanny™ 24/7 KI-Schlaf- & Elterncoach: Individuelle Orientierung rund um Schlafrhythmus und Abendroutine. (Abonnement erforderlich)
+• 18+ Studio-Klangbibliothek & Mixer: Mutterleibsklänge, Herzschlag, Föhn, Sch-Sch-Rhythmus, 432-Hz-Wiegenlieder und Mehrspur-Mixer. (Abonnement erforderlich)
+• 24-Stunden-Rhythmusanalyse & BabySteps™ Entwicklungssprünge: Überblick über Schlafmuster sowie alle 10 mentalen Entwicklungssprünge. (Abonnement erforderlich)
+
+💳 ABONNEMENT- UND TESTBEDINGUNGEN:
+Mışıl VIP ist als Jahresabo (inklusive 7-tägiger kostenloser Testphase für berechtigte Nutzer) oder als flexibles Monatsabo verfügbar. Die Abrechnung erfolgt über Ihr Apple-ID-Konto nach Kaufbestätigung bzw. nach Ablauf des kostenlosen Testzeitraums. Das Abonnement verlängert sich automatisch, sofern es nicht mindestens 24 Stunden vor Ablauf des jeweiligen Zeitraums in den App-Store-Kontoeinstellungen gekündigt wird.
+
+🩺 WICHTIGER MEDIZINISCHER HINWEIS:
+Mışıl Baby richtet sich an erwachsene Eltern und ist kein Medizinprodukt zur Diagnose, Überwachung oder Behandlung. Die Schreianalyse und Schlafhinweise dienen ausschließlich der allgemeinen Orientierung. Wenden Sie sich bei gesundheitlichen Fragen stets an eine Kinderärztin oder einen Kinderarzt.
+
+🔒 DATENSCHUTZ & KINDERSCHUTZ (DSGVO / CH-DSG / COPPA):
+• Akustische Proben werden ausschließlich flüchtig im Arbeitsspeicher ausgewertet; es erfolgt keine dauerhafte Speicherung von Roh-Audioaufnahmen auf externen Servern.
+• Keine Werbenetzwerke oder Drittanbieter-Tracker.
+
+Entwickler: Levitas Enterprise Intelligence & Technology
+Support: support@levitas.tech
+Datenschutzerklärung: https://mishil-production.up.railway.app/privacy?lang=de
+Nutzungsbedingungen (Apple Standard-EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+```

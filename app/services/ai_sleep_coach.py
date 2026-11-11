@@ -47,9 +47,24 @@ CORE PRINCIPLES (STRICTLY ENFORCED):
 6. PROGRESSIVE MULTI-TURN COACHING: Never repeat basic advice already given in earlier turns; build upon previous steps with the next progressive clinical technique.
 """
 
+SYSTEM_PROMPT_DE = """Du bist 'Mışıl Nanny', ein rund um die Uhr verfügbarer, einfühlsamer und zugleich EXTREM KLARER, PRÄGNANTER UND PRAXISNAHER pädiatrischer Schlaf- und Entwicklungscoach in der Mışıl Baby App.
+
+GRUNDPRINZIPIEN (STRIKT EINZUHALTEN):
+1. SOFORTIGE ANTWORT ZUERST: Verwende niemals Floskeln zur Einleitung ("atme tief durch", "lass die Schultern sinken"). Beginne nur mit einer kurzen, herzlichen Begrüßung ("Liebe Mama,", "Lieber Papa," oder "Liebe Bezugsperson,") und beantworte im ERSTEN SATZ direkt die konkrete Frage. Antworte stets in natürlichem, warmherzigem und fachlich fundiertem Deutsch (DACH-Raum).
+2. STRUKTURIERTES 3-BLOCK-FORMAT: Baue jede Antwort exakt aus diesen 3 klaren Blöcken auf:
+   • 1. Kurze Einschätzung (1–2 Sätze): Die pädiatrische bzw. zirkadiane Ursache passend zum Alter und Wachfenster des Babys.
+   • 2. Sofortmaßnahmen (2 konkrete Stichpunkte): Direkte, liebevolle und sofort umsetzbare Schritte für die Eltern.
+   • 3. Nächster Kalibrierungsschritt (1 Satz): Was zu tun ist, falls sich das Baby nicht beruhigt, und wie das nächste Wachfenster angepasst wird.
+   Beende jeden Satz vollständig und schließe deine Antwort mit '🌸 Süße Mışıl-Träume!' ab.
+3. KEINE TEXTBAUSTEINE: Konzentriere dich ausschließlich auf die gestellte Frage.
+4. KONTEXT-ISOLATION: Nutze Alter und Entwicklungssprung (Oje, ich wachse / BabySteps) nur als klinischen Hintergrund; erzwinge keinen Vortrag über Sprünge bei unabhängigen Fragen (z. B. Raumtemperatur oder Windelpflege).
+5. KEINE MEDIZINISCHE DIAGNOSE: Stelle niemals medizinische Diagnosen und empfiehl keine Medikamente; verweise bei Warnzeichen (Fieber, Apathie, Atemnot) stets an die Kinderärztin / den Kinderarzt.
+6. PROGRESSIVES MEHRFACH-COACHING: Wiederhole keine bereits genannten Basistipps aus früheren Nachrichten, sondern führe den nächsten vertiefenden Schritt ein.
+"""
+
 
 def normalize_lang(lang: Optional[str]) -> str:
-    """Normalize any locale/language string ('tr-TR', 'en-US', 'de', None) into 'tr' or 'en'."""
+    """Normalize any locale/language string ('tr-TR', 'en-US', 'de-DE', 'de-CH', None) into 'tr', 'en', or 'de'."""
     if not lang or not isinstance(lang, str):
         return "tr"
     cleaned = lang.strip().lower()
@@ -57,6 +72,8 @@ def normalize_lang(lang: Optional[str]) -> str:
         return "tr"
     if cleaned.startswith("tr"):
         return "tr"
+    if cleaned.startswith("de"):
+        return "de"
     return "en"
 
 
@@ -107,7 +124,8 @@ def _is_text_incomplete(text: str) -> bool:
     last_word = cleaned.split()[-1].lower().rstrip('.,!?:;')
     dangling = {
         've', 'veya', 'ile', 'için', 'çünkü', 'ama', 'fakat', 'ancak', 'alıp', 'edip', 'yapıp', 'ise', 'gibi',
-        'and', 'or', 'because', 'but', 'however', 'while', 'the', 'a', 'an'
+        'and', 'or', 'because', 'but', 'however', 'while', 'the', 'a', 'an',
+        'und', 'oder', 'weil', 'aber', 'jedoch', 'während', 'der', 'die', 'das', 'ein', 'eine', 'mit', 'für'
     }
     if last_word in dangling:
         return True
@@ -127,35 +145,67 @@ def _calc_baby_details(birth_date_str: str, manual_leap: Optional[int] = None, l
         # Wake windows
         if months < 2:
             ww = 60
-            leap = "Leap 1: Changing Sensations (Week 5)" if lang_norm == "en" else "1. Gelişen Duyular Dünyası (5. Hafta)"
+            leap = (
+                "Sprung 1: Sinneseindrücke (Woche 5)"
+                if lang_norm == "de"
+                else ("Leap 1: Changing Sensations (Week 5)" if lang_norm == "en" else "1. Gelişen Duyular Dünyası (5. Hafta)")
+            )
         elif months < 4:
             ww = 75
-            leap = "Leap 3: Smooth Transitions (Week 12)" if lang_norm == "en" else "3. Yumuşak Geçişler Dünyası (12. Hafta)"
+            leap = (
+                "Sprung 3: Sanfte Übergänge (Woche 12)"
+                if lang_norm == "de"
+                else ("Leap 3: Smooth Transitions (Week 12)" if lang_norm == "en" else "3. Yumuşak Geçişler Dünyası (12. Hafta)")
+            )
         elif months < 6:
             ww = 105
-            leap = "Leap 4: Events & 4-Month Sleep Regression (Week 19)" if lang_norm == "en" else "4. Olaylar Dünyası & 4. Ay Regresyonu (19. Hafta)"
+            leap = (
+                "Sprung 4: Ereignisse & 4-Monats-Schlafregression (Woche 19)"
+                if lang_norm == "de"
+                else ("Leap 4: Events & 4-Month Sleep Regression (Week 19)" if lang_norm == "en" else "4. Olaylar Dünyası & 4. Ay Regresyonu (19. Hafta)")
+            )
         elif months < 9:
             ww = 140
-            leap = "Leap 5: Relationships & Distance (Week 26)" if lang_norm == "en" else "5. İlişkiler ve Mesafe Dünyası (26. Hafta)"
+            leap = (
+                "Sprung 5: Zusammenhänge & Distanz (Woche 26)"
+                if lang_norm == "de"
+                else ("Leap 5: Relationships & Distance (Week 26)" if lang_norm == "en" else "5. İlişkiler ve Mesafe Dünyası (26. Hafta)")
+            )
         elif months < 12:
             ww = 180
-            leap = "Leap 7: Sequences (Week 46)" if lang_norm == "en" else "7. Sıralar Dünyası (46. Hafta)"
+            leap = (
+                "Sprung 7: Reihenfolgen (Woche 46)"
+                if lang_norm == "de"
+                else ("Leap 7: Sequences (Week 46)" if lang_norm == "en" else "7. Sıralar Dünyası (46. Hafta)")
+            )
         else:
             ww = 240
-            leap = "Leap 9: Principles (Week 64)" if lang_norm == "en" else "9. İlkeler Dünyası (64. Hafta)"
+            leap = (
+                "Sprung 9: Prinzipien (Woche 64)"
+                if lang_norm == "de"
+                else ("Leap 9: Principles (Week 64)" if lang_norm == "en" else "9. İlkeler Dünyası (64. Hafta)")
+            )
 
         if manual_leap:
             leap = (
-                f"Leap {manual_leap} (Manually Activated by Parent - Early Leap Mode)"
-                if lang_norm == "en"
-                else f"{manual_leap}. Sıçrama (Ebeveyn Tarafından Manuel Aktif Edildi - Erken Atak Modu)"
+                f"Sprung {manual_leap} (Manuell durch Eltern aktiviert – Früher Sprung-Modus)"
+                if lang_norm == "de"
+                else (
+                    f"Leap {manual_leap} (Manually Activated by Parent - Early Leap Mode)"
+                    if lang_norm == "en"
+                    else f"{manual_leap}. Sıçrama (Ebeveyn Tarafından Manuel Aktif Edildi - Erken Atak Modu)"
+                )
             )
             ww = max(45, ww - 15)  # Erken atakta uyanıklık penceresini kısalt
 
         age_fmt = (
-            f"{months} Months {days} Days old (Week {weeks})"
-            if lang_norm == "en"
-            else f"{months} Ay {days} Günlük ({weeks}. Hafta)"
+            f"{months} Monate {days} Tage alt (Woche {weeks})"
+            if lang_norm == "de"
+            else (
+                f"{months} Months {days} Days old (Week {weeks})"
+                if lang_norm == "en"
+                else f"{months} Ay {days} Günlük ({weeks}. Hafta)"
+            )
         )
 
         return {
@@ -171,16 +221,45 @@ def _calc_baby_details(birth_date_str: str, manual_leap: Optional[int] = None, l
             "months": 4,
             "days": 12,
             "weeks": 19,
-            "age_formatted": "4 Months 12 Days old (Week 19)" if lang_norm == "en" else "4 Ay 12 Günlük (19. Hafta)",
+            "age_formatted": (
+                "4 Monate 12 Tage alt (Woche 19)"
+                if lang_norm == "de"
+                else ("4 Months 12 Days old (Week 19)" if lang_norm == "en" else "4 Ay 12 Günlük (19. Hafta)")
+            ),
             "wake_window_min": 90,
-            "leap_info": "4-Month Sleep Regression Phase" if lang_norm == "en" else "4. Ay Regresyonu Dönemi"
+            "leap_info": (
+                "Phase der 4-Monats-Schlafregression"
+                if lang_norm == "de"
+                else ("4-Month Sleep Regression Phase" if lang_norm == "en" else "4. Ay Regresyonu Dönemi")
+            )
         }
 
 
 def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date: str, message: str, chat_history: List[Dict[str, str]], user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None, lang: str = "tr") -> Optional[str]:
     lang_norm = normalize_lang(lang)
     baby_info = _calc_baby_details(birth_date, manual_leap, lang_norm)
-    if lang_norm == "en":
+    if lang_norm == "de":
+        role_label = "Mama" if user_role == "mother" else ("Papa" if user_role == "father" else "Bezugsperson / Babysitter")
+        rollup_text = ""
+        if routine_rollup:
+            rollup_text = (
+                f"\n• Täglicher Gesamtschlaf: {routine_rollup.get('daily_sleep_hours', '—')} Stunden"
+                f"\n• Mahlzeiten: {routine_rollup.get('feeding_count', 0)}-mal (Gesamt {routine_rollup.get('total_feeding_ml', 0)} ml, Ø alle {routine_rollup.get('avg_feeding_interval_hours', '—')} Std.)"
+                f"\n• Windeln: {routine_rollup.get('diaper_wet', 0)} nass, {routine_rollup.get('diaper_dirty', 0)} voll"
+                f"\n• Nächtliches Aufwachen: {routine_rollup.get('night_awakenings', 0)}-mal"
+            )
+        sys_prompt = (
+            f"{SYSTEM_PROMPT_DE}\n\n"
+            f"[AKTUELLER BABY-KONTEXT – NUR ALS KLINISCHER HINTERGRUND, NICHT ERZWINGEN WENN UNABHÄNGIG VON DER FRAGE]\n"
+            f"Rolle: {role_label}\n"
+            f"Babyname: {baby_name}\n"
+            f"Alter: {baby_info['age_formatted']}\n"
+            f"Entwicklungs-/Regressionsphase: {baby_info['leap_info']}\n"
+            f"Ideales MışılSpot-Wachfenster: {baby_info['wake_window_min']} Minuten"
+            f"{rollup_text}"
+        )
+        ask_prefix = f"[{role_label} fragt]: {message}"
+    elif lang_norm == "en":
         role_label = "Mom" if user_role == "mother" else ("Dad" if user_role == "father" else "Nanny / Caregiver")
         rollup_text = ""
         if routine_rollup:
@@ -270,6 +349,81 @@ def _tier4_clinical_heuristic(baby_name: str, birth_date: str, message: str, use
 
     past_replies = " ".join([h.get("content", "").lower() for h in (chat_history or []) if h.get("role") in ("assistant", "model")])
     turn_count = len([h for h in (chat_history or []) if h.get("role") == "user"])
+
+    if lang_norm == "de":
+        hitap = "Liebe Mama" if user_role == "mother" else ("Lieber Papa" if user_role == "father" else "Liebe Bezugsperson")
+        if any(w in msg_lower for w in ["30 min", "30m", "kurz", "aufgewacht", "zyklus", "nickerchen", "tagsüber", "halbe stunde", "45 min"]):
+            if "wake-to-sleep" in past_replies or "25 minuten" in past_replies or turn_count >= 2:
+                return (
+                    f"{hitap}, hier ist unser Stufe-3-Schritt, um das Aufwachen nach 30 Minuten bei {baby_name} nachhaltig zu lösen:\n\n"
+                    f"• **Konstante Schlafumgebung:** Geräuschkulisse und Abdunkelung beim Einschlafen sollten nach 30 Minuten exakt unverändert sein (Mışıl Baby *Rosa Rauschen* durchgängig weiterlaufen lassen).\n"
+                    f"• **Wachfenster-Kalibrierung:** Lege {baby_name} ({baby_info['age_formatted']}) 10 Minuten früher hin – Übermüdung führt genau beim Zykluswechsel nach 30 Minuten zu einem Cortisol-Anstieg.\n\n"
+                    f"🌸 Süße Mışıl-Träume!"
+                )
+            elif "sch-sch" in past_replies or "klopfen" in past_replies or turn_count >= 1:
+                return (
+                    f"{hitap}, wenn das Aufwachen nach 30 Minuten trotz sanftem Beruhigen anhält, hilft die klinische **‚Wake-to-Sleep‘-Zyklusbrücke**:\n\n"
+                    f"• Gehe 25 Minuten nach dem Einschlafen leise in das Zimmer von {baby_name}.\n"
+                    f"• Berühre sanft den Rücken oder die Schulter, sodass sich {baby_name} minimal regt, ohne ganz aufzuwachen, und nahtlos in den zweiten Tiefschlafzyklus gleitet.\n\n"
+                    f"🌸 Süße Mışıl-Träume!"
+                )
+            else:
+                return (
+                    f"{hitap}, {baby_name} ({baby_info['age_formatted']}) wacht genau am Übergang vom ersten Leichtschlafzyklus (30–40 Min.) in den Tiefschlaf auf.\n\n"
+                    f"• Halte den Raum abgedunkelt, vermeide Blickkontakt und beruhige {baby_name} direkt im Bettchen durch sanftes Klopfen.\n"
+                    f"• Lass gleichmäßiges Weißes oder Rosa Rauschen weiterlaufen, um die Brücke in den zweiten Schlafzyklus zu schlagen.\n\n"
+                    f"🌸 Süße Mışıl-Träume!"
+                )
+        elif any(w in msg_lower for w in ["nacht", "aufwach", "stillen", "milch", "flasche", "hunger", "abstillen", "trinken"]):
+            if months < 3:
+                return (
+                    f"{hitap}, da {baby_name} erst {weeks} Wochen alt ist, entspricht nächtliches Aufwachen einem echten physiologischen Nahrungs- und Nähebedürfnis.\n\n"
+                    f"• Reduziere nächtliche Mahlzeiten noch nicht; halte das Licht gedimmt, sprich leise und wechsle die Windel nur bei Bedarf.\n"
+                    f"• So wird die Melatoninbildung geschützt und der Tag-Nacht-Rhythmus sanft gefestigt.\n\n"
+                    f"🌸 Süße Mışıl-Träume!"
+                )
+            elif 3 <= months < 6:
+                return (
+                    f"{hitap}, um das nächtliche Aufwachen von {baby_name} ({baby_info['age_formatted']}) sanft zu reduzieren, empfiehlt sich eine strukturierte **Traummahlzeit (Dream Feed)**:\n\n"
+                    f"• Biete gegen 22:30–23:00 Uhr vor dem eigenen Schlafengehen im dunklen Zimmer ruhig eine Mahlzeit an, ohne {baby_name} vollständig zu wecken.\n"
+                    f"• Das füllt die Kalorienspeicher auf und hilft, das Hunger-Aufwachen gegen 02:00–03:00 Uhr zu überspringen.\n\n"
+                    f"🌸 Süße Mışıl-Träume!"
+                )
+            else:
+                return (
+                    f"{hitap}, mit {baby_info['age_formatted']} ist häufiges nächtliches Aufwachen meist eine Einschlaf-Gewohnheit statt echtem Hunger (nach kinderärztlicher Rücksprache).\n\n"
+                    f"• Warte zunächst 90 Sekunden ruhig ab, damit {baby_name} Gelegenheit zur Selbstregulation bekommt.\n"
+                    f"• Trenne die letzte Abendmahlzeit durch ein 15-minütiges Vorlese- und Schlaflied-Ritual klar vom Einschlafen.\n\n"
+                    f"🌸 Süße Mışıl-Träume!"
+                )
+        elif any(w in msg_lower for w in ["regression", "4 monat", "4-monat", "sprung", "schub", "unruhig", "wachstum"]):
+            return (
+                f"{hitap}, {baby_name} durchläuft gerade **{baby_info['leap_info']}** – einen wichtigen neurologischen Reifungsschritt der Schlafarchitektur.\n\n"
+                f"• Achte genau auf das MışılSpot-Wachfenster (**{ww} Minuten**) und starte das Einschlafritual beim ersten Gähnen oder Augenreiben.\n"
+                f"• Dimme das Licht 15 Minuten vor dem Zubettgehen und beende das letzte Tagschläfchen vor 17:00 Uhr.\n\n"
+                f"🌸 Süße Mışıl-Träume!"
+            )
+        elif any(w in msg_lower for w in ["weint", "schreit", "kolik", "bauch", "blähung", "tragen", "einschlafen", "wehrt"]):
+            return (
+                f"{hitap}, wenn {baby_name} stark weint und gegen den Schlaf kämpft, hat Übermüdung wahrscheinlich Cortisol und Adrenalin ausgeschüttet.\n\n"
+                f"• Unterbrich aktive Einschlafversuche für 5 Minuten: Halte {baby_name} im abgedunkelten Raum aufrecht an deiner Brust mit ruhigem Wiegeschritt.\n"
+                f"• Starte Mışıl Baby *Mutterleibsgeräusche* oder *Rhythmisches Sch-Sch* und lege {baby_name} schläfrig ab, sobald sich die Atmung beruhigt.\n\n"
+                f"🌸 Süße Mışıl-Träume!"
+            )
+        elif any(w in msg_lower for w in ["temperatur", "grad", "zimmer", "luftfeuchtigkeit", "pucken", "schlafsack", "drehen"]):
+            return (
+                f"{hitap}, die empfohlene Schlafumgebung für {baby_name} liegt bei **18°C–20°C (max. 21°C)** und **45%–55% Luftfeuchtigkeit**.\n\n"
+                f"• Prüfe die Temperatur im Nacken von {baby_name} – ein verschwitzter Nacken weist auf Überwärmung hin, eine häufige Ursache für nächtliches Erwachen.\n"
+                f"• Sobald erste Drehversuche sichtbar werden, wechsle sofort vom Pucktuch zu einem sicheren Schlafsack (0,5–1,0 TOG) mit freien Armen.\n\n"
+                f"🌸 Süße Mışıl-Träume!"
+            )
+        else:
+            return (
+                f"{hitap}, für {baby_name} ({baby_info['age_formatted']}) liegt das ideale MışılSpot-Wachfenster aktuell bei **{ww} Minuten** (**{baby_info['leap_info']}**).\n\n"
+                f"• Starte das 3-Schritte-Abendritual (frische Windel ➔ gedimmtes Licht & Mışıl-Klang ➔ ruhiges Ablegen ins Bettchen) 10 Minuten vor Ende des Wachfensters, um Übermüdung vorzubeugen.\n"
+                f"• Frag mich jederzeit gerne zu kurzen Schläfchen, nächtlichem Stillen, Entwicklungssprüngen oder Beruhigungsroutinen.\n\n"
+                f"🌸 Süße Mışıl-Träume!"
+            )
 
     if lang_norm == "en":
         hitap = "Dear Mom" if user_role == "mother" else ("Dear Dad" if user_role == "father" else "Dear Caregiver")
@@ -543,7 +697,29 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
     streamed_success = False
 
     if api_key:
-        if lang_norm == "en":
+        if lang_norm == "de":
+            role_label = "Mama" if user_role == "mother" else ("Papa" if user_role == "father" else "Bezugsperson / Babysitter")
+            rollup_text = ""
+            if routine_rollup:
+                rollup_text = (
+                    f"\n• Täglicher Gesamtschlaf: {routine_rollup.get('daily_sleep_hours', '—')} Stunden"
+                    f"\n• Mahlzeiten: {routine_rollup.get('feeding_count', 0)}-mal (Gesamt {routine_rollup.get('total_feeding_ml', 0)} ml, Ø alle {routine_rollup.get('avg_feeding_interval_hours', '—')} Std.)"
+                    f"\n• Windeln: {routine_rollup.get('diaper_wet', 0)} nass, {routine_rollup.get('diaper_dirty', 0)} voll"
+                    f"\n• Nächtliches Aufwachen: {routine_rollup.get('night_awakenings', 0)}-mal"
+                )
+            sys_prompt = (
+                f"{SYSTEM_PROMPT_DE}\n\n"
+                f"[AKTUELLER BABY-KONTEXT – NUR ALS KLINISCHER HINTERGRUND, NICHT ERZWINGEN WENN UNABHÄNGIG VON DER FRAGE]\n"
+                f"Rolle: {role_label}\n"
+                f"Babyname: {baby_name}\n"
+                f"Alter: {baby_info['age_formatted']}\n"
+                f"Entwicklungs-/Regressionsphase: {baby_info['leap_info']}\n"
+                f"Ideales MışılSpot-Wachfenster: {baby_info['wake_window_min']} Minuten"
+                f"{rollup_text}"
+            )
+            ask_prefix = f"[{role_label} fragt]: {message}"
+            continuation_prompt = "Vervollständige deinen angefangenen Satz nahtlos ab der letzten Stelle und schließe mit '🌸 Süße Mışıl-Träume!' ab."
+        elif lang_norm == "en":
             role_label = "Mom" if user_role == "mother" else ("Dad" if user_role == "father" else "Nanny / Caregiver")
             rollup_text = ""
             if routine_rollup:

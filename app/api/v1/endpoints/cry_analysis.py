@@ -27,10 +27,15 @@ def _enforce_cry_abuse_rate_limit(request: Optional[Request], lang: str = "tr") 
     while bucket and (now - bucket[0]) > _CRY_WINDOW_SEC:
         bucket.popleft()
     if len(bucket) >= _CRY_MAX_REQ_PER_WINDOW:
+        lang_clean = (lang or "tr").strip().lower()
         detail_msg = (
-            "Rate limit exceeded for cry audio analysis. Please wait a few minutes."
-            if (lang or "tr").lower().startswith("en")
-            else "Kısa sürede çok fazla ses analizi isteği gönderildi. Lütfen birkaç dakika bekleyin."
+            "Anfragelimit für die Schrei-Audioanalyse erreicht. Bitte warte ein paar Minuten."
+            if lang_clean.startswith("de")
+            else (
+                "Rate limit exceeded for cry audio analysis. Please wait a few minutes."
+                if lang_clean.startswith("en")
+                else "Kısa sürede çok fazla ses analizi isteği gönderildi. Lütfen birkaç dakika bekleyin."
+            )
         )
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=detail_msg)
     bucket.append(now)
@@ -41,7 +46,7 @@ async def analyze_cry_audio(
     request: Request,
     file: UploadFile = File(..., description="Bebek ağlama ses kaydı (WAV, M4A, MP3, maks 10MB)"),
     baby_id: Optional[int] = Form(None, description="Opsiyonel Bebek ID"),
-    lang: Optional[str] = Form("tr", description="Yanıt dili ('tr' veya 'en')"),
+    lang: Optional[str] = Form("tr", description="Yanıt dili ('tr', 'en' veya 'de')"),
     db: Session = Depends(get_db),
     current_user: Optional[User] = Depends(get_optional_current_user),
 ):
@@ -49,14 +54,24 @@ async def analyze_cry_audio(
     Analyze baby crying audio file using Librosa acoustic feature extraction (MFCC, ZCR, Spectral Centroid)
     and output a heuristic probability distribution across causes (Hungry, Tired, Pain/Colic, Discomfort).
     """
-    _enforce_cry_abuse_rate_limit(request, lang or "tr")
+    lang_clean = (lang or "tr").strip().lower()
+    _enforce_cry_abuse_rate_limit(request, lang_clean)
     # Verify baby ownership if both baby_id and current_user are provided
     if baby_id and current_user:
         baby = db.query(Baby).filter(Baby.id == baby_id, Baby.user_id == current_user.id).first()
         if not baby:
+            not_found_msg = (
+                "Das angegebene Babyprofil wurde nicht gefunden oder gehört nicht zu diesem Konto."
+                if lang_clean.startswith("de")
+                else (
+                    "Specified baby profile not found or does not belong to this account."
+                    if lang_clean.startswith("en")
+                    else "Belirtilen bebek kaydı bulunamadı veya bu hesaba ait değil."
+                )
+            )
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail="Belirtilen bebek kaydı bulunamadı veya bu hesaba ait değil."
+                detail=not_found_msg,
             )
 
     # Perform analysis

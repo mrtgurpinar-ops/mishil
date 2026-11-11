@@ -27,6 +27,7 @@ import {
   CareLang,
 } from '../features/notifications/careNotificationEngine';
 import { storage, APP_LANG_KEY } from '../lib/storage';
+import { triggerNativeStoreReview, NATIVE_REVIEW_STORAGE_KEY } from '../features/review/storeReviewService';
 
 function getSystemLocale(): string {
   try {
@@ -37,7 +38,7 @@ function getSystemLocale(): string {
 }
 
 const DEVICE_LOCALE = getSystemLocale();
-const DEVICE_LANG: CareLang = DEVICE_LOCALE.toLowerCase().startsWith('tr') ? 'tr' : 'en';
+const DEVICE_LANG: CareLang = normalizeCareLang(DEVICE_LOCALE);
 
 // Native sürüm bilgisini WebView'e sayfa yüklenmeden önce enjekte et (Settings sürüm rozeti + changelog dinamik)
 const APP_VERSION = Constants.expoConfig?.version ?? '0.0.0';
@@ -61,6 +62,7 @@ const INJECT_APP_META = `
   window.MishilNative = window.MishilNative || {};
   window.MishilNative.isNative = true;
   window.MishilNative.audioBridge = true;
+  window.MishilNative.storeReviewBridge = true;
   true;
 `;
 
@@ -363,11 +365,12 @@ export default function MishilUnifiedWebView() {
   // AsyncStorage'dan profil ve onboarding durumunu WebView localStorage'ına hidrate et (Çift Katmanlı Koruma)
   const hydrateWebViewStorage = useCallback(async () => {
     try {
-      const [[, rawProfile], [, rawOnboarding], [, rawPlan], [, rawSavedLang]] = await AsyncStorage.multiGet([
+      const [[, rawProfile], [, rawOnboarding], [, rawPlan], [, rawSavedLang], [, rawReviewLastTs]] = await AsyncStorage.multiGet([
         '@mishil_baby_profile',
         '@mishil_onboarding_completed',
         '@mishil_subscription_plan',
         APP_LANG_KEY,
+        NATIVE_REVIEW_STORAGE_KEY,
       ]);
 
       const resolvedSavedLang = rawSavedLang ? normalizeCareLang(rawSavedLang) : null;
@@ -376,7 +379,11 @@ export default function MishilUnifiedWebView() {
         setAppLang(resolvedSavedLang);
       }
 
-      if (rawProfile || rawOnboarding === 'true' || resolvedSavedLang) {
+      const safeReviewTs = rawReviewLastTs && /^\d+$/.test(String(rawReviewLastTs).trim())
+        ? String(rawReviewLastTs).trim()
+        : '';
+
+      if (rawProfile || rawOnboarding === 'true' || resolvedSavedLang || safeReviewTs) {
         let pObj: any = null;
         try { pObj = rawProfile ? JSON.parse(rawProfile) : null; } catch {}
         const nameVal = pObj?.babyName ? String(pObj.babyName).replace(/[`\\$]/g, '') : '';
@@ -400,6 +407,7 @@ export default function MishilUnifiedWebView() {
               ${uNameVal ? `if (!localStorage.getItem('mishil_user_name')) { localStorage.setItem('mishil_user_name', '${uNameVal}'); modified = true; }` : ''}
               ${rawOnboarding === 'true' ? `if (!localStorage.getItem('mishil_onboarding_completed')) { localStorage.setItem('mishil_onboarding_completed', 'true'); modified = true; }` : ''}
               ${shouldHydrateFamilyPlan ? `if (!localStorage.getItem('mishil_subscription_plan') && localStorage.getItem('mishil_family_vip_verified') === '1') { localStorage.setItem('mishil_subscription_plan', 'family_vip'); modified = true; }` : ''}
+              ${safeReviewTs ? `if (!localStorage.getItem('mishil_native_review_last_ts')) { localStorage.setItem('mishil_native_review_last_ts', '${safeReviewTs}'); }` : ''}
               if (modified) {
                 if (typeof window.applyLanguage === 'function') window.applyLanguage(localStorage.getItem('mishil_lang') || '${resolvedSavedLang || DEVICE_LANG}');
                 if (typeof checkOnboardingState === 'function') checkOnboardingState();
@@ -431,6 +439,7 @@ export default function MishilUnifiedWebView() {
           // Ses çalma native tarafa taşındı (arka plan / kilitli ekran).
           // Sorun çıkarsa bu bayrağı false yapmak app.html'i HTMLAudio'ya döndürür.
           window.MishilNative.audioBridge = true;
+          window.MishilNative.storeReviewBridge = true;
         }
         true;
       })();
@@ -686,7 +695,11 @@ export default function MishilUnifiedWebView() {
                 },
                 updatedSettings
               );
-              webToast(nextLang === 'en' ? '✅ Notification preferences updated.' : '✅ Bildirim tercihleri güncellendi.');
+              webToast(
+                nextLang === 'de'
+                  ? '✅ Benachrichtigungseinstellungen aktualisiert.'
+                  : (nextLang === 'en' ? '✅ Notification preferences updated.' : '✅ Bildirim tercihleri güncellendi.')
+              );
             });
           }
           break;
@@ -720,7 +733,9 @@ export default function MishilUnifiedWebView() {
 
         case 'PURCHASE_PACKAGE': {
           isPurchaseInProgressRef.current = true;
-          const isEn = appLangRef.current === 'en';
+          const curLang = appLangRef.current;
+          const isDe = curLang === 'de';
+          const isEn = curLang === 'en';
           // Web tarafına satın almanın native tarafta başladığını bildir
           webviewRef.current?.injectJavaScript(`
             (function() {
@@ -754,7 +769,10 @@ export default function MishilUnifiedWebView() {
 
             if (result.success && result.isActive) {
               // Yalnızca GERÇEKTEN aktif hak varsa VIP'yi aç
-              grantProInWebView(plan, isEn ? '🎉 Mishil VIP activated!' : '🎉 Mışıl VIP aktif edildi!');
+              grantProInWebView(
+                plan,
+                isDe ? '🎉 Mışıl VIP aktiviert!' : (isEn ? '🎉 Mishil VIP activated!' : '🎉 Mışıl VIP aktif edildi!')
+              );
               const cInfo = result.customerInfo;
               const activeEnts = cInfo?.entitlements?.active || {};
               const firstEntKey = Object.keys(activeEnts)[0];
@@ -801,25 +819,35 @@ export default function MishilUnifiedWebView() {
             } else {
               console.warn('[Purchase] Satın alma tamamlanamadı:', result.error);
               const isIOS = Platform.OS === 'ios';
-              let errorMsg = isEn
-                ? '⚠️ Purchase could not be completed. Please try again.'
-                : '⚠️ Satın alma işlemi tamamlanamadı. Lütfen tekrar deneyiniz.';
+              let errorMsg = isDe
+                ? '⚠️ Kauf konnte nicht abgeschlossen werden. Bitte erneut versuchen.'
+                : (isEn
+                    ? '⚠️ Purchase could not be completed. Please try again.'
+                    : '⚠️ Satın alma işlemi tamamlanamadı. Lütfen tekrar deneyiniz.');
               if (result.error === 'no_package') {
                 errorMsg = isIOS
-                  ? (isEn
-                      ? '⚠️ Store package is preparing, please try again in a few seconds.'
-                      : '⚠️ Mağaza paketi hazırlanıyor, lütfen birkaç saniye sonra tekrar deneyiniz.')
-                  : (isEn
-                      ? '⚠️ Could not connect to Google Play. Please verify your Google Play account and internet connection.'
-                      : '⚠️ Google Play mağazasına bağlanılamadı. Lütfen cihazınızda Google Play hesabınızın açık olduğunu ve internet bağlantınızı kontrol ediniz.');
+                  ? (isDe
+                      ? '⚠️ Store-Paket wird vorbereitet, bitte in wenigen Sekunden erneut versuchen.'
+                      : isEn
+                        ? '⚠️ Store package is preparing, please try again in a few seconds.'
+                        : '⚠️ Mağaza paketi hazırlanıyor, lütfen birkaç saniye sonra tekrar deneyiniz.')
+                  : (isDe
+                      ? '⚠️ Verbindung zu Google Play fehlgeschlagen. Bitte Google-Play-Konto und Internetverbindung prüfen.'
+                      : isEn
+                        ? '⚠️ Could not connect to Google Play. Please verify your Google Play account and internet connection.'
+                        : '⚠️ Google Play mağazasına bağlanılamadı. Lütfen cihazınızda Google Play hesabınızın açık olduğunu ve internet bağlantınızı kontrol ediniz.');
               } else if (isIOS) {
-                errorMsg = isEn
-                  ? '⚠️ Apple StoreKit transaction could not be completed. Please check your internet connection and Apple ID.'
-                  : '⚠️ Apple StoreKit işlemi tamamlanamadı. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.';
+                errorMsg = isDe
+                  ? '⚠️ Apple StoreKit-Transaktion konnte nicht abgeschlossen werden. Bitte Internetverbindung und Apple-ID prüfen.'
+                  : (isEn
+                      ? '⚠️ Apple StoreKit transaction could not be completed. Please check your internet connection and Apple ID.'
+                      : '⚠️ Apple StoreKit işlemi tamamlanamadı. Lütfen internet bağlantınızı ve Apple Kimliğinizi kontrol edip tekrar deneyiniz.');
               } else {
-                errorMsg = isEn
-                  ? '⚠️ Google Play billing could not be completed. Please check your Google Play Store account and try again.'
-                  : '⚠️ Google Play ödeme işlemi tamamlanamadı. Lütfen Google Play Store uygulamasından hesabınızı kontrol edip tekrar deneyiniz.';
+                errorMsg = isDe
+                  ? '⚠️ Google-Play-Zahlung konnte nicht abgeschlossen werden. Bitte Google-Play-Konto prüfen und erneut versuchen.'
+                  : (isEn
+                      ? '⚠️ Google Play billing could not be completed. Please check your Google Play Store account and try again.'
+                      : '⚠️ Google Play ödeme işlemi tamamlanamadı. Lütfen Google Play Store uygulamasından hesabınızı kontrol edip tekrar deneyiniz.');
               }
 
               webviewRef.current?.injectJavaScript(`
@@ -842,7 +870,9 @@ export default function MishilUnifiedWebView() {
         }
 
         case 'RESTORE_PURCHASES': {
-          const isEn = appLangRef.current === 'en';
+          const curLang = appLangRef.current;
+          const isDe = curLang === 'de';
+          const isEn = curLang === 'en';
           const result = await restorePurchases();
           if (result.success && result.isActive) {
             let detectedPlan: 'yearly' | 'monthly' = 'monthly';
@@ -853,11 +883,15 @@ export default function MishilUnifiedWebView() {
             } catch {}
             grantProInWebView(
               detectedPlan,
-              isEn ? '✅ Purchases restored (Mishil Baby Pro Active)' : '✅ Satın alımlar geri yüklendi (Mışıl Baby Pro Aktif)'
+              isDe
+                ? '✅ Käufe wiederhergestellt (Mışıl Baby Pro Aktiv)'
+                : (isEn ? '✅ Purchases restored (Mishil Baby Pro Active)' : '✅ Satın alımlar geri yüklendi (Mışıl Baby Pro Aktif)')
             );
           } else {
             webToast(
-              isEn ? 'ℹ️ No active subscription found on this account to restore.' : 'ℹ️ Bu hesapta geri yüklenecek aktif bir abonelik bulunamadı.'
+              isDe
+                ? 'ℹ️ Kein aktives Abonnement auf diesem Konto gefunden.'
+                : (isEn ? 'ℹ️ No active subscription found on this account to restore.' : 'ℹ️ Bu hesapta geri yüklenecek aktif bir abonelik bulunamadı.')
             );
           }
           break;
@@ -878,6 +912,40 @@ export default function MishilUnifiedWebView() {
           break;
         }
 
+        case 'REQUEST_NATIVE_REVIEW': {
+          // Satın alma penceresi açıkken asla araya girme (Apple 3.1.2 & UX koruması)
+          if (isPurchaseInProgressRef.current) {
+            webviewRef.current?.injectJavaScript(`
+              (function(){
+                window.dispatchEvent(new MessageEvent('message', {
+                  data: JSON.stringify({ type: 'NATIVE_REVIEW_RESULT', triggered: false, reason: 'purchase_in_flight', timestamp: 0 })
+                }));
+                true;
+              })();
+            `);
+            break;
+          }
+          const reviewRes = await triggerNativeStoreReview();
+          const safeReason = String(reviewRes.reason || 'error').replace(/[^a-z_]/gi, '');
+          const safeTs = typeof reviewRes.timestamp === 'number' && Number.isFinite(reviewRes.timestamp)
+            ? reviewRes.timestamp
+            : 0;
+          webviewRef.current?.injectJavaScript(`
+            (function(){
+              window.dispatchEvent(new MessageEvent('message', {
+                data: JSON.stringify({
+                  type: 'NATIVE_REVIEW_RESULT',
+                  triggered: ${reviewRes.triggered ? 'true' : 'false'},
+                  reason: '${safeReason}',
+                  timestamp: ${safeTs}
+                })
+              }));
+              true;
+            })();
+          `);
+          break;
+        }
+
         default:
           break;
       }
@@ -887,24 +955,27 @@ export default function MishilUnifiedWebView() {
   }, [webToast, grantProInWebView, sendAudioState, updateNativeLang]);
 
   const autoRetrying = status === 'error' && retryCountRef.current > 0 && retryCountRef.current <= MAX_AUTO_RETRY;
+  const isDeUI = appLang === 'de';
   const isEnUI = appLang === 'en';
 
   // Hata durumunda gösterilecek ekran — GERÇEK yeniden deneme butonu ile
   const renderError = () => (
     <View style={styles.errorContainer}>
       <Text style={styles.errorIcon}>🌙</Text>
-      <Text style={styles.errorTitle}>{isEnUI ? 'Connection Failed' : 'Bağlantı Kurulamadı'}</Text>
+      <Text style={styles.errorTitle}>
+        {isDeUI ? 'Verbindung fehlgeschlagen' : (isEnUI ? 'Connection Failed' : 'Bağlantı Kurulamadı')}
+      </Text>
       <Text style={styles.errorSub}>
-        {isEnUI ? 'Please check your internet connection.' : 'İnternet bağlantınızı kontrol edin.'}{'\n'}
+        {isDeUI ? 'Bitte Internetverbindung prüfen.' : (isEnUI ? 'Please check your internet connection.' : 'İnternet bağlantınızı kontrol edin.')}{'\n'}
         {autoRetrying
-          ? (isEnUI ? 'Reconnecting to server...' : 'Sunucuya yeniden bağlanılıyor...')
-          : (isEnUI ? 'You can try again using the button below.' : 'Aşağıdaki butonla tekrar deneyebilirsiniz.')}
+          ? (isDeUI ? 'Erneute Verbindung zum Server...' : (isEnUI ? 'Reconnecting to server...' : 'Sunucuya yeniden bağlanılıyor...'))
+          : (isDeUI ? 'Du kannst es unten erneut versuchen.' : (isEnUI ? 'You can try again using the button below.' : 'Aşağıdaki butonla tekrar deneyebilirsiniz.'))}
       </Text>
       {autoRetrying ? (
         <ActivityIndicator size="small" color="#E8A855" style={{ marginTop: 20 }} />
       ) : (
         <Pressable style={styles.retryBtn} onPress={doRetry} accessibilityRole="button">
-          <Text style={styles.retryBtnText}>{isEnUI ? 'Try Again' : 'Tekrar Dene'}</Text>
+          <Text style={styles.retryBtnText}>{isDeUI ? 'Erneut versuchen' : (isEnUI ? 'Try Again' : 'Tekrar Dene')}</Text>
         </Pressable>
       )}
     </View>
@@ -946,7 +1017,7 @@ export default function MishilUnifiedWebView() {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#E8A855" />
             <Text style={styles.loadingText}>
-              {isEnUI ? 'Loading Mishil Baby...' : 'Mışıl Baby Yükleniyor...'}
+              {isDeUI ? 'Mışıl Baby wird geladen...' : (isEnUI ? 'Loading Mishil Baby...' : 'Mışıl Baby Yükleniyor...')}
             </Text>
           </View>
         )}
@@ -974,9 +1045,11 @@ export default function MishilUnifiedWebView() {
       {useOffline && (
         <Pressable style={styles.offlineBanner} onPress={doRetry} accessibilityRole="button">
           <Text style={styles.offlineBannerText}>
-            {isEnUI
-              ? '📴 Offline mode • reconnecting — tap to retry'
-              : '📴 Çevrimdışı sürüm • yeniden bağlanılıyor — dokunup tekrar dene'}
+            {isDeUI
+              ? '📴 Offline-Modus • Verbindung wird aufgebaut — tippen zum Wiederholen'
+              : isEnUI
+                ? '📴 Offline mode • reconnecting — tap to retry'
+                : '📴 Çevrimdışı sürüm • yeniden bağlanılıyor — dokunup tekrar dene'}
           </Text>
         </Pressable>
       )}
