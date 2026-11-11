@@ -17,61 +17,55 @@ Bu doküman, Apple App Store Connect'te **Mışıl Baby (iOS)** için gerekli t�
 
 ---
 
-## 2. ASO Anahtar Kelimeleri (Keywords - Maksimum 100 Karakter)
+## 2. ASO Anahtar Kelimeleri (`tr` - Maksimum 100 Karakter)
 ```text
-bebek uyku,beyaz gürültü,ağlama analizi,kolik bebek,ninni,pışpış,fön sesi,uyku takibi,gece lambası
+ağlama analizi,pışpış,fön,süpürge,rahim,gece lambası,aşı takvimi,atak haftası,gaz sancısı,uyku koçu
 ```
 
 ---
 
-## 3. Promosyon Metni (Promotional Text - 170 Karakter):
+## 3. Promosyon Metni (`tr` - 170 Karakter):
 ```text
-Mışıl Baby ile bebeğiniz mışıl mışıl uyusun! Yapay zekâ destekli ağlama analizi, 16+ stüdyo kaydı beyaz gürültü ve kişiye özel uyku rutinleri tek uygulamada.
+Huzurlu geceler için yapay zekâ destekli ağlama analizi, 18+ stüdyo uyku sesi, MışılSpot uyku pencereleri, aşı takvimi ve 7/24 Mışıl Dadı uyku koçu.
 ```
 
 ---
 
-## 4. Tam Açıklama Metni (Description):
+## 4. Tam Açıklama Metni (`tr` - Guideline 3.1.2 & 1.3 Uyumlu):
 ```text
-Mışıl Baby, ebeveynlerin bebeklerine huzurlu, güvenli ve kesintisiz bir uyku ortamı sunması için yapay zekâ ve pediatrik uyku bilimini bir araya getiren kapsamlı bir bebek bakım ve gelişim asistanıdır.
+Mışıl Baby, yetişkin anne-babalar ve bakım verenler için geliştirilmiş kapsamlı bir bebek uyku ve günlük bakım rehberidir. Pediatrik uyku yaklaşımlarını stüdyo kalitesinde sakinleştirici sesler ve yapay zekâ destekli ağlama sinyali analizi ile birleştirir.
 
-Bebeğiniz ağladığında neye ihtiyacı olduğunu anlamak, sirkadiyen uyku ritmini takip etmek, aşı takvimini yönetmek ve sakinleştirici seslerle kolayca uykuya dalmasını sağlamak artık çok kolay!
+Bebeğinizin günlük sinyallerini daha kolay anlayın, yaşına uygun MışılSpot uyku pencerelerini izleyin, emzirme, alt değişimi ve aşı takvimini (T.C. Sağlık Bakanlığı, DSÖ, STIKO ve uluslararası takvimler) kaydedin ve huzurlu bir uyku ortamı oluşturun.
 
-─────────────────────────────────────────
-🆓 HERKES İÇİN ÜCRETSİZ TEMEL ÖZELLİKLER:
-─────────────────────────────────────────
-• SweetSpot™ Sirkadiyen Uyku Tahmini: Bebeğinizin yaşına göre ideal uyanıklık ve uyku pencerelerini takip edin.
-• Temel Akustik Sesler: Bebeğinizi sakinleştiren temel beyaz gürültü ve doğa sesleri.
-• Akıllı Gece Lambası: Gece beslenmesi ve alt değişimlerinde göz yormayan ayarlanabilir sıcak ışık.
-• Pediatrik Aşı Takvimi: T.C. Sağlık Bakanlığı ve DSÖ onaylı aşı takvimini doğum tarihine göre takip edin ve hatırlatıcılar alın.
-• Günlük Rutin Takibi: Uyku, beslenme ve bez kayıtlarını kolayca tutun.
-• Uyku Zamanlayıcısı: Sesleri otomatik kapatan pil tasarruflu akıllı zamanlayıcı.
+ÜCRETSİZ TEMEL ÖZELLİKLER:
+• MışılSpot Biyolojik Uyku Penceresi: Doğum tarihine ve prematüre düzeltmesine göre yaşına uygun uyanıklık ve uyku saatleri.
+• Temel Sakinleştirici Sesler: Seçili beyaz gürültü, doğa sesleri ve ninni önizlemeleri.
+• Loş Kehribar Gece Lambası: Gece beslenmeleri ve alt değişimlerinde göz yormayan ayarlanabilir ekran ışığı.
+• Dijital Aşı Takvimi ve Hatırlatıcılar: Yaşa göre çocukluk çağı aşı takibi ve bildirimleri.
+• Günlük Rutin Kaydı: Uyku, beslenme (anne sütü, mama, ek gıda) ve alt değişimlerini saniyeler içinde kaydetme.
+• Akıllı Uyku Zamanlayıcısı: Ekran kapalıyken arka planda çalma ve sesi yumuşakça kısarak kapanma.
 
-─────────────────────────────────────────
-👑 MIŞIL VIP — AYRI SATIN ALIM / ABONELİK GEREKTİREN ÖZELLİKLER:
-─────────────────────────────────────────
-Aşağıdaki gelişmiş yapay zekâ ve analitik özellikler ayrı bir Mışıl VIP aboneliği gerektirir:
-• Yapay Zekâ Destekli Ağlama Analizi (AI Cry Classifier): Bebeğinizin ağlama sesindeki akustik paternleri analiz ederek açlık, kolik/gaz sancısı, uyku ihtiyacı ve rahatsızlık ipuçlarını belirler. (Abonelik gerektirir)
-• Mışıl Dadı™ 7/24 AI Uyku & Gelişim Koçu: Bebeğinizin uyku verilerini inceleyerek size özel pediatrik çözümler ve öneriler sunan yapay zekâ asistanı. (Abonelik gerektirir)
-• 18+ Stüdyo Akustik Kütüphanesi & Sınırsız Mikser: Anne karnı, rahim içi rezonans, fön makinesi, vantilatör, 432 Hz ninniler ve birden fazla sesi aynı anda miksleme yeteneği. (Abonelik gerektirir)
-• 24 Saatlik Bebek Ritmi & Zirve Saat Analitiği: Bebeğinizin en sık acıktığı, gaz çıkardığı ve en derin uyuduğu saatleri gösteren derin analitik paneli. (Abonelik gerektirir)
-• Wonder Weeks™ Gelişim Atakları: Zihinsel sıçrama ve huzursuzluk dönemlerini önceden tahmin eden gelişim takvimi. (Abonelik gerektirir)
-• Çoklu Bakıcı & Aile Paylaşımı: Anne, baba ve dadı arasında senkronize veri takibi. (Abonelik gerektirir)
+MIŞIL VIP - ABONELİK GEREKTİREN ÖZELLİKLER:
+Aşağıdaki gelişmiş yapay zekâ ve analiz özellikleri aktif bir Mışıl VIP aboneliği gerektirir:
+• Yapay Zekâ Destekli Ağlama Analizi: Ağlama sesindeki frekans ve ritim örüntülerini inceleyerek açlık, gaz/kolik, uyku ihtiyacı veya rahatsızlık ipuçlarını değerlendirir. (Abonelik gerektirir)
+• Mışıl Dadı 7/24 AI Uyku ve Bakım Koçu: Bebeğinizin yaşı ve günlük kayıtlarına göre kişiselleştirilmiş uyku rutini rehberliği sunar. (Abonelik gerektirir)
+• 18+ Stüdyo Ses Kütüphanesi ve Çoklu Mikser: Anne karnı, kalp atışı, fön, süpürge, pışpış, 432 Hz ninniler ve çoklu ses karıştırıcı. (Abonelik gerektirir)
+• 24 Saatlik Ritim Analizi ve BabySteps Gelişim Sıçramaları: Uyku/beslenme ritmi grafikleri ve 10 zihinsel gelişim sıçraması takibi. (Abonelik gerektirir)
 
-💳 ABONELİK VE DENEME BİLGİLERİ:
-Mışıl VIP, 3 gün ücretsiz deneme süresi sunan Yıllık Plan veya esnek Aylık Plan seçenekleriyle sunulur. Satın alma işlemi Apple Kimliğiniz üzerinden güvenle tahsil edilir. Deneme süresi bitmeden 24 saat öncesine kadar App Store Ayarlarınızdan dilediğiniz an iptal edebilirsiniz.
+ABONELİK VE ÜCRETSİZ DENEME KOŞULLARI:
+Mışıl VIP; uygun kullanıcılar için 7 günlük ücretsiz deneme içeren Yıllık Plan veya esnek Aylık Plan olarak sunulur. Ödeme, satın alma onayında veya ücretsiz deneme süresi sonunda Apple Kimliği hesabınızdan tahsil edilir. Abonelik, mevcut dönemin bitiminden en az 24 saat önce App Store Hesap Ayarları üzerinden iptal edilmediği sürece otomatik olarak yenilenir.
 
-🩺 TIBBİ FERAGATNAME (Apple Guideline Uyumu):
-Mışıl Baby bir tıbbi tanı veya tedavi cihazı değildir. Sunulan ağlama analizi ve uyku önerileri yalnızca bilgilendirme ve ebeveyn rehberliği amaçlıdır. Bebeğinizin sağlık durumu ile ilgili her zaman yetkili bir çocuk doktoruna danışınız.
+TIBBİ FERAGATNAME:
+Mışıl Baby yetişkin ebeveynlere yönelik bilgilendirici bir yardımcı araçtır; tıbbi tanı, izleme veya tedavi cihazı değildir. Bebeğinizin sağlığıyla ilgili her konuda mutlaka çocuk sağlığı ve hastalıkları uzmanınıza başvurunuz.
 
-🔒 GİZLİLİK VE ÇOCUK GÜVENLİĞİ:
-• Bebeğinizin ses analizleri tamamen yerel olarak işlenir; hiçbir ham ses kaydı harici sunucularda saklanmaz.
-• COPPA ve KVKK standartlarına %100 uygundur.
+GİZLİLİK VE ÇOCUK GÜVENLİĞİ (KVKK / GDPR / COPPA):
+• Akustik ses örnekleri yalnızca anlık olarak bellekte işlenir; ham ses kayıtları harici sunucularda kalıcı olarak saklanmaz.
+• Üçüncü taraf reklam ağları veya takipçileri içermez.
 
 Geliştirici: Levitas Enterprise Intelligence & Technology
 Destek: support@levitas.tech
-Gizlilik Politikası: https://mrtgurpinar.github.io/mishil/privacy-policy
-Kullanım Şartları (EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
+Gizlilik Politikası: https://mishil-production.up.railway.app/privacy?lang=tr
+Kullanım Koşulları (Apple Standart EULA): https://www.apple.com/legal/internet-services/itunes/dev/stdeula/
 ```
 
 ---
@@ -97,49 +91,44 @@ Kullanım Şartları (EULA): https://www.apple.com/legal/internet-services/itune
 
 ### 6.2 ASO Keywords (`en-US` - Max 100 Characters)
 ```text
-baby sleep,white noise,cry translator,colic relief,lullaby,womb sound,wake windows,baby tracker,shush
+newborn,soother,shusher,colic,lullaby,womb,wake window,tracker,nap,vaccine,pink noise,bedtime,coach
 ```
 
 ### 6.3 Promotional Text (`en-US` - Max 170 Characters)
 ```text
-Peaceful nights for parents and babies: AI-assisted cry cue analysis, 18+ studio white noise tracks, SweetSpot wake window tracking, and 24/7 AI sleep coaching.
+Calm nights for parents and babies: AI cry cue analysis, 18+ studio sleep sounds, MışılSpot wake windows, global vaccine tracker, and 24/7 AI sleep coach.
 ```
 
 ### 6.4 Full Description (`en-US` - Guideline 3.1.2 & 1.3 Compliant)
 ```text
-Mışıl Baby is a comprehensive parenting and baby sleep companion built for adult parents and caregivers, combining pediatric sleep science with acoustic soothing and AI-assisted cry cue analysis.
+Mışıl Baby is a comprehensive parenting and baby sleep companion built for adult parents and caregivers, combining pediatric sleep science with studio-grade soothing sounds and AI-assisted cry cue analysis.
 
-Understand your baby's cues, follow age-appropriate circadian wake windows, track daily routines and vaccinations, and create a calming sleep environment with studio-grade white noise.
+Understand your baby's daily cues, follow age-appropriate wake windows, log feedings, diapers, and immunizations (CDC, NHS, WHO, STIKO, and global schedules), and create a calm sleep environment.
 
-─────────────────────────────────────────
-🆓 FREE CORE FEATURES FOR ALL PARENTS:
-─────────────────────────────────────────
-• SweetSpot™ Circadian Sleep Predictor: Track optimal wake windows and nap times tailored to your baby's exact age.
-• Essential Soothing Sounds: Calming foundational white noise and nature sounds.
-• Smart Nightlight: Warm, eye-friendly adjustable screen light for night feedings and diaper changes.
-• Pediatric Vaccination Schedule: Track age-based immunizations and receive gentle care reminders.
-• Daily Routine Tracker: Log sleep sessions, feedings, and diaper changes in seconds.
-• Smart Sleep Timer: Battery-friendly timer with smooth audio fade-out.
+FREE CORE FEATURES FOR PARENTS:
+• MışılSpot Wake Window Predictor: Track age-appropriate wake and nap windows (including premature birth adjustment).
+• Foundational Soothing Sounds: Selected white noise, nature sounds, and lullaby previews.
+• Smart Warm Nightlight: Eye-friendly dimmable screen light for middle-of-the-night feedings and diaper changes.
+• Digital Immunization Tracker: Track age-based childhood vaccines and receive gentle care reminders.
+• Daily Routine Logger: Record sleep sessions, nursing/bottle/solid feedings, and diapers in seconds.
+• Smart Sleep Timer: Continuous background playback with smooth audio fade-out.
 
-─────────────────────────────────────────
-👑 MIŞIL VIP — FEATURES REQUIRING SUBSCRIPTION:
-─────────────────────────────────────────
+MIŞIL VIP - FEATURES REQUIRING SUBSCRIPTION:
 The following advanced AI and analytics features require an active Mışıl VIP subscription:
 • AI Cry Cue Analysis: Evaluates acoustic frequency and rhythm patterns in your baby's cry to highlight hunger, gas/colic, sleepiness, or discomfort cues. (Requires subscription)
-• Mışıl Nanny™ 24/7 AI Sleep & Care Coach: Personalized pediatric sleep guidance powered by your baby's age and daily routine logs. (Requires subscription)
-• 18+ Studio Acoustic Library & Multi-Track Mixer: Womb resonance, heartbeat, hair dryer, fan, 432 Hz lullabies, and multi-sound mixing. (Requires subscription)
-• 24-Hour Rhythm & Peak Hour Analytics: Discover your baby's biological rhythm across sleep, feeding, and fussiness hours. (Requires subscription)
-• Wonder Weeks™ Developmental Leaps: Forecast mental growth leaps and fussy phases in advance. (Requires subscription)
+• Mışıl Nanny 24/7 AI Sleep & Care Coach: Personalized pediatric sleep guidance powered by your baby's age and daily routine logs. (Requires subscription)
+• 18+ Studio Acoustic Library & Multi-Track Mixer: Womb resonance, heartbeat, hair dryer, shusher, fan, 432 Hz lullabies, and multi-sound mixing. (Requires subscription)
+• 24-Hour Rhythm Analytics & BabySteps Developmental Leaps: Track biological sleep patterns and all 10 mental developmental leaps. (Requires subscription)
 
-💳 SUBSCRIPTION & FREE TRIAL TERMS:
-Mışıl VIP is available as an Annual Plan (including a 7-day free trial where eligible) or a flexible Monthly Plan. Payment will be charged to your Apple ID account at confirmation of purchase or at the end of the free trial period. Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period in your App Store Account Settings.
+SUBSCRIPTION & FREE TRIAL TERMS:
+Mışıl VIP is available as an Annual Plan (including a 7-day free trial where eligible) or a flexible Monthly Plan. Payment is charged to your Apple ID account at confirmation of purchase or at the end of the free trial period. Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period in your App Store Account Settings.
 
-🩺 MEDICAL DISCLAIMER:
-Mışıl Baby is designed for adult parents and caregivers and is not a medical diagnostic or treatment device. Acoustic cry analysis and sleep coaching are provided strictly for informational support. Always consult a qualified pediatrician for medical advice.
+MEDICAL DISCLAIMER:
+Mışıl Baby is designed for adult parents and caregivers and is not a medical diagnostic, monitoring, or treatment device. Acoustic cry analysis and sleep guidance are provided strictly for informational support. Always consult a qualified pediatrician for medical advice.
 
-🔒 PRIVACY & CHILD SAFETY:
+PRIVACY & CHILD SAFETY (COPPA / GDPR / KVKK):
 • Acoustic cry samples are processed ephemerally in memory; no raw voice recordings are permanently stored on external servers.
-• Fully compliant with COPPA, GDPR, and KVKK privacy standards.
+• Zero third-party ad networks or trackers.
 
 Developer: Levitas Enterprise Intelligence & Technology
 Support: support@levitas.tech
@@ -162,7 +151,7 @@ Terms of Use (Standard Apple EULA): https://www.apple.com/legal/internet-service
 
 ### 7.2 ASO-Schlagwörter (`de-DE` - Max. 100 Zeichen)
 ```text
-babyschlaf,einschlafhilfe,weißes rauschen,schreianalyse,wachfenster,kolik,wiegenlied,impfpass,baby
+babyschlaf,einschlafhilfe,weißes rauschen,wachfenster,kolik,wiegenlied,impfpass,stiko,spieluhr,föhn
 ```
 
 ### 7.3 Werbetext (`de-DE` - Max. 170 Zeichen)
