@@ -3531,7 +3531,7 @@
 
       <!-- REVIEWER TEST BYPASS TRIGGER (GOOGLE PLAY ANSWER 15748846) -->
       <div style="text-align: center; margin-top: 8px; margin-bottom: 6px;">
-        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.50.2 (Build 68)</span>
+        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.51.0 (Build 69)</span>
       </div>
     </div>
   </div>
@@ -4828,7 +4828,7 @@
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
     </div>
     <div style="text-align: center; margin-top: 8px;">
-      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.50.2 (Build 68)</span>
+      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.51.0 (Build 69)</span>
     </div>
   </div>
 </div>
@@ -5513,13 +5513,22 @@
           return; // Yeni parça başlatıldıktan hemen sonra gelen gecikmiş eski timer mesajını yoksay (ücretsiz önizleme <1s bitişi hariç)
         }
         var erroredId = (!msg.playing && msg.reason === 'error') ? currentTrackId : null;
+        var isQuotaExhausted = msg.reason === 'preview_quota_exhausted';
+        if (typeof msg.previewElapsedMs === 'number') {
+          try {
+            var curElapsedMs = parseInt(localStorage.getItem('mishil_free_sound_elapsed_ms') || '0', 10) || 0;
+            if (msg.previewElapsedMs > curElapsedMs) {
+              localStorage.setItem('mishil_free_sound_elapsed_ms', String(Math.min(60000, Math.round(msg.previewElapsedMs))));
+            }
+          } catch (_pem) {}
+        }
         if (msg.playing && freeSoundPreviewTrackId && msg.id === freeSoundPreviewTrackId) {
           // Ağ tamponlaması süresini 60 sn haktan düşmemek için başlangıç anını gerçek oynatma başladığında tazele
           freeSoundPreviewStartedAtMs = Date.now();
         } else if (!msg.playing) {
           if (erroredId && freeSoundPreviewTrackId === erroredId) {
             if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer({ skipAccrue: true });
-          } else if (msg.reason === 'timer' && wasFreePreviewActive) {
+          } else if ((msg.reason === 'timer' && wasFreePreviewActive) || isQuotaExhausted) {
             if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer({ skipAccrue: true });
             if (typeof sealFreeSoundPreviewUsed === 'function') sealFreeSoundPreviewUsed();
           } else {
@@ -5532,9 +5541,9 @@
         }
         if (erroredId) markTrackUnavailable(erroredId);
         updatePlayerUI();
-        if (!msg.playing && msg.reason === 'timer') {
+        if (!msg.playing && (msg.reason === 'timer' || isQuotaExhausted)) {
           if (typeof resetActiveTimerUI === 'function') resetActiveTimerUI(true);
-          if (wasFreePreviewActive) {
+          if (wasFreePreviewActive || isQuotaExhausted) {
             var vipModalEl = document.getElementById('vip-renewal-modal');
             if (typeof openVipRenewalModal === 'function' && (!vipModalEl || !vipModalEl.classList.contains('active'))) {
               openVipRenewalModal('sound_preview_ended');
@@ -5546,6 +5555,8 @@
           }
         }
         if (!msg.playing && msg.reason === 'error') showToast(trEnDe('⚠️ Bu ses şu an oynatılamadı, başka bir parça deneyin', '⚠️ Could not play this sound right now, please try another track', '⚠️ Dieser Klang konnte gerade nicht abgespielt werden, bitte wählen Sie einen anderen Titel'));
+      } else if (msg && msg.type === 'LOCKSCREEN_STATE_SYNC') {
+        if (typeof onLockscreenStateSync === 'function') onLockscreenStateSync(msg.state);
       }
     } catch(e) {}
   });
@@ -5562,12 +5573,75 @@
     if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(obj));
   }
 
+  // Canlı Uyku (ActivityKit / Android bildirimi) native köprüsü — yalnızca uygulama içinde çalışır
+  function syncLiveSleepToNative(action, startDateObj) {
+    if (!window.ReactNativeWebView) return;
+    if (action === 'STOP') {
+      nativeAudioSend({ type: 'LIVE_SLEEP_STOP' });
+      return;
+    }
+    var startDate = startDateObj instanceof Date ? startDateObj : new Date();
+    var startH = startDate.getHours();
+    var isNight = startH >= 20 || startH < 7;
+    var sleepLabel = isNight
+      ? trEnDe('Canlı Uyku · Gece Uykusu', 'Live Sleep · Night Sleep', 'Live-Schlaf · Nachtschlaf')
+      : trEnDe('Canlı Uyku · Gündüz Uykusu', 'Live Sleep · Daytime Nap', 'Live-Schlaf · Tagschlaf');
+    var startHHMM = `${String(startH).padStart(2, '0')}:${String(startDate.getMinutes()).padStart(2, '0')}`;
+    var subtitle = trEnDe(`Başlangıç ${startHHMM}`, `Started ${startHHMM}`, `Start ${startHHMM}`);
+    var showBabyName = false;
+    try { showBabyName = localStorage.getItem('mishil_lockscreen_show_name') === '1'; } catch (_slsn) {}
+    var babyName = '';
+    try { babyName = localStorage.getItem('mishil_baby_name') || ''; } catch (_slbn) {}
+
+    nativeAudioSend({
+      type: action === 'UPDATE' ? 'LIVE_SLEEP_UPDATE' : 'LIVE_SLEEP_START',
+      startEpochMs: startDate.getTime(),
+      sleepLabel: sleepLabel,
+      subtitle: subtitle,
+      babyName: babyName,
+      showBabyNameOnLockScreen: showBabyName,
+      lang: getAppLang()
+    });
+  }
+
+  function onLockscreenStateSync(state) {
+    if (!state || typeof state !== 'object') return;
+    if (state.previewExhausted && typeof isSubscriptionCurrentlyActive === 'function' && !isSubscriptionCurrentlyActive()) {
+      if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer({ skipAccrue: true });
+      if (typeof sealFreeSoundPreviewUsed === 'function') sealFreeSoundPreviewUsed();
+    }
+    if (isNativeAudio()) {
+      if (state.audioPlaying && state.audioId) {
+        if (currentTrackId !== state.audioId) {
+          currentTrackId = state.audioId;
+          if (typeof updatePlayerUI === 'function') updatePlayerUI();
+        }
+      } else if (!state.audioPlaying && currentTrackId && (typeof lastTrackStartAt !== 'number' || (Date.now() - lastTrackStartAt > 1500))) {
+        currentTrackId = null;
+        if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer();
+        if (typeof updatePlayerUI === 'function') updatePlayerUI();
+      }
+    }
+    if (typeof isSleeping !== 'undefined' && isSleeping && liveSleepStartTime instanceof Date) {
+      var sleepAgeMs = Date.now() - liveSleepStartTime.getTime();
+      if (sleepAgeMs >= 0 && sleepAgeMs <= 16 * 3600000 && !state.sleepActive) {
+        syncLiveSleepToNative('START', liveSleepStartTime);
+      }
+    }
+  }
+
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden && window.ReactNativeWebView) {
+      nativeAudioSend({ type: 'REQUEST_LOCKSCREEN_SYNC' });
+    }
+  });
+
   // =========================================================================
   // UYGULAMA META & SÜRÜM NOTLARI (dinamik)
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.50.2', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.51.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -5875,7 +5949,17 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.50.2', date: '12 Kasım 2026', dateEn: 'November 12, 2026', dateDe: '12. November 2026', latest: true, items: [
+    { v: '4.51.0', date: '12 Kasım 2026', dateEn: 'November 12, 2026', dateDe: '12. November 2026', latest: true, items: [
+      'Kilit Ekranı Canlı Uyku Kronometresi (Live Activities / Dynamic Island / StandBy & Android 16 Live Updates): Bebeğiniz uyurken ekran kilitli olsa dahi canlı uyku süresini saf gece siyahı ve sıcak kehribar görünümüyle kilit ekranında, Dynamic Island üzerinde ve Android durum çubuğunda kesintisiz takip edin; uykulu tek dokunuşta yanlışlıkla durdurma riskini önleyen güvenli yönlendirme ve geriye dönük saat düzenleme senkronu eklendi.',
+      'Kilit Ekranı Çalan Ses Kontrol Kartı (Now Playing / MediaSession), Yükleme Ekranı Dil Uyumu & Keychain Koruması: Arka planda çalan ninni ve beyaz gürültüleri kilit ekranından doğrudan duraklatıp sürdürme/durdurma kartı eklendi; ilk açılış yükleme ekranı "Mışıl Baby" markası ve cihaz diliyle hizalandı; cihaz kota koruması Keychain köprüsüyle güçlendirildi.'
+    ], itemsEn: [
+      'Lock-Screen Live Sleep Chronometer (iOS Live Activities / Dynamic Island / StandBy & Android 16 Live Updates): Track your baby’s active sleep timer right on your Lock Screen, Dynamic Island, Always-On Display, and Android status bar with melatonin-friendly night visuals, safe single-tap app navigation, and instant retroactive start-time sync.',
+      'Lock-Screen Now Playing Audio Controls, Native Splash Locale Sync & Keychain Quota Shield: Added full Lock-Screen and Control Center Play/Pause/Stop media cards for background lullabies and white noise, aligned first-launch loading localization with "Mışıl Baby", and activated hardware-backed SecureStore Keychain quota persistence.'
+    ], itemsDe: [
+      'Live-Schlaf-Chronometer auf dem Sperrbildschirm (iOS Live Activities / Dynamic Island / StandBy & Android 16 Live Updates): Verfolgen Sie den laufenden Babyschlaf direkt auf dem Sperrbildschirm, in der Dynamic Island und in der Android-Statusleiste in augenschonender Nachtoptik – inklusive sicherer Ein-Tipp-Navigation und sofortiger Synchronisierung nachträglicher Zeitkorrekturen.',
+      'Sperrbildschirm-Mediensteuerung (Now Playing / MediaSession), Sprachabgleich beim Start & Keychain-Schutz: Steuern Sie laufende Wiegenlieder und weißes Rauschen (Wiedergabe/Pause/Stopp) direkt über den Sperrbildschirm; dazu nativer „Mışıl Baby“-Sprachabgleich beim ersten App-Start und Keychain-Kontingentschutz.'
+    ]},
+    { v: '4.50.2', date: '12 Kasım 2026', dateEn: 'November 12, 2026', dateDe: '12. November 2026', items: [
       'Aşılmış Uyku Penceresi Canlı Saat Hizası & Tam Genişlik Analiz Çekmecesi: Son uyanış üzerinden biyolojik pencere aşıldığında İlk MışılSpot™ kutusunda geçmiş saat yerine güncel saat ("Şimdi Uyutun") ve Dün/Bugün uyanış-hedef açıklaması gösterilecek şekilde güncellendi; Kişisel Rapor detay çekmecesindeki Ritim Skoru ve Aşı/Gelişim satırları tam genişlikli yığın düzene geçirildi.',
       'Sıfır Kaymalı Spotlight Turu, Gerçek 60 Sn Kümülatif Ses Sayacı & Freemium Keychain Kalkanı: Uygulama tanıtım turu kaydırma/animasyon senkronuna bağlandı; ücretsiz 60 sn ses önizlemesi erken durdurulduğunda kalan süreyi koruyan kümülatif sayaç ve kilit ekranı zamanlayıcısıyla birleştirildi; tekrarlayan ücretsiz rapor sızıntısı iOS Keychain (SecureStore) köprüsüyle kapatıldı.'
     ], itemsEn: [
@@ -6703,7 +6787,15 @@
           isTimerVolumeFading = false;
           nativeAudioSend({ type: 'AUDIO_VOLUME', value: 1.0 });
         }
-        nativeAudioSend({ type: 'AUDIO_PLAY', id: trackId, url: absSoundUrl(track.file) });
+        nativeAudioSend({
+          type: 'AUDIO_PLAY',
+          id: trackId,
+          url: absSoundUrl(track.file),
+          title: getSoundTitle(track),
+          subtitle: trEnDe('Mışıl Baby · Uyku Stüdyosu', 'Mışıl Baby · Sleep Studio', 'Mışıl Baby · Schlafstudio'),
+          isVip: isSubscriptionCurrentlyActive(),
+          previewBudgetMs: startingFreePreview ? activePreviewBudgetMs : 0
+        });
         currentTrackId = trackId;
         if (activeTimerMinutes > 0 && timerEndTimeMs > Date.now()) {
           // Tek birleşik zamanlayıcı: VIP değilse free preview tavanını asla aşamaz
@@ -8496,6 +8588,7 @@
         if (typeof isSleeping !== 'undefined') isSleeping = false;
         if (typeof sleepInterval !== 'undefined' && sleepInterval) clearInterval(sleepInterval);
       } catch (_cse) {}
+      syncLiveSleepToNative('STOP');
     }
   }
 
@@ -14912,6 +15005,7 @@
       showToast(trEnDe('🌙 Bebek uykuya daldı, canlı takip başladı', '🌙 Baby fell asleep, live tracking started', '🌙 Baby ist eingeschlafen, Live-Tracking läuft'));
       hapticImpact('medium');
       broadcastRealtimeEvent('SLEEP_STARTED', { by: role, startTime: sleepStartTime.toISOString() });
+      syncLiveSleepToNative('START', sleepStartTime);
       if (typeof updateLiveSleepStartUI === 'function') updateLiveSleepStartUI();
       if (typeof scheduleMishilDelightReview === 'function') {
         scheduleMishilDelightReview('live_sleep_started', 2000, () => !!isSleeping);
@@ -15036,6 +15130,7 @@
         ));
       }
       broadcastRealtimeEvent('SLEEP_COMPLETED', { by: role, duration_mins: totalMins });
+      syncLiveSleepToNative('STOP');
       if (typeof updateLiveSleepStartUI === 'function') updateLiveSleepStartUI();
       if (totalMins >= 180 && typeof openEditRoutineModal === 'function') {
         setTimeout(() => {
@@ -15090,6 +15185,7 @@
       }
       localStorage.removeItem('mishil_live_sleep_start');
       localStorage.removeItem('mishil_onb_live_sleep_draft');
+      syncLiveSleepToNative('STOP');
       return;
     }
     localStorage.removeItem('mishil_onb_live_sleep_draft');
@@ -15102,12 +15198,14 @@
       }
       localStorage.removeItem('mishil_onb_live_sleep_promoted');
       localStorage.removeItem('mishil_live_sleep_start');
+      syncLiveSleepToNative('STOP');
       return;
     }
 
     isSleeping = true;
     sleepStartTime = parsedStart;
     updateFabSleepState(true);
+    syncLiveSleepToNative('START', sleepStartTime);
     if (typeof updateLiveSleepStartUI === 'function') setTimeout(updateLiveSleepStartUI, 0);
     const organicHero = document.getElementById('home-organic-hero');
     if (organicHero) organicHero.classList.add('sleeping-hero');
@@ -15181,12 +15279,33 @@
               `🔔 Live Sync: ${msg.sender_name || 'Parent'} put baby to sleep! 💤`,
               `🔔 Live-Sync: ${msg.sender_name || 'Elternteil'} hat das Baby schlafen gelegt! 💤`
             ));
+            if (!isSleeping) {
+              try {
+                const remoteStart = (msg.payload && msg.payload.startTime) ? msg.payload.startTime : new Date().toISOString();
+                localStorage.setItem('mishil_live_sleep_start', remoteStart);
+                checkAndRestoreLiveSleep();
+              } catch (_wsStart) {}
+            }
           } else if (msg.type === 'SLEEP_COMPLETED') {
             showToast(trEnDe(
               `☀️ Canlı Bildirim: Bebek uyandı (${msg.payload?.duration_mins || ''} dk uyku)`,
               `☀️ Live Sync: Baby woke up (${msg.payload?.duration_mins || ''} min sleep)`,
               `☀️ Live-Sync: Baby ist wach (${msg.payload?.duration_mins || ''} Min. Schlaf)`
             ));
+            if (isSleeping) {
+              try {
+                if (sleepInterval) clearInterval(sleepInterval);
+                isSleeping = false;
+                localStorage.removeItem('mishil_live_sleep_start');
+                updateFabSleepState(false);
+                const organicHero = document.getElementById('home-organic-hero');
+                if (organicHero) organicHero.classList.remove('sleeping-hero');
+                const liveTimer = document.getElementById('live-sleep-timer');
+                if (liveTimer) liveTimer.style.display = 'none';
+                if (typeof updateLiveSleepStartUI === 'function') updateLiveSleepStartUI();
+                syncLiveSleepToNative('STOP');
+              } catch (_wsStop) {}
+            }
           } else if (msg.type === 'LEAP_OVERRIDE') {
             showToast(trEnDe(
               `⚡ Canlı Bildirim: ${msg.payload?.leap}. Sıçrama Erken Atak olarak güncellendi!`,
@@ -16228,6 +16347,7 @@
     }
     sleepStartTime = newStart;
     localStorage.setItem('mishil_live_sleep_start', sleepStartTime.toISOString());
+    syncLiveSleepToNative('UPDATE', sleepStartTime);
     updateLiveSleepStartUI();
     if (typeof renderHomeCareSummaryAndCircadianStrip === 'function') renderHomeCareSummaryAndCircadianStrip();
     const liveTimer = document.getElementById('live-sleep-timer');

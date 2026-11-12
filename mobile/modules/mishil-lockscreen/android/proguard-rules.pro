@@ -1,0 +1,3 @@
+-keep class expo.modules.mishillockscreen.** { *; }
+-keep class expo.modules.mishillockscreen.MishilMediaPlaybackService { *; }
+-keep class expo.modules.mishillockscreen.MishilLiveSleepNotifier { *; }

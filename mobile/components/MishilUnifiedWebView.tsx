@@ -11,6 +11,7 @@ import {
   AppState,
   AppStateStatus,
   Linking,
+  NativeModules,
 } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import * as Haptics from 'expo-haptics';
@@ -18,6 +19,8 @@ import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initRevenueCat, purchasePackage, restorePurchases, getOfferings, hasActiveEntitlement, PRO_ENTITLEMENT_ID } from '../features/subscription/revenuecat';
 import * as nativeAudio from '../features/audio/nativeAudioPlayer';
+import * as nativeLiveSleep from '../features/sleep/nativeLiveSleep';
+import * as MishilLockScreen from '../modules/mishil-lockscreen/src';
 import { OFFLINE_HTML } from '../features/webview/offlineHtml.generated';
 import {
   syncCareNotifications,
@@ -31,6 +34,15 @@ import { triggerNativeStoreReview, NATIVE_REVIEW_STORAGE_KEY } from '../features
 
 function getSystemLocale(): string {
   try {
+    const nm: any = NativeModules;
+    const iosLocale =
+      nm?.SettingsManager?.settings?.AppleLanguages?.[0] ||
+      nm?.SettingsManager?.settings?.AppleLocale;
+    const androidLocale = nm?.I18nManager?.localeIdentifier;
+    const nativeLoc = Platform.OS === 'ios' ? iosLocale : androidLocale;
+    if (typeof nativeLoc === 'string' && nativeLoc.trim().length > 0) {
+      return nativeLoc.trim().replace(/_/g, '-');
+    }
     return Intl.DateTimeFormat().resolvedOptions().locale || 'tr-TR';
   } catch {
     return 'tr-TR';
@@ -65,6 +77,7 @@ const INJECT_APP_META = `
   window.MishilNative.storeReviewBridge = true;
   window.MishilNative.quotaBridge = true;
   window.MishilNative.quotasHydrated = false;
+  window.MishilNative.liveSleepBridge = true;
   true;
 `;
 
@@ -134,6 +147,7 @@ export default function MishilUnifiedWebView() {
   // RevenueCat başlatma + native ses motoru temizliği
   useEffect(() => {
     initRevenueCat().catch(() => {});
+    void nativeLiveSleep.reconcileNativeLiveSleepOnLaunch();
     return () => {
       clearTimers();
       stopReconnectProbe();
@@ -161,17 +175,35 @@ export default function MishilUnifiedWebView() {
   }, []);
 
   // Native ses durumunu web'e bildir (mini player UI senkronu)
-  const sendAudioState = useCallback((s: nativeAudio.AudioState) => {
+  const sendAudioState = useCallback((s: nativeAudio.AudioState & { previewElapsedMs?: number }) => {
+    const previewLine = typeof s.previewElapsedMs === 'number'
+      ? `, previewElapsedMs: ${Math.max(0, Math.round(s.previewElapsedMs))}`
+      : '';
     webviewRef.current?.injectJavaScript(`
       (function(){
         window.dispatchEvent(new MessageEvent('message', {
           data: JSON.stringify({ type: 'AUDIO_STATE', playing: ${s.playing ? 'true' : 'false'},
             id: ${s.id ? `'${String(s.id).replace(/[^a-z0-9_]/gi, '')}'` : 'null'},
-            reason: '${s.reason || 'user'}' })
+            reason: '${s.reason || 'user'}'${previewLine} })
         }));
         true;
       })();
     `);
+  }, []);
+
+  // Native ses + canlı uyku durumunu WebView'a tek pakette gönder (REQUEST_LOCKSCREEN_SYNC yanıtı / AppState sync)
+  const sendLockscreenStateSync = useCallback(async () => {
+    try {
+      const nativeState = await MishilLockScreen.getLockScreenState();
+      webviewRef.current?.injectJavaScript(`
+        (function(){
+          window.dispatchEvent(new MessageEvent('message', {
+            data: JSON.stringify({ type: 'LOCKSCREEN_STATE_SYNC', state: ${JSON.stringify(nativeState)} })
+          }));
+          true;
+        })();
+      `);
+    } catch {}
   }, []);
 
   // Android geri tuşu — WebView geçmişinde geri git
@@ -294,15 +326,16 @@ export default function MishilUnifiedWebView() {
     }
   }, []);
 
-  // Uygulama ön plana geldiğinde canlı lisans doğrulaması (Satın alma sürerken ezmeyi engeller)
+  // Uygulama ön plana geldiğinde canlı lisans doğrulaması + 8 saati aşan Live Activity pencere tazelemesi
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
       if (next === 'active' && !isPurchaseInProgressRef.current) {
         void syncEntitlementToWebView();
+        void nativeLiveSleep.reconcileNativeLiveSleepOnLaunch().then(() => sendLockscreenStateSync());
       }
     });
     return () => sub.remove();
-  }, [syncEntitlementToWebView]);
+  }, [syncEntitlementToWebView, sendLockscreenStateSync]);
 
   // RevenueCat resmi event dinleyicisi: Dekont veya abonelik değiştiğinde reaktif senkronizasyon
   useEffect(() => {
@@ -490,12 +523,14 @@ export default function MishilUnifiedWebView() {
           window.MishilNative.audioBridge = true;
           window.MishilNative.storeReviewBridge = true;
           window.MishilNative.quotaBridge = true;
+          window.MishilNative.liveSleepBridge = true;
         }
         true;
       })();
     `);
     // ADIM 4 — her başarılı yüklemede canlı lisans doğrulaması yap.
     void syncEntitlementToWebView();
+    void sendLockscreenStateSync();
 
     // Canlı mağaza fiyatlarını (RevenueCat Offerings) web tarafına dinamik aktar
     (async () => {
@@ -551,7 +586,7 @@ export default function MishilUnifiedWebView() {
         `);
       } catch (e) {}
     })();
-  }, [syncEntitlementToWebView, hydrateWebViewStorage]);
+  }, [syncEntitlementToWebView, hydrateWebViewStorage, sendLockscreenStateSync]);
 
   // Ana çerçeve hatası (TLS, DNS, 5xx, timeout) → cold-start için sessiz retry,
   // denemeler tükenince gömülü çevrimdışı sürüme düş (boş ekran yerine)
@@ -775,6 +810,8 @@ export default function MishilUnifiedWebView() {
             await storage.mergeDeviceQuotas(msg.payload);
           }
           await storage.clearPersonalAppData();
+          await nativeAudio.stopSound(sendAudioState, 'user');
+          await nativeLiveSleep.stopNativeLiveSleep();
           break;
 
         case 'HAPTIC':
@@ -782,9 +819,14 @@ export default function MishilUnifiedWebView() {
           break;
 
         case 'AUDIO_PLAY':
-          // { id, url } — url app.html tarafında mutlak hâle getirilir
+          // { id, url, title?, subtitle?, isVip?, previewBudgetMs? } — url app.html tarafında mutlak hâle getirilir
           if (msg.id && msg.url) {
-            await nativeAudio.playSound(String(msg.id), String(msg.url), sendAudioState);
+            await nativeAudio.playSound(String(msg.id), String(msg.url), sendAudioState, {
+              title: msg.title ? String(msg.title) : undefined,
+              subtitle: msg.subtitle ? String(msg.subtitle) : undefined,
+              isVip: Boolean(msg.isVip),
+              previewBudgetMs: typeof msg.previewBudgetMs === 'number' ? msg.previewBudgetMs : Number(msg.previewBudgetMs) || undefined,
+            });
           }
           break;
 
@@ -798,6 +840,39 @@ export default function MishilUnifiedWebView() {
 
         case 'AUDIO_VOLUME':
           await nativeAudio.setVolume(Number(msg.value));
+          break;
+
+        case 'LIVE_SLEEP_START':
+          if (msg.startEpochMs) {
+            await nativeLiveSleep.startNativeLiveSleep({
+              startEpochMs: Number(msg.startEpochMs),
+              sleepLabel: String(msg.sleepLabel || ''),
+              subtitle: msg.subtitle ? String(msg.subtitle) : undefined,
+              babyName: msg.babyName ? String(msg.babyName) : undefined,
+              showBabyNameOnLockScreen: Boolean(msg.showBabyNameOnLockScreen),
+              lang: (msg.lang === 'en' || msg.lang === 'de') ? msg.lang : 'tr',
+            });
+          }
+          break;
+
+        case 'LIVE_SLEEP_UPDATE':
+          if (msg.startEpochMs) {
+            await nativeLiveSleep.updateNativeLiveSleep({
+              startEpochMs: Number(msg.startEpochMs),
+              sleepLabel: msg.sleepLabel ? String(msg.sleepLabel) : undefined,
+              subtitle: msg.subtitle ? String(msg.subtitle) : undefined,
+              babyName: msg.babyName ? String(msg.babyName) : undefined,
+              showBabyNameOnLockScreen: typeof msg.showBabyNameOnLockScreen === 'boolean' ? msg.showBabyNameOnLockScreen : undefined,
+            });
+          }
+          break;
+
+        case 'LIVE_SLEEP_STOP':
+          await nativeLiveSleep.stopNativeLiveSleep();
+          break;
+
+        case 'REQUEST_LOCKSCREEN_SYNC':
+          await sendLockscreenStateSync();
           break;
 
         case 'PURCHASE_PACKAGE': {
@@ -840,7 +915,7 @@ export default function MishilUnifiedWebView() {
               // Yalnızca GERÇEKTEN aktif hak varsa VIP'yi aç
               grantProInWebView(
                 plan,
-                isDe ? '🎉 Mışıl VIP aktiviert!' : (isEn ? '🎉 Mishil VIP activated!' : '🎉 Mışıl VIP aktif edildi!')
+                isDe ? '🎉 Mışıl VIP aktiviert!' : (isEn ? '🎉 Mışıl VIP activated!' : '🎉 Mışıl VIP aktif edildi!')
               );
               const cInfo = result.customerInfo;
               const activeEnts = cInfo?.entitlements?.active || {};
@@ -954,7 +1029,7 @@ export default function MishilUnifiedWebView() {
               detectedPlan,
               isDe
                 ? '✅ Käufe wiederhergestellt (Mışıl Baby Pro Aktiv)'
-                : (isEn ? '✅ Purchases restored (Mishil Baby Pro Active)' : '✅ Satın alımlar geri yüklendi (Mışıl Baby Pro Aktif)')
+                : (isEn ? '✅ Purchases restored (Mışıl Baby Pro Active)' : '✅ Satın alımlar geri yüklendi (Mışıl Baby Pro Aktif)')
             );
           } else {
             webToast(
@@ -1021,7 +1096,7 @@ export default function MishilUnifiedWebView() {
     } catch (e) {
       // Sessizce geç
     }
-  }, [webToast, grantProInWebView, sendAudioState, updateNativeLang]);
+  }, [webToast, grantProInWebView, sendAudioState, updateNativeLang, sendLockscreenStateSync, hydrateWebViewStorage]);
 
   const autoRetrying = status === 'error' && retryCountRef.current > 0 && retryCountRef.current <= MAX_AUTO_RETRY;
   const isDeUI = appLang === 'de';
@@ -1086,7 +1161,7 @@ export default function MishilUnifiedWebView() {
           <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#E8A855" />
             <Text style={styles.loadingText}>
-              {isDeUI ? 'Mışıl Baby wird geladen...' : (isEnUI ? 'Loading Mishil Baby...' : 'Mışıl Baby Yükleniyor...')}
+              {isDeUI ? 'Mışıl Baby wird geladen...' : (isEnUI ? 'Loading Mışıl Baby...' : 'Mışıl Baby Yükleniyor...')}
             </Text>
           </View>
         )}

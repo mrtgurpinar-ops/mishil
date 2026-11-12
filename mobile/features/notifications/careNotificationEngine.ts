@@ -235,7 +235,7 @@ export function buildCareNotificationPlan(
             lang === 'de'
               ? `Denke daran, den Kinderarzttermin für die Impfungen im ${v.month}. Monat zu prüfen. Mışıl begleitet euch jederzeit.`
               : lang === 'en'
-                ? `Don't forget to check your pediatric appointment for Month ${v.month} immunizations. Mishil is right by your side.`
+                ? `Don't forget to check your pediatric appointment for Month ${v.month} immunizations. Mışıl Baby is right by your side.`
                 : isTrClinic
                   ? `${v.month}. ay aşıları için aile sağlığı merkezinden randevunuzu kontrol etmeyi unutmayın. Mışıl her an yanınızda.`
                   : `${v.month}. ay aşıları için çocuk doktorunuzdan veya kliniğinizden randevunuzu kontrol etmeyi unutmayın. Mışıl her an yanınızda.`,
@@ -265,7 +265,7 @@ export function buildCareNotificationPlan(
             lang === 'de'
               ? `Zeit für: ${vLabel}. Falls ${babyName} danach unruhig ist, stehen die beruhigenden Mutterleibs- und Sch-Sch-Klänge bereit.`
               : lang === 'en'
-                ? `It's time for ${vLabel}. If your baby feels fussy after the visit, Mishil's soothing womb and shushing sounds are ready.`
+                ? `It's time for ${vLabel}. If your baby feels fussy after the visit, Mışıl Baby's soothing womb and shushing sounds are ready.`
                 : `${vLabel} zamanı geldi. Aşı sonrası huzursuzluk olursa Mışıl'ın sakinleştirici pışpışlama sesleri hazır.`,
           type: 'VACCINE',
           priority: 1,

@@ -1,8 +1,8 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
 // Uygulama sürümü tek yerden — hem iOS buildNumber hem Android versionCode ile hizalı
-const APP_VERSION = '4.50.2';
-const BUILD_NUMBER = 68;
+const APP_VERSION = '4.51.0';
+const BUILD_NUMBER = 69;
 
 
 const IS_PRODUCTION = process.env.APP_ENV === 'production';
@@ -44,6 +44,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   assetBundlePatterns: ['**/*', 'public/**'],
   ios: {
     supportsTablet: false,
+    appleTeamId: 'V6QVVU79GZ',
     bundleIdentifier: 'com.levitas.misilbaby',
     buildNumber: String(BUILD_NUMBER),
     infoPlist: {
@@ -67,7 +68,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'RECORD_AUDIO',
       'WAKE_LOCK',
       'RECEIVE_BOOT_COMPLETED',
-      'VIBRATE'
+      'VIBRATE',
+      'FOREGROUND_SERVICE',
+      'FOREGROUND_SERVICE_MEDIA_PLAYBACK',
+      'POST_NOTIFICATIONS',
+      'android.permission.POST_PROMOTED_NOTIFICATIONS'
     ]
   },
   plugins: [
@@ -94,7 +99,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     [
       'expo-av',
       {
-        microphonePermission: 'Mishil, bebeğinizin ağlama sesini değerlendirmek için mikrofon erişimine ihtiyaç duyar.'
+        microphonePermission: 'Mışıl Baby, bebeğinizin ağlama sesindeki akustik özellikleri analiz etmek için mikrofonunuza erişir. Sesler yalnızca yerel analiz amaçlı işlenir ve kaydedilmez.'
       }
     ],
     [
@@ -104,11 +109,24 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         color: '#E8A855'
       }
     ],
-    './plugins/withMinDeploymentTarget'
+    './plugins/withMinDeploymentTarget',
+    './plugins/withMishilLiveActivity'
   ],
   extra: {
     eas: {
-      projectId: "8e739202-2503-4aad-a970-46e22010fddc"
+      projectId: "8e739202-2503-4aad-a970-46e22010fddc",
+      build: {
+        experimental: {
+          ios: {
+            appExtensions: [
+              {
+                targetName: 'MishilLiveActivity',
+                bundleIdentifier: 'com.levitas.misilbaby.LiveSleepWidget'
+              }
+            ]
+          }
+        }
+      }
     },
     apiUrl: process.env.EXPO_PUBLIC_API_URL || 'https://mishil-production.up.railway.app/api/v1',
     revenueCatApiKeyIos: RC_KEY_IOS,

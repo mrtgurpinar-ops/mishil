@@ -1,0 +1,9 @@
+{
+  "platforms": ["ios", "android"],
+  "ios": {
+    "modules": ["MishilLockScreenModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.mishillockscreen.MishilLockScreenModule"]
+  }
+}
