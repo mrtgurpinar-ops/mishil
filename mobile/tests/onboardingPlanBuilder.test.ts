@@ -437,4 +437,156 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(html.includes('window.__mishilWasExitingOnboarding')).toBe(true);
     expect(html.includes('openVipRenewalModal(lastVipRenewalFeature, { silentRefresh: true })')).toBe(true);
   });
+
+  it('v4.50.2: aligns overdue MışılSpot displayTimeStr to current clock, labels Yesterday/Today, advances locked 2nd nap, and honors sleepStepSkipped', () => {
+    const { sandbox } = createOnboardingEngineSandbox();
+    // Reproduce user test screenshot: 5-month-old baby (wakeWindow 105m), woke Yesterday at 13:25, evaluated Today at 07:36
+    const now = new Date(2026, 10, 12, 7, 36, 0); // 12 Nov 2026 07:36
+    const wakeYesterdayTs = new Date(2026, 10, 11, 13, 25, 0).getTime(); // 11 Nov 2026 13:25
+
+    const overdueTr = sandbox.computePersonalReportInsights({
+      lang: 'tr',
+      nowDate: now,
+      bdate: '2026-06-20',
+      lastWakeTs: wakeYesterdayTs,
+      routines: [
+        { id: 'onb_slp_init', type: 'sleep', endTs: wakeYesterdayTs, timestamp: wakeYesterdayTs, time: '13:25' },
+      ],
+      checkedLeaps: {},
+      completedVaccines: {},
+      schedule: SAMPLE_TR_VACCINES,
+      leapsList: SAMPLE_LEAPS,
+    });
+
+    expect(overdueTr.wakeWindowMin).toBe(105);
+    expect(overdueTr.isOverdueNow).toBe(true);
+    // Raw target stays HH:MM ('15:10'), while displayTimeStr aligns to current clock ('07:36')
+    expect(overdueTr.sweetSpotTimeStr).toBe('15:10');
+    expect(overdueTr.displayTimeStr).toBe('07:36');
+    expect(overdueTr.wakeSourceLine).toContain('Dün 13:25');
+    expect(overdueTr.wakeSourceLine).toContain('Hedef (Dün 15:10) geçti');
+    expect(overdueTr.sleepInsight).toContain('16 sa 26 dk');
+    // 2nd nap advances from max(now=07:36, nextSpot=yesterday 15:10) + (45 + 105)m = 10:06 -> '10:••'
+    expect(overdueTr.nextNapLockedMask).toBe('10:••');
+
+    // Same scenario when user explicitly clicked "Skip for now" on Step 2 -> ignores stale sleep logs
+    const skippedTr = sandbox.computePersonalReportInsights({
+      lang: 'tr',
+      nowDate: now,
+      bdate: '2026-06-20',
+      sleepStepSkipped: true,
+      lastWakeTs: wakeYesterdayTs,
+      routines: [
+        { id: 'old_slp_99', type: 'sleep', endTs: wakeYesterdayTs, timestamp: wakeYesterdayTs, time: '13:25' },
+      ],
+      checkedLeaps: {},
+      completedVaccines: {},
+      schedule: SAMPLE_TR_VACCINES,
+      leapsList: SAMPLE_LEAPS,
+    });
+    expect(skippedTr.isOverdueNow).toBe(false);
+    expect(skippedTr.isEstimatedWake).toBe(true);
+    expect(skippedTr.displayTimeStr).toBe('09:21');
+  });
+
+  it('v4.50.2: storage.ts merges device quotas monotonically in SecureStore and preserves them across clearPersonalAppData', async () => {
+    const ts = require('typescript');
+    const storagePath = path.resolve(__dirname, '../lib/storage.ts');
+    const source = fs.readFileSync(storagePath, 'utf8');
+    const transpiled = ts.transpileModule(source, {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, esModuleInterop: true },
+    });
+
+    const secureMap = new Map();
+    const asyncMap = new Map([
+      ['@mishil_baby_profile', '{"babyName":"Mina"}'],
+      ['@mishil_onboarding_completed', 'true'],
+      ['mishil_active_baby_id', 'b1'],
+    ]);
+
+    const mod = { exports: {} };
+    const customRequire = (id) => {
+      if (id === 'react-native') return { Platform: { OS: 'ios' } };
+      if (id === 'expo-secure-store') {
+        return {
+          getItemAsync: async (k) => {
+            await new Promise((r) => setTimeout(r, 5));
+            return secureMap.has(k) ? secureMap.get(k) : null;
+          },
+          setItemAsync: async (k, v) => {
+            await new Promise((r) => setTimeout(r, 5));
+            secureMap.set(k, String(v));
+          },
+          deleteItemAsync: async (k) => { secureMap.delete(k); },
+        };
+      }
+      if (id === '@react-native-async-storage/async-storage') {
+        return {
+          getItem: async (k) => (asyncMap.has(k) ? asyncMap.get(k) : null),
+          setItem: async (k, v) => { asyncMap.set(k, String(v)); },
+          removeItem: async (k) => { asyncMap.delete(k); },
+          multiRemove: async (keys) => { keys.forEach((k) => asyncMap.delete(k)); },
+        };
+      }
+      return require(id);
+    };
+    const fn = new Function('exports', 'require', 'module', '__filename', '__dirname', transpiled.outputText);
+    fn(mod.exports, customRequire, mod, storagePath, path.dirname(storagePath));
+    const { storage, DEVICE_QUOTAS_KEY } = mod.exports;
+
+    await storage.setToken('jwt_secret_123');
+    await storage.mergeDeviceQuotas({ onboardedOnce: true, firstSpotUsed: true, freeSoundElapsedMs: 24500 });
+    // Attempting to downgrade booleans or elapsed ms must be ignored monotonically
+    const merged = await storage.mergeDeviceQuotas({ onboardedOnce: false, firstSpotUsed: false, freeSoundElapsedMs: 5000, freeDadiUsed: true });
+    expect(merged.onboardedOnce).toBe(true);
+    expect(merged.firstSpotUsed).toBe(true);
+    expect(merged.freeDadiUsed).toBe(true);
+    expect(merged.freeSoundElapsedMs).toBe(24500);
+
+    // Account deletion wipes personal profile/token in SecureStore & AsyncStorage while preserving anonymous device quotas
+    await storage.clearPersonalAppData();
+    expect(await storage.getToken()).toBeNull();
+    expect(asyncMap.has('@mishil_baby_profile')).toBe(false);
+    expect(asyncMap.has('@mishil_onboarding_completed')).toBe(false);
+    expect(secureMap.has(DEVICE_QUOTAS_KEY)).toBe(true);
+
+    const postDeleteQuotas = await storage.getDeviceQuotas();
+    expect(postDeleteQuotas.onboardedOnce).toBe(true);
+    expect(postDeleteQuotas.firstSpotUsed).toBe(true);
+    expect(postDeleteQuotas.freeDadiUsed).toBe(true);
+    expect(postDeleteQuotas.freeSoundElapsedMs).toBe(24500);
+
+    // Concurrent calls must serialize cleanly via deviceQuotaMutex without overwriting each other
+    await Promise.all([
+      storage.mergeDeviceQuotas({ freeCryUsed: true }),
+      storage.mergeDeviceQuotas({ freeSoundElapsedMs: 58900 }),
+      storage.mergeDeviceQuotas({ freeSoundElapsedMs: 12000 }),
+    ]);
+    const afterConcurrent = await storage.getDeviceQuotas();
+    expect(afterConcurrent.freeCryUsed).toBe(true);
+    expect(afterConcurrent.freeDadiUsed).toBe(true);
+    expect(afterConcurrent.freeSoundElapsedMs).toBe(58900);
+  });
+
+  it('v4.50.2: enforces cumulative 60s sound timer, Spotlight zero-drift, full-width drawer, and 3-layer repeat-onboarding shield', () => {
+    const htmlPath = path.resolve(__dirname, '../../public/app.html');
+    const html = fs.readFileSync(htmlPath, 'utf8');
+
+    // Full-width stacked drawer + Spotlight zero-drift hooks
+    expect(html.includes('body.spotlight-tour-open .tab-view.active')).toBe(true);
+    expect(html.includes('function updateSpotlightGeometry(')).toBe(true);
+    expect(html.includes('target.scrollIntoView({ behavior: \'smooth\'')).toBe(false);
+
+    // Cumulative 60s sound preview + unified native AUDIO_TIMER cap (sub-second exact without 1000ms inflation)
+    expect(html.includes('var FREE_SOUND_PREVIEW_TOTAL_MS = 60000;')).toBe(true);
+    expect(html.includes('mishil_free_sound_elapsed_ms')).toBe(true);
+    expect(html.includes('Math.min(Math.max(1, remainingMs), freeCapMs)')).toBe(true);
+
+    // 3-layer Freemium anti-repeat + Keychain bridge hooks
+    expect(html.includes("openVipRenewalModal('restart_quiz')")).toBe(true);
+    expect(html.includes('if (!isSubscriptionCurrentlyActive() && isRepeatDeviceOnboarding())')).toBe(true);
+    expect(html.includes('if (prev === 8 && !isSubscriptionCurrentlyActive() && isRepeatDeviceOnboarding())')).toBe(true);
+    expect(html.includes("type: 'CLEAR_PERSONAL_DATA'")).toBe(true);
+    expect(html.includes("type: 'SYNC_DEVICE_QUOTAS'")).toBe(true);
+  });
 });

@@ -2819,6 +2819,14 @@
     #spotlight-tour-overlay.active {
       display: block;
     }
+    body.spotlight-tour-open .tab-view.active {
+      animation: none !important;
+      transform: none !important;
+      filter: none !important;
+    }
+    body.spotlight-tour-open #spotlight-cutout {
+      transition: none !important;
+    }
     #spotlight-cutout {
       position: fixed;
       border-radius: 20px;
@@ -3398,26 +3406,26 @@
         </div>
       </div>
 
-      <!-- 3. İSTEĞE BAĞLI DETAY ÇEKMECESİ (VARSAYILAN KAPALI — SIFIR KALABALIK) -->
+      <!-- 3. İSTEĞE BAĞLI DETAY ÇEKMECESİ (VARSAYILAN KAPALI — SIFIR KALABALIK & TAM GENİŞLİK) -->
       <details id="report-details-drawer" style="background: rgba(20, 27, 46, 0.65); border: 1px solid var(--border-night); border-radius: 12px; padding: 8px 11px; margin-bottom: 12px;">
         <summary style="font-size: 11px; font-weight: 700; color: var(--text-muted); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
           <span>📋 Tüm Analiz Detaylarını Gör</span>
           <span style="color: var(--accent); font-size: 10px;">Aç ▾</span>
         </summary>
         <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.07);">
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
-            <div style="text-align: center; min-width: 68px; padding-right: 9px; border-right: 1px solid rgba(255,255,255,0.1);">
-              <div style="font-size: 8.5px; color: var(--text-muted); text-transform: uppercase;">Ritim Skoru</div>
-              <div style="font-family: 'Sora'; font-size: 22px; font-weight: 800; color: var(--accent); line-height: 1.1; margin: 2px 0;" id="report-score-val">—</div>
-              <div style="font-size: 8.5px; font-weight: 700; color: #FFA502;" id="report-score-desc">🌿 Ritim Analizi</div>
+          <div style="background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; padding: 8px 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap;">
+            <div style="display: flex; align-items: baseline; gap: 7px; flex-shrink: 0;">
+              <div style="font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">Ritim Skoru</div>
+              <div style="font-family: 'Sora'; font-size: 21px; font-weight: 800; color: var(--accent); line-height: 1;" id="report-score-val">—</div>
             </div>
-            <div style="font-size: 10px; line-height: 14px; color: #C9CEDC; flex: 1;">
-              <div id="report-target-latency">✓ Uykuya dalma: <strong>45 dk ➔ 12 dk</strong></div>
-              <div id="report-target-wakes">✓ Gece uyanması: <strong>4 kez ➔ 1 kez</strong></div>
-              <div id="report-target-extra">✓ MışılSpot™ ile huzurlu uyku ritmi</div>
-            </div>
+            <div style="font-size: 9.5px; font-weight: 700; color: #FFA502; line-height: 13.5px; flex: 1; min-width: 135px; text-align: right; overflow-wrap: anywhere;" id="report-score-desc">🌿 Ritim Analizi</div>
           </div>
-          <div id="report-personal-insights-card" style="display: flex; flex-direction: column; gap: 5px; font-size: 10px; line-height: 14px; color: var(--text-night);">
+          <div style="display: flex; flex-direction: column; gap: 4px; font-size: 10.5px; line-height: 14.5px; color: #C9CEDC; padding-bottom: 8px; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.07); min-width: 0; overflow-wrap: anywhere;">
+            <div id="report-target-latency">✓ Uykuya dalma: <strong>45 dk ➔ 12 dk</strong></div>
+            <div id="report-target-wakes">✓ Gece uyanması: <strong>4 kez ➔ 1 kez</strong></div>
+            <div id="report-target-extra">✓ MışılSpot™ ile huzurlu uyku ritmi</div>
+          </div>
+          <div id="report-personal-insights-card" style="display: flex; flex-direction: column; gap: 6px; font-size: 10.5px; line-height: 15px; color: var(--text-night); min-width: 0; overflow-wrap: anywhere;">
             <div id="report-insight-sleep">🌙 —</div>
             <div id="report-insight-feed">🍼 —</div>
             <div id="report-insight-leaps">🌱 —</div>
@@ -3523,7 +3531,7 @@
 
       <!-- REVIEWER TEST BYPASS TRIGGER (GOOGLE PLAY ANSWER 15748846) -->
       <div style="text-align: center; margin-top: 8px; margin-bottom: 6px;">
-        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.50.0 (Build 68)</span>
+        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.50.2 (Build 68)</span>
       </div>
     </div>
   </div>
@@ -4820,7 +4828,7 @@
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
     </div>
     <div style="text-align: center; margin-top: 8px;">
-      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.50.0 (Build 68)</span>
+      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.50.2 (Build 68)</span>
     </div>
   </div>
 </div>
@@ -5095,7 +5103,7 @@
       <button class="modal-close" onclick="closeDeleteModal()">✕</button>
     </div>
     <div style="font-size: 12px; color: var(--text-night); line-height: 18px; margin-bottom: 16px;">
-      Bu işlem bebeğinize ait tüm uyku günlüklerini ve profil verilerini kalıcı olarak silecektir. (Apple Guideline 5.1.1).
+      Bu işlem bebeğinize ait tüm uyku günlüklerini, rutin kayıtlarını ve profil verilerini kalıcı olarak silecektir; cihaz bazlı tek seferlik ücretsiz deneme hakları sıfırlanmaz. (Apple Guideline 5.1.1).
     </div>
     <button class="btn-primary" style="background: var(--danger);" onclick="confirmDeleteAccount()">🗑️ Kalıcı Olarak Sil</button>
   </div>
@@ -5248,6 +5256,8 @@
     isNative: !!(window.ReactNativeWebView),
     audioBridge: !!(window.MishilNative && window.MishilNative.audioBridge),
     storeReviewBridge: !!(window.MishilNative && window.MishilNative.storeReviewBridge),
+    quotaBridge: !!(window.MishilNative && window.MishilNative.quotaBridge),
+    quotasHydrated: !!(window.MishilNative && window.MishilNative.quotasHydrated),
 
     haptic: function(level) {
       if (window.ReactNativeWebView) {
@@ -5283,7 +5293,7 @@
     // Native tarafından satın alma başarıyla doğrulandığında çağrılır
     onPurchaseSuccess: function(data) {
       isPurchaseInFlight = false;
-      if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer();
+      if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer({ skipAccrue: true, clearNativePreviewTimer: true });
       if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
       const plan = (data && data.plan) ? data.plan : (localStorage.getItem('mishil_selected_plan') || 'monthly');
       localStorage.setItem('mishil_subscription_active', 'true');
@@ -5498,15 +5508,23 @@
         }
       } else if (msg && msg.type === 'AUDIO_STATE') {
         // Native ses motoru durum bildirimi → mini player UI senkronu
-        if (!msg.playing && msg.reason === 'timer' && typeof lastTrackStartAt === 'number' && (Date.now() - lastTrackStartAt < 1000)) {
-          return; // Yeni parça başlatıldıktan hemen sonra gelen gecikmiş eski timer mesajını yoksay
+        var wasFreePreviewActive = !!((freeSoundPreviewTrackId || (typeof lastFreePreviewEndedAtMs === 'number' && (Date.now() - lastFreePreviewEndedAtMs < 2500))) && !isSubscriptionCurrentlyActive());
+        if (!msg.playing && msg.reason === 'timer' && !wasFreePreviewActive && typeof lastTrackStartAt === 'number' && (Date.now() - lastTrackStartAt < 1000)) {
+          return; // Yeni parça başlatıldıktan hemen sonra gelen gecikmiş eski timer mesajını yoksay (ücretsiz önizleme <1s bitişi hariç)
         }
         var erroredId = (!msg.playing && msg.reason === 'error') ? currentTrackId : null;
-        if (!msg.playing) {
+        if (msg.playing && freeSoundPreviewTrackId && msg.id === freeSoundPreviewTrackId) {
+          // Ağ tamponlaması süresini 60 sn haktan düşmemek için başlangıç anını gerçek oynatma başladığında tazele
+          freeSoundPreviewStartedAtMs = Date.now();
+        } else if (!msg.playing) {
           if (erroredId && freeSoundPreviewTrackId === erroredId) {
-            try { localStorage.removeItem('mishil_free_sound_used'); } catch (_rse) {}
+            if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer({ skipAccrue: true });
+          } else if (msg.reason === 'timer' && wasFreePreviewActive) {
+            if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer({ skipAccrue: true });
+            if (typeof sealFreeSoundPreviewUsed === 'function') sealFreeSoundPreviewUsed();
+          } else {
+            if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer();
           }
-          if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer();
         }
         currentTrackId = msg.playing ? msg.id : null;
         if (!msg.playing && typeof cancelSoundDelightReviewTimer === 'function') {
@@ -5516,7 +5534,12 @@
         updatePlayerUI();
         if (!msg.playing && msg.reason === 'timer') {
           if (typeof resetActiveTimerUI === 'function') resetActiveTimerUI(true);
-          if (typeof notifyTimerStoppedOnce === 'function') {
+          if (wasFreePreviewActive) {
+            var vipModalEl = document.getElementById('vip-renewal-modal');
+            if (typeof openVipRenewalModal === 'function' && (!vipModalEl || !vipModalEl.classList.contains('active'))) {
+              openVipRenewalModal('sound_preview_ended');
+            }
+          } else if (typeof notifyTimerStoppedOnce === 'function') {
             notifyTimerStoppedOnce((typeof timerFadeOutEnabled !== 'undefined' && timerFadeOutEnabled)
               ? trEnDe('💤 Ses kademeli kısılarak kapatıldı', '💤 Sound gently faded out and stopped', '💤 Klang sanft ausgeblendet und beendet')
               : trEnDe('💤 Kapanma zamanlayıcısı sesi durdurdu', '💤 Sleep timer stopped the sound', '💤 Einschlaf-Timer hat den Klang beendet'));
@@ -5544,7 +5567,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.50.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.50.2', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -5653,17 +5676,128 @@
   // 24s kartsız sınırsız VIP sızıntısı kapatılarak 2. MışılSpot™ & Gece Planı VIP'ye bağlandı.
   // =========================================================================
   var SOFT_VIP_DURATION_MS = 0;
+  var FREE_SOUND_PREVIEW_TOTAL_MS = 60000;
   var freeSoundPreviewTimeout = null;
   var freeSoundPreviewTrackId = null;
+  var freeSoundPreviewStartedAtMs = 0;
 
-  function clearFreeSoundPreviewTimer() {
+  function getFreeSoundElapsedMs() {
+    try {
+      if (localStorage.getItem('mishil_free_sound_used') === '1') return FREE_SOUND_PREVIEW_TOTAL_MS;
+      var raw = parseInt(localStorage.getItem('mishil_free_sound_elapsed_ms') || '0', 10);
+      if (!Number.isFinite(raw) || raw <= 0) return 0;
+      return Math.min(FREE_SOUND_PREVIEW_TOTAL_MS, raw);
+    } catch (_gse) {
+      return 0;
+    }
+  }
+
+  function getRemainingFreeSoundPreviewMs() {
+    return Math.max(0, FREE_SOUND_PREVIEW_TOTAL_MS - getFreeSoundElapsedMs());
+  }
+
+  function syncDeviceQuotasToNative() {
+    try {
+      if (!window.ReactNativeWebView || typeof window.ReactNativeWebView.postMessage !== 'function') return;
+      var elapsed = getFreeSoundElapsedMs();
+      var soundUsed = localStorage.getItem('mishil_free_sound_used') === '1' || elapsed >= FREE_SOUND_PREVIEW_TOTAL_MS;
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: 'SYNC_DEVICE_QUOTAS',
+        payload: {
+          onboardedOnce: localStorage.getItem('mishil_device_onboarded_once') === '1' || localStorage.getItem('mishil_onboarding_completed') === 'true',
+          firstSpotUsed: localStorage.getItem('mishil_first_spot_aha_used') === '1',
+          freeSoundUsed: soundUsed,
+          freeSoundElapsedMs: soundUsed ? FREE_SOUND_PREVIEW_TOTAL_MS : elapsed,
+          freeCryUsed: localStorage.getItem('mishil_free_cry_used') === '1',
+          freeDadiUsed: localStorage.getItem('mishil_free_dadi_question_used') === '1'
+        }
+      }));
+    } catch (_sqe) {}
+  }
+  window.syncDeviceQuotasToNative = syncDeviceQuotasToNative;
+
+  var lastFreePreviewEndedAtMs = 0;
+
+  function sealFreeSoundPreviewUsed() {
+    lastFreePreviewEndedAtMs = Date.now();
+    try {
+      localStorage.setItem('mishil_free_sound_elapsed_ms', String(FREE_SOUND_PREVIEW_TOTAL_MS));
+      localStorage.setItem('mishil_free_sound_used', '1');
+    } catch (_ssu) {}
+    syncDeviceQuotasToNative();
+  }
+  window.sealFreeSoundPreviewUsed = sealFreeSoundPreviewUsed;
+
+  function whenNativeQuotasHydrated(cb) {
+    if (
+      !window.MishilNative ||
+      !window.MishilNative.quotaBridge ||
+      window.MishilNative.quotasHydrated ||
+      !window.ReactNativeWebView ||
+      isRepeatDeviceOnboarding()
+    ) {
+      cb();
+      return;
+    }
+    try {
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'REQUEST_DEVICE_QUOTAS' }));
+    } catch (_rqe) {}
+    var deadline = Date.now() + 600;
+    (function pollHydration() {
+      if (
+        (window.MishilNative && window.MishilNative.quotasHydrated) ||
+        isRepeatDeviceOnboarding() ||
+        Date.now() >= deadline
+      ) {
+        cb();
+        return;
+      }
+      setTimeout(pollHydration, 30);
+    })();
+  }
+
+  function clearFreeSoundPreviewTimer(opts) {
+    var options = opts || {};
+    if (!options.skipAccrue && freeSoundPreviewTrackId && freeSoundPreviewStartedAtMs > 0 && !isPaidOrVerifiedVip() && !(typeof getTrialStatus === 'function' && getTrialStatus().isActive)) {
+      var deltaMs = Math.max(0, Date.now() - freeSoundPreviewStartedAtMs);
+      var nextElapsed = Math.min(FREE_SOUND_PREVIEW_TOTAL_MS, getFreeSoundElapsedMs() + deltaMs);
+      try {
+        localStorage.setItem('mishil_free_sound_elapsed_ms', String(nextElapsed));
+        if (nextElapsed >= FREE_SOUND_PREVIEW_TOTAL_MS) {
+          localStorage.setItem('mishil_free_sound_used', '1');
+        }
+      } catch (_cae) {}
+      syncDeviceQuotasToNative();
+    }
     if (freeSoundPreviewTimeout) {
       clearTimeout(freeSoundPreviewTimeout);
       freeSoundPreviewTimeout = null;
     }
     freeSoundPreviewTrackId = null;
+    freeSoundPreviewStartedAtMs = 0;
+    if (options.clearNativePreviewTimer && isNativeAudio() && (typeof activeTimerMinutes === 'undefined' || activeTimerMinutes === 0)) {
+      nativeAudioSend({ type: 'AUDIO_TIMER', minutes: 0, fadeOut: false });
+    }
   }
   window.clearFreeSoundPreviewTimer = clearFreeSoundPreviewTimer;
+
+  function hasDeviceCompletedOnboardingOnce() {
+    try {
+      return localStorage.getItem('mishil_device_onboarded_once') === '1' || localStorage.getItem('mishil_onboarding_completed') === 'true';
+    } catch (_hdo) {
+      return false;
+    }
+  }
+
+  function isRepeatDeviceOnboarding() {
+    try {
+      return localStorage.getItem('mishil_device_onboarded_once') === '1';
+    } catch (_rdo) {
+      return false;
+    }
+  }
+  window.hasDeviceCompletedOnboardingOnce = hasDeviceCompletedOnboardingOnce;
+  window.isRepeatDeviceOnboarding = isRepeatDeviceOnboarding;
 
   function isPaidOrVerifiedVip() {
     try {
@@ -5692,7 +5826,11 @@
   }
 
   function hasUsedFreeSoundPreview() {
-    try { return localStorage.getItem('mishil_free_sound_used') === '1'; } catch (_snd) { return false; }
+    try {
+      return localStorage.getItem('mishil_free_sound_used') === '1' || getFreeSoundElapsedMs() >= FREE_SOUND_PREVIEW_TOTAL_MS;
+    } catch (_snd) {
+      return false;
+    }
   }
 
   function hasUsedFreeCryAnalysis() {
@@ -5721,6 +5859,7 @@
   function markFreeDadiQuestionUsedIfNeeded() {
     if (typeof isSubscriptionCurrentlyActive === 'function' ? isSubscriptionCurrentlyActive() : isPaidOrVerifiedVip()) return;
     try { localStorage.setItem('mishil_free_dadi_question_used', '1'); } catch (_mde) {}
+    syncDeviceQuotasToNative();
     if (typeof updateDadiFreeQuotaUI === 'function') updateDadiFreeQuotaUI();
   }
 
@@ -5729,12 +5868,24 @@
   window.grantSoftVip24hOnce = grantSoftVip24hOnce;
   window.hasUsedFirstFreeSpotAha = hasUsedFirstFreeSpotAha;
   window.hasUsedFreeSoundPreview = hasUsedFreeSoundPreview;
+  window.getFreeSoundElapsedMs = getFreeSoundElapsedMs;
+  window.getRemainingFreeSoundPreviewMs = getRemainingFreeSoundPreviewMs;
   window.hasUsedFreeCryAnalysis = hasUsedFreeCryAnalysis;
   window.maskSpotTimeStr = maskSpotTimeStr;
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.50.0', date: '11 Kasım 2026', dateEn: 'November 11, 2026', dateDe: '11. November 2026', latest: true, items: [
+    { v: '4.50.2', date: '12 Kasım 2026', dateEn: 'November 12, 2026', dateDe: '12. November 2026', latest: true, items: [
+      'Aşılmış Uyku Penceresi Canlı Saat Hizası & Tam Genişlik Analiz Çekmecesi: Son uyanış üzerinden biyolojik pencere aşıldığında İlk MışılSpot™ kutusunda geçmiş saat yerine güncel saat ("Şimdi Uyutun") ve Dün/Bugün uyanış-hedef açıklaması gösterilecek şekilde güncellendi; Kişisel Rapor detay çekmecesindeki Ritim Skoru ve Aşı/Gelişim satırları tam genişlikli yığın düzene geçirildi.',
+      'Sıfır Kaymalı Spotlight Turu, Gerçek 60 Sn Kümülatif Ses Sayacı & Freemium Keychain Kalkanı: Uygulama tanıtım turu kaydırma/animasyon senkronuna bağlandı; ücretsiz 60 sn ses önizlemesi erken durdurulduğunda kalan süreyi koruyan kümülatif sayaç ve kilit ekranı zamanlayıcısıyla birleştirildi; tekrarlayan ücretsiz rapor sızıntısı iOS Keychain (SecureStore) köprüsüyle kapatıldı.'
+    ], itemsEn: [
+      'Live Overdue Sleep Clock Alignment & Full-Width Analysis Drawer: When a logged wake window has already passed, the MışılSpot™ hero now displays the current clock ("Sleep Now") with clear Yesterday/Today context, and the Report Details drawer uses a full-width stacked layout without column squishing.',
+      'Zero-Drift Spotlight Tour, Cumulative 60s Sound Preview & Keychain Quota Shield: Locked the interactive tour frame directly to live scroll/viewport geometry, upgraded the 60s sound preview to a cumulative timer that preserves unused seconds across stops (including lock-screen playback), and added SecureStore Keychain quota persistence.'
+    ], itemsDe: [
+      'Live-Uhrzeit bei überschrittenem Wachfenster & volle Breite im Analyse-Bereich: Ist das berechnete Schlaffenster bereits verstrichen, zeigt der MışılSpot™ jetzt die aktuelle Uhrzeit („Jetzt hinlegen“) samt Gestern/Heute-Hinweis; die Analysedetails nutzen ein übersichtliches Layout in voller Breite.',
+      'Präzise Spotlight-Tour, kumulativer 60-Sek.-Klangzähler & Keychain-Schutz: Exakte Rahmenführung ohne Scroll-Versatz im Rundgang, kumulative 60-Sek.-Hörprobe (Restsekunden bleiben beim Pausieren erhalten, inkl. Sperrbildschirm-Timer) sowie SecureStore-Keychain-Synchronisierung.'
+    ]},
+    { v: '4.50.0', date: '11 Kasım 2026', dateEn: 'November 11, 2026', dateDe: '11. November 2026', items: [
       '2 Aşamalı Düşük Bilişsel Yüklü Kişisel Rapor & Odaklı Değer Paywall Mimarisi: Onboarding sonrasındaki Rapor (Adım 8) ve VIP Paywall (Adım 9) ekranları iki ayrı dingin adıma bölündü; ilk bakıştaki metin yoğunluğu %65 azaltılarak tek ana MışılSpot™ saati, 3 görsel durum çipi ve kilitli gün sonu/gece yatış haritası önizlemesiyle netleştirildi; 24 saatlik kartsız sınırsız VIP yerine 1. MışılSpot™ + 1 Canlı Uyku + 60 sn Ses Önizlemesi + 1 Ağlama Analizi + 1 Mışıl Dadı sorusunu açık sunup günün devamını 7 Gün Ücretsiz VIP denemesine bağlayan dürüst Değer Kapısı (isMishilSpotLocked) devreye alındı.',
       'Tam Kapsamlı Almanca (Deutsch — DACH: Almanya, İsviçre, Avusturya) Dil Desteği & Çok Dilli Ergonomi: WebView arayüzü (Onboarding 1–9, Kişisel Rapor, Paywall, Ana Ekran, Analiz, Sesler ve Ayarlar), STIKO & İsviçre BAG aşı takvimleri, 10 BabySteps™ sıçraması, Mışıl Dadı™, Akustik Ağlama Rehberi ve yerel bakım bildirimleri TR/EN/DE 3 dilde tam pariteyle güncellendi.'
     ], itemsEn: [
@@ -6494,32 +6645,48 @@
 
     const isStoppingSameTrack = (currentTrackId === trackId);
     let startingFreePreview = false;
+    let activePreviewBudgetMs = 0;
     if (isStoppingSameTrack) {
       clearFreeSoundPreviewTimer();
     } else if (!isSubscriptionCurrentlyActive()) {
-      if (hasUsedFreeSoundPreview()) {
+      // Başka bir önizleme parçası çalıyorsa önce onun harcadığı süreyi kümülatif sayaca işle
+      if (freeSoundPreviewTrackId) {
+        clearFreeSoundPreviewTimer();
+      }
+      activePreviewBudgetMs = getRemainingFreeSoundPreviewMs();
+      if (hasUsedFreeSoundPreview() || activePreviewBudgetMs < 1000) {
+        sealFreeSoundPreviewUsed();
         openVipRenewalModal('vip_sound');
         return;
       }
       startingFreePreview = true;
-      try { localStorage.setItem('mishil_free_sound_used', '1'); } catch (_fsp) {}
       window.__lastPreviewedSoundName__ = getSoundTitle(track);
-      clearFreeSoundPreviewTimer();
       const previewOwnedTrackId = trackId;
       freeSoundPreviewTrackId = previewOwnedTrackId;
+      freeSoundPreviewStartedAtMs = Date.now();
+      const jsFallbackDelayMs = isNativeAudio() ? (activePreviewBudgetMs + 600) : activePreviewBudgetMs;
       freeSoundPreviewTimeout = setTimeout(() => {
         freeSoundPreviewTimeout = null;
         freeSoundPreviewTrackId = null;
+        freeSoundPreviewStartedAtMs = 0;
         if (!isSubscriptionCurrentlyActive() && currentTrackId === previewOwnedTrackId) {
+          sealFreeSoundPreviewUsed();
           stopActiveAudioTrack();
           openVipRenewalModal('sound_preview_ended');
         }
-      }, 60000);
-      showToast(trEnDe(
-        '🎧 60 sn ücretsiz ses önizlemesi başladı',
-        '🎧 60s free sound preview started',
-        '🎧 60-Sek.-Gratis-Hörprobe gestartet'
-      ));
+      }, jsFallbackDelayMs);
+      const remSec = Math.max(1, Math.min(60, Math.ceil(activePreviewBudgetMs / 1000)));
+      showToast(remSec >= 59
+        ? trEnDe(
+            '🎧 60 sn ücretsiz ses önizlemesi başladı',
+            '🎧 60s free sound preview started',
+            '🎧 60-Sek.-Gratis-Hörprobe gestartet'
+          )
+        : trEnDe(
+            `🎧 Ücretsiz ses önizlemesi devam ediyor (${remSec} sn kaldı)`,
+            `🎧 Free sound preview resumed (${remSec}s left)`,
+            `🎧 Gratis-Hörprobe läuft weiter (${remSec} Sek. übrig)`
+          ));
     }
 
     // Native mod: ses çalma arka planda/kilitli ekranda çalışsın diye native tarafta
@@ -6539,7 +6706,14 @@
         nativeAudioSend({ type: 'AUDIO_PLAY', id: trackId, url: absSoundUrl(track.file) });
         currentTrackId = trackId;
         if (activeTimerMinutes > 0 && timerEndTimeMs > Date.now()) {
-          scheduleTimerWithRemainingMs(Math.max(1000, timerEndTimeMs - Date.now()), false);
+          // Tek birleşik zamanlayıcı: VIP değilse free preview tavanını asla aşamaz
+          scheduleTimerWithRemainingMs(Math.max(1000, timerEndTimeMs - Date.now()), true);
+        } else if (startingFreePreview && activePreviewBudgetMs > 0) {
+          nativeAudioSend({
+            type: 'AUDIO_TIMER',
+            minutes: Number((activePreviewBudgetMs / 60000).toFixed(3)),
+            fadeOut: false
+          });
         }
         if (typeof onAudioPlaybackStarted === 'function') onAudioPlaybackStarted();
         if (typeof armSoundDelightReviewTimer === 'function') armSoundDelightReviewTimer(trackId);
@@ -6653,15 +6827,27 @@
   function scheduleTimerWithRemainingMs(remainingMs, updateNativeTimer = true) {
     clearTimerFadeSchedules(true);
     const gen = timerGeneration;
-    const fadeDurationMs = Math.min(30000, Math.floor(remainingMs * 0.5));
-    const fadeStartDelayMs = Math.max(0, remainingMs - fadeDurationMs);
-    const remainingMinutesDecimal = Number((remainingMs / 60000).toFixed(3));
+    const isCappedByFreePreview = !isSubscriptionCurrentlyActive() && !!freeSoundPreviewTrackId;
+    const freeCapMs = isCappedByFreePreview ? Math.max(0, getRemainingFreeSoundPreviewMs()) : Infinity;
+    if (isCappedByFreePreview && freeCapMs <= 0) {
+      sealFreeSoundPreviewUsed();
+      stopActiveAudioTrack();
+      openVipRenewalModal('sound_preview_ended');
+      return;
+    }
+    const effectiveMs = isCappedByFreePreview
+      ? Math.max(1, Math.min(Math.max(1, remainingMs), freeCapMs))
+      : Math.max(1000, remainingMs);
+    const useFade = timerFadeOutEnabled && !isCappedByFreePreview;
+    const fadeDurationMs = Math.min(30000, Math.floor(effectiveMs * 0.5));
+    const fadeStartDelayMs = Math.max(0, effectiveMs - fadeDurationMs);
+    const remainingMinutesDecimal = Math.max(0.0001, Number((effectiveMs / 60000).toFixed(6)));
 
     if (isNativeAudio()) {
       if (updateNativeTimer) {
-        nativeAudioSend({ type: 'AUDIO_TIMER', minutes: remainingMinutesDecimal, fadeOut: timerFadeOutEnabled });
+        nativeAudioSend({ type: 'AUDIO_TIMER', minutes: remainingMinutesDecimal, fadeOut: useFade });
       }
-      if (timerFadeOutEnabled) {
+      if (useFade) {
         timerFadeStartTimeout = setTimeout(() => {
           if (gen !== timerGeneration || !currentTrackId) return;
           isTimerVolumeFading = true;
@@ -6693,7 +6879,7 @@
       return;
     }
 
-    if (timerFadeOutEnabled) {
+    if (useFade) {
       timerFadeStartTimeout = setTimeout(() => {
         if (gen !== timerGeneration) return;
         if (currentTrackId && audioMap[currentTrackId]) {
@@ -6723,7 +6909,7 @@
         } else {
           resetActiveTimerUI(false);
         }
-      }, remainingMs);
+      }, effectiveMs);
     }
   }
 
@@ -6763,7 +6949,18 @@
     if (activeTimerMinutes === 0) {
       timerEndTimeMs = 0;
       if (isNativeAudio()) {
-        nativeAudioSend({ type: 'AUDIO_TIMER', minutes: 0, fadeOut: timerFadeOutEnabled });
+        if (!isSubscriptionCurrentlyActive() && freeSoundPreviewTrackId) {
+          const remPreviewMs = Math.max(0, getRemainingFreeSoundPreviewMs());
+          if (remPreviewMs <= 0) {
+            sealFreeSoundPreviewUsed();
+            stopActiveAudioTrack();
+            openVipRenewalModal('sound_preview_ended');
+            return;
+          }
+          nativeAudioSend({ type: 'AUDIO_TIMER', minutes: Math.max(0.0001, Number((remPreviewMs / 60000).toFixed(6))), fadeOut: false });
+        } else {
+          nativeAudioSend({ type: 'AUDIO_TIMER', minutes: 0, fadeOut: timerFadeOutEnabled });
+        }
       }
       return;
     }
@@ -7636,6 +7833,35 @@
   }
   if (typeof window !== 'undefined') window.resolveLocalizedRoutineCopy = resolveLocalizedRoutineCopy;
 
+  function isSameLocalCalendarDay(a, b) {
+    if (!(a instanceof Date) || !(b instanceof Date) || isNaN(a.getTime()) || isNaN(b.getTime())) return false;
+    return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  }
+
+  function formatPlanDayTimeLabel(dt, now, lang) {
+    if (!(dt instanceof Date) || isNaN(dt.getTime())) return '--:--';
+    const hhmm = `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
+    if (isSameLocalCalendarDay(dt, now)) return hhmm;
+    const yest = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    if (isSameLocalCalendarDay(dt, yest)) {
+      const yPrefix = lang === 'de' ? 'Gestern ' : (lang === 'en' ? 'Yesterday ' : 'Dün ');
+      return yPrefix + hhmm;
+    }
+    return `${String(dt.getDate()).padStart(2, '0')}.${String(dt.getMonth() + 1).padStart(2, '0')} ${hhmm}`;
+  }
+
+  function formatPlanDurationLabel(mins, lang) {
+    const m = Math.max(1, Math.round(Number(mins) || 0));
+    if (m < 120) {
+      return lang === 'de' ? `${m} Min.` : (lang === 'en' ? `${m} min` : `${m} dk`);
+    }
+    const h = Math.floor(m / 60);
+    const rem = m % 60;
+    if (lang === 'de') return rem > 0 ? `${h} Std. ${rem} Min.` : `${h} Std.`;
+    if (lang === 'en') return rem > 0 ? `${h}h ${rem}m` : `${h}h`;
+    return rem > 0 ? `${h} sa ${rem} dk` : `${h} sa`;
+  }
+
   function computePersonalReportInsights(params) {
     const p = params || {};
     const lang = p.lang ? _planNormLang(p.lang) : _planActiveLang();
@@ -7663,13 +7889,14 @@
     const routines = Array.isArray(p.routines) ? p.routines : [];
     let sleepInsight = '';
     let sweetSpotTimeStr = '--:--';
+    let displayTimeStr = '--:--';
     let nextSpotDate = null;
     let isLiveSleepingNow = false;
     let isOverdueNow = false;
     let hasLoggedWake = false;
     let wakeSourceLine = '';
 
-    if (p.liveSleepStartIso) {
+    if (!p.sleepStepSkipped && p.liveSleepStartIso) {
       const ls = new Date(p.liveSleepStartIso);
       if (!isNaN(ls.getTime()) && ls.getTime() <= now.getTime() + 60000) {
         isLiveSleepingNow = true;
@@ -7678,6 +7905,7 @@
         const sh = String(ls.getHours()).padStart(2, '0');
         const sm = String(ls.getMinutes()).padStart(2, '0');
         sweetSpotTimeStr = pick('Uyuyor 💤', 'Sleeping 💤', 'Schläft 💤');
+        displayTimeStr = sweetSpotTimeStr;
         wakeSourceLine = pick(
           `${sh}:${sm}'den beri uyuyor (${elapsedMins} dk) • Uyanınca <strong id="report-wake-window-min">${wakeWindowMin} dk</strong> penceresi başlar`,
           `Asleep since ${sh}:${sm} (${elapsedMins} min) • <strong id="report-wake-window-min">${wakeWindowMin} min</strong> window starts on wake`,
@@ -7692,43 +7920,58 @@
     }
 
     if (!isLiveSleepingNow) {
-      const sleepLogs = routines
-        .filter(r => r && r.type === 'sleep' && (r.endTs || r.timestamp))
-        .sort((a, b) => (b.endTs || b.timestamp || 0) - (a.endTs || a.timestamp || 0));
-      const wakeTs = sleepLogs.length > 0 ? (sleepLogs[0].endTs || sleepLogs[0].timestamp) : (Number(p.lastWakeTs) || 0);
-      if (wakeTs > 0 && (now.getTime() - wakeTs) < 1440 * 60000) {
+      const sleepLogs = p.sleepStepSkipped
+        ? []
+        : routines
+            .filter(r => r && r.type === 'sleep' && (r.endTs || r.timestamp))
+            .sort((a, b) => (b.endTs || b.timestamp || 0) - (a.endTs || a.timestamp || 0));
+      const wakeTs = p.sleepStepSkipped
+        ? 0
+        : (sleepLogs.length > 0 ? (sleepLogs[0].endTs || sleepLogs[0].timestamp) : (Number(p.lastWakeTs) || 0));
+      if (wakeTs > 0 && (now.getTime() - wakeTs) >= 0 && (now.getTime() - wakeTs) < 1440 * 60000) {
         hasLoggedWake = true;
         nextSpotDate = new Date(wakeTs + wakeWindowMin * 60000);
         const th = String(nextSpotDate.getHours()).padStart(2, '0');
         const tm = String(nextSpotDate.getMinutes()).padStart(2, '0');
         sweetSpotTimeStr = `${th}:${tm}`;
         const wakeDt = new Date(wakeTs);
-        const wh = String(wakeDt.getHours()).padStart(2, '0');
-        const wm = String(wakeDt.getMinutes()).padStart(2, '0');
-        wakeSourceLine = pick(
-          `Son uyanış ${wh}:${wm} + <strong id="report-wake-window-min">${wakeWindowMin} dk</strong> biyolojik pencere`,
-          `Last wake ${wh}:${wm} + <strong id="report-wake-window-min">${wakeWindowMin} min</strong> biological window`,
-          `Aufgewacht ${wh}:${wm} Uhr + <strong id="report-wake-window-min">${wakeWindowMin} Min.</strong> Wachfenster`
-        );
+        const wakeDayTime = formatPlanDayTimeLabel(wakeDt, now, lang);
+        const spotDayTime = formatPlanDayTimeLabel(nextSpotDate, now, lang);
+        const deUhr = (lbl) => (lbl && lbl.includes(':') ? `${lbl} Uhr` : lbl);
         if (now.getTime() > nextSpotDate.getTime()) {
           isOverdueNow = true;
+          const nowHhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+          displayTimeStr = nowHhmm;
           const overMins = Math.max(1, Math.round((now.getTime() - nextSpotDate.getTime()) / 60000));
+          const overDurStr = formatPlanDurationLabel(overMins, lang);
+          wakeSourceLine = pick(
+            `Son uyanış ${wakeDayTime} + <strong id="report-wake-window-min">${wakeWindowMin} dk</strong> • Hedef (${spotDayTime}) geçti`,
+            `Last wake ${wakeDayTime} + <strong id="report-wake-window-min">${wakeWindowMin} min</strong> • Target (${spotDayTime}) passed`,
+            `Aufgewacht ${deUhr(wakeDayTime)} + <strong id="report-wake-window-min">${wakeWindowMin} Min.</strong> • Ziel (${deUhr(spotDayTime)}) vorbei`
+          );
           sleepInsight = pick(
-            `🌙 <strong>Aşırı Yorgunluk Uyarısı:</strong> Son uyanış ${wh}:${wm} • Uyanıklık penceresi (${wakeWindowMin} dk) <strong>${overMins} dk aşıldı</strong> — hemen sakin uyku rutinine geçin.`,
-            `🌙 <strong>Overtired Alert:</strong> Woke at ${wh}:${wm} • Wake window (${wakeWindowMin}m) exceeded by <strong>${overMins} min</strong> — start soothing bedtime routine now.`,
-            `🌙 <strong>Übermüdungs-Hinweis:</strong> Wach seit ${wh}:${wm} Uhr • Wachfenster (${wakeWindowMin} Min.) um <strong>${overMins} Min. überschritten</strong> — bitte jetzt Einschlafritual starten.`
+            `🌙 <strong>Aşırı Yorgunluk Uyarısı:</strong> Son uyanış ${wakeDayTime} • Uyanıklık penceresi (${wakeWindowMin} dk) <strong>${overDurStr} aşıldı</strong> — hemen sakin uyku rutinine geçin.`,
+            `🌙 <strong>Overtired Alert:</strong> Woke ${wakeDayTime} • Wake window (${wakeWindowMin}m) exceeded by <strong>${overDurStr}</strong> — start soothing bedtime routine now.`,
+            `🌙 <strong>Übermüdungs-Hinweis:</strong> Wach seit ${deUhr(wakeDayTime)} • Wachfenster (${wakeWindowMin} Min.) um <strong>${overDurStr} überschritten</strong> — bitte jetzt Einschlafritual starten.`
           );
         } else {
+          displayTimeStr = sweetSpotTimeStr;
           const remMins = Math.max(1, Math.round((nextSpotDate.getTime() - now.getTime()) / 60000));
+          wakeSourceLine = pick(
+            `Son uyanış ${wakeDayTime} + <strong id="report-wake-window-min">${wakeWindowMin} dk</strong> biyolojik pencere`,
+            `Last wake ${wakeDayTime} + <strong id="report-wake-window-min">${wakeWindowMin} min</strong> biological window`,
+            `Aufgewacht ${deUhr(wakeDayTime)} + <strong id="report-wake-window-min">${wakeWindowMin} Min.</strong> Wachfenster`
+          );
           sleepInsight = pick(
-            `🌙 <strong>Sıradaki MışılSpot™ (${sweetSpotTimeStr}):</strong> Son uyanış ${wh}:${wm} • İdeal uyku penceresine <strong>${remMins} dk</strong> kaldı.`,
-            `🌙 <strong>Next MışılSpot™ (${sweetSpotTimeStr}):</strong> Woke at ${wh}:${wm} • Ideal sleep window opens in <strong>${remMins} min</strong>.`,
-            `🌙 <strong>Nächster MışılSpot™ (${sweetSpotTimeStr} Uhr):</strong> Aufgewacht um ${wh}:${wm} Uhr • Ideales Schlaffenster in <strong>${remMins} Min.</strong>`
+            `🌙 <strong>Sıradaki MışılSpot™ (${sweetSpotTimeStr}):</strong> Son uyanış ${wakeDayTime} • İdeal uyku penceresine <strong>${remMins} dk</strong> kaldı.`,
+            `🌙 <strong>Next MışılSpot™ (${sweetSpotTimeStr}):</strong> Woke at ${wakeDayTime} • Ideal sleep window opens in <strong>${remMins} min</strong>.`,
+            `🌙 <strong>Nächster MışılSpot™ (${sweetSpotTimeStr} Uhr):</strong> Aufgewacht ${deUhr(wakeDayTime)} • Ideales Schlaffenster in <strong>${remMins} Min.</strong>`
           );
         }
       } else {
         nextSpotDate = new Date(now.getTime() + wakeWindowMin * 60000);
         sweetSpotTimeStr = `${String(nextSpotDate.getHours()).padStart(2, '0')}:${String(nextSpotDate.getMinutes()).padStart(2, '0')}`;
+        displayTimeStr = sweetSpotTimeStr;
         wakeSourceLine = pick(
           `Yaşa özel <strong id="report-wake-window-min">${wakeWindowMin} dk</strong> ilk tahmin • İlk uyanışla netleşir`,
           `Age-based <strong id="report-wake-window-min">${wakeWindowMin} min</strong> initial estimate • Calibrates on first wake`,
@@ -7744,7 +7987,7 @@
 
     const isEstimatedWake = !isLiveSleepingNow && !hasLoggedWake;
     const estNapDurMin = months < 6 ? 45 : 60;
-    const secondSpotBaseMs = nextSpotDate ? nextSpotDate.getTime() : (now.getTime() + wakeWindowMin * 60000);
+    const secondSpotBaseMs = nextSpotDate ? Math.max(now.getTime(), nextSpotDate.getTime()) : (now.getTime() + wakeWindowMin * 60000);
     const secondSpotDate = new Date(secondSpotBaseMs + (estNapDurMin + wakeWindowMin) * 60000);
     const nextNapLockedMask = `${String(secondSpotDate.getHours()).padStart(2, '0')}:••`;
     const idealBedtimeMask = months < 4 ? '20:••' : '19:••';
@@ -7757,18 +8000,19 @@
     let feedChip = '';
     if (feedLogs.length > 0) {
       const lf = feedLogs[0];
-      const targetRefMs = nextSpotDate ? nextSpotDate.getTime() : now.getTime();
+      const targetRefMs = nextSpotDate ? Math.max(now.getTime(), nextSpotDate.getTime()) : now.getTime();
       const minsAtSleep = Math.max(0, Math.round((targetRefMs - lf.timestamp) / 60000));
       const fTime = safePlanHtmlText(lf.time || '—');
       const localizedFeed = resolveLocalizedRoutineCopy(lf, lang);
       const fDetail = safePlanHtmlText(localizedFeed.detail || '');
+      const sleepRefLabel = displayTimeStr || sweetSpotTimeStr;
       if (!isLiveSleepingNow && minsAtSleep >= 150) {
         isHungerOverlap = true;
         feedChip = pick('🍼 Uyku Öncesi Besle', '🍼 Feed Before Nap', '🍼 Vor Schlaf stillen');
         feedingInsight = pick(
-          `🍼 <strong>Açlık × Uyku Analizi:</strong> Son beslenme ${fTime} — uykunun açlıkla bölünmemesi için ${sweetSpotTimeStr} uykusundan ~20 dk önce besleme önerilir.`,
-          `🍼 <strong>Hunger × Sleep Check:</strong> Last fed at ${fTime} — feed ~20 min before ${sweetSpotTimeStr} so hunger doesn't cut the nap short.`,
-          `🍼 <strong>Hunger × Schlaf-Check:</strong> Letzte Mahlzeit um ${fTime} Uhr — ca. 20 Min. vor ${sweetSpotTimeStr} Uhr nochmals anlegen/füttern, damit Hunger den Schlaf nicht verkürzt.`
+          `🍼 <strong>Açlık × Uyku Analizi:</strong> Son beslenme ${fTime} — uykunun açlıkla bölünmemesi için ${sleepRefLabel} uykusundan ~20 dk önce besleme önerilir.`,
+          `🍼 <strong>Hunger × Sleep Check:</strong> Last fed at ${fTime} — feed ~20 min before ${sleepRefLabel} so hunger doesn't cut the nap short.`,
+          `🍼 <strong>Hunger × Schlaf-Check:</strong> Letzte Mahlzeit um ${fTime} Uhr — ca. 20 Min. vor ${sleepRefLabel} Uhr nochmals anlegen/füttern, damit Hunger den Schlaf nicht verkürzt.`
         );
       } else {
         feedChip = pick('🍼 Beslenme Uyumu ✓', '🍼 Feeding Aligned ✓', '🍼 Trink-Harmonie ✓');
@@ -7899,6 +8143,7 @@
     return {
       wakeWindowMin,
       sweetSpotTimeStr,
+      displayTimeStr,
       isLiveSleepingNow,
       isOverdueNow,
       hasLoggedWake,
@@ -8668,7 +8913,15 @@
     if (typeof renderVaccineSchedule === 'function') renderVaccineSchedule();
     if (typeof renderHomeVaccineSummary === 'function') renderHomeVaccineSummary();
 
-    generateSleepReport();
+    whenNativeQuotasHydrated(() => {
+      if (!isSubscriptionCurrentlyActive() && isRepeatDeviceOnboarding()) {
+        localStorage.setItem('mishil_first_spot_aha_used', '1');
+        syncDeviceQuotasToNative();
+        openOnboardingPaywallStep();
+        return;
+      }
+      generateSleepReport();
+    });
   }
   window.saveOnboardingVaccinesAndGenerateReport = saveOnboardingVaccinesAndGenerateReport;
 
@@ -8685,6 +8938,8 @@
       populateBirthComboboxes(bd || '');
       populatePrematureCombobox();
 
+      const nowMs = Date.now();
+      const FRESH_PREFILL_MAX_MS = 12 * 3600000;
       const routines = readSafeActiveRoutines();
       const existingSleep = routines.find(r => r && r.type === 'sleep' && (r.endTs || r.timestamp));
       const existingFeed = routines.find(r => r && r.type === 'feeding' && r.timestamp);
@@ -8692,20 +8947,23 @@
       const savedLiveSleep = localStorage.getItem('mishil_live_sleep_start');
       const savedLiveTs = savedLiveSleep ? new Date(savedLiveSleep).getTime() : 0;
 
-      if (savedLiveTs > 0 && !isNaN(savedLiveTs) && (Date.now() - savedLiveTs) < 16 * 3600000) {
+      if (savedLiveTs > 0 && !isNaN(savedLiveTs) && (nowMs - savedLiveTs) >= 0 && (nowMs - savedLiveTs) < 16 * 3600000) {
         selectOnboardingSleepState('sleeping');
         populateRoutineTimeCombobox('sleep', 30, savedLiveTs);
       } else {
         selectOnboardingSleepState('awake');
-        const wakeRefTs = existingSleep ? (existingSleep.endTs || existingSleep.timestamp) : (Number(localStorage.getItem('mishil_onboarding_last_wake_ts')) || 0);
+        const rawWakeTs = existingSleep ? (existingSleep.endTs || existingSleep.timestamp) : (Number(localStorage.getItem('mishil_onboarding_last_wake_ts')) || 0);
+        const wakeRefTs = (rawWakeTs > 0 && (nowMs - rawWakeTs) >= 0 && (nowMs - rawWakeTs) < FRESH_PREFILL_MAX_MS) ? rawWakeTs : 0;
         populateRoutineTimeCombobox('sleep', 45, wakeRefTs);
       }
 
-      if (existingFeed && existingFeed.method) selectOnboardingFeedMethod(existingFeed.method);
-      populateRoutineTimeCombobox('feed', 75, existingFeed ? existingFeed.timestamp : 0);
+      const feedRefTs = (existingFeed && existingFeed.timestamp && (nowMs - existingFeed.timestamp) >= 0 && (nowMs - existingFeed.timestamp) < FRESH_PREFILL_MAX_MS) ? existingFeed.timestamp : 0;
+      if (feedRefTs > 0 && existingFeed.method) selectOnboardingFeedMethod(existingFeed.method);
+      populateRoutineTimeCombobox('feed', 75, feedRefTs);
 
-      if (existingDiaper && existingDiaper.kind) selectOnboardingDiaperKind(existingDiaper.kind);
-      populateRoutineTimeCombobox('diaper', 90, existingDiaper ? existingDiaper.timestamp : 0);
+      const diaperRefTs = (existingDiaper && existingDiaper.timestamp && (nowMs - existingDiaper.timestamp) >= 0 && (nowMs - existingDiaper.timestamp) < FRESH_PREFILL_MAX_MS) ? existingDiaper.timestamp : 0;
+      if (diaperRefTs > 0 && existingDiaper.kind) selectOnboardingDiaperKind(existingDiaper.kind);
+      populateRoutineTimeCombobox('diaper', 90, diaperRefTs);
 
       const postBabyInput = document.getElementById('post-paywall-baby-name');
       const postParentInput = document.getElementById('post-paywall-parent-name');
@@ -8822,6 +9080,8 @@
     localStorage.setItem('mishil_user_role', pRole);
     localStorage.setItem('mishil_user_name', pName);
     localStorage.setItem('mishil_onboarding_completed', 'true');
+    localStorage.setItem('mishil_device_onboarded_once', '1');
+    syncDeviceQuotasToNative();
 
     if (window.ReactNativeWebView) {
       try {
@@ -8939,7 +9199,10 @@
 
   function prevQuizStep(targetStep) {
     hapticPulse();
-    const prev = typeof targetStep === 'number' ? targetStep : Math.max(1, currentQuizStep - 1);
+    let prev = typeof targetStep === 'number' ? targetStep : Math.max(1, currentQuizStep - 1);
+    if (prev === 8 && !isSubscriptionCurrentlyActive() && isRepeatDeviceOnboarding()) {
+      prev = 7;
+    }
     if (prev === 8 && typeof generateSleepReport === 'function') {
       generateSleepReport({ preservePlan: true, silentHaptic: true });
       return;
@@ -8958,21 +9221,34 @@
 
   function restartOnboardingQuiz() {
     hapticPulse();
-    const baby = getBaby();
-    if (baby && baby.name && !isPlaceholderBabyName(baby.name)) {
-      quizAnswers.babyName = baby.name;
-      localStorage.setItem('mishil_post_paywall_named', '1');
-    }
-    onboardingLeapsSelectionMap = {};
-    onboardingVaccineSelectionMap = {};
-    onboardingVaccineHasTouched = false;
-    initOnboardingInputs();
-    document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
-    const step1El = document.getElementById('quiz-step-1');
-    if (step1El) step1El.style.display = 'block';
-    syncOnboardingHeaderUI(1);
-    document.getElementById('screen-onboarding').classList.add('active');
-    if (typeof applyStaticDomTranslations === 'function') applyStaticDomTranslations(getAppLang());
+    whenNativeQuotasHydrated(() => {
+      if (
+        !isSubscriptionCurrentlyActive() &&
+        (localStorage.getItem('mishil_onboarding_completed') === 'true' || (typeof hasBaby === 'function' && hasBaby() && hasDeviceCompletedOnboardingOnce()))
+      ) {
+        openVipRenewalModal('restart_quiz');
+        return;
+      }
+      cleanupSpotlightTracking();
+      document.body.classList.remove('spotlight-tour-open');
+      const spotOv = document.getElementById('spotlight-tour-overlay');
+      if (spotOv) spotOv.classList.remove('active');
+      const baby = getBaby();
+      if (baby && baby.name && !isPlaceholderBabyName(baby.name)) {
+        quizAnswers.babyName = baby.name;
+        localStorage.setItem('mishil_post_paywall_named', '1');
+      }
+      onboardingLeapsSelectionMap = {};
+      onboardingVaccineSelectionMap = {};
+      onboardingVaccineHasTouched = false;
+      initOnboardingInputs();
+      document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
+      const step1El = document.getElementById('quiz-step-1');
+      if (step1El) step1El.style.display = 'block';
+      syncOnboardingHeaderUI(1);
+      document.getElementById('screen-onboarding').classList.add('active');
+      if (typeof applyStaticDomTranslations === 'function') applyStaticDomTranslations(getAppLang());
+    });
   }
 
   function selectQuizOption(element, stepNum, value) {
@@ -9413,7 +9689,15 @@
       selectOnboardingPlan(selPlan === 'yearly' ? 'yearly' : 'monthly', targetCard);
     }
     const skipWrap = document.getElementById('onboarding-skip-wrap');
-    if (skipWrap) skipWrap.style.opacity = '1';
+    if (skipWrap) {
+      skipWrap.style.opacity = '1';
+      const skipBtn = skipWrap.querySelector('button');
+      if (skipBtn) {
+        skipBtn.textContent = hasUsedFirstFreeSpotAha()
+          ? trEnDe('Şimdilik sınırlı modda devam et', 'Continue in limited mode for now', 'Vorerst im Basismodus fortfahren')
+          : trEnDe('Şimdilik yalnızca ilk uyku saatimle devam et', 'Continue with my first sleep window only', 'Vorerst nur mit meinem 1. Schlaffenster fortfahren');
+      }
+    }
     try {
       if (typeof window.sendMishilAnalyticsSignal === 'function') {
         window.sendMishilAnalyticsSignal('paywall_viewed');
@@ -9602,6 +9886,7 @@
       insights = computePersonalReportInsights({
         bdate: bdate || '',
         prematureWeeks: premWks,
+        sleepStepSkipped: !!quizAnswers.sleepStepSkipped,
         liveSleepStartIso: localStorage.getItem('mishil_live_sleep_start'),
         lastWakeTs: localStorage.getItem('mishil_onboarding_last_wake_ts'),
         routines: readSafeActiveRoutines(),
@@ -9670,7 +9955,7 @@
       const insVacEl = document.getElementById('report-insight-vaccines');
 
       if (insights) {
-        if (spotTimeEl) spotTimeEl.textContent = insights.sweetSpotTimeStr;
+        if (spotTimeEl) spotTimeEl.textContent = insights.displayTimeStr || insights.sweetSpotTimeStr;
         if (spotKickerEl) {
           spotKickerEl.textContent = insights.isLiveSleepingNow
             ? trEnDe('💤 Canlı Uyku Takibi Hazır', '💤 Live Sleep Tracker Armed', '💤 Live-Schlaftracker aktiv')
@@ -9683,7 +9968,7 @@
             spotPillEl.textContent = trEnDe('● Aktif', '● Active', '● Aktiv');
             spotPillEl.style.color = '#A569BD';
           } else if (insights.isOverdueNow) {
-            spotPillEl.textContent = trEnDe('⚠️ Vakti Geldi', '⚠️ Due Now', '⚠️ Jetzt fällig');
+            spotPillEl.textContent = trEnDe('⚠️ Şimdi Uyutun', '⚠️ Sleep Now', '⚠️ Jetzt hinlegen');
             spotPillEl.style.color = '#FF6B81';
           } else if (insights.isEstimatedWake) {
             spotPillEl.textContent = trEnDe('≈ Tahmini', '≈ Estimate', '≈ Schätzung');
@@ -9760,7 +10045,7 @@
         if (insVacEl) insVacEl.innerHTML = insights.vaccineInsight;
       } else {
         const calcSpot = typeof calculateMışılSpot === 'function' ? calculateMışılSpot(bdate || '2026-06-01') : null;
-        if (calcSpot && spotTimeEl) spotTimeEl.textContent = calcSpot.sweetSpotTime;
+        if (calcSpot && spotTimeEl) spotTimeEl.textContent = calcSpot.displayTime || calcSpot.sweetSpotTime;
         if (calcSpot && spotNoteEl) {
           spotNoteEl.innerHTML = trEnDe(
             `Yaşa özel biyolojik uyanıklık penceresi: <strong id="report-wake-window-min">${calcSpot.wakeWindowMin} dk</strong>`,
@@ -9859,7 +10144,7 @@
 
     // Web / Test / Önizleme modu simülasyonu:
     setTimeout(() => {
-      if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer();
+      if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer({ skipAccrue: true, clearNativePreviewTimer: true });
       resetPurchaseButtons();
       localStorage.setItem('mishil_subscription_active', 'true');
       localStorage.removeItem('mishil_limited_explore_mode');
@@ -9980,6 +10265,7 @@
       }
     } catch (_pse) {}
     clearStoreWatchdog();
+    const wasRepeatOnb = isRepeatDeviceOnboarding();
     // Sınırlı mod bayraklarını kesin olarak sıfırla ve vitrin modunu aktif et
     localStorage.setItem('mishil_subscription_active', 'false');
     localStorage.removeItem('mishil_trial_start');
@@ -9990,9 +10276,23 @@
     // Profil bilgilerini güvenle kalıcı hafızaya aktar
     commitOnboardingProfile();
     localStorage.setItem('mishil_onboarding_completed', 'true');
-    if (localStorage.getItem('mishil_live_sleep_start')) {
+    localStorage.setItem('mishil_device_onboarded_once', '1');
+
+    if (wasRepeatOnb && !isSubscriptionCurrentlyActive()) {
+      localStorage.setItem('mishil_first_spot_aha_used', '1');
+      localStorage.removeItem('mishil_live_sleep_start');
+      localStorage.removeItem('mishil_onb_live_sleep_promoted');
+      localStorage.removeItem('mishil_onboarding_last_wake_ts');
+      try {
+        const cleanedRoutines = readSafeActiveRoutines().filter(
+          r => r && r.id !== 'onb_slp_init' && r.id !== 'onb_feed_init' && r.id !== 'onb_diaper_init'
+        );
+        writeSafeActiveRoutines(cleanedRoutines);
+      } catch (_cre) {}
+    } else if (localStorage.getItem('mishil_live_sleep_start')) {
       localStorage.setItem('mishil_onb_live_sleep_promoted', '1');
     }
+    syncDeviceQuotasToNative();
 
     // Native AsyncStorage ve köprü senkronu (Codex konsensüs kuralı)
     if (window.ReactNativeWebView) {
@@ -10023,11 +10323,19 @@
     if (typeof checkAndRestoreLiveSleep === 'function') checkAndRestoreLiveSleep();
     updateSubscriptionStatusUI();
     renderAllViews();
-    showToast(trEnDe(
-      '🌙 İlk MışılSpot™ uyku saatiniz hazır! Günün devamı için dilediğiniz an 7 gün ücretsiz VIP başlatabilirsiniz.',
-      '🌙 Your first MışılSpot™ window is ready! Start your 7-day free VIP trial anytime for the full day plan.',
-      '🌙 Ihr erstes MışılSpot™-Fenster ist bereit! Starten Sie jederzeit Ihren 7-tägigen Gratis-VIP-Test.'
-    ));
+    showToast(
+      hasUsedFirstFreeSpotAha()
+        ? trEnDe(
+            '🌙 Sınırlı mod aktif! Tüm günlük MışılSpot™ saatleri ve ninniler için 7 gün ücretsiz VIP başlatabilirsiniz.',
+            '🌙 Limited mode active! Start your 7-day free VIP trial anytime for all daily sleep windows and sounds.',
+            '🌙 Basismodus aktiv! Starten Sie jederzeit Ihren 7-tägigen Gratis-VIP-Test für alle Schlafzeiten & Klänge.'
+          )
+        : trEnDe(
+            '🌙 İlk MışılSpot™ uyku saatiniz hazır! Günün devamı için dilediğiniz an 7 gün ücretsiz VIP başlatabilirsiniz.',
+            '🌙 Your first MışılSpot™ window is ready! Start your 7-day free VIP trial anytime for the full day plan.',
+            '🌙 Ihr erstes MışılSpot™-Fenster ist bereit! Starten Sie jederzeit Ihren 7-tägigen Gratis-VIP-Test.'
+          )
+    );
     if (typeof maybeOpenPostPaywallProfileModal === 'function' && maybeOpenPostPaywallProfileModal()) return;
     if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
   }
@@ -10080,7 +10388,7 @@
 
     if (REVIEWER_PINS.includes(enteredPin)) {
       hapticPulse();
-      if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer();
+      if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer({ skipAccrue: true, clearNativePreviewTimer: true });
       closeReviewerModal();
 
       // Kalıcı VIP haklarını aktif et
@@ -12327,6 +12635,58 @@
     ];
   }
 
+  let spotlightTrackingRafId = null;
+  let spotlightScrollCleanup = null;
+
+  function cleanupSpotlightTracking() {
+    if (spotlightTrackingRafId) {
+      cancelAnimationFrame(spotlightTrackingRafId);
+      spotlightTrackingRafId = null;
+    }
+    if (typeof spotlightScrollCleanup === 'function') {
+      try { spotlightScrollCleanup(); } catch (_sce) {}
+      spotlightScrollCleanup = null;
+    }
+    const ov = document.getElementById('spotlight-tour-overlay');
+    if (!ov || !ov.classList.contains('active')) {
+      document.body.classList.remove('spotlight-tour-open');
+    }
+  }
+
+  function updateSpotlightGeometry(target, cutout, card) {
+    if (!target || !cutout || !card) return;
+    const rect = target.getBoundingClientRect();
+    if (!rect || (rect.width === 0 && rect.height === 0)) return;
+    const pad = 6;
+    const top = Math.max(8, Math.round(rect.top - pad));
+    const left = Math.max(8, Math.round(rect.left - pad));
+    const width = Math.min(window.innerWidth - 16, Math.round(rect.width + pad * 2));
+    const height = Math.max(44, Math.round(rect.height + pad * 2));
+
+    cutout.style.top = `${top}px`;
+    cutout.style.left = `${left}px`;
+    cutout.style.width = `${width}px`;
+    cutout.style.height = `${height}px`;
+
+    const vh = (window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : window.innerHeight;
+    const cardHeight = Math.max(150, card.offsetHeight || 190);
+    const tabBar = document.querySelector('.tab-bar');
+    const tabRect = tabBar ? tabBar.getBoundingClientRect() : null;
+    const safeBottomY = (tabRect && tabRect.top > 0 && tabRect.top < vh) ? (tabRect.top - 10) : (vh - 16);
+    const spaceBelow = safeBottomY - (top + height + 12);
+    const spaceAbove = top - 24;
+
+    if (spaceBelow >= cardHeight || spaceBelow >= spaceAbove) {
+      card.style.bottom = 'auto';
+      const desiredTop = Math.max(12, Math.min(safeBottomY - cardHeight, top + height + 12));
+      card.style.top = `${Math.round(desiredTop)}px`;
+    } else {
+      card.style.top = 'auto';
+      const desiredBottom = Math.max(16, Math.min(vh - cardHeight - 12, vh - top + 12));
+      card.style.bottom = `${Math.round(desiredBottom)}px`;
+    }
+  }
+
   function startSpotlightTour(forceManual) {
     if (typeof hapticPulse === 'function') hapticPulse();
     if (!forceManual && localStorage.getItem('mishil_spotlight_tour_done') === 'true') {
@@ -12346,7 +12706,9 @@
       const guard = document.getElementById('web-guard-overlay');
       if (guard && guard.classList.contains('active')) return;
     }
-    // Ana sekmeye ve MışılSpot segmentine geç
+    cleanupSpotlightTracking();
+    document.body.classList.add('spotlight-tour-open');
+    // Ana sekmeye ve MışılSpot segmentine geç (animasyonsuz anında yerleşim)
     if (typeof switchTab === 'function') switchTab('home');
     if (typeof switchHomeSegment === 'function') switchHomeSegment('sweetspot');
 
@@ -12354,17 +12716,19 @@
     overlay.classList.add('active');
     setTimeout(() => {
       renderSpotlightStep();
-    }, 150);
+    }, 80);
   }
   window.startSpotlightTour = startSpotlightTour;
 
   function renderSpotlightStep() {
+    cleanupSpotlightTracking();
     const steps = getSpotlightSteps();
     if (spotlightStepIndex < 0) spotlightStepIndex = 0;
     if (spotlightStepIndex >= steps.length) {
       endSpotlightTour(false);
       return;
     }
+    document.body.classList.add('spotlight-tour-open');
     const step = steps[spotlightStepIndex];
     const target = document.querySelector(step.selector);
     const cutout = document.getElementById('spotlight-cutout');
@@ -12400,33 +12764,56 @@
     }
 
     if (!target || !cutout || !card) return;
-    try {
-      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    } catch (_se) {}
 
-    setTimeout(() => {
-      const rect = target.getBoundingClientRect();
-      const pad = 6;
-      const top = Math.max(8, rect.top - pad);
-      const left = Math.max(8, rect.left - pad);
-      const width = Math.min(window.innerWidth - 16, rect.width + pad * 2);
-      const height = Math.max(44, rect.height + pad * 2);
+    const scrollContainer = document.getElementById('main-app-screen') || document.querySelector('.screen-container');
+    if (scrollContainer) {
+      const cRect = scrollContainer.getBoundingClientRect();
+      const tRect = target.getBoundingClientRect();
+      const tabBar = document.querySelector('.tab-bar');
+      const tabTop = tabBar ? tabBar.getBoundingClientRect().top : window.innerHeight;
+      const usableHeight = Math.max(240, Math.min(cRect.height, tabTop - cRect.top));
+      const estCardH = Math.max(150, card.offsetHeight || 190);
+      const targetAnchorFromTop = spotlightStepIndex === 0
+        ? 14
+        : Math.max(16, Math.min(76, Math.round((usableHeight - tRect.height - estCardH - 24) / 2)));
+      const nextScrollTop = Math.max(0, scrollContainer.scrollTop + (tRect.top - cRect.top) - targetAnchorFromTop);
+      scrollContainer.scrollTop = nextScrollTop;
+    }
 
-      cutout.style.top = `${top}px`;
-      cutout.style.left = `${left}px`;
-      cutout.style.width = `${width}px`;
-      cutout.style.height = `${height}px`;
+    updateSpotlightGeometry(target, cutout, card);
 
-      const vh = window.innerHeight;
-      const spaceBelow = vh - (top + height);
-      if (spaceBelow >= 195 || top < 190) {
-        card.style.bottom = 'auto';
-        card.style.top = `${Math.min(vh - 185, top + height + 12)}px`;
-      } else {
-        card.style.top = 'auto';
-        card.style.bottom = `${Math.max(16, vh - top + 12)}px`;
+    const onViewportSync = () => updateSpotlightGeometry(target, cutout, card);
+    if (scrollContainer) scrollContainer.addEventListener('scroll', onViewportSync, { passive: true });
+    window.addEventListener('resize', onViewportSync);
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', onViewportSync);
+      window.visualViewport.addEventListener('scroll', onViewportSync);
+    }
+    spotlightScrollCleanup = () => {
+      if (scrollContainer) scrollContainer.removeEventListener('scroll', onViewportSync);
+      window.removeEventListener('resize', onViewportSync);
+      if (window.visualViewport) {
+        window.visualViewport.removeEventListener('resize', onViewportSync);
+        window.visualViewport.removeEventListener('scroll', onViewportSync);
       }
-    }, 180);
+    };
+
+    const stabilizeUntil = (typeof performance !== 'undefined' ? performance.now() : Date.now()) + 500;
+    const tick = () => {
+      const overlay = document.getElementById('spotlight-tour-overlay');
+      if (!overlay || !overlay.classList.contains('active')) {
+        spotlightTrackingRafId = null;
+        return;
+      }
+      updateSpotlightGeometry(target, cutout, card);
+      const nowT = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      if (nowT < stabilizeUntil) {
+        spotlightTrackingRafId = requestAnimationFrame(tick);
+      } else {
+        spotlightTrackingRafId = null;
+      }
+    };
+    spotlightTrackingRafId = requestAnimationFrame(tick);
   }
 
   function nextSpotlightStep() {
@@ -12452,6 +12839,8 @@
 
   function endSpotlightTour(skipped) {
     if (typeof hapticPulse === 'function') hapticPulse();
+    cleanupSpotlightTracking();
+    document.body.classList.remove('spotlight-tour-open');
     localStorage.setItem('mishil_spotlight_tour_done', 'true');
     const overlay = document.getElementById('spotlight-tour-overlay');
     if (overlay) overlay.classList.remove('active');
@@ -12661,6 +13050,10 @@
       home_banner: {
         title: `👑 7 Tage kostenlos VIP für ${babyName} starten`,
         sub: `Schalten Sie unbegrenzte MışılSpot™-Zeiten, Wein-Ratgeber, 24/7 Mışıl Nanny & 18 Studio-Klänge für ${currSym}0 heute frei.`
+      },
+      restart_quiz: {
+        title: `🔄 Neue Schlafanalyse & aktuellen Plan für ${babyName} öffnen`,
+        sub: `Ihr 1. kostenloser Schlafbericht wurde erstellt. Starten Sie Ihre 7-tägige Gratis-Testphase (${zeroToday}), um die Schlafanalyse jederzeit neu zu berechnen.`
       }
     };
 
@@ -12703,6 +13096,10 @@
       home_banner: {
         title: `👑 Start Your 7-Day Free VIP Trial for ${babyName}`,
         sub: `Unlock unlimited MışılSpot™ windows, Cry Guide, 24/7 Mışıl Nanny, and 18 studio sounds for ${currSym}0 today.`
+      },
+      restart_quiz: {
+        title: `🔄 Refresh ${babyName}'s Sleep Assessment & Daily Plan`,
+        sub: `Your 1st free sleep report is already created. Start your 7-day free VIP trial (${zeroToday}) to retake assessments anytime as ${babyName} grows.`
       }
     } : {
       sound_preview_ended: {
@@ -12743,6 +13140,10 @@
       home_banner: {
         title: `👑 ${babyName} İçin 7 Gün Ücretsiz VIP Denemeyi Başlatın`,
         sub: `Sınırsız MışılSpot™ saatleri, Ağlama Rehberi, 7/24 Mışıl Dadı ve 18 stüdyo sesini ${zeroToday} ile açın.`
+      },
+      restart_quiz: {
+        title: `🔄 ${babyName} İçin Yeni Uyku Analizi & Güncel Planı Açın`,
+        sub: `İlk ücretsiz kişisel uyku raporunuz oluşturuldu. Bebeğiniz büyüdükçe dilediğiniz zaman analizi yenilemek ve tüm uyku saatlerini görmek için 7 gün ücretsiz VIP başlatın (${zeroToday}).`
       }
     });
 
@@ -13082,7 +13483,7 @@
           disp.style.cursor = 'pointer';
           disp.onclick = () => openVipRenewalModal('mishil_spot');
         } else {
-          disp.textContent = calc.sweetSpotTime;
+          disp.textContent = calc.displayTime || calc.sweetSpotTime;
           disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
           disp.style.cursor = 'default';
           disp.onclick = null;
@@ -13108,7 +13509,7 @@
           badge.textContent = trEnDe('🔒 Gün Boyu MışılSpot™ (VIP)', '🔒 All-Day MışılSpot™ (VIP)', '🔒 Ganztägiger MışılSpot™ (VIP)');
         } else {
           badge.textContent = calc.isOverdue
-            ? trEnDe('⚠️ Uyku Vakti Aşıldı', '⚠️ Sleep Window Overdue', '⚠️ Schlaffenster überschritten')
+            ? trEnDe('⚠️ Şimdi Uyutun (Vakti Geldi)', '⚠️ Sleep Now (Window Due)', '⚠️ Jetzt hinlegen (Fällig)')
             : (calc.isManual
                 ? trEnDe('⚡ Erken Atak Modu Aktif', '⚡ Early Leap Mode Active', '⚡ Früher-Sprung-Modus aktiv')
                 : trEnDe('MışılSpot™ Önerisi Aktif', 'MışılSpot™ Prediction Active', 'MışılSpot™ Empfehlung aktiv'));
@@ -13362,10 +13763,13 @@
           nextSleepDate = new Date(lastWakeDate.getTime() + wakeWindowMinutes * 60000);
           if (now.getTime() > nextSleepDate.getTime()) {
             isOverdue = true;
+            const spotDayLabel = typeof formatPlanDayTimeLabel === 'function'
+              ? formatPlanDayTimeLabel(nextSleepDate, now, getAppLang())
+              : `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
             statusNote = trEnDe(
-              `⚠️ Uyanıklık penceresi (${wakeWindowMinutes} dk) aşıldı! Bebeği hemen uyutun`,
-              `⚠️ Wake window (${wakeWindowMinutes} min) exceeded! Put baby to sleep now`,
-              `⚠️ Wachfenster (${wakeWindowMinutes} Min.) überschritten! Baby jetzt schlafen legen`
+              `⚠️ Hedef (${spotDayLabel}) geçti • Bebeği şimdi uyutun`,
+              `⚠️ Target (${spotDayLabel}) passed • Put baby to sleep now`,
+              `⚠️ Ziel (${spotDayLabel}) vorbei • Baby jetzt schlafen legen`
             );
           } else {
             const remMins = Math.floor((nextSleepDate.getTime() - now.getTime()) / 60000);
@@ -13383,14 +13787,17 @@
       const onbWakeRaw = localStorage.getItem('mishil_onboarding_last_wake_ts');
       const onbWakeTs = onbWakeRaw ? Number(onbWakeRaw) : 0;
       const onbElapsedMins = onbWakeTs > 0 ? Math.floor((now.getTime() - onbWakeTs) / 60000) : -1;
-      if (onbElapsedMins >= 0 && onbElapsedMins < 720) {
+      if (onbElapsedMins >= 0 && onbElapsedMins < 1440) {
         nextSleepDate = new Date(onbWakeTs + wakeWindowMinutes * 60000);
         if (now.getTime() > nextSleepDate.getTime()) {
           isOverdue = true;
+          const spotDayLabel = typeof formatPlanDayTimeLabel === 'function'
+            ? formatPlanDayTimeLabel(nextSleepDate, now, getAppLang())
+            : `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
           statusNote = trEnDe(
-            `⚠️ Uyanıklık penceresi (${wakeWindowMinutes} dk) aşıldı! Bebeği hemen uyutun`,
-            `⚠️ Wake window (${wakeWindowMinutes} min) exceeded! Put baby to sleep now`,
-            `⚠️ Wachfenster (${wakeWindowMinutes} Min.) überschritten! Baby jetzt schlafen legen`
+            `⚠️ Hedef (${spotDayLabel}) geçti • Bebeği şimdi uyutun`,
+            `⚠️ Target (${spotDayLabel}) passed • Put baby to sleep now`,
+            `⚠️ Ziel (${spotDayLabel}) vorbei • Baby jetzt schlafen legen`
           );
         } else {
           const remMins = Math.max(1, Math.floor((nextSleepDate.getTime() - now.getTime()) / 60000));
@@ -13443,6 +13850,7 @@
         `${leapData.num}. ENTWICKLUNGSSPRUNG (${getLeapTitle(leapData)})`
       ),
       sweetSpotTime: `${th}:${tm}`,
+      displayTime: isOverdue ? `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}` : `${th}:${tm}`,
       wakeWindowMin: wakeWindowMinutes,
       isOverdue: isOverdue,
       statusNote: statusNote
@@ -13847,13 +14255,14 @@
             };
           }
         } else {
-          const [th, tm] = calc.sweetSpotTime.split(':').map(Number);
+          const activeSpotStr = (calc.displayTime && /^\d{1,2}:\d{2}$/.test(calc.displayTime)) ? calc.displayTime : calc.sweetSpotTime;
+          const [th, tm] = activeSpotStr.split(':').map(Number);
           const tMin = (th || 0) * 60 + (tm || 0);
           const leftPct = Math.max(0, Math.min(95, (tMin / 1440) * 100));
-          const blockTitle = `MışılSpot™: ${calc.sweetSpotTime}`;
+          const blockTitle = `MışılSpot™: ${activeSpotStr}`;
           html += `<div title="${blockTitle}" style="position:absolute; top:1px; bottom:1px; left:${leftPct.toFixed(1)}%; width:4.2%; background:rgba(244, 162, 97, 0.45); border:1.5px dashed var(--accent); border-radius:5px;"></div>`;
           if (stripSum) {
-            stripSum.textContent = `🌙 MışılSpot™: ${calc.sweetSpotTime} ›`;
+            stripSum.textContent = `🌙 MışılSpot™: ${activeSpotStr} ›`;
             stripSum.style.cursor = '';
             stripSum.onclick = null;
           }
@@ -14553,6 +14962,7 @@
       if (!isSubscriptionCurrentlyActive()) {
         localStorage.setItem('mishil_first_spot_aha_used', '1');
         localStorage.setItem('mishil_grace_sleep_routine_id', newSleepLog.id);
+        syncDeviceQuotasToNative();
       }
       hapticSuccess();
 
@@ -14688,6 +15098,7 @@
     if (elapsed > 16 * 3600000) {
       if (!isSubscriptionCurrentlyActive() && localStorage.getItem('mishil_onb_live_sleep_promoted') === '1') {
         localStorage.setItem('mishil_first_spot_aha_used', '1');
+        syncDeviceQuotasToNative();
       }
       localStorage.removeItem('mishil_onb_live_sleep_promoted');
       localStorage.removeItem('mishil_live_sleep_start');
@@ -14995,6 +15406,7 @@
       localStorage.setItem('mishil_free_cry_used', '1');
       const nextCryCount = (parseInt(localStorage.getItem('mishil_soft_vip_cry_count') || '0', 10) || 0) + 1;
       localStorage.setItem('mishil_soft_vip_cry_count', String(nextCryCount));
+      syncDeviceQuotasToNative();
     }
     if (typeof queueCryCalmDelightReview === 'function') {
       queueCryCalmDelightReview();
@@ -15360,7 +15772,7 @@
           disp.style.cursor = 'pointer';
           disp.onclick = () => openVipRenewalModal('mishil_spot');
         } else {
-          disp.textContent = calc.sweetSpotTime;
+          disp.textContent = calc.displayTime || calc.sweetSpotTime;
           disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
           disp.style.cursor = 'default';
           disp.onclick = null;
@@ -15386,7 +15798,7 @@
           badge.textContent = trEnDe('🔒 Gün Boyu MışılSpot™ (VIP)', '🔒 All-Day MışılSpot™ (VIP)', '🔒 Ganztägiger MışılSpot™ (VIP)');
         } else {
           badge.textContent = calc.isOverdue
-            ? trEnDe('⚠️ Uyku Vakti Aşıldı', '⚠️ Sleep Window Overdue', '⚠️ Schlaffenster überschritten')
+            ? trEnDe('⚠️ Şimdi Uyutun (Vakti Geldi)', '⚠️ Sleep Now (Window Due)', '⚠️ Jetzt hinlegen (Fällig)')
             : (calc.isManual
               ? trEnDe('⚡ Erken Atak Modu Aktif', '⚡ Early Leap Mode Active', '⚡ Frühsprung-Modus aktiv')
               : trEnDe('MışılSpot™ Önerisi Aktif', 'MışılSpot™ Prediction Active', 'MışılSpot™ Prognose aktiv'));
@@ -16142,12 +16554,28 @@
   function openDeleteAccountModal() { document.getElementById('modal-delete').classList.add('active'); }
   function closeDeleteModal() { document.getElementById('modal-delete').classList.remove('active'); }
   function confirmDeleteAccount() {
+    cleanupSpotlightTracking();
+    document.body.classList.remove('spotlight-tour-open');
+    const spotOv = document.getElementById('spotlight-tour-overlay');
+    if (spotOv) spotOv.classList.remove('active');
+    clearFreeSoundPreviewTimer({ clearNativePreviewTimer: true });
+    const wasOnboardedOnce = hasDeviceCompletedOnboardingOnce();
+    const quotaPayload = {
+      onboardedOnce: wasOnboardedOnce,
+      firstSpotUsed: wasOnboardedOnce || hasUsedFirstFreeSpotAha(),
+      freeSoundUsed: hasUsedFreeSoundPreview(),
+      freeSoundElapsedMs: getFreeSoundElapsedMs(),
+      freeCryUsed: hasUsedFreeCryAnalysis(),
+      freeDadiUsed: hasUsedFreeDadiQuestion()
+    };
     const preservedDeviceQuotaKeys = [
+      'mishil_device_onboarded_once',
       'mishil_soft_vip_24h_granted',
       'mishil_soft_vip_24h_start_ms',
       'mishil_soft_vip_24h_last_ms',
       'mishil_first_spot_aha_used',
       'mishil_free_sound_used',
+      'mishil_free_sound_elapsed_ms',
       'mishil_free_cry_used',
       'mishil_free_dadi_question_used',
       'mishil_soft_vip_cry_count',
@@ -16159,7 +16587,19 @@
         const val = localStorage.getItem(k);
         if (val !== null) preserved[k] = val;
       });
+      if (wasOnboardedOnce) {
+        preserved.mishil_device_onboarded_once = '1';
+        preserved.mishil_first_spot_aha_used = '1';
+      }
     } catch (_pde) {}
+    if (window.ReactNativeWebView) {
+      try {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'CLEAR_PERSONAL_DATA',
+          payload: quotaPayload
+        }));
+      } catch (_cpe) {}
+    }
     localStorage.clear();
     try {
       Object.keys(preserved).forEach(k => localStorage.setItem(k, preserved[k]));
@@ -16866,7 +17306,9 @@
     "🧬 7 Günlük Uyku Kalibrasyonu (Gün 1/7)": "🧬 7-Day Sleep Calibration (Day 1/7)",
     "Rehberi Kapat": "Dismiss Guide",
     "Günün tüm uyku saatleri, kilit ekranı ninnileri ve 7/24 Mışıl Dadı rehberliği bugün ₺0 ile anında açılır.": "All daily sleep windows, lock-screen lullabies, and 24/7 Mışıl Nanny coaching unlock instantly for $0 today.",
-    "7 günlük ücretsiz deneme bitiminde seçilen plan üzerinden mağaza hesabınıza yansıtılır. Dönem bitiminden en az 24 saat önce mağaza ayarlarından iptal edilmediği sürece otomatik yenilenir.": "Charged to your store account at the selected plan rate after the 7-day free trial unless canceled in store settings at least 24 hours before period end."
+    "7 günlük ücretsiz deneme bitiminde seçilen plan üzerinden mağaza hesabınıza yansıtılır. Dönem bitiminden en az 24 saat önce mağaza ayarlarından iptal edilmediği sürece otomatik yenilenir.": "Charged to your store account at the selected plan rate after the 7-day free trial unless canceled in store settings at least 24 hours before period end.",
+    "Şimdilik sınırlı modda devam et": "Continue in limited mode for now",
+    "Bu işlem bebeğinize ait tüm uyku günlüklerini, rutin kayıtlarını ve profil verilerini kalıcı olarak silecektir; cihaz bazlı tek seferlik ücretsiz deneme hakları sıfırlanmaz. (Apple Guideline 5.1.1).": "This permanently deletes all sleep logs, routine records, and profile data for your baby; device-level one-time free preview quotas are not reset. (Apple Guideline 5.1.1)."
   };
 
   const TR_TO_DE_EXACT_MAP = {
@@ -17563,7 +18005,9 @@
     "🧬 7 Günlük Uyku Kalibrasyonu (Gün 1/7)": "🧬 7-Tage-Schlafkalibrierung (Tag 1/7)",
     "Rehberi Kapat": "Hinweis schließen",
     "Günün tüm uyku saatleri, kilit ekranı ninnileri ve 7/24 Mışıl Dadı rehberliği bugün ₺0 ile anında açılır.": "Alle täglichen Schlaffenster, Sperrbildschirm-Klänge und 24/7 Mışıl Nanny werden heute für 0 € sofort freigeschaltet.",
-    "7 günlük ücretsiz deneme bitiminde seçilen plan üzerinden mağaza hesabınıza yansıtılır. Dönem bitiminden en az 24 saat önce mağaza ayarlarından iptal edilmediği sürece otomatik yenilenir.": "Nach Ablauf der 7-tägigen Gratis-Testphase erfolgt die Abrechnung über Ihr Store-Konto gemäß gewähltem Tarif, sofern nicht mindestens 24 Stunden vor Ablauf in den Store-Einstellungen gekündigt wird."
+    "7 günlük ücretsiz deneme bitiminde seçilen plan üzerinden mağaza hesabınıza yansıtılır. Dönem bitiminden en az 24 saat önce mağaza ayarlarından iptal edilmediği sürece otomatik yenilenir.": "Nach Ablauf der 7-tägigen Gratis-Testphase erfolgt die Abrechnung über Ihr Store-Konto gemäß gewähltem Tarif, sofern nicht mindestens 24 Stunden vor Ablauf in den Store-Einstellungen gekündigt wird.",
+    "Şimdilik sınırlı modda devam et": "Vorerst im Basismodus fortfahren",
+    "Bu işlem bebeğinize ait tüm uyku günlüklerini, rutin kayıtlarını ve profil verilerini kalıcı olarak silecektir; cihaz bazlı tek seferlik ücretsiz deneme hakları sıfırlanmaz. (Apple Guideline 5.1.1).": "Dadurch werden alle Schlafprotokolle, Routinen und Profildaten Ihres Babys dauerhaft gelöscht; gerätebezogene einmalige Gratis-Testkontingente werden nicht zurückgesetzt. (Apple Guideline 5.1.1)."
   };
 
   const REVERSE_TO_TR_EXACT_MAP = {};

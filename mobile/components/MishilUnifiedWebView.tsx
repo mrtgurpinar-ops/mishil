@@ -63,6 +63,8 @@ const INJECT_APP_META = `
   window.MishilNative.isNative = true;
   window.MishilNative.audioBridge = true;
   window.MishilNative.storeReviewBridge = true;
+  window.MishilNative.quotaBridge = true;
+  window.MishilNative.quotasHydrated = false;
   true;
 `;
 
@@ -383,7 +385,22 @@ export default function MishilUnifiedWebView() {
         ? String(rawReviewLastTs).trim()
         : '';
 
-      if (rawProfile || rawOnboarding === 'true' || resolvedSavedLang || safeReviewTs) {
+      let deviceQuotas = await storage.getDeviceQuotas();
+      if (rawOnboarding === 'true' && !deviceQuotas.onboardedOnce) {
+        deviceQuotas = await storage.mergeDeviceQuotas({ onboardedOnce: true });
+      } else if (deviceQuotas.onboardedOnce && rawOnboarding !== 'true' && !deviceQuotas.firstSpotUsed) {
+        // Uygulama silinip yeniden yüklendiğinde veya kişisel veriler sıfırlandığında 2. kez ücretsiz rapor/ilk uyku açılmasını engelle
+        deviceQuotas = await storage.mergeDeviceQuotas({ firstSpotUsed: true });
+      }
+      const hasAnyQuotaFlag =
+        deviceQuotas.onboardedOnce ||
+        deviceQuotas.firstSpotUsed ||
+        deviceQuotas.freeSoundUsed ||
+        deviceQuotas.freeSoundElapsedMs > 0 ||
+        deviceQuotas.freeCryUsed ||
+        deviceQuotas.freeDadiUsed;
+
+      if (rawProfile || rawOnboarding === 'true' || resolvedSavedLang || safeReviewTs || hasAnyQuotaFlag) {
         let pObj: any = null;
         try { pObj = rawProfile ? JSON.parse(rawProfile) : null; } catch {}
         const nameVal = pObj?.babyName ? String(pObj.babyName).replace(/[`\\$]/g, '') : '';
@@ -392,6 +409,7 @@ export default function MishilUnifiedWebView() {
         const uNameVal = pObj?.userName ? String(pObj.userName).replace(/[`\\$]/g, '') : '';
         const planVal = rawPlan ? String(rawPlan).replace(/[^a-z_]/gi, '') : '';
         const shouldHydrateFamilyPlan = planVal === 'family_vip';
+        const safeSoundElapsed = Math.max(0, Math.min(60000, Math.round(deviceQuotas.freeSoundElapsedMs || 0)));
 
         const script = `
           (function() {
@@ -408,20 +426,51 @@ export default function MishilUnifiedWebView() {
               ${rawOnboarding === 'true' ? `if (!localStorage.getItem('mishil_onboarding_completed')) { localStorage.setItem('mishil_onboarding_completed', 'true'); modified = true; }` : ''}
               ${shouldHydrateFamilyPlan ? `if (!localStorage.getItem('mishil_subscription_plan') && localStorage.getItem('mishil_family_vip_verified') === '1') { localStorage.setItem('mishil_subscription_plan', 'family_vip'); modified = true; }` : ''}
               ${safeReviewTs ? `if (!localStorage.getItem('mishil_native_review_last_ts')) { localStorage.setItem('mishil_native_review_last_ts', '${safeReviewTs}'); }` : ''}
+              ${deviceQuotas.onboardedOnce ? `if (localStorage.getItem('mishil_device_onboarded_once') !== '1') { localStorage.setItem('mishil_device_onboarded_once', '1'); modified = true; }` : ''}
+              ${deviceQuotas.firstSpotUsed ? `if (localStorage.getItem('mishil_first_spot_aha_used') !== '1') { localStorage.setItem('mishil_first_spot_aha_used', '1'); modified = true; }` : ''}
+              ${deviceQuotas.freeSoundUsed ? `if (localStorage.getItem('mishil_free_sound_used') !== '1') { localStorage.setItem('mishil_free_sound_used', '1'); modified = true; }` : ''}
+              ${safeSoundElapsed > 0 ? `(function(){ var curEl = parseInt(localStorage.getItem('mishil_free_sound_elapsed_ms') || '0', 10) || 0; if (${safeSoundElapsed} > curEl) { localStorage.setItem('mishil_free_sound_elapsed_ms', '${safeSoundElapsed}'); modified = true; } })();` : ''}
+              ${deviceQuotas.freeCryUsed ? `if (localStorage.getItem('mishil_free_cry_used') !== '1') { localStorage.setItem('mishil_free_cry_used', '1'); modified = true; }` : ''}
+              ${deviceQuotas.freeDadiUsed ? `if (localStorage.getItem('mishil_free_dadi_question_used') !== '1') { localStorage.setItem('mishil_free_dadi_question_used', '1'); modified = true; }` : ''}
               if (modified) {
                 if (typeof window.applyLanguage === 'function') window.applyLanguage(localStorage.getItem('mishil_lang') || '${resolvedSavedLang || DEVICE_LANG}');
                 if (typeof checkOnboardingState === 'function') checkOnboardingState();
                 if (typeof loadBabyProfile === 'function') loadBabyProfile();
+                if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
                 if (typeof renderAllViews === 'function') renderAllViews();
               }
-            } catch (e) {}
+              if (window.MishilNative) window.MishilNative.quotasHydrated = true;
+              if (typeof window.syncDeviceQuotasToNative === 'function') {
+                window.syncDeviceQuotasToNative();
+              }
+            } catch (e) {
+              if (window.MishilNative) window.MishilNative.quotasHydrated = true;
+            }
             true;
           })();
         `;
         webviewRef.current?.injectJavaScript(script);
+      } else {
+        // Yine de WebView localStorage'da mevcut hak bayrakları varsa SecureStore ile yukarı senkronla
+        webviewRef.current?.injectJavaScript(`
+          (function() {
+            try {
+              if (window.MishilNative) window.MishilNative.quotasHydrated = true;
+              if (typeof window.syncDeviceQuotasToNative === 'function') window.syncDeviceQuotasToNative();
+            } catch (e) {
+              if (window.MishilNative) window.MishilNative.quotasHydrated = true;
+            }
+            true;
+          })();
+        `);
       }
     } catch (e) {
-      // Sessiz geç
+      webviewRef.current?.injectJavaScript(`
+        (function() {
+          if (window.MishilNative) window.MishilNative.quotasHydrated = true;
+          true;
+        })();
+      `);
     }
   }, []);
 
@@ -440,6 +489,7 @@ export default function MishilUnifiedWebView() {
           // Sorun çıkarsa bu bayrağı false yapmak app.html'i HTMLAudio'ya döndürür.
           window.MishilNative.audioBridge = true;
           window.MishilNative.storeReviewBridge = true;
+          window.MishilNative.quotaBridge = true;
         }
         true;
       })();
@@ -612,6 +662,7 @@ export default function MishilUnifiedWebView() {
           if (typeof window.clearStoreWatchdog === 'function') window.clearStoreWatchdog();
           else if (window.storeWatchdogTimer) { clearTimeout(window.storeWatchdogTimer); window.storeWatchdogTimer = null; }
           if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
+          if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer({ skipAccrue: true, clearNativePreviewTimer: true });
           if (typeof commitOnboardingProfile === 'function') commitOnboardingProfile();
           localStorage.setItem('mishil_onboarding_completed', 'true');
           localStorage.setItem('mishil_subscription_active', 'true');
@@ -706,6 +757,24 @@ export default function MishilUnifiedWebView() {
 
         case 'ONBOARDING_COMPLETED':
           void AsyncStorage.setItem('@mishil_onboarding_completed', 'true');
+          void storage.mergeDeviceQuotas({ onboardedOnce: true });
+          break;
+
+        case 'SYNC_DEVICE_QUOTAS':
+          if (msg.payload && typeof msg.payload === 'object') {
+            void storage.mergeDeviceQuotas(msg.payload);
+          }
+          break;
+
+        case 'REQUEST_DEVICE_QUOTAS':
+          void hydrateWebViewStorage();
+          break;
+
+        case 'CLEAR_PERSONAL_DATA':
+          if (msg.payload && typeof msg.payload === 'object') {
+            await storage.mergeDeviceQuotas(msg.payload);
+          }
+          await storage.clearPersonalAppData();
           break;
 
         case 'HAPTIC':

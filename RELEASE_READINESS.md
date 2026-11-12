@@ -1,4 +1,6 @@
-# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.44.1 / Build 63)
+# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.50.2 Canlı WebView / Build 68 Mağazada)
+
+> **📌 Bekleyen Native Derleme Kuyruğu (MG Kararı — 2026-11-12):** `v4.50.2` ile geliştirilen `public/app.html` WebView düzeltmeleri (İlk MışılSpot™ saat hizalaması, tam genişlikli analiz çekmecesi, sıfır kaymalı Spotlight turu, kümülatif 60 sn ses sayacı ve `localStorage` 3 katmanlı tekrar kalkanı) Railway üzerinden mevcut **Build 68**'de canlıya alınmıştır. `mobile/lib/storage.ts` ve `mobile/components/MishilUnifiedWebView.tsx` içindeki **`expo-secure-store` Keychain cihaz kota kalıcılığı (`mishil_device_quotas_v1`, `CLEAR_PERSONAL_DATA`, `quotasHydrated`)** kodda %100 hazır olup, tek başına derleme harcamamak adına **sonraki geliştirmelerle birlikte alınacak EAS Build (`Build 69`)** paketine dahil edilecektir.
 
 > Amaç: Google Play **ve** Apple App Store'a, "bazı telefonlarda açılmıyor" ve
 > "satın alma çalışmıyor" sınıfı sürprizler olmadan çıkmak.
