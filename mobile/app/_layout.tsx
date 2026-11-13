@@ -46,6 +46,9 @@ export default function RootLayout() {
         >
           {/* Ana giriş noktası — MishilUnifiedWebView */}
           <Stack.Screen name="index" options={{ headerShown: false }} />
+          {/* Kilit ekranı Live Activity / bildirim deep-link ve eşleşmeyen rota koruması */}
+          <Stack.Screen name="sleep" options={{ headerShown: false }} />
+          <Stack.Screen name="+not-found" options={{ headerShown: false }} />
           {/* Eski rotalar — geçiş dönemi için korunur, aktif kullanılmaz */}
           <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
           <Stack.Screen name="(auth)" options={{ headerShown: false }} />

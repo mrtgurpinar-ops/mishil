@@ -4064,11 +4064,17 @@
         </div>
 
         <!-- Filtre Çipleri -->
-        <div class="cat-chips-row no-scrollbar" style="margin-bottom: 10px;">
+        <div class="cat-chips-row no-scrollbar" style="margin-bottom: 8px;">
           <div class="cat-chip active" onclick="filterRoutineCategory('all', this)">Tümü</div>
           <div class="cat-chip" onclick="filterRoutineCategory('sleep', this)">🌙 Uykular</div>
           <div class="cat-chip" onclick="filterRoutineCategory('feeding', this)">🍼 Beslenmeler</div>
           <div class="cat-chip" onclick="filterRoutineCategory('diaper', this)">🚼 Bezler</div>
+        </div>
+
+        <div style="display: flex; gap: 6px; margin-bottom: 12px;" id="analytics-date-range-pills">
+          <button type="button" class="routine-range-pill active" data-rrange="all" onclick="filterRoutineDateRange('all', this)" style="flex: 1; min-height: 34px; border-radius: 9px; border: 1px solid var(--accent); background: rgba(244, 162, 97, 0.18); color: var(--accent); font-family: 'Sora'; font-size: 11px; font-weight: 700; cursor: pointer;">Tüm Günler</button>
+          <button type="button" class="routine-range-pill" data-rrange="7d" onclick="filterRoutineDateRange('7d', this)" style="flex: 1; min-height: 34px; border-radius: 9px; border: 1px solid var(--border-night); background: var(--surface-pill); color: var(--text-night); font-family: 'Sora'; font-size: 11px; font-weight: 600; cursor: pointer;">Son 7 Gün</button>
+          <button type="button" class="routine-range-pill" data-rrange="today" onclick="filterRoutineDateRange('today', this)" style="flex: 1; min-height: 34px; border-radius: 9px; border: 1px solid var(--border-night); background: var(--surface-pill); color: var(--text-night); font-family: 'Sora'; font-size: 11px; font-weight: 600; cursor: pointer;">Bugün</button>
         </div>
 
         <div class="timeline-wrap" id="analytics-routines-timeline">
@@ -4979,6 +4985,15 @@
       </select>
     </div>
 
+    <div class="form-group" id="routine-date-group" style="margin-bottom: 12px;">
+      <label class="form-label">Kayıt Tarihi</label>
+      <div style="display: flex; gap: 6px; align-items: center;">
+        <button type="button" id="routine-date-pill-today" onclick="setRoutineModalQuickDate(0)" style="min-height: 42px; padding: 0 12px; border-radius: 10px; border: 1.5px solid var(--accent); background: var(--accent); color: #13101C; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;">Bugün</button>
+        <button type="button" id="routine-date-pill-yesterday" onclick="setRoutineModalQuickDate(-1)" style="min-height: 42px; padding: 0 12px; border-radius: 10px; border: 1px solid var(--border-night); background: var(--surface-pill); color: var(--text-night); font-family: 'Sora'; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap;">Dün</button>
+        <input type="date" class="form-input" id="routine-modal-date" onchange="syncRoutineModalDatePills()" style="margin-bottom: 0; flex: 1; min-height: 42px; padding: 8px 10px; font-size: 12px;" />
+      </div>
+    </div>
+
     <!-- 1. SLEEP DYNAMIC FIELDS -->
     <div id="routine-sleep-fields">
       <div style="display: flex; gap: 10px; margin-bottom: 12px;">
@@ -5641,7 +5656,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.51.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.51.1', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -5949,7 +5964,17 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.51.0', date: '12 Kasım 2026', dateEn: 'November 12, 2026', dateDe: '12. November 2026', latest: true, items: [
+    { v: '4.51.1', date: '13 Kasım 2026', dateEn: 'November 13, 2026', dateDe: '13. November 2026', latest: true, items: [
+      'Kilit Ekranı Canlı Uyku Yönlendirme Onarımı & 48 Saatlik "Dün" Uyku Penceresi: Kilit ekranındaki Canlı Uyku Etkinliğine (misilbaby://sleep) dokunulduğunda çıkan "Unmatched Route" ekranı giderilerek doğrudan MışılSpot™ görünümüne kesintisiz odaklanma sağlandı; "Ne zaman uyandı?" kartında "Dün" seçildiğinde 24 saati aşan sabah kayıtlarının yok sayılması düzeltilerek net "Şimdi" ve "Uyku Penceresi Aşıldı" uyarısı eklendi.',
+      'Kalıcı Onboarding Rutin Kaydı & Çok Günlü Tarih Mimarisi: Kurulum kartlarında seçilen uyku, beslenme ve bez cevaplarının rutin geçmişine kalıcı işlenmesi garanti altına alındı; manuel rutin penceresine Bugün/Dün + Tarih seçici, Gelişim > Aktivite sekmesine gün başlıkları ve dönem filtreleri eklendi; haftalık uyku ortalaması veri girilen aktif gün sayısına göre hassaslaştırıldı.'
+    ], itemsEn: [
+      'Lock-Screen Live Sleep Deep-Link Fix & 48-Hour "Yesterday" Wake Window: Tapping the Lock-Screen Live Activity (misilbaby://sleep) now opens the MışılSpot™ view seamlessly without any "Unmatched Route" screen; selecting "Yesterday" on the wake-up card now supports a full 48-hour window with clear "Now" and "Wake Window Passed" alerts.',
+      'Persistent Onboarding Routine Seeding & Multi-Day Date Architecture: Sleep, feeding, and diaper answers chosen during setup are now permanently preserved in your timeline; added Today/Yesterday + Date picker to the routine modal, day-grouped headers and range filters in Analytics > Activity, and active-day weekly sleep averages.'
+    ], itemsDe: [
+      'Sperrbildschirm-Deep-Link-Korrektur & 48-Stunden-„Gestern“-Wachfenster: Ein Tippen auf die Live-Aktivität (misilbaby://sleep) öffnet nun direkt die MışılSpot™-Ansicht ohne Routenfehler; „Gestern“-Auswahlen beim Aufwachen unterstützen volle 48 Stunden inklusive klarem „Jetzt“-Hinweis bei überschrittenem Wachfenster.',
+      'Dauerhafte Onboarding-Routinen & Mehrtages-Datumsarchitektur: Im Onboarding gewählte Schlaf-, Still- und Windelzeiten bleiben dauerhaft im Protokoll erhalten; ergänzt um Heute/Gestern- & Datumsauswahl im Routinen-Dialog, Tagesgruppierung im Aktivitätsverlauf sowie präzise Tagesschnitt-Berechnung.'
+    ]},
+    { v: '4.51.0', date: '12 Kasım 2026', dateEn: 'November 12, 2026', dateDe: '12. November 2026', items: [
       'Kilit Ekranı Canlı Uyku Kronometresi (Live Activities / Dynamic Island / StandBy & Android 16 Live Updates): Bebeğiniz uyurken ekran kilitli olsa dahi canlı uyku süresini saf gece siyahı ve sıcak kehribar görünümüyle kilit ekranında, Dynamic Island üzerinde ve Android durum çubuğunda kesintisiz takip edin; uykulu tek dokunuşta yanlışlıkla durdurma riskini önleyen güvenli yönlendirme ve geriye dönük saat düzenleme senkronu eklendi.',
       'Kilit Ekranı Çalan Ses Kontrol Kartı (Now Playing / MediaSession), Yükleme Ekranı Dil Uyumu & Keychain Koruması: Arka planda çalan ninni ve beyaz gürültüleri kilit ekranından doğrudan duraklatıp sürdürme/durdurma kartı eklendi; ilk açılış yükleme ekranı "Mışıl Baby" markası ve cihaz diliyle hizalandı; cihaz kota koruması Keychain köprüsüyle güçlendirildi.'
     ], itemsEn: [
@@ -7464,6 +7489,14 @@
     }, 500);
   }
 
+  var activeRoutines = [];
+  try {
+    activeRoutines = JSON.parse(localStorage.getItem('mishil_active_routines') || '[]');
+    if (!Array.isArray(activeRoutines)) activeRoutines = [];
+  } catch (_initAre) {
+    activeRoutines = [];
+  }
+
   // =========================================================================
   // 3. ONBOARDING & PROFILE ENGINE (ZERO-LEAK SECURITY)
   // === ONBOARDING COMBOBOX & PERSONAL PLAN BUILDER ENGINE (v4.49.0) ===
@@ -7732,20 +7765,25 @@
   }
 
   function readSafeActiveRoutines() {
+    let stored = [];
     try {
-      if (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines)) {
+      const parsed = JSON.parse(localStorage.getItem('mishil_active_routines') || '[]');
+      if (Array.isArray(parsed)) stored = parsed;
+    } catch (_je) {}
+    try {
+      if (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines) && activeRoutines.length > 0) {
         return activeRoutines.slice();
       }
+      if (stored.length > 0 && typeof activeRoutines !== 'undefined') {
+        activeRoutines = stored.slice();
+      }
     } catch (_tdz) {}
-    try {
-      return JSON.parse(localStorage.getItem('mishil_active_routines') || '[]');
-    } catch (_je) {
-      return [];
-    }
+    return stored;
   }
 
   function writeSafeActiveRoutines(nextList) {
-    const clean = Array.isArray(nextList) ? nextList : [];
+    const clean = Array.isArray(nextList) ? nextList.slice() : [];
+    clean.sort((a, b) => ((b && (b.endTs || b.timestamp)) || 0) - ((a && (a.endTs || a.timestamp)) || 0));
     try {
       if (typeof activeRoutines !== 'undefined') {
         activeRoutines = clean;
@@ -7982,6 +8020,7 @@
     let sleepInsight = '';
     let sweetSpotTimeStr = '--:--';
     let displayTimeStr = '--:--';
+    let heroDisplayStr = '--:--';
     let nextSpotDate = null;
     let isLiveSleepingNow = false;
     let isOverdueNow = false;
@@ -7998,6 +8037,7 @@
         const sm = String(ls.getMinutes()).padStart(2, '0');
         sweetSpotTimeStr = pick('Uyuyor 💤', 'Sleeping 💤', 'Schläft 💤');
         displayTimeStr = sweetSpotTimeStr;
+        heroDisplayStr = sweetSpotTimeStr;
         wakeSourceLine = pick(
           `${sh}:${sm}'den beri uyuyor (${elapsedMins} dk) • Uyanınca <strong id="report-wake-window-min">${wakeWindowMin} dk</strong> penceresi başlar`,
           `Asleep since ${sh}:${sm} (${elapsedMins} min) • <strong id="report-wake-window-min">${wakeWindowMin} min</strong> window starts on wake`,
@@ -8020,7 +8060,7 @@
       const wakeTs = p.sleepStepSkipped
         ? 0
         : (sleepLogs.length > 0 ? (sleepLogs[0].endTs || sleepLogs[0].timestamp) : (Number(p.lastWakeTs) || 0));
-      if (wakeTs > 0 && (now.getTime() - wakeTs) >= 0 && (now.getTime() - wakeTs) < 1440 * 60000) {
+      if (wakeTs > 0 && (now.getTime() - wakeTs) >= 0 && (now.getTime() - wakeTs) < 2880 * 60000) {
         hasLoggedWake = true;
         nextSpotDate = new Date(wakeTs + wakeWindowMin * 60000);
         const th = String(nextSpotDate.getHours()).padStart(2, '0');
@@ -8034,12 +8074,15 @@
           isOverdueNow = true;
           const nowHhmm = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
           displayTimeStr = nowHhmm;
+          heroDisplayStr = pick('Şimdi', 'Now', 'Jetzt');
           const overMins = Math.max(1, Math.round((now.getTime() - nextSpotDate.getTime()) / 60000));
           const overDurStr = formatPlanDurationLabel(overMins, lang);
+          const awakeMins = Math.max(1, Math.round((now.getTime() - wakeTs) / 60000));
+          const awakeDurStr = formatPlanDurationLabel(awakeMins, lang);
           wakeSourceLine = pick(
-            `Son uyanış ${wakeDayTime} + <strong id="report-wake-window-min">${wakeWindowMin} dk</strong> • Hedef (${spotDayTime}) geçti`,
-            `Last wake ${wakeDayTime} + <strong id="report-wake-window-min">${wakeWindowMin} min</strong> • Target (${spotDayTime}) passed`,
-            `Aufgewacht ${deUhr(wakeDayTime)} + <strong id="report-wake-window-min">${wakeWindowMin} Min.</strong> • Ziel (${deUhr(spotDayTime)}) vorbei`
+            `Son uyanış ${wakeDayTime} (${awakeDurStr} önce) + <strong id="report-wake-window-min">${wakeWindowMin} dk</strong> • Hedef (${spotDayTime}) geçti`,
+            `Last wake ${wakeDayTime} (${awakeDurStr} ago) + <strong id="report-wake-window-min">${wakeWindowMin} min</strong> • Target (${spotDayTime}) passed`,
+            `Aufgewacht ${deUhr(wakeDayTime)} (vor ${awakeDurStr}) + <strong id="report-wake-window-min">${wakeWindowMin} Min.</strong> • Ziel (${deUhr(spotDayTime)}) vorbei`
           );
           sleepInsight = pick(
             `🌙 <strong>Aşırı Yorgunluk Uyarısı:</strong> Son uyanış ${wakeDayTime} • Uyanıklık penceresi (${wakeWindowMin} dk) <strong>${overDurStr} aşıldı</strong> — hemen sakin uyku rutinine geçin.`,
@@ -8048,6 +8091,7 @@
           );
         } else {
           displayTimeStr = sweetSpotTimeStr;
+          heroDisplayStr = sweetSpotTimeStr;
           const remMins = Math.max(1, Math.round((nextSpotDate.getTime() - now.getTime()) / 60000));
           wakeSourceLine = pick(
             `Son uyanış ${wakeDayTime} + <strong id="report-wake-window-min">${wakeWindowMin} dk</strong> biyolojik pencere`,
@@ -8064,6 +8108,7 @@
         nextSpotDate = new Date(now.getTime() + wakeWindowMin * 60000);
         sweetSpotTimeStr = `${String(nextSpotDate.getHours()).padStart(2, '0')}:${String(nextSpotDate.getMinutes()).padStart(2, '0')}`;
         displayTimeStr = sweetSpotTimeStr;
+        heroDisplayStr = sweetSpotTimeStr;
         wakeSourceLine = pick(
           `Yaşa özel <strong id="report-wake-window-min">${wakeWindowMin} dk</strong> ilk tahmin • İlk uyanışla netleşir`,
           `Age-based <strong id="report-wake-window-min">${wakeWindowMin} min</strong> initial estimate • Calibrates on first wake`,
@@ -8236,6 +8281,7 @@
       wakeWindowMin,
       sweetSpotTimeStr,
       displayTimeStr,
+      heroDisplayStr,
       isLiveSleepingNow,
       isOverdueNow,
       hasLoggedWake,
@@ -9174,6 +9220,10 @@
     localStorage.setItem('mishil_user_name', pName);
     localStorage.setItem('mishil_onboarding_completed', 'true');
     localStorage.setItem('mishil_device_onboarded_once', '1');
+    try {
+      const syncedRoutines = readSafeActiveRoutines();
+      writeSafeActiveRoutines(syncedRoutines);
+    } catch (_ors) {}
     syncDeviceQuotasToNative();
 
     if (window.ReactNativeWebView) {
@@ -10048,13 +10098,15 @@
       const insVacEl = document.getElementById('report-insight-vaccines');
 
       if (insights) {
-        if (spotTimeEl) spotTimeEl.textContent = insights.displayTimeStr || insights.sweetSpotTimeStr;
+        if (spotTimeEl) spotTimeEl.textContent = insights.heroDisplayStr || insights.displayTimeStr || insights.sweetSpotTimeStr;
         if (spotKickerEl) {
           spotKickerEl.textContent = insights.isLiveSleepingNow
             ? trEnDe('💤 Canlı Uyku Takibi Hazır', '💤 Live Sleep Tracker Armed', '💤 Live-Schlaftracker aktiv')
-            : (insights.isEstimatedWake
-              ? trEnDe('🌙 Yaşa Özel İlk MışılSpot™ Tahmini', '🌙 Initial Age-Based MışılSpot™ Estimate', '🌙 Altersbasierte 1. MışılSpot™-Schätzung')
-              : trEnDe('🌙 Hesaplanan İlk MışılSpot™ Uyku Vakti', '🌙 Calculated First MışılSpot™ Sleep Window', '🌙 Berechnetes erstes MışılSpot™-Schlaffenster'));
+            : (insights.isOverdueNow
+              ? trEnDe('⚠️ Uyku Penceresi Aşıldı • Hemen Uyutun', '⚠️ Wake Window Passed • Put to Sleep Now', '⚠️ Wachfenster überschritten • Jetzt hinlegen')
+              : (insights.isEstimatedWake
+                ? trEnDe('🌙 Yaşa Özel İlk MışılSpot™ Tahmini', '🌙 Initial Age-Based MışılSpot™ Estimate', '🌙 Altersbasierte 1. MışılSpot™-Schätzung')
+                : trEnDe('🌙 Hesaplanan İlk MışılSpot™ Uyku Vakti', '🌙 Calculated First MışılSpot™ Sleep Window', '🌙 Berechnetes erstes MışılSpot™-Schlaffenster')));
         }
         if (spotPillEl) {
           if (insights.isLiveSleepingNow) {
@@ -10375,13 +10427,6 @@
       localStorage.setItem('mishil_first_spot_aha_used', '1');
       localStorage.removeItem('mishil_live_sleep_start');
       localStorage.removeItem('mishil_onb_live_sleep_promoted');
-      localStorage.removeItem('mishil_onboarding_last_wake_ts');
-      try {
-        const cleanedRoutines = readSafeActiveRoutines().filter(
-          r => r && r.id !== 'onb_slp_init' && r.id !== 'onb_feed_init' && r.id !== 'onb_diaper_init'
-        );
-        writeSafeActiveRoutines(cleanedRoutines);
-      } catch (_cre) {}
     } else if (localStorage.getItem('mishil_live_sleep_start')) {
       localStorage.setItem('mishil_onb_live_sleep_promoted', '1');
     }
@@ -13576,7 +13621,7 @@
           disp.style.cursor = 'pointer';
           disp.onclick = () => openVipRenewalModal('mishil_spot');
         } else {
-          disp.textContent = calc.displayTime || calc.sweetSpotTime;
+          disp.textContent = calc.heroDisplayTime || calc.displayTime || calc.sweetSpotTime;
           disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
           disp.style.cursor = 'default';
           disp.onclick = null;
@@ -13851,25 +13896,28 @@
       if (wakeTs) {
         const lastWakeDate = new Date(wakeTs);
         const elapsedMins = Math.floor((now.getTime() - lastWakeDate.getTime()) / 60000);
-        // Son uyanma son 24 saat içindeyse
-        if (elapsedMins >= 0 && elapsedMins < 1440) {
+        // Son uyanma son 48 saat içindeyse ("Dün" sabah kayıtları dahil)
+        if (elapsedMins >= 0 && elapsedMins < 2880) {
           nextSleepDate = new Date(lastWakeDate.getTime() + wakeWindowMinutes * 60000);
+          const wakeDayLabel = typeof formatPlanDayTimeLabel === 'function'
+            ? formatPlanDayTimeLabel(lastWakeDate, now, getAppLang())
+            : `${String(lastWakeDate.getHours()).padStart(2, '0')}:${String(lastWakeDate.getMinutes()).padStart(2, '0')}`;
           if (now.getTime() > nextSleepDate.getTime()) {
             isOverdue = true;
             const spotDayLabel = typeof formatPlanDayTimeLabel === 'function'
               ? formatPlanDayTimeLabel(nextSleepDate, now, getAppLang())
               : `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
             statusNote = trEnDe(
-              `⚠️ Hedef (${spotDayLabel}) geçti • Bebeği şimdi uyutun`,
-              `⚠️ Target (${spotDayLabel}) passed • Put baby to sleep now`,
-              `⚠️ Ziel (${spotDayLabel}) vorbei • Baby jetzt schlafen legen`
+              `⚠️ Son uyanış: ${wakeDayLabel} • Hedef (${spotDayLabel}) geçti, şimdi uyutun`,
+              `⚠️ Last wake: ${wakeDayLabel} • Target (${spotDayLabel}) passed, put to sleep now`,
+              `⚠️ Aufgewacht: ${wakeDayLabel} • Ziel (${spotDayLabel}) vorbei, jetzt schlafen legen`
             );
           } else {
             const remMins = Math.floor((nextSleepDate.getTime() - now.getTime()) / 60000);
             statusNote = trEnDe(
-              `Son uyanmadan itibaren • ${remMins} dk sonra uyku vakti`,
-              `From last wake • sleep time in ${remMins} min`,
-              `Ab letztem Aufwachen • Schlafenszeit in ${remMins} Min.`
+              `Son uyanış (${wakeDayLabel}) • ${remMins} dk sonra uyku vakti`,
+              `From last wake (${wakeDayLabel}) • sleep time in ${remMins} min`,
+              `Ab Aufwachen (${wakeDayLabel}) • Schlafenszeit in ${remMins} Min.`
             );
           }
         }
@@ -13880,7 +13928,11 @@
       const onbWakeRaw = localStorage.getItem('mishil_onboarding_last_wake_ts');
       const onbWakeTs = onbWakeRaw ? Number(onbWakeRaw) : 0;
       const onbElapsedMins = onbWakeTs > 0 ? Math.floor((now.getTime() - onbWakeTs) / 60000) : -1;
-      if (onbElapsedMins >= 0 && onbElapsedMins < 1440) {
+      if (onbElapsedMins >= 0 && onbElapsedMins < 2880) {
+        const onbWakeDate = new Date(onbWakeTs);
+        const wakeDayLabel = typeof formatPlanDayTimeLabel === 'function'
+          ? formatPlanDayTimeLabel(onbWakeDate, now, getAppLang())
+          : `${String(onbWakeDate.getHours()).padStart(2, '0')}:${String(onbWakeDate.getMinutes()).padStart(2, '0')}`;
         nextSleepDate = new Date(onbWakeTs + wakeWindowMinutes * 60000);
         if (now.getTime() > nextSleepDate.getTime()) {
           isOverdue = true;
@@ -13888,16 +13940,16 @@
             ? formatPlanDayTimeLabel(nextSleepDate, now, getAppLang())
             : `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
           statusNote = trEnDe(
-            `⚠️ Hedef (${spotDayLabel}) geçti • Bebeği şimdi uyutun`,
-            `⚠️ Target (${spotDayLabel}) passed • Put baby to sleep now`,
-            `⚠️ Ziel (${spotDayLabel}) vorbei • Baby jetzt schlafen legen`
+            `⚠️ Son uyanış: ${wakeDayLabel} • Hedef (${spotDayLabel}) geçti, şimdi uyutun`,
+            `⚠️ Last wake: ${wakeDayLabel} • Target (${spotDayLabel}) passed, put to sleep now`,
+            `⚠️ Aufgewacht: ${wakeDayLabel} • Ziel (${spotDayLabel}) vorbei, jetzt schlafen legen`
           );
         } else {
           const remMins = Math.max(1, Math.floor((nextSleepDate.getTime() - now.getTime()) / 60000));
           statusNote = trEnDe(
-            `Son uyanmadan itibaren • ${remMins} dk sonra uyku vakti`,
-            `From last wake • sleep time in ${remMins} min`,
-            `Ab letztem Aufwachen • Schlafenszeit in ${remMins} Min.`
+            `Son uyanış (${wakeDayLabel}) • ${remMins} dk sonra uyku vakti`,
+            `From last wake (${wakeDayLabel}) • sleep time in ${remMins} min`,
+            `Ab Aufwachen (${wakeDayLabel}) • Schlafenszeit in ${remMins} Min.`
           );
         }
       } else {
@@ -13944,6 +13996,7 @@
       ),
       sweetSpotTime: `${th}:${tm}`,
       displayTime: isOverdue ? `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}` : `${th}:${tm}`,
+      heroDisplayTime: isOverdue ? trEnDe('Şimdi', 'Now', 'Jetzt') : `${th}:${tm}`,
       wakeWindowMin: wakeWindowMinutes,
       isOverdue: isOverdue,
       statusNote: statusNote
@@ -14206,7 +14259,14 @@
   // =========================================================================
   // 3. ZERO-MOCK DYNAMIC REACTIVE ROUTINE ENGINE (SINGLE SOURCE OF TRUTH)
   // =========================================================================
-  let activeRoutines = JSON.parse(localStorage.getItem('mishil_active_routines') || '[]');
+  if (!Array.isArray(activeRoutines) || activeRoutines.length === 0) {
+    try {
+      const _storedRoutines = JSON.parse(localStorage.getItem('mishil_active_routines') || '[]');
+      if (Array.isArray(_storedRoutines)) activeRoutines = _storedRoutines;
+    } catch (_reHyd) {
+      activeRoutines = [];
+    }
+  }
 
   function deleteRoutine(id) {
     hapticPulse();
@@ -14244,13 +14304,19 @@
 
   function formatAgoShort(ts) {
     if (!ts) return trEnDe('Kayıt ekle +', 'Add log +', 'Eintrag +');
-    const diffMins = Math.max(0, Math.round((Date.now() - ts) / 60000));
+    const nowObj = new Date();
+    const diffMins = Math.max(0, Math.round((nowObj.getTime() - ts) / 60000));
     if (diffMins < 2) return trEnDe('Az önce', 'Just now', 'Gerade eben');
     if (diffMins < 60) return trEnDe(`${diffMins} dk önce`, `${diffMins}m ago`, `vor ${diffMins} Min.`);
+    const evtDt = new Date(ts);
+    const dayDiff = typeof diffCalendarDays === 'function' ? diffCalendarDays(evtDt, nowObj) : Math.floor(diffMins / 1440);
+    if (dayDiff === 1 && diffMins >= 360 && typeof formatPlanDayTimeLabel === 'function') {
+      return formatPlanDayTimeLabel(evtDt, nowObj, getAppLang());
+    }
     const hrs = Math.floor(diffMins / 60);
     const mins = diffMins % 60;
     if (hrs >= 24) {
-      const d = Math.floor(hrs / 24);
+      const d = Math.max(1, dayDiff > 0 ? dayDiff : Math.floor(hrs / 24));
       return trEnDe(`${d} gün önce`, `${d}d ago`, `vor ${d} T.`);
     }
     return mins > 0
@@ -14264,9 +14330,11 @@
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).getTime();
 
     // 1. Huckleberry Benchmark: Son Beslenme, Son Bez ve Bugün Uyku
-    const lastFeed = routines.find(r => r && r.type === 'feeding');
-    const lastDiaper = routines.find(r => r && r.type === 'diaper');
-    const todaySleeps = routines.filter(r => r && r.type === 'sleep' && (r.endTs || r.timestamp || 0) >= todayStart);
+    const sortedByTime = routines.slice().sort((a, b) => ((b && (b.endTs || b.timestamp)) || 0) - ((a && (a.endTs || a.timestamp)) || 0));
+    const lastFeed = sortedByTime.find(r => r && r.type === 'feeding');
+    const lastDiaper = sortedByTime.find(r => r && r.type === 'diaper');
+    const todaySleeps = sortedByTime.filter(r => r && r.type === 'sleep' && (r.endTs || r.timestamp || 0) >= todayStart);
+    const lastAnySleep = sortedByTime.find(r => r && r.type === 'sleep' && (r.endTs || r.timestamp));
     const todaySleepMins = todaySleeps.reduce((acc, s) => acc + (s.durationMins || 0), 0);
 
     const addLogLabel = trEnDe('Kayıt ekle +', 'Add log +', 'Eintrag +');
@@ -14274,13 +14342,22 @@
     const diaperAgoText = lastDiaper ? formatAgoShort(lastDiaper.timestamp) : addLogLabel;
     const sh = Math.floor(todaySleepMins / 60);
     const sm = todaySleepMins % 60;
-    const sleepSummaryText = todaySleeps.length > 0
-      ? trEnDe(
-          `${sh > 0 ? sh + 's ' : ''}${sm}dk (${todaySleeps.length} uyku)`,
-          `${sh > 0 ? sh + 'h ' : ''}${sm}m (${todaySleeps.length} naps)`,
-          `${sh > 0 ? sh + ' Std. ' : ''}${sm} Min. (${todaySleeps.length} Schläfchen)`
-        )
-      : trEnDe('0dk (0 uyku)', '0m (0 naps)', '0 Min. (0 Schläfchen)');
+    let sleepSummaryText = trEnDe('0dk (0 uyku)', '0m (0 naps)', '0 Min. (0 Schläfchen)');
+    if (todaySleeps.length > 0) {
+      sleepSummaryText = trEnDe(
+        `${sh > 0 ? sh + 's ' : ''}${sm}dk (${todaySleeps.length} uyku)`,
+        `${sh > 0 ? sh + 'h ' : ''}${sm}m (${todaySleeps.length} naps)`,
+        `${sh > 0 ? sh + ' Std. ' : ''}${sm} Min. (${todaySleeps.length} Schläfchen)`
+      );
+    } else if (lastAnySleep) {
+      const priorWakeTs = lastAnySleep.endTs || lastAnySleep.timestamp;
+      const priorLabel = (typeof formatPlanDayTimeLabel === 'function' && priorWakeTs)
+        ? formatPlanDayTimeLabel(new Date(priorWakeTs), now, getAppLang())
+        : (lastAnySleep.end || lastAnySleep.time || '');
+      if (priorLabel) {
+        sleepSummaryText = trEnDe(`Son: ${priorLabel}`, `Last: ${priorLabel}`, `Zuletzt: ${priorLabel}`);
+      }
+    }
 
     const elFeedAgo = document.getElementById('home-last-feed-ago');
     const elDiaperAgo = document.getElementById('home-last-diaper-ago');
@@ -14355,7 +14432,9 @@
           const blockTitle = `MışılSpot™: ${activeSpotStr}`;
           html += `<div title="${blockTitle}" style="position:absolute; top:1px; bottom:1px; left:${leftPct.toFixed(1)}%; width:4.2%; background:rgba(244, 162, 97, 0.45); border:1.5px dashed var(--accent); border-radius:5px;"></div>`;
           if (stripSum) {
-            stripSum.textContent = `🌙 MışılSpot™: ${activeSpotStr} ›`;
+            stripSum.textContent = calc.isOverdue
+              ? trEnDe('🌙 MışılSpot™: Şimdi Uyutun ›', '🌙 MışılSpot™: Sleep Now ›', '🌙 MışılSpot™: Jetzt hinlegen ›')
+              : `🌙 MışılSpot™: ${activeSpotStr} ›`;
             stripSum.style.cursor = '';
             stripSum.onclick = null;
           }
@@ -14401,7 +14480,12 @@
 
     list.innerHTML = '';
     if (typeof updateLastSleepQuickEditBar === 'function') updateLastSleepQuickEditBar();
-    const sleepLogs = activeRoutines.filter(r => r.type === 'sleep');
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).getTime();
+    const allSleepLogs = (Array.isArray(activeRoutines) ? activeRoutines : [])
+      .filter(r => r && r.type === 'sleep')
+      .sort((a, b) => ((b.endTs || b.timestamp || 0) - (a.endTs || a.timestamp || 0)));
+    const sleepLogs = allSleepLogs.filter(r => (r.endTs || r.timestamp || 0) >= todayStart);
     let totalMins = sleepLogs.reduce((acc, s) => acc + (s.durationMins || 0), 0);
     const hrs = Math.floor(totalMins / 60);
     const mins = totalMins % 60;
@@ -14418,10 +14502,22 @@
     if (progressBar) progressBar.style.width = `${progressPercent}%`;
 
     if (sleepLogs.length === 0) {
+      let priorSleepHintHtml = '';
+      if (allSleepLogs.length > 0) {
+        const prevSlp = allSleepLogs[0];
+        const prevEndTs = prevSlp.endTs || prevSlp.timestamp;
+        const prevDayLbl = (typeof formatPlanDayTimeLabel === 'function' && prevEndTs)
+          ? formatPlanDayTimeLabel(new Date(prevEndTs), now, getAppLang())
+          : (prevSlp.end || prevSlp.time || '');
+        if (prevDayLbl) {
+          priorSleepHintHtml = `<div style="margin-top: 8px; font-size: 11px; color: var(--accent); font-weight: 600;">${trEnDe(`📌 Son kayıtlı uyanış: ${escapeHtml(prevDayLbl)} • Geçmiş günler Gelişim > Aktivite sekmesinde`, `📌 Last logged wake: ${escapeHtml(prevDayLbl)} • Past days in Growth > Activity`, `📌 Zuletzt aufgewacht: ${escapeHtml(prevDayLbl)} • Frühere Tage unter Entwicklung > Aktivität`)}</div>`;
+        }
+      }
       list.innerHTML = `
         <div style="text-align: center; padding: 24px 14px; color: var(--text-muted); font-size: 12px; background: rgba(255,255,255,0.02); border-radius: 14px; border: 1px dashed rgba(255,255,255,0.14); line-height: 18px;">
           🌙 <strong>${trEnDe('Bugün henüz uyku seansı kaydedilmedi.', 'No sleep sessions logged today yet.', 'Heute wurde noch kein Schlaf eingetragen.')}</strong><br>
           <span style="color: var(--text-night); font-size: 11px;">${trEnDe('İlk uykuyu kaydederek MışılSpot™ saatlerini canlandırın:', 'Log the first sleep to activate live MışılSpot™ predictions:', 'Tragen Sie den ersten Schlaf ein, um Live-MışılSpot™-Zeiten zu aktivieren:')}</span>
+          ${priorSleepHintHtml}
           <div style="display: flex; justify-content: center; gap: 8px; margin-top: 10px;">
             <button type="button" onclick="toggleLiveSleep()" style="background: var(--accent); color: #13101C; border: none; border-radius: 10px; padding: 8px 12px; font-size: 11px; font-weight: 800; cursor: pointer;">${trEnDe('🌙 Canlı Uyku Başlat', '🌙 Start Live Sleep', '🌙 Live-Schlaf starten')}</button>
             <button type="button" onclick="openRoutineModalFor('sleep')" style="background: rgba(255,255,255,0.08); color: var(--heading-night); border: 1px solid var(--border-night); border-radius: 10px; padding: 8px 12px; font-size: 11px; font-weight: 700; cursor: pointer;">${trEnDe('+ Geçmiş Uyku Ekle', '+ Log Past Sleep', '+ Vergangenen Schlaf eintragen')}</button>
@@ -14495,9 +14591,18 @@
 
     const now = Date.now();
     const last24hStart = now - (24 * 60 * 60 * 1000);
-    const dayRoutines = (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines))
-      ? activeRoutines.filter(r => (r.timestamp || r.time) >= last24hStart)
+    const last48hStart = now - (48 * 60 * 60 * 1000);
+    const allValidRoutines = (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines))
+      ? activeRoutines.filter(r => {
+          if (!r) return false;
+          const rTs = Number(r.endTs || r.timestamp || 0);
+          return rTs > 0 && rTs <= now + 300000;
+        })
       : [];
+    const dayRoutines = allValidRoutines.filter(r => Number(r.endTs || r.timestamp || 0) >= last24hStart);
+    const recent48hSleeps = allValidRoutines
+      .filter(r => r.type === 'sleep' && Number(r.endTs || r.timestamp || 0) >= last48hStart)
+      .sort((a, b) => (b.endTs || b.timestamp || 0) - (a.endTs || a.timestamp || 0));
 
     const isStorm = (calc.currentWeek === calc.activeLeap.stormWeek || calc.currentWeek === calc.activeLeap.stormWeek - 1);
 
@@ -14518,8 +14623,9 @@
 
     // 2. Gerçek MışılSpot Zamanlama Hassasiyeti (%30 Ağırlık) - Dakika Sapma Analizi
     let sweetspotScore = 75; // Varsayılan nötr başlangıç
-    if (sleepLogs.length >= 2) {
-      const sortedSleeps = [...sleepLogs].sort((a, b) => (b.endTs || b.timestamp || 0) - (a.endTs || a.timestamp || 0));
+    const timingPool = sleepLogs.length >= 2 ? sleepLogs : recent48hSleeps;
+    if (timingPool.length >= 2) {
+      const sortedSleeps = [...timingPool].sort((a, b) => (b.endTs || b.timestamp || 0) - (a.endTs || a.timestamp || 0));
       const latestSleepStart = sortedSleeps[0].startTs || ((sortedSleeps[0].endTs || sortedSleeps[0].timestamp) - (sortedSleeps[0].durationMins || 60) * 60000);
       const prevSleepEnd = sortedSleeps[1].endTs || sortedSleeps[1].timestamp;
       const targetTs = prevSleepEnd + (calc.wakeWindowMin || 90) * 60000;
@@ -14530,7 +14636,7 @@
       else if (effectiveDelta <= 30) sweetspotScore = 85;
       else if (effectiveDelta <= 60) sweetspotScore = 65;
       else sweetspotScore = Math.max(40, 65 - Math.round((effectiveDelta - 60) / 4));
-    } else if (sleepLogs.length === 1) {
+    } else if (timingPool.length === 1) {
       sweetspotScore = calc.isOverdue ? 72 : 92;
     } else if (!calc.isManual) {
       sweetspotScore = 88; // Canlı MışılSpot algoritması devrede
@@ -14560,7 +14666,7 @@
     const baselineScore = (savedBaseline >= 35 && savedBaseline <= 100) ? savedBaseline : 85;
 
     let finalScore = calculatedScore;
-    if (dayRoutines.length === 0) {
+    if (dayRoutines.length === 0 && recent48hSleeps.length === 0) {
       finalScore = baselineScore;
     } else if (dayRoutines.length < 3) {
       finalScore = Math.round((baselineScore * 0.60) + (calculatedScore * 0.40));
@@ -14724,14 +14830,14 @@
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayStart = today.getTime();
-    const todayRoutines = activeRoutines.filter(r => r.timestamp >= todayStart);
+    const todayRoutines = (Array.isArray(activeRoutines) ? activeRoutines : []).filter(r => r && (r.endTs || r.timestamp || 0) >= todayStart);
 
     const sleepLogs = todayRoutines.filter(r => r.type === 'sleep');
     const totalSleepMins = sleepLogs.reduce((acc, s) => acc + (s.durationMins || 0), 0);
     const longestSleepMins = sleepLogs.length > 0 ? Math.max(...sleepLogs.map(s => s.durationMins || 0)) : 0;
     
     const nightWakes = sleepLogs.filter(s => {
-      const h = new Date(s.timestamp).getHours();
+      const h = new Date(s.endTs || s.timestamp).getHours();
       return h >= 22 || h < 7;
     }).length;
 
@@ -14759,7 +14865,7 @@
     diaperLogs.forEach(d => {
       if (d.kind === 'wet') wetCount++;
       else if (d.kind === 'dirty') dirtyCount++;
-      else if (d.kind === 'both') { wetCount++; dirtyCount++; }
+      else if (d.kind === 'both' || d.kind === 'mixed') { wetCount++; dirtyCount++; }
       else if (d.detail && typeof d.detail === 'string') {
         const dl = d.detail.toLowerCase();
         if (/ıslak|wet|nass/.test(dl)) wetCount++;
@@ -14826,7 +14932,7 @@
       ? ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa']
       : (isEn() ? ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'] : ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt']);
     if (typeof updateLastSleepQuickEditBar === 'function') updateLastSleepQuickEditBar();
-    const sleepLogs = activeRoutines.filter(r => r.type === 'sleep');
+    const sleepLogs = (Array.isArray(activeRoutines) ? activeRoutines : []).filter(r => r && r.type === 'sleep');
     const buckets = [];
     for (let i = 6; i >= 0; i--) {
       const d = new Date();
@@ -14835,7 +14941,10 @@
       const start = d.getTime();
       const end = start + 86400000;
       const mins = sleepLogs
-        .filter(s => s.timestamp >= start && s.timestamp < end)
+        .filter(s => {
+          const sTs = s.endTs || s.timestamp || 0;
+          return sTs >= start && sTs < end;
+        })
         .reduce((acc, s) => acc + (s.durationMins || 0), 0);
       buckets.push({ day: i === 0 ? trEnDe('Bugün', 'Today', 'Heute') : dayNames[d.getDay()], mins });
     }
@@ -14859,11 +14968,14 @@
     });
 
     const totalMins = buckets.reduce((acc, b) => acc + b.mins, 0);
+    const activeDaysCount = buckets.filter(b => b.mins > 0).length;
     const avgEl = document.getElementById('weekly-avg-sleep-val');
     if (avgEl) {
-      if (totalMins > 0) {
-        const avgHours = (totalMins / (7 * 60)).toFixed(1);
-        avgEl.textContent = trEnDe(`${avgHours} Saat`, `${avgHours} Hours`, `${avgHours} Std.`);
+      if (totalMins > 0 && activeDaysCount > 0) {
+        const avgHours = (totalMins / (activeDaysCount * 60)).toFixed(1);
+        avgEl.textContent = activeDaysCount < 7
+          ? trEnDe(`${avgHours} Saat (${activeDaysCount}g ort.)`, `${avgHours} Hours (${activeDaysCount}d avg)`, `${avgHours} Std. (${activeDaysCount}T Ø)`)
+          : trEnDe(`${avgHours} Saat`, `${avgHours} Hours`, `${avgHours} Std.`);
       } else {
         avgEl.textContent = '—';
       }
@@ -14871,6 +14983,80 @@
   }
 
   let activeRoutineFilter = 'all';
+  let activeRoutineRange = 'all';
+
+  function getLocalDateIsoString(dtObj) {
+    const d = dtObj instanceof Date && !isNaN(dtObj.getTime()) ? dtObj : new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
+  function formatShortMonthDay(dtObj, langCode) {
+    const d = dtObj instanceof Date && !isNaN(dtObj.getTime()) ? dtObj : new Date();
+    const l = langCode || getAppLang();
+    const monthsTr = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
+    const monthsEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const monthsDe = ['Jan.', 'Feb.', 'Mär.', 'Apr.', 'Mai', 'Jun.', 'Jul.', 'Aug.', 'Sep.', 'Okt.', 'Nov.', 'Dez.'];
+    const dayNum = d.getDate();
+    if (l === 'en') return `${monthsEn[d.getMonth()]} ${dayNum}`;
+    if (l === 'de') return `${dayNum}. ${monthsDe[d.getMonth()]}`;
+    return `${dayNum} ${monthsTr[d.getMonth()]}`;
+  }
+
+  function formatRoutineGroupDayHeader(ts, nowRef) {
+    const now = nowRef instanceof Date ? nowRef : new Date();
+    const d = new Date(ts || now.getTime());
+    const l = getAppLang();
+    const dayDiff = typeof diffCalendarDays === 'function' ? diffCalendarDays(d, now) : 0;
+    const shortMd = formatShortMonthDay(d, l);
+    if (dayDiff === 0) {
+      return l === 'de' ? `📅 Heute • ${shortMd}` : (l === 'en' ? `📅 Today • ${shortMd}` : `📅 Bugün • ${shortMd}`);
+    }
+    if (dayDiff === 1) {
+      return l === 'de' ? `📅 Gestern • ${shortMd}` : (l === 'en' ? `📅 Yesterday • ${shortMd}` : `📅 Dün • ${shortMd}`);
+    }
+    const wkTr = ['Paz', 'Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt'];
+    const wkEn = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const wkDe = ['So.', 'Mo.', 'Di.', 'Mi.', 'Do.', 'Fr.', 'Sa.'];
+    const wk = l === 'de' ? wkDe[d.getDay()] : (l === 'en' ? wkEn[d.getDay()] : wkTr[d.getDay()]);
+    const yrSuffix = d.getFullYear() !== now.getFullYear() ? ` ${d.getFullYear()}` : '';
+    return l === 'en' ? `📅 ${wk}, ${shortMd}${yrSuffix}` : `📅 ${shortMd}${yrSuffix} ${wk}`;
+  }
+
+  function formatRoutineCardTimeWithDate(r, nowRef) {
+    const now = nowRef instanceof Date ? nowRef : new Date();
+    const l = getAppLang();
+    const endTs = (r && (r.endTs || r.timestamp)) || now.getTime();
+    const endDt = new Date(endTs);
+    const endDayDiff = typeof diffCalendarDays === 'function' ? diffCalendarDays(endDt, now) : 0;
+
+    if (r && r.type === 'sleep') {
+      const ext = extractSleepStartEnd(r);
+      const startTs = r.startTs || (endTs - (r.durationMins || 45) * 60000);
+      const startDt = new Date(startTs);
+      const crossedDay = getLocalDateIsoString(startDt) !== getLocalDateIsoString(endDt);
+      if (endDayDiff === 0) {
+        if (crossedDay) {
+          const prevLbl = l === 'de' ? 'Gestern' : (l === 'en' ? 'Yest.' : 'Dün');
+          return `${prevLbl} ${ext.start} - ${ext.end}`;
+        }
+        return `${ext.start} - ${ext.end}`;
+      }
+      if (endDayDiff === 1 && !crossedDay) {
+        const yLbl = l === 'de' ? 'Gestern' : (l === 'en' ? 'Yest.' : 'Dün');
+        return `${yLbl} • ${ext.start} - ${ext.end}`;
+      }
+      return `${formatShortMonthDay(endDt, l)} • ${ext.start} - ${ext.end}`;
+    }
+
+    const hhmm = (r && r.time) ? r.time : formatTimeHHMM(endDt);
+    if (endDayDiff === 0) return hhmm;
+    if (endDayDiff === 1) {
+      const yLbl = l === 'de' ? 'Gestern' : (l === 'en' ? 'Yest.' : 'Dün');
+      return `${yLbl} • ${hhmm}`;
+    }
+    return `${formatShortMonthDay(endDt, l)} • ${hhmm}`;
+  }
+
   function filterRoutineCategory(type, btn) {
     hapticPulse();
     activeRoutineFilter = type;
@@ -14879,18 +15065,50 @@
     renderAnalyticsRoutinesTimeline(type);
   }
 
+  function filterRoutineDateRange(range, btn) {
+    hapticPulse();
+    activeRoutineRange = ['all', '7d', 'today'].includes(range) ? range : 'all';
+    document.querySelectorAll('#analytics-date-range-pills .routine-range-pill').forEach(p => {
+      const isAct = p.getAttribute('data-rrange') === activeRoutineRange;
+      p.classList.toggle('active', isAct);
+      p.style.border = isAct ? '1px solid var(--accent)' : '1px solid var(--border-night)';
+      p.style.background = isAct ? 'rgba(244, 162, 97, 0.18)' : 'var(--surface-pill)';
+      p.style.color = isAct ? 'var(--accent)' : 'var(--text-night)';
+      p.style.fontWeight = isAct ? '700' : '600';
+    });
+    if (btn) btn.classList.add('active');
+    renderAnalyticsRoutinesTimeline(activeRoutineFilter);
+  }
+  window.filterRoutineDateRange = filterRoutineDateRange;
+
   function renderAnalyticsRoutinesTimeline(filter = 'all') {
     const list = document.getElementById('analytics-routines-timeline');
     if (!list) return;
     list.innerHTML = '';
 
-    const filtered = activeRoutines.filter(r => filter === 'all' ? true : r.type === filter);
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0).getTime();
+    const sevenDaysStart = todayStart - 6 * 86400000;
+
+    const filtered = (Array.isArray(activeRoutines) ? activeRoutines : [])
+      .filter(r => {
+        if (!r) return false;
+        if (filter !== 'all' && r.type !== filter) return false;
+        const rTs = r.endTs || r.timestamp || 0;
+        if (activeRoutineRange === 'today') return rTs >= todayStart;
+        if (activeRoutineRange === '7d') return rTs >= sevenDaysStart;
+        return true;
+      })
+      .sort((a, b) => ((b.endTs || b.timestamp || 0) - (a.endTs || a.timestamp || 0)));
 
     if (filtered.length === 0) {
       const targetType = (filter && filter !== 'all') ? filter : 'sleep';
+      const emptyMsg = activeRoutineRange === 'today'
+        ? trEnDe('Bugün bu kategoride henüz kayıt bulunmuyor.', 'No routines logged today in this category yet.', 'Heute wurden in dieser Kategorie noch keine Routinen eingetragen.')
+        : trEnDe('Bu kategoride henüz kayıtlı rutin bulunmuyor.', 'No routines logged in this category yet.', 'In dieser Kategorie wurden noch keine Routinen eingetragen.');
       list.innerHTML = `
         <div style="text-align: center; padding: 24px 14px; color: var(--text-muted); font-size: 12px; background: rgba(255,255,255,0.02); border-radius: 14px; border: 1px dashed rgba(255,255,255,0.14);">
-          📭 <strong>${trEnDe('Bu kategoride henüz kayıtlı rutin bulunmuyor.', 'No routines logged in this category yet.', 'In dieser Kategorie wurden noch keine Routinen eingetragen.')}</strong><br>
+          📭 <strong>${emptyMsg}</strong><br>
           <span style="color: var(--text-night); font-size: 11px;">${trEnDe('Bebeğinizin uyku, beslenme veya bez kaydını tek dokunuşla ekleyin:', 'Log your baby\'s sleep, feeding, or diaper change with one tap:', 'Tragen Sie Schlaf, Mahlzeit oder Windelwechsel mit einem Tippen ein:')}</span>
           <div style="margin-top: 10px;">
             <button type="button" onclick="openRoutineModalFor('${targetType}')" style="background: var(--accent); color: #13101C; border: none; border-radius: 10px; padding: 8px 14px; font-size: 11px; font-weight: 800; cursor: pointer;">${trEnDe('+ İlk Rutini Ekle', '+ Log First Routine', '+ Erste Routine eintragen')}</button>
@@ -14900,24 +15118,39 @@
       return;
     }
 
+    let lastDayKey = '';
     filtered.forEach((r, idx) => {
+      const rTs = r.endTs || r.timestamp || now.getTime();
+      const dayKey = getLocalDateIsoString(new Date(rTs));
+      const nextR = filtered[idx + 1];
+      const nextDayKey = nextR ? getLocalDateIsoString(new Date(nextR.endTs || nextR.timestamp || now.getTime())) : '';
+
+      if (dayKey !== lastDayKey) {
+        lastDayKey = dayKey;
+        const headerEl = document.createElement('div');
+        headerEl.style.cssText = 'font-family: "Sora"; font-size: 11px; font-weight: 700; color: var(--accent); letter-spacing: 0.3px; margin: ' + (idx === 0 ? '2px 0 8px 2px;' : '14px 0 8px 2px;') + ' display: flex; align-items: center; justify-content: space-between;';
+        headerEl.textContent = formatRoutineGroupDayHeader(rTs, now);
+        list.appendChild(headerEl);
+      }
+
       const item = document.createElement('div');
       item.className = 'timeline-item';
+      const timeWithDate = formatRoutineCardTimeWithDate(r, now);
       item.innerHTML = `
         <div class="timeline-left">
-          <div class="timeline-dot">${r.icon}</div>
-          ${idx !== filtered.length - 1 ? '<div class="timeline-line"></div>' : ''}
+          <div class="timeline-dot">${r.icon || '✨'}</div>
+          ${nextDayKey === dayKey ? '<div class="timeline-line"></div>' : ''}
         </div>
         <div class="timeline-card">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px;">
             <div>
               <span style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: #FFF;">${escapeHtml(formatRoutineTitleDisplay(r))}</span>
               <div style="font-size: 11px; color: var(--text-night); margin-top: 2px;">
                 ${escapeHtml(formatRoutineDetailDisplay(r))}
               </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 8px;">
-              <span onclick="openEditRoutineModal('${r.id}')" style="font-size: 11px; color: var(--accent); font-weight: 700; cursor: pointer;" title="${trEnDe('Kaydı Düzenle', 'Edit Entry', 'Eintrag bearbeiten')}">${r.type === 'sleep' ? (extractSleepStartEnd(r).start + ' - ' + extractSleepStartEnd(r).end) : r.time}</span><button onclick="openEditRoutineModal('${r.id}')" style="background: rgba(244, 162, 97, 0.16); border: 1px solid rgba(244, 162, 97, 0.4); color: var(--accent); cursor: pointer; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 8px;" title="${trEnDe('Kaydı Düzenle', 'Edit Entry', 'Eintrag bearbeiten')}">${trEnDe('✏️ Düzenle', '✏️ Edit', '✏️ Bearbeiten')}</button>
+            <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+              <span onclick="openEditRoutineModal('${r.id}')" style="font-size: 11px; color: var(--accent); font-weight: 700; cursor: pointer;" title="${trEnDe('Kaydı Düzenle', 'Edit Entry', 'Eintrag bearbeiten')}">${escapeHtml(timeWithDate)}</span><button onclick="openEditRoutineModal('${r.id}')" style="background: rgba(244, 162, 97, 0.16); border: 1px solid rgba(244, 162, 97, 0.4); color: var(--accent); cursor: pointer; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 8px;" title="${trEnDe('Kaydı Düzenle', 'Edit Entry', 'Eintrag bearbeiten')}">${trEnDe('✏️ Düzenle', '✏️ Edit', '✏️ Bearbeiten')}</button>
               <button onclick="deleteRoutine('${r.id}')" style="background: transparent; border: none; color: var(--danger); cursor: pointer; font-size: 13px; padding: 2px 4px;" title="${trEnDe('Kaydı Sil', 'Delete', 'Löschen')}">🗑️</button>
             </div>
           </div>
@@ -15477,9 +15710,11 @@
     const feedLogs = routines.filter(r => r.type === 'feeding').sort((a, b) => b.timestamp - a.timestamp);
     const lastFeedHours = feedLogs.length > 0 ? ((now - feedLogs[0].timestamp) / (1000 * 3600)) : 1.8;
 
-    // Son uyku / uyanıklık
-    const sleepLogs = routines.filter(r => r.type === 'sleep').sort((a, b) => b.timestamp - a.timestamp);
-    const lastWakeMins = sleepLogs.length > 0 ? ((now - sleepLogs[0].timestamp) / 60000) : (calc.wakeWindowMin * 0.7);
+    // Son uyku / uyanıklık (48 saatlik "Dün" desteği + onboarding uyanış yedeği)
+    const sleepLogs = routines.filter(r => r && r.type === 'sleep' && (r.endTs || r.timestamp)).sort((a, b) => (b.endTs || b.timestamp || 0) - (a.endTs || a.timestamp || 0));
+    const latestSleepWakeTs = sleepLogs.length > 0 ? (sleepLogs[0].endTs || sleepLogs[0].timestamp) : (Number(localStorage.getItem('mishil_onboarding_last_wake_ts') || '0') || 0);
+    const rawWakeElapsedMins = latestSleepWakeTs > 0 ? ((now - latestSleepWakeTs) / 60000) : -1;
+    const lastWakeMins = (rawWakeElapsedMins >= 0 && rawWakeElapsedMins < 2880) ? rawWakeElapsedMins : (calc.wakeWindowMin * 0.7);
     const isOvertired = lastWakeMins >= calc.wakeWindowMin;
 
     // Sıçrama / atak haftası
@@ -15891,7 +16126,7 @@
           disp.style.cursor = 'pointer';
           disp.onclick = () => openVipRenewalModal('mishil_spot');
         } else {
-          disp.textContent = calc.displayTime || calc.sweetSpotTime;
+          disp.textContent = calc.heroDisplayTime || calc.displayTime || calc.sweetSpotTime;
           disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
           disp.style.cursor = 'default';
           disp.onclick = null;
@@ -16218,17 +16453,100 @@
     };
   }
 
-  function resolveSleepTimestamps(startStr, endStr, referenceTs, referenceStartTs) {
+  function syncRoutineModalDatePills() {
+    const inp = document.getElementById('routine-modal-date');
+    const pToday = document.getElementById('routine-date-pill-today');
+    const pYest = document.getElementById('routine-date-pill-yesterday');
+    const now = new Date();
+    const todayIso = getLocalDateIsoString(now);
+    const yestDt = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    const yestIso = getLocalDateIsoString(yestDt);
+    if (inp) {
+      inp.max = todayIso;
+      if (inp.value && inp.value > todayIso) {
+        inp.value = todayIso;
+      }
+    }
+    const curVal = (inp && inp.value) ? inp.value : todayIso;
+    const isToday = curVal === todayIso;
+    const isYest = curVal === yestIso;
+    if (pToday) {
+      pToday.style.border = isToday ? '1.5px solid var(--accent)' : '1px solid var(--border-night)';
+      pToday.style.background = isToday ? 'var(--accent)' : 'var(--surface-pill)';
+      pToday.style.color = isToday ? '#13101C' : 'var(--text-night)';
+      pToday.style.fontWeight = isToday ? '800' : '700';
+    }
+    if (pYest) {
+      pYest.style.border = isYest ? '1.5px solid var(--accent)' : '1px solid var(--border-night)';
+      pYest.style.background = isYest ? 'var(--accent)' : 'var(--surface-pill)';
+      pYest.style.color = isYest ? '#13101C' : 'var(--text-night)';
+      pYest.style.fontWeight = isYest ? '800' : '700';
+    }
+  }
+  window.syncRoutineModalDatePills = syncRoutineModalDatePills;
+
+  function setRoutineModalQuickDate(offsetDays) {
+    hapticSelection();
+    const inp = document.getElementById('routine-modal-date');
+    const now = new Date();
+    const safeOffset = Math.min(0, Number(offsetDays) || 0);
+    const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + safeOffset);
+    if (inp) {
+      inp.max = getLocalDateIsoString(now);
+      inp.value = getLocalDateIsoString(target);
+    }
+    syncRoutineModalDatePills();
+  }
+  window.setRoutineModalQuickDate = setRoutineModalQuickDate;
+
+  function resolveModalEventDate(explicitDateStr, timeHHMM, existingItem, nowRef) {
+    const now = nowRef instanceof Date ? nowRef : new Date();
+    const [evH, evM] = normalizeHHMM(timeHHMM, formatTimeHHMM(now)).split(':').map(Number);
+    const parsedExplicit = (explicitDateStr && typeof parseLocalYYYYMMDD === 'function')
+      ? parseLocalYYYYMMDD(explicitDateStr)
+      : null;
+    let baseEvtDate;
+    if (parsedExplicit) {
+      baseEvtDate = new Date(parsedExplicit.getFullYear(), parsedExplicit.getMonth(), parsedExplicit.getDate(), evH || 0, evM || 0, 0, 0);
+    } else if (existingItem && existingItem.timestamp) {
+      baseEvtDate = new Date(existingItem.timestamp);
+      baseEvtDate.setHours(evH || 0, evM || 0, 0, 0);
+    } else {
+      baseEvtDate = new Date(now);
+      baseEvtDate.setHours(evH || 0, evM || 0, 0, 0);
+    }
+    if (baseEvtDate.getTime() > now.getTime() + 5 * 60000) {
+      const todayIso = getLocalDateIsoString(now);
+      if (parsedExplicit && getLocalDateIsoString(parsedExplicit) === todayIso) {
+        const clamped = new Date(now.getTime());
+        clamped.setSeconds(0, 0);
+        return clamped;
+      }
+      while (baseEvtDate.getTime() > now.getTime() + 5 * 60000) {
+        baseEvtDate.setDate(baseEvtDate.getDate() - 1);
+      }
+    }
+    return baseEvtDate;
+  }
+
+  function resolveSleepTimestamps(startStr, endStr, referenceTs, referenceStartTs, explicitDateStr, nowRef) {
     const [sh, sm] = normalizeHHMM(startStr, '13:00').split(':').map(Number);
     const [eh, em] = normalizeHHMM(endStr, '14:15').split(':').map(Number);
     const startMins = (sh || 0) * 60 + (sm || 0);
-    let endMins = (eh || 0) * 60 + (em || 0);
+    const rawEndMins = (eh || 0) * 60 + (em || 0);
+    let endMins = rawEndMins;
     if (endMins < startMins) endMins += 24 * 60;
-    const durMins = Math.max(1, endMins - startMins);
+    let durMins = Math.max(1, endMins - startMins);
 
-    const nowMs = Date.now();
+    const nowDate = nowRef instanceof Date ? nowRef : new Date();
+    const nowMs = nowDate.getTime();
+    const parsedExplicit = (explicitDateStr && typeof parseLocalYYYYMMDD === 'function')
+      ? parseLocalYYYYMMDD(explicitDateStr)
+      : null;
     let endDate;
-    if (referenceStartTs) {
+    if (parsedExplicit) {
+      endDate = new Date(parsedExplicit.getFullYear(), parsedExplicit.getMonth(), parsedExplicit.getDate(), eh || 0, em || 0, 0, 0);
+    } else if (referenceStartTs) {
       const baseStart = new Date(referenceStartTs);
       baseStart.setHours(sh || 0, sm || 0, 0, 0);
       if (baseStart.getTime() - referenceStartTs > 12 * 3600000) baseStart.setDate(baseStart.getDate() - 1);
@@ -16247,9 +16565,34 @@
       }
     }
 
-    // Gelecek zaman koruması: Bitiş saati şu andan 5 dk'dan fazla ilerideyse dün geceye çek
-    while (endDate.getTime() > nowMs + 5 * 60000) {
-      endDate.setDate(endDate.getDate() - 1);
+    // Gelecek zaman koruması: Açıkça "Bugün" seçildiyse dünü zorlamak yerine şu ana sabitle (clamp);
+    // aksi halde (açık tarih yok veya taşma) bir önceki güne çek.
+    if (endDate.getTime() > nowMs + 5 * 60000) {
+      const todayIso = getLocalDateIsoString(nowDate);
+      if (parsedExplicit && getLocalDateIsoString(parsedExplicit) === todayIso) {
+        const clampedEnd = new Date(nowMs);
+        clampedEnd.setSeconds(0, 0);
+        endDate = clampedEnd;
+        const startDayOffset = rawEndMins < startMins ? -1 : 0;
+        const candStart = new Date(
+          parsedExplicit.getFullYear(),
+          parsedExplicit.getMonth(),
+          parsedExplicit.getDate() + startDayOffset,
+          sh || 0,
+          sm || 0,
+          0,
+          0
+        );
+        if (candStart.getTime() < endDate.getTime()) {
+          durMins = Math.max(1, Math.round((endDate.getTime() - candStart.getTime()) / 60000));
+          return { startDate: candStart, endDate, durMins };
+        }
+        const fallbackStart = new Date(endDate.getTime() - durMins * 60000);
+        return { startDate: fallbackStart, endDate, durMins };
+      }
+      while (endDate.getTime() > nowMs + 5 * 60000) {
+        endDate.setDate(endDate.getDate() - 1);
+      }
     }
     const startDate = new Date(endDate.getTime() - durMins * 60000);
     return { startDate, endDate, durMins };
@@ -16276,7 +16619,9 @@
       bar.style.display = 'none';
       return;
     }
-    const sleepLogs = (Array.isArray(activeRoutines) ? activeRoutines : []).filter(r => r.type === 'sleep');
+    const sleepLogs = (Array.isArray(activeRoutines) ? activeRoutines : [])
+      .filter(r => r && r.type === 'sleep')
+      .sort((a, b) => ((b.endTs || b.timestamp || 0) - (a.endTs || a.timestamp || 0)));
     if (sleepLogs.length === 0) {
       bar.style.display = 'none';
       return;
@@ -16286,8 +16631,8 @@
     const dText = Math.floor(dMins / 60) > 0
       ? trEnDe(`${Math.floor(dMins / 60)}s ${dMins % 60}dk`, `${Math.floor(dMins / 60)}h ${dMins % 60}m`, `${Math.floor(dMins / 60)} Std. ${dMins % 60} Min.`)
       : trEnDe(`${dMins} dk`, `${dMins} min`, `${dMins} Min.`);
-    const extracted = extractSleepStartEnd(last);
-    const range = `${extracted.start} - ${extracted.end} (${dText})`;
+    const timeLabel = formatRoutineCardTimeWithDate(last, new Date());
+    const range = `${timeLabel} (${dText})`;
     sumEl.textContent = range;
     bar.style.display = 'flex';
   }
@@ -16395,6 +16740,13 @@
     if (evTimeInput) {
       evTimeInput.value = normalizeHHMM(item.time, item.timestamp ? formatTimeHHMM(item.timestamp) : formatTimeHHMM(new Date()));
     }
+    const dateInput = document.getElementById('routine-modal-date');
+    if (dateInput) {
+      const refItemTs = item.endTs || item.timestamp || Date.now();
+      dateInput.max = getLocalDateIsoString(new Date());
+      dateInput.value = getLocalDateIsoString(new Date(refItemTs));
+      syncRoutineModalDatePills();
+    }
 
     if (item.type === 'sleep') {
       const startInput = document.getElementById('routine-modal-start');
@@ -16438,6 +16790,8 @@
     const existingItem = existingIdx !== -1 ? activeRoutines[existingIdx] : null;
     const isEditing = !!existingItem;
 
+    const explicitDateStr = ((document.getElementById('routine-modal-date') || {}).value || '').trim();
+
     if (type === 'sleep') {
       const start = document.getElementById('routine-modal-start').value || '13:00';
       const end = document.getElementById('routine-modal-end').value || '14:15';
@@ -16448,7 +16802,9 @@
       const quality = document.getElementById('routine-modal-quality').value || 'Derin Uyku';
       const refTs = existingItem ? (existingItem.endTs || existingItem.timestamp) : null;
       const refStartTs = existingItem ? existingItem.startTs : null;
-      const { startDate, endDate, durMins } = resolveSleepTimestamps(start, end, refTs, refStartTs);
+      const { startDate, endDate, durMins } = resolveSleepTimestamps(start, end, refTs, refStartTs, explicitDateStr, now);
+      const effectiveStart = formatTimeHHMM(startDate);
+      const effectiveEnd = formatTimeHHMM(endDate);
 
       const sh = startDate.getHours();
       const isNight = sh >= 20 || sh < 7;
@@ -16466,10 +16822,10 @@
         sleepKind: isNight ? 'night' : 'nap',
         napIndex: sleepCount,
         title: sleepTitle,
-        detail: trEnDe(`${durMins} dk ${quality} (${start} - ${end})`, `${durMins} min (${start} - ${end})`, `${durMins} Min. (${start} - ${end})`),
-        time: end,
-        start: start,
-        end: end,
+        detail: trEnDe(`${durMins} dk ${quality} (${effectiveStart} - ${effectiveEnd})`, `${durMins} min (${effectiveStart} - ${effectiveEnd})`, `${durMins} Min. (${effectiveStart} - ${effectiveEnd})`),
+        time: effectiveEnd,
+        start: effectiveStart,
+        end: effectiveEnd,
         timestamp: endDate.getTime(),
         startTs: startDate.getTime(),
         endTs: endDate.getTime(),
@@ -16491,7 +16847,7 @@
       const _calc = _baby ? calculateMışılSpot(_baby.bdate) : { sweetSpotTime: '--:--', wakeWindowMin: 90 };
       const _spotText = isMishilSpotLocked() ? `${maskSpotTimeStr(_calc.sweetSpotTime)} 🔒` : _calc.sweetSpotTime;
       showToast(isEditing
-        ? trEnDe(`✅ Uyku saati güncellendi (${start} - ${end} • ${durMins} dk). Sıradaki MışılSpot: ${_spotText}`, `✅ Sleep time updated (${start} - ${end} • ${durMins} min). Next MışılSpot: ${_spotText}`, `✅ Schlafzeit aktualisiert (${start} - ${end} • ${durMins} Min.). Nächster MışılSpot: ${_spotText}`)
+        ? trEnDe(`✅ Uyku saati güncellendi (${effectiveStart} - ${effectiveEnd} • ${durMins} dk). Sıradaki MışılSpot: ${_spotText}`, `✅ Sleep time updated (${effectiveStart} - ${effectiveEnd} • ${durMins} min). Next MışılSpot: ${_spotText}`, `✅ Schlafzeit aktualisiert (${effectiveStart} - ${effectiveEnd} • ${durMins} Min.). Nächster MışılSpot: ${_spotText}`)
         : trEnDe(`🌙 ${durMins} dk uyku kaydedildi! Sıradaki MışılSpot: ${_spotText}`, `🌙 ${durMins} min sleep logged! Next MışılSpot: ${_spotText}`, `🌙 ${durMins} Min. Schlaf gespeichert! Nächster MışılSpot: ${_spotText}`));
 
       try {
@@ -16518,9 +16874,8 @@
       const note = (document.getElementById('routine-modal-feed-note').value || '').trim();
       const evTimeVal = (document.getElementById('routine-modal-event-time') || {}).value;
       const timeNow = normalizeHHMM(evTimeVal, existingItem ? (existingItem.time || formatTimeHHMM(now)) : formatTimeHHMM(now));
-      const baseEvtDate = existingItem && existingItem.timestamp ? new Date(existingItem.timestamp) : new Date(now);
-      const [evH, evM] = timeNow.split(':').map(Number);
-      baseEvtDate.setHours(evH || 0, evM || 0, 0, 0);
+      const baseEvtDate = resolveModalEventDate(explicitDateStr, timeNow, existingItem, now);
+      const effectiveFeedTime = formatTimeHHMM(baseEvtDate);
       let detail = isDe()
         ? (FEED_METHOD_LABEL_DE[method] || FEED_METHOD_LABEL[method])
         : (isEn() ? (FEED_METHOD_LABEL_EN[method] || FEED_METHOD_LABEL[method]) : FEED_METHOD_LABEL[method]);
@@ -16537,7 +16892,7 @@
         durationMin: durationMin,
         note: note,
         detail: detail,
-        time: timeNow,
+        time: effectiveFeedTime,
         timestamp: baseEvtDate.getTime(),
         durationMins: 0
       };
@@ -16557,9 +16912,8 @@
           : ({ wet: 'Islak (çiş)', dirty: 'Kirli (kaka)', mixed: 'Dolu (çiş + kaka)', both: 'Dolu (çiş + kaka)' }[kind] || kind));
       const evTimeVal = (document.getElementById('routine-modal-event-time') || {}).value;
       const timeNow = normalizeHHMM(evTimeVal, existingItem ? (existingItem.time || formatTimeHHMM(now)) : formatTimeHHMM(now));
-      const baseEvtDate = existingItem && existingItem.timestamp ? new Date(existingItem.timestamp) : new Date(now);
-      const [evH, evM] = timeNow.split(':').map(Number);
-      baseEvtDate.setHours(evH || 0, evM || 0, 0, 0);
+      const baseEvtDate = resolveModalEventDate(explicitDateStr, timeNow, existingItem, now);
+      const effectiveDiaperTime = formatTimeHHMM(baseEvtDate);
       const diaperObj = {
         id: existingItem ? existingItem.id : ('rt_' + Date.now()),
         type: 'diaper',
@@ -16567,7 +16921,7 @@
         title: trEnDe('Bez Değişimi', 'Diaper Change', 'Windelwechsel'),
         kind: kind,
         detail: kindLabel,
-        time: timeNow,
+        time: effectiveDiaperTime,
         timestamp: baseEvtDate.getTime(),
         durationMins: 0
       };
@@ -16582,9 +16936,8 @@
       const customDetail = document.getElementById('routine-modal-custom-detail').value || trEnDe('Özel Rutin', 'Custom Routine', 'Eigene Routine');
       const evTimeVal = (document.getElementById('routine-modal-event-time') || {}).value;
       const timeNow = normalizeHHMM(evTimeVal, existingItem ? (existingItem.time || formatTimeHHMM(now)) : formatTimeHHMM(now));
-      const baseEvtDate = existingItem && existingItem.timestamp ? new Date(existingItem.timestamp) : new Date(now);
-      const [evH, evM] = timeNow.split(':').map(Number);
-      baseEvtDate.setHours(evH || 0, evM || 0, 0, 0);
+      const baseEvtDate = resolveModalEventDate(explicitDateStr, timeNow, existingItem, now);
+      const effectiveCustomTime = formatTimeHHMM(baseEvtDate);
       const customObj = {
         id: existingItem ? existingItem.id : ('rt_' + Date.now()),
         type: 'custom',
@@ -16592,7 +16945,7 @@
         title: trEnDe('Özel Rutin', 'Custom Routine', 'Eigene Routine'),
         customNote: customDetail,
         detail: customDetail,
-        time: timeNow,
+        time: effectiveCustomTime,
         timestamp: baseEvtDate.getTime(),
         durationMins: 0
       };
@@ -16646,6 +16999,13 @@
     if (endInput) endInput.value = `${endH}:${endM}`;
     const evTimeInput = document.getElementById('routine-modal-event-time');
     if (evTimeInput) evTimeInput.value = `${endH}:${endM}`;
+    const dateInput = document.getElementById('routine-modal-date');
+    if (dateInput) {
+      const todayIso = getLocalDateIsoString(now);
+      dateInput.max = todayIso;
+      dateInput.value = todayIso;
+      syncRoutineModalDatePills();
+    }
 
     // Alan görünürlüğünü seçili türle senkronla (select değeri modal kapansa da kalıyor)
     const sel = document.getElementById('routine-modal-type');
@@ -17428,7 +17788,12 @@
     "Günün tüm uyku saatleri, kilit ekranı ninnileri ve 7/24 Mışıl Dadı rehberliği bugün ₺0 ile anında açılır.": "All daily sleep windows, lock-screen lullabies, and 24/7 Mışıl Nanny coaching unlock instantly for $0 today.",
     "7 günlük ücretsiz deneme bitiminde seçilen plan üzerinden mağaza hesabınıza yansıtılır. Dönem bitiminden en az 24 saat önce mağaza ayarlarından iptal edilmediği sürece otomatik yenilenir.": "Charged to your store account at the selected plan rate after the 7-day free trial unless canceled in store settings at least 24 hours before period end.",
     "Şimdilik sınırlı modda devam et": "Continue in limited mode for now",
-    "Bu işlem bebeğinize ait tüm uyku günlüklerini, rutin kayıtlarını ve profil verilerini kalıcı olarak silecektir; cihaz bazlı tek seferlik ücretsiz deneme hakları sıfırlanmaz. (Apple Guideline 5.1.1).": "This permanently deletes all sleep logs, routine records, and profile data for your baby; device-level one-time free preview quotas are not reset. (Apple Guideline 5.1.1)."
+    "Bu işlem bebeğinize ait tüm uyku günlüklerini, rutin kayıtlarını ve profil verilerini kalıcı olarak silecektir; cihaz bazlı tek seferlik ücretsiz deneme hakları sıfırlanmaz. (Apple Guideline 5.1.1).": "This permanently deletes all sleep logs, routine records, and profile data for your baby; device-level one-time free preview quotas are not reset. (Apple Guideline 5.1.1).",
+    "Kayıt Tarihi": "Log Date",
+    "Bugün": "Today",
+    "Dün": "Yesterday",
+    "Son 7 Gün": "Last 7 Days",
+    "Tüm Günler": "All Days"
   };
 
   const TR_TO_DE_EXACT_MAP = {
@@ -18127,7 +18492,12 @@
     "Günün tüm uyku saatleri, kilit ekranı ninnileri ve 7/24 Mışıl Dadı rehberliği bugün ₺0 ile anında açılır.": "Alle täglichen Schlaffenster, Sperrbildschirm-Klänge und 24/7 Mışıl Nanny werden heute für 0 € sofort freigeschaltet.",
     "7 günlük ücretsiz deneme bitiminde seçilen plan üzerinden mağaza hesabınıza yansıtılır. Dönem bitiminden en az 24 saat önce mağaza ayarlarından iptal edilmediği sürece otomatik yenilenir.": "Nach Ablauf der 7-tägigen Gratis-Testphase erfolgt die Abrechnung über Ihr Store-Konto gemäß gewähltem Tarif, sofern nicht mindestens 24 Stunden vor Ablauf in den Store-Einstellungen gekündigt wird.",
     "Şimdilik sınırlı modda devam et": "Vorerst im Basismodus fortfahren",
-    "Bu işlem bebeğinize ait tüm uyku günlüklerini, rutin kayıtlarını ve profil verilerini kalıcı olarak silecektir; cihaz bazlı tek seferlik ücretsiz deneme hakları sıfırlanmaz. (Apple Guideline 5.1.1).": "Dadurch werden alle Schlafprotokolle, Routinen und Profildaten Ihres Babys dauerhaft gelöscht; gerätebezogene einmalige Gratis-Testkontingente werden nicht zurückgesetzt. (Apple Guideline 5.1.1)."
+    "Bu işlem bebeğinize ait tüm uyku günlüklerini, rutin kayıtlarını ve profil verilerini kalıcı olarak silecektir; cihaz bazlı tek seferlik ücretsiz deneme hakları sıfırlanmaz. (Apple Guideline 5.1.1).": "Dadurch werden alle Schlafprotokolle, Routinen und Profildaten Ihres Babys dauerhaft gelöscht; gerätebezogene einmalige Gratis-Testkontingente werden nicht zurückgesetzt. (Apple Guideline 5.1.1).",
+    "Kayıt Tarihi": "Eintragsdatum",
+    "Bugün": "Heute",
+    "Dün": "Gestern",
+    "Son 7 Gün": "Letzte 7 Tage",
+    "Tüm Günler": "Alle Tage"
   };
 
   const REVERSE_TO_TR_EXACT_MAP = {};
@@ -18362,7 +18732,19 @@
       populatePrematureCombobox();
     }
     if (typeof populateRoutineTimeCombobox === 'function') {
-      ['sleep', 'feed', 'diaper'].forEach(prefix => populateRoutineTimeCombobox(prefix));
+      const defMinsMap = { sleep: 55, feed: 75, diaper: 95 };
+      ['sleep', 'feed', 'diaper'].forEach(prefix => {
+        let currentSelectedTs = null;
+        try {
+          const dEl = document.getElementById(`onb-${prefix}-day`);
+          const hEl = document.getElementById(`onb-${prefix}-hour`);
+          const mEl = document.getElementById(`onb-${prefix}-min`);
+          if (dEl && hEl && mEl && dEl.value && hEl.value !== '' && mEl.value !== '') {
+            currentSelectedTs = resolveRoutineEventTimestamp(dEl.value, parseInt(hEl.value, 10) || 0, parseInt(mEl.value, 10) || 0, new Date());
+          }
+        } catch (_cste) {}
+        populateRoutineTimeCombobox(prefix, defMinsMap[prefix] || 45, currentSelectedTs);
+      });
     }
     if (typeof selectOnboardingSleepState === 'function' && typeof onboardingSleepState === 'string') {
       selectOnboardingSleepState(onboardingSleepState);

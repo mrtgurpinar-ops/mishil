@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import * as Haptics from 'expo-haptics';
+import * as ExpoLinking from 'expo-linking';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initRevenueCat, purchasePackage, restorePurchases, getOfferings, hasActiveEntitlement, PRO_ENTITLEMENT_ID } from '../features/subscription/revenuecat';
@@ -31,6 +32,7 @@ import {
 } from '../features/notifications/careNotificationEngine';
 import { storage, APP_LANG_KEY } from '../lib/storage';
 import { triggerNativeStoreReview, NATIVE_REVIEW_STORAGE_KEY } from '../features/review/storeReviewService';
+import { isSleepDeepLink } from '../app/+native-intent';
 
 function getSystemLocale(): string {
   try {
@@ -117,6 +119,12 @@ export default function MishilUnifiedWebView() {
   const reconnectTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   // Satın alma akışı devam ederken arka plan kontrollerinin araya girip lisansı ezmesini önleyen işlem kilidi
   const isPurchaseInProgressRef = useRef(false);
+  const statusRef = useRef<Status>('loading');
+  const pendingSleepDeepLinkRef = useRef(false);
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   const updateNativeLang = useCallback((rawLang?: string | null) => {
     const norm = normalizeCareLang(rawLang || DEVICE_LANG);
@@ -205,6 +213,63 @@ export default function MishilUnifiedWebView() {
       `);
     } catch {}
   }, []);
+
+  // Kilit ekranı Canlı Uyku Etkinliği / bildirimi (misilbaby://sleep) tıklandığında WebView'i yeniden yüklemeden MışılSpot'a odakla
+  const focusSleepViewInWebView = useCallback(() => {
+    void nativeLiveSleep.reconcileNativeLiveSleepOnLaunch().then(() => sendLockscreenStateSync());
+    webviewRef.current?.injectJavaScript(`
+      (function(){
+        try {
+          var onbDone = localStorage.getItem('mishil_onboarding_completed') === 'true';
+          if (onbDone) {
+            if (typeof switchTab === 'function') switchTab('home');
+            if (typeof switchHomeSegment === 'function') switchHomeSegment('sweetspot');
+            if (typeof loadBabyProfile === 'function') loadBabyProfile();
+            if (typeof renderAllViews === 'function') renderAllViews();
+          }
+        } catch (e) {}
+        true;
+      })();
+    `);
+  }, [sendLockscreenStateSync]);
+
+  useEffect(() => {
+    let lastHandledAt = 0;
+    const handleIncomingDeepLink = (url?: string | null) => {
+      if (!isSleepDeepLink(url)) return;
+      const now = Date.now();
+      if (now - lastHandledAt < 500) return;
+      lastHandledAt = now;
+      if (statusRef.current === 'ready') {
+        focusSleepViewInWebView();
+      } else {
+        pendingSleepDeepLinkRef.current = true;
+      }
+    };
+
+    try {
+      const syncInitial = typeof ExpoLinking.getLinkingURL === 'function' ? ExpoLinking.getLinkingURL() : null;
+      if (syncInitial) {
+        handleIncomingDeepLink(syncInitial);
+      }
+    } catch {}
+
+    Linking.getInitialURL()
+      .then((initialUrl) => handleIncomingDeepLink(initialUrl))
+      .catch(() => {});
+
+    const expoSub = ExpoLinking.addEventListener('url', (evt) => {
+      handleIncomingDeepLink(evt?.url);
+    });
+    const rnSub = Linking.addEventListener('url', (evt) => {
+      handleIncomingDeepLink(evt?.url);
+    });
+
+    return () => {
+      expoSub.remove();
+      rnSub.remove();
+    };
+  }, [focusSleepViewInWebView]);
 
   // Android geri tuşu — WebView geçmişinde geri git
   useEffect(() => {
@@ -513,7 +578,12 @@ export default function MishilUnifiedWebView() {
     retryCountRef.current = 0;
     setStatus('ready');
     // Native olduğumuzu web tarafına bildir ve yerel AsyncStorage'daki verileri hidrate et
-    void hydrateWebViewStorage();
+    void hydrateWebViewStorage().finally(() => {
+      if (pendingSleepDeepLinkRef.current) {
+        pendingSleepDeepLinkRef.current = false;
+        focusSleepViewInWebView();
+      }
+    });
     webviewRef.current?.injectJavaScript(`
       (function() {
         if (window.MishilNative) {
@@ -586,7 +656,7 @@ export default function MishilUnifiedWebView() {
         `);
       } catch (e) {}
     })();
-  }, [syncEntitlementToWebView, hydrateWebViewStorage, sendLockscreenStateSync]);
+  }, [syncEntitlementToWebView, hydrateWebViewStorage, sendLockscreenStateSync, focusSleepViewInWebView]);
 
   // Ana çerçeve hatası (TLS, DNS, 5xx, timeout) → cold-start için sessiz retry,
   // denemeler tükenince gömülü çevrimdışı sürüme düş (boş ekran yerine)

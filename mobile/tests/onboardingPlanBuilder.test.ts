@@ -589,4 +589,149 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(html.includes("type: 'CLEAR_PERSONAL_DATA'")).toBe(true);
     expect(html.includes("type: 'SYNC_DEVICE_QUOTAS'")).toBe(true);
   });
+
+  it('v4.51.1: handles >24h "Yesterday" (Dün 06:45 at 07:34 = 1489m) without discarding wake log and surfaces Şimdi/Now/Jetzt hero', () => {
+    const { sandbox } = createOnboardingEngineSandbox();
+    const now = new Date(2026, 10, 13, 7, 34, 0); // 13 Nov 2026 07:34
+    const wakeYesterdayMorningTs = new Date(2026, 10, 12, 6, 45, 0).getTime(); // 12 Nov 2026 06:45 (1489 mins ago)
+
+    const trRes = sandbox.computePersonalReportInsights({
+      lang: 'tr',
+      nowDate: now,
+      bdate: '2026-06-20',
+      lastWakeTs: wakeYesterdayMorningTs,
+      routines: [
+        { id: 'onb_slp_init', type: 'sleep', endTs: wakeYesterdayMorningTs, timestamp: wakeYesterdayMorningTs, time: '06:45' },
+      ],
+      checkedLeaps: {},
+      completedVaccines: {},
+      schedule: SAMPLE_TR_VACCINES,
+      leapsList: SAMPLE_LEAPS,
+    });
+
+    expect(trRes.isEstimatedWake).toBe(false);
+    expect(trRes.hasLoggedWake).toBe(true);
+    expect(trRes.isOverdueNow).toBe(true);
+    expect(trRes.heroDisplayStr).toBe('Şimdi');
+    expect(trRes.wakeSourceLine).toContain('Dün 06:45');
+    expect(trRes.wakeSourceLine).toContain('24 sa 49 dk önce');
+    expect(trRes.wakeSourceLine).toContain('Hedef (Dün 08:30) geçti');
+
+    const enRes = sandbox.computePersonalReportInsights({
+      lang: 'en',
+      nowDate: now,
+      bdate: '2026-06-20',
+      lastWakeTs: wakeYesterdayMorningTs,
+      routines: [
+        { id: 'onb_slp_init', type: 'sleep', endTs: wakeYesterdayMorningTs, timestamp: wakeYesterdayMorningTs, time: '06:45' },
+      ],
+      checkedLeaps: {},
+      completedVaccines: {},
+      schedule: SAMPLE_TR_VACCINES,
+      leapsList: SAMPLE_LEAPS,
+    });
+    expect(enRes.heroDisplayStr).toBe('Now');
+    expect(enRes.wakeSourceLine).toContain('Yesterday 06:45');
+    expect(enRes.wakeSourceLine).toContain('24h 49m ago');
+
+    const deRes = sandbox.computePersonalReportInsights({
+      lang: 'de',
+      nowDate: now,
+      bdate: '2026-06-20',
+      lastWakeTs: wakeYesterdayMorningTs,
+      routines: [
+        { id: 'onb_slp_init', type: 'sleep', endTs: wakeYesterdayMorningTs, timestamp: wakeYesterdayMorningTs, time: '06:45' },
+      ],
+      checkedLeaps: {},
+      completedVaccines: {},
+      schedule: SAMPLE_TR_VACCINES,
+      leapsList: SAMPLE_LEAPS,
+    });
+    expect(deRes.heroDisplayStr).toBe('Jetzt');
+    expect(deRes.wakeSourceLine).toContain('Gestern 06:45 Uhr');
+  });
+
+  it('v4.51.1: preserves onboarding routines (onb_slp_init/feed/diaper) in skipOnboardingToApp and supports multi-day date & active-day average', () => {
+    const htmlPath = path.resolve(__dirname, '../../public/app.html');
+    const html = fs.readFileSync(htmlPath, 'utf8');
+
+    // 1. skipOnboardingToApp no longer deletes onb_slp_init / onb_feed_init / onb_diaper_init or mishil_onboarding_last_wake_ts
+    const skipIdx = html.indexOf('function skipOnboardingToApp(');
+    expect(skipIdx).toBeGreaterThan(0);
+    const skipSlice = html.slice(skipIdx, skipIdx + 1600);
+    expect(skipSlice.includes("localStorage.setItem('mishil_first_spot_aha_used', '1')")).toBe(true);
+    expect(skipSlice.includes("r.id !== 'onb_slp_init'")).toBe(false);
+    expect(skipSlice.includes("removeItem('mishil_onboarding_last_wake_ts')")).toBe(false);
+
+    // 2. activeRoutines hoisted safely with var (no late let activeRoutines TDZ)
+    expect(html.includes('var activeRoutines = [];')).toBe(true);
+    expect(html.includes('let activeRoutines = JSON.parse')).toBe(false);
+
+    // 3. Routine modal date picker + Analytics day-grouping & activeDaysCount average
+    expect(html.includes('id="routine-modal-date"')).toBe(true);
+    expect(html.includes('function resolveSleepTimestamps(startStr, endStr, referenceTs, referenceStartTs, explicitDateStr, nowRef)')).toBe(true);
+    expect(html.includes('function formatRoutineGroupDayHeader(')).toBe(true);
+    expect(html.includes('const activeDaysCount = buckets.filter(b => b.mins > 0).length;')).toBe(true);
+    expect(html.includes('totalMins / (activeDaysCount * 60)')).toBe(true);
+  });
+
+  it('v4.51.1: resolveSleepTimestamps & resolveModalEventDate clamp future times on explicit "Bugün" instead of rolling back to yesterday, while preserving "Dün" & overnight ranges', () => {
+    const { sandbox } = createOnboardingEngineSandbox();
+    const htmlPath = path.resolve(__dirname, '../../public/app.html');
+    const html = fs.readFileSync(htmlPath, 'utf8').replace(/\r\n/g, '\n');
+
+    const isoFnStart = html.indexOf('function getLocalDateIsoString(dtObj)');
+    const isoFnEnd = html.indexOf('function formatShortMonthDay(');
+    expect(isoFnStart).toBeGreaterThan(0);
+    expect(isoFnEnd).toBeGreaterThan(isoFnStart);
+
+    const sliceStart = html.indexOf('function formatTimeHHMM(d)');
+    const sliceEnd = html.indexOf('function shiftModalSleepTime(');
+    expect(sliceStart).toBeGreaterThan(0);
+    expect(sliceEnd).toBeGreaterThan(sliceStart);
+
+    sandbox.window = sandbox;
+    sandbox.document = { getElementById: () => null };
+    sandbox.hapticSelection = () => {};
+    sandbox.activeRoutines = [];
+    vm.runInNewContext(
+      html.slice(isoFnStart, isoFnEnd) + '\n' + html.slice(sliceStart, sliceEnd),
+      sandbox,
+      { filename: 'routineDateHelpers.extracted.js' }
+    );
+
+    const now = new Date(2026, 10, 13, 14, 20, 35); // 13 Nov 2026 14:20:35
+
+    // 1. Explicit "Bugün" (2026-11-13) with future end time (13:00 -> 15:00):
+    // Must stay on 2026-11-13 (clamped to 14:20, 80 mins), NEVER rolled back to 2026-11-12!
+    const clampedNap = sandbox.resolveSleepTimestamps('13:00', '15:00', null, null, '2026-11-13', now);
+    expect(sandbox.getLocalDateIsoString(clampedNap.endDate)).toBe('2026-11-13');
+    expect(sandbox.formatTimeHHMM(clampedNap.startDate)).toBe('13:00');
+    expect(sandbox.formatTimeHHMM(clampedNap.endDate)).toBe('14:20');
+    expect(clampedNap.durMins).toBe(80);
+
+    // 2. Explicit "Bugün" with both start & end in the future (15:00 -> 16:00):
+    // Clamps endDate to 14:20 today and steps startDate back by 60m -> 13:20 today
+    const bothFuture = sandbox.resolveSleepTimestamps('15:00', '16:00', null, null, '2026-11-13', now);
+    expect(sandbox.getLocalDateIsoString(bothFuture.endDate)).toBe('2026-11-13');
+    expect(sandbox.formatTimeHHMM(bothFuture.startDate)).toBe('13:20');
+    expect(sandbox.formatTimeHHMM(bothFuture.endDate)).toBe('14:20');
+    expect(bothFuture.durMins).toBe(60);
+
+    // 3. Explicit "Dün" (2026-11-12) overnight sleep (22:30 -> 06:45):
+    // Woke up on 2026-11-12 06:45, started on 2026-11-11 22:30 (495 mins)
+    const yesterdayOvernight = sandbox.resolveSleepTimestamps('22:30', '06:45', null, null, '2026-11-12', now);
+    expect(sandbox.getLocalDateIsoString(yesterdayOvernight.endDate)).toBe('2026-11-12');
+    expect(sandbox.getLocalDateIsoString(yesterdayOvernight.startDate)).toBe('2026-11-11');
+    expect(yesterdayOvernight.durMins).toBe(495);
+
+    // 4. Feed/Diaper/Custom resolveModalEventDate parity on explicit "Bugün" vs "Dün"
+    const clampedFeed = sandbox.resolveModalEventDate('2026-11-13', '16:30', null, now);
+    expect(sandbox.getLocalDateIsoString(clampedFeed)).toBe('2026-11-13');
+    expect(sandbox.formatTimeHHMM(clampedFeed)).toBe('14:20');
+
+    const yesterdayFeed = sandbox.resolveModalEventDate('2026-11-12', '18:45', null, now);
+    expect(sandbox.getLocalDateIsoString(yesterdayFeed)).toBe('2026-11-12');
+    expect(sandbox.formatTimeHHMM(yesterdayFeed)).toBe('18:45');
+  });
 });

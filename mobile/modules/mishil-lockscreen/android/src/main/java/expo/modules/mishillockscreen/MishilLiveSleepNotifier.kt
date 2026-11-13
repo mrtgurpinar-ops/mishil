@@ -33,11 +33,14 @@ object MishilLiveSleepNotifier {
   private fun contentIntent(context: Context): PendingIntent {
     val deepLinkIntent = Intent(Intent.ACTION_VIEW, Uri.parse("misilbaby://sleep")).apply {
       setPackage(context.packageName)
+      addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
     }
     val resolvedIntent = if (deepLinkIntent.resolveActivity(context.packageManager) != null) {
       deepLinkIntent
     } else {
-      context.packageManager.getLaunchIntentForPackage(context.packageName) ?: deepLinkIntent
+      (context.packageManager.getLaunchIntentForPackage(context.packageName) ?: deepLinkIntent).apply {
+        addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+      }
     }
     return PendingIntent.getActivity(
       context, 0, resolvedIntent,

@@ -1,4 +1,8 @@
-# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.51.0 Canlı WebView & Build 69 Mağaza Paketi)
+# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.51.1 / Build 70 Canlı Yayın & EAS Dağıtımı)
+
+> **🚀 `v4.51.1` (`Build 70`) Canlı Yayın & Çift Platform EAS Derleme Paketi (2026-11-13):**
+> - **Kilit Ekranı Deep-Link (`misilbaby://sleep`, `Build 70`):** `mobile/app/+native-intent.tsx`, `sleep.tsx`, `+not-found.tsx`, `_layout.tsx`, `MishilUnifiedWebView.tsx` (`ExpoLinking` + `Linking` + `focusSleepViewInWebView`) ve Android `MishilLiveSleepNotifier.kt` / `MishilMediaPlaybackService.kt` (`FLAG_ACTIVITY_SINGLE_TOP | FLAG_ACTIVITY_CLEAR_TOP`) ile `Unmatched Route` ekranı tamamen kapatıldı.
+> - **WebView Çok Günlü Tarih, `"Dün"` 48s Penceresi & Onboarding Rutin Kalıcılığı (`public/app.html` + `offlineHtml.generated.ts`):** `2880 dk` `"Dün"` uyanış penceresi + `"Şimdi"` kahraman etiketi, `skipOnboardingToApp` rutin kalıcılığı (Freemium kilidi korunarak), `#routine-modal-date` tarih seçici (`resolveSleepTimestamps` açık `"Bugün"` sabitleme + `effectiveStart/End` senkronu dahil), gün gruplu Analiz aktivite çizelgesi ve `activeDaysCount` haftalık uyku ortalaması tamamlandı (`Claude Code CLI task-362 -> task-410: CLAUDE_VERDICT: PASS`, `9 suite / 61 Jest testi`, `tsc --noEmit` sıfır hata, `7/7 READY_FOR_RELEASE`).
 
 > **📌 `Build 69` (`v4.51.0`) Native Teslimat Özeti (2026-11-12 — Canlıya & EAS Derlemesine Alındı):**
 > Aşağıdaki 3 native kabuk (`mobile/`) + WebView geliştirmesi `v4.51.0 (Build 69)` paketinde birleştirilmiştir:
