@@ -4167,7 +4167,7 @@
       </div>
 
       <!-- Sleep Timer Control -->
-      <div class="card" style="margin-bottom: 12px;">
+      <div class="card" id="sounds-timer-card" style="margin-bottom: 12px;">
         <div class="spotlight-glow"></div>
         <div style="display: flex; justify-content: space-between; align-items: center;">
           <div style="font-family: 'Sora'; font-size: 13px; font-weight: 600; color: #FFF;">Kapanma Zamanlayıcısı</div>
@@ -4486,18 +4486,6 @@
         </div>
       </div>
 
-      <!-- Uygulamalı Anlatım Turu (Interactive Spotlight Tour) -->
-      <div class="card" style="border: 1px solid var(--border-highlight); background: var(--card-night); cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-top: 4px; margin-bottom: 8px;" onclick="startSpotlightTour(true)">
-        <div style="display: flex; align-items: center; gap: 10px;">
-          <span style="font-size: 20px;">🎓</span>
-          <div>
-            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: var(--heading-night);">Uygulamalı Anlatım Turu</div>
-            <div style="font-size: 11px; color: var(--text-muted);">Ana ekran özelliklerini 4 adımda canlı keşfedin</div>
-          </div>
-        </div>
-        <span style="color: var(--accent); font-weight: 700; font-size: 12px;">Başlat ›</span>
-      </div>
-
       <!-- 5 Yıldız & Anne Dayanışması Kartı (Doğrudan Mağaza — Sıfır Review Gating / Apple 5.6.1 Uyumlu) -->
       <div class="card" id="settings-rate-us-card" style="border: 1px solid rgba(232, 168, 85, 0.35); background: rgba(22, 29, 50, 0.95); cursor: pointer; display: flex; justify-content: space-between; align-items: center; margin-top: 4px;" onclick="submitStoreRating()">
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -4537,13 +4525,13 @@
 
   </div>
 
-  <!-- HUCKLEBERRY / NAPPER BENCHMARK: 4 ADIMLI İNTERAKTİF SPOTLIGHT UYGULAMALI ANLATIM TURU -->
+  <!-- HUCKLEBERRY / NAPPER BENCHMARK: 6 ADIMLI TAM KAPSAMLI İNTERAKTİF SPOTLIGHT TANITIM TURU -->
   <div id="spotlight-tour-overlay" role="dialog" aria-modal="true" aria-label="Uygulamalı Anlatım Turu">
     <div id="spotlight-cutout"></div>
     <div id="spotlight-tooltip-card">
       <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span id="spotlight-step-badge" style="background: rgba(244, 162, 97, 0.22); color: var(--accent); border: 1px solid rgba(244, 162, 97, 0.45); font-size: 10px; font-weight: 800; padding: 3px 9px; border-radius: 999px;">✨ Adım 1 / 4</span>
+          <span id="spotlight-step-badge" style="background: rgba(244, 162, 97, 0.22); color: var(--accent); border: 1px solid rgba(244, 162, 97, 0.45); font-size: 10px; font-weight: 800; padding: 3px 9px; border-radius: 999px;">✨ Adım 1 / 6</span>
           <div id="spotlight-step-dots" style="display: flex; align-items: center; gap: 4px;"></div>
         </div>
         <button type="button" onclick="endSpotlightTour(true)" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-night); color: var(--text-muted); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 12px; cursor: pointer;">Atla ✕</button>
@@ -5656,7 +5644,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.51.1', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.51.2', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -5964,7 +5952,17 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.51.1', date: '13 Kasım 2026', dateEn: 'November 13, 2026', dateDe: '13. November 2026', latest: true, items: [
+    { v: '4.51.2', date: '14 Kasım 2026', dateEn: 'November 14, 2026', dateDe: '14. November 2026', latest: true, items: [
+      'Gün İçi Kronolojik Gündüz Uykusu Numaralandırması: Gündüz uykuları artık önceki günlerin toplamından değil, her takvim günü kendi içinde sabahtan akşama kronolojik olarak (1. Gündüz Uykusu, 2. Gündüz Uykusu...) numaralandırılır; aynı güne geçmiş saatli uyku eklendiğinde veya kayıt silindiğinde sıra numaraları otomatik olarak yeniden dizilir.',
+      '6 Adımlı Tam Kapsamlı İlk Giriş Tanıtım Turu: Yeni kullanıcılar için açılan interaktif tanıtım turu artık yalnızca Ana Sayfa\'yı değil; Merkezi "Uyut" Canlı Uyku Butonunu, Analiz & Aşı/Atak ekranını, Mışıl Dadı AI & 5 Sn Ağlama Çözücüyü ve 18 Stüdyo Sesler & Zamanlayıcı sekmesini adım adım canlı gezdirerek tanıtır.'
+    ], itemsEn: [
+      'Same-Day Chronological Daytime Nap Numbering: Daytime naps are now numbered strictly within each local calendar day in chronological order (Daytime Nap #1, #2...), resetting automatically each new morning and re-indexing cleanly when past naps are added, edited, or deleted.',
+      '6-Step Full-App Interactive First-Launch Tour: First-time parents now get a guided walkthrough across the entire app—covering MışılSpot™ Home, Quick Care Tools, the Center "Sleep" Live Timer Button, Analytics/Vaccines/Leaps, Mışıl Nanny AI & Cry Decoder, and 18 Studio Sounds & Fade-Out Timer.'
+    ], itemsDe: [
+      'Chronologische Tagschlaf-Nummerierung pro Kalendertag: Tagschläfchen werden nun exakt innerhalb des jeweiligen Kalendertages chronologisch nummeriert (1. Tagschlaf, 2. Tagschlaf...), starten jeden Morgen neu bei 1 und ordnen sich beim Nachtragen oder Löschen automatisch neu.',
+      '6-teiliger interaktiver Komplett-Rundgang beim Erststart: Neue Eltern lernen nun alle Hauptbereiche live kennen – MışılSpot™-Startseite, Schnellpflege, zentralen „Schlaf“-Button, Analyse/Impfungen/Sprünge, Mışıl Nanny KI & Wein-Analyse sowie 18 Studio-Klänge samt Sleep-Timer.'
+    ]},
+    { v: '4.51.1', date: '13 Kasım 2026', dateEn: 'November 13, 2026', dateDe: '13. November 2026', items: [
       'Kilit Ekranı Canlı Uyku Yönlendirme Onarımı & 48 Saatlik "Dün" Uyku Penceresi: Kilit ekranındaki Canlı Uyku Etkinliğine (misilbaby://sleep) dokunulduğunda çıkan "Unmatched Route" ekranı giderilerek doğrudan MışılSpot™ görünümüne kesintisiz odaklanma sağlandı; "Ne zaman uyandı?" kartında "Dün" seçildiğinde 24 saati aşan sabah kayıtlarının yok sayılması düzeltilerek net "Şimdi" ve "Uyku Penceresi Aşıldı" uyarısı eklendi.',
       'Kalıcı Onboarding Rutin Kaydı & Çok Günlü Tarih Mimarisi: Kurulum kartlarında seçilen uyku, beslenme ve bez cevaplarının rutin geçmişine kalıcı işlenmesi garanti altına alındı; manuel rutin penceresine Bugün/Dün + Tarih seçici, Gelişim > Aktivite sekmesine gün başlıkları ve dönem filtreleri eklendi; haftalık uyku ortalaması veri girilen aktif gün sayısına göre hassaslaştırıldı.'
     ], itemsEn: [
@@ -7784,6 +7782,9 @@
   function writeSafeActiveRoutines(nextList) {
     const clean = Array.isArray(nextList) ? nextList.slice() : [];
     clean.sort((a, b) => ((b && (b.endTs || b.timestamp)) || 0) - ((a && (a.endTs || a.timestamp)) || 0));
+    if (typeof recomputeDailyNapIndices === 'function') {
+      recomputeDailyNapIndices(clean);
+    }
     try {
       if (typeof activeRoutines !== 'undefined') {
         activeRoutines = clean;
@@ -7962,6 +7963,82 @@
     };
   }
   if (typeof window !== 'undefined') window.resolveLocalizedRoutineCopy = resolveLocalizedRoutineCopy;
+
+  function recomputeDailyNapIndices(routinesList, langOverride) {
+    if (!Array.isArray(routinesList)) return routinesList;
+    const lang = langOverride ? _planNormLang(langOverride) : _planActiveLang();
+    const pick = (trS, enS, deS) => (lang === 'de' ? deS : (lang === 'en' ? enS : trS));
+
+    const napsByDay = {};
+    for (let i = 0; i < routinesList.length; i++) {
+      const r = routinesList[i];
+      if (!r || typeof r !== 'object') continue;
+      const rawTitleLow = String(r.title || '').toLowerCase();
+      const isSleepEntry = r.type === 'sleep' || (!r.type && (
+        rawTitleLow.includes('uyku') || rawTitleLow.includes('şekerleme') ||
+        rawTitleLow.includes('nap') || rawTitleLow.includes('sleep') ||
+        rawTitleLow.includes('schlaf') || rawTitleLow.includes('schläfchen') || rawTitleLow.includes('nickerchen')
+      ));
+      if (!isSleepEntry) continue;
+
+      if (r.id === 'onb_slp_init' || r.sleepKind === 'onb_night' || r.sleepKind === 'onb_nap' || r.sleepKind === 'live') {
+        continue;
+      }
+
+      let isNight = false;
+      if (r.startTs) {
+        const sh = new Date(r.startTs).getHours();
+        isNight = (sh >= 20 || sh < 7);
+      } else if (typeof r.start === 'string' && /^\d{1,2}:\d{2}$/.test(r.start.trim())) {
+        const sh = parseInt(r.start.trim().split(':')[0], 10);
+        if (!isNaN(sh)) isNight = (sh >= 20 || sh < 7);
+      } else if (r.sleepKind === 'night' || r.quality === 'night' || rawTitleLow.includes('gece') || rawTitleLow.includes('night') || rawTitleLow.includes('nacht')) {
+        isNight = true;
+      }
+
+      if (isNight) {
+        r.sleepKind = 'night';
+        delete r.napIndex;
+        r.title = pick('Gece Uykusu', 'Night Sleep', 'Nachtschlaf');
+        continue;
+      }
+
+      const dayAnchorTs = r.endTs || r.timestamp || r.startTs || 0;
+      if (!dayAnchorTs) continue;
+      const dt = new Date(dayAnchorTs);
+      if (isNaN(dt.getTime())) continue;
+      const dayKey = formatLocalYYYYMMDD(dt.getFullYear(), dt.getMonth() + 1, dt.getDate());
+      if (!napsByDay[dayKey]) napsByDay[dayKey] = [];
+      napsByDay[dayKey].push(r);
+    }
+
+    const dayKeys = Object.keys(napsByDay);
+    for (let k = 0; k < dayKeys.length; k++) {
+      const dayNaps = napsByDay[dayKeys[k]];
+      dayNaps.sort((a, b) => {
+        const aStart = a.startTs || ((a.endTs || a.timestamp || 0) - (Number(a.durationMins) || 0) * 60000);
+        const bStart = b.startTs || ((b.endTs || b.timestamp || 0) - (Number(b.durationMins) || 0) * 60000);
+        if (aStart !== bStart) return aStart - bStart;
+        const aEnd = a.endTs || a.timestamp || 0;
+        const bEnd = b.endTs || b.timestamp || 0;
+        if (aEnd !== bEnd) return aEnd - bEnd;
+        return String(a.id || '').localeCompare(String(b.id || ''));
+      });
+      for (let idx = 0; idx < dayNaps.length; idx++) {
+        const napItem = dayNaps[idx];
+        const napNum = idx + 1;
+        napItem.sleepKind = 'nap';
+        napItem.napIndex = napNum;
+        napItem.title = pick(
+          `${napNum}. Gündüz Uykusu (Nap ${napNum})`,
+          `Daytime Nap #${napNum}`,
+          `${napNum}. Tagschlaf (Nickerchen ${napNum})`
+        );
+      }
+    }
+    return routinesList;
+  }
+  if (typeof window !== 'undefined') window.recomputeDailyNapIndices = recomputeDailyNapIndices;
 
   function isSameLocalCalendarDay(a, b) {
     if (!(a instanceof Date) || !(b instanceof Date) || isNaN(a.getTime()) || isNaN(b.getTime())) return false;
@@ -10304,7 +10381,10 @@
 
       loadBabyProfile();
       if (typeof checkAndRestoreLiveSleep === 'function') checkAndRestoreLiveSleep();
-      renderAllViews();
+      if (Array.isArray(activeRoutines) && typeof recomputeDailyNapIndices === 'function') {
+      recomputeDailyNapIndices(activeRoutines);
+    }
+    renderAllViews();
       updateSubscriptionStatusUI();
       try {
         const _b = typeof getBaby === 'function' ? getBaby() : null;
@@ -10460,6 +10540,9 @@
     loadBabyProfile();
     if (typeof checkAndRestoreLiveSleep === 'function') checkAndRestoreLiveSleep();
     updateSubscriptionStatusUI();
+    if (Array.isArray(activeRoutines) && typeof recomputeDailyNapIndices === 'function') {
+      recomputeDailyNapIndices(activeRoutines);
+    }
     renderAllViews();
     showToast(
       hasUsedFirstFreeSpotAha()
@@ -10552,7 +10635,10 @@
 
       loadBabyProfile();
       if (typeof checkAndRestoreLiveSleep === 'function') checkAndRestoreLiveSleep();
-      renderAllViews();
+      if (Array.isArray(activeRoutines) && typeof recomputeDailyNapIndices === 'function') {
+      recomputeDailyNapIndices(activeRoutines);
+    }
+    renderAllViews();
       if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
 
       showToast('✅ Reviewer VIP Access Granted! Full functionality unlocked.');
@@ -11300,7 +11386,10 @@
 
           loadBabyProfile();
           renderFamilyMembers();
-          renderAllViews();
+          if (Array.isArray(activeRoutines) && typeof recomputeDailyNapIndices === 'function') {
+      recomputeDailyNapIndices(activeRoutines);
+    }
+    renderAllViews();
           showToast(trEnDe(
             `🎉 ${fam.baby.name}'in ailesine başarıyla bağlandınız!`,
             `🎉 Connected to ${fam.baby.name}'s family!`,
@@ -11393,7 +11482,10 @@
           input.value = '';
           loadBabyProfile();
           renderFamilyMembers();
-          renderAllViews();
+          if (Array.isArray(activeRoutines) && typeof recomputeDailyNapIndices === 'function') {
+      recomputeDailyNapIndices(activeRoutines);
+    }
+    renderAllViews();
           showToast(trEnDe(
             `✅ ${fam.baby.name}'in ailesine başarıyla bağlandınız!`,
             `✅ Connected to ${fam.baby.name}'s family!`,
@@ -12704,71 +12796,146 @@
     if (isDe()) {
       return [
         {
+          tab: 'home',
+          homeSegment: 'sweetspot',
           selector: '#home-organic-hero',
+          anchorTop: 14,
           title: '🌙 1. MışılSpot™ Goldenes Schlaffenster',
-          desc: `Zählt minutengenau bis zu dem Moment herunter, in dem ${babyName} ohne Übermüdung am leichtesten einschläft. Tippen Sie auf den Halbmond oder „Schläft jetzt“, sobald der Schlaf beginnt.`
+          desc: `Zählt minutengenau herunter, wann ${babyName} ohne Übermüdung am leichtesten einschläft – live abgestimmt auf den 24h-Tagesrhythmus.`
         },
         {
+          tab: 'home',
+          homeSegment: 'sweetspot',
           selector: '.quick-bento-grid',
-          title: '🎙️ 2. Einhand-Schnellzugriff um 03:00 Uhr',
-          desc: `Erreichen Sie Stillen/Fläschchen, Windel, 5-Sek.-Wein-Ratgeber und 18 Studio-Klänge nachts bequem mit einem Daumen.`
+          title: '🍼 2. Einhand-Pflege & Schnellprotokoll',
+          desc: `Erreichen Sie Stillen/Fläschchen, Windel, 5-Sek.-Wein-Ratgeber und Klänge nachts bequem mit einem Daumen und verfolgen Sie die letzten Zeiten.`
         },
         {
-          selector: '.grid-organic-duo',
-          title: '🍼 3. Live-Pflegeübersicht & Balance-Score',
-          desc: `Sehen Sie live, wie viele Minuten seit der letzten Mahlzeit und dem letzten Wickeln vergangen sind – ein Tipp genügt für einen neuen Eintrag.`
+          tab: 'home',
+          homeSegment: 'sweetspot',
+          selector: '#dock-center-fab',
+          isDockTarget: true,
+          title: '🌙 3. Zentraler „Schlaf“-Button & Live-Timer',
+          desc: `Tippen Sie aus jedem Bereich unten in der Mitte auf den goldenen Halbmond, um das Live-Schlaf-Tracking samt Sperrbildschirm-Chronometer zu starten oder zu speichern.`
         },
         {
-          selector: '#home-circadian-strip',
-          title: '🕒 4. 24-Stunden-Tagesrhythmus-Leiste',
-          desc: `Verfolgen Sie abgeschlossene Schläfchen (grün) und das nächste MışılSpot™-Zielfenster (gold) auf einer übersichtlichen 24h-Leiste.`
+          tab: 'analytics',
+          analyticsSegment: 'sleep',
+          selector: '#view-analytics .analytics-organic-card',
+          anchorTop: 58,
+          title: '📊 4. Analyse, Impfungen, Sprünge & Verlauf',
+          desc: `Verfolgen Sie hier Balance-Score, Wochenschlaf-Grafiken, Impf- & 10-Sprünge-Kalender sowie das nach Tagen gruppierte Aktivitätsprotokoll.`
+        },
+        {
+          tab: 'coach',
+          selector: '#view-coach .chat-bubble-dadi',
+          noScroll: true,
+          title: '👵 5. Mışıl Nanny KI & 5-Sek.-Wein-Analyse',
+          desc: `Fragen Sie Ihre 24/7-Beraterin jederzeit passend zu Alter und Schlafverlauf von ${babyName} oder nutzen Sie oben die 5-Sek.-Wein-Analyse.`
+        },
+        {
+          tab: 'sounds',
+          selector: '#sounds-timer-card',
+          anchorTop: 88,
+          title: '🎵 6. 18 Studio-Klänge & Sanfter Sleep-Timer',
+          desc: `Spielen Sie Mutterleibsklänge, weißes Rauschen und Wiegenlieder im Hintergrund auf dem Sperrbildschirm ab – inklusive sanftem Fade-Out-Timer.`
         }
       ];
     }
     if (isEn()) {
       return [
         {
+          tab: 'home',
+          homeSegment: 'sweetspot',
           selector: '#home-organic-hero',
+          anchorTop: 14,
           title: '🌙 1. MışılSpot™ Golden Sleep Window',
-          desc: `Counts down to the exact minute ${babyName} will fall asleep easiest without getting overtired. Tap the golden crescent or "Sleeping Now" when sleep begins.`
+          desc: `Counts down to the exact minute ${babyName} will fall asleep easiest without getting overtired, updating live with your 24-hour rhythm.`
         },
         {
+          tab: 'home',
+          homeSegment: 'sweetspot',
           selector: '.quick-bento-grid',
-          title: '🎙️ 2. 3:00 AM One-Hand Quick Tools',
-          desc: `Reach Feeding, Diaper, 5-sec Smart Cry Guide, and 18 Studio Sounds with one thumb at 3:00 AM.`
+          title: '🍼 2. One-Hand Quick Care & Routine Log',
+          desc: `Log Feeding, Diaper changes, 5-sec Cry Guide, and Sounds with one thumb at 3:00 AM while tracking minutes since last care.`
         },
         {
-          selector: '.grid-organic-duo',
-          title: '🍼 3. Live Care Summary & Balance Score',
-          desc: `Track how many minutes have passed since the last feeding and diaper change; tap rows to log a new entry in seconds.`
+          tab: 'home',
+          homeSegment: 'sweetspot',
+          selector: '#dock-center-fab',
+          isDockTarget: true,
+          title: '🌙 3. Center "Sleep" Button & Live Timer',
+          desc: `Tap the center golden crescent from any tab to start or save Live Sleep tracking alongside the Lock-Screen chronometer.`
         },
         {
-          selector: '#home-circadian-strip',
-          title: '🕒 4. 24-Hour Daily Rhythm Strip',
-          desc: `Watch completed naps (green blocks) and the next MışılSpot™ target window (gold block) on a single 24-hour bar.`
+          tab: 'analytics',
+          analyticsSegment: 'sleep',
+          selector: '#view-analytics .analytics-organic-card',
+          anchorTop: 58,
+          title: '📊 4. Analytics, Vaccines, Leaps & History',
+          desc: `Track the Biological Balance Score, weekly sleep charts, Vaccine & 10 Mental Leaps calendar, and day-grouped Activity history here.`
+        },
+        {
+          tab: 'coach',
+          selector: '#view-coach .chat-bubble-dadi',
+          noScroll: true,
+          title: '👵 5. Mışıl Nanny AI & 5-Sec Cry Decoder',
+          desc: `Ask your 24/7 sleep consultant anything tailored to ${babyName}'s age and sleep logs, or tap the top bar to decode cries in 5 seconds.`
+        },
+        {
+          tab: 'sounds',
+          selector: '#sounds-timer-card',
+          anchorTop: 88,
+          title: '🎵 6. 18 Studio Sounds & Fade-Out Timer',
+          desc: `Play womb sounds, white noise, shushing, and lullabies in the background on your Lock Screen with gentle Fade-Out sleep timers.`
         }
       ];
     }
     return [
       {
+        tab: 'home',
+        homeSegment: 'sweetspot',
         selector: '#home-organic-hero',
+        anchorTop: 14,
         title: '🌙 1. MışılSpot™ Altın Uyku Saati',
-        desc: `${babyName}'in aşırı yorulmadan en kolay uykuya dalacağı dakika burada geri sayar. Uyuduğu an altın hilale veya "Şimdi Uyuyor" butonuna dokunmanız yeterli.`
+        desc: `${babyName}'in aşırı yorulmadan en kolay uykuya dalacağı dakika burada geri sayar ve 24 saatlik günlük ritim şeridiyle canlı güncellenir.`
       },
       {
+        tab: 'home',
+        homeSegment: 'sweetspot',
         selector: '.quick-bento-grid',
-        title: '🎙️ 2. Gece 03:00 Tek Elle Hızlı Araçlar',
-        desc: `Gece 03:00'te başparmak hizasında tek dokunuşla Beslenme, Bez, 5 sn Akıllı Ağlama Rehberi ve 18 Stüdyo Sesine anında ulaşın.`
+        title: '🍼 2. Tek Elle Hızlı Bakım & Rutin Araçları',
+        desc: `Gece 03:00'te başparmak hizasında Beslenme, Bez, 5 sn Akıllı Ağlama Rehberi ve Seslere anında ulaşın; son bakım sürelerini canlı izleyin.`
       },
       {
-        selector: '.grid-organic-duo',
-        title: '🍼 3. Canlı Bakım Özeti & Denge Skoru',
-        desc: `Son beslenme ve bez değişiminin üzerinden kaç dakika geçtiğini canlı takip edin; satırlara dokunarak saniyeler içinde yeni kayıt ekleyin.`
+        tab: 'home',
+        homeSegment: 'sweetspot',
+        selector: '#dock-center-fab',
+        isDockTarget: true,
+        title: '🌙 3. Merkezi "Uyut" Butonu & Canlı Sayaç',
+        desc: `Hangi sekmede olursanız olun alt ortadaki altın hilale dokunarak Canlı Uyku sayacını ve Kilit Ekranı takibini tek dokunuşla başlatıp kaydedin.`
       },
       {
-        selector: '#home-circadian-strip',
-        title: '🕒 4. 24 Saatlik Günlük Ritim Şeridi',
-        desc: `Gün içindeki tamamlanan uykuları (yeşil bloklar) ve sıradaki MışılSpot™ hedef penceresini (altın blok) 24 saatlik tek çubukta izleyin.`
+        tab: 'analytics',
+        analyticsSegment: 'sleep',
+        selector: '#view-analytics .analytics-organic-card',
+        anchorTop: 58,
+        title: '📊 4. Analiz, Aşı, Atak & Rutin Geçmişi',
+        desc: `Biyolojik Denge Skorunu, haftalık uyku grafiklerini, Aşı & 10 Büyüme Atağı takvimini ve gün-gün gruplanmış Aktivite geçmişini buradan izleyin.`
+      },
+      {
+        tab: 'coach',
+        selector: '#view-coach .chat-bubble-dadi',
+        noScroll: true,
+        title: '👵 5. Mışıl Dadı AI & 5 Sn Ağlama Çözücü',
+        desc: `${babyName}'in ayına ve uyku geçmişine hakim 7/24 danışmanınıza aklınıza takılan her şeyi sorun; üstteki çubukla ağlama ipucunu 5 saniyede keşfedin.`
+      },
+      {
+        tab: 'sounds',
+        selector: '#sounds-timer-card',
+        anchorTop: 88,
+        title: '🎵 6. 18 Stüdyo Ses & Kademeli Zamanlayıcı',
+        desc: `Anne karnı, beyaz gürültü, pışpış ve ninnileri kilit ekranında arka planda çalın; Fade-Out zamanlayıcıyla süre biterken sesi yavaşça kısın.`
       }
     ];
   }
@@ -12791,15 +12958,29 @@
     }
   }
 
-  function updateSpotlightGeometry(target, cutout, card) {
+  function updateSpotlightGeometry(target, cutout, card, stepMeta) {
     if (!target || !cutout || !card) return;
     const rect = target.getBoundingClientRect();
     if (!rect || (rect.width === 0 && rect.height === 0)) return;
-    const pad = 6;
-    const top = Math.max(8, Math.round(rect.top - pad));
-    const left = Math.max(8, Math.round(rect.left - pad));
-    const width = Math.min(window.innerWidth - 16, Math.round(rect.width + pad * 2));
-    const height = Math.max(44, Math.round(rect.height + pad * 2));
+    const isDock = !!(stepMeta && stepMeta.isDockTarget) || !!target.closest('.tab-bar');
+    const pad = isDock ? 8 : 6;
+    let width = Math.min(window.innerWidth - 16, Math.round(rect.width + pad * 2));
+    let height = Math.max(44, Math.round(rect.height + pad * 2));
+    let top = Math.max(8, Math.round(rect.top - pad));
+    let left = Math.max(8, Math.round(rect.left - pad));
+
+    if (isDock) {
+      const circleSize = Math.max(72, width, height);
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      width = circleSize;
+      height = circleSize;
+      left = Math.max(8, Math.min(window.innerWidth - circleSize - 8, Math.round(centerX - circleSize / 2)));
+      top = Math.max(8, Math.round(centerY - circleSize / 2));
+      cutout.style.borderRadius = '999px';
+    } else {
+      cutout.style.borderRadius = '20px';
+    }
 
     cutout.style.top = `${top}px`;
     cutout.style.left = `${left}px`;
@@ -12811,6 +12992,15 @@
     const tabBar = document.querySelector('.tab-bar');
     const tabRect = tabBar ? tabBar.getBoundingClientRect() : null;
     const safeBottomY = (tabRect && tabRect.top > 0 && tabRect.top < vh) ? (tabRect.top - 10) : (vh - 16);
+
+    if (isDock) {
+      card.style.top = 'auto';
+      const anchorAbove = Math.min(top - 14, safeBottomY);
+      const desiredBottom = Math.max(16, Math.min(vh - cardHeight - 12, Math.round(vh - anchorAbove)));
+      card.style.bottom = `${desiredBottom}px`;
+      return;
+    }
+
     const spaceBelow = safeBottomY - (top + height + 12);
     const spaceAbove = top - 24;
 
@@ -12847,8 +13037,8 @@
     cleanupSpotlightTracking();
     document.body.classList.add('spotlight-tour-open');
     // Ana sekmeye ve MışılSpot segmentine geç (animasyonsuz anında yerleşim)
-    if (typeof switchTab === 'function') switchTab('home');
-    if (typeof switchHomeSegment === 'function') switchHomeSegment('sweetspot');
+    if (typeof switchTab === 'function') switchTab('home', { fromSpotlightTour: true });
+    if (typeof switchHomeSegment === 'function') switchHomeSegment('sweetspot', { fromSpotlightTour: true });
 
     spotlightStepIndex = 0;
     overlay.classList.add('active');
@@ -12868,6 +13058,17 @@
     }
     document.body.classList.add('spotlight-tour-open');
     const step = steps[spotlightStepIndex];
+    const targetTab = step.tab || 'home';
+    if (typeof switchTab === 'function') {
+      switchTab(targetTab, { fromSpotlightTour: true });
+    }
+    if (targetTab === 'home' && step.homeSegment && typeof switchHomeSegment === 'function') {
+      switchHomeSegment(step.homeSegment, { fromSpotlightTour: true });
+    }
+    if (targetTab === 'analytics' && step.analyticsSegment && typeof switchAnalyticsSegment === 'function') {
+      switchAnalyticsSegment(step.analyticsSegment, { fromSpotlightTour: true });
+    }
+
     const target = document.querySelector(step.selector);
     const cutout = document.getElementById('spotlight-cutout');
     const card = document.getElementById('spotlight-tooltip-card');
@@ -12904,23 +13105,25 @@
     if (!target || !cutout || !card) return;
 
     const scrollContainer = document.getElementById('main-app-screen') || document.querySelector('.screen-container');
-    if (scrollContainer) {
+    if (scrollContainer && !step.isDockTarget && !step.noScroll) {
       const cRect = scrollContainer.getBoundingClientRect();
       const tRect = target.getBoundingClientRect();
       const tabBar = document.querySelector('.tab-bar');
       const tabTop = tabBar ? tabBar.getBoundingClientRect().top : window.innerHeight;
       const usableHeight = Math.max(240, Math.min(cRect.height, tabTop - cRect.top));
       const estCardH = Math.max(150, card.offsetHeight || 190);
-      const targetAnchorFromTop = spotlightStepIndex === 0
-        ? 14
-        : Math.max(16, Math.min(76, Math.round((usableHeight - tRect.height - estCardH - 24) / 2)));
+      const targetAnchorFromTop = typeof step.anchorTop === 'number'
+        ? step.anchorTop
+        : (spotlightStepIndex === 0
+            ? 14
+            : Math.max(16, Math.min(76, Math.round((usableHeight - tRect.height - estCardH - 24) / 2))));
       const nextScrollTop = Math.max(0, scrollContainer.scrollTop + (tRect.top - cRect.top) - targetAnchorFromTop);
       scrollContainer.scrollTop = nextScrollTop;
     }
 
-    updateSpotlightGeometry(target, cutout, card);
+    updateSpotlightGeometry(target, cutout, card, step);
 
-    const onViewportSync = () => updateSpotlightGeometry(target, cutout, card);
+    const onViewportSync = () => updateSpotlightGeometry(target, cutout, card, step);
     if (scrollContainer) scrollContainer.addEventListener('scroll', onViewportSync, { passive: true });
     window.addEventListener('resize', onViewportSync);
     if (window.visualViewport) {
@@ -12943,7 +13146,7 @@
         spotlightTrackingRafId = null;
         return;
       }
-      updateSpotlightGeometry(target, cutout, card);
+      updateSpotlightGeometry(target, cutout, card, step);
       const nowT = typeof performance !== 'undefined' ? performance.now() : Date.now();
       if (nowT < stabilizeUntil) {
         spotlightTrackingRafId = requestAnimationFrame(tick);
@@ -12978,15 +13181,17 @@
   function endSpotlightTour(skipped) {
     if (typeof hapticPulse === 'function') hapticPulse();
     cleanupSpotlightTracking();
-    document.body.classList.remove('spotlight-tour-open');
-    localStorage.setItem('mishil_spotlight_tour_done', 'true');
     const overlay = document.getElementById('spotlight-tour-overlay');
     if (overlay) overlay.classList.remove('active');
+    if (typeof switchTab === 'function') switchTab('home', { fromSpotlightTour: true });
+    if (typeof switchHomeSegment === 'function') switchHomeSegment('sweetspot', { fromSpotlightTour: true });
+    document.body.classList.remove('spotlight-tour-open');
+    localStorage.setItem('mishil_spotlight_tour_done', 'true');
     if (!skipped) {
       showToast(trEnDe(
-        '✨ Uygulama turu tamamlandı! İstediğiniz an Ayarlar\'dan tekrar açabilirsiniz.',
-        '✨ App tour completed! You can reopen it anytime from Settings.',
-        '✨ App-Rundgang abgeschlossen! Sie können ihn jederzeit in den Einstellungen erneut starten.'
+        '✨ Hazırsınız! Bebeğinizle huzurlu uykular dileriz.',
+        '✨ You\'re all set! Wishing you peaceful sleep with your baby.',
+        '✨ Alles bereit! Wir wünschen Ihnen ruhige Nächte mit Ihrem Baby.'
       ));
     }
   }
@@ -13409,7 +13614,10 @@
       if (typeof checkAndRestoreLiveSleep === 'function') checkAndRestoreLiveSleep();
       updateSubscriptionStatusUI();
       loadBabyProfile();
-      renderAllViews();
+      if (Array.isArray(activeRoutines) && typeof recomputeDailyNapIndices === 'function') {
+      recomputeDailyNapIndices(activeRoutines);
+    }
+    renderAllViews();
       showToast(trEnDe(
         '✅ Satın alımlarınız başarıyla geri yüklendi!',
         '✅ Your purchases have been restored!',
@@ -13686,9 +13894,12 @@
   // =========================================================================
   // ANALİTİK SEKME SEGMENTLERİ (Uyku & Ritim | Sağlık & Gelişim | Aktivite)
   // =========================================================================
-  function switchAnalyticsSegment(segment) {
-    hapticPulse();
-    if (!requireActiveSubscription('analytics')) return;
+  function switchAnalyticsSegment(segment, opts) {
+    const fromTour = !!(opts && opts.fromSpotlightTour);
+    if (!fromTour) {
+      hapticPulse();
+      if (!requireActiveSubscription('analytics')) return;
+    }
     const panels = {
       sleep: document.getElementById('analytics-sec-sleep'),
       health: document.getElementById('analytics-sec-health'),
@@ -14267,6 +14478,12 @@
       activeRoutines = [];
     }
   }
+  if (Array.isArray(activeRoutines) && activeRoutines.length > 0 && typeof recomputeDailyNapIndices === 'function') {
+    recomputeDailyNapIndices(activeRoutines);
+    try {
+      localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+    } catch (_reSave) {}
+  }
 
   function deleteRoutine(id) {
     hapticPulse();
@@ -14278,9 +14495,10 @@
     showToast(trEnDe('🗑️ Kayıt silindi', '🗑️ Entry deleted', '🗑️ Eintrag gelöscht'));
   }
 
-  function switchHomeSegment(segment) {
-    hapticPulse();
-    if (segment === 'timeline' && !requireActiveSubscription('routine_log')) return;
+  function switchHomeSegment(segment, opts) {
+    const fromTour = !!(opts && opts.fromSpotlightTour);
+    if (!fromTour) hapticPulse();
+    if (!fromTour && segment === 'timeline' && !requireActiveSubscription('routine_log')) return;
     const sweetspotSeg = document.getElementById('home-seg-sweetspot');
     const timelineSeg = document.getElementById('home-seg-timeline');
     const btnSweetspot = document.getElementById('seg-btn-sweetspot');
@@ -15260,17 +15478,15 @@
 
       const startH = sleepStartTime.getHours();
       const isNight = startH >= 20 || startH < 7;
-      const sleepCount = activeRoutines.filter(r => r.type === 'sleep').length + 1;
       const sleepTitle = isNight
         ? trEnDe('Gece Uykusu', 'Night Sleep', 'Nachtschlaf')
-        : trEnDe(`${sleepCount}. Gündüz Uykusu (Nap ${sleepCount})`, `Daytime Nap #${sleepCount}`, `${sleepCount}. Tagschlaf (Nickerchen ${sleepCount})`);
+        : trEnDe('1. Gündüz Uykusu (Nap 1)', 'Daytime Nap #1', '1. Tagschlaf (Nickerchen 1)');
 
       const newSleepLog = {
         id: 'slp_' + Date.now(),
         type: 'sleep',
         icon: '🌙',
         sleepKind: isNight ? 'night' : 'nap',
-        napIndex: sleepCount,
         title: sleepTitle,
         detail: trEnDe(`${totalMins} dk uyku (${startFormatted} - ${endFormatted})`, `${totalMins} min sleep (${startFormatted} - ${endFormatted})`, `${totalMins} Min. Schlaf (${startFormatted} - ${endFormatted})`),
         time: endFormatted,
@@ -15284,6 +15500,7 @@
       };
 
       activeRoutines.unshift(newSleepLog);
+      sortActiveRoutines();
       localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
       localStorage.removeItem('mishil_onb_live_sleep_promoted');
       if (!isSubscriptionCurrentlyActive()) {
@@ -15965,20 +16182,21 @@
     }
   }
 
-  function switchTab(tabName) {
+  function switchTab(tabName, opts) {
+    const fromTour = !!(opts && opts.fromSpotlightTour);
     // Gelişim/Analiz sekmesi 24s Soft VIP veya tam VIP aktifken açık; Mışıl Dadı sekmesi 24s Soft VIP içindeyken veya 1 ücretsiz soru hakkı duruyorsa açık:
-    if (tabName === 'analytics' && !requireActiveSubscription('analytics')) {
+    if (!fromTour && tabName === 'analytics' && !requireActiveSubscription('analytics')) {
       return;
     }
     if (tabName === 'coach') {
-      if (!canAccessCoachTab()) {
+      if (!fromTour && !canAccessCoachTab()) {
         openVipRenewalModal('ai_nanny');
         return;
       }
       if (typeof updateDadiFreeQuotaUI === 'function') updateDadiFreeQuotaUI();
     }
 
-    if (tabName !== 'settings') {
+    if (!fromTour && tabName !== 'settings') {
       lastActiveTabBeforeSettings = tabName;
     }
 
@@ -16006,10 +16224,15 @@
     const tabBar = document.querySelector('.tab-bar');
     if (tabName === 'coach') {
       if (mainScreen) mainScreen.classList.add('coach-mode-active');
-      setTimeout(() => {
+      if (fromTour) {
         const msgBox = document.getElementById('chat-messages-container');
-        if (msgBox) msgBox.scrollTop = msgBox.scrollHeight;
-      }, 50);
+        if (msgBox) msgBox.scrollTop = 0;
+      } else {
+        setTimeout(() => {
+          const msgBox = document.getElementById('chat-messages-container');
+          if (msgBox) msgBox.scrollTop = msgBox.scrollHeight;
+        }, 50);
+      }
     } else {
       if (mainScreen) mainScreen.classList.remove('coach-mode-active');
       document.body.classList.remove('keyboard-open');
@@ -16028,12 +16251,16 @@
       if (tabName !== 'coach') window.scrollTo(0, 0);
     };
 
-    // 1. Katman: Tarayıcının sonraki frame render anı
-    requestAnimationFrame(() => {
+    if (fromTour || document.body.classList.contains('spotlight-tour-open')) {
       resetScroll();
-      // 2. Katman: CSS transform/animasyon reflow güvenlik kuyruğu
-      setTimeout(resetScroll, 25);
-    });
+    } else {
+      // 1. Katman: Tarayıcının sonraki frame render anı
+      requestAnimationFrame(() => {
+        resetScroll();
+        // 2. Katman: CSS transform/animasyon reflow güvenlik kuyruğu
+        setTimeout(resetScroll, 25);
+      });
+    }
 
     if (tabName === 'analytics') {
       renderAnalyticsView();
@@ -16422,6 +16649,9 @@
       const tsB = b.endTs || b.timestamp || 0;
       return tsB - tsA;
     });
+    if (typeof recomputeDailyNapIndices === 'function') {
+      recomputeDailyNapIndices(activeRoutines);
+    }
   }
 
   function normalizeHHMM(val, fallback) {
@@ -16808,19 +17038,15 @@
 
       const sh = startDate.getHours();
       const isNight = sh >= 20 || sh < 7;
-      const sleepCount = (existingItem && existingItem.napIndex)
-        ? existingItem.napIndex
-        : (activeRoutines.filter(r => r.type === 'sleep' && (!existingItem || r.id !== existingItem.id)).length + 1);
       const sleepTitle = isNight
         ? trEnDe('Gece Uykusu', 'Night Sleep', 'Nachtschlaf')
-        : trEnDe(`${sleepCount}. Gündüz Uykusu (Nap ${sleepCount})`, `Daytime Nap #${sleepCount}`, `${sleepCount}. Tagschlaf (Nickerchen ${sleepCount})`);
+        : trEnDe('1. Gündüz Uykusu (Nap 1)', 'Daytime Nap #1', '1. Tagschlaf (Nickerchen 1)');
 
       const updatedSleepLog = {
         id: existingItem ? existingItem.id : ('slp_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6)),
         type: 'sleep',
         icon: '🌙',
         sleepKind: isNight ? 'night' : 'nap',
-        napIndex: sleepCount,
         title: sleepTitle,
         detail: trEnDe(`${durMins} dk ${quality} (${effectiveStart} - ${effectiveEnd})`, `${durMins} min (${effectiveStart} - ${effectiveEnd})`, `${durMins} Min. (${effectiveStart} - ${effectiveEnd})`),
         time: effectiveEnd,
@@ -17593,7 +17819,7 @@
     "5 Yıldızla Anne Dayanışması": "Rate 5 Stars & Support Parents",
     "Mağazada 5 yıldız vererek diğer uykusuz annelere el uzatın": "Help other tired parents discover Mışıl Baby with a 5-star review",
     "Puan Ver ›": "Rate ›",
-    "✨ Adım 1 / 4": "✨ Step 1 / 4",
+    "✨ Adım 1 / 6": "✨ Step 1 / 6",
     "🌙 MışılSpot™ Altın Uyku Saati": "🌙 MışılSpot™ Golden Sleep Window",
     "Bebeğinizin aşırı yorulmadan en kolay uykuya dalacağı dakika burada geri sayar.": "Counts down to the exact minute your baby will fall asleep easiest without getting overtired.",
     "🎹 Brahms Uyku Ninnisi": "🎹 Brahms Sleep Lullaby",
@@ -18305,7 +18531,7 @@
     "⭐ Sistem Yıldız Penceresini Tetikle (Native Test)": "⭐ Natives Store-Bewertungsfenster testen",
     "Bize Fısılda Annecim 🤍": "Schreiben Sie uns von Herzen 🤍",
     "Hangi ses, ritim veya özellik miniğine ve sana daha iyi gelirdi? Bize fısılda, birlikte geliştirelim:": "Welcher Klang, Rhythmus oder welche Funktion würde Ihnen und Ihrem Schatz guttun? Schreiben Sie uns:",
-    "✨ Adım 1 / 4": "✨ Schritt 1 / 4",
+    "✨ Adım 1 / 6": "✨ Schritt 1 / 6",
     "🌙 MışılSpot™ Altın Uyku Saati": "🌙 MışılSpot™ Goldenes Schlaffenster",
     "Bebeğinizin aşırı yorulmadan en kolay uykuya dalacağı dakika burada geri sayar.": "Zählt minutengenau bis zu dem Moment herunter, in dem Ihr Baby ohne Übermüdung am leichtesten einschläft.",
     "🎹 Brahms Uyku Ninnisi": "🎹 Brahms Wiegenlied",
@@ -18781,6 +19007,9 @@
     const vipRenModalEl = document.getElementById('vip-renewal-modal');
     if (vipRenModalEl && vipRenModalEl.classList.contains('active') && typeof openVipRenewalModal === 'function') {
       openVipRenewalModal(lastVipRenewalFeature, { silentRefresh: true });
+    }
+    if (Array.isArray(activeRoutines) && typeof recomputeDailyNapIndices === 'function') {
+      recomputeDailyNapIndices(activeRoutines);
     }
     renderAllViews();
 

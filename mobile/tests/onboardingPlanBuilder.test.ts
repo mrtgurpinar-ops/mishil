@@ -734,4 +734,157 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(sandbox.getLocalDateIsoString(yesterdayFeed)).toBe('2026-11-12');
     expect(sandbox.formatTimeHHMM(yesterdayFeed)).toBe('18:45');
   });
+
+  it('v4.51.2: recomputeDailyNapIndices numbers daytime naps strictly per calendar day in chronological order and resets each morning', () => {
+    const { sandbox } = createOnboardingEngineSandbox();
+    const routines = [
+      // Onboarding initial wake entry (must never get numbered as Daytime Nap #1)
+      {
+        id: 'onb_slp_init',
+        type: 'sleep',
+        sleepKind: 'onb_nap',
+        title: 'Son Uyku',
+        timestamp: new Date(2026, 10, 13, 8, 0, 0).getTime(),
+        endTs: new Date(2026, 10, 13, 8, 0, 0).getTime(),
+      },
+      // Yesterday (2026-11-13) naps with stale inflated indices from older builds
+      {
+        id: 'slp_yest_2',
+        type: 'sleep',
+        sleepKind: 'nap',
+        napIndex: 8,
+        start: '14:00',
+        end: '15:10',
+        startTs: new Date(2026, 10, 13, 14, 0, 0).getTime(),
+        endTs: new Date(2026, 10, 13, 15, 10, 0).getTime(),
+        timestamp: new Date(2026, 10, 13, 15, 10, 0).getTime(),
+        durationMins: 70,
+      },
+      {
+        id: 'slp_yest_1',
+        type: 'sleep',
+        sleepKind: 'nap',
+        napIndex: 7,
+        start: '09:30',
+        end: '10:30',
+        startTs: new Date(2026, 10, 13, 9, 30, 0).getTime(),
+        endTs: new Date(2026, 10, 13, 10, 30, 0).getTime(),
+        timestamp: new Date(2026, 10, 13, 10, 30, 0).getTime(),
+        durationMins: 60,
+      },
+      // Overnight night sleep (2026-11-13 21:00 -> 2026-11-14 06:45) — must NOT increment today's nap counter
+      {
+        id: 'slp_night',
+        type: 'sleep',
+        sleepKind: 'night',
+        napIndex: 9,
+        start: '21:00',
+        end: '06:45',
+        startTs: new Date(2026, 10, 13, 21, 0, 0).getTime(),
+        endTs: new Date(2026, 10, 14, 6, 45, 0).getTime(),
+        timestamp: new Date(2026, 10, 14, 6, 45, 0).getTime(),
+        durationMins: 585,
+      },
+      // Today (2026-11-14) afternoon nap logged BEFORE morning nap
+      {
+        id: 'slp_today_afternoon',
+        type: 'sleep',
+        sleepKind: 'nap',
+        start: '13:30',
+        end: '14:40',
+        startTs: new Date(2026, 10, 14, 13, 30, 0).getTime(),
+        endTs: new Date(2026, 10, 14, 14, 40, 0).getTime(),
+        timestamp: new Date(2026, 10, 14, 14, 40, 0).getTime(),
+        durationMins: 70,
+      },
+      // Today (2026-11-14) morning nap logged retroactively
+      {
+        id: 'slp_today_morning',
+        type: 'sleep',
+        sleepKind: 'nap',
+        start: '09:45',
+        end: '10:35',
+        startTs: new Date(2026, 10, 14, 9, 45, 0).getTime(),
+        endTs: new Date(2026, 10, 14, 10, 35, 0).getTime(),
+        timestamp: new Date(2026, 10, 14, 10, 35, 0).getTime(),
+        durationMins: 50,
+      },
+    ];
+
+    sandbox.recomputeDailyNapIndices(routines, 'tr');
+
+    const byId = Object.fromEntries(routines.map((r) => [r.id, r]));
+    expect(byId.onb_slp_init.napIndex).toBeUndefined();
+    expect(byId.slp_yest_1.napIndex).toBe(1);
+    expect(byId.slp_yest_2.napIndex).toBe(2);
+    expect(byId.slp_night.sleepKind).toBe('night');
+    expect(byId.slp_night.napIndex).toBeUndefined();
+    expect(byId.slp_night.title).toBe('Gece Uykusu');
+
+    // Today starts fresh at #1 in chronological order!
+    expect(byId.slp_today_morning.napIndex).toBe(1);
+    expect(byId.slp_today_morning.title).toBe('1. Gündüz Uykusu (Nap 1)');
+    expect(byId.slp_today_afternoon.napIndex).toBe(2);
+    expect(byId.slp_today_afternoon.title).toBe('2. Gündüz Uykusu (Nap 2)');
+
+    // Localization parity across EN / DE
+    expect(sandbox.resolveLocalizedRoutineCopy(byId.slp_today_morning, 'en').title).toBe('Daytime Nap #1');
+    expect(sandbox.resolveLocalizedRoutineCopy(byId.slp_today_afternoon, 'de').title).toBe('2. Tagschlaf (Nickerchen 2)');
+
+    // Deleting today's morning nap shifts afternoon nap down to #1
+    const afterDelete = routines.filter((r) => r.id !== 'slp_today_morning');
+    sandbox.recomputeDailyNapIndices(afterDelete, 'tr');
+    expect(byId.slp_today_afternoon.napIndex).toBe(1);
+    expect(byId.slp_today_afternoon.title).toBe('1. Gündüz Uykusu (Nap 1)');
+  });
+
+  it('v4.51.2: 6-step full-app Spotlight tour covers Home, Center Sleep FAB, Analytics, Coach & Sounds for new users only without Settings card', () => {
+    const htmlPath = path.resolve(__dirname, '../../public/app.html');
+    const html = fs.readFileSync(htmlPath, 'utf8').replace(/\r\n/g, '\n');
+
+    // Settings view no longer contains manual Spotlight Tour card
+    const settingsStart = html.indexOf('<div id="view-settings"');
+    const settingsEnd = html.indexOf('<!-- HUCKLEBERRY / NAPPER BENCHMARK: 6 ADIMLI', settingsStart);
+    expect(settingsStart).toBeGreaterThan(0);
+    expect(settingsEnd).toBeGreaterThan(settingsStart);
+    const settingsMarkup = html.slice(settingsStart, settingsEnd);
+    expect(settingsMarkup.includes('startSpotlightTour(')).toBe(false);
+
+    // Extract getSpotlightSteps and verify 6 full-app targets across TR / EN / DE
+    const fnStart = html.indexOf('function getSpotlightSteps()');
+    const fnEnd = html.indexOf('let spotlightTrackingRafId = null;', fnStart);
+    expect(fnStart).toBeGreaterThan(0);
+    expect(fnEnd).toBeGreaterThan(fnStart);
+
+    let activeLang = 'tr';
+    const tourCtx = {
+      getBaby: () => ({ name: 'Atlas' }),
+      getDefaultBabyName: () => 'Bebeğiniz',
+      isDe: () => activeLang === 'de',
+      isEn: () => activeLang === 'en',
+    };
+    vm.runInNewContext(html.slice(fnStart, fnEnd), tourCtx);
+
+    for (const lang of ['tr', 'en', 'de']) {
+      activeLang = lang;
+      const steps = tourCtx.getSpotlightSteps();
+      expect(steps.length).toBe(6);
+      expect(steps.map((s) => s.selector)).toEqual([
+        '#home-organic-hero',
+        '.quick-bento-grid',
+        '#dock-center-fab',
+        '#view-analytics .analytics-organic-card',
+        '#view-coach .chat-bubble-dadi',
+        '#sounds-timer-card',
+      ]);
+      expect(steps.map((s) => s.tab)).toEqual(['home', 'home', 'home', 'analytics', 'coach', 'sounds']);
+      expect(steps[2].isDockTarget).toBe(true);
+    }
+
+    // Verify every tour selector exists in app.html DOM and Freemium preview guard exists
+    expect(html.includes('id="dock-center-fab"')).toBe(true);
+    expect(html.includes('id="sounds-timer-card"')).toBe(true);
+    expect(html.includes('switchTab(targetTab, { fromSpotlightTour: true })')).toBe(true);
+    expect(html.includes("localStorage.getItem('mishil_spotlight_tour_done') === 'true'")).toBe(true);
+  });
 });

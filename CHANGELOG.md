@@ -2,6 +2,19 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.51.2] - 2026-11-14 (Canlı WebView Paketi — Build 70 Aktif • Native EAS Build Gerekmez)
+### 🌙 Gün İçi Kronolojik Gündüz Uykusu Numaralandırması (`recomputeDailyNapIndices`) & 6 Adımlı Tam Kapsamlı İlk Giriş Tanıtım Turu (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`, `mobile/app.config.ts`, `mobile/tests/onboardingPlanBuilder.test.ts`)
+1. **Gün İçi Kronolojik Uyku Numaralandırması (`recomputeDailyNapIndices`):**
+   - Önceki günlerdeki tüm uykuların ve gece uykularının toplamından sayıldığı için ilerleyen günlerde şişen gündüz uykusu sayacı kaldırılarak takvim günü bazlı (`YYYY-MM-DD`) kronolojik indeksleme motoruna geçildi.
+   - Her takvim günü kendi içinde sabahtan akşama (`startTs` artan sırada) **`1. Gündüz Uykusu (Nap 1)`**, **`2. Gündüz Uykusu (Nap 2)`** (`Daytime Nap #1` / `1. Tagschlaf (Nickerchen 1)`) olarak numaralandırılır; her yeni sabah sayaç otomatik olarak `1`'den başlar.
+   - Aynı güne geçmiş saatli uyku eklendiğinde, saat/tarih düzenlendiğinde veya aradan kayıt silindiğinde (`toggleLiveSleep`, `submitCustomRoutineUnified`, `deleteRoutine`, `sortActiveRoutines`, `writeSafeActiveRoutines`, `setAppLanguage`) sıra numaraları otomatik olarak yeniden dizilir; gece uykuları (`20:00–07:00`) ve onboarding başlangıç kaydı (`onb_slp_init`) gündüz sayacını etkilemez.
+2. **6 Adımlı Tam Kapsamlı İlk Giriş Spotlight Tanıtım Turu (`getSpotlightSteps`, `updateSpotlightGeometry`):**
+   - Yalnızca Ana Sayfa kartlarını gösteren 4 adımlı tur; **Ana Sayfa MışılSpot™ (`#home-organic-hero`)**, **Tek Elle Hızlı Bakım Araçları (`.quick-bento-grid`)**, **Merkezi `"Uyut"` Canlı Uyku Butonu (`#dock-center-fab` — dairesel altın vurgu)**, **Analiz / Aşı / Atak / Aktivite Geçmişi (`#view-analytics .analytics-organic-card`)**, **Mışıl Dadı AI & 5 Sn Ağlama Çözücü (`#view-coach .chat-bubble-dadi`)** ve **18 Stüdyo Sesler & Kademeli Zamanlayıcı (`#sounds-timer-card`)** alanlarını kapsayan **6 adımlı** sekmeler arası canlı tura yükseltildi (`TR / EN / DE` tam parite).
+   - `switchTab`, `switchHomeSegment` ve `switchAnalyticsSegment` içine `{ fromSpotlightTour: true }` önizleme koruması eklenerek Freemium kullanıcıda tur sırasında Paywall modalı açılması engellendi; tur bitişinde/atlanmasında otomatik olarak Ana Sayfa MışılSpot™ görünümüne temiz dönüş bağlandı.
+   - Ayarlar (`#view-settings`) içindeki manuel tanıtım turu başlatma kartı kaldırıldı; `mishil_spotlight_tour_done === 'true'` anahtarı korunarak turun yalnızca **ilk kez giren yeni kullanıcılara** otomatik açılması (mevcut kullanıcılara tekrar açılmaması) garanti altına alındı.
+3. **Seviye 2 İkili Çapraz Denetim (Hard CLI Proof Gate — `Claude Code CLI` + `Antigravity`):**
+   - **Claude Code CLI (`task-154`: `CLAUDE_VERDICT: PASS`, sıfır bulgu)** + **Antigravity** Seviye 2 ikili denetimi işletildi (`9 suite / 63 Jest testi` yeşil, `tsc --noEmit` sıfır hata, `INLINE_SCRIPT_SYNTAX_OK`, `7/7 READY_FOR_RELEASE`).
+
 ## [4.51.1] - 2026-11-13 (Build 70 — Canlı Yayın & Çift Platform EAS Mağaza Dağıtımı)
 ### 🛠️ Kilit Ekranı Deep-Link Onarımı (`misilbaby://sleep`), 48 Saatlik `"Dün"` Uyku Penceresi, Kalıcı Onboarding Rutin Kaydı & Çok Günlü Tarih Mimarisi (`mobile/app/+native-intent.tsx`, `mobile/app/sleep.tsx`, `mobile/app/+not-found.tsx`, `mobile/app/_layout.tsx`, `mobile/components/MishilUnifiedWebView.tsx`, `mobile/modules/mishil-lockscreen/android/**`, `mobile/app.config.ts`, `public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`, `mobile/tests/nativeIntent.test.ts`, `mobile/tests/onboardingPlanBuilder.test.ts`)
 1. **İş Paketi 1 — Kilit Ekranı Canlı Uyku Etkinliği Deep Link Onarımı (`misilbaby://sleep`, `Build 70`):**
