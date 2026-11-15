@@ -887,4 +887,112 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(html.includes('switchTab(targetTab, { fromSpotlightTour: true })')).toBe(true);
     expect(html.includes("localStorage.getItem('mishil_spotlight_tour_done') === 'true'")).toBe(true);
   });
+
+  it('v4.51.3: Spatial Dual-Focus Spotlight tour provides navPath breadcrumbs, persistent dock beacons, sub-tab union cutouts, header callouts & interactive dock tap progression', () => {
+    const htmlPath = path.resolve(__dirname, '../../public/app.html');
+    const html = fs.readFileSync(htmlPath, 'utf8').replace(/\r\n/g, '\n');
+
+    // Verify persistent dock z-index, multi-hole SVG mask, location pill & dock/header beacons exist in DOM/CSS
+    expect(html.includes('body.spotlight-tour-open .tab-bar')).toBe(true);
+    expect(html.includes('id="spotlight-scrim-svg"')).toBe(true);
+    expect(html.includes('id="spotlight-mask-main"')).toBe(true);
+    expect(html.includes('id="spotlight-mask-header"')).toBe(true);
+    expect(html.includes('id="spotlight-mask-dock"')).toBe(true);
+    expect(html.includes('id="spotlight-location-pill"')).toBe(true);
+    expect(html.includes('id="spotlight-dock-beacon"')).toBe(true);
+    expect(html.includes('id="home-header-actions"')).toBe(true);
+    expect(html.includes('id="home-quick-tools-header"')).toBe(true);
+    expect(html.includes('id="coach-cry-solver-bar"')).toBe(true);
+    expect(html.includes('id="sounds-settings-btn"')).toBe(true);
+
+    const fnStart = html.indexOf('function getSpotlightSteps()');
+    const fnEnd = html.indexOf('let spotlightTrackingRafId = null;', fnStart);
+    let activeLang = 'tr';
+    const tourCtx = {
+      getBaby: () => ({ name: 'Atlas' }),
+      getDefaultBabyName: () => 'Bebeğiniz',
+      isDe: () => activeLang === 'de',
+      isEn: () => activeLang === 'en',
+    };
+    vm.runInNewContext(html.slice(fnStart, fnEnd), tourCtx);
+
+    for (const lang of ['tr', 'en', 'de']) {
+      activeLang = lang;
+      const steps = tourCtx.getSpotlightSteps();
+      expect(steps.length).toBe(6);
+      steps.forEach((st) => {
+        expect(typeof st.navPath).toBe('string');
+        expect(st.navPath.startsWith('📍')).toBe(true);
+        expect(typeof st.dockHint).toBe('string');
+        expect(st.dockHint.length).toBeGreaterThan(5);
+      });
+      expect(steps[0].includeSelector).toBe('#view-home .segmented-control');
+      expect(steps[0].headerSelector).toBe('#home-header-actions');
+      expect(steps[1].includeSelector).toBe('#home-quick-tools-header');
+      expect(steps[3].includeSelector).toBe('#view-analytics .analytics-segment-row');
+      expect(steps[4].includeSelector).toBe('#coach-cry-solver-bar');
+      expect(steps[5].includeSelector).toBe('#view-sounds .cat-chips-row');
+      expect(steps[5].headerSelector).toBe('#sounds-settings-btn');
+    }
+
+    // Verify resolveSpotlightTargetUnionRect & handleSpotlightDockTap behavior in VM
+    const unionStart = html.indexOf('function resolveSpotlightTargetUnionRect(');
+    const unionEnd = html.indexOf('function setSvgMaskRectAttrs(', unionStart);
+    const tapStart = html.indexOf('function handleSpotlightDockTap(');
+    const tapEnd = html.indexOf('window.handleSpotlightDockTap = handleSpotlightDockTap;', tapStart);
+    expect(unionStart).toBeGreaterThan(0);
+    expect(tapStart).toBeGreaterThan(0);
+
+    let nextCalled = 0;
+    let renderCalled = 0;
+    const dockVm = {
+      spotlightStepIndex: 0,
+      getSpotlightSteps: () => {
+        activeLang = 'tr';
+        return tourCtx.getSpotlightSteps();
+      },
+      nextSpotlightStep: () => { nextCalled++; dockVm.spotlightStepIndex++; },
+      renderSpotlightStep: () => { renderCalled++; },
+      hapticPulse: () => {},
+      document: {
+        body: { classList: { contains: (c) => c === 'spotlight-tour-open' } },
+        getElementById: (id) => (id === 'spotlight-tour-overlay' ? { classList: { contains: (c) => c === 'active' } } : null),
+        querySelector: (sel) => (sel === '#seg' ? { getBoundingClientRect: () => ({ left: 16, top: 64, right: 359, bottom: 104, width: 343, height: 40 }) } : null),
+      },
+    };
+    vm.runInNewContext(
+      html.slice(unionStart, unionEnd) + '\n' + html.slice(tapStart, tapEnd),
+      dockVm
+    );
+
+    const unionRect = dockVm.resolveSpotlightTargetUnionRect(
+      { getBoundingClientRect: () => ({ left: 16, top: 114, right: 359, bottom: 300, width: 343, height: 186 }) },
+      { includeSelector: '#seg' }
+    );
+    expect(unionRect.top).toBe(64);
+    expect(unionRect.bottom).toBe(300);
+    expect(unionRect.height).toBe(236);
+
+    // Tapping non-current tab ('analytics') jumps directly to Step 4 (index 3)
+    let stopped = false;
+    dockVm.handleSpotlightDockTap({
+      target: { closest: () => ({ id: '', getAttribute: () => 'analytics' }) },
+      preventDefault: () => {},
+      stopPropagation: () => { stopped = true; },
+      stopImmediatePropagation: () => {},
+    });
+    expect(stopped).toBe(true);
+    expect(dockVm.spotlightStepIndex).toBe(3);
+    expect(renderCalled).toBe(1);
+
+    // Tapping currently focused tab ('analytics' on index 3) advances to next step
+    dockVm.handleSpotlightDockTap({
+      target: { closest: () => ({ id: '', getAttribute: () => 'analytics' }) },
+      preventDefault: () => {},
+      stopPropagation: () => {},
+      stopImmediatePropagation: () => {},
+    });
+    expect(nextCalled).toBe(1);
+    expect(dockVm.spotlightStepIndex).toBe(4);
+  });
 });

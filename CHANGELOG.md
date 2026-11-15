@@ -2,6 +2,20 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.51.3] - 2026-11-15 (Yerel WebView Paketi — Build 70 Uyumlu • Native EAS Build Gerekmez • `[Solo-Antigravity]`)
+### 🧭 Mekânsal Yönelimli (Dual-Focus) Spotlight Tanıtım Turu, Sabit Alt Menü Pusulası, Konum Rozeti & Alt-Sekme Kapsama (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`, `mobile/app.config.ts`, `mobile/tests/onboardingPlanBuilder.test.ts`)
+1. **Alt Menü Pusulası & Çift Odaklı (Dual-Focus) Vurgu (`body.spotlight-tour-open .tab-bar`, `.spotlight-dock-focus`, `#spotlight-dock-beacon`):**
+   - Tanıtım turu sırasında `#app-bottom-dock` alt navigasyon çubuğunun `%80` karanlık perde altında kalması giderilerek çok delikli SVG maskesi (`#spotlight-scrim-svg` / `#spotlight-mask-dock`) ve `z-index: 15005` katmanıyla görünür tutuldu.
+   - Her adımda o ekranın bağlı olduğu alt menü ikonu (`Mışıl Spot`, `Analiz`, `Uyut`, `Mışıl Dadı`, `Sesler`) altın nabız halkasıyla (`spotlightDockPulse`) parlatıldı ve tam üstüne aşağı ok işaretli dinamik yönlendirme rozeti (`#spotlight-dock-beacon`: `📍 Buradasınız` / `👆 Buraya Tıklayın ▼`) yerleştirildi.
+   - `handleSpotlightDockTap` yakalama (capture) dinleyicisiyle ebeveynin tur sırasında ister `İleri ➔` butonuna ister doğrudan alt menüdeki sekmelere dokunarak kas hafızasıyla ilerlemesi veya istediği adımın sekmesine atlaması sağlandı (tur açıkken yanlışlıkla canlı uyku başlatma engellendi).
+2. **`"📍 Nereden Ulaşılır?"` Konum Rozeti (`#spotlight-location-pill`), Birleşik Alt-Sekme Spotları (`resolveSpotlightTargetUnionRect`) & Sağ Üst İkon Vurgusu:**
+   - `#spotlight-tooltip-card` üstüne her adımda hangi menü ve alt sekmede olunduğunu açıkça yazan `📍` konum şeridi (`step.navPath`) eklendi; tüm 6 adımın açıklamaları `TR / EN / DE` 3 dilde *"nereye tıklanır"* eylem diliyle yenilendi.
+   - Birleşik çerçeve hesabı (`includeSelector`) ile Adım 1'de `🌙 Mışıl Spot & Uyut | ⏱️ Bugünkü Uykular` çubuğu, Adım 2'de `Hızlı Rutin (+ Detaylı Ekle ➔)` başlığı, Adım 4'te `📊 Uyku & Ritim | 💉 Sağlık & Gelişim | 📜 Aktivite` 3'lü sekme çubuğu, Adım 5'te `🎙️ Bebeğiniz Ağlıyor mu?` çubuğu ve Adım 6'da ses kategori çipleri spot penceresinin içine dahil edildi.
+   - Adım 1 ve Adım 6'da sağ üstteki `🌙 Gece Beşiği` ve `⚙️ Ayarlar / Bebek Profili / Aile Kodu` butonları ikincil SVG penceresi (`#spotlight-mask-header` + `#spotlight-header-ring` + `#spotlight-header-pill`) ile görünür kılındı.
+3. **İcra Modu & Doğrulama Kapısı (`AGENTS.md §5.2` — `[Solo-Antigravity]`):**
+   - **İcra Modu:** Tek Ajan (Yalnızca Antigravity — harici CLI çalıştırılmadı, `[cross-lane]` kaydı `ANTIGRAVITY_HANDOFF.md` içine işlendi).
+   - **Yerel Doğrulama:** `9 suite / 64 Jest testi` yeşil, `tsc --noEmit` sıfır hata, `INLINE_SCRIPT_SYNTAX_OK`, `offlineHtml.generated.ts` senkronize.
+
 ## [4.51.2] - 2026-11-14 (Canlı WebView Paketi — Build 70 Aktif • Native EAS Build Gerekmez)
 ### 🌙 Gün İçi Kronolojik Gündüz Uykusu Numaralandırması (`recomputeDailyNapIndices`) & 6 Adımlı Tam Kapsamlı İlk Giriş Tanıtım Turu (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`, `mobile/app.config.ts`, `mobile/tests/onboardingPlanBuilder.test.ts`)
 1. **Gün İçi Kronolojik Uyku Numaralandırması (`recomputeDailyNapIndices`):**

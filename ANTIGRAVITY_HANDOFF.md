@@ -1,3 +1,9 @@
+# Antigravity Devir Teslim — Mışıl Baby
+
+> **`[cross-lane]` Notu (2026-11-15 · v4.51.3 · `[Solo-Antigravity]` · Railway Canlıda):** Harici CLI erişimi güvenlik kancası/ortam kısıtıyla engellendiği ve kullanıcı doğrudan geliştirme + canlıya alma onayı verdiği için `public/app.html`, `mobile/app.config.ts` (`APP_VERSION = '4.51.3'`), `mobile/features/webview/offlineHtml.generated.ts` ve `mobile/tests/onboardingPlanBuilder.test.ts` dosyalarında **Mekânsal Yönelimli (Dual-Focus) Spotlight Tanıtım Turu** (sabit görünür alt menü pusulası, aktif sekme halkası + `👆` işaretçi rozeti, `📍 Nereden Ulaşılır?` adres şeridi, alt-sekme birleşik spotları, sağ üst `🌙 / ⚙️` vurgusu ve alt menü ikonlarına dokunarak ilerleme) tamamlanarak `origin/main` ve Railway canlı ortamına aktarıldı (`9 suite / 64 Jest`, `tsc --noEmit` sıfır hata, `EXACT_OFFLINE_SYNC=true`).
+
+---
+
 # Antigravity Devir Teslim — Mışıl Baby v4.10.0 (build 18)
 
 > Bu belge, Claude Code oturumunda tamamlanan işleri ve **Antigravity'nin bitirmesi

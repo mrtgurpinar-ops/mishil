@@ -2807,7 +2807,7 @@
 
     .modal-overlay.active { display: flex; }
 
-    /* HUCKLEBERRY / NAPPER BENCHMARK: 4 ADIMLI İNTERAKTİF SPOTLIGHT UYGULAMALI ANLATIM TURU */
+    /* HUCKLEBERRY × DUOLINGO BENCHMARK: MEKÂNSAL YÖNELİMLİ (DUAL-FOCUS) 6 ADIMLI İNTERAKTİF SPOTLIGHT TURU */
     #spotlight-tour-overlay {
       position: fixed;
       inset: 0;
@@ -2827,13 +2827,108 @@
     body.spotlight-tour-open #spotlight-cutout {
       transition: none !important;
     }
+    body.spotlight-tour-open .tab-bar {
+      z-index: 15005 !important;
+    }
+    body.spotlight-tour-open .tab-bar .tab-item:not(.spotlight-dock-focus),
+    body.spotlight-tour-open .tab-bar .dock-fab-btn:not(.spotlight-dock-focus) {
+      opacity: 0.34 !important;
+      filter: saturate(0.45);
+      transform: scale(0.95);
+    }
+    @keyframes spotlightDockPulse {
+      0%, 100% {
+        box-shadow: 0 0 0 2px var(--accent), 0 0 16px rgba(244, 162, 97, 0.68);
+      }
+      50% {
+        box-shadow: 0 0 0 3px var(--accent), 0 0 26px rgba(244, 162, 97, 0.95);
+      }
+    }
+    body.spotlight-tour-open .tab-bar .spotlight-dock-focus {
+      opacity: 1 !important;
+      filter: none !important;
+      animation: spotlightDockPulse 1.5s ease-in-out infinite !important;
+    }
+    body.spotlight-tour-open .tab-bar .tab-item.spotlight-dock-focus {
+      background: rgba(244, 162, 97, 0.22) !important;
+      transform: translateY(-2px) scale(1.05) !important;
+    }
+    body.spotlight-tour-open .tab-bar .tab-item.spotlight-dock-focus .tab-icon-svg {
+      stroke: var(--accent) !important;
+      stroke-width: 2.1 !important;
+    }
+    body.spotlight-tour-open .tab-bar .tab-item.spotlight-dock-focus .tab-label {
+      color: var(--accent) !important;
+      font-weight: 800 !important;
+    }
+    #spotlight-scrim-svg {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 15001;
+    }
     #spotlight-cutout {
       position: fixed;
       border-radius: 20px;
       border: 2px solid var(--accent);
-      box-shadow: 0 0 0 9999px rgba(10, 8, 18, 0.80), 0 0 28px rgba(244, 162, 97, 0.60);
+      box-shadow: 0 0 28px rgba(244, 162, 97, 0.62);
       transition: top 0.28s cubic-bezier(0.22, 1, 0.36, 1), left 0.28s cubic-bezier(0.22, 1, 0.36, 1), width 0.28s cubic-bezier(0.22, 1, 0.36, 1), height 0.28s cubic-bezier(0.22, 1, 0.36, 1);
       pointer-events: none;
+      z-index: 15002;
+    }
+    #spotlight-header-ring {
+      position: fixed;
+      border-radius: 14px;
+      border: 1.8px dashed var(--accent);
+      box-shadow: 0 0 18px rgba(244, 162, 97, 0.55);
+      pointer-events: none;
+      z-index: 15003;
+    }
+    #spotlight-header-pill {
+      position: fixed;
+      background: rgba(29, 24, 41, 0.96);
+      border: 1px solid rgba(244, 162, 97, 0.65);
+      color: var(--accent);
+      font-family: 'Sora', sans-serif;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 9px;
+      border-radius: 999px;
+      white-space: nowrap;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.55);
+      pointer-events: none;
+      z-index: 15009;
+    }
+    #spotlight-dock-beacon {
+      position: fixed;
+      background: linear-gradient(135deg, var(--accent) 0%, #E07A5F 100%);
+      color: #141B2E;
+      font-family: 'Sora', sans-serif;
+      font-size: 10px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 999px;
+      white-space: nowrap;
+      box-shadow: 0 6px 18px rgba(244, 162, 97, 0.50);
+      pointer-events: none;
+      z-index: 15008;
+    }
+    #spotlight-location-pill {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(46, 213, 115, 0.13);
+      border: 1px solid rgba(46, 213, 115, 0.36);
+      color: #6EE7B7;
+      font-size: 10.5px;
+      font-weight: 700;
+      line-height: 14px;
+      padding: 4px 9px;
+      border-radius: 9px;
+      margin-bottom: 7px;
+      overflow-wrap: anywhere;
     }
     #spotlight-tooltip-card {
       position: fixed;
@@ -2844,17 +2939,27 @@
       background: rgba(29, 24, 41, 0.98);
       border: 1.5px solid var(--accent);
       border-radius: 20px;
-      padding: 15px 16px;
+      padding: 13px 15px;
       box-shadow: 0 18px 42px rgba(0, 0, 0, 0.65);
       backdrop-filter: blur(22px);
       -webkit-backdrop-filter: blur(22px);
       transition: top 0.26s cubic-bezier(0.22, 1, 0.36, 1), bottom 0.26s cubic-bezier(0.22, 1, 0.36, 1);
-      z-index: 3202;
+      z-index: 15010;
     }
     [data-theme="light"] #spotlight-tooltip-card {
       background: rgba(255, 250, 242, 0.98) !important;
       border-color: var(--accent) !important;
       box-shadow: 0 16px 36px rgba(45, 36, 30, 0.22) !important;
+    }
+    [data-theme="light"] #spotlight-location-pill {
+      background: rgba(16, 185, 129, 0.12) !important;
+      border-color: rgba(5, 150, 105, 0.35) !important;
+      color: #065F46 !important;
+    }
+    [data-theme="light"] #spotlight-header-pill {
+      background: rgba(255, 250, 242, 0.98) !important;
+      border-color: rgba(217, 119, 6, 0.55) !important;
+      color: #B45309 !important;
     }
 
     .modal-sheet {
@@ -3548,7 +3653,7 @@
           <div class="baby-subtitle" id="baby-header-subtitle">—</div>
           <div class="main-title" id="baby-header-title">Mışıl Spot™ Ritim & Uyku</div>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
+        <div id="home-header-actions" style="display: flex; gap: 8px; align-items: center;">
           <button onclick="openNightAmbient()" class="header-profile-btn" title="Gece Beşiği Modu" style="background: rgba(244, 162, 97, 0.15); border-color: rgba(244, 162, 97, 0.35);">
             <span>🌙</span>
           </button>
@@ -3676,7 +3781,7 @@
         </div>
 
         <!-- GECE 03:00 TEK EL BAŞPARMAK BÖLGESİ (ABOVE-THE-FOLD): 4'LÜ HIZLI RUTİN KAYDI -->
-        <div class="section-title" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+        <div class="section-title" id="home-quick-tools-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
           <span>Hızlı Rutin & Gece Araçları</span>
           <button type="button" onclick="openAddRoutineModal()" style="min-height: 32px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.35); border-radius: 999px; padding: 4px 11px; font-size: 11px; font-weight: 700; color: var(--accent); cursor: pointer;">+ Detaylı Ekle ➔</button>
         </div>
@@ -4096,7 +4201,7 @@
       </div>
 
       <!-- Ağlama Sesi Acil Çözücü Çubuğu (Dadı İçine Entegre) -->
-      <div class="card" style="border: 1px solid var(--accent); background: rgba(36, 30, 50, 0.9); cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; margin-bottom: 12px;" onclick="openCryModal()">
+      <div class="card" id="coach-cry-solver-bar" style="border: 1px solid var(--accent); background: rgba(36, 30, 50, 0.9); cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; margin-bottom: 12px;" onclick="openCryModal()">
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-size: 22px;">🎙️</span>
           <div>
@@ -4146,7 +4251,7 @@
           <div class="baby-subtitle">18 Stüdyo Master Parça</div>
           <div class="main-title">Sakinleştirici Sesler</div>
         </div>
-        <button onclick="openSettingsWithMemory('sounds')" class="header-profile-btn" title="Profil ve Ayarlar">
+        <button id="sounds-settings-btn" onclick="openSettingsWithMemory('sounds')" class="header-profile-btn" title="Profil ve Ayarlar">
           <span>⚙️</span>
         </button>
       </div>
@@ -4527,17 +4632,32 @@
 
   <!-- HUCKLEBERRY / NAPPER BENCHMARK: 6 ADIMLI TAM KAPSAMLI İNTERAKTİF SPOTLIGHT TANITIM TURU -->
   <div id="spotlight-tour-overlay" role="dialog" aria-modal="true" aria-label="Uygulamalı Anlatım Turu">
+    <svg id="spotlight-scrim-svg" aria-hidden="true">
+      <defs>
+        <mask id="spotlight-scrim-mask">
+          <rect x="0" y="0" width="100%" height="100%" fill="white"></rect>
+          <rect id="spotlight-mask-main" x="0" y="0" width="0" height="0" rx="20" ry="20" fill="black"></rect>
+          <rect id="spotlight-mask-header" x="0" y="0" width="0" height="0" rx="14" ry="14" fill="black"></rect>
+          <rect id="spotlight-mask-dock" x="0" y="0" width="0" height="0" rx="0" ry="0" fill="black"></rect>
+        </mask>
+      </defs>
+      <rect x="0" y="0" width="100%" height="100%" fill="rgba(10, 8, 18, 0.78)" mask="url(#spotlight-scrim-mask)"></rect>
+    </svg>
     <div id="spotlight-cutout"></div>
+    <div id="spotlight-header-ring" style="display: none;"></div>
+    <div id="spotlight-header-pill" style="display: none;"></div>
+    <div id="spotlight-dock-beacon" style="display: none;"></div>
     <div id="spotlight-tooltip-card">
-      <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 7px;">
         <div style="display: flex; align-items: center; gap: 8px;">
           <span id="spotlight-step-badge" style="background: rgba(244, 162, 97, 0.22); color: var(--accent); border: 1px solid rgba(244, 162, 97, 0.45); font-size: 10px; font-weight: 800; padding: 3px 9px; border-radius: 999px;">✨ Adım 1 / 6</span>
           <div id="spotlight-step-dots" style="display: flex; align-items: center; gap: 4px;"></div>
         </div>
         <button type="button" onclick="endSpotlightTour(true)" style="background: rgba(255,255,255,0.08); border: 1px solid var(--border-night); color: var(--text-muted); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 12px; cursor: pointer;">Atla ✕</button>
       </div>
+      <div id="spotlight-location-pill">📍 Alt Menü: 🏠 Mışıl Spot</div>
       <div id="spotlight-step-title" style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: var(--heading-night); margin-bottom: 5px;">🌙 MışılSpot™ Altın Uyku Saati</div>
-      <div id="spotlight-step-desc" style="font-size: 12px; line-height: 17px; color: var(--text-night); margin-bottom: 12px;">Bebeğinizin aşırı yorulmadan en kolay uykuya dalacağı dakika burada geri sayar.</div>
+      <div id="spotlight-step-desc" style="font-size: 12px; line-height: 16.5px; color: var(--text-night); margin-bottom: 11px;">Bebeğinizin aşırı yorulmadan en kolay uykuya dalacağı dakika burada geri sayar.</div>
       <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
         <button type="button" id="spotlight-prev-btn" onclick="prevSpotlightStep()" style="background: rgba(255,255,255,0.07); border: 1px solid var(--border-night); color: var(--text-night); font-size: 11.5px; font-weight: 700; padding: 8px 12px; border-radius: 12px; cursor: pointer;">← Geri</button>
         <button type="button" id="spotlight-next-btn" onclick="nextSpotlightStep()" style="flex: 1; background: linear-gradient(135deg, var(--accent) 0%, #E07A5F 100%); border: none; color: #141B2E; font-family: 'Sora'; font-size: 12px; font-weight: 800; padding: 9px 14px; border-radius: 12px; cursor: pointer; box-shadow: 0 4px 14px rgba(244, 162, 97, 0.35);">İleri ➔</button>
@@ -5644,7 +5764,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.51.2', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.51.3', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -5952,7 +6072,17 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.51.2', date: '14 Kasım 2026', dateEn: 'November 14, 2026', dateDe: '14. November 2026', latest: true, items: [
+    { v: '4.51.3', date: '15 Kasım 2026', dateEn: 'November 15, 2026', dateDe: '15. November 2026', latest: true, items: [
+      'Mekânsal Yönelimli (Dual-Focus) Tanıtım Turu & Alt Menü Pusulası: İlk giriş tanıtım turunda alt menü çubuğu artık karartılmaz; her adımda ilgili menü ikonu (Mışıl Spot, Analiz, Uyut, Mışıl Dadı, Sesler) altın halkayla parlar, üzerinde "Buraya Tıklayın ▼" işaretçisi görünür ve ister "İleri" butonuna ister doğrudan alt menü ikonlarına dokunarak gezilebilir.',
+      'Açık Konum Rozeti, Alt-Sekme Kapsama & Sağ Üst Ayarlar İpucu: Tur kartlarına "📍 Nereden Ulaşılır?" adres şeridi eklendi; Ana Ekran (Mışıl Spot / Bugünkü Uykular), Analiz (Uyku / Sağlık & Aşı / Aktivite) ve Mışıl Dadı (🎙️ Ağlama Çözücü) üst sekmeleri ile sağ üstteki 🌙 Gece Beşiği ve ⚙️ Ayarlar / Aile Kodu butonları spot penceresine dahil edildi.'
+    ], itemsEn: [
+      'Spatial Dual-Focus App Tour & Persistent Bottom Bar Compass: The bottom navigation bar now stays visible during the interactive tour—highlighting the active tab icon (Mışıl Spot, Analytics, Sleep, Mışıl Nanny, Sounds) with a pulsing golden ring, a floating pointer badge, and direct tap-to-navigate support.',
+      'Clear Location Breadcrumb, Sub-Tab Spotlight & Top-Right Settings Callout: Added a "📍 Where to Find" path pill to every tour card and expanded spotlights to include Home sub-tabs, Analytics 3-way tabs (Sleep / Health & Vaccines / Activity), the Cry Decoder bar, and top-right 🌙 Night Crib & ⚙️ Settings / Family Code buttons.'
+    ], itemsDe: [
+      'Interaktive Dual-Focus-Tour mit sichtbarer Navigationsleiste: Die untere Menüleiste bleibt während der Einführung sichtbar, hebt das jeweilige aktive Symbol (Mışıl Spot, Analyse, Schlaf, Mışıl Nanny, Klänge) mit goldenem Leuchtring samt Hinweispfeil hervor und unterstützt direktes Antippen der Symbole.',
+      'Klare Positionsanzeige, Untermenü-Fokus & Einstellungs-Hinweis: Jede Tour-Karte zeigt nun den genauen Menüpfad („📍 Wo zu finden“), bezieht die oberen Reiter (u. a. Schlaf / Gesundheit & Impfungen / Aktivität sowie Wein-Analyse) ein und markiert oben rechts 🌙 Nachtmodus & ⚙️ Einstellungen / Familiencode.'
+    ]},
+    { v: '4.51.2', date: '14 Kasım 2026', dateEn: 'November 14, 2026', dateDe: '14. November 2026', items: [
       'Gün İçi Kronolojik Gündüz Uykusu Numaralandırması: Gündüz uykuları artık önceki günlerin toplamından değil, her takvim günü kendi içinde sabahtan akşama kronolojik olarak (1. Gündüz Uykusu, 2. Gündüz Uykusu...) numaralandırılır; aynı güne geçmiş saatli uyku eklendiğinde veya kayıt silindiğinde sıra numaraları otomatik olarak yeniden dizilir.',
       '6 Adımlı Tam Kapsamlı İlk Giriş Tanıtım Turu: Yeni kullanıcılar için açılan interaktif tanıtım turu artık yalnızca Ana Sayfa\'yı değil; Merkezi "Uyut" Canlı Uyku Butonunu, Analiz & Aşı/Atak ekranını, Mışıl Dadı AI & 5 Sn Ağlama Çözücüyü ve 18 Stüdyo Sesler & Zamanlayıcı sekmesini adım adım canlı gezdirerek tanıtır.'
     ], itemsEn: [
@@ -12799,46 +12929,68 @@
           tab: 'home',
           homeSegment: 'sweetspot',
           selector: '#home-organic-hero',
-          anchorTop: 14,
+          includeSelector: '#view-home .segmented-control',
+          headerSelector: '#home-header-actions',
+          noScroll: true,
+          navPath: '📍 Unten: 🏠 Mışıl Spot  •  Oben: Mışıl Spot / Heutige Schläfchen',
+          dockHint: '📍 Hier sind Sie: Mışıl Spot ▼',
+          headerHint: '🌙 Nachtmodus & ⚙️ Einstellungen ➔',
           title: '🌙 1. MışılSpot™ Goldenes Schlaffenster',
-          desc: `Zählt minutengenau herunter, wann ${babyName} ohne Übermüdung am leichtesten einschläft – live abgestimmt auf den 24h-Tagesrhythmus.`
+          desc: `Sie befinden sich im Start-Tab „Mışıl Spot“. Wechseln Sie oben zwischen dem Schlaf-Countdown für ${babyName} und „Heutige Schläfchen“ oder tippen Sie oben rechts auf 🌙 und ⚙️.`
         },
         {
           tab: 'home',
           homeSegment: 'sweetspot',
           selector: '.quick-bento-grid',
+          includeSelector: '#home-quick-tools-header',
+          anchorTop: 20,
+          navPath: '📍 Unten: 🏠 Mışıl Spot  •  Unterer Startbereich',
+          dockHint: '📍 Unten: Mışıl Spot ▼',
           title: '🍼 2. Einhand-Pflege & Schnellprotokoll',
-          desc: `Erreichen Sie Stillen/Fläschchen, Windel, 5-Sek.-Wein-Ratgeber und Klänge nachts bequem mit einem Daumen und verfolgen Sie die letzten Zeiten.`
+          desc: `Direkt darunter im Tab „Mışıl Spot“ erreichen Sie Stillen/Fläschchen, Windel, 5-Sek.-Wein-Ratgeber und „+ Detail“ nachts bequem mit einem Daumen.`
         },
         {
           tab: 'home',
           homeSegment: 'sweetspot',
           selector: '#dock-center-fab',
           isDockTarget: true,
+          navPath: '📍 Unten Mitte: 🌙 „Schlaf“-Button (Überall sichtbar)',
+          dockHint: '👆 Hier tippen: Live-Schlaf ▼',
           title: '🌙 3. Zentraler „Schlaf“-Button & Live-Timer',
-          desc: `Tippen Sie aus jedem Bereich unten in der Mitte auf den goldenen Halbmond, um das Live-Schlaf-Tracking samt Sperrbildschirm-Chronometer zu starten oder zu speichern.`
+          desc: `Egal in welchem Menü Sie sind: Tippen Sie unten in der Mitte auf den goldenen Halbmond „Schlaf“, um den Live-Timer samt Sperrbildschirm-Anzeige zu starten oder zu speichern.`
         },
         {
           tab: 'analytics',
           analyticsSegment: 'sleep',
           selector: '#view-analytics .analytics-organic-card',
-          anchorTop: 58,
+          includeSelector: '#view-analytics .analytics-segment-row',
+          anchorTop: 16,
+          navPath: '📍 Unten: 📊 Analyse  •  Oben: Schlaf | Gesundheit | Aktivität',
+          dockHint: '👆 Unten tippen: Analyse ▼',
           title: '📊 4. Analyse, Impfungen, Sprünge & Verlauf',
-          desc: `Verfolgen Sie hier Balance-Score, Wochenschlaf-Grafiken, Impf- & 10-Sprünge-Kalender sowie das nach Tagen gruppierte Aktivitätsprotokoll.`
+          desc: `Tippen Sie unten auf „Analyse“, um hierher zu gelangen, und wechseln Sie oben zwischen den 3 Reitern „Schlaf & Rhythmus“, „Gesundheit & Impfungen“ (inkl. 10 Sprünge) und „Aktivität“.`
         },
         {
           tab: 'coach',
           selector: '#view-coach .chat-bubble-dadi',
+          includeSelector: '#coach-cry-solver-bar',
           noScroll: true,
+          navPath: '📍 Unten: ✨ Mışıl Nanny  •  Oben: 🎙️ Wein-Analyse',
+          dockHint: '👆 Unten tippen: Mışıl Nanny ▼',
           title: '👵 5. Mışıl Nanny KI & 5-Sek.-Wein-Analyse',
-          desc: `Fragen Sie Ihre 24/7-Beraterin jederzeit passend zu Alter und Schlafverlauf von ${babyName} oder nutzen Sie oben die 5-Sek.-Wein-Analyse.`
+          desc: `Tippen Sie unten auf „Mışıl Nanny“, um Ihre 24/7-Beraterin passend zu ${babyName} zu fragen, oder nutzen Sie direkt darüber die Leiste „🎙️ Weint Ihr Baby?“ für die 5-Sek.-Analyse.`
         },
         {
           tab: 'sounds',
           selector: '#sounds-timer-card',
-          anchorTop: 88,
-          title: '🎵 6. 18 Studio-Klänge & Sanfter Sleep-Timer',
-          desc: `Spielen Sie Mutterleibsklänge, weißes Rauschen und Wiegenlieder im Hintergrund auf dem Sperrbildschirm ab – inklusive sanftem Fade-Out-Timer.`
+          includeSelector: '#view-sounds .cat-chips-row',
+          headerSelector: '#sounds-settings-btn',
+          noScroll: true,
+          navPath: '📍 Unten: 🎵 Klänge  •  Oben rechts: ⚙️ Einstellungen & Familiencode',
+          dockHint: '👆 Unten tippen: Klänge ▼',
+          headerHint: '⚙️ Profil & Familiencode ➔',
+          title: '🎵 6. 18 Studio-Klänge, Sleep-Timer & Einstellungen',
+          desc: `Tippen Sie unten rechts auf „Klänge“ für Wiegenlieder und weißes Rauschen auf dem Sperrbildschirm. Für Partner-Familiencode und Babyprofil tippen Sie jederzeit oben rechts auf ⚙️.`
         }
       ];
     }
@@ -12848,46 +13000,68 @@
           tab: 'home',
           homeSegment: 'sweetspot',
           selector: '#home-organic-hero',
-          anchorTop: 14,
+          includeSelector: '#view-home .segmented-control',
+          headerSelector: '#home-header-actions',
+          noScroll: true,
+          navPath: '📍 Bottom Bar: 🏠 Mışıl Spot  •  Top Switch: Mışıl Spot / Today\'s Naps',
+          dockHint: '📍 You Are Here: Mışıl Spot ▼',
+          headerHint: '🌙 Night Crib & ⚙️ Settings ➔',
           title: '🌙 1. MışılSpot™ Golden Sleep Window',
-          desc: `Counts down to the exact minute ${babyName} will fall asleep easiest without getting overtired, updating live with your 24-hour rhythm.`
+          desc: `You are on the "Mışıl Spot" home tab. Use the two top pills to switch between ${babyName}'s live sleep countdown and "Today's Naps", or tap 🌙 and ⚙️ at the top right for Night Crib and Settings.`
         },
         {
           tab: 'home',
           homeSegment: 'sweetspot',
           selector: '.quick-bento-grid',
+          includeSelector: '#home-quick-tools-header',
+          anchorTop: 20,
+          navPath: '📍 Bottom Bar: 🏠 Mışıl Spot  •  Lower Home Screen',
+          dockHint: '📍 Bottom Tab: Mışıl Spot ▼',
           title: '🍼 2. One-Hand Quick Care & Routine Log',
-          desc: `Log Feeding, Diaper changes, 5-sec Cry Guide, and Sounds with one thumb at 3:00 AM while tracking minutes since last care.`
+          desc: `Right below on the "Mışıl Spot" home tab, tap Feeding, Diaper, 5-sec Cry Guide, or "+ Add Detailed" with one thumb at 3:00 AM.`
         },
         {
           tab: 'home',
           homeSegment: 'sweetspot',
           selector: '#dock-center-fab',
           isDockTarget: true,
+          navPath: '📍 Bottom Center: 🌙 Sleep Button (Always Available)',
+          dockHint: '👆 Tap Here: Live Sleep ▼',
           title: '🌙 3. Center "Sleep" Button & Live Timer',
-          desc: `Tap the center golden crescent from any tab to start or save Live Sleep tracking alongside the Lock-Screen chronometer.`
+          desc: `From any menu, tap the center golden crescent "Sleep" button on the bottom bar to start or save Live Sleep tracking and the Lock-Screen timer.`
         },
         {
           tab: 'analytics',
           analyticsSegment: 'sleep',
           selector: '#view-analytics .analytics-organic-card',
-          anchorTop: 58,
+          includeSelector: '#view-analytics .analytics-segment-row',
+          anchorTop: 16,
+          navPath: '📍 Bottom Bar: 📊 Analytics  •  Top Tabs: Sleep | Health | Activity',
+          dockHint: '👆 Tap Tab: Analytics ▼',
           title: '📊 4. Analytics, Vaccines, Leaps & History',
-          desc: `Track the Biological Balance Score, weekly sleep charts, Vaccine & 10 Mental Leaps calendar, and day-grouped Activity history here.`
+          desc: `Tap the "Analytics" icon on the bottom bar to reach this hub, then use the 3 top tabs to switch between "Sleep & Rhythm", "Health & Growth" (Vaccines & 10 Leaps), and "Activity" history.`
         },
         {
           tab: 'coach',
           selector: '#view-coach .chat-bubble-dadi',
+          includeSelector: '#coach-cry-solver-bar',
           noScroll: true,
+          navPath: '📍 Bottom Bar: ✨ Mışıl Nanny  •  Top Bar: 🎙️ Cry Decoder',
+          dockHint: '👆 Tap Tab: Mışıl Nanny ▼',
           title: '👵 5. Mışıl Nanny AI & 5-Sec Cry Decoder',
-          desc: `Ask your 24/7 sleep consultant anything tailored to ${babyName}'s age and sleep logs, or tap the top bar to decode cries in 5 seconds.`
+          desc: `Tap "Mışıl Nanny" on the bottom bar to ask your 24/7 consultant anything tailored to ${babyName}, or tap the "🎙️ Is Baby Crying?" bar right above to decode cries in 5 seconds.`
         },
         {
           tab: 'sounds',
           selector: '#sounds-timer-card',
-          anchorTop: 88,
-          title: '🎵 6. 18 Studio Sounds & Fade-Out Timer',
-          desc: `Play womb sounds, white noise, shushing, and lullabies in the background on your Lock Screen with gentle Fade-Out sleep timers.`
+          includeSelector: '#view-sounds .cat-chips-row',
+          headerSelector: '#sounds-settings-btn',
+          noScroll: true,
+          navPath: '📍 Bottom Bar: 🎵 Sounds  •  Top Right: ⚙️ Settings & Family Code',
+          dockHint: '👆 Tap Tab: Sounds ▼',
+          headerHint: '⚙️ Profile & Family Code ➔',
+          title: '🎵 6. 18 Studio Sounds, Sleep Timer & Settings',
+          desc: `Tap "Sounds" at the bottom right to play lullabies and white noise on your Lock Screen with Fade-Out timers. For Partner Family Code and baby profile, tap ⚙️ at the top right anytime.`
         }
       ];
     }
@@ -12896,52 +13070,128 @@
         tab: 'home',
         homeSegment: 'sweetspot',
         selector: '#home-organic-hero',
-        anchorTop: 14,
+        includeSelector: '#view-home .segmented-control',
+        headerSelector: '#home-header-actions',
+        noScroll: true,
+        navPath: '📍 Alt Menü: 🏠 Mışıl Spot  •  Üst Sekme: Mışıl Spot / Bugünkü Uykular',
+        dockHint: '📍 Buradasınız: Mışıl Spot ▼',
+        headerHint: '🌙 Gece Beşiği & ⚙️ Ayarlar ➔',
         title: '🌙 1. MışılSpot™ Altın Uyku Saati',
-        desc: `${babyName}'in aşırı yorulmadan en kolay uykuya dalacağı dakika burada geri sayar ve 24 saatlik günlük ritim şeridiyle canlı güncellenir.`
+        desc: `Alt menüdeki "Mışıl Spot" ana ekranındasınız. Üstteki iki sekmeden ${babyName}'in ideal uyku geri sayımı ile "Bugünkü Uykular" arasında geçin; sağ üstteki 🌙 ve ⚙️ ikonlarından Gece Beşiği ile Ayarlar'ı açın.`
       },
       {
         tab: 'home',
         homeSegment: 'sweetspot',
         selector: '.quick-bento-grid',
+        includeSelector: '#home-quick-tools-header',
+        anchorTop: 20,
+        navPath: '📍 Alt Menü: 🏠 Mışıl Spot  •  Ana Ekranın Alt Bölümü',
+        dockHint: '📍 Alt Menü: Mışıl Spot ▼',
         title: '🍼 2. Tek Elle Hızlı Bakım & Rutin Araçları',
-        desc: `Gece 03:00'te başparmak hizasında Beslenme, Bez, 5 sn Akıllı Ağlama Rehberi ve Seslere anında ulaşın; son bakım sürelerini canlı izleyin.`
+        desc: `Yine "Mışıl Spot" sekmesinin hemen altında; Beslenme, Alt Değişimi, 5 sn Ağlama Rehberi ve "+ Detaylı Ekle" butonlarına gece 03:00'te tek başparmakla ulaşın.`
       },
       {
         tab: 'home',
         homeSegment: 'sweetspot',
         selector: '#dock-center-fab',
         isDockTarget: true,
+        navPath: '📍 Alt Menü Ortası: 🌙 Uyut Butonu (Tüm Ekranlarda Sabit)',
+        dockHint: '👆 Tek Dokunuşla Uyut ▼',
         title: '🌙 3. Merkezi "Uyut" Butonu & Canlı Sayaç',
-        desc: `Hangi sekmede olursanız olun alt ortadaki altın hilale dokunarak Canlı Uyku sayacını ve Kilit Ekranı takibini tek dokunuşla başlatıp kaydedin.`
+        desc: `Hangi menüde olursanız olun alt ortadaki altın hilal "Uyut" butonuna dokunarak Canlı Uyku sayacını ve Kilit Ekranı takibini anında başlatıp kaydedin.`
       },
       {
         tab: 'analytics',
         analyticsSegment: 'sleep',
         selector: '#view-analytics .analytics-organic-card',
-        anchorTop: 58,
+        includeSelector: '#view-analytics .analytics-segment-row',
+        anchorTop: 16,
+        navPath: '📍 Alt Menü: 📊 Analiz  •  Üstten: Uyku | Sağlık & Aşı | Aktivite',
+        dockHint: '👆 Buraya Tıklayın: Analiz ▼',
         title: '📊 4. Analiz, Aşı, Atak & Rutin Geçmişi',
-        desc: `Biyolojik Denge Skorunu, haftalık uyku grafiklerini, Aşı & 10 Büyüme Atağı takvimini ve gün-gün gruplanmış Aktivite geçmişini buradan izleyin.`
+        desc: `Alttaki "Analiz" ikonuna dokunarak bu ekrana gelin. Üstteki 3 sekmeden "Uyku & Ritim" grafiğini, "Sağlık & Gelişim" (Aşı & 10 Atak) takvimini ve "Aktivite" geçmişini açın.`
       },
       {
         tab: 'coach',
         selector: '#view-coach .chat-bubble-dadi',
+        includeSelector: '#coach-cry-solver-bar',
         noScroll: true,
+        navPath: '📍 Alt Menü: ✨ Mışıl Dadı  •  Üst Çubuk: 🎙️ Ağlama Çözücü',
+        dockHint: '👆 Buraya Tıklayın: Mışıl Dadı ▼',
         title: '👵 5. Mışıl Dadı AI & 5 Sn Ağlama Çözücü',
-        desc: `${babyName}'in ayına ve uyku geçmişine hakim 7/24 danışmanınıza aklınıza takılan her şeyi sorun; üstteki çubukla ağlama ipucunu 5 saniyede keşfedin.`
+        desc: `Alttaki "Mışıl Dadı" sekmesine dokunarak ${babyName}'in ayına hakim 7/24 danışmanınıza soru sorun; hemen üstteki "🎙️ Bebeğiniz Ağlıyor mu?" çubuğuna basarak ağlama ipucunu 5 saniyede görün.`
       },
       {
         tab: 'sounds',
         selector: '#sounds-timer-card',
-        anchorTop: 88,
-        title: '🎵 6. 18 Stüdyo Ses & Kademeli Zamanlayıcı',
-        desc: `Anne karnı, beyaz gürültü, pışpış ve ninnileri kilit ekranında arka planda çalın; Fade-Out zamanlayıcıyla süre biterken sesi yavaşça kısın.`
+        includeSelector: '#view-sounds .cat-chips-row',
+        headerSelector: '#sounds-settings-btn',
+        noScroll: true,
+        navPath: '📍 Alt Menü: 🎵 Sesler  •  Sağ Üst: ⚙️ Ayarlar & Aile Kodu',
+        dockHint: '👆 Buraya Tıklayın: Sesler ▼',
+        headerHint: '⚙️ Profil & Aile Kodu ➔',
+        title: '🎵 6. 18 Stüdyo Ses, Zamanlayıcı & Ayarlar',
+        desc: `En sağ alttaki "Sesler" sekmesinden ninnileri ve beyaz gürültüyü kilit ekranında çalın. Eş davet kodu (Aile Paylaşımı) ve bebek profili için her ekranın sağ üstündeki ⚙️ ikonuna dokunun.`
       }
     ];
   }
 
   let spotlightTrackingRafId = null;
   let spotlightScrollCleanup = null;
+
+  function clearSpotlightDockFocus() {
+    document.querySelectorAll('#app-bottom-dock .spotlight-dock-focus').forEach((el) => {
+      el.classList.remove('spotlight-dock-focus');
+    });
+    const beacon = document.getElementById('spotlight-dock-beacon');
+    if (beacon) beacon.style.display = 'none';
+    const hdrRing = document.getElementById('spotlight-header-ring');
+    if (hdrRing) hdrRing.style.display = 'none';
+    const hdrPill = document.getElementById('spotlight-header-pill');
+    if (hdrPill) hdrPill.style.display = 'none';
+  }
+
+  function resolveSpotlightTargetUnionRect(target, stepMeta) {
+    if (!target) return null;
+    const r1 = target.getBoundingClientRect();
+    if (!r1 || (r1.width === 0 && r1.height === 0)) return null;
+    let left = r1.left;
+    let top = r1.top;
+    let right = r1.right;
+    let bottom = r1.bottom;
+    if (stepMeta && stepMeta.includeSelector) {
+      const extra = document.querySelector(stepMeta.includeSelector);
+      if (extra) {
+        const r2 = extra.getBoundingClientRect();
+        if (r2 && (r2.width > 0 || r2.height > 0)) {
+          left = Math.min(left, r2.left);
+          top = Math.min(top, r2.top);
+          right = Math.max(right, r2.right);
+          bottom = Math.max(bottom, r2.bottom);
+        }
+      }
+    }
+    return {
+      left,
+      top,
+      right,
+      bottom,
+      width: Math.max(0, right - left),
+      height: Math.max(0, bottom - top)
+    };
+  }
+
+  function setSvgMaskRectAttrs(el, x, y, w, h, rx) {
+    if (!el) return;
+    el.setAttribute('x', String(Math.max(0, Math.round(x))));
+    el.setAttribute('y', String(Math.max(0, Math.round(y))));
+    el.setAttribute('width', String(Math.max(0, Math.round(w))));
+    el.setAttribute('height', String(Math.max(0, Math.round(h))));
+    if (typeof rx === 'number') {
+      el.setAttribute('rx', String(rx));
+      el.setAttribute('ry', String(rx));
+    }
+  }
 
   function cleanupSpotlightTracking() {
     if (spotlightTrackingRafId) {
@@ -12955,12 +13205,13 @@
     const ov = document.getElementById('spotlight-tour-overlay');
     if (!ov || !ov.classList.contains('active')) {
       document.body.classList.remove('spotlight-tour-open');
+      clearSpotlightDockFocus();
     }
   }
 
   function updateSpotlightGeometry(target, cutout, card, stepMeta) {
     if (!target || !cutout || !card) return;
-    const rect = target.getBoundingClientRect();
+    const rect = resolveSpotlightTargetUnionRect(target, stepMeta);
     if (!rect || (rect.width === 0 && rect.height === 0)) return;
     const isDock = !!(stepMeta && stepMeta.isDockTarget) || !!target.closest('.tab-bar');
     const pad = isDock ? 8 : 6;
@@ -12968,6 +13219,7 @@
     let height = Math.max(44, Math.round(rect.height + pad * 2));
     let top = Math.max(8, Math.round(rect.top - pad));
     let left = Math.max(8, Math.round(rect.left - pad));
+    let cutoutRadius = 20;
 
     if (isDock) {
       const circleSize = Math.max(72, width, height);
@@ -12978,6 +13230,7 @@
       left = Math.max(8, Math.min(window.innerWidth - circleSize - 8, Math.round(centerX - circleSize / 2)));
       top = Math.max(8, Math.round(centerY - circleSize / 2));
       cutout.style.borderRadius = '999px';
+      cutoutRadius = 999;
     } else {
       cutout.style.borderRadius = '20px';
     }
@@ -12987,11 +13240,90 @@
     cutout.style.width = `${width}px`;
     cutout.style.height = `${height}px`;
 
-    const vh = (window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : window.innerHeight;
-    const cardHeight = Math.max(150, card.offsetHeight || 190);
+    // 1. Çok delikli SVG maskesini güncelle (Ana odak + Sağ üst başlık ikonu + Alt navigasyon barı)
+    setSvgMaskRectAttrs(document.getElementById('spotlight-mask-main'), left, top, width, height, cutoutRadius);
+
     const tabBar = document.querySelector('.tab-bar');
     const tabRect = tabBar ? tabBar.getBoundingClientRect() : null;
-    const safeBottomY = (tabRect && tabRect.top > 0 && tabRect.top < vh) ? (tabRect.top - 10) : (vh - 16);
+    if (tabRect && tabRect.width > 0 && tabRect.height > 0) {
+      setSvgMaskRectAttrs(document.getElementById('spotlight-mask-dock'), tabRect.left, tabRect.top, tabRect.width, tabRect.height + 24, 0);
+    } else {
+      setSvgMaskRectAttrs(document.getElementById('spotlight-mask-dock'), 0, 0, 0, 0, 0);
+    }
+
+    // 2. Sağ üst Gece Beşiği / Ayarlar / Aile Kodu ikonu vurgusu (varsa)
+    const hdrMask = document.getElementById('spotlight-mask-header');
+    const hdrRing = document.getElementById('spotlight-header-ring');
+    const hdrPill = document.getElementById('spotlight-header-pill');
+    const hdrEl = (stepMeta && stepMeta.headerSelector) ? document.querySelector(stepMeta.headerSelector) : null;
+    const hRect = hdrEl ? hdrEl.getBoundingClientRect() : null;
+    if (hRect && hRect.width > 0 && hRect.height > 0 && hRect.top >= 0 && hRect.bottom < (top - 2)) {
+      const hPad = 4;
+      const hx = Math.max(6, Math.round(hRect.left - hPad));
+      const hy = Math.max(4, Math.round(hRect.top - hPad));
+      const hw = Math.round(hRect.width + hPad * 2);
+      const hh = Math.round(hRect.height + hPad * 2);
+      setSvgMaskRectAttrs(hdrMask, hx, hy, hw, hh, 14);
+      if (hdrRing) {
+        hdrRing.style.display = 'block';
+        hdrRing.style.left = `${hx}px`;
+        hdrRing.style.top = `${hy}px`;
+        hdrRing.style.width = `${hw}px`;
+        hdrRing.style.height = `${hh}px`;
+      }
+      if (hdrPill && stepMeta.headerHint) {
+        hdrPill.textContent = stepMeta.headerHint;
+        hdrPill.style.display = 'block';
+        const pillH = hdrPill.offsetHeight || 22;
+        const pillTop = Math.max(6, Math.round(hy + (hh - pillH) / 2));
+        hdrPill.style.top = `${pillTop}px`;
+        hdrPill.style.right = `${Math.max(8, Math.round(window.innerWidth - hx + 7))}px`;
+        hdrPill.style.left = 'auto';
+      } else if (hdrPill) {
+        hdrPill.style.display = 'none';
+      }
+    } else {
+      setSvgMaskRectAttrs(hdrMask, 0, 0, 0, 0, 14);
+      if (hdrRing) hdrRing.style.display = 'none';
+      if (hdrPill) hdrPill.style.display = 'none';
+    }
+
+    // 3. Alt menü aktif ikon vurgusu ve dinamik işaretçi rozeti (#spotlight-dock-beacon)
+    const activeTabName = (stepMeta && stepMeta.tab) ? stepMeta.tab : 'home';
+    const dockFocusEl = isDock
+      ? document.getElementById('dock-center-fab')
+      : document.querySelector(`#app-bottom-dock .tab-item[data-tab="${activeTabName}"]`);
+    document.querySelectorAll('#app-bottom-dock .spotlight-dock-focus').forEach((el) => {
+      if (el !== dockFocusEl) el.classList.remove('spotlight-dock-focus');
+    });
+    if (dockFocusEl) dockFocusEl.classList.add('spotlight-dock-focus');
+
+    const vh = (window.visualViewport && window.visualViewport.height) ? window.visualViewport.height : window.innerHeight;
+    let safeBottomY = (tabRect && tabRect.top > 0 && tabRect.top < vh) ? (tabRect.top - 10) : (vh - 16);
+
+    const beacon = document.getElementById('spotlight-dock-beacon');
+    if (beacon && dockFocusEl && stepMeta && stepMeta.dockHint) {
+      const dRect = dockFocusEl.getBoundingClientRect();
+      if (dRect && dRect.width > 0 && dRect.top > 0) {
+        beacon.textContent = stepMeta.dockHint;
+        beacon.style.display = 'block';
+        const bW = beacon.offsetWidth || 148;
+        const bH = beacon.offsetHeight || 24;
+        const dCenterX = dRect.left + dRect.width / 2;
+        const bLeft = Math.max(8, Math.min(window.innerWidth - bW - 8, Math.round(dCenterX - bW / 2)));
+        const dockTopAnchor = isDock ? top : ((tabRect && tabRect.top > 0) ? tabRect.top : dRect.top);
+        const bTop = Math.max(40, Math.round(dockTopAnchor - bH - 6));
+        beacon.style.left = `${bLeft}px`;
+        beacon.style.top = `${bTop}px`;
+        safeBottomY = Math.min(safeBottomY, bTop - 8);
+      } else {
+        beacon.style.display = 'none';
+      }
+    } else if (beacon) {
+      beacon.style.display = 'none';
+    }
+
+    const cardHeight = Math.max(150, card.offsetHeight || 195);
 
     if (isDock) {
       card.style.top = 'auto';
@@ -13001,16 +13333,16 @@
       return;
     }
 
-    const spaceBelow = safeBottomY - (top + height + 12);
+    const spaceBelow = safeBottomY - (top + height + 10);
     const spaceAbove = top - 24;
 
     if (spaceBelow >= cardHeight || spaceBelow >= spaceAbove) {
       card.style.bottom = 'auto';
-      const desiredTop = Math.max(12, Math.min(safeBottomY - cardHeight, top + height + 12));
+      const desiredTop = Math.max(12, Math.min(safeBottomY - cardHeight, top + height + 10));
       card.style.top = `${Math.round(desiredTop)}px`;
     } else {
       card.style.top = 'auto';
-      const desiredBottom = Math.max(16, Math.min(vh - cardHeight - 12, vh - top + 12));
+      const desiredBottom = Math.max(16, Math.min(vh - cardHeight - 12, vh - top + 10));
       card.style.bottom = `${Math.round(desiredBottom)}px`;
     }
   }
@@ -13074,6 +13406,7 @@
     const card = document.getElementById('spotlight-tooltip-card');
     const badge = document.getElementById('spotlight-step-badge');
     const dots = document.getElementById('spotlight-step-dots');
+    const locPill = document.getElementById('spotlight-location-pill');
     const titleEl = document.getElementById('spotlight-step-title');
     const descEl = document.getElementById('spotlight-step-desc');
     const prevBtn = document.getElementById('spotlight-prev-btn');
@@ -13091,6 +13424,14 @@
         `<span style="width:${idx === spotlightStepIndex ? '16px' : '6px'}; height:6px; border-radius:4px; background:${idx === spotlightStepIndex ? 'var(--accent)' : 'rgba(255,255,255,0.25)'}; transition:all 0.2s;"></span>`
       ).join('');
     }
+    if (locPill) {
+      if (step.navPath) {
+        locPill.textContent = step.navPath;
+        locPill.style.display = 'flex';
+      } else {
+        locPill.style.display = 'none';
+      }
+    }
     if (titleEl) titleEl.textContent = step.title;
     if (descEl) descEl.textContent = step.desc;
     if (prevBtn) {
@@ -13105,13 +13446,15 @@
     if (!target || !cutout || !card) return;
 
     const scrollContainer = document.getElementById('main-app-screen') || document.querySelector('.screen-container');
-    if (scrollContainer && !step.isDockTarget && !step.noScroll) {
+    if (scrollContainer && step.noScroll) {
+      scrollContainer.scrollTop = 0;
+    } else if (scrollContainer && !step.isDockTarget && !step.noScroll) {
       const cRect = scrollContainer.getBoundingClientRect();
-      const tRect = target.getBoundingClientRect();
+      const tRect = resolveSpotlightTargetUnionRect(target, step) || target.getBoundingClientRect();
       const tabBar = document.querySelector('.tab-bar');
       const tabTop = tabBar ? tabBar.getBoundingClientRect().top : window.innerHeight;
       const usableHeight = Math.max(240, Math.min(cRect.height, tabTop - cRect.top));
-      const estCardH = Math.max(150, card.offsetHeight || 190);
+      const estCardH = Math.max(150, card.offsetHeight || 195);
       const targetAnchorFromTop = typeof step.anchorTop === 'number'
         ? step.anchorTop
         : (spotlightStepIndex === 0
@@ -13183,6 +13526,7 @@
     cleanupSpotlightTracking();
     const overlay = document.getElementById('spotlight-tour-overlay');
     if (overlay) overlay.classList.remove('active');
+    clearSpotlightDockFocus();
     if (typeof switchTab === 'function') switchTab('home', { fromSpotlightTour: true });
     if (typeof switchHomeSegment === 'function') switchHomeSegment('sweetspot', { fromSpotlightTour: true });
     document.body.classList.remove('spotlight-tour-open');
@@ -13196,6 +13540,43 @@
     }
   }
   window.endSpotlightTour = endSpotlightTour;
+
+  function handleSpotlightDockTap(ev) {
+    if (!document.body.classList.contains('spotlight-tour-open')) return false;
+    const overlay = document.getElementById('spotlight-tour-overlay');
+    if (!overlay || !overlay.classList.contains('active')) return false;
+    const dockEl = (ev && ev.target && typeof ev.target.closest === 'function')
+      ? ev.target.closest('#app-bottom-dock .tab-item, #dock-center-fab')
+      : null;
+    if (!dockEl) return false;
+    if (typeof ev.preventDefault === 'function') ev.preventDefault();
+    if (typeof ev.stopPropagation === 'function') ev.stopPropagation();
+    if (typeof ev.stopImmediatePropagation === 'function') ev.stopImmediatePropagation();
+    const steps = getSpotlightSteps();
+    const currentStep = steps[spotlightStepIndex];
+    const tappedFab = dockEl.id === 'dock-center-fab';
+    const tappedTab = tappedFab ? null : dockEl.getAttribute('data-tab');
+    const isCurrentDockTarget = tappedFab
+      ? !!(currentStep && currentStep.isDockTarget)
+      : !!(currentStep && !currentStep.isDockTarget && (currentStep.tab || 'home') === tappedTab);
+    if (isCurrentDockTarget) {
+      nextSpotlightStep();
+      return true;
+    }
+    const matchingIdx = steps.findIndex((st) =>
+      tappedFab ? !!st.isDockTarget : (!st.isDockTarget && (st.tab || 'home') === tappedTab)
+    );
+    if (matchingIdx !== -1) {
+      if (typeof hapticPulse === 'function') hapticPulse();
+      spotlightStepIndex = matchingIdx;
+      renderSpotlightStep();
+    } else {
+      nextSpotlightStep();
+    }
+    return true;
+  }
+  window.handleSpotlightDockTap = handleSpotlightDockTap;
+  document.addEventListener('click', handleSpotlightDockTap, true);
 
   let spotlightAutoTimer = null;
   function maybeStartFirstTimeSpotlightTour() {
@@ -17604,6 +17985,7 @@
     "Sıfır-Depolama RAM Politikası & Silme": "Zero-Storage RAM Policy & Deletion",
     "🗑️ Hesabımı ve Tüm Verilerimi Sil (Apple 5.1.1) ➔": "🗑️ Delete My Account & All Data (Apple 5.1.1) ➔",
     "Uygulamalı Anlatım Turu": "Interactive App Tour",
+    "📍 Alt Menü: 🏠 Mışıl Spot": "📍 Bottom Bar: 🏠 Mışıl Spot",
     "Ana ekran özelliklerini 4 adımda canlı keşfedin": "Explore home screen features live in 4 steps",
     "Neler Yeni? (Sürüm Notları ve Geliştirme Günlüğü)": "What's New? (Release Notes & Changelog)",
     "İncele ›": "View ›",
@@ -18309,6 +18691,7 @@
     "Sıfır-Depolama RAM Politikası & Silme": "Zero-Storage-RAM-Schutz & Datenlöschung",
     "🗑️ Hesabımı ve Tüm Verilerimi Sil (Apple 5.1.1) ➔": "🗑️ Mein Konto & alle Daten löschen (Apple 5.1.1) ➔",
     "Uygulamalı Anlatım Turu": "Interaktive App-Tour",
+    "📍 Alt Menü: 🏠 Mışıl Spot": "📍 Unten: 🏠 Mışıl Spot",
     "Ana ekran özelliklerini 4 adımda canlı keşfedin": "Entdecken Sie die wichtigsten Funktionen in 4 Schritten",
     "Neler Yeni? (Sürüm Notları ve Geliştirme Günlüğü)": "Neuigkeiten (Versionshinweise & Changelog)",
     "İncele ›": "Ansehen ›",
@@ -19012,6 +19395,10 @@
       recomputeDailyNapIndices(activeRoutines);
     }
     renderAllViews();
+    const spotTourEl = document.getElementById('spotlight-tour-overlay');
+    if (spotTourEl && spotTourEl.classList.contains('active') && typeof renderSpotlightStep === 'function') {
+      renderSpotlightStep();
+    }
 
     // Native katmana dil değişimini ve bildirim senkronizasyonunu bildir
     if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
