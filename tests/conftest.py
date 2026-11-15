@@ -21,7 +21,7 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from app.db.base import Base, get_db
-from app.main import app
+from app.main import app, RATE_LIMIT_RECORD
 
 # In-memory SQLite for isolated tests
 SQLALCHEMY_TEST_DATABASE_URL = "sqlite:///:memory:"
@@ -55,10 +55,12 @@ def client(db_session):
         finally:
             pass
 
+    RATE_LIMIT_RECORD.clear()
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+    RATE_LIMIT_RECORD.clear()
 
 
 @pytest.fixture

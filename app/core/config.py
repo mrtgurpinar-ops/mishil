@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # General App Config
     APP_NAME: str = "mishil"
     APP_TITLE: str = "Mishil API - Baby Sleep & Routines"
-    APP_VERSION: str = "4.36.7"
+    APP_VERSION: str = "4.52.0"
     ENVIRONMENT: str = "development"
     DEBUG: bool = False  # Default False — production-safe. Set DEBUG=True in .env for local dev.
     PORT: int = 8000
@@ -30,6 +30,10 @@ class Settings(BaseSettings):
     JWT_SECRET: str = Field(
         default="mishil_default_dev_jwt_secret_key_change_in_production_32_bytes",
         description="Secret key for signing JWT tokens. MUST be overridden in production via JWT_SECRET env var."
+    )
+    RELAY_HMAC_SECRET: str = Field(
+        default="",
+        description="Dedicated HMAC secret for WebSocket realtime_token & HTTP relay."
     )
     JWT_ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200  # 30 days for mobile apps
@@ -50,15 +54,12 @@ class Settings(BaseSettings):
 
     @model_validator(mode="after")
     def warn_insecure_defaults(self) -> "Settings":
-        """Warn when running production with default JWT secret."""
+        """Block startup in production if JWT_SECRET is left at the embedded development default."""
         default_secret = "mishil_default_dev_jwt_secret_key_change_in_production_32_bytes"
-        if self.ENVIRONMENT == "production" and self.JWT_SECRET == default_secret:
-            import warnings
-            warnings.warn(
-                "SECURITY WARNING: JWT_SECRET is set to the default development value in production! "
-                "Set a strong JWT_SECRET environment variable immediately.",
-                RuntimeWarning,
-                stacklevel=2,
+        if self.ENVIRONMENT.strip().lower() == "production" and self.JWT_SECRET == default_secret:
+            raise RuntimeError(
+                "FATAL SECURITY ERROR: JWT_SECRET is set to the default development value in production! "
+                "Set a strong JWT_SECRET environment variable before starting the production server."
             )
         return self
 

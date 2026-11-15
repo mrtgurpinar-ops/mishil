@@ -4857,6 +4857,9 @@ async def sync_client_subscriber_ledger(
                 "product_id": existing.product_id,
                 "ledger_status": existing.status,
             }
+    raw_rc_uid = (payload.subscriber_id or "").strip()[:128] or None
+    verified_dev_uid = ((payload.device_uid or "").strip()[:128] or None) if (verified_gp_token or verified_rc_v2 or is_admin_authed) else None
+
     if existing:
         existing.platform = plat
         existing.product_id = prod_id
@@ -4866,6 +4869,10 @@ async def sync_client_subscriber_ledger(
         existing.offer_code_name = offer_code_nm
         existing.maturity_or_renewal_date = mat_dt_str
         existing.auto_renew_enabled = auto_renew
+        if verified_rc_v2 and raw_rc_uid:
+            existing.rc_app_user_id = raw_rc_uid
+        if verified_dev_uid:
+            existing.device_uid = verified_dev_uid
         if c_gross > 0:
             existing.customer_price_try = c_gross
             existing.developer_proceeds_try = c_net
@@ -4878,6 +4885,8 @@ async def sync_client_subscriber_ledger(
         db.add(
             SubscriberLedger(
                 subscriber_id=clean_sid,
+                rc_app_user_id=raw_rc_uid if verified_rc_v2 else None,
+                device_uid=verified_dev_uid,
                 platform=plat,
                 product_id=prod_id,
                 plan_label=plan_lbl,

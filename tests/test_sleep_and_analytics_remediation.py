@@ -791,8 +791,11 @@ def test_paywall_funnel_telemetry_and_usage_signal_endpoint(client, db_session):
     assert "Mışıl" in dash_res.text
 
 
-def test_family_create_and_join_vip_inheritance_protection(client):
-    """Ücretsiz aile kodunun bedelsiz VIP sızdırmadığını ve VIP aile kodunun eş/bakıcıya VIP aktardığını doğrular."""
+def test_family_create_and_join_vip_inheritance_protection(client, db_session):
+    """Ücretsiz aile kodunun bedelsiz VIP sızdırmadığını, sahte VIP iddiasını (P0-5) reddettiğini ve doğrulanmış VIP aile kodunun en fazla 3 üyeye (Anne, Baba, Dadı) VIP aktardığını doğrular."""
+    from datetime import datetime, timezone, timedelta
+    from app.db.models import SubscriberLedger
+
     # 1. Ücretsiz aile oluşturma
     r_free = client.post(
         "/api/v1/family/create",
@@ -801,33 +804,82 @@ def test_family_create_and_join_vip_inheritance_protection(client):
             "birth_date": "2026-06-01",
             "creator_role": "mother",
             "creator_name": "Ayşe",
+            "device_uid": "dev-mother-001",
+            "subscriber_id": "rc_mother_verified_001",
             "subscription_active": False,
             "subscription_plan": "free",
         },
     )
     assert r_free.status_code == 200
     free_code = r_free.json()["invite_code"]
+    creator_token = r_free.json()["member_token"]
+    assert r_free.json()["family"]["max_members"] == 3
     assert r_free.json()["family"]["subscription_active"] is False
     assert r_free.json()["family"]["subscription_plan"] == "free"
 
     # Ücretsiz aileye baba katıldığında subscription_active False kalmalı
     r_join_free = client.post(
         "/api/v1/family/join",
-        json={"invite_code": free_code, "role": "father", "name": "Mehmet"},
+        json={
+            "invite_code": free_code,
+            "role": "father",
+            "name": "Mehmet",
+            "device_uid": "dev-father-002",
+        },
     )
     assert r_join_free.status_code == 200
     assert r_join_free.json()["family"]["subscription_active"] is False
     assert r_join_free.json()["family"]["subscription_plan"] == "free"
 
-    # 2. Anne VIP/Deneme başlattığında mevcut aile kodunu bulutta VIP'ye yükseltir
-    r_upgrade = client.post(
+    # 2a. P0-5 Anti-Spoofing: SubscriberLedger kaydı olmadan istemci subscription_active=True gönderirse reddedilmeli
+    r_spoof = client.post(
         "/api/v1/family/create",
+        headers={"X-Family-Member-Token": creator_token},
         json={
             "invite_code": free_code,
             "baby_name": "Defne",
             "birth_date": "2026-06-01",
             "creator_role": "mother",
             "creator_name": "Ayşe",
+            "device_uid": "dev-mother-001",
+            "subscriber_id": "rc_mother_verified_001",
+            "subscription_active": True,
+            "subscription_plan": "yearly",
+        },
+    )
+    assert r_spoof.status_code == 200
+    assert r_spoof.json()["family"]["subscription_active"] is False
+    assert r_spoof.json()["family"]["subscription_plan"] == "free"
+
+    # 2b. Doğrulanmış SubscriberLedger eklendiğinde bulutta gerçek VIP'ye yükseltir
+    future_renewal = (datetime.now(timezone.utc) + timedelta(days=30)).strftime("%Y-%m-%d")
+    db_session.add(
+        SubscriberLedger(
+            subscriber_id="rc_mother_verified_001",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Mışıl Baby Yıllık VIP",
+            status="paid_active",
+            offer_type="standard_paid",
+            started_date="2026-09-01",
+            maturity_or_renewal_date=future_renewal,
+            customer_price_try=599.99,
+            developer_proceeds_try=509.99,
+        )
+    )
+    db_session.commit()
+
+    r_upgrade = client.post(
+        "/api/v1/family/create",
+        headers={"X-Family-Member-Token": creator_token},
+        json={
+            "invite_code": free_code,
+            "baby_name": "Defne",
+            "birth_date": "2026-06-01",
+            "creator_role": "mother",
+            "creator_name": "Ayşe",
+            "device_uid": "dev-mother-001",
+            "subscriber_id": "rc_mother_verified_001",
             "subscription_active": True,
             "subscription_plan": "yearly",
         },
@@ -837,14 +889,31 @@ def test_family_create_and_join_vip_inheritance_protection(client):
     assert r_upgrade.json()["family"]["subscription_active"] is True
     assert r_upgrade.json()["family"]["subscription_plan"] == "yearly"
 
-    # 3. Şimdi dadı katıldığında aktif VIP bilgisini alır
+    # 3. Şimdi dadı (3. üye) katıldığında aktif VIP bilgisini alır; 4. üye 409 FAMILY_FULL ile engellenir
     r_join_vip = client.post(
         "/api/v1/family/join",
-        json={"invite_code": free_code, "role": "nanny", "name": "Fatma"},
+        json={
+            "invite_code": free_code,
+            "role": "nanny",
+            "name": "Fatma",
+            "device_uid": "dev-nanny-003",
+        },
     )
     assert r_join_vip.status_code == 200
     assert r_join_vip.json()["family"]["subscription_active"] is True
     assert r_join_vip.json()["family"]["subscription_plan"] == "yearly"
+
+    r_fourth = client.post(
+        "/api/v1/family/join",
+        json={
+            "invite_code": free_code,
+            "role": "grandparent",
+            "name": "Anneanne",
+            "device_uid": "dev-fourth-004",
+        },
+    )
+    assert r_fourth.status_code == 409
+    assert r_fourth.json()["error_code"] == "FAMILY_FULL"
 
 
 def test_dashboard_audit_remediation_dev_purge_mrr_and_aso_ios_isolation(client, db_session):
@@ -1182,7 +1251,7 @@ def test_v4_48_0_returning_users_and_paywall_cancellation_cro(client, db_session
     assert "mishil_family_vip_verified" in app_html
     assert "mishil_soft_vip_24h_granted" in app_html
     assert "mishil_soft_vip_cry_count" in app_html
-    assert "version: '4.50.2'" in app_html
+    assert "version: '4.52.0'" in app_html
 
 
 def test_s8_ios_rc_anonymous_id_ghost_purge_and_unverified_sync_ignore(client, db_session):

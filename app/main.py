@@ -20,7 +20,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.logging import setup_logging, get_logger, request_id_ctx
-from app.db.base import Base, engine
+from app.db.base import Base, engine, get_db
 import app.db.models  # Ensures all SQLAlchemy models are registered in Base.metadata
 from app.api.v1.router import api_router
 from app.api.v1.endpoints.analytics import record_bridge_click, run_periodic_store_sync_loop
@@ -50,15 +50,106 @@ _store_sync_stop_event: Optional[asyncio.Event] = None
 _store_sync_task: Optional[asyncio.Task] = None
 
 
+def run_safe_schema_migrations(db_engine) -> None:
+    """
+    Idempotent SQLAlchemy ALTER TABLE column migration guard (.agents/AGENTS.md §3).
+    Base.metadata.create_all() creates new tables (family_whispers, night_watch_presence)
+    but does NOT add new columns to existing PostgreSQL/SQLite tables.
+    """
+    from sqlalchemy import inspect as sa_inspect, text as sa_text
+
+    migration_plan = {
+        "family_groups": [
+            ("room_key", "VARCHAR(64)"),
+            ("max_members", "INTEGER DEFAULT 3 NOT NULL"),
+            ("vip_active", "BOOLEAN DEFAULT FALSE NOT NULL"),
+            ("vip_plan", "VARCHAR(32) DEFAULT 'free' NOT NULL"),
+            ("vip_subscriber_id", "VARCHAR(128)"),
+            ("checked_vaccines_json", "JSON"),
+            ("checked_leaps_json", "JSON"),
+            ("active_sleep_start_iso", "VARCHAR(64)"),
+            ("active_sleep_actor", "VARCHAR(100)"),
+            ("updated_at", "TIMESTAMP"),
+        ],
+        "family_members": [
+            ("device_uid", "VARCHAR(128)"),
+            ("member_token_hash", "VARCHAR(128)"),
+            ("is_active", "BOOLEAN DEFAULT TRUE NOT NULL"),
+            ("last_seen_at", "TIMESTAMP"),
+        ],
+        "babies": [
+            ("device_uid", "VARCHAR(128)"),
+            ("premature_weeks", "INTEGER DEFAULT 0"),
+        ],
+        "dadi_chat_history": [
+            ("audience", "VARCHAR(32) DEFAULT 'baby'"),
+        ],
+        "sleep_logs": [
+            ("client_id", "VARCHAR(128)"),
+            ("actor_name", "VARCHAR(100)"),
+            ("actor_role", "VARCHAR(50)"),
+            ("is_deleted", "BOOLEAN DEFAULT FALSE"),
+            ("updated_at", "TIMESTAMP"),
+        ],
+        "routine_logs": [
+            ("client_id", "VARCHAR(128)"),
+            ("actor_name", "VARCHAR(100)"),
+            ("actor_role", "VARCHAR(50)"),
+            ("is_deleted", "BOOLEAN DEFAULT FALSE"),
+            ("updated_at", "TIMESTAMP"),
+        ],
+        "subscriber_ledger": [
+            ("rc_app_user_id", "VARCHAR(128)"),
+            ("device_uid", "VARCHAR(128)"),
+        ],
+    }
+
+    try:
+        inspector = sa_inspect(db_engine)
+        existing_tables = set(inspector.get_table_names())
+    except Exception as insp_err:
+        logger.warning(f"Schema inspector skipped: {insp_err}")
+        return
+
+    for table_name, columns in migration_plan.items():
+        if table_name not in existing_tables:
+            continue
+        try:
+            existing_cols = {col["name"] for col in inspector.get_columns(table_name)}
+        except Exception as col_err:
+            logger.warning(f"Could not inspect columns for {table_name}: {col_err}")
+            continue
+
+        for col_name, col_ddl in columns:
+            if col_name in existing_cols:
+                continue
+            conn = db_engine.connect()
+            trans = conn.begin()
+            try:
+                conn.execute(sa_text(f"ALTER TABLE {table_name} ADD COLUMN {col_name} {col_ddl}"))
+                trans.commit()
+                logger.info(f"[DB MIGRATION] Added column {table_name}.{col_name}")
+            except Exception as alter_err:
+                try:
+                    trans.rollback()
+                except Exception:
+                    pass
+                logger.warning(f"[DB MIGRATION] Skipped {table_name}.{col_name}: {alter_err}")
+            finally:
+                conn.close()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Application startup and shutdown events."""
     global _store_sync_stop_event, _store_sync_task
     logger.info(f"Starting {settings.APP_NAME} in {settings.ENVIRONMENT} mode...")
     try:
-        # Create database tables if they do not exist
-        Base.metadata.create_all(bind=engine)
-        logger.info("Database tables verified and initialized successfully.")
+        # Create database tables if they do not exist, then migrate missing columns safely
+        if get_db not in app.dependency_overrides:
+            Base.metadata.create_all(bind=engine)
+            run_safe_schema_migrations(engine)
+            logger.info("Database tables verified and initialized successfully.")
     except Exception as e:
         logger.error(f"Error during DB initialization: {str(e)}", exc_info=True)
 
@@ -507,6 +598,104 @@ async def smart_app_store_bridge(request: Request):
         logger.warning(f"Bridge click telemetry warning (user): {exc}")
     interstitial_html = generate_interstitial_html(is_android)
     return HTMLResponse(content=interstitial_html, status_code=status.HTTP_200_OK)
+
+
+@app.get("/invite/{code}", response_class=HTMLResponse, tags=["Family"])
+async def family_invite_bridge(code: str, request: Request, baby: Optional[str] = None):
+    """Smart Family Co-Parenting Invite Landing & Deep-Link Bridge (max 3 members)."""
+    import html as _html
+    import re as _re
+    import urllib.parse as _urlparse
+
+    clean_code = _re.sub(r"[^A-Z0-9-]", "", (code or "").strip().upper())[:16]
+    if len(clean_code) < 4:
+        return RedirectResponse(url="/download", status_code=status.HTTP_302_FOUND)
+
+    safe_code_html = _html.escape(clean_code, quote=True)
+    raw_baby = (baby or "").strip()[:40]
+    safe_baby_html = _html.escape(raw_baby, quote=True) if raw_baby else "Bebeğiniz"
+    ua = (request.headers.get("user-agent") or "").lower()
+    is_android = "android" in ua
+    store_url = GOOGLE_PLAY_URL if is_android else APP_STORE_URL
+    store_label = "Google Play'den İndir" if is_android else "App Store'dan İndir"
+    app_query = f"/app?code={_urlparse.quote(clean_code)}"
+    if raw_baby:
+        app_query += f"&baby={_urlparse.quote(raw_baby)}"
+    import json as _json
+    safe_code_js = _json.dumps(clean_code).replace("<", "\\u003c").replace(">", "\\u003e")
+    safe_app_query_js = _json.dumps(app_query).replace("<", "\\u003c").replace(">", "\\u003e")
+
+    html_page = f"""<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mışıl Baby — Ortak Aile Daveti ({safe_code_html})</title>
+  <meta property="og:title" content="👨‍👩‍👧 Mışıl Baby — {safe_baby_html} İçin Ortak Aile Takibi">
+  <meta property="og:description" content="Aile Davet Kodu: {safe_code_html} • Tek VIP ile 3 kişiye kadar (Anne, Baba, Bakıcı) aynı bebeği canlı takip edin.">
+  <meta property="og:image" content="/icon-512.png">
+  <style>
+    * {{ margin: 0; padding: 0; box-sizing: border-box; }}
+    body {{
+      background: #0B0F19; color: #F8FAFC;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 20px; text-align: center;
+    }}
+    .card {{
+      width: 100%; max-width: 400px; background: #141B2E;
+      border: 1px solid rgba(232, 168, 85, 0.35); border-radius: 22px;
+      padding: 26px 22px; box-shadow: 0 18px 48px rgba(0,0,0,0.45);
+    }}
+    .code-box {{
+      margin: 16px 0; padding: 14px; border-radius: 14px;
+      background: rgba(232, 168, 85, 0.12); border: 1.5px dashed #E8A855;
+      font-size: 24px; font-weight: 800; letter-spacing: 3px; color: #E8A855;
+    }}
+    .btn {{
+      width: 100%; padding: 14px 18px; border-radius: 14px; border: none;
+      font-size: 14px; font-weight: 700; cursor: pointer; text-decoration: none;
+      display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px;
+    }}
+    .btn-gold {{ background: linear-gradient(135deg, #E8A855 0%, #D4882B 100%); color: #0B0F19; }}
+    .btn-outline {{ background: rgba(255,255,255,0.06); color: #F8FAFC; border: 1px solid rgba(255,255,255,0.16); }}
+    .hint {{ font-size: 12px; color: #94A3B8; line-height: 1.5; margin-top: 12px; }}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div style="font-size: 42px; margin-bottom: 8px;">👨‍👩‍👧</div>
+    <h1 style="font-size: 19px; font-weight: 800; margin-bottom: 6px;">{safe_baby_html} Ailesine Davetlisiniz</h1>
+    <p style="font-size: 13px; color: #CBD5E1; line-height: 1.5;">
+      Anne, Baba ve Bakıcı (3 kişiye kadar) kendi telefonundan aynı bebeğin uykusunu, beslenmesini ve aşılarını canlı takip eder.
+    </p>
+    <div class="code-box" id="invCodeText">{safe_code_html}</div>
+    <button type="button" class="btn btn-gold" id="copyOpenBtn" onclick="copyAndOpenApp()">📋 Kodu Kopyala &amp; Mışıl Baby'yi Aç</button>
+    <a href="{store_url}" class="btn btn-outline">📲 Uygulama Yüklü Değilse {store_label}</a>
+    <a href="{_html.escape(app_query, quote=True)}" class="btn btn-outline" style="font-size: 12px; opacity: 0.88;">🌐 Web Görünümünde Doğrudan Katıl ➔</a>
+    <p class="hint">Uygulamayı açtığınızda ilk ekrandaki <strong>"Eşimin Aile Kodu Var"</strong> kartına dokunup kodu yapıştırmanız yeterlidir.</p>
+  </div>
+  <script>
+    function copyAndOpenApp() {{
+      var c = {safe_code_js};
+      try {{
+        if (navigator.clipboard && navigator.clipboard.writeText) {{
+          navigator.clipboard.writeText(c);
+        }}
+      }} catch (e) {{}}
+      var btn = document.getElementById('copyOpenBtn');
+      if (btn) btn.textContent = '✅ Kod Kopyalandı (' + c + ') — Açılıyor...';
+      window.location.href = 'misilbaby://sleep?code=' + encodeURIComponent(c);
+      setTimeout(function() {{
+        if (!document.hidden) {{
+          window.location.href = {safe_app_query_js};
+        }}
+      }}, 900);
+    }}
+  </script>
+</body>
+</html>"""
+    return HTMLResponse(content=html_page, status_code=status.HTTP_200_OK)
 
 
 @app.get("/app", response_class=HTMLResponse, tags=["Developer"])

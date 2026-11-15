@@ -250,4 +250,26 @@ describe('Mışıl Baby v4.50.0 — German (DE / DACH) & Multilingual Polish Sui
     expect(fallbackRoutine.date.getHours()).toBe(20);
     expect(fallbackRoutine.date.getMinutes()).toBe(30);
   });
+
+  it('6. v4.52.0 Shared Single-Baby Family Hub (max 3 members) & Mom Break Drawer XSS/Bridge/i18n guarantees', () => {
+    expect(scriptCode).toContain("version: '4.52.0'");
+    expect(scriptCode).toContain("{ v: '4.52.0'");
+    expect(html).not.toContain("|| 'MSL782'");
+    expect(html).not.toContain('value="MSL782"');
+    expect(html).not.toContain('placeholder="Örn: MSL782"');
+    expect(html).toContain('id="mom-break-drawer"');
+    expect(html).toContain('id="home-family-pill"');
+    expect(html).toContain('id="modal-family-quick-hub"');
+    expect(scriptCode).toContain("subscriptionPlan: 'family_vip'");
+
+    // formatMarkdown must escape raw HTML tags before rendering bold/linebreaks
+    const fmtBlock = extractFuncBlock(scriptCode, 'function formatMarkdown(');
+    const escapeBlock = extractFuncBlock(scriptCode, 'function escapeHtml(');
+    const ctx = {};
+    vm.runInNewContext([escapeBlock, fmtBlock].join('\n'), ctx);
+    const sanitized = ctx.formatMarkdown('**Merhaba** <script>alert(1)</script> <img src=x onerror=alert(2)>');
+    expect(sanitized).toContain('<strong>Merhaba</strong>');
+    expect(sanitized).not.toContain('<script>');
+    expect(sanitized).not.toContain('<img');
+  });
 });

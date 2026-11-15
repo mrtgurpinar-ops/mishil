@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-import random
+import secrets
 import string
 from sqlalchemy import (
     Column,
@@ -27,10 +27,14 @@ from app.models.enums import (
 
 
 def generate_family_code() -> str:
-    """Generate 6-character unique alphanumeric family sync code (e.g., MSL849)."""
-    chars = string.ascii_uppercase + string.digits
-    chars = chars.replace("O", "").replace("0", "").replace("I", "").replace("1", "")
-    return "MSL" + "".join(random.choices(chars, k=3))
+    """Generate unambiguous uppercase family invite code (e.g., MB-7K9X2P)."""
+    chars = (string.ascii_uppercase + string.digits).replace("O", "").replace("0", "").replace("I", "").replace("1", "")
+    return "MB-" + "".join(secrets.choice(chars) for _ in range(6))
+
+
+def generate_room_key() -> str:
+    """Generate non-guessable internal WebSocket room key (never equal to public invite_code)."""
+    return "rm_" + secrets.token_hex(16)
 
 
 class User(Base):
@@ -65,7 +69,22 @@ class FamilyGroup(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False, default="Mışıl Ailem")
     invite_code = Column(String(20), unique=True, index=True, default=generate_family_code, nullable=False)
+    room_key = Column(String(64), unique=True, index=True, default=generate_room_key, nullable=True)
+    max_members = Column(Integer, default=3, nullable=False)
+    vip_active = Column(Boolean, default=False, nullable=False)
+    vip_plan = Column(String(32), default="free", nullable=False)
+    vip_subscriber_id = Column(String(128), index=True, nullable=True)
+    checked_vaccines_json = Column(JSON, default=list, nullable=True)
+    checked_leaps_json = Column(JSON, default=list, nullable=True)
+    active_sleep_start_iso = Column(String(64), nullable=True)
+    active_sleep_actor = Column(String(100), nullable=True)
     created_by_user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=True,
+    )
     created_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -75,6 +94,7 @@ class FamilyGroup(Base):
     # Relationships
     members = relationship("FamilyMember", back_populates="family", cascade="all, delete-orphan")
     babies = relationship("Baby", back_populates="family", cascade="all, delete-orphan")
+    whispers = relationship("FamilyWhisper", back_populates="family", cascade="all, delete-orphan")
 
 
 class FamilyMember(Base):
@@ -85,7 +105,15 @@ class FamilyMember(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     role = Column(String(50), default="mother", nullable=False)  # 'mother', 'father', 'nanny', 'grandparent'
     nickname = Column(String(100), nullable=True)
+    device_uid = Column(String(128), index=True, nullable=True)
+    member_token_hash = Column(String(128), index=True, nullable=True)
+    is_active = Column(Boolean, default=True, nullable=False)
     can_edit = Column(Boolean, default=True)
+    last_seen_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=True,
+    )
     joined_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -103,9 +131,11 @@ class Baby(Base):
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     family_id = Column(Integer, ForeignKey("family_groups.id", ondelete="SET NULL"), nullable=True)
+    device_uid = Column(String(128), index=True, nullable=True)
     name = Column(String(100), nullable=False)
     birth_date = Column(DateTime(timezone=True), nullable=False)
     gender = Column(String(20), nullable=True)
+    premature_weeks = Column(Integer, default=0, nullable=True)
     development_score = Column(Integer, default=84)
     manual_active_leap = Column(Integer, nullable=True)  # Ebeveynin erken başlattığı sıçrama ID'si
     is_early_leap_active = Column(Boolean, default=False)
@@ -150,6 +180,7 @@ class DadiChatHistory(Base):
     baby_id = Column(Integer, ForeignKey("babies.id", ondelete="CASCADE"), nullable=False)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
     user_role = Column(String(50), default="mother", nullable=False)  # 'mother', 'father', 'nanny'
+    audience = Column(String(32), default="baby", nullable=True)  # 'baby' | 'mom'
     message = Column(Text, nullable=False)
     reply = Column(Text, nullable=False)
     tier_used = Column(String(100), default="Gemini 3.5 Flash")
@@ -187,11 +218,21 @@ class SleepLog(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     baby_id = Column(Integer, ForeignKey("babies.id", ondelete="CASCADE"), nullable=False)
+    client_id = Column(String(128), index=True, nullable=True)
+    actor_name = Column(String(100), nullable=True)
+    actor_role = Column(String(50), nullable=True)
+    is_deleted = Column(Boolean, default=False, nullable=True)
     start_time = Column(DateTime(timezone=True), nullable=False)
     end_time = Column(DateTime(timezone=True), nullable=True)
     duration_minutes = Column(Integer, nullable=True)
     sleep_type = Column(SQLEnum(SleepType), default=SleepType.NAP, nullable=False)
     notes = Column(Text, nullable=True)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=True,
+    )
     created_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -228,11 +269,21 @@ class RoutineLog(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     baby_id = Column(Integer, ForeignKey("babies.id", ondelete="CASCADE"), nullable=False)
+    client_id = Column(String(128), index=True, nullable=True)
+    actor_name = Column(String(100), nullable=True)
+    actor_role = Column(String(50), nullable=True)
+    is_deleted = Column(Boolean, default=False, nullable=True)
     routine_type = Column(SQLEnum(RoutineType), nullable=False)
     start_time = Column(DateTime(timezone=True), nullable=False)
     end_time = Column(DateTime(timezone=True), nullable=True)
     details_json = Column(JSON, default=dict, nullable=False)
     notes = Column(Text, nullable=True)
+    updated_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        onupdate=lambda: datetime.now(timezone.utc),
+        nullable=True,
+    )
     created_at = Column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
@@ -397,6 +448,8 @@ class SubscriberLedger(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     subscriber_id = Column(String(128), unique=True, index=True, nullable=False)  # Apple Subscriber ID veya Google Token Hash
+    rc_app_user_id = Column(String(128), index=True, nullable=True)  # RevenueCat originalAppUserId / app_user_id köprüsü
+    device_uid = Column(String(128), index=True, nullable=True)  # Doğrulanmış cihaz UID köprüsü
     platform = Column(String(32), index=True, nullable=False, default="ios")
     product_id = Column(String(64), index=True, nullable=False)  # 'misil_monthly', 'misil_annual'
     plan_label = Column(String(100), nullable=False)  # 'Aylık Esnek', 'Yıllık VIP'
@@ -458,6 +511,46 @@ class StoreSyncState(Base):
         onupdate=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+
+class FamilyWhisper(Base):
+    """Aile içi tek-tık nöbet devri ve sessiz destek fısıltısı (UGC / genel forum değildir; yalnızca 3 kişilik kapalı aile içi)."""
+    __tablename__ = "family_whispers"
+
+    id = Column(Integer, primary_key=True, index=True)
+    family_id = Column(Integer, ForeignKey("family_groups.id", ondelete="CASCADE"), index=True, nullable=False)
+    sender_device_uid = Column(String(128), index=True, nullable=True)
+    sender_name = Column(String(100), nullable=False, default="Ebeveyn")
+    sender_role = Column(String(50), nullable=False, default="mother")
+    template_key = Column(String(64), nullable=True)
+    message_text = Column(String(200), nullable=False)
+    acked_by_json = Column(JSON, default=list, nullable=False)
+    created_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+        nullable=False,
+    )
+
+    family = relationship("FamilyGroup", back_populates="whispers")
+
+
+class NightWatchPresence(Base):
+    """Sıfır-PII, sıfır-metin anonim gece nöbeti dayanışma feneri sayacı."""
+    __tablename__ = "night_watch_presence"
+
+    id = Column(Integer, primary_key=True, index=True)
+    device_hash = Column(String(64), unique=True, index=True, nullable=False)
+    is_sleeping_watch = Column(Boolean, default=True, nullable=False)
+    hearts_sent = Column(Integer, default=0, nullable=False)
+    last_heart_sent_at = Column(DateTime(timezone=True), nullable=True)
+    last_seen_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        index=True,
+        nullable=False,
+    )
+
 
 
 

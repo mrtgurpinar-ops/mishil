@@ -3176,6 +3176,179 @@
         opacity: 1;
       }
     }
+
+    /* v4.52.0 — Ortak Aile Takibi (Maks. 3 Üye) & Anne Molası (Mom Break) */
+    .onb-coparent-hero-banner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      width: 100%;
+      box-sizing: border-box;
+      background: linear-gradient(135deg, rgba(244, 162, 97, 0.18) 0%, rgba(26, 33, 56, 0.95) 100%);
+      border: 1.5px solid rgba(244, 162, 97, 0.55);
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin-bottom: 12px;
+      cursor: pointer;
+      text-align: left;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.22);
+      transition: transform 0.16s ease, border-color 0.2s ease;
+    }
+    .onb-coparent-hero-banner:active {
+      transform: scale(0.985);
+    }
+    .home-family-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      min-height: 36px;
+      padding: 0 11px;
+      border-radius: 999px;
+      background: rgba(244, 162, 97, 0.15);
+      border: 1px solid rgba(244, 162, 97, 0.45);
+      color: var(--accent);
+      font-family: 'Sora', sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .home-family-pill.connected {
+      background: rgba(46, 213, 115, 0.14);
+      border-color: rgba(46, 213, 115, 0.48);
+      color: #2ED573;
+    }
+    #family-whisper-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: linear-gradient(135deg, rgba(244, 162, 97, 0.22) 0%, rgba(36, 28, 48, 0.96) 100%);
+      border: 1.5px solid var(--accent);
+      border-radius: 16px;
+      padding: 10px 13px;
+      margin-bottom: 10px;
+      box-shadow: 0 6px 20px rgba(244, 162, 97, 0.18);
+    }
+    body.spotlight-tour-open #mom-break-drawer {
+      display: none !important;
+    }
+    #mom-break-drawer {
+      display: none;
+      background: linear-gradient(155deg, rgba(35, 28, 49, 0.96) 0%, rgba(18, 23, 40, 0.98) 100%);
+      border: 1.5px solid rgba(244, 162, 97, 0.48);
+      border-radius: 18px;
+      padding: 12px 13px;
+      margin-bottom: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+    }
+    .mom-break-tabs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 5px;
+      margin-top: 10px;
+      margin-bottom: 10px;
+    }
+    .mom-break-tab-btn {
+      min-height: 36px;
+      border-radius: 10px;
+      border: 1px solid var(--border-night);
+      background: rgba(255, 255, 255, 0.04);
+      color: var(--text-night);
+      font-family: 'Sora', sans-serif;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 4px 4px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      line-height: 1.15;
+    }
+    .mom-break-tab-btn.active {
+      background: rgba(244, 162, 97, 0.22);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+    .mom-break-panel {
+      display: none;
+      background: rgba(12, 16, 30, 0.55);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 13px;
+      padding: 11px 12px;
+    }
+    .mom-break-panel.active {
+      display: block;
+    }
+    body.mom-lantern-glow-active::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 5;
+      box-shadow: inset 0 0 68px rgba(244, 162, 97, 0.34), inset 0 0 18px rgba(224, 122, 95, 0.28);
+      animation: momLanternPulse 4.5s ease-in-out infinite;
+    }
+    @keyframes momLanternPulse {
+      0%, 100% { opacity: 0.72; }
+      50% { opacity: 1; }
+    }
+    .mom-breath-ring {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      margin: 6px auto 8px;
+      background: radial-gradient(circle, rgba(244, 162, 97, 0.42) 0%, rgba(244, 162, 97, 0.08) 72%);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Sora', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      color: #FFF;
+      transition: transform 0.4s ease;
+    }
+    .mom-breath-ring.breathing {
+      animation: momBreathExpand 14s ease-in-out infinite;
+    }
+    @keyframes momBreathExpand {
+      0% { transform: scale(0.86); box-shadow: 0 0 8px rgba(244, 162, 97, 0.2); }
+      28.5% { transform: scale(1.22); box-shadow: 0 0 26px rgba(244, 162, 97, 0.55); }
+      57.1% { transform: scale(1.22); box-shadow: 0 0 28px rgba(244, 162, 97, 0.6); }
+      100% { transform: scale(0.86); box-shadow: 0 0 8px rgba(244, 162, 97, 0.2); }
+    }
+    .dadi-audience-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+      background: rgba(18, 24, 44, 0.85);
+      border: 1px solid var(--border-night);
+      border-radius: 13px;
+      padding: 4px;
+      margin-bottom: 10px;
+    }
+    .dadi-aud-btn {
+      min-height: 36px;
+      border-radius: 9px;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--text-muted);
+      font-family: 'Sora', sans-serif;
+      font-size: 11.5px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+    .dadi-aud-btn.active {
+      background: rgba(244, 162, 97, 0.2);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
   </style>
 
 </head>
@@ -3228,6 +3401,18 @@
         Yaşa özel uyanıklık penceresi, gelişim atakları ve resmi aşı takvimi bu tarihe göre hesaplanır.
       </div>
 
+      <!-- ÜST AİLE KODU KARTI: İKİNCİ EBEVEYN / BAKICI İÇİN SIFIR KAFA KARIŞIKLIĞI -->
+      <button type="button" class="onb-coparent-hero-banner" onclick="openJoinFamilyModal()">
+        <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+          <span style="width: 36px; height: 36px; border-radius: 10px; background: rgba(244, 162, 97, 0.2); border: 1px solid rgba(244, 162, 97, 0.45); display: inline-flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">👨‍👩‍👧</span>
+          <div style="min-width: 0;">
+            <div style="font-family: 'Sora'; font-size: 12px; font-weight: 800; color: var(--heading-night); line-height: 1.25;">Eşinizin oluşturduğu Aile Kodu mu var?</div>
+            <div style="font-size: 10.5px; color: var(--accent); font-weight: 600; margin-top: 2px; line-height: 1.3;">Tek dokunuşla bağlanın; aynı bebeği 3 kişiye kadar ortak canlı takip edin</div>
+          </div>
+        </div>
+        <span style="font-family: 'Sora'; font-size: 12px; font-weight: 800; color: var(--accent); flex-shrink: 0;">Katıl ➔</span>
+      </button>
+
       <input type="hidden" id="quiz-baby-bdate" />
       <div class="onb-combo-card">
         <div class="onb-combo-grid-3">
@@ -3263,11 +3448,9 @@
 
       <button class="btn-primary" style="margin-top: 6px; margin-bottom: 10px;" onclick="nextQuizStep(2)">Planıma Ekle ➔</button>
 
-      <!-- AİLE KODU İLE KATILMA BAĞLANTISI -->
-      <div style="text-align: center; margin-bottom: 8px;">
-        <button type="button" onclick="openJoinFamilyModal()" style="background: none; border: none; color: var(--accent); font-size: 11.5px; cursor: pointer; text-decoration: underline; padding: 6px;">
-          👨‍👩‍👧 Eşinizin oluşturduğu Aile Paylaşım Kodu mu var? Buradan Katılın
-        </button>
+      <!-- KURUCU EBEVEYN İÇİN ORTAK TAKİP GÜVENCE NOTU -->
+      <div style="text-align: center; margin-bottom: 8px; font-size: 11px; color: var(--text-muted); line-height: 15px;">
+        👨‍👩‍👧 Kurulumdan sonra eşinizi ve bakıcınızı Aile Kodunuzla ücretsiz bağlayabilirsiniz (Maks. 3 Üye)
       </div>
     </div>
 
@@ -3508,6 +3691,10 @@
             <span id="report-locked-rx-label" style="color: var(--text-night);">🎧 Kilit Ekranı 18 Stüdyo Sesi & Gece Rehberi</span>
             <strong style="font-family: 'Sora'; color: #2ED573; font-size: 10px;">🔒 VIP</strong>
           </div>
+          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border-radius: 9px; padding: 6px 9px;">
+            <span style="color: var(--text-night);">👨‍👩‍👧 Ortak Aile Takibi (Anne, Baba, Bakıcı)</span>
+            <strong style="font-family: 'Sora'; color: var(--accent); font-size: 10px;">🔒 3 Üye VIP</strong>
+          </div>
         </div>
       </div>
 
@@ -3570,6 +3757,10 @@
         <div style="display: flex; align-items: center; gap: 8px;">
           <span>🔔</span>
           <span>Uykudan 15 dk önce uyarı, <strong>Ağlama Rehberi & 7/24 Dadı</strong></span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span>👨‍👩‍👧</span>
+          <span>Tek VIP ile <strong>3 kişiye kadar</strong> ortak canlı bebek takibi</span>
         </div>
       </div>
 
@@ -3636,7 +3827,7 @@
 
       <!-- REVIEWER TEST BYPASS TRIGGER (GOOGLE PLAY ANSWER 15748846) -->
       <div style="text-align: center; margin-top: 8px; margin-bottom: 6px;">
-        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.51.0 (Build 69)</span>
+        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.52.0 (Build 70)</span>
       </div>
     </div>
   </div>
@@ -3653,7 +3844,10 @@
           <div class="baby-subtitle" id="baby-header-subtitle">—</div>
           <div class="main-title" id="baby-header-title">Mışıl Spot™ Ritim & Uyku</div>
         </div>
-        <div id="home-header-actions" style="display: flex; gap: 8px; align-items: center;">
+        <div id="home-header-actions" style="display: flex; gap: 6px; align-items: center;">
+          <button type="button" id="home-family-pill" class="home-family-pill" onclick="openFamilyQuickHub()" title="Aile & Eş Senkronizasyonu">
+            <span id="home-family-pill-label">👩 + Eşini Bağla</span>
+          </button>
           <button onclick="openNightAmbient()" class="header-profile-btn" title="Gece Beşiği Modu" style="background: rgba(244, 162, 97, 0.15); border-color: rgba(244, 162, 97, 0.35);">
             <span>🌙</span>
           </button>
@@ -3675,6 +3869,18 @@
 
       <!-- SEGMENT 1: MIŞIL SPOT™ & BENTO HERO -->
       <div id="home-seg-sweetspot">
+        <!-- EŞTEN GELEN SESSİZ FISILTI BİLDİRİMİ (YALNIZCA BEKLEYEN FISILTI VARKEN AÇILIR) -->
+        <div id="family-whisper-banner">
+          <div style="display: flex; align-items: center; gap: 9px; min-width: 0; flex: 1;">
+            <span style="font-size: 19px; flex-shrink: 0;">💌</span>
+            <div style="min-width: 0;">
+              <div id="family-whisper-sender" style="font-family: 'Sora'; font-size: 11px; font-weight: 800; color: var(--accent);">Eşinizden Sessiz Fısıltı</div>
+              <div id="family-whisper-text" style="font-size: 12px; color: #FAF5EE; line-height: 16px; margin-top: 2px; overflow-wrap: anywhere;">—</div>
+            </div>
+          </div>
+          <button type="button" onclick="ackActiveFamilyWhisper()" style="background: var(--accent); color: #141B2E; border: none; border-radius: 10px; padding: 7px 11px; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap; flex-shrink: 0;">✓ Aldım 🤍</button>
+        </div>
+
         <!-- PROPOSAL 2B: ORGANIC WARM BENTO (HERO HİLAL DAİMA İLK EKRANDA - ABOVE THE FOLD) -->
         <!-- 1. PANORAMİK HERO HİLAL BENTO KARTI -->
         <div class="hero-organic-card" id="home-organic-hero">
@@ -3708,6 +3914,118 @@
         </button>
 
         <div id="last-sleep-quick-edit-bar" style="display: none; align-items: center; justify-content: space-between; gap: 8px; background: rgba(244, 162, 97, 0.12); border: 1px dashed rgba(244, 162, 97, 0.45); border-radius: 14px; padding: 9px 12px; margin-top: -4px; margin-bottom: 12px;"><div style="font-size: 11px; color: var(--text-night); line-height: 15px;"><span>🌙 Son Uyku: <strong id="last-sleep-quick-summary" style="color: var(--heading-night);">—</strong></span><div style="font-size: 10px; color: var(--text-muted);" id="last-sleep-quick-sub">Uyuyakaldıysanız veya uyanış saati farklıysa düzeltin</div></div><button type="button" id="btn-last-sleep-quick-edit" onclick="editLatestSleepRoutine()" style="background: rgba(244, 162, 97, 0.22); border: 1px solid var(--accent); color: var(--accent); border-radius: 10px; padding: 6px 10px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0;">✏️ Saatleri Düzenle</button></div>
+
+        <!-- ☕ ANNE MOLASI & GECE NÖBETİ DAYANIŞMASI (YALNIZCA BEBEK UYURKEN OTOMATİK AÇILIR — TEK EL KARANLIK ODA DOSTU) -->
+        <div id="mom-break-drawer">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer;" onclick="toggleMomBreakCollapsed()">
+            <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+              <span style="font-size: 18px; flex-shrink: 0;">☕</span>
+              <div style="min-width: 0;">
+                <div style="font-family: 'Sora'; font-size: 12.5px; font-weight: 800; color: var(--heading-night);">Bebek Uyuyor • Anne Molası</div>
+                <div style="font-size: 10.5px; color: var(--accent); margin-top: 1px;">Bebeğiniz uyurken birkaç dakika sadece sizin 💛</div>
+              </div>
+            </div>
+            <button type="button" id="mom-break-collapse-btn" style="background: rgba(255,255,255,0.07); border: 1px solid var(--border-night); color: var(--accent); border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: 700; cursor: pointer; flex-shrink: 0;">Küçült ▴</button>
+          </div>
+
+          <div id="mom-break-body">
+            <div class="mom-break-tabs">
+              <button type="button" class="mom-break-tab-btn active" id="mom-tab-lantern" onclick="switchMomBreakTab('lantern')"><span>🕯️</span><span>Fener</span></button>
+              <button type="button" class="mom-break-tab-btn" id="mom-tab-escape" onclick="switchMomBreakTab('escape')"><span>🧩</span><span>3 Dk Mola</span></button>
+              <button type="button" class="mom-break-tab-btn" id="mom-tab-whisper" onclick="switchMomBreakTab('whisper')"><span>🤝</span><span>Fısılda</span></button>
+              <button type="button" class="mom-break-tab-btn" id="mom-tab-breathe" onclick="switchMomBreakTab('breathe')"><span>🌬️</span><span>Nefes & Not</span></button>
+            </div>
+
+            <!-- 1. SESSİZ GECE NÖBETİ FENERİ & DAYANIŞMA SAYACI -->
+            <div class="mom-break-panel active" id="mom-panel-lantern">
+              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
+                <div style="font-size: 11.5px; color: var(--heading-night); font-weight: 700; line-height: 15px;" id="mom-night-watch-label">
+                  🕯️ Şu an uyanık nöbet feneri yakan ebeveynler yanınızda
+                </div>
+                <button type="button" id="btn-mom-lantern-glow" onclick="toggleMomLanternGlow()" style="background: rgba(244, 162, 97, 0.18); border: 1px solid var(--accent); color: var(--accent); border-radius: 9px; padding: 6px 9px; font-size: 10.5px; font-weight: 800; cursor: pointer; white-space: nowrap;">🕯️ Loş Fener Aç</button>
+              </div>
+              <div style="font-size: 10.5px; color: var(--text-muted); line-height: 15px; margin-bottom: 9px;">
+                Karanlığı bozmayan sıcak kehribar ekran halesi açar; bebek uyanmaz, kamera izni gerekmez.
+              </div>
+              <button type="button" id="btn-mom-night-cheer" onclick="pulseNightWatchSolidarity(true)" style="width: 100%; min-height: 36px; border-radius: 10px; border: 1px solid rgba(244, 162, 97, 0.45); background: rgba(244, 162, 97, 0.12); color: #FAF5EE; font-family: 'Sora'; font-size: 11px; font-weight: 700; cursor: pointer;">
+                💛 Yalnız Değilsin Selamı Gönder
+              </button>
+            </div>
+
+            <!-- 2. BEBEK-DIŞI 3 DK YETİŞKİN KAÇAMAĞI & MİNİ KELİME BULMACASI -->
+            <div class="mom-break-panel" id="mom-panel-escape">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                <span id="mom-escape-cat-badge" style="font-size: 9.5px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4px;">✨ Yetişkin Merak Köşesi</span>
+                <button type="button" onclick="nextMomEscapeCard()" style="background: rgba(244, 162, 97, 0.16); border: 1px solid rgba(244, 162, 97, 0.4); color: var(--accent); border-radius: 8px; padding: 3px 9px; font-size: 10px; font-weight: 800; cursor: pointer;">Sonraki Kart ➔</button>
+              </div>
+              <div id="mom-escape-card-title" style="font-family: 'Sora'; font-size: 12.5px; font-weight: 700; color: #FAF5EE; margin-bottom: 4px;">—</div>
+              <div id="mom-escape-card-body" style="font-size: 11px; color: var(--text-night); line-height: 16px; margin-bottom: 10px;">—</div>
+
+              <div style="border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                  <span style="font-size: 10.5px; font-weight: 700; color: var(--heading-night);">🌙 Gece Kelime Çözücü</span>
+                  <span id="mom-puzzle-score-badge" style="font-size: 10px; color: #2ED573; font-weight: 700;">✓ 0 Çözüldü</span>
+                </div>
+                <div id="mom-puzzle-hint" style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 6px;">—</div>
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span id="mom-puzzle-scrambled" style="font-family: 'Sora'; font-size: 13px; font-weight: 800; letter-spacing: 2px; color: var(--accent); background: rgba(244,162,97,0.12); border: 1px solid rgba(244,162,97,0.3); border-radius: 8px; padding: 6px 9px; white-space: nowrap;">—</span>
+                  <input type="text" id="mom-puzzle-input" class="form-input" placeholder="Tahmininiz..." maxlength="16" onkeydown="if(event.key==='Enter') checkMomWordPuzzle()" style="margin-bottom: 0; padding: 6px 9px; font-size: 11.5px; text-transform: uppercase;" />
+                  <button type="button" onclick="checkMomWordPuzzle()" style="background: var(--accent); color: #141B2E; border: none; border-radius: 8px; padding: 7px 10px; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer; flex-shrink: 0;">Çöz</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. TEK TIK EŞİME FISILDA & SESSİZ NÖBET DEVRİ -->
+            <div class="mom-break-panel" id="mom-panel-whisper">
+              <div id="mom-whisper-connected-box">
+                <div style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 7px;">
+                  Odaya seslenmeden eşinizin telefonuna tek dokunuşla sessiz not bırakın:
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
+                  <button type="button" onclick="sendFamilyWhisperTemplate('tea_water')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🍵 Su / çay getirir misin?</button>
+                  <button type="button" onclick="sendFamilyWhisperTemplate('next_shift_yours')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🍼 Sıradaki uyanış sende 💛</button>
+                  <button type="button" onclick="sendFamilyWhisperTemplate('trapped_under_baby')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🤱 Altında kaldım, yardım!</button>
+                  <button type="button" onclick="sendFamilyWhisperTemplate('thank_you_love')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🤍 İyi ki varsın, teşekkürler</button>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <input type="text" id="mom-whisper-custom-input" class="form-input" placeholder="Eşinize kısa sessiz not yazın..." maxlength="140" onkeydown="if(event.key==='Enter') sendCustomFamilyWhisper()" style="margin-bottom: 0; padding: 7px 10px; font-size: 11px;" />
+                  <button type="button" onclick="sendCustomFamilyWhisper()" style="background: var(--accent); color: #141B2E; border: none; border-radius: 9px; padding: 7px 11px; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;">Gönder 💌</button>
+                </div>
+              </div>
+
+              <div id="mom-whisper-invite-cta" style="display: none; text-align: center; padding: 4px 2px;">
+                <div style="font-size: 11.5px; font-weight: 700; color: var(--heading-night); margin-bottom: 4px;">👨‍👩‍👧 Eşiniz henüz bağlı değil (1 / 3 Üye)</div>
+                <div style="font-size: 10.5px; color: var(--text-muted); line-height: 15px; margin-bottom: 8px;">
+                  Aile Kodunuzu paylaşın; hem aynı bebeği canlı takip edin hem de tek tıkla "Su getirir misin / Sıradaki nöbet sende" fısıltısı gönderin.
+                </div>
+                <button type="button" onclick="openFamilyQuickHub()" style="width: 100%; min-height: 36px; background: var(--accent); color: #141B2E; border: none; border-radius: 10px; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer;">
+                  📲 Eşini Aile Koduyla Bağla (Maks. 3 Üye)
+                </button>
+              </div>
+            </div>
+
+            <!-- 4. 60 SN SESSİZ HAPTİK NEFES & SABAH HATIRLAT KUTUSU -->
+            <div class="mom-break-panel" id="mom-panel-breathe">
+              <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px;">
+                <div style="flex: 1;">
+                  <div style="font-size: 11.5px; font-weight: 700; color: #FAF5EE;">🌬️ 60 Sn Sessiz Haptik Nefes</div>
+                  <div id="mom-breath-status" style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">4 sn al • 4 sn tut • 6 sn ver (Sıfır ses, nazik titreşim)</div>
+                  <button type="button" id="btn-mom-breath-toggle" onclick="toggleMomSilentBreathing()" style="margin-top: 6px; background: rgba(244, 162, 97, 0.18); border: 1px solid var(--accent); color: var(--accent); border-radius: 9px; padding: 5px 11px; font-size: 10.5px; font-weight: 800; cursor: pointer;">Başlat (60 sn)</button>
+                </div>
+                <div class="mom-breath-ring" id="mom-breath-ring">4-4-6</div>
+              </div>
+
+              <div style="border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 8px;">
+                <div style="font-size: 10.5px; font-weight: 700; color: var(--heading-night); margin-bottom: 5px;">🧠 Gece Aklıma Geldi • Sabaha Not</div>
+                <div style="display: flex; gap: 6px; margin-bottom: 6px;">
+                  <input type="text" id="mom-morning-note-input" class="form-input" placeholder="Sabah unutmayayım (örn: bez siparişi, doktor sorusu)..." maxlength="120" onkeydown="if(event.key==='Enter') addMomMorningNote()" style="margin-bottom: 0; padding: 6px 9px; font-size: 11px;" />
+                  <button type="button" onclick="addMomMorningNote()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-night); color: var(--accent); border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 800; cursor: pointer; flex-shrink: 0;">+ Ekle</button>
+                </div>
+                <div id="mom-morning-notes-list" style="display: flex; flex-direction: column; gap: 4px; max-height: 110px; overflow-y: auto;" class="no-scrollbar"></div>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <!-- ÜCRETSİZ KULLANICILAR İÇİN 7 GÜN ÜCRETSİZ VIP DENEME KARTI (KAPATILABİLİR TEKİL CRO BANNER) -->
         <div id="home-free-vip-banner" onclick="openVipRenewalModal('home_banner')" style="display: none; background: linear-gradient(135deg, rgba(232, 168, 85, 0.22) 0%, rgba(35, 42, 70, 0.95) 100%); border: 1.5px solid var(--accent); border-radius: 16px; padding: 11px 14px; margin-bottom: 12px; cursor: pointer; box-shadow: 0 6px 20px rgba(232, 168, 85, 0.16);">
@@ -4200,6 +4518,12 @@
         </button>
       </div>
 
+      <!-- MOD SEÇİCİ: BEBEK İÇİN / KENDİM İÇİN (ANNE ŞEFKAT & DERTLEŞME MODU) -->
+      <div class="dadi-audience-switch" id="dadi-audience-switch">
+        <button type="button" class="dadi-aud-btn active" id="dadi-mode-btn-baby" onclick="switchDadiAudience('baby')">👶 Bebek İçin</button>
+        <button type="button" class="dadi-aud-btn" id="dadi-mode-btn-mom" onclick="switchDadiAudience('mom')">💛 Kendim İçin</button>
+      </div>
+
       <!-- Ağlama Sesi Acil Çözücü Çubuğu (Dadı İçine Entegre) -->
       <div class="card" id="coach-cry-solver-bar" style="border: 1px solid var(--accent); background: rgba(36, 30, 50, 0.9); cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; margin-bottom: 12px;" onclick="openCryModal()">
         <div style="display: flex; align-items: center; gap: 10px;">
@@ -4217,7 +4541,7 @@
           <div class="spotlight-glow"></div>
           
           <div class="dadi-messages-box no-scrollbar" id="chat-messages-container">
-            <div class="chat-bubble-dadi">
+            <div class="chat-bubble-dadi" id="chat-dadi-intro-bubble">
               🌸 <strong>Merhaba sevgili anneciğim/babacığım!</strong> Ben Mışıl Dadı. <strong id="chat-baby-mention">Bebeğiniz</strong>'in sirkadiyen ritmine, ayına ve uyku geçmişine hakimim. Uykuya direnişler, gece bölünmeleri veya beslenme düzeniyle ilgili aklınıza takılan her şeyi bana sorabilirsiniz.
             </div>
           </div>
@@ -4229,7 +4553,7 @@
           </div>
 
           <!-- Quick Suggestion Chips -->
-          <div style="display: flex; gap: 6px; overflow-x: auto; padding: 6px 0; margin-top: 4px;" class="no-scrollbar">
+          <div id="chat-dadi-chips-row" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px 0; margin-top: 4px;" class="no-scrollbar">
             <div class="ai-chip" onclick="askAiPrompt('🌙 Bebeğim 30 dk sonra ağlayarak uyandı, ne yapmalıyım?')">🌙 30 Dk Sonra Uyandı</div>
             <div class="ai-chip" onclick="askAiPrompt('🍼 Gece beslenmesini nasıl kademeli azaltırım?')">🍼 Gece Beslenmesi</div>
             <div class="ai-chip" onclick="askAiPrompt('⚠️ 4. ay uyku regresyonu nedir ve ne kadar sürer?')">⚠️ 4. Ay Regresyonu</div>
@@ -4240,6 +4564,9 @@
             <input type="text" class="form-input" id="chat-user-input" placeholder="Mışıl Dadı'ya sorunuzu yazın..." style="margin-bottom: 0;" />
             <button type="submit" id="chat-send-btn" class="sound-play-btn" style="background: var(--accent); color: #141B2E; border: none; flex-shrink: 0;">➔</button>
           </form>
+          <div id="dadi-mom-safety-note" style="display: none; font-size: 9.5px; color: var(--text-muted); margin-top: 6px; line-height: 13.5px; text-align: center;">
+            🩺 Yargısız duygusal destek amaçlıdır; tıbbi/psikiyatrik tanı yerine geçmez (Acil destek: 112 / 182).
+          </div>
         </div>
       </div>
     </div>
@@ -4436,20 +4763,20 @@
             <span class="settings-accordion-icon">👨‍👩‍👧</span>
             <div>
               <div class="settings-accordion-title">Aile & Dadı Senkronizasyonu</div>
-              <div class="settings-accordion-subtitle" id="acc-family-subtitle">Bulut Kodu: <strong style="color: var(--accent);">MSL782</strong> • 2 Üye Bağlı</div>
+              <div class="settings-accordion-subtitle" id="acc-family-subtitle">Aile Kodu Hazırlanıyor • Maks. 3 Üye</div>
             </div>
           </div>
           <span class="settings-accordion-chevron">▼</span>
         </div>
         <div class="settings-accordion-body">
           <div style="font-size: 11px; color: var(--text-night); line-height: 16px; margin: 8px 0 10px;">
-            Anne, baba ve dadı aynı bebeğin uykusunu, beslenmesini, aşılarını ve Mışıl Dadı koçluğunu canlı senkron takip eder.
+            Anne, baba ve dadı (en fazla 3 üye) aynı bebeğin uykusunu, beslenmesini, aşılarını ve MışılSpot™ saatlerini tek VIP abonelikle kendi telefonlarından canlı senkron takip eder.
           </div>
 
           <div style="background: rgba(18, 24, 44, 0.8); border: 1px dashed var(--accent); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px;">
-            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">6 Haneli Aile Paylaşım Kodunuz</div>
+            <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase;">6 Haneli Aile Paylaşım Kodunuz (Maks. 3 Üye)</div>
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-              <span style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: var(--accent); letter-spacing: 2px;" id="family-sync-code">MSL782</span>
+              <span style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: var(--accent); letter-spacing: 2px;" id="family-sync-code">—</span>
               <div style="display: flex; gap: 6px;">
                 <button class="early-leap-btn" style="margin-top: 0; padding: 4px 8px; font-size: 10px;" onclick="copyFamilyCode()">📋 Kopyala</button>
                 <button class="early-leap-btn" style="margin-top: 0; padding: 4px 8px; font-size: 10px; background: var(--accent); color: #141B2E;" onclick="shareFamilyInviteLink()">🔗 Davet Et</button>
@@ -4892,6 +5219,7 @@
       <div>🌙 Gün boyu otomatik <strong>MışılSpot™</strong> & gece yatış saati</div>
       <div>🎧 Kilit ekranında kesintisiz <strong>18 stüdyo ninni & pışpış</strong></div>
       <div>🔔 Uykudan 15 dk önce uyarı, <strong>Ağlama Rehberi & 7/24 Dadı</strong></div>
+      <div>👨‍👩‍👧 Tek VIP ile <strong>3 kişiye kadar</strong> ortak canlı bebek takibi</div>
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
@@ -4942,7 +5270,7 @@
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
     </div>
     <div style="text-align: center; margin-top: 8px;">
-      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.51.0 (Build 69)</span>
+      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.52.0 (Build 70)</span>
     </div>
   </div>
 </div>
@@ -5066,6 +5394,43 @@
     <button class="btn-secondary" onclick="closeJoinFamilyModal()" style="margin-top: 8px; width: 100%;">
       Vazgeç
     </button>
+  </div>
+</div>
+
+<!-- MODAL: HIZLI ORTAK AİLE & EŞ BAĞLANTI MERKEZİ (MAKS. 3 ÜYE • TEK DOKUNUŞ DAVET) -->
+<div class="modal-overlay" id="modal-family-quick-hub" onclick="closeModalOnOverlay(event, 'modal-family-quick-hub')">
+  <div class="modal-sheet no-scrollbar" style="max-width: 400px;">
+    <div class="modal-header">
+      <div style="font-family: 'Sora'; font-size: 15.5px; font-weight: 800; color: var(--heading-night); display: flex; align-items: center; gap: 6px;">
+        <span>👨‍👩‍👧 Ortak Aile & Eş Takibi</span>
+      </div>
+      <button class="modal-close" onclick="closeFamilyQuickHub()">✕</button>
+    </div>
+
+    <div style="font-size: 11.5px; color: var(--text-night); line-height: 16.5px; margin-bottom: 12px; background: rgba(244, 162, 97, 0.08); border: 1px solid rgba(244, 162, 97, 0.28); border-radius: 11px; padding: 9px 11px;">
+      <strong>Aynı bebeği en fazla 3 kişi</strong> (Anne, Baba, Dadı/Bakıcı) kendi telefonundan canlı takip eder. Bir kişi uykuyu veya beslenmeyi kaydettiğinde diğer telefonlarda da anında güncellenir.
+    </div>
+
+    <div style="background: rgba(18, 24, 44, 0.92); border: 1.5px dashed var(--accent); border-radius: 13px; padding: 12px 14px; margin-bottom: 12px; text-align: center;">
+      <div style="font-size: 10px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.4px;">6 Haneli Aile Paylaşım Kodunuz</div>
+      <div id="quick-hub-family-code" style="font-family: 'Sora'; font-size: 23px; font-weight: 800; color: var(--accent); letter-spacing: 2.5px; margin: 5px 0 9px;">—</div>
+      <div style="display: grid; grid-template-columns: 1fr 1.35fr; gap: 7px;">
+        <button type="button" class="btn-secondary" style="margin: 0; padding: 8px 10px; font-size: 11.5px;" onclick="copyFamilyCode()">📋 Kodu Kopyala</button>
+        <button type="button" class="btn-primary" style="margin: 0; padding: 8px 10px; font-size: 11.5px;" onclick="shareFamilyInviteLink()">📲 Eşini Davet Et</button>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+      <span style="font-size: 11px; font-weight: 700; color: var(--heading-night);">👥 Bağlı Aile Üyeleri</span>
+      <span id="quick-hub-member-count" style="font-size: 10.5px; font-weight: 800; color: var(--accent);">1 / 3 Üye</span>
+    </div>
+    <div id="quick-hub-members-list" style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 12px; font-size: 11.5px;"></div>
+
+    <div style="padding-top: 10px; border-top: 1px dashed var(--border-night); text-align: center;">
+      <button type="button" onclick="closeFamilyQuickHub(); openJoinFamilyModal();" style="background: none; border: none; color: var(--accent); font-size: 11.5px; font-weight: 700; text-decoration: underline; cursor: pointer; padding: 4px;">
+        🔗 Eşinizin oluşturduğu başka bir Aile Koduna mı bağlanacaksınız?
+      </button>
+    </div>
   </div>
 </div>
 
@@ -5764,7 +6129,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.51.3', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.52.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -6072,7 +6437,17 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.51.3', date: '15 Kasım 2026', dateEn: 'November 15, 2026', dateDe: '15. November 2026', latest: true, items: [
+    { v: '4.52.0', date: '15 Kasım 2026', dateEn: 'November 15, 2026', dateDe: '15. November 2026', latest: true, items: [
+      'Ortak Aile & Eş Takibi Netleştirme (Maks. 3 Üye • PostgreSQL Kalıcı Bulut Senkronu): İlk kurulum ekranından Ana Ekran üst çubuğuna ("👩 + Eşini Bağla" / "👨‍👩‍👧 Aile Aktif • 2/3") ve VIP plan kartlarına kadar aynı bebeğin Anne, Baba ve Bakıcı tarafından (en fazla 3 üye) tek VIP abonelikle canlı takip edildiği netleştirildi; aile odaları, rutinler, uykular, aşılar ve gelişim atakları kalıcı veritabanı ve imzalı canlı senkron köprüsüne taşındı.',
+      '☕ Bebek Uyuyor • Anne Molası & Mışıl Dadı "💛 Kendim İçin" Modu: Bebeğiniz uyurken tek elle kullanabileceğiniz Anne Molası çekmecesi eklendi — karanlığı bozmayan 🕯️ Gece Nöbeti Dayanışma Feneri, bebek-dışı 🧩 3 Dk Yetişkin Merak Kartları & Kelime Çözücü, eşinizin telefonuna sessizce düşen 🤝 Tek Tık "Eşime Fısılda" nöbet devri, 🌬️ 60 Sn Sessiz Haptik Nefes & Sabaha Not kutusu ve Mışıl Dadı içinde annenin kendisine özel şefkatli dertleşme modu ("👶 Bebek İçin | 💛 Kendim İçin") kullanıma sunuldu.'
+    ], itemsEn: [
+      'Shared Single-Baby Family Tracking Clarity (Up to 3 Members • Persistent Cloud Sync): Made co-parenting crystal clear across Onboarding Step 1, the Home header pill ("👩 + Connect Partner" / "👨‍👩‍👧 Family Active • 2/3"), and VIP cards—up to 3 caregivers (Mom, Dad, Nanny) track the same baby live under 1 VIP plan, backed by persistent PostgreSQL storage and signed real-time sync.',
+      '☕ Baby Sleeping • Mom Break Drawer & Mışıl Nanny "💛 For Myself" Mode: Added a dark-room-friendly one-handed Mom Break drawer while your baby sleeps—featuring the 🕯️ Silent Night-Watch Solidarity Lantern, non-baby 🧩 3-Min Adult Curiosity Cards & Word Unscrambler, 1-tap 🤝 Silent Partner Whisper handoffs, 🌬️ 60s Silent Haptic Breathing & Morning Brain-Dump notes, plus a dedicated maternal self-compassion toggle ("👶 For Baby | 💛 For Myself") in Mışıl Nanny.'
+    ], itemsDe: [
+      'Gemeinsames Familien-Tracking für Ihr Baby (Bis zu 3 Mitglieder • Dauerhafte Cloud-Synchronisation): Vom ersten Einrichtungsschritt über die Startseiten-Pille („👩 + Partner verbinden“ / „👨‍👩‍👧 Familie aktiv • 2/3“) bis zum VIP-Plan ist nun sofort ersichtlich, dass Mama, Papa und Betreuungsperson (bis zu 3 Personen) dasselbe Baby live mit nur 1 VIP-Abo begleiten – dauerhaft gesichert per PostgreSQL und signiertem Echtzeit-Sync.',
+      '☕ Baby schläft • Mama-Pause & Mışıl Nanny Modus „💛 Für mich“: Während Ihr Baby schläft, öffnet sich die einhändig bedienbare Mama-Pause mit 🕯️ Stiller Nachtwachen-Laterne, babyfreien 🧩 3-Min.-Wissenskarten & Worträtsel, lautlosem 🤝 1-Tipp-Partner-Flüstern, 🌬️ 60-Sek.-Haptik-Atmung & Morgen-Notizen sowie dem einfühlsamen Mışıl-Nanny-Modus „👶 Fürs Baby | 💛 Für mich“.'
+    ]},
+    { v: '4.51.3', date: '15 Kasım 2026', dateEn: 'November 15, 2026', dateDe: '15. November 2026', items: [
       'Mekânsal Yönelimli (Dual-Focus) Tanıtım Turu & Alt Menü Pusulası: İlk giriş tanıtım turunda alt menü çubuğu artık karartılmaz; her adımda ilgili menü ikonu (Mışıl Spot, Analiz, Uyut, Mışıl Dadı, Sesler) altın halkayla parlar, üzerinde "Buraya Tıklayın ▼" işaretçisi görünür ve ister "İleri" butonuna ister doğrudan alt menü ikonlarına dokunarak gezilebilir.',
       'Açık Konum Rozeti, Alt-Sekme Kapsama & Sağ Üst Ayarlar İpucu: Tur kartlarına "📍 Nereden Ulaşılır?" adres şeridi eklendi; Ana Ekran (Mışıl Spot / Bugünkü Uykular), Analiz (Uyku / Sağlık & Aşı / Aktivite) ve Mışıl Dadı (🎙️ Ağlama Çözücü) üst sekmeleri ile sağ üstteki 🌙 Gece Beşiği ve ⚙️ Ayarlar / Aile Kodu butonları spot penceresine dahil edildi.'
     ], itemsEn: [
@@ -7258,10 +7633,11 @@
   }
 
   // =========================================================================
-  // 2. MIŞIL DADI AI CHAT ENGINE (4-TIER CASCADING BACKEND API)
+  // 2. MIŞIL DADI AI CHAT ENGINE (4-TIER CASCADING BACKEND API • BABY & MOM MODES)
   // =========================================================================
   let dadiChatHistory = [];
   let isDadiGenerating = false;
+  let activeDadiAudience = 'baby';
 
   function setDadiChipsState(enabled) {
     document.querySelectorAll('.ai-chip').forEach(chip => {
@@ -7278,21 +7654,111 @@
   const AI_CHIP_PROMPTS_EN = {
     '🌙 Bebeğim 30 dk sonra ağlayarak uyandı, ne yapmalıyım?': '🌙 My baby woke up crying after 30 minutes, what should I do?',
     '🍼 Gece beslenmesini nasıl kademeli azaltırım?': '🍼 How can I gradually reduce night feedings?',
-    '⚠️ 4. ay uyku regresyonu nedir ve ne kadar sürer?': '⚠️ What is the 4-month sleep regression and how long does it last?'
+    '⚠️ 4. ay uyku regresyonu nedir ve ne kadar sürer?': '⚠️ What is the 4-month sleep regression and how long does it last?',
+    '💛 Çok yoruldum ve kendimi yetersiz hissediyorum': '💛 I feel exhausted and guilty like I am not doing enough',
+    '🌙 Bebek uyudu ama zihnim susmuyor, ben uyuyamıyorum': '🌙 The baby is asleep, but my mind is racing and I cannot fall asleep',
+    '🤝 Eşime gece yükümü kırmadan nasıl anlatabilirim?': '🤝 How can I gently explain my night load to my partner without arguing?'
   };
   const AI_CHIP_PROMPTS_DE = {
     '🌙 Bebeğim 30 dk sonra ağlayarak uyandı, ne yapmalıyım?': '🌙 Mein Baby ist nach 30 Minuten weinend aufgewacht – was kann ich tun?',
     '🍼 Gece beslenmesini nasıl kademeli azaltırım?': '🍼 Wie kann ich das nächtliche Stillen/Füttern sanft reduzieren?',
-    '⚠️ 4. ay uyku regresyonu nedir ve ne kadar sürer?': '⚠️ Was ist die 4-Monats-Schlafregression und wie lange dauert sie?'
+    '⚠️ 4. ay uyku regresyonu nedir ve ne kadar sürer?': '⚠️ Was ist die 4-Monats-Schlafregression und wie lange dauert sie?',
+    '💛 Çok yoruldum ve kendimi yetersiz hissediyorum': '💛 Ich bin völlig erschöpft und habe das Gefühl, nicht genug zu sein',
+    '🌙 Bebek uyudu ama zihnim susmuyor, ben uyuyamıyorum': '🌙 Das Baby schläft, aber mein Kopf kommt einfach nicht zur Ruhe',
+    '🤝 Eşime gece yükümü kırmadan nasıl anlatabilirim?': '🤝 Wie kann ich meinem Partner meine nächtliche Belastung liebevoll erklären?'
   };
+
+  function renderDadiChipsAndIntroForMode() {
+    const isMom = activeDadiAudience === 'mom';
+    const btnBaby = document.getElementById('dadi-mode-btn-baby');
+    const btnMom = document.getElementById('dadi-mode-btn-mom');
+    if (btnBaby) btnBaby.classList.toggle('active', !isMom);
+    if (btnMom) btnMom.classList.toggle('active', isMom);
+
+    const cryBar = document.getElementById('coach-cry-solver-bar');
+    if (cryBar) cryBar.style.display = isMom ? 'none' : 'flex';
+
+    const safetyNote = document.getElementById('dadi-mom-safety-note');
+    if (safetyNote) {
+      safetyNote.style.display = isMom ? 'block' : 'none';
+      safetyNote.textContent = trEnDe(
+        '🩺 Yargısız duygusal destek amaçlıdır; tıbbi/psikiyatrik tanı yerine geçmez (Acil destek: 112 / 182).',
+        '🩺 Non-judgmental emotional companionship only; not medical advice (Crisis support: 988 / 112).',
+        '🩺 Einfühlsame Begleitung ohne Diagnoseanspruch (Krisenhilfe: 112 / TelefonSeelsorge 0800 111 0 111).'
+      );
+    }
+
+    const hdrSub = document.getElementById('coach-header-subtitle');
+    if (hdrSub) {
+      hdrSub.textContent = isMom
+        ? trEnDe('💛 Anne Şefkat & Gece Dertleşme Köşesi', '💛 Maternal Self-Compassion & Night Companion', '💛 Einfühlsame Mama-Auszeit & Nachtbegleitung')
+        : trEnDe('7/24 Şefkatli Uyku & Gelişim Danışmanı', '24/7 Gentle Sleep & Development Coach', '24/7 Sanfte Schlaf- & Entwicklungsberatung');
+    }
+
+    const chipsRow = document.getElementById('chat-dadi-chips-row');
+    if (chipsRow) {
+      if (isMom) {
+        const c1 = trEnDe('💛 Çok Yoruldum & Suçluluk', '💛 Exhausted & Mom Guilt', '💛 Erschöpft & Schuldgefühle');
+        const c2 = trEnDe('🌙 Bebek Uyudu, Ben Uyuyamıyorum', '🌙 Baby Asleep, Mind Racing', '🌙 Baby schläft, Kopf wach');
+        const c3 = trEnDe('🤝 Eşime Yükümü Anlatmak', '🤝 Sharing Load With Partner', '🤝 Last mit Partner teilen');
+        chipsRow.innerHTML =
+          `<div class="ai-chip" onclick="askAiPrompt('💛 Çok yoruldum ve kendimi yetersiz hissediyorum')">${escapeHtml(c1)}</div>` +
+          `<div class="ai-chip" onclick="askAiPrompt('🌙 Bebek uyudu ama zihnim susmuyor, ben uyuyamıyorum')">${escapeHtml(c2)}</div>` +
+          `<div class="ai-chip" onclick="askAiPrompt('🤝 Eşime gece yükümü kırmadan nasıl anlatabilirim?')">${escapeHtml(c3)}</div>`;
+      } else {
+        const b1 = trEnDe('🌙 30 Dk Sonra Uyandı', '🌙 Woke Up After 30m', '🌙 Nach 30 Min. wach');
+        const b2 = trEnDe('🍼 Gece Beslenmesi', '🍼 Night Feedings', '🍼 Nächtliches Stillen');
+        const b3 = trEnDe('⚠️ 4. Ay Regresyonu', '⚠️ 4-Month Regression', '⚠️ 4-Monats-Regression');
+        chipsRow.innerHTML =
+          `<div class="ai-chip" onclick="askAiPrompt('🌙 Bebeğim 30 dk sonra ağlayarak uyandı, ne yapmalıyım?')">${escapeHtml(b1)}</div>` +
+          `<div class="ai-chip" onclick="askAiPrompt('🍼 Gece beslenmesini nasıl kademeli azaltırım?')">${escapeHtml(b2)}</div>` +
+          `<div class="ai-chip" onclick="askAiPrompt('⚠️ 4. ay uyku regresyonu nedir ve ne kadar sürer?')">${escapeHtml(b3)}</div>`;
+      }
+      setDadiChipsState(!isDadiGenerating);
+    }
+
+    const introBubble = document.getElementById('chat-dadi-intro-bubble');
+    if (introBubble && dadiChatHistory.length === 0) {
+      const _b = typeof getBaby === 'function' ? getBaby() : null;
+      const bName = escapeHtml((_b && _b.name) ? _b.name : (localStorage.getItem('mishil_baby_name') || trEnDe('Bebeğiniz', 'Your baby', 'Ihr Baby')));
+      if (isMom) {
+        introBubble.innerHTML = trEnDe(
+          `💛 <strong>Bu köşe sadece sizin için, sevgili anne.</strong> Herkes bebeği sorarken sizin ne kadar yorulduğunuzu biliyorum. Suçluluk hissi, uykusuzluk, tükenmişlik veya sadece içinizi dökmek istediğiniz ne varsa yargısızca dinlemek için buradayım.`,
+          `💛 <strong>This space is just for you, mama.</strong> While everyone asks about the baby, your exhaustion and feelings matter too. Share anything on your heart—mom guilt, racing thoughts, or night fatigue—judgment-free.`,
+          `💛 <strong>Dieser Raum gehört ganz Ihnen, liebe Mama.</strong> Während alle nach dem Baby fragen, zählen hier Sie. Ob Erschöpfung, Gedankenkarussell oder Schuldgefühle – ich höre Ihnen wertfrei und warmherzig zu.`
+        );
+      } else {
+        introBubble.innerHTML = trEnDe(
+          `🌸 <strong>Merhaba sevgili anneciğim/babacığım!</strong> Ben Mışıl Dadı. <strong id="chat-baby-mention">${bName}</strong>'in sirkadiyen ritmine, ayına ve uyku geçmişine hakimim. Uykuya direnişler, gece bölünmeleri veya beslenme düzeniyle ilgili aklınıza takılan her şeyi bana sorabilirsiniz.`,
+          `🌸 <strong>Hello dear parent!</strong> I am Mışıl Nanny. I know <strong id="chat-baby-mention">${bName}</strong>'s circadian rhythm, age, and sleep history. Ask me anything about bedtime resistance, night wakings, or feeding routines.`,
+          `🌸 <strong>Hallo liebe Mama, lieber Papa!</strong> Ich bin Mışıl Nanny und kenne den Rhythmus und das Alter von <strong id="chat-baby-mention">${bName}</strong>. Fragen Sie mich jederzeit zu Einschlafbegleitung, Nachtschlaf oder Stillroutinen.`
+        );
+      }
+    }
+    updateDadiFreeQuotaUI();
+  }
+
+  function switchDadiAudience(mode) {
+    if (isDadiGenerating) return;
+    hapticPulse();
+    activeDadiAudience = mode === 'mom' ? 'mom' : 'baby';
+    renderDadiChipsAndIntroForMode();
+  }
+  window.switchDadiAudience = switchDadiAudience;
+
   function updateDadiFreeQuotaUI() {
     const input = document.getElementById('chat-user-input');
     if (!input) return;
+    const isMom = activeDadiAudience === 'mom';
     if (isPaidOrVerifiedVip()) {
-      const stdPh = trEnDe("Mışıl Dadı'ya bebeğinizin uykusunu sorun...", "Ask Mışıl Nanny about your baby's sleep...", 'Fragen Sie Mışıl Nanny zum Schlaf Ihres Babys...');
+      const stdPh = isMom
+        ? trEnDe('💛 İçinizi dökün, bu köşede sadece siz varsınız...', '💛 Share how you feel tonight, this space is for you...', '💛 Schreiben Sie sich alles von der Seele...')
+        : trEnDe("Mışıl Dadı'ya bebeğinizin uykusunu sorun...", "Ask Mışıl Nanny about your baby's sleep...", 'Fragen Sie Mışıl Nanny zum Schlaf Ihres Babys...');
       input.setAttribute('placeholder', stdPh);
     } else if (!hasUsedFreeDadiQuestion()) {
-      const freePh = trEnDe("🎁 Mışıl Dadı'ya 1 ücretsiz sorunuzu yazın...", '🎁 Ask your 1st free question to Mışıl Nanny...', '🎁 Stellen Sie Ihre 1. kostenlose Frage an Mışıl Nanny...');
+      const freePh = isMom
+        ? trEnDe("🎁 Mışıl Dadı'ya kendiniz için 1 ücretsiz mesajınızı yazın...", '🎁 Write your 1st free message for yourself...', '🎁 Schreiben Sie Ihre 1. kostenlose Nachricht für sich...')
+        : trEnDe("🎁 Mışıl Dadı'ya 1 ücretsiz sorunuzu yazın...", '🎁 Ask your 1st free question to Mışıl Nanny...', '🎁 Stellen Sie Ihre 1. kostenlose Frage an Mışıl Nanny...');
       input.setAttribute('placeholder', freePh);
     } else {
       const lockedPh = trEnDe('👑 Sınırsız 7/24 Mışıl Dadı için VIP başlatın (7 gün ücretsiz)...', '👑 Start 7-day free VIP for unlimited 24/7 Mışıl Nanny...', '👑 Starten Sie 7 Tage Gratis-VIP für unbegrenzte 24/7 Mışıl Nanny...');
@@ -7383,7 +7849,8 @@
           routine_rollup: typeof calculateRoutineRollup === 'function' ? calculateRoutineRollup() : null,
           message: userText,
           chat_history: dadiChatHistory.slice(-8),
-          lang: getAppLang()
+          lang: getAppLang(),
+          audience: activeDadiAudience
         })
       };
       if (abortCtrl) fetchOpts.signal = abortCtrl.signal;
@@ -7473,7 +7940,8 @@
   }
 
   function formatMarkdown(text) {
-    return text
+    const safe = escapeHtml(String(text || ''));
+    return safe
       .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
       .replace(/\n\n/g, '<br/><br/>')
       .replace(/\n/g, '<br/>');
@@ -7486,6 +7954,28 @@
       const routines = (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines)) ? activeRoutines : [];
       const rollup = (typeof calculateRoutineRollup === 'function') ? calculateRoutineRollup() : null;
       const curLang = getAppLang();
+
+      if (activeDadiAudience === 'mom') {
+        const crisisRe = /kendime zarar|bebeğe zarar|ölmek istiyorum|intihar|dayanamıyorum artık|yaşamak istemiyorum|hurt myself|harm myself|harm my baby|suicide|end my life|mir etwas antun|baby wehtun|suizid|nicht mehr leben/i;
+        let momReply = '';
+        if (crisisRe.test(q)) {
+          momReply = curLang === 'de'
+            ? '💛 **Liebe Mama, bitte bleiben Sie in diesem Moment nicht allein.** Was Sie gerade tragen, ist enorm schwer – Hilfe anzunehmen ist pure Stärke.\n\n• Bitte wenden Sie sich sofort an eine vertraute Person im Haus.\n• **Soforthilfe rund um die Uhr:** Notruf **112** oder **TelefonSeelsorge 0800 111 0 111** (kostenfrei & anonym).\n\nSie sind wertvoll und nicht allein. 🤍'
+            : (curLang === 'en'
+              ? '💛 **Dear mama, please do not carry this heavy moment alone.** Reaching out right now is an act of courage.\n\n• Please wake your partner or call someone you trust nearby.\n• **24/7 Immediate Support:** Call or text **988** (Lifeline), **1-833-TLC-MAMA**, or **112 / 911**.\n\nYou matter deeply, and support is right here for you. 🤍'
+              : '💛 **Sevgili anne, lütfen bu ağır anı tek başınıza taşımayın.** Şu an hissettiğiniz yük çok gerçek ve yardım istemek en büyük güçtür.\n\n• Lütfen hemen yanınızdaki eşinize veya güvendiğiniz bir yakınınıza seslenin, bebeği güvenli beşiğine bırakın.\n• **7/24 Ücretsiz Destek:** **112 Acil** veya **182 (MHRS Ruh Sağlığı Destek)** hattını hemen arayabilirsiniz.\n\nSiz çok değerlisiniz ve yalnız değilsiniz. 🤍');
+        } else if (curLang === 'de') {
+          momReply = `💛 **Atmen Sie erst einmal tief aus, liebe Mama.** Dass Sie erschöpft sind, bedeutet nicht, dass Sie versagen – es zeigt, wie viel Liebe und Kraft Sie Tag und Nacht geben.\n\n• Lassen Sie heute alles Nicht-Dringende liegen; ein Glas Wasser und 3 ruhige Atemzüge reichen völlig.\n• Wenn Ihr Kopf rast: Nutzen Sie in der **Mama-Pause** die 60-Sekunden-Atmung oder schreiben Sie Gedanken kurz in die Morgen-Notiz.\n\nSie machen das wunderbar. 🤍`;
+        } else if (curLang === 'en') {
+          momReply = `💛 **Take one slow exhale first, mama.** Feeling touched-out, guilty, or exhausted does not mean you are failing—it means you have been carrying so much with love.\n\n• Give yourself permission to leave every non-essential chore for tomorrow; sip some water and rest your shoulders.\n• If your mind won't slow down while the baby sleeps, try the **60s Silent Breathing** or **Partner Whisper** inside Mom Break.\n\nYou are doing more than enough tonight. 🤍`;
+        } else {
+          momReply = `💛 **Önce omuzlarınızı yavaşça gevşetin ve derin bir nefes verin, sevgili anne.** Yorulmanız, bunalmanız ya da "yeterince iyi miyim?" diye sormanız kötü bir anne olduğunuzu değil; ne kadar çok emek verdiğinizi gösterir.\n\n• Bu gece acil olmayan her işi yarına bırakma izniniz var; bir yudum su için ve sırtınızı yaslayın.\n• Zihniniz susmuyorsa Ana Ekrandaki **☕ Anne Molası** çekmecesinden 60 sn sessiz nefes açabilir veya eşinize tek tıkla **"Sıradaki uyanış sende"** fısıltısı gönderebilirsiniz.\n\nBebeğiniz için en güvenli liman zaten sizsiniz, bu gece kendinize de şefkat gösterin. 🤍`;
+        }
+        renderDadiReply(momReply);
+        dadiChatHistory.push({ role: 'assistant', content: momReply });
+        markFreeDadiQuestionUsedIfNeeded();
+        return;
+      }
 
       if (curLang === 'de') {
         let replyDe = `🌸 Liebe Mama, lieber Papa, Mışıl Nanny ist für ${babyName} (${calc.ageFormatted || ''}) da!\n\n`;
@@ -11325,16 +11815,120 @@
     return trEnDe('Dadı / Bakıcı 👵', 'Nanny / Caregiver 👵', 'Nanny / Betreuung 👵');
   }
 
+  function getOrCreateMishilDeviceUid() {
+    try {
+      let uid = localStorage.getItem('mishil_device_uid');
+      if (!uid || uid.length < 6) {
+        uid = 'msl_' + Math.random().toString(36).slice(2, 11) + '_' + Date.now().toString(36);
+        localStorage.setItem('mishil_device_uid', uid);
+      }
+      return uid;
+    } catch (_due) {
+      return 'msl_fallback_device';
+    }
+  }
+
+  function getFamilyMemberToken() {
+    try {
+      return localStorage.getItem('mishil_family_member_token') || '';
+    } catch (_fte) {
+      return '';
+    }
+  }
+
+  function getFamilyAuthHeaders() {
+    const hdrs = { 'Content-Type': 'application/json' };
+    const tok = getFamilyMemberToken();
+    if (tok) hdrs['X-Family-Member-Token'] = tok;
+    return hdrs;
+  }
+
+  function getDeletedRoutineIds() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem('mishil_deleted_routine_ids') || '[]');
+      return Array.isArray(parsed) ? parsed.slice(0, 100) : [];
+    } catch (_dre) {
+      return [];
+    }
+  }
+
+  function recordDeletedRoutineId(rid) {
+    if (!rid) return;
+    try {
+      const cur = getDeletedRoutineIds();
+      const sId = String(rid);
+      if (!cur.includes(sId)) {
+        cur.unshift(sId);
+        localStorage.setItem('mishil_deleted_routine_ids', JSON.stringify(cur.slice(0, 100)));
+      }
+    } catch (_rdre) {}
+  }
+
+  function getVerifiedSubscriberIdForFamily() {
+    try {
+      const m = window.__MISHIL_SUB_META__ || {};
+      const subId = m.subscriberId || m.originalTransactionId || m.originalAppUserId || '';
+      if (subId) return String(subId);
+      if (m.purchaseToken) return 'GPA_TOKEN_' + String(m.purchaseToken).slice(0, 24);
+    } catch (_vse) {}
+    return undefined;
+  }
+
+  function applyFamilyVipStateFromServer(fam) {
+    if (!fam || typeof fam !== 'object') return;
+    const hasOwnStoreVip = localStorage.getItem('mishil_rc_verified') === 'true'
+      || localStorage.getItem('mishil_reviewer_bypass') === '1';
+    const serverVip = !!(fam.subscription_active === true || fam.subscription_active === 1);
+
+    if (hasOwnStoreVip) {
+      if (serverVip) localStorage.setItem('mishil_family_vip_verified', '1');
+      return;
+    }
+
+    if (serverVip) {
+      localStorage.setItem('mishil_subscription_active', 'true');
+      localStorage.setItem('mishil_family_vip_verified', '1');
+      localStorage.setItem('mishil_family_source_plan', (fam.subscription_plan && fam.subscription_plan !== 'free') ? fam.subscription_plan : 'yearly');
+      // Build 70 Native Köprü Koruması: Davetli cihazda 'family_vip' yazılarak yerel RevenueCat ezmesi önlenir
+      localStorage.setItem('mishil_subscription_plan', 'family_vip');
+      localStorage.removeItem('mishil_limited_explore_mode');
+      if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+        try {
+          const bName = (fam.baby && fam.baby.name) || localStorage.getItem('mishil_baby_name') || '';
+          const bDate = (fam.baby && fam.baby.birth_date) || localStorage.getItem('mishil_baby_bdate') || '';
+          const uRole = localStorage.getItem('mishil_user_role') || 'father';
+          const uName = localStorage.getItem('mishil_user_name') || getDefaultParentRoleName(uRole);
+          window.ReactNativeWebView.postMessage(JSON.stringify({
+            type: 'SAVE_PROFILE',
+            payload: {
+              babyName: bName,
+              babyBdate: bDate,
+              subscriptionPlan: 'family_vip',
+              userRole: uRole,
+              userName: uName,
+              lang: getAppLang()
+            }
+          }));
+        } catch (_nfe) {}
+      }
+    } else if (localStorage.getItem('mishil_subscription_plan') === 'family_vip') {
+      localStorage.removeItem('mishil_family_vip_verified');
+      localStorage.removeItem('mishil_family_source_plan');
+      localStorage.setItem('mishil_subscription_active', 'false');
+      localStorage.setItem('mishil_subscription_plan', 'free');
+    }
+  }
+
   function getFamilyMembers() {
     try {
       const saved = localStorage.getItem('mishil_family_members');
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0 && !(parsed.length === 2 && parsed[0].name === 'Zeynep')) {
-          return parsed;
+          return parsed.slice(0, 3);
         }
       }
-    } catch(e) {}
+    } catch (e) {}
 
     const currentRole = localStorage.getItem('mishil_user_role') || 'mother';
     const defaultRoleName = getDefaultParentRoleName(currentRole);
@@ -11342,45 +11936,134 @@
     const currentName = (!savedName || isPlaceholderParentName(savedName)) ? defaultRoleName : savedName;
     const roleTitle = formatFamilyRoleLabel(currentRole);
 
-    return [{ name: currentName, role: roleTitle, isSelf: true }];
+    return [{ name: currentName, role: roleTitle, rawRole: currentRole, isSelf: true }];
   }
 
   function getOrGenerateFamilyCode() {
     let code = localStorage.getItem('mishil_family_code');
-    if (!code || code === 'MSL782') {
+    if (!code || code === 'MSL782' || code.length < 5) {
       const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
       let r = '';
-      for (let i = 0; i < 4; i++) r += chars.charAt(Math.floor(Math.random() * chars.length));
+      for (let i = 0; i < 6; i++) r += chars.charAt(Math.floor(Math.random() * chars.length));
       code = 'MB-' + r;
       localStorage.setItem('mishil_family_code', code);
     }
     const codeEl = document.getElementById('family-sync-code');
     if (codeEl) codeEl.textContent = code;
+    const qHubCodeEl = document.getElementById('quick-hub-family-code');
+    if (qHubCodeEl) qHubCodeEl.textContent = code;
     return code;
   }
 
+  function renderHomeFamilyPill() {
+    const pill = document.getElementById('home-family-pill');
+    const lbl = document.getElementById('home-family-pill-label');
+    const members = getFamilyMembers();
+    const count = Math.min(3, Math.max(1, members.length));
+    if (pill && lbl) {
+      if (count >= 2) {
+        pill.classList.add('connected');
+        lbl.textContent = trEnDe(`👨‍👩‍👧 Aile • ${count}/3`, `👨‍👩‍👧 Family • ${count}/3`, `👨‍👩‍👧 Familie • ${count}/3`);
+      } else {
+        pill.classList.remove('connected');
+        lbl.textContent = trEnDe('👩 + Eşini Bağla', '👩 + Add Partner', '👩 + Partner');
+      }
+    }
+    const whisperConnected = document.getElementById('mom-whisper-connected-box');
+    const whisperInviteCta = document.getElementById('mom-whisper-invite-cta');
+    if (whisperConnected && whisperInviteCta) {
+      if (count >= 2) {
+        whisperConnected.style.display = 'block';
+        whisperInviteCta.style.display = 'none';
+      } else {
+        whisperConnected.style.display = 'none';
+        whisperInviteCta.style.display = 'block';
+      }
+    }
+  }
+
+  function renderFamilyQuickHubContent() {
+    const currentCode = getOrGenerateFamilyCode();
+    const qHubCode = document.getElementById('quick-hub-family-code');
+    if (qHubCode) qHubCode.textContent = currentCode;
+    const members = getFamilyMembers();
+    const count = Math.min(3, Math.max(1, members.length));
+    const countEl = document.getElementById('quick-hub-member-count');
+    if (countEl) {
+      countEl.textContent = trEnDe(`${count} / 3 Üye`, `${count} / 3 Members`, `${count} / 3 Mitglieder`);
+    }
+    const listEl = document.getElementById('quick-hub-members-list');
+    if (listEl) {
+      const selfBadge = trEnDe('Siz', 'You', 'Sie');
+      const liveBadge = trEnDe('Canlı Bağlı', 'Live Synced', 'Live verbunden');
+      let rowsHtml = members.map(m => `
+        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.04); border: 1px solid var(--border-night); padding: 7px 10px; border-radius: 9px;">
+          <span><strong style="color: #FFF;">${escapeHtml(m.name)}</strong> <span style="color: var(--text-muted); font-size: 10.5px;">(${escapeHtml(formatFamilyRoleLabel(m.rawRole || m.role))})</span></span>
+          <span style="font-size: 9.5px; font-weight: 800; color: ${m.isSelf ? 'var(--accent)' : '#2ED573'};">${m.isSelf ? selfBadge : liveBadge}</span>
+        </div>
+      `).join('');
+      for (let slot = count + 1; slot <= 3; slot++) {
+        rowsHtml += `
+          <div onclick="shareFamilyInviteLink()" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.015); border: 1px dashed rgba(244,162,97,0.3); padding: 7px 10px; border-radius: 9px; cursor: pointer;">
+            <span style="color: var(--text-muted); font-size: 11px;">${trEnDe(`+ ${slot}. Aile Üyesi (Eş / Bakıcı)`, `+ Slot ${slot} (Partner / Caregiver)`, `+ Platz ${slot} (Partner / Betreuung)`)}</span>
+            <span style="font-size: 10px; font-weight: 700; color: var(--accent);">${trEnDe('Davet Et ›', 'Invite ›', 'Einladen ›')}</span>
+          </div>
+        `;
+      }
+      listEl.innerHTML = rowsHtml;
+    }
+  }
+
+  function openFamilyQuickHub() {
+    hapticPulse();
+    renderFamilyQuickHubContent();
+    const modal = document.getElementById('modal-family-quick-hub');
+    if (modal) modal.classList.add('active');
+    if (getFamilyMemberToken()) {
+      pullFamilySyncSnapshot({ silent: true });
+    } else {
+      const _b = typeof getBaby === 'function' ? getBaby() : null;
+      if (_b && _b.bdate) {
+        const uRole = localStorage.getItem('mishil_user_role') || 'mother';
+        const uName = localStorage.getItem('mishil_user_name') || getDefaultParentRoleName(uRole);
+        syncFamilyToCloud(getOrGenerateFamilyCode(), _b.name, _b.bdate, uRole, uName);
+      }
+    }
+  }
+  window.openFamilyQuickHub = openFamilyQuickHub;
+
+  function closeFamilyQuickHub() {
+    hapticPulse();
+    const modal = document.getElementById('modal-family-quick-hub');
+    if (modal) modal.classList.remove('active');
+  }
+  window.closeFamilyQuickHub = closeFamilyQuickHub;
+
   function renderFamilyMembers() {
     const container = document.getElementById('family-members-container');
-    if (!container) return;
     const members = getFamilyMembers();
     const currentCode = getOrGenerateFamilyCode();
+    renderHomeFamilyPill();
+    renderFamilyQuickHubContent();
+    if (!container) return;
+
     const selfBadge = trEnDe('(Siz)', '(You)', '(Sie)');
     const removeLbl = trEnDe('Sil', 'Remove', 'Entfernen');
-    const activeLbl = trEnDe('Aktif', 'Active', 'Aktiv');
+    const activeLbl = trEnDe('Canlı Bağlı', 'Live', 'Aktiv');
 
     container.innerHTML = members.map((m, idx) => `
       <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); padding: 6px 10px; border-radius: 8px;">
-        <span><strong style="color: #FFF;">${escapeHtml(m.name)}</strong> <span style="color: var(--text-muted); font-size: 10px;">(${escapeHtml(formatFamilyRoleLabel(m.role))})</span></span>
-        ${m.isSelf ? `<span style="font-size: 9px; color: var(--accent); font-weight: 700;">${selfBadge}</span>` : (idx > 0 ? `<button onclick="removeFamilyMember(${idx})" style="background: none; border: none; color: #FF4757; font-size: 11px; cursor: pointer;">${removeLbl}</button>` : `<span style="font-size: 9px; color: var(--success);">${activeLbl}</span>`)}
+        <span><strong style="color: #FFF;">${escapeHtml(m.name)}</strong> <span style="color: var(--text-muted); font-size: 10px;">(${escapeHtml(formatFamilyRoleLabel(m.rawRole || m.role))})</span></span>
+        ${m.isSelf ? `<span style="font-size: 9px; color: var(--accent); font-weight: 700;">${selfBadge}</span>` : (m.isLocalNote ? `<button onclick="removeFamilyMember(${idx})" style="background: none; border: none; color: #FF4757; font-size: 11px; cursor: pointer;">${removeLbl}</button>` : `<span style="font-size: 9px; color: var(--success); font-weight: 700;">${activeLbl}</span>`)}
       </div>
     `).join('');
 
     const sub = document.getElementById('acc-family-subtitle');
     if (sub) {
       sub.innerHTML = trEnDe(
-        `Bulut Kodu: <strong style="color: var(--accent);">${currentCode}</strong> • ${members.length} Üye Bağlı`,
-        `Cloud Code: <strong style="color: var(--accent);">${currentCode}</strong> • ${members.length} Member(s)`,
-        `Cloud-Code: <strong style="color: var(--accent);">${currentCode}</strong> • ${members.length} Mitglied(er)`
+        `Bulut Kodu: <strong style="color: var(--accent);">${escapeHtml(currentCode)}</strong> • ${members.length} / 3 Üye Bağlı`,
+        `Cloud Code: <strong style="color: var(--accent);">${escapeHtml(currentCode)}</strong> • ${members.length} / 3 Connected`,
+        `Cloud-Code: <strong style="color: var(--accent);">${escapeHtml(currentCode)}</strong> • ${members.length} / 3 Verbunden`
       );
     }
   }
@@ -11407,38 +12090,261 @@
     if (modal) modal.classList.remove('active');
   }
 
+  function mapServerRoutineToClientItem(sr) {
+    if (!sr || typeof sr !== 'object') return null;
+    const cid = String(sr.client_id || sr.id || ('srv_' + Date.now()));
+    const rType = sr.category || sr.type || 'sleep';
+    const evtTs = sr.timestamp_ms || (sr.logged_at ? new Date(sr.logged_at).getTime() : Date.now());
+    const evtDate = new Date(evtTs);
+    const hhmm = sr.time || `${String(evtDate.getHours()).padStart(2, '0')}:${String(evtDate.getMinutes()).padStart(2, '0')}`;
+    if (rType === 'sleep') {
+      const dur = Math.max(1, Number(sr.duration_minutes || sr.durationMins || 45));
+      const endTs = sr.end_ts || evtTs;
+      const startTs = sr.start_ts || (endTs - dur * 60000);
+      const sDt = new Date(startTs);
+      const eDt = new Date(endTs);
+      const sStr = sr.start || `${String(sDt.getHours()).padStart(2, '0')}:${String(sDt.getMinutes()).padStart(2, '0')}`;
+      const eStr = sr.end || `${String(eDt.getHours()).padStart(2, '0')}:${String(eDt.getMinutes()).padStart(2, '0')}`;
+      const isNight = sDt.getHours() >= 20 || sDt.getHours() < 7;
+      return {
+        id: cid,
+        type: 'sleep',
+        icon: '🌙',
+        sleepKind: isNight ? 'night' : 'nap',
+        title: sr.title || (isNight ? 'Gece Uykusu' : '1. Gündüz Uykusu (Nap 1)'),
+        detail: sr.detail || `${dur} dk uyku (${sStr} - ${eStr})`,
+        time: eStr,
+        start: sStr,
+        end: eStr,
+        timestamp: endTs,
+        startTs: startTs,
+        endTs: endTs,
+        durationMins: dur,
+        quality: sr.quality || (dur >= 45 ? 'deep' : 'short'),
+        actorName: sr.actor_name || ''
+      };
+    }
+    const iconMap = { feeding: '🍼', diaper: '🚼', custom: '✨' };
+    return {
+      id: cid,
+      type: rType,
+      icon: sr.icon || iconMap[rType] || '✨',
+      title: sr.title || (rType === 'feeding' ? 'Beslenme' : (rType === 'diaper' ? 'Bez Değişimi' : 'Özel Rutin')),
+      method: sr.sub_type || sr.method || undefined,
+      kind: sr.sub_type || sr.kind || undefined,
+      amountMl: sr.amount_ml || sr.amountMl || null,
+      durationMin: sr.duration_minutes || sr.durationMin || null,
+      note: sr.notes || sr.note || '',
+      detail: sr.detail || sr.notes || '',
+      time: hhmm,
+      timestamp: evtTs,
+      durationMins: 0,
+      actorName: sr.actor_name || ''
+    };
+  }
+
+  function hydrateClientStateFromFamilySnapshot(fam, opts) {
+    if (!fam || typeof fam !== 'object') return;
+    const options = opts || {};
+    const myUid = getOrCreateMishilDeviceUid();
+
+    if (fam.invite_code && fam.invite_code !== 'MSL782') {
+      localStorage.setItem('mishil_family_code', fam.invite_code);
+    }
+    if (fam.baby && fam.baby.name) {
+      localStorage.setItem('mishil_baby_name', fam.baby.name);
+    }
+    if (fam.baby && fam.baby.birth_date) {
+      localStorage.setItem('mishil_baby_bdate', String(fam.baby.birth_date).slice(0, 10));
+    }
+
+    applyFamilyVipStateFromServer(fam);
+
+    if (Array.isArray(fam.members) && fam.members.length > 0) {
+      const mySavedName = localStorage.getItem('mishil_user_name') || '';
+      const mapped = fam.members.slice(0, 3).map(m => ({
+        name: m.name,
+        rawRole: m.role || 'mother',
+        role: formatFamilyRoleLabel(m.role),
+        isSelf: !!(m.is_self || (m.device_uid && m.device_uid === myUid) || (mySavedName && m.name === mySavedName))
+      }));
+      if (!mapped.some(x => x.isSelf) && mapped[0]) {
+        mapped[mapped.length - 1].isSelf = true;
+      }
+      localStorage.setItem('mishil_family_members', JSON.stringify(mapped));
+    }
+
+    if (fam.checked_vaccines && typeof fam.checked_vaccines === 'object') {
+      const mergedVac = Object.assign({}, getCompletedVaccines(), fam.checked_vaccines);
+      localStorage.setItem('mishil_completed_vaccines', JSON.stringify(mergedVac));
+    }
+
+    if (fam.checked_leaps && typeof fam.checked_leaps === 'object') {
+      let localLeaps = {};
+      try { localLeaps = JSON.parse(localStorage.getItem('mishil_checked_leaps') || '{}') || {}; } catch (_lle) {}
+      localStorage.setItem('mishil_checked_leaps', JSON.stringify(Object.assign({}, localLeaps, fam.checked_leaps)));
+    }
+
+    if (Object.prototype.hasOwnProperty.call(fam, 'manual_leap')) {
+      if (fam.manual_leap) localStorage.setItem('mishil_manual_leap', String(fam.manual_leap));
+      else if (options.fromPull) localStorage.removeItem('mishil_manual_leap');
+    }
+
+    if (Array.isArray(fam.routines)) {
+      const deletedSet = new Set(getDeletedRoutineIds());
+      const byId = new Map();
+      (Array.isArray(activeRoutines) ? activeRoutines : []).forEach(loc => {
+        if (loc && loc.id && !deletedSet.has(String(loc.id))) byId.set(String(loc.id), loc);
+      });
+      fam.routines.forEach(sr => {
+        const mappedItem = mapServerRoutineToClientItem(sr);
+        if (!mappedItem || deletedSet.has(String(mappedItem.id))) return;
+        byId.set(String(mappedItem.id), mappedItem);
+      });
+      activeRoutines = Array.from(byId.values());
+      if (typeof sortActiveRoutines === 'function') sortActiveRoutines();
+      else if (typeof recomputeDailyNapIndices === 'function') recomputeDailyNapIndices(activeRoutines);
+      localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+    }
+
+    if (fam.active_sleep_start_iso) {
+      const rStart = new Date(fam.active_sleep_start_iso);
+      if (!isNaN(rStart.getTime()) && (Date.now() - rStart.getTime()) < 16 * 3600000) {
+        if (!isSleeping) {
+          localStorage.setItem('mishil_live_sleep_start', rStart.toISOString());
+          if (typeof checkAndRestoreLiveSleep === 'function') checkAndRestoreLiveSleep();
+        }
+      }
+    } else if (options.authoritativeSleepStop && isSleeping && sleepStartTime && (Date.now() - sleepStartTime.getTime()) > 5000) {
+      if (sleepInterval) clearInterval(sleepInterval);
+      isSleeping = false;
+      localStorage.removeItem('mishil_live_sleep_start');
+      updateFabSleepState(false);
+      const organicHero = document.getElementById('home-organic-hero');
+      if (organicHero) organicHero.classList.remove('sleeping-hero');
+      const liveTimer = document.getElementById('live-sleep-timer');
+      if (liveTimer) liveTimer.style.display = 'none';
+      if (typeof updateLiveSleepStartUI === 'function') updateLiveSleepStartUI();
+      syncLiveSleepToNative('STOP');
+      syncMomBreakDrawerVisibility();
+    }
+
+    if (Array.isArray(fam.pending_whispers)) {
+      renderIncomingFamilyWhisperBanner(fam.pending_whispers);
+    }
+
+    renderFamilyMembers();
+    if (typeof updateSubscriptionStatusUI === 'function') updateSubscriptionStatusUI();
+  }
+
   async function syncFamilyToCloud(code, babyName, birthDate, creatorRole, creatorName) {
     try {
       const url = `${getApiBaseUrl()}/family/create`;
+      const devUid = getOrCreateMishilDeviceUid();
+      const _b = typeof getBaby === 'function' ? getBaby() : null;
+      const effBabyName = babyName || (_b && _b.name) || localStorage.getItem('mishil_baby_name') || getDefaultBabyName();
+      const effBirthDate = (birthDate || (_b && _b.bdate) || localStorage.getItem('mishil_baby_bdate') || '2026-04-11').slice(0, 10);
+      const effRole = creatorRole || localStorage.getItem('mishil_user_role') || 'mother';
+      const effName = creatorName || localStorage.getItem('mishil_user_name') || getDefaultParentRoleName(effRole);
       const isVipNow = typeof isPaidOrVerifiedVip === 'function' ? isPaidOrVerifiedVip() : (localStorage.getItem('mishil_subscription_active') === 'true');
       const rawPlan = localStorage.getItem('mishil_subscription_plan');
-      const planNow = isVipNow ? ((rawPlan && rawPlan !== 'free') ? rawPlan : (localStorage.getItem('mishil_selected_plan') || 'yearly')) : 'free';
+      const planNow = isVipNow ? ((rawPlan && rawPlan !== 'free' && rawPlan !== 'family_vip') ? rawPlan : (localStorage.getItem('mishil_selected_plan') || 'yearly')) : 'free';
+      let checkedLeaps = {};
+      try { checkedLeaps = JSON.parse(localStorage.getItem('mishil_checked_leaps') || '{}') || {}; } catch (_cle) {}
+
       const res = await fetchWithTimeout(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getFamilyAuthHeaders(),
         body: JSON.stringify({
           invite_code: code || localStorage.getItem('mishil_family_code') || undefined,
-          family_name: `${babyName}'in Ailesi`,
-          creator_role: creatorRole,
-          creator_name: creatorName,
-          baby_name: babyName,
-          birth_date: birthDate,
+          family_name: `${effBabyName}'in Ailesi`,
+          creator_role: effRole,
+          creator_name: effName,
+          device_uid: devUid,
+          baby_name: effBabyName,
+          birth_date: effBirthDate,
           subscription_active: isVipNow,
-          subscription_plan: planNow
+          subscription_plan: planNow,
+          subscriber_id: getVerifiedSubscriberIdForFamily(),
+          checked_vaccines: getCompletedVaccines(),
+          checked_leaps: checkedLeaps,
+          manual_leap: localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap'), 10) : null,
+          active_sleep_start_iso: localStorage.getItem('mishil_live_sleep_start') || null
         }),
-        timeout: 4000
+        timeout: 5000
       });
       if (res && res.ok) {
         const data = await res.json();
         if (data && data.invite_code) {
           localStorage.setItem('mishil_family_code', data.invite_code);
-          const codeEl = document.getElementById('family-sync-code');
-          if (codeEl) codeEl.textContent = data.invite_code;
+        }
+        if (data && data.member_token) {
+          localStorage.setItem('mishil_family_member_token', data.member_token);
+        }
+        if (data && data.realtime_token) {
+          const prevRt = localStorage.getItem('mishil_realtime_token');
+          localStorage.setItem('mishil_realtime_token', data.realtime_token);
+          if (prevRt !== data.realtime_token && typeof reconnectRealtimeWebSocket === 'function') {
+            reconnectRealtimeWebSocket();
+          }
+        }
+        if (data && data.family) {
+          hydrateClientStateFromFamilySnapshot(data.family, { fromCreate: true });
+        } else {
+          renderFamilyMembers();
+        }
+        if (Array.isArray(activeRoutines) && activeRoutines.length > 0) {
+          pushFamilySyncDebounced({ immediate: true });
         }
       }
     } catch (e) {
       console.warn('Aile bulut kaydı hatası (offline modda yerel devam ediyor):', e);
     }
+  }
+
+  async function executeFamilyJoinRequest(code, role, name) {
+    const cleanCode = String(code || '').trim().toUpperCase();
+    const devUid = getOrCreateMishilDeviceUid();
+    const url = `${getApiBaseUrl()}/family/join`;
+    const res = await fetchWithTimeout(url, {
+      method: 'POST',
+      headers: getFamilyAuthHeaders(),
+      body: JSON.stringify({
+        invite_code: cleanCode,
+        role: role,
+        name: name,
+        device_uid: devUid
+      }),
+      timeout: 6500
+    });
+
+    if (res && res.status === 409) {
+      showToast(trEnDe(
+        '⚠️ Bu aile grubu 3 üye sınırına ulaşmış (Anne, Baba ve Bakıcı).',
+        '⚠️ This family group has reached the 3-member limit (Mom, Dad & Caregiver).',
+        '⚠️ Diese Familiengruppe hat das Limit von 3 Mitgliedern erreicht.'
+      ));
+      return { handledError: true };
+    }
+    if (res && res.status === 429) {
+      showToast(trEnDe(
+        '⏳ Çok fazla deneme yapıldı. Lütfen 1 dakika bekleyip tekrar deneyin.',
+        '⏳ Too many attempts. Please wait a minute and try again.',
+        '⏳ Zu viele Versuche. Bitte warten Sie eine Minute.'
+      ));
+      return { handledError: true };
+    }
+    if (res && res.ok) {
+      const data = await res.json();
+      if (data && data.member_token) {
+        localStorage.setItem('mishil_family_member_token', data.member_token);
+      }
+      if (data && data.realtime_token) {
+        localStorage.setItem('mishil_realtime_token', data.realtime_token);
+      }
+      return { ok: true, data: data };
+    }
+    return { ok: false };
   }
 
   async function submitJoinFamily() {
@@ -11455,7 +12361,6 @@
     }
     const code = codeInput.value.trim().toUpperCase();
     const name = (nameInput && nameInput.value.trim()) ? nameInput.value.trim() : getDefaultParentRoleName(selectedJoinRole);
-    const roleText = formatFamilyRoleLabel(selectedJoinRole);
 
     const btn = document.getElementById('btn-submit-join-family');
     if (btn) {
@@ -11464,70 +12369,50 @@
     }
 
     try {
-      const url = `${getApiBaseUrl()}/family/join`;
-      const res = await fetchWithTimeout(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          invite_code: code,
-          role: selectedJoinRole,
-          name: name
-        }),
-        timeout: 6000
-      });
+      const result = await executeFamilyJoinRequest(code, selectedJoinRole, name);
+      if (result.handledError) return;
+      if (result.ok && result.data && result.data.family) {
+        const fam = result.data.family;
+        localStorage.setItem('mishil_user_role', selectedJoinRole);
+        localStorage.setItem('mishil_user_name', name);
+        localStorage.setItem('mishil_onboarding_completed', 'true');
+        localStorage.setItem('mishil_device_onboarded_once', '1');
 
-      if (res && res.ok) {
-        const data = await res.json();
-        const fam = data.family;
-        if (fam && fam.baby) {
-          // Bebeğin ve ailenin verilerini cihaza çek ve kaydet
-          localStorage.setItem('mishil_baby_name', fam.baby.name);
-          localStorage.setItem('mishil_baby_bdate', fam.baby.birth_date);
-          localStorage.setItem('mishil_user_role', selectedJoinRole);
-          localStorage.setItem('mishil_user_name', name);
-          localStorage.setItem('mishil_family_code', fam.invite_code || code);
-          const famIsVip = !!(fam.subscription_active === true || fam.subscription_active === 1 || (fam.subscription_plan && fam.subscription_plan !== 'free' && fam.subscription_plan !== 'none'));
-          if (famIsVip) {
-            localStorage.setItem('mishil_subscription_active', 'true'); // Yalnızca davet eden aile aktif VIP ise aktar
-            localStorage.setItem('mishil_family_vip_verified', '1');
-            localStorage.removeItem('mishil_limited_explore_mode');
-            localStorage.setItem('mishil_subscription_plan', fam.subscription_plan || 'family_vip');
-          } else {
-            localStorage.removeItem('mishil_family_vip_verified');
-            if (localStorage.getItem('mishil_subscription_plan') === 'family_vip') {
-              localStorage.removeItem('mishil_subscription_active');
-              localStorage.removeItem('mishil_subscription_plan');
-            }
-          }
-          localStorage.setItem('mishil_onboarding_completed', 'true');
+        hydrateClientStateFromFamilySnapshot(fam, { fromJoin: true, authoritativeSleepStop: true });
 
-          if (Array.isArray(fam.members)) {
-            const mappedMembers = fam.members.map(m => ({
-              name: m.name,
-              role: formatFamilyRoleLabel(m.role),
-              isSelf: m.name === name
+        if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+          try {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              type: 'ONBOARDING_COMPLETED',
+              payload: {
+                babyName: (fam.baby && fam.baby.name) || localStorage.getItem('mishil_baby_name') || '',
+                babyBdate: (fam.baby && fam.baby.birth_date) || localStorage.getItem('mishil_baby_bdate') || '',
+                subscriptionPlan: localStorage.getItem('mishil_subscription_plan') || 'free',
+                userRole: selectedJoinRole,
+                userName: name,
+                lang: getAppLang()
+              }
             }));
-            localStorage.setItem('mishil_family_members', JSON.stringify(mappedMembers));
-          }
-
-          closeJoinFamilyModal();
-          const scr = document.getElementById('screen-onboarding');
-          if (scr) scr.classList.remove('active');
-
-          loadBabyProfile();
-          renderFamilyMembers();
-          if (Array.isArray(activeRoutines) && typeof recomputeDailyNapIndices === 'function') {
-      recomputeDailyNapIndices(activeRoutines);
-    }
-    renderAllViews();
-          showToast(trEnDe(
-            `🎉 ${fam.baby.name}'in ailesine başarıyla bağlandınız!`,
-            `🎉 Connected to ${fam.baby.name}'s family!`,
-            `🎉 Mit der Familie von ${fam.baby.name} verbunden!`
-          ));
-          if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
-          return;
+          } catch (_joce) {}
         }
+
+        if (typeof reconnectRealtimeWebSocket === 'function') reconnectRealtimeWebSocket();
+
+        closeJoinFamilyModal();
+        const scr = document.getElementById('screen-onboarding');
+        if (scr) scr.classList.remove('active');
+
+        loadBabyProfile();
+        renderFamilyMembers();
+        renderAllViews();
+        const joinedBabyName = (fam.baby && fam.baby.name) ? fam.baby.name : getDefaultBabyName();
+        showToast(trEnDe(
+          `🎉 ${joinedBabyName}'in ailesine başarıyla bağlandınız! (${(fam.members || []).length}/3 Üye)`,
+          `🎉 Connected to ${joinedBabyName}'s family! (${(fam.members || []).length}/3 Members)`,
+          `🎉 Mit der Familie von ${joinedBabyName} verbunden! (${(fam.members || []).length}/3 Mitglieder)`
+        ));
+        if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
+        return;
       }
       showToast(trEnDe(
         '⚠️ Aile kodu bulunamadı. Lütfen eşinizin ekranındaki kodu kontrol ediniz.',
@@ -11568,61 +12453,23 @@
     const currentName = localStorage.getItem('mishil_user_name') || getDefaultParentRoleName(currentRole);
 
     try {
-      const url = `${getApiBaseUrl()}/family/join`;
-      const res = await fetchWithTimeout(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          invite_code: code,
-          role: currentRole,
-          name: currentName
-        }),
-        timeout: 5000
-      });
-
-      if (res && res.ok) {
-        const data = await res.json();
-        const fam = data.family;
-        if (fam && fam.baby) {
-          localStorage.setItem('mishil_baby_name', fam.baby.name);
-          localStorage.setItem('mishil_baby_bdate', fam.baby.birth_date);
-          localStorage.setItem('mishil_family_code', fam.invite_code || code);
-          const famIsVipSettings = !!(fam.subscription_active === true || fam.subscription_active === 1 || (fam.subscription_plan && fam.subscription_plan !== 'free' && fam.subscription_plan !== 'none'));
-          if (famIsVipSettings) {
-            localStorage.setItem('mishil_subscription_active', 'true');
-            localStorage.setItem('mishil_family_vip_verified', '1');
-            localStorage.removeItem('mishil_limited_explore_mode');
-            localStorage.setItem('mishil_subscription_plan', fam.subscription_plan || 'family_vip');
-          } else {
-            localStorage.removeItem('mishil_family_vip_verified');
-            if (localStorage.getItem('mishil_subscription_plan') === 'family_vip') {
-              localStorage.removeItem('mishil_subscription_active');
-              localStorage.removeItem('mishil_subscription_plan');
-            }
-          }
-
-          if (Array.isArray(fam.members)) {
-            const mappedMembers = fam.members.map(m => ({
-              name: m.name,
-              role: formatFamilyRoleLabel(m.role),
-              isSelf: m.name === currentName
-            }));
-            localStorage.setItem('mishil_family_members', JSON.stringify(mappedMembers));
-          }
-          input.value = '';
-          loadBabyProfile();
-          renderFamilyMembers();
-          if (Array.isArray(activeRoutines) && typeof recomputeDailyNapIndices === 'function') {
-      recomputeDailyNapIndices(activeRoutines);
-    }
-    renderAllViews();
-          showToast(trEnDe(
-            `✅ ${fam.baby.name}'in ailesine başarıyla bağlandınız!`,
-            `✅ Connected to ${fam.baby.name}'s family!`,
-            `✅ Mit der Familie von ${fam.baby.name} verbunden!`
-          ));
-          return;
-        }
+      const result = await executeFamilyJoinRequest(code, currentRole, currentName);
+      if (result.handledError) return;
+      if (result.ok && result.data && result.data.family) {
+        const fam = result.data.family;
+        hydrateClientStateFromFamilySnapshot(fam, { fromJoin: true, authoritativeSleepStop: true });
+        if (typeof reconnectRealtimeWebSocket === 'function') reconnectRealtimeWebSocket();
+        input.value = '';
+        loadBabyProfile();
+        renderFamilyMembers();
+        renderAllViews();
+        const joinedBabyName = (fam.baby && fam.baby.name) ? fam.baby.name : getDefaultBabyName();
+        showToast(trEnDe(
+          `✅ ${joinedBabyName}'in ailesine bağlandınız! (${(fam.members || []).length}/3 Üye)`,
+          `✅ Connected to ${joinedBabyName}'s family! (${(fam.members || []).length}/3 Members)`,
+          `✅ Mit der Familie von ${joinedBabyName} verbunden! (${(fam.members || []).length}/3 Mitglieder)`
+        ));
+        return;
       }
       showToast(trEnDe(
         '⚠️ Aile kodu bulunamadı. Lütfen kodu kontrol ediniz.',
@@ -11638,6 +12485,138 @@
     }
   }
 
+  let familySyncDebounceTimer = null;
+  function pushFamilySyncDebounced(opts) {
+    const options = opts || {};
+    if (familySyncDebounceTimer) clearTimeout(familySyncDebounceTimer);
+    const delay = options.immediate ? 50 : 650;
+    familySyncDebounceTimer = setTimeout(async () => {
+      familySyncDebounceTimer = null;
+      const fCode = localStorage.getItem('mishil_family_code');
+      if (!fCode || fCode === 'MSL782') return;
+      const memberTok = getFamilyMemberToken();
+      if (!memberTok) {
+        const _b = typeof getBaby === 'function' ? getBaby() : null;
+        if (_b && _b.bdate && localStorage.getItem('mishil_onboarding_completed') === 'true') {
+          const uRole = localStorage.getItem('mishil_user_role') || 'mother';
+          const uName = localStorage.getItem('mishil_user_name') || getDefaultParentRoleName(uRole);
+          await syncFamilyToCloud(fCode, _b.name, _b.bdate, uRole, uName);
+        }
+        return;
+      }
+      try {
+        const _b = typeof getBaby === 'function' ? getBaby() : null;
+        let checkedLeaps = {};
+        try { checkedLeaps = JSON.parse(localStorage.getItem('mishil_checked_leaps') || '{}') || {}; } catch (_lpe) {}
+        const uRole = localStorage.getItem('mishil_user_role') || 'mother';
+        const uName = localStorage.getItem('mishil_user_name') || getDefaultParentRoleName(uRole);
+        const serializedRoutines = (Array.isArray(activeRoutines) ? activeRoutines : []).slice(0, 80).map(r => ({
+          client_id: String(r.id || ('rt_' + Date.now())),
+          category: r.type || 'sleep',
+          sub_type: r.method || r.kind || r.sleepKind || null,
+          amount_ml: r.amountMl || null,
+          duration_minutes: r.type === 'sleep' ? (r.durationMins || 0) : (r.durationMin || null),
+          title: r.title || '',
+          detail: r.detail || '',
+          notes: r.note || r.customNote || '',
+          quality: r.quality || null,
+          time: r.time || '',
+          start: r.start || null,
+          end: r.end || null,
+          timestamp_ms: r.endTs || r.timestamp || Date.now(),
+          start_ts: r.startTs || null,
+          end_ts: r.endTs || null,
+          logged_at: new Date(r.endTs || r.timestamp || Date.now()).toISOString(),
+          actor_name: r.actorName || uName,
+          actor_role: uRole
+        }));
+
+        const res = await fetchWithTimeout(`${getApiBaseUrl()}/family/sync`, {
+          method: 'POST',
+          headers: getFamilyAuthHeaders(),
+          body: JSON.stringify({
+            invite_code: fCode,
+            device_uid: getOrCreateMishilDeviceUid(),
+            baby_name: _b ? _b.name : undefined,
+            birth_date: (_b && _b.bdate) ? _b.bdate.slice(0, 10) : undefined,
+            routines: serializedRoutines,
+            deleted_routine_ids: getDeletedRoutineIds(),
+            checked_vaccines: getCompletedVaccines(),
+            checked_leaps: checkedLeaps,
+            manual_leap: localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap'), 10) : null,
+            active_sleep_start_iso: isSleeping && sleepStartTime ? sleepStartTime.toISOString() : null,
+            active_sleep_actor: uName,
+            subscriber_id: getVerifiedSubscriberIdForFamily()
+          }),
+          timeout: 6000
+        });
+        if (res && res.ok) {
+          const data = await res.json();
+          if (data && data.family) {
+            hydrateClientStateFromFamilySnapshot(data.family, { fromPush: true });
+          }
+        }
+      } catch (_pse) {}
+    }, delay);
+  }
+  window.pushFamilySyncDebounced = pushFamilySyncDebounced;
+
+  let isPullingFamilySync = false;
+  async function pullFamilySyncSnapshot(opts) {
+    if (isPullingFamilySync) return;
+    const fCode = localStorage.getItem('mishil_family_code');
+    const tok = getFamilyMemberToken();
+    if (!fCode || fCode === 'MSL782' || !tok) return;
+    isPullingFamilySync = true;
+    try {
+      const devUid = encodeURIComponent(getOrCreateMishilDeviceUid());
+      const res = await fetchWithTimeout(`${getApiBaseUrl()}/family/sync/${encodeURIComponent(fCode)}?device_uid=${devUid}`, {
+        method: 'GET',
+        headers: getFamilyAuthHeaders(),
+        timeout: 5500
+      });
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data && data.realtime_token) {
+          const prevRt = localStorage.getItem('mishil_realtime_token');
+          localStorage.setItem('mishil_realtime_token', data.realtime_token);
+          if (prevRt !== data.realtime_token && typeof reconnectRealtimeWebSocket === 'function') {
+            reconnectRealtimeWebSocket();
+          }
+        }
+        if (data && data.family) {
+          hydrateClientStateFromFamilySnapshot(data.family, { fromPull: true, authoritativeSleepStop: true });
+          renderHomeTodayTimeline();
+          renderHomeScreenScore();
+          renderAnalyticsView();
+        }
+      }
+    } catch (_ple) {
+    } finally {
+      isPullingFamilySync = false;
+    }
+  }
+  window.pullFamilySyncSnapshot = pullFamilySyncSnapshot;
+
+  function handleInboundFamilyInviteUrl() {
+    try {
+      const params = new URLSearchParams(window.location.search || '');
+      const rawCode = (params.get('code') || '').trim().toUpperCase();
+      if (!rawCode || rawCode === 'MSL782' || !/^[A-Z0-9-]{4,12}$/.test(rawCode)) return;
+      try {
+        const cleanUrl = window.location.pathname + (params.get('lang') ? `?lang=${encodeURIComponent(params.get('lang'))}` : '') + (window.location.hash || '');
+        window.history.replaceState({}, document.title, cleanUrl);
+      } catch (_hre) {}
+      const currentCode = localStorage.getItem('mishil_family_code');
+      if (currentCode === rawCode && getFamilyMemberToken()) return;
+      const inp = document.getElementById('join-family-code');
+      if (inp) inp.value = rawCode;
+      setTimeout(() => {
+        openJoinFamilyModal();
+      }, 280);
+    } catch (_iue) {}
+  }
+
   function addNewFamilyMember() {
     hapticPulse();
     const input = document.getElementById('new-family-member-name');
@@ -11649,22 +12628,31 @@
       ));
       return;
     }
-    const name = input.value.trim();
     const members = getFamilyMembers();
-    members.push({ name, role: formatFamilyRoleLabel('nanny') });
+    if (members.length >= 3) {
+      showToast(trEnDe(
+        '⚠️ Bir aile grubuna en fazla 3 üye (Anne, Baba, Bakıcı) eklenebilir.',
+        '⚠️ Up to 3 family members (Mom, Dad, Caregiver) can be added.',
+        '⚠️ Maximal 3 Familienmitglieder (Mama, Papa, Betreuung) möglich.'
+      ));
+      return;
+    }
+    const name = input.value.trim();
+    members.push({ name, rawRole: 'nanny', role: formatFamilyRoleLabel('nanny'), isLocalNote: true });
     localStorage.setItem('mishil_family_members', JSON.stringify(members));
     input.value = '';
     renderFamilyMembers();
     showToast(trEnDe(
-      `✅ ${name} aile listesine eklendi.`,
-      `✅ ${name} added to family list.`,
-      `✅ ${name} zur Familienliste hinzugefügt.`
+      `✅ ${name} eklendi (${members.length}/3). Kendi telefonundan bağlanması için Aile Kodunuzu paylaşın.`,
+      `✅ ${name} added (${members.length}/3). Share your Family Code so they can sync live.`,
+      `✅ ${name} hinzugefügt (${members.length}/3). Teilen Sie Ihren Familiencode für Live-Sync.`
     ));
   }
 
   function removeFamilyMember(idx) {
     hapticPulse();
     const members = getFamilyMembers();
+    if (!members[idx] || members[idx].isSelf) return;
     members.splice(idx, 1);
     localStorage.setItem('mishil_family_members', JSON.stringify(members));
     renderFamilyMembers();
@@ -11675,19 +12663,30 @@
     hapticPulse();
     const baby = getBaby() || { name: getDefaultBabyName() };
     const code = getOrGenerateFamilyCode();
-    const inviteUrl = `https://mishil-production.up.railway.app/app?code=${code}&baby=${encodeURIComponent(baby.name)}`;
+    const uRole = localStorage.getItem('mishil_user_role') || 'mother';
+    const uName = localStorage.getItem('mishil_user_name') || getDefaultParentRoleName(uRole);
+    if (baby.bdate) {
+      syncFamilyToCloud(code, baby.name, baby.bdate, uRole, uName);
+    }
+    const inviteUrl = `https://mishil-production.up.railway.app/invite/${encodeURIComponent(code)}?baby=${encodeURIComponent(baby.name)}`;
+    const shareTitle = trEnDe(
+      `Mışıl Baby — ${baby.name} İçin Ortak Aile Takibi Daveti`,
+      `Mışıl Baby — Shared Family Tracking Invite for ${baby.name}`,
+      `Mışıl Baby — Gemeinsame Familien-Einladung für ${baby.name}`
+    );
+    const shareText = trEnDe(
+      `Mışıl Baby'de ${baby.name}'in uyku, beslenme ve aşı takibini kendi telefonlarımızdan canlı yapalım (Maks. 3 Üye)! Aile Kodumuz: ${code}`,
+      `Let's track ${baby.name}'s sleep, feeding & vaccines live together on Mışıl Baby (Up to 3 members)! Family Code: ${code}`,
+      `Lass uns Schlaf, Stillen & Impfungen von ${baby.name} gemeinsam live in Mışıl Baby verfolgen (bis zu 3 Personen)! Familiencode: ${code}`
+    );
+    if (window.ReactNativeWebView && !navigator.share) {
+      copyFamilyInviteLink(`${shareText}\n${inviteUrl}`);
+      return;
+    }
     if (navigator.share) {
       navigator.share({
-        title: trEnDe(
-          `Mışıl Baby — ${baby.name} İçin Aile & Dadı Daveti`,
-          `Mışıl Baby — Family & Nanny Invite for ${baby.name}`,
-          `Mışıl Baby — Familien- & Nanny-Einladung für ${baby.name}`
-        ),
-        text: trEnDe(
-          `Mışıl Baby'de ${baby.name}'in uyku, beslenme ve aşı takibini birlikte yapalım! Aile Paylaşım Kodu: ${code}`,
-          `Let's track ${baby.name}'s sleep, feeding, and vaccines together on Mışıl Baby! Family Invite Code: ${code}`,
-          `Lasst uns Schlaf, Ernährung und Impfungen von ${baby.name} gemeinsam in Mışıl Baby verfolgen! Familiencode: ${code}`
-        ),
+        title: shareTitle,
+        text: shareText,
         url: inviteUrl
       }).catch(() => copyFamilyInviteLink(inviteUrl));
     } else {
@@ -11699,15 +12698,500 @@
     if (navigator.clipboard) {
       navigator.clipboard.writeText(url).then(() => {
         showToast(trEnDe(
-          '📋 Davet bağlantısı panoya kopyalandı!',
-          '📋 Invite link copied to clipboard!',
-          '📋 Einladungslink in die Zwischenablage kopiert!'
+          '📋 Aile davet bağlantısı kopyalandı! WhatsApp\'tan eşinize gönderebilirsiniz.',
+          '📋 Family invite link copied! Send it to your partner via WhatsApp.',
+          '📋 Einladungslink kopiert! Jetzt per WhatsApp an Ihren Partner senden.'
         ));
       }).catch(() => showToast(`📋 Link: ${url}`));
     } else {
       showToast(`📋 Link: ${url}`);
     }
   }
+
+  // =========================================================================
+  // ☕ ANNE MOLASI (MOM BREAK WHILE BABY SLEEPS) & SESSİZ FISILTI MOTORU
+  // =========================================================================
+  const MOM_ADULT_ESCAPE_CARDS = [
+    {
+      catTr: '🌌 Gece Gökyüzü', catEn: '🌌 Night Sky', catDe: '🌌 Nachthimmel',
+      titleTr: 'Yıldız Işığının Zaman Yolculuğu', titleEn: 'Time-Traveling Starlight', titleDe: 'Zeitreise des Sternenlichts',
+      bodyTr: 'Bu gece pencereden görünen pek çok yıldızın ışığı dünyaya ulaşmak için yüzlerce yıl yol aldı; şu an baktığınız parıltı aslında Rönesans döneminden kalma bir mektup gibi.',
+      bodyEn: 'Light from many stars visible tonight traveled hundreds of years to reach your window—gazing up is like reading a quiet postcard sent during the Renaissance.',
+      bodyDe: 'Das Licht vieler Sterne vor Ihrem Fenster war Hunderte Jahre unterwegs – ein leiser Gruß aus vergangenen Jahrhunderten.'
+    },
+    {
+      catTr: '☕ Kahve Kültürü', catEn: '☕ Coffee Lore', catDe: '☕ Kaffeekultur',
+      titleTr: 'Sabah Kahvesinin Etiyopya Efsanesi', titleEn: 'The Ethiopian Legend of Morning Coffee', titleDe: 'Die äthiopische Legende des Kaffees',
+      bodyTr: '9. yüzyılda çoban Kaldi, kırmızı kahve kirazlarını yiyen keçilerinin neşeyle zıpladığını fark etti. Yarın sabah içeceğiniz ilk sıcak yudum 1.100 yıllık bir keşif geleneği.',
+      bodyEn: 'In the 9th century, herder Kaldi noticed his goats dancing after eating bright red coffee cherries—making tomorrow morning’s warm cup a 1,100-year ritual.',
+      bodyDe: 'Im 9. Jahrhundert entdeckte der Hirte Kaldi tanzende Ziegen nach roten Kaffeekirschen – Ihr morgiger Kaffee trägt 1.100 Jahre Geschichte in sich.'
+    },
+    {
+      catTr: '🌊 Doğa Harikası', catEn: '🌊 Ocean Wonder', catDe: '🌊 Naturwunder',
+      titleTr: 'El Ele Uyuyan Deniz Samurları', titleEn: 'Sea Otters Holding Paws at Night', titleDe: 'Seeotter schlafen Pfote in Pfote',
+      bodyTr: 'Pasifik deniz samurları gece akıntıda birbirlerinden uzaklaşmamak için uyurken el ele tutuşur veya kendilerini yosun battaniyelere sarar.',
+      bodyEn: 'Pacific sea otters hold paws while floating asleep on their backs so ocean currents never drift them apart in the dark.',
+      bodyDe: 'Seeotter halten im Schlaf Pfötchen, damit die Meeresströmung sie nachts nicht voneinander trennt.'
+    },
+    {
+      catTr: '🎨 Sanat & Renk', catEn: '🎨 Art & Color', catDe: '🎨 Kunst & Farbe',
+      titleTr: 'Van Gogh’un Gece Mavisi Tutkusu', titleEn: 'Van Gogh’s Midnight Palette', titleDe: 'Van Goghs Liebe zum Nachtblau',
+      bodyTr: 'Vincent van Gogh kardeşine yazdığı mektupta "Gece, gündüzden çok daha canlı ve renkli" demişti; Yıldızlı Gece tablosunu tam da şafak sökmeden önceki sessizlikte resmetti.',
+      bodyEn: 'Van Gogh wrote to his brother Theo that "the night is more alive and more richly colored than the day," painting Starry Night in pre-dawn stillness.',
+      bodyDe: 'Van Gogh schrieb seinem Bruder: „Die Nacht ist lebendiger und farbenreicher als der Tag“ – so entstand die Sternennacht.'
+    },
+    {
+      catTr: '📚 Edebiyat Notu', catEn: '📚 Literary Note', catDe: '📚 Literaturnotiz',
+      titleTr: 'Japoncada "Tsundoku" Kelimesi', titleEn: 'The Japanese Word "Tsundoku"', titleDe: 'Das japanische Wort „Tsundoku“',
+      bodyTr: 'Okumak niyetiyle alınıp başucunda üst üste biriken kitap kulesine Japoncada "Tsundoku" denir ve suçluluk değil, merakın zarif bir işareti sayılır.',
+      bodyEn: '"Tsundoku" describes buying books and letting them stack warmly on your nightstand—celebrated in Japan as curiosity, never something to feel guilty about.',
+      bodyDe: '„Tsundoku“ beschreibt den liebevollen Stapel ungelesener Bücher auf dem Nachttisch – ein Zeichen von Neugier statt Pflicht.'
+    },
+    {
+      catTr: '🌿 Botanik Sırları', catEn: '🌿 Botanical Secret', catDe: '🌿 Botanik-Geheimnis',
+      titleTr: 'Yağmur Sonrası Toprak Kokusu: Petrichor', titleEn: 'Why Rain Smells So Calming: Petrichor', titleDe: 'Der Duft nach Sommerregen: Petrichor',
+      bodyTr: 'Yağmur damlaları kuru toprağa değdiğinde bitkilerin sakladığı uçucu yağlar havaya karışır; "petrichor" adı verilen bu koku insan beyninde anında güven hissi uyandırır.',
+      bodyEn: 'When raindrops hit dry earth, plant oils release an aroma called "petrichor," which human noses detect at parts-per-trillion to trigger instant calm.',
+      bodyDe: 'Wenn Regentropfen auf trockene Erde treffen, entsteht „Petrichor“ – ein Duft, der unser Nervensystem sofort beruhigt.'
+    }
+  ];
+
+  const MOM_WORD_PUZZLES = {
+    tr: [
+      { word: 'KAHVE', scrambled: 'V E K A H', hint: 'Sabahın ilk sıcak ödülü ☕' },
+      { word: 'DENİZ', scrambled: 'Z İ N E D', hint: 'Dalga sesiyle dinlendiren mavilik 🌊' },
+      { word: 'KİTAP', scrambled: 'P A T İ K', hint: 'Sessiz bir mola sayfası 📖' },
+      { word: 'BAHAR', scrambled: 'R A H A B', hint: 'Çiçek açan ılık mevsim 🌸' },
+      { word: 'YILDIZ', scrambled: 'Z I D L I Y', hint: 'Gece gökyüzünün sessiz feneri ✨' }
+    ],
+    en: [
+      { word: 'COFFEE', scrambled: 'F E C O F E', hint: 'Tomorrow morning’s warm reward ☕' },
+      { word: 'BREEZE', scrambled: 'Z E R E B E', hint: 'Gentle coastal air 🌊' },
+      { word: 'STARRY', scrambled: 'R Y S T A R', hint: 'Quiet lights in the night sky ✨' },
+      { word: 'GARDEN', scrambled: 'N E D R A G', hint: 'A calm green sanctuary 🌿' },
+      { word: 'VELVET', scrambled: 'T E V L E V', hint: 'Soft, luxurious night texture 💜' }
+    ],
+    de: [
+      { word: 'KAFFEE', scrambled: 'F E K A E F', hint: 'Warmer Genuss am Morgen ☕' },
+      { word: 'STERNE', scrambled: 'E N R E T S', hint: 'Stille Lichter am Nachthimmel ✨' },
+      { word: 'MEER', scrambled: 'R E E M', hint: 'Beruhigendes Wellenrauschen 🌊' },
+      { word: 'GARTEN', scrambled: 'N E T R A G', hint: 'Grüne Oase der Ruhe 🌿' },
+      { word: 'ROMAN', scrambled: 'N A M O R', hint: 'Ein gutes Buch für stille Minuten 📖' }
+    ]
+  };
+
+  let momEscapeCardIndex = 0;
+  let momPuzzleIndex = 0;
+  let momBreakCollapsed = false;
+  let momBreathTimer = null;
+  let momBreathRemainingSec = 0;
+  let activeIncomingWhisper = null;
+
+  function syncMomBreakDrawerVisibility() {
+    const drawer = document.getElementById('mom-break-drawer');
+    if (!drawer) return;
+    const isTourOpen = document.body.classList.contains('spotlight-tour-open');
+    const shouldShow = !!isSleeping && !isTourOpen;
+    drawer.style.display = shouldShow ? 'block' : 'none';
+    if (shouldShow) {
+      renderHomeFamilyPill();
+      renderMomEscapeAndPuzzle();
+      renderMomMorningNotes();
+      pulseNightWatchSolidarity(false);
+    } else {
+      stopMomSilentBreathing();
+      if (document.body.classList.contains('mom-lantern-glow-active')) {
+        document.body.classList.remove('mom-lantern-glow-active');
+        syncMomLanternButtonUI();
+      }
+    }
+  }
+  window.syncMomBreakDrawerVisibility = syncMomBreakDrawerVisibility;
+
+  function toggleMomBreakCollapsed() {
+    hapticPulse();
+    momBreakCollapsed = !momBreakCollapsed;
+    const bodyEl = document.getElementById('mom-break-body');
+    const btnEl = document.getElementById('mom-break-collapse-btn');
+    if (bodyEl) bodyEl.style.display = momBreakCollapsed ? 'none' : 'block';
+    if (btnEl) {
+      btnEl.textContent = momBreakCollapsed
+        ? trEnDe('Aç ▾', 'Expand ▾', 'Öffnen ▾')
+        : trEnDe('Küçült ▴', 'Minimize ▴', 'Einklappen ▴');
+    }
+  }
+  window.toggleMomBreakCollapsed = toggleMomBreakCollapsed;
+
+  function switchMomBreakTab(tabKey) {
+    hapticPulse();
+    ['lantern', 'escape', 'whisper', 'breathe'].forEach(k => {
+      const btn = document.getElementById('mom-tab-' + k);
+      const panel = document.getElementById('mom-panel-' + k);
+      if (btn) btn.classList.toggle('active', k === tabKey);
+      if (panel) panel.classList.toggle('active', k === tabKey);
+    });
+    if (tabKey === 'whisper') renderHomeFamilyPill();
+    if (tabKey === 'escape') renderMomEscapeAndPuzzle();
+    if (tabKey === 'breathe') renderMomMorningNotes();
+  }
+  window.switchMomBreakTab = switchMomBreakTab;
+
+  function syncMomLanternButtonUI() {
+    const btn = document.getElementById('btn-mom-lantern-glow');
+    if (!btn) return;
+    const active = document.body.classList.contains('mom-lantern-glow-active');
+    btn.textContent = active
+      ? trEnDe('🕯️ Feneri Kapat', '🕯️ Turn Off Glow', '🕯️ Licht aus')
+      : trEnDe('🕯️ Loş Fener Aç', '🕯️ Warm Screen Glow', '🕯️ Sanftes Licht');
+  }
+
+  function toggleMomLanternGlow() {
+    hapticPulse();
+    document.body.classList.toggle('mom-lantern-glow-active');
+    syncMomLanternButtonUI();
+  }
+  window.toggleMomLanternGlow = toggleMomLanternGlow;
+
+  async function pulseNightWatchSolidarity(sendCheer) {
+    if (sendCheer) hapticPulse();
+    const labelEl = document.getElementById('mom-night-watch-label');
+    try {
+      const res = await fetchWithTimeout(`${getApiBaseUrl()}/family/night-watch/pulse`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          device_uid: getOrCreateMishilDeviceUid(),
+          send_cheer: !!sendCheer
+        }),
+        timeout: 4000
+      });
+      if (res && res.ok) {
+        const data = await res.json();
+        const cnt = Math.max(1, Number(data.active_parents_count || 1));
+        const cheers = Math.max(0, Number(data.cheers_received || 0));
+        if (labelEl) {
+          if (cnt > 1) {
+            labelEl.textContent = trEnDe(
+              `🕯️ Şu an ${cnt} ebeveyn sizinle birlikte gece nöbetinde${cheers > 0 ? ` • 💛 ${cheers} selam` : ''}`,
+              `🕯️ ${cnt} parents are awake on night watch with you right now${cheers > 0 ? ` • 💛 ${cheers} cheers` : ''}`,
+              `🕯️ Gerade halten ${cnt} Eltern gemeinsam mit Ihnen Nachtwache${cheers > 0 ? ` • 💛 ${cheers} Grüße` : ''}`
+            );
+          } else {
+            labelEl.textContent = trEnDe(
+              '🕯️ Gece nöbeti feneriniz yanıyor • Bu sessiz saatte yalnız değilsiniz',
+              '🕯️ Your night-watch lantern is lit • You are never alone in this quiet hour',
+              '🕯️ Ihre Nachtwachen-Laterne leuchtet • Sie sind in dieser stillen Stunde nicht allein'
+            );
+          }
+        }
+        if (sendCheer) {
+          showToast(trEnDe(
+            '💛 Uykusuz nöbetteki diğer annelere/babalara sessiz selamınız ulaştı!',
+            '💛 Your silent solidarity wave was sent to fellow night-watch parents!',
+            '💛 Ihr stiller Gruß wurde an andere wache Eltern gesendet!'
+          ));
+        }
+      }
+    } catch (_nwe) {
+      if (sendCheer) {
+        showToast(trEnDe('💛 Gece nöbeti selamınız kaydedildi', '💛 Solidarity wave noted', '💛 Stiller Gruß gespeichert'));
+      }
+    }
+  }
+  window.pulseNightWatchSolidarity = pulseNightWatchSolidarity;
+
+  function renderMomEscapeAndPuzzle() {
+    const card = MOM_ADULT_ESCAPE_CARDS[momEscapeCardIndex % MOM_ADULT_ESCAPE_CARDS.length];
+    const catEl = document.getElementById('mom-escape-cat-badge');
+    const titleEl = document.getElementById('mom-escape-card-title');
+    const bodyEl = document.getElementById('mom-escape-card-body');
+    if (card) {
+      if (catEl) catEl.textContent = trEnDe(card.catTr, card.catEn, card.catDe);
+      if (titleEl) titleEl.textContent = trEnDe(card.titleTr, card.titleEn, card.titleDe);
+      if (bodyEl) bodyEl.textContent = trEnDe(card.bodyTr, card.bodyEn, card.bodyDe);
+    }
+
+    const lang = getAppLang();
+    const pList = MOM_WORD_PUZZLES[lang] || MOM_WORD_PUZZLES.tr;
+    const pItem = pList[momPuzzleIndex % pList.length];
+    const hintEl = document.getElementById('mom-puzzle-hint');
+    const scrEl = document.getElementById('mom-puzzle-scrambled');
+    const scoreEl = document.getElementById('mom-puzzle-score-badge');
+    const solvedCount = parseInt(localStorage.getItem('mishil_mom_puzzle_solved') || '0', 10) || 0;
+    if (pItem && hintEl && scrEl) {
+      hintEl.textContent = pItem.hint;
+      scrEl.textContent = pItem.scrambled;
+    }
+    if (scoreEl) {
+      scoreEl.textContent = trEnDe(`✓ ${solvedCount} Çözüldü`, `✓ ${solvedCount} Solved`, `✓ ${solvedCount} Gelöst`);
+    }
+  }
+
+  function nextMomEscapeCard() {
+    hapticPulse();
+    momEscapeCardIndex = (momEscapeCardIndex + 1) % MOM_ADULT_ESCAPE_CARDS.length;
+    renderMomEscapeAndPuzzle();
+  }
+  window.nextMomEscapeCard = nextMomEscapeCard;
+
+  function checkMomWordPuzzle() {
+    hapticPulse();
+    const inp = document.getElementById('mom-puzzle-input');
+    if (!inp) return;
+    const lang = getAppLang();
+    const pList = MOM_WORD_PUZZLES[lang] || MOM_WORD_PUZZLES.tr;
+    const pItem = pList[momPuzzleIndex % pList.length];
+    const normGuess = (inp.value || '').trim().toLocaleUpperCase(lang === 'tr' ? 'tr-TR' : undefined);
+    const normTarget = pItem.word.toLocaleUpperCase(lang === 'tr' ? 'tr-TR' : undefined);
+    if (!normGuess) return;
+    if (normGuess === normTarget) {
+      hapticSuccess();
+      const nextScore = (parseInt(localStorage.getItem('mishil_mom_puzzle_solved') || '0', 10) || 0) + 1;
+      localStorage.setItem('mishil_mom_puzzle_solved', String(nextScore));
+      inp.value = '';
+      momPuzzleIndex = (momPuzzleIndex + 1) % pList.length;
+      renderMomEscapeAndPuzzle();
+      showToast(trEnDe(`✨ Harika! "${pItem.word}" doğru çözüldü`, `✨ Nice! "${pItem.word}" solved`, `✨ Super! „${pItem.word}“ gelöst`));
+    } else {
+      showToast(trEnDe('🌙 Yaklaştınız, harflere tekrar göz atın', '🌙 Close! Try rearranging the letters', '🌙 Fast! Versuchen Sie die Buchstaben noch einmal'));
+    }
+  }
+  window.checkMomWordPuzzle = checkMomWordPuzzle;
+
+  const WHISPER_TEMPLATES_COPY = {
+    tea_water: {
+      tr: '🍵 Odaya sessizce bir bardak su / çay getirir misin?',
+      en: '🍵 Could you quietly bring a glass of water / tea?',
+      de: '🍵 Kannst du mir leise ein Glas Wasser / Tee bringen?'
+    },
+    next_shift_yours: {
+      tr: '🍼 Bebek uyudu; sıradaki uyanış nöbeti sende canım 💛',
+      en: '🍼 Baby is asleep; next wake-up shift is yours love 💛',
+      de: '🍼 Baby schläft; die nächste Aufwach-Schicht gehört dir 💛'
+    },
+    trapped_under_baby: {
+      tr: '🤱 Kucağımda uyuyakaldı, kıpırdayamıyorum — sessizce gelir misin?',
+      en: '🤱 Nap-trapped under the baby—could you quietly come help?',
+      de: '🤱 Auf meinem Arm eingeschlafen – kannst du kurz leise helfen?'
+    },
+    thank_you_love: {
+      tr: '🤍 Bu geceki desteğin için teşekkür ederim, iyi ki varsın.',
+      en: '🤍 Thank you for having my back tonight, glad we are a team.',
+      de: '🤍 Danke für deine Unterstützung heute Nacht, schön dass wir ein Team sind.'
+    }
+  };
+
+  async function dispatchFamilyWhisper(templateKey, rawMessage) {
+    const fCode = localStorage.getItem('mishil_family_code');
+    if (!fCode || fCode === 'MSL782' || !getFamilyMemberToken()) {
+      openFamilyQuickHub();
+      return;
+    }
+    const cleanMsg = String(rawMessage || '').trim().slice(0, 140);
+    if (!cleanMsg) return;
+    try {
+      const res = await fetchWithTimeout(`${getApiBaseUrl()}/family/whisper`, {
+        method: 'POST',
+        headers: getFamilyAuthHeaders(),
+        body: JSON.stringify({
+          invite_code: fCode,
+          device_uid: getOrCreateMishilDeviceUid(),
+          template_key: templateKey || 'custom',
+          message: cleanMsg
+        }),
+        timeout: 5000
+      });
+      if (res && res.ok) {
+        hapticSuccess();
+        showToast(trEnDe(
+          '💌 Sessiz fısıltınız eşinizin ekranına iletildi!',
+          '💌 Silent whisper delivered to your partner!',
+          '💌 Stille Nachricht an Ihren Partner gesendet!'
+        ));
+      } else {
+        showToast(trEnDe('⚠️ Fısıltı gönderilemedi, bağlantıyı kontrol edin', '⚠️ Could not send whisper', '⚠️ Nachricht konnte nicht gesendet werden'));
+      }
+    } catch (_we) {
+      showToast(trEnDe('⚠️ Bağlantı hatası, lütfen tekrar deneyin', '⚠️ Connection error', '⚠️ Verbindungsfehler'));
+    }
+  }
+
+  function sendFamilyWhisperTemplate(tplKey) {
+    hapticPulse();
+    const copy = WHISPER_TEMPLATES_COPY[tplKey];
+    if (!copy) return;
+    const msg = trEnDe(copy.tr, copy.en, copy.de);
+    dispatchFamilyWhisper(tplKey, msg);
+  }
+  window.sendFamilyWhisperTemplate = sendFamilyWhisperTemplate;
+
+  function sendCustomFamilyWhisper() {
+    hapticPulse();
+    const inp = document.getElementById('mom-whisper-custom-input');
+    const txt = inp ? inp.value.trim() : '';
+    if (!txt) return;
+    inp.value = '';
+    dispatchFamilyWhisper('custom', txt);
+  }
+  window.sendCustomFamilyWhisper = sendCustomFamilyWhisper;
+
+  function renderIncomingFamilyWhisperBanner(whispers) {
+    const banner = document.getElementById('family-whisper-banner');
+    const senderEl = document.getElementById('family-whisper-sender');
+    const textEl = document.getElementById('family-whisper-text');
+    if (!banner || !senderEl || !textEl) return;
+    const myUid = getOrCreateMishilDeviceUid();
+    const myName = localStorage.getItem('mishil_user_name') || '';
+    const candidate = (Array.isArray(whispers) ? whispers : []).find(w => {
+      if (!w || w.acknowledged) return false;
+      if (w.sender_device_uid && w.sender_device_uid === myUid) return false;
+      if (!w.sender_device_uid && myName && w.sender_name === myName) return false;
+      return true;
+    });
+    activeIncomingWhisper = candidate || null;
+    if (!candidate) {
+      banner.style.display = 'none';
+      return;
+    }
+    senderEl.textContent = trEnDe(
+      `💌 ${candidate.sender_name || 'Eşiniz'} sessizce fısıldadı:`,
+      `💌 ${candidate.sender_name || 'Your partner'} whispered:`,
+      `💌 ${candidate.sender_name || 'Ihr Partner'} flüstert:`
+    );
+    textEl.textContent = String(candidate.message || '');
+    banner.style.display = 'flex';
+  }
+
+  async function ackActiveFamilyWhisper() {
+    hapticPulse();
+    const banner = document.getElementById('family-whisper-banner');
+    if (banner) banner.style.display = 'none';
+    const w = activeIncomingWhisper;
+    activeIncomingWhisper = null;
+    if (!w || !w.id) return;
+    try {
+      await fetchWithTimeout(`${getApiBaseUrl()}/family/whisper/ack`, {
+        method: 'POST',
+        headers: getFamilyAuthHeaders(),
+        body: JSON.stringify({
+          invite_code: localStorage.getItem('mishil_family_code') || '',
+          whisper_id: w.id,
+          device_uid: getOrCreateMishilDeviceUid()
+        }),
+        timeout: 4000
+      });
+      showToast(trEnDe('🤍 Eşinize "Aldım" bilgisi iletildi', '🤍 Partner notified that you saw it', '🤍 Partner hat Ihre Bestätigung erhalten'));
+    } catch (_wae) {}
+  }
+  window.ackActiveFamilyWhisper = ackActiveFamilyWhisper;
+
+  function stopMomSilentBreathing() {
+    if (momBreathTimer) {
+      clearInterval(momBreathTimer);
+      momBreathTimer = null;
+    }
+    momBreathRemainingSec = 0;
+    const ring = document.getElementById('mom-breath-ring');
+    const btn = document.getElementById('btn-mom-breath-toggle');
+    const st = document.getElementById('mom-breath-status');
+    if (ring) {
+      ring.classList.remove('breathing');
+      ring.textContent = '4-4-6';
+    }
+    if (btn) btn.textContent = trEnDe('Başlat (60 sn)', 'Start (60s)', 'Start (60 Sek.)');
+    if (st) st.textContent = trEnDe('4 sn al • 4 sn tut • 6 sn ver (Sıfır ses, nazik titreşim)', '4s inhale • 4s hold • 6s exhale (Silent haptic guide)', '4s ein • 4s halten • 6s aus (Lautlose Haptik)');
+  }
+
+  function toggleMomSilentBreathing() {
+    hapticPulse();
+    if (momBreathTimer) {
+      stopMomSilentBreathing();
+      return;
+    }
+    momBreathRemainingSec = 60;
+    const ring = document.getElementById('mom-breath-ring');
+    const btn = document.getElementById('btn-mom-breath-toggle');
+    const st = document.getElementById('mom-breath-status');
+    if (ring) ring.classList.add('breathing');
+    if (btn) btn.textContent = trEnDe('Durdur', 'Stop', 'Stopp');
+
+    const updateBreathTick = () => {
+      if (momBreathRemainingSec <= 0) {
+        stopMomSilentBreathing();
+        hapticSuccess();
+        showToast(trEnDe('💛 60 saniyelik nefes molanız tamamlandı', '💛 60s calm breathing complete', '💛 60-Sekunden-Atempause abgeschlossen'));
+        return;
+      }
+      const elapsed = 60 - momBreathRemainingSec;
+      const phaseSec = elapsed % 14;
+      let phaseText = '';
+      if (phaseSec === 0 || phaseSec === 4 || phaseSec === 8) hapticPulse();
+      if (phaseSec < 4) phaseText = trEnDe('Burnunuzdan sakin nefes alın...', 'Inhale gently...', 'Ruhig einatmen...');
+      else if (phaseSec < 8) phaseText = trEnDe('Yumuşakça tutun...', 'Hold softly...', 'Sanft halten...');
+      else phaseText = trEnDe('Omuzları bırakarak yavaşça verin...', 'Slowly exhale & drop shoulders...', 'Langsam ausatmen & Schultern senken...');
+      if (ring) ring.textContent = `${momBreathRemainingSec}s`;
+      if (st) st.textContent = phaseText;
+      momBreathRemainingSec -= 1;
+    };
+    updateBreathTick();
+    momBreathTimer = setInterval(updateBreathTick, 1000);
+  }
+  window.toggleMomSilentBreathing = toggleMomSilentBreathing;
+
+  function getMomMorningNotes() {
+    try {
+      const arr = JSON.parse(localStorage.getItem('mishil_mom_morning_notes') || '[]');
+      return Array.isArray(arr) ? arr : [];
+    } catch (_mne) {
+      return [];
+    }
+  }
+
+  function renderMomMorningNotes() {
+    const listEl = document.getElementById('mom-morning-notes-list');
+    if (!listEl) return;
+    const notes = getMomMorningNotes();
+    if (notes.length === 0) {
+      listEl.innerHTML = `<div style="font-size: 10px; color: var(--text-muted); padding: 2px 0;">${escapeHtml(trEnDe('Gece aklınıza takılanları buraya bırakın, zihniniz rahatlasın.', 'Park racing midnight thoughts here so your mind can rest.', 'Notieren Sie nächtliche Gedanken hier, damit Ihr Kopf frei wird.'))}</div>`;
+      return;
+    }
+    listEl.innerHTML = notes.map(n => `
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; background: rgba(255,255,255,0.04); border-radius: 7px; padding: 5px 8px;">
+        <label style="display: flex; align-items: center; gap: 7px; flex: 1; min-width: 0; cursor: pointer; font-size: 11px; color: ${n.done ? 'var(--text-muted)' : '#FAF5EE'}; text-decoration: ${n.done ? 'line-through' : 'none'};">
+          <input type="checkbox" ${n.done ? 'checked' : ''} onchange="toggleMomMorningNote('${escapeHtml(String(n.id))}')" style="accent-color: var(--accent);" />
+          <span style="overflow-wrap: anywhere;">${escapeHtml(String(n.text || ''))}</span>
+        </label>
+        <button type="button" onclick="deleteMomMorningNote('${escapeHtml(String(n.id))}')" style="background: none; border: none; color: var(--text-muted); font-size: 11px; cursor: pointer; padding: 2px 4px;">✕</button>
+      </div>
+    `).join('');
+  }
+
+  function addMomMorningNote() {
+    hapticPulse();
+    const inp = document.getElementById('mom-morning-note-input');
+    const txt = inp ? inp.value.trim() : '';
+    if (!txt) return;
+    const notes = getMomMorningNotes();
+    notes.unshift({ id: 'mn_' + Date.now(), text: txt.slice(0, 120), done: false });
+    localStorage.setItem('mishil_mom_morning_notes', JSON.stringify(notes.slice(0, 25)));
+    if (inp) inp.value = '';
+    renderMomMorningNotes();
+  }
+  window.addMomMorningNote = addMomMorningNote;
+
+  function toggleMomMorningNote(id) {
+    const notes = getMomMorningNotes().map(n => String(n.id) === String(id) ? Object.assign({}, n, { done: !n.done }) : n);
+    localStorage.setItem('mishil_mom_morning_notes', JSON.stringify(notes));
+    renderMomMorningNotes();
+  }
+  window.toggleMomMorningNote = toggleMomMorningNote;
+
+  function deleteMomMorningNote(id) {
+    const notes = getMomMorningNotes().filter(n => String(n.id) !== String(id));
+    localStorage.setItem('mishil_mom_morning_notes', JSON.stringify(notes));
+    renderMomMorningNotes();
+  }
+  window.deleteMomMorningNote = deleteMomMorningNote;
 
   // =========================================================================
   // 24 SAATLİK BEBEK RİTMİ & ZİRVE SAATLER
@@ -12439,6 +13923,7 @@
     }
     localStorage.setItem('mishil_completed_vaccines', JSON.stringify(completed));
     renderVaccineSchedule();
+    if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced();
     showToast(checked
       ? trEnDe('✅ Aşı tamamlandı olarak kaydedildi', '✅ Vaccine marked as completed', '✅ Impfung als erledigt gespeichert')
       : trEnDe('Aşı durumu güncellendi', 'Vaccine status updated', 'Impfstatus aktualisiert'));
@@ -13206,6 +14691,7 @@
     if (!ov || !ov.classList.contains('active')) {
       document.body.classList.remove('spotlight-tour-open');
       clearSpotlightDockFocus();
+      if (typeof syncMomBreakDrawerVisibility === 'function') syncMomBreakDrawerVisibility();
     }
   }
 
@@ -13368,6 +14854,7 @@
     }
     cleanupSpotlightTracking();
     document.body.classList.add('spotlight-tour-open');
+    if (typeof syncMomBreakDrawerVisibility === 'function') syncMomBreakDrawerVisibility();
     // Ana sekmeye ve MışılSpot segmentine geç (animasyonsuz anında yerleşim)
     if (typeof switchTab === 'function') switchTab('home', { fromSpotlightTour: true });
     if (typeof switchHomeSegment === 'function') switchHomeSegment('sweetspot', { fromSpotlightTour: true });
@@ -13530,6 +15017,7 @@
     if (typeof switchTab === 'function') switchTab('home', { fromSpotlightTour: true });
     if (typeof switchHomeSegment === 'function') switchHomeSegment('sweetspot', { fromSpotlightTour: true });
     document.body.classList.remove('spotlight-tour-open');
+    if (typeof syncMomBreakDrawerVisibility === 'function') syncMomBreakDrawerVisibility();
     localStorage.setItem('mishil_spotlight_tour_done', 'true');
     if (!skipped) {
       showToast(trEnDe(
@@ -14798,6 +16286,7 @@
       ? trEnDe(`✓ ${leapNum}. Sıçrama gözlemlendi olarak işaretlendi`, `✓ Leap ${leapNum} marked as observed`, `✓ Sprung ${leapNum} als beobachtet markiert`)
       : trEnDe(`↺ ${leapNum}. Sıçrama işareti kaldırıldı`, `↺ Leap ${leapNum} mark removed`, `↺ Markierung für Sprung ${leapNum} aufgehoben`));
     loadBabyProfile();
+    if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced();
   }
   window.toggleObservedLeap = toggleObservedLeap;
 
@@ -14811,6 +16300,8 @@
       `⚡ Sprung ${leapNum} manuell als früher Sprung aktiviert! MışılSpot-Fenster angepasst.`
     ));
     loadBabyProfile();
+    broadcastRealtimeEvent('LEAP_OVERRIDE', { leap: leapNum });
+    if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced();
   }
 
   function resetToAutoLeap() {
@@ -14823,6 +16314,7 @@
       '🔄 Zurück zum automatischen BabySteps™-Zeitplan'
     ));
     loadBabyProfile();
+    if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced();
   }
 
   function switchUserRole(role) {
@@ -14835,6 +16327,7 @@
     const roleName = formatFamilyRoleLabel(role);
     showToast(trEnDe(`👤 Aktif Rol: ${roleName}`, `👤 Active Role: ${roleName}`, `👤 Aktive Rolle: ${roleName}`));
     loadBabyProfile();
+    renderFamilyMembers();
   }
 
   function copyFamilyCode() {
@@ -14869,10 +16362,15 @@
   function deleteRoutine(id) {
     hapticPulse();
     if (!requireActiveSubscription('routine_log')) return;
-    activeRoutines = activeRoutines.filter(r => r.id !== id); sortActiveRoutines(); localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines)); if (typeof loadBabyProfile === 'function') loadBabyProfile(); updateLastSleepQuickEditBar();
+    if (typeof recordDeletedRoutineId === 'function') recordDeletedRoutineId(id);
+    activeRoutines = activeRoutines.filter(r => r.id !== id);
+    sortActiveRoutines();
     localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+    if (typeof loadBabyProfile === 'function') loadBabyProfile();
+    updateLastSleepQuickEditBar();
     renderHomeTodayTimeline();
     renderAnalyticsView();
+    if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced({ immediate: true });
     showToast(trEnDe('🗑️ Kayıt silindi', '🗑️ Entry deleted', '🗑️ Eintrag gelöscht'));
   }
 
@@ -15839,6 +17337,8 @@
       broadcastRealtimeEvent('SLEEP_STARTED', { by: role, startTime: sleepStartTime.toISOString() });
       syncLiveSleepToNative('START', sleepStartTime);
       if (typeof updateLiveSleepStartUI === 'function') updateLiveSleepStartUI();
+      if (typeof syncMomBreakDrawerVisibility === 'function') syncMomBreakDrawerVisibility();
+      if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced({ immediate: true });
       if (typeof scheduleMishilDelightReview === 'function') {
         scheduleMishilDelightReview('live_sleep_started', 2000, () => !!isSleeping);
       }
@@ -15975,20 +17475,26 @@
       }
       try {
         var _sBase = (window.location && window.location.origin && window.location.origin.indexOf('http') === 0) ? '' : 'https://mishil-production.up.railway.app';
-        fetch(_sBase + '/api/v1/sleep/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            family_code: localStorage.getItem('mishil_family_code') || undefined,
-            client_id: newSleepLog.id,
-            start_time: sleepStartTime.toISOString(),
-            end_time: endTime.toISOString(),
-            duration_minutes: totalMins,
-            sleep_type: totalMins >= 180 ? 'night' : 'nap'
-          })
-        }).catch(function() {});
+        var _fCodeSlp = localStorage.getItem('mishil_family_code') || undefined;
+        if (_fCodeSlp && _fCodeSlp !== 'MSL782' && typeof getFamilyMemberToken === 'function' && getFamilyMemberToken()) {
+          fetch(_sBase + '/api/v1/sleep/log', {
+            method: 'POST',
+            headers: typeof getFamilyAuthHeaders === 'function' ? getFamilyAuthHeaders() : { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              family_code: _fCodeSlp,
+              device_uid: typeof getOrCreateMishilDeviceUid === 'function' ? getOrCreateMishilDeviceUid() : undefined,
+              client_id: newSleepLog.id,
+              start_time: sleepStartTime.toISOString(),
+              end_time: endTime.toISOString(),
+              duration_minutes: totalMins,
+              sleep_type: totalMins >= 180 ? 'night' : 'nap'
+            })
+          }).catch(function() {});
+        }
       } catch (_se) {}
 
+      if (typeof syncMomBreakDrawerVisibility === 'function') syncMomBreakDrawerVisibility();
+      if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced({ immediate: true });
       renderHomeTodayTimeline();
       renderHomeScreenScore();
       renderAnalyticsView();
@@ -16076,34 +17582,52 @@
         liveTimer.textContent = trEnDe(`💤 Canlı Uyku: ${hrs}:${mins}:${secs}`, `💤 Live Sleep: ${hrs}:${mins}:${secs}`, `💤 Live-Schlaf: ${hrs}:${mins}:${secs}`);
       }, 1000);
     }
+    if (typeof syncMomBreakDrawerVisibility === 'function') syncMomBreakDrawerVisibility();
   }
 
   // =========================================================================
-  // ⚡ REALTIME WEBSOCKET SYNC ENGINE (FUNCTION-BUN)
+  // ⚡ REALTIME WEBSOCKET SYNC ENGINE (FUNCTION-BUN • HMAC TOKEN VERIFIED)
   // =========================================================================
   let realtimeWs = null;
   let realtimeWsAttempts = 0;
+  let realtimeWsManualClose = false;
   const REALTIME_WS_MAX_ATTEMPTS = 6;
+
+  function reconnectRealtimeWebSocket() {
+    if (realtimeWs) {
+      realtimeWsManualClose = true;
+      try { realtimeWs.close(); } catch (_rwe) {}
+      realtimeWs = null;
+    }
+    realtimeWsAttempts = 0;
+    setTimeout(() => {
+      realtimeWsManualClose = false;
+      initRealtimeWebSocket();
+    }, 80);
+  }
+  window.reconnectRealtimeWebSocket = reconnectRealtimeWebSocket;
+
   function initRealtimeWebSocket() {
     if (realtimeWs && (realtimeWs.readyState === WebSocket.OPEN || realtimeWs.readyState === WebSocket.CONNECTING)) return;
-    const familyCode = document.getElementById('family-sync-code') ? document.getElementById('family-sync-code').textContent : 'MSL782';
-    const role = localStorage.getItem('mishil_user_role') || 'mother';
-    const userName = getDefaultParentRoleName(role);
+    const rtToken = localStorage.getItem('mishil_realtime_token');
+    const fCode = localStorage.getItem('mishil_family_code');
+    if (!rtToken || !fCode || fCode === 'MSL782') {
+      return;
+    }
 
-    const wsUrl = `wss://function-bun-production-9541.up.railway.app/ws?family=${familyCode}&name=${encodeURIComponent(userName)}&role=${role}`;
+    const wsUrl = `wss://function-bun-production-9541.up.railway.app/ws?token=${encodeURIComponent(rtToken)}`;
 
     try {
       realtimeWs = new WebSocket(wsUrl);
 
       realtimeWs.onopen = () => {
         realtimeWsAttempts = 0;
-        console.log('🟢 Function-Bun Realtime WebSocket Connected');
       };
 
       realtimeWs.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data);
-          console.log('⚡ Realtime Event Received:', msg);
+          if (!msg || typeof msg !== 'object') return;
           if (msg.type === 'SLEEP_STARTED') {
             showToast(trEnDe(
               `🔔 Canlı Bildirim: ${msg.sender_name || 'Ebeveyn'} bebeği uyuttu! 💤`,
@@ -16135,34 +17659,40 @@
                 if (liveTimer) liveTimer.style.display = 'none';
                 if (typeof updateLiveSleepStartUI === 'function') updateLiveSleepStartUI();
                 syncLiveSleepToNative('STOP');
+                if (typeof syncMomBreakDrawerVisibility === 'function') syncMomBreakDrawerVisibility();
               } catch (_wsStop) {}
             }
+            if (typeof pullFamilySyncSnapshot === 'function') pullFamilySyncSnapshot({ silent: true });
           } else if (msg.type === 'LEAP_OVERRIDE') {
             showToast(trEnDe(
               `⚡ Canlı Bildirim: ${msg.payload?.leap}. Sıçrama Erken Atak olarak güncellendi!`,
               `⚡ Live Sync: Leap ${msg.payload?.leap} updated as Early Leap!`,
               `⚡ Live-Sync: ${msg.payload?.leap}. Sprung als früher Sprung markiert!`
             ));
+            if (typeof pullFamilySyncSnapshot === 'function') pullFamilySyncSnapshot({ silent: true });
             loadBabyProfile();
-          } else if (msg.type === 'PROFILE_UPDATED') {
-            loadBabyProfile();
+          } else if (msg.type === 'PROFILE_UPDATED' || msg.type === 'FAMILY_SYNC_UPDATED') {
+            if (typeof pullFamilySyncSnapshot === 'function') pullFamilySyncSnapshot({ silent: true });
+          } else if (msg.type === 'WHISPER_CREATED') {
+            if (msg.payload && typeof renderIncomingFamilyWhisperBanner === 'function') {
+              renderIncomingFamilyWhisperBanner([msg.payload]);
+            } else if (typeof pullFamilySyncSnapshot === 'function') {
+              pullFamilySyncSnapshot({ silent: true });
+            }
           }
         } catch (e) {}
       };
 
       realtimeWs.onclose = () => {
+        if (realtimeWsManualClose) return;
         realtimeWsAttempts++;
         if (realtimeWsAttempts > REALTIME_WS_MAX_ATTEMPTS) {
-          console.warn('Realtime WS: max deneme aşıldı, otomatik yeniden bağlanma durduruldu.');
           return;
         }
-        // Üstel geri çekilme: 10s, 20s, 40s ... en fazla 5 dk
         const delay = Math.min(10000 * Math.pow(2, realtimeWsAttempts - 1), 300000);
         setTimeout(initRealtimeWebSocket, delay);
       };
-    } catch (err) {
-      console.warn('Realtime WS connecting in background:', err);
-    }
+    } catch (err) {}
   }
 
   function broadcastRealtimeEvent(type, payload) {
@@ -16816,6 +18346,8 @@
     renderAnalyticsView();
     showToast(trEnDe('💾 Bebek profili güncellendi', '💾 Baby profile updated', '💾 Babyprofil aktualisiert'));
     if (typeof window.syncBabyProfileToBackend === 'function') window.syncBabyProfileToBackend(true);
+    broadcastRealtimeEvent('PROFILE_UPDATED', { babyName: nm, babyBdate: bd });
+    if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced({ immediate: true });
   }
 
   // =========================================================================
@@ -16927,6 +18459,7 @@
     localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
     renderHomeTodayTimeline();
     renderAnalyticsView();
+    if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced();
     showToast(trEnDe(`✅ ${labelLoc} başarıyla eklendi (${timeNow})`, `✅ ${labelLoc} logged (${timeNow})`, `✅ ${labelLoc} gespeichert (${timeNow})`));
   }
 
@@ -17315,6 +18848,7 @@
       liveTimer.textContent = trEnDe(`💤 Canlı Uyku: ${hrs}:${mins}:${secs}`, `💤 Live Sleep: ${hrs}:${mins}:${secs}`, `💤 Live-Schlaf: ${hrs}:${mins}:${secs}`);
     }
     closeLiveSleepStartEditModal();
+    if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced({ immediate: true });
     showToast(trEnDe(`✅ Uyku başlangıç saati ${val} olarak güncellendi`, `✅ Sleep start time updated to ${val}`, `✅ Einschlafzeit auf ${val} aktualisiert`));
   }
 
@@ -17459,20 +18993,24 @@
 
       try {
         var _apiBase = (window.location && window.location.origin && window.location.origin.indexOf('http') === 0) ? '' : 'https://mishil-production.up.railway.app';
-        fetch(_apiBase + '/api/v1/sleep/log', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            family_code: localStorage.getItem('mishil_family_code') || undefined,
-            client_id: updatedSleepLog.id,
-            original_start_time: (existingItem && existingItem.startTs) ? new Date(existingItem.startTs).toISOString() : undefined,
-            start_time: startDate.toISOString(),
-            end_time: endDate.toISOString(),
-            duration_minutes: durMins,
-            sleep_type: durMins >= 180 ? 'night' : 'nap',
-            is_update: isEditing
-          })
-        }).catch(function() {});
+        var _fCodeMan = localStorage.getItem('mishil_family_code') || undefined;
+        if (_fCodeMan && _fCodeMan !== 'MSL782' && typeof getFamilyMemberToken === 'function' && getFamilyMemberToken()) {
+          fetch(_apiBase + '/api/v1/sleep/log', {
+            method: 'POST',
+            headers: typeof getFamilyAuthHeaders === 'function' ? getFamilyAuthHeaders() : { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              family_code: _fCodeMan,
+              device_uid: typeof getOrCreateMishilDeviceUid === 'function' ? getOrCreateMishilDeviceUid() : undefined,
+              client_id: updatedSleepLog.id,
+              original_start_time: (existingItem && existingItem.startTs) ? new Date(existingItem.startTs).toISOString() : undefined,
+              start_time: startDate.toISOString(),
+              end_time: endDate.toISOString(),
+              duration_minutes: durMins,
+              sleep_type: durMins >= 180 ? 'night' : 'nap',
+              is_update: isEditing
+            })
+          }).catch(function() {});
+        }
       } catch (_e) {}
     } else if (type === 'feeding') {
       const method = (document.getElementById('routine-modal-feed-method') || {}).value || 'breast';
@@ -17570,6 +19108,7 @@
     renderHomeTodayTimeline();
     renderAnalyticsView();
     renderHomeScreenScore();
+    if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced({ immediate: true });
     if (typeof scheduleMishilDelightReview === 'function') {
       scheduleMishilDelightReview('routine_logged', 2000);
     }
@@ -17643,9 +19182,32 @@
   function confirmDeleteAccount() {
     cleanupSpotlightTracking();
     document.body.classList.remove('spotlight-tour-open');
+    document.body.classList.remove('mom-lantern-glow-active');
+    if (typeof stopMomSilentBreathing === 'function') stopMomSilentBreathing();
     const spotOv = document.getElementById('spotlight-tour-overlay');
     if (spotOv) spotOv.classList.remove('active');
     clearFreeSoundPreviewTimer({ clearNativePreviewTimer: true });
+    try {
+      const _delCode = localStorage.getItem('mishil_family_code');
+      const _delTok = localStorage.getItem('mishil_family_member_token');
+      if (_delCode && _delCode !== 'MSL782' && _delTok) {
+        fetch(`${getApiBaseUrl()}/family/membership`, {
+          method: 'DELETE',
+          headers: getFamilyAuthHeaders(),
+          keepalive: true,
+          body: JSON.stringify({
+            invite_code: _delCode,
+            device_uid: getOrCreateMishilDeviceUid()
+          })
+        }).catch(() => {});
+      }
+      if (realtimeWs) {
+        realtimeWsManualClose = true;
+        realtimeWsAttempts = REALTIME_WS_MAX_ATTEMPTS + 1;
+        try { realtimeWs.close(); } catch (_dwce) {}
+        realtimeWs = null;
+      }
+    } catch (_fme) {}
     const wasOnboardedOnce = hasDeviceCompletedOnboardingOnce();
     const quotaPayload = {
       onboardedOnce: wasOnboardedOnce,
@@ -18401,7 +19963,53 @@
     "Bugün": "Today",
     "Dün": "Yesterday",
     "Son 7 Gün": "Last 7 Days",
-    "Tüm Günler": "All Days"
+    "Tüm Günler": "All Days",
+    "👨‍👩‍👧 Tek Bebek • Ortak Aile Takibi (Maks. 3 Üye)": "👨‍👩‍👧 Single Baby • Shared Family Tracking (Max 3)",
+    "Anne, baba ve dadı/bakıcı aynı bebeği kendi telefonlarından canlı takip eder. Eşiniz daha önce kurulum yaptıysa yeni profil açmayın; 6 haneli Aile Kodunu girin.": "Mom, dad, and caregiver track the same baby live from their own phones. If your partner already set up the baby, don't create a new profile—enter the 6-digit Family Code.",
+    "🔗 Eşimin Aile Kodu Var": "🔗 Join Partner's Family Code",
+    "👨‍👩‍👧 Tek Bebek • 3 Kişiye Kadar Canlı Ortak Takip:": "👨‍👩‍👧 Single Baby • Live Co-Parent Sync (Up to 3):",
+    "1 VIP üyelikle Anne, Baba ve Dadı/Bakıcı kendi telefonlarından aynı bebeğin uykusunu, beslenmesini ve aşılarını anında canlı görür.": "With 1 VIP membership, Mom, Dad, and Caregiver see the same baby's sleep, feedings, and vaccines live on their own phones.",
+    "👨‍👩‍👧 Tek VIP ile Anne + Baba + Bakıcı (3 Cihaz) aynı bebeği canlı takip eder": "👨‍👩‍👧 1 VIP lets Mom + Dad + Caregiver (3 Phones) track the same baby live",
+    "👨‍👩‍👧 Ortak Aile Takibi": "👨‍👩‍👧 Shared Family Sync",
+    "Tek Bebek • 3 Üyeye Kadar": "1 Baby • Up to 3 Members",
+    "👨‍👩‍👧 Anne • 1/3 Üye": "👨‍👩‍👧 Mom • 1/3 Members",
+    "💌 Eşiniz sessizce fısıldadı:": "💌 Your partner whispered:",
+    "🤍 Aldım": "🤍 Got It",
+    "☕ Bebek Uyuyor • Anne Molası": "☕ Baby Sleeping • Mom Break",
+    "Küçült ▴": "Minimize ▴",
+    "🕯️ Fener": "🕯️ Lantern",
+    "🧩 3 Dk Mola": "🧩 3-Min Escape",
+    "🤝 Fısılda": "🤝 Whisper",
+    "🌬️ Nefes & Not": "🌬️ Breathe & Note",
+    "🕯️ Gece nöbetinde yalnız değilsiniz": "🕯️ You are not alone on night watch",
+    "🕯️ Loş Fener Aç": "🕯️ Warm Screen Glow",
+    "💛 Yalnız Değilsin Selamı": "💛 Send Solidarity Wave",
+    "🌌 Gece Merakı": "🌌 Night Curiosity",
+    "Sonraki Kart ➔": "Next Card ➔",
+    "🔤 Gece Kelime Molası": "🔤 Calm Word Unscramble",
+    "✓ 0 Çözüldü": "✓ 0 Solved",
+    "Çöz": "Check",
+    "Bebeği uyandırmadan eşinizin ekranına sessiz fısıltı bırakın:": "Leave a silent note on your partner's screen without waking the baby:",
+    "🍵 Su / Çay Rica Et": "🍵 Ask for Water / Tea",
+    "🍼 Sıradaki Nöbet Sende": "🍼 Next Shift Is Yours",
+    "🤱 Kucağımda Uyudu": "🤱 Nap-Trapped in Arms",
+    "🤍 İyi Ki Varsın": "🤍 Glad We're a Team",
+    "Gönder": "Send",
+    "4 sn al • 4 sn tut • 6 sn ver (Sıfır ses, nazik titreşim)": "4s inhale • 4s hold • 6s exhale (Silent haptic guide)",
+    "Başlat (60 sn)": "Start (60s)",
+    "🧠 Gece Aklıma Geldi • Sabaha Not": "🧠 Midnight Thought • Morning Note",
+    "Ekle": "Add",
+    "👶 Bebek İçin": "👶 For Baby",
+    "💛 Kendim İçin (Anne Köşesi)": "💛 For Myself (Mom Corner)",
+    "🩺 Psikolojik/tıbbi tanı koymaz; kendinize veya bebeğinize zarar verme düşüncesi varsa derhal 112 Acil veya 182 hattını arayın.": "🩺 Non-clinical support only; if you feel unsafe or have thoughts of harming yourself or your baby, call 988 or local emergency services immediately.",
+    "Bulut Kodu: Hazırlanıyor • 1/3 Üye": "Cloud Code: Ready • 1/3 Members",
+    "Tek Bebek • 3 Üyeye Kadar Canlı Ortak Takip:": "Single Baby • Live Shared Tracking (Up to 3):",
+    "Anne, baba ve dadı/bakıcı kendi telefonlarından aynı bebeğin uykusunu, beslenmesini ve aşılarını 1 VIP üyelikle anında canlı görür.": "Mom, dad, and nanny/caregiver view the same baby's sleep, feedings, and vaccines live on their own phones under 1 VIP plan.",
+    "👥 Kayıtlı Aile Üyeleri (Maks. 3):": "👥 Connected Family Members (Max 3):",
+    "👨‍👩‍👧 Tek Bebek • Ortak Aile Paylaşımı": "👨‍👩‍👧 Single Baby • Co-Parent Family Sync",
+    "Anne, Baba ve Dadı/Bakıcı (en fazla 3 kişi) kendi telefonlarından Mışıl Baby'yi indirip bu kodu girdiğinde aynı bebeğin tüm uyku ve bakım kayıtları canlı birleşir.": "When Mom, Dad, and Caregiver (up to 3 people) install Mışıl Baby on their phones and enter this code, all sleep and care logs for the same baby sync live.",
+    "📲 Davet Bağlantısı Paylaş": "📲 Share Invite Link",
+    "⚙️ Tüm Aile Ayarları & Başka Koda Bağlan ➔": "⚙️ All Family Settings & Join Another Code ➔"
   };
 
   const TR_TO_DE_EXACT_MAP = {
@@ -19106,7 +20714,53 @@
     "Bugün": "Heute",
     "Dün": "Gestern",
     "Son 7 Gün": "Letzte 7 Tage",
-    "Tüm Günler": "Alle Tage"
+    "Tüm Günler": "Alle Tage",
+    "👨‍👩‍👧 Tek Bebek • Ortak Aile Takibi (Maks. 3 Üye)": "👨‍👩‍👧 Ein Baby • Gemeinsames Familien-Tracking (Max. 3)",
+    "Anne, baba ve dadı/bakıcı aynı bebeği kendi telefonlarından canlı takip eder. Eşiniz daha önce kurulum yaptıysa yeni profil açmayın; 6 haneli Aile Kodunu girin.": "Mama, Papa und Betreuungsperson begleiten dasselbe Baby live auf dem eigenen Handy. Hat Ihr Partner das Profil schon angelegt, geben Sie einfach den 6-stelligen Familiencode ein.",
+    "🔗 Eşimin Aile Kodu Var": "🔗 Familiencode des Partners eingeben",
+    "👨‍👩‍👧 Tek Bebek • 3 Kişiye Kadar Canlı Ortak Takip:": "👨‍👩‍👧 Ein Baby • Live-Sync für bis zu 3 Personen:",
+    "1 VIP üyelikle Anne, Baba ve Dadı/Bakıcı kendi telefonlarından aynı bebeğin uykusunu, beslenmesini ve aşılarını anında canlı görür.": "Mit nur 1 VIP-Abo sehen Mama, Papa und Betreuung Schlaf, Mahlzeiten und Impfungen desselben Babys live auf ihren Handys.",
+    "👨‍👩‍👧 Tek VIP ile Anne + Baba + Bakıcı (3 Cihaz) aynı bebeği canlı takip eder": "👨‍👩‍👧 Mit 1 VIP begleiten Mama + Papa + Betreuung (3 Geräte) dasselbe Baby live",
+    "👨‍👩‍👧 Ortak Aile Takibi": "👨‍👩‍👧 Familien-Sync",
+    "Tek Bebek • 3 Üyeye Kadar": "1 Baby • Bis zu 3 Personen",
+    "👨‍👩‍👧 Anne • 1/3 Üye": "👨‍👩‍👧 Mama • 1/3 Verbunden",
+    "💌 Eşiniz sessizce fısıldadı:": "💌 Ihr Partner flüstert:",
+    "🤍 Aldım": "🤍 Gesehen",
+    "☕ Bebek Uyuyor • Anne Molası": "☕ Baby schläft • Mama-Pause",
+    "Küçült ▴": "Einklappen ▴",
+    "🕯️ Fener": "🕯️ Laterne",
+    "🧩 3 Dk Mola": "🧩 3-Min.-Auszeit",
+    "🤝 Fısılda": "🤝 Flüstern",
+    "🌬️ Nefes & Not": "🌬️ Atmen & Notiz",
+    "🕯️ Gece nöbetinde yalnız değilsiniz": "🕯️ Sie sind in der Nachtschicht nicht allein",
+    "🕯️ Loş Fener Aç": "🕯️ Sanftes Licht",
+    "💛 Yalnız Değilsin Selamı": "💛 Stillen Gruß senden",
+    "🌌 Gece Merakı": "🌌 Nacht-Wissen",
+    "Sonraki Kart ➔": "Nächste Karte ➔",
+    "🔤 Gece Kelime Molası": "🔤 Ruhiges Wortspiel",
+    "✓ 0 Çözüldü": "✓ 0 Gelöst",
+    "Çöz": "Prüfen",
+    "Bebeği uyandırmadan eşinizin ekranına sessiz fısıltı bırakın:": "Senden Sie Ihrem Partner lautlos eine Nachricht aufs Display:",
+    "🍵 Su / Çay Rica Et": "🍵 Um Wasser / Tee bitten",
+    "🍼 Sıradaki Nöbet Sende": "🍼 Nächste Schicht für dich",
+    "🤱 Kucağımda Uyudu": "🤱 Auf dem Arm eingeschlafen",
+    "🤍 İyi Ki Varsın": "🤍 Schön, dass wir ein Team sind",
+    "Gönder": "Senden",
+    "4 sn al • 4 sn tut • 6 sn ver (Sıfır ses, nazik titreşim)": "4s ein • 4s halten • 6s aus (Lautlose Haptik)",
+    "Başlat (60 sn)": "Start (60 Sek.)",
+    "🧠 Gece Aklıma Geldi • Sabaha Not": "🧠 Nachtgedanke • Notiz für morgen",
+    "Ekle": "Hinzufügen",
+    "👶 Bebek İçin": "👶 Fürs Baby",
+    "💛 Kendim İçin (Anne Köşesi)": "💛 Für mich (Mama-Ecke)",
+    "🩺 Psikolojik/tıbbi tanı koymaz; kendinize veya bebeğinize zarar verme düşüncesi varsa derhal 112 Acil veya 182 hattını arayın.": "🩺 Keine medizinische Beratung; bei akuter Krise oder Selbst-/Fremdgefährdung bitte sofort 112 oder 0800 111 0 111 anrufen.",
+    "Bulut Kodu: Hazırlanıyor • 1/3 Üye": "Cloud-Code: Bereit • 1/3 Verbunden",
+    "Tek Bebek • 3 Üyeye Kadar Canlı Ortak Takip:": "Ein Baby • Live-Sync bis zu 3 Personen:",
+    "Anne, baba ve dadı/bakıcı kendi telefonlarından aynı bebeğin uykusunu, beslenmesini ve aşılarını 1 VIP üyelikle anında canlı görür.": "Mama, Papa und Betreuungsperson sehen Schlaf, Mahlzeiten und Impfungen desselben Babys mit 1 VIP-Abo live auf dem eigenen Handy.",
+    "👥 Kayıtlı Aile Üyeleri (Maks. 3):": "👥 Verbundene Familienmitglieder (Max. 3):",
+    "👨‍👩‍👧 Tek Bebek • Ortak Aile Paylaşımı": "👨‍👩‍👧 Ein Baby • Gemeinsames Familien-Tracking",
+    "Anne, Baba ve Dadı/Bakıcı (en fazla 3 kişi) kendi telefonlarından Mışıl Baby'yi indirip bu kodu girdiğinde aynı bebeğin tüm uyku ve bakım kayıtları canlı birleşir.": "Wenn Mama, Papa und Betreuungsperson (max. 3 Personen) Mışıl Baby installieren und diesen Code eingeben, werden alle Einträge live synchronisiert.",
+    "📲 Davet Bağlantısı Paylaş": "📲 Einladungslink teilen",
+    "⚙️ Tüm Aile Ayarları & Başka Koda Bağlan ➔": "⚙️ Alle Familieneinstellungen & Code eingeben ➔"
   };
 
   const REVERSE_TO_TR_EXACT_MAP = {};
@@ -19141,7 +20795,10 @@
     "Örn: 20": "e.g., 20",
     "Örn: sağ göğüs, huzursuzdu": "e.g., right breast, fussy",
     "Örn: D vitamini damlası, banyo vb.": "e.g., Vitamin D drops, bath, etc.",
-    "Şifrenizi girin": "Enter password"
+    "Şifrenizi girin": "Enter password",
+    "Tahmininiz...": "Your guess...",
+    "Eşinize kısa sessiz not yazın...": "Write a short silent note to your partner...",
+    "Sabah unutmayayım (örn: bez siparişi, doktor sorusu)...": "Remember tomorrow (e.g., order diapers, ask pediatrician)..."
   };
 
   const TR_TO_DE_PLACEHOLDERS = {
@@ -19168,7 +20825,10 @@
     "Örn: 20": "z. B. 20",
     "Örn: sağ göğüs, huzursuzdu": "z. B. rechte Brust, etwas unruhig",
     "Örn: D vitamini damlası, banyo vb.": "z. B. Vitamin-D-Tropfen, Abendbad usw.",
-    "Şifrenizi girin": "Passwort eingeben"
+    "Şifrenizi girin": "Passwort eingeben",
+    "Tahmininiz...": "Ihr Tipp...",
+    "Eşinize kısa sessiz not yazın...": "Kurze lautlose Nachricht an Ihren Partner...",
+    "Sabah unutmayayım (örn: bez siparişi, doktor sorusu)...": "Für morgen merken (z. B. Windeln bestellen, Arztfrage)..."
   };
 
   function syncLanguageUIButtons(lang) {
@@ -19497,6 +21157,8 @@
     loadBabyProfile();
     renderHomeVaccineSummary();
     renderVaccineSchedule();
+    if (typeof renderDadiChipsAndIntroForMode === 'function') renderDadiChipsAndIntroForMode();
+    if (typeof syncMomBreakDrawerVisibility === 'function') syncMomBreakDrawerVisibility();
     checkWelcomeGuideVisibility();
     const onbEl = document.getElementById('screen-onboarding');
     if (window.__mishilWasExitingOnboarding && (!onbEl || !onbEl.classList.contains('active')) && !isPurchaseInFlight) {
@@ -19523,10 +21185,39 @@
   loadBabyProfile();
   renderHomeVaccineSummary();
   renderVaccineSchedule();
+  if (typeof renderDadiChipsAndIntroForMode === 'function') renderDadiChipsAndIntroForMode();
+  if (typeof syncMomBreakDrawerVisibility === 'function') syncMomBreakDrawerVisibility();
+  if (typeof handleInboundFamilyInviteUrl === 'function') handleInboundFamilyInviteUrl();
   checkWelcomeGuideVisibility();
   setupKeyboardAndViewportManager();
   if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
   if (typeof recordDistinctVisitAndCheckRating === 'function') recordDistinctVisitAndCheckRating(true);
+
+  // Periyodik & Ön Plana Dönüş Aile Senkronizasyonu (Throttled Pull)
+  (function initFamilyForegroundSyncHooks() {
+    let _lastFgPullMs = 0;
+    function triggerForegroundFamilyPull() {
+      const nowMs = Date.now();
+      if (nowMs - _lastFgPullMs < 15000) return;
+      _lastFgPullMs = nowMs;
+      if (typeof pullFamilySyncSnapshot === 'function') {
+        pullFamilySyncSnapshot({ silent: true });
+      }
+    }
+    setTimeout(() => {
+      const _bInit = typeof getBaby === 'function' ? getBaby() : null;
+      const _fCodeInit = localStorage.getItem('mishil_family_code');
+      if (localStorage.getItem('mishil_onboarding_completed') === 'true' && _bInit && _bInit.bdate && _fCodeInit && _fCodeInit !== 'MSL782' && !localStorage.getItem('mishil_family_member_token')) {
+        syncFamilyToCloud(_fCodeInit, _bInit.name, _bInit.bdate, localStorage.getItem('mishil_user_role') || 'mother', localStorage.getItem('mishil_user_name') || '');
+      } else {
+        triggerForegroundFamilyPull();
+      }
+    }, 1200);
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') triggerForegroundFamilyPull();
+    });
+    window.addEventListener('focus', triggerForegroundFamilyPull);
+  })();
 
   // Tek El Başparmak Ergonomisi: Tüm alt pencerelerde (.modal-sheet) aşağı kaydırarak kapatma (Swipe-to-Dismiss)
   (function initModalSwipeToDismiss() {
@@ -19597,13 +21288,20 @@
         try {
           var _bObj = typeof getBaby === 'function' ? getBaby() : null;
           if (!_bObj || !_bObj.bdate) return;
-          var _fCode = (typeof getOrGenerateFamilyCode === 'function') ? getOrGenerateFamilyCode() : (localStorage.getItem('mishil_family_code') || undefined);
-          var _bKey = 'mishil_bsync_v2_' + (_fCode || '') + '_' + _bObj.name + '_' + _bObj.bdate;
+          var _fCode = localStorage.getItem('mishil_family_code') || undefined;
+          var _mTok = localStorage.getItem('mishil_family_member_token') || '';
+          if (!_fCode || _fCode === 'MSL782' || !_mTok) return;
+          var _bKey = 'mishil_bsync_v3_' + _fCode + '_' + _bObj.name + '_' + _bObj.bdate;
           if (!forceUpdate && localStorage.getItem(_bKey) === '1') return;
           fetch(apiBase + '/api/v1/baby/profile', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ family_code: _fCode, name: _bObj.name, birth_date: _bObj.bdate.slice(0, 10) })
+            headers: typeof getFamilyAuthHeaders === 'function' ? getFamilyAuthHeaders() : { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              family_code: _fCode,
+              device_uid: typeof getOrCreateMishilDeviceUid === 'function' ? getOrCreateMishilDeviceUid() : undefined,
+              name: _bObj.name,
+              birth_date: _bObj.bdate.slice(0, 10)
+            })
           }).then(function(rb) { if (rb && rb.ok) localStorage.setItem(_bKey, '1'); }).catch(function() {});
         } catch (_be) {}
       };
@@ -19659,6 +21357,14 @@
               purchase_token: _m.purchaseToken || undefined,
               device_type: _plat === 'android' ? 'Android' : 'iPhone'
             })
+          }).then(function(rs) {
+            if (rs && rs.ok && typeof syncFamilyToCloud === 'function') {
+              var _bf = typeof getBaby === 'function' ? getBaby() : null;
+              var _fc = localStorage.getItem('mishil_family_code');
+              if (_bf && _bf.bdate && _fc && _fc !== 'MSL782') {
+                syncFamilyToCloud(_fc, _bf.name, _bf.bdate, localStorage.getItem('mishil_user_role') || 'mother', localStorage.getItem('mishil_user_name') || '');
+              }
+            }
           }).catch(function() {});
         } catch (_sse) {}
       };
@@ -19690,17 +21396,6 @@
       }).then(function(r) {
         if (r && r.ok) { localStorage.setItem('mishil_first_open_v1', '1'); localStorage.setItem(_todayActiveKey, '1'); }
         if (typeof window.syncBabyProfileToBackend === 'function') window.syncBabyProfileToBackend(false);
-        var _bObj = null;
-        if (_bObj && _bObj.bdate) {
-          var _bKey = 'mishil_bsync_' + _bObj.name + '_' + _bObj.bdate;
-          if (localStorage.getItem(_bKey) !== '1') {
-            fetch(apiBase + '/api/v1/baby/profile', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ name: _bObj.name + ' (' + devUid.slice(-4) + ')', birth_date: _bObj.bdate.slice(0, 10) })
-            }).then(function(rb) { if (rb && rb.ok) localStorage.setItem(_bKey, '1'); }).catch(function() {});
-          }
-        }
       }).catch(function() {});
     } catch (e) {}
   })();

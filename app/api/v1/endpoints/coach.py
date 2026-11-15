@@ -5,8 +5,8 @@ from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
-from typing import List, Dict, Optional, Any
-from app.services.ai_sleep_coach import ask_mishil_dadi, stream_mishil_dadi, normalize_lang
+from typing import List, Dict, Optional, Any, Literal
+from app.services.ai_sleep_coach import ask_mishil_dadi, stream_mishil_dadi, normalize_lang, normalize_audience
 from app.core.logging import get_logger
 
 logger = get_logger("coach_endpoint")
@@ -50,15 +50,16 @@ class ChatMessage(BaseModel):
 
 
 class CoachChatRequest(BaseModel):
-    baby_name: Optional[str] = Field(default="Bebeğim", description="Bebeğin adı")
-    birth_date: Optional[str] = Field(default="2026-04-11", description="Bebeğin doğum tarihi (YYYY-MM-DD)")
-    user_role: str = Field(default="mother", description="Soruyu soran rol ('mother', 'father', 'nanny')")
-    user_name: Optional[str] = Field(default=None, description="Soruyu soran ebeveynin adı")
+    baby_name: Optional[str] = Field(default="Bebeğim", max_length=80, description="Bebeğin adı")
+    birth_date: Optional[str] = Field(default="2026-04-11", max_length=16, description="Bebeğin doğum tarihi (YYYY-MM-DD)")
+    user_role: str = Field(default="mother", max_length=32, description="Soruyu soran rol ('mother', 'father', 'nanny')")
+    user_name: Optional[str] = Field(default=None, max_length=80, description="Soruyu soran ebeveynin adı")
     manual_leap: Optional[int] = Field(default=None, description="Manuel aktif edilmiş sıçrama numarası (1-10)")
     routine_rollup: Optional[Dict[str, Any]] = Field(default=None, description="Bebeğin son rutin rollup özeti (uyku, beslenme ml, bez, gece uyanma)")
     message: str = Field(..., min_length=1, max_length=4000, description="Ebeveynin/Dadının Mışıl Dadı'ya sorusu")
-    chat_history: Optional[List[Dict[str, str]]] = Field(default=[], description="Önceki sohbet geçmişi")
-    lang: Optional[str] = Field(default="tr", description="Yanıt dili ('tr', 'en' veya 'de')")
+    chat_history: Optional[List[Dict[str, Any]]] = Field(default=[], description="Önceki sohbet geçmişi")
+    lang: Optional[str] = Field(default="tr", max_length=12, description="Yanıt dili ('tr', 'en' veya 'de')")
+    audience: Literal["baby", "mom"] = Field(default="baby", description="'baby' (Bebek İçin) veya 'mom' (Kendim İçin / Anne Molası)")
 
 
 class CoachChatResponse(BaseModel):
@@ -66,7 +67,23 @@ class CoachChatResponse(BaseModel):
     tier_used: str
     baby_name: str
     user_role: str
+    audience: str = "baby"
     timestamp: str
+
+
+def _sanitize_chat_history(raw_history: Optional[List[Dict[str, Any]]]) -> List[Dict[str, str]]:
+    if not raw_history or not isinstance(raw_history, list):
+        return []
+    cleaned: List[Dict[str, str]] = []
+    for item in raw_history[-10:]:
+        if not isinstance(item, dict):
+            continue
+        raw_role = str(item.get("role") or "user").strip().lower()
+        role = "user" if raw_role == "user" else "assistant"
+        content = str(item.get("content") or "").strip()[:1000]
+        if content:
+            cleaned.append({"role": role, "content": content})
+    return cleaned
 
 
 def _resolve_default_baby_name(raw_name: Optional[str], lang_norm: str) -> str:
@@ -88,19 +105,22 @@ async def chat_with_coach(payload: CoachChatRequest, request: Request):
     Bebeğin adına, tam ayına, soruyu soran ebeveyn/dadı rolüne ve aktif gelişim sıçramasına özel şefkatli ve bilimsel çözümler sunar.
     """
     lang_norm = normalize_lang(payload.lang)
+    audience_norm = normalize_audience(payload.audience)
     _enforce_coach_abuse_rate_limit(request, lang_norm)
     default_baby_name = _resolve_default_baby_name(payload.baby_name, lang_norm)
+    safe_history = _sanitize_chat_history(payload.chat_history)
     try:
         result = await run_in_threadpool(
             ask_mishil_dadi,
             baby_name=default_baby_name,
-            birth_date=payload.birth_date,
+            birth_date=payload.birth_date or "2026-04-11",
             message=payload.message,
-            chat_history=payload.chat_history,
+            chat_history=safe_history,
             user_role=payload.user_role,
             manual_leap=payload.manual_leap,
             routine_rollup=payload.routine_rollup,
             lang=lang_norm,
+            audience=audience_norm,
         )
         return CoachChatResponse(**result)
     except Exception as e:
@@ -127,18 +147,21 @@ async def stream_coach_response(payload: CoachChatRequest, request: Request):
     Kelimeleri 300ms içinde canlı canlı ekrana döker, kesintisiz ve sıfır gecikmeli danışmanlık sağlar.
     """
     lang_norm = normalize_lang(payload.lang)
+    audience_norm = normalize_audience(payload.audience)
     _enforce_coach_abuse_rate_limit(request, lang_norm)
     default_baby_name = _resolve_default_baby_name(payload.baby_name, lang_norm)
+    safe_history = _sanitize_chat_history(payload.chat_history)
     try:
         generator = stream_mishil_dadi(
             baby_name=default_baby_name,
-            birth_date=payload.birth_date,
+            birth_date=payload.birth_date or "2026-04-11",
             message=payload.message,
-            chat_history=payload.chat_history,
+            chat_history=safe_history,
             user_role=payload.user_role,
             manual_leap=payload.manual_leap,
             routine_rollup=payload.routine_rollup,
-            lang=lang_norm
+            lang=lang_norm,
+            audience=audience_norm,
         )
         return StreamingResponse(
             generator,

@@ -62,6 +62,84 @@ GRUNDPRINZIPIEN (STRIKT EINZUHALTEN):
 6. PROGRESSIVES MEHRFACH-COACHING: Wiederhole keine bereits genannten Basistipps aus früheren Nachrichten, sondern führe den nächsten vertiefenden Schritt ein.
 """
 
+MOM_SYSTEM_PROMPT = """Sen Mışıl Baby uygulamasındaki '💛 Anne Molası (Kendim İçin)' eşlikçisisin. Bebek uyurken karanlık odada bekleyen, kucağında bebekle kıpırdayamayan, gece nöbetinde yalnız kalan, canı sıkılan veya zihni durmayan anneye/ebeveyne yetişkin bir dost sıcaklığıyla eşlik edersin.
+
+TEMEL PRENSİPLERİN (KESİNLİKLE UYULACAK):
+1. ODAK BEBEK DEĞİL, EBEVEYNDİR: Kullanıcı açıkça sormadıkça ASLA uyanıklık penceresi, bez, emzirme veya bebek uyku dersi verme! Annenin/ebeveynin duygusunu, can sıkıntısını, dokunulma yorgunluğunu (touched-out) veya dinlenme hakkını gör.
+2. YARGISIZ, SAMİMİ VE YETİŞKİN DİLİ: Suçluluk hissettiren ("tadını çıkar, bugünler geçecek" gibi) toksik pozitiflik cümlelerini KESİNLİKLE KULLANMA. Şefkatli, zeki, gerektiğinde hafif tebessüm ettiren 3 kısa paragraf/madde kur:
+   • 1. Duyguyu Görme (1-2 cümle): Şu an yaşadığı hissin ne kadar insani ve haklı olduğunu samimiyetle onayla.
+   • 2. Şu Anki Küçük İyi Oluş / Yetişkin Kaçamağı (2 somut mikro öneri): Karanlık odada/tek elle yapabileceği zihinsel gevşeme, eşle iş bölümü cümlesi veya bebek-dışı keyifli bir düşünce/hikaye kırıntısı.
+   • 3. Suçluluksuz İzin (1 cümle): Bulaşıkları/işleri bırakıp sadece kendisi olma izni. Yanıtını '💛 Kendine de mışıl bir nefes ayır.' ile bitir.
+3. PSİKİYATRİK TEŞHİS YASAĞI & GÜVENLİK KORKULUĞU: Asla psikiyatrik tanı veya ilaç önerme. Kendine veya bebeğe zarar verme / ağır kriz ifadesi sezersen yargılamadan bebeği güvenli beşiğine bırakmasını ve derhal 112 Acil, ALO 182 veya doktoru/yakını ile iletişime geçmesini söyle.
+"""
+
+MOM_SYSTEM_PROMPT_EN = """You are the '💛 For Myself (Mom Break)' companion inside the Mishil Baby app. While the baby sleeps, you keep warm, witty, non-judgmental adult company for a mom or parent who may be nap-trapped in a dark room, bored, touched-out, lonely on night watch, or mentally exhausted.
+
+CORE PRINCIPLES (STRICTLY ENFORCED):
+1. CENTER THE PARENT, NOT THE BABY: Unless explicitly asked, NEVER lecture about wake windows, feeding schedules, or baby sleep training! Focus 100% on the parent's own mind, boredom, rest, identity, and emotional load.
+2. ZERO TOXIC POSITIVITY: Never say clichés like "cherish every sleepless second." Write in warm, grounded adult English across 3 concise blocks:
+   • 1. Honest Validation (1-2 sentences): Acknowledge how real and human their feeling is right now.
+   • 2. Micro-Reset or Adult Spark (2 gentle bullets): Something doable one-handed in a dim room—mental offload, a calm boundary/script with their partner, or a refreshing non-baby thought.
+   • 3. Guilt-Free Permission (1 sentence): Permission to ignore chores and just breathe. End with '💛 Take a gentle Mishil pause for yourself.'
+3. NO PSYCHIATRIC DIAGNOSIS & SAFETY GUARDRAIL: Never diagnose conditions or prescribe medication. If the user expresses self-harm, harm toward the baby, or acute crisis, calmly advise placing the baby safely in the crib and immediately contacting emergency services (988 / 911 / local helpline) or a trusted person.
+"""
+
+MOM_SYSTEM_PROMPT_DE = """Du bist die '💛 Für mich (Mama-Pause)'-Begleiterin in der Mışıl Baby App. Während das Baby schläft, leistest du einer Mutter oder einem Elternteil im abgedunkelten Zimmer warmherzige, kluge und urteilsfreie Gesellschaft auf Augenhöhe – bei Langeweile, Reizüberflutung (Touched-out), nächtlicher Einsamkeit oder vollem Kopf.
+
+GRUNDPRINZIPIEN (STRIKT EINZUHALTEN):
+1. DIE MUTTER / DER ELTERNTEIL STEHT IM MITTELPUNKT: Halte KEINE Vorträge über Wachfenster, Stillabstände oder Schlaftraining, solange nicht ausdrücklich danach gefragt wird!
+2. KEINE TOXISCHE POSITIVITÄT: Vermeide Floskeln wie „genieß jede Sekunde“. Antworte in natürlichem, warmem Deutsch in 3 kompakten Blöcken:
+   • 1. Ehrliches Gesehenwerden (1–2 Sätze): Bestätige ohne Bewertung, wie nachvollziehbar dieses Gefühl gerade ist.
+   • 2. Kleiner Erwachsenen-Impuls (2 kurze Punkte): Etwas, das einhändig im dunklen Raum guttut – gedankliches Loslassen, ein fairer Satz zur Schichtübergabe an den Partner oder ein kleiner Impuls abseits von Babythemen.
+   • 3. Erlaubnis ohne Schuldgefühle (1 Satz): Der Haushalt darf warten. Schließe mit '💛 Gönn auch dir einen sanften Mışıl-Atemzug.' ab.
+3. KEINE PSYCHIATRISCHE DIAGNOSE & SICHERHEITSSCHUTZ: Stelle niemals Diagnosen. Bei Hinweisen auf Selbstgefährdung, Gefährdung des Babys oder akute Krise rate ruhig dazu, das Baby sicher ins Bettchen zu legen und sofort den Notruf (112), die TelefonSeelsorge (0800 111 0 111) oder eine Vertrauensperson zu kontaktieren.
+"""
+
+
+def normalize_audience(audience: Optional[str]) -> str:
+    """Normalize coach audience mode into 'baby' or 'mom'."""
+    if audience and isinstance(audience, str) and audience.strip().lower() == "mom":
+        return "mom"
+    return "baby"
+
+
+def _check_maternal_crisis_guardrail(message: str, lang_norm: str = "tr", user_role: str = "mother") -> Optional[str]:
+    """Deterministic crisis/safety guardrail returning immediate non-judgmental emergency support when triggered."""
+    msg_low = (message or "").strip().lower()
+    if not msg_low:
+        return None
+    crisis_markers = (
+        "intihar", "kendime zarar", "kendimi öldür", "yaşamak istemiyorum", "ölmek istiyorum",
+        "bebeğime zarar", "bebeğe zarar", "bebeği sars", "fırlatmak gel",
+        "suicide", "kill myself", "hurt myself", "end my life", "don't want to live",
+        "harm my baby", "hurt my baby", "shake my baby",
+        "suizid", "selbstmord", "mich umbringen", "mir etwas antun", "nicht mehr leben",
+        "meinem baby wehtun", "baby schütteln",
+    )
+    if not any(marker in msg_low for marker in crisis_markers):
+        return None
+
+    if lang_norm == "de":
+        return (
+            "💛 Es ist mutig und wichtig, dass du aussprichst, wie überwältigend es gerade ist – du bist damit nicht allein und musst das nicht alleine tragen.\n\n"
+            "• **Sofortiger Sicherheitsschritt:** Wenn dein Baby bei dir ist, lege es bitte jetzt sicher auf den Rücken ins Bettchen und geh für einen Moment einen Schritt aus dem Zimmer.\n"
+            "• **Sofortige Hilfe (24/7 kostenlos & vertraulich):** Ruf bitte direkt eine Vertrauensperson im Haus/in der Familie an oder wende dich sofort an den **Notruf 112** bzw. die **TelefonSeelsorge unter 0800 111 0 111** (oder deine Hebamme / Ärztin).\n\n"
+            "*(Hinweis: Mışıl Nanny ersetzt keine ärztliche oder psychotherapeutische Krisenhilfe. Bitte hol dir genau jetzt menschliche Unterstützung.)*"
+        )
+    if lang_norm == "en":
+        return (
+            "💛 Thank you for saying out loud how overwhelming this moment feels—you are not a bad parent for struggling, and you do not have to carry this alone right now.\n\n"
+            "• **Immediate Safety First:** If your baby is with you, please place your baby safely on their back in the crib and step just outside the room to breathe.\n"
+            "• **Reach Real Support Right Now (24/7):** Wake or call your partner/trusted person immediately, or call/text **988 (Suicide & Crisis Lifeline)**, **1-800-944-4773 (Postpartum Support International)**, or **your local emergency number (112 / 911)**.\n\n"
+            "*(Safety Note: Mishil Nanny cannot provide medical or crisis care—please connect with a live professional or loved one right away.)*"
+        )
+    return (
+        "💛 Şu an ne kadar ağır bir yükün altında olduğunuzu dile getirmeniz çok kıymetli; bu tükenmişlik sizi kötü bir ebeveyn yapmaz ve bu anı tek başınıza taşımak zorunda değilsiniz.\n\n"
+        "• **İlk Güvenlik Adımı:** Bebeğiniz kucağınızdaysa lütfen onu şimdi güvenli beşiğine sırtüstü bırakın ve birkaç adım uzaklaşıp odanın dışına çıkın.\n"
+        "• **Hemen Canlı Destek Alın (7/24):** Lütfen şu an eşinizi veya güvendiğiniz bir yakınınızı uyandırın/arayın; acil destek için derhal **112 Acil Çağrı Merkezi**, **ALO 182 (MHRS Psikososyal/Hekim Randevu)** veya doktorunuzla iletişime geçin.\n\n"
+        "*(Güvenlik Notu: Mışıl Dadı tıbbi veya psikiyatrik kriz müdahalesi sunamaz; lütfen şu an gerçek bir uzman veya yakınınızla sesli bağlantı kurun.)*"
+    )
+
 
 def normalize_lang(lang: Optional[str]) -> str:
     """Normalize any locale/language string ('tr-TR', 'en-US', 'de-DE', 'de-CH', None) into 'tr', 'en', or 'de'."""
@@ -235,9 +313,47 @@ def _calc_baby_details(birth_date_str: str, manual_leap: Optional[int] = None, l
         }
 
 
-def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date: str, message: str, chat_history: List[Dict[str, str]], user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None, lang: str = "tr") -> Optional[str]:
-    lang_norm = normalize_lang(lang)
+def _build_system_and_ask_prompt(
+    baby_name: str,
+    birth_date: str,
+    message: str,
+    user_role: str = "mother",
+    manual_leap: Optional[int] = None,
+    routine_rollup: Optional[Dict[str, Any]] = None,
+    lang_norm: str = "tr",
+    audience_norm: str = "baby",
+):
     baby_info = _calc_baby_details(birth_date, manual_leap, lang_norm)
+    if audience_norm == "mom":
+        if lang_norm == "de":
+            role_label = "Mama" if user_role == "mother" else ("Papa" if user_role == "father" else "Bezugsperson")
+            sys_prompt = (
+                f"{MOM_SYSTEM_PROMPT_DE}\n\n"
+                f"[HINTERGRUND – NUR ZUR EINORDNUNG]\n"
+                f"Rolle: {role_label} • Baby ({baby_name}, {baby_info['age_formatted']}) schläft / ruht."
+            )
+            ask_prefix = f"[{role_label} im Modus 'Für mich' schreibt]: {message}"
+            continuation_prompt = "Vervollständige deinen angefangenen Satz nahtlos und schließe mit '💛 Gönn auch dir einen sanften Mışıl-Atemzug.' ab."
+        elif lang_norm == "en":
+            role_label = "Mom" if user_role == "mother" else ("Dad" if user_role == "father" else "Caregiver")
+            sys_prompt = (
+                f"{MOM_SYSTEM_PROMPT_EN}\n\n"
+                f"[QUIET CONTEXT – DO NOT LECTURE ABOUT BABY UNLESS ASKED]\n"
+                f"Parent Role: {role_label} • Baby ({baby_name}, {baby_info['age_formatted']}) is resting."
+            )
+            ask_prefix = f"[{role_label} in 'For Myself' mode writes]: {message}"
+            continuation_prompt = "Complete your unfinished sentence seamlessly and finish with '💛 Take a gentle Mishil pause for yourself.'"
+        else:
+            role_label = "Anne" if user_role == "mother" else ("Baba" if user_role == "father" else "Bakıcı")
+            sys_prompt = (
+                f"{MOM_SYSTEM_PROMPT}\n\n"
+                f"[SESSİZ ARKA PLAN – KULLANICI SORMADIKÇA BEBEK DERSİ VERME]\n"
+                f"Ebeveyn Rolü: {role_label} • Bebek ({baby_name}, {baby_info['age_formatted']}) dinleniyor."
+            )
+            ask_prefix = f"[{role_label} 'Kendim İçin' modunda yazıyor]: {message}"
+            continuation_prompt = "Yarım kalan cümleni kaldığın yerden tamamla ve '💛 Kendine de mışıl bir nefes ayır.' ile bitir."
+        return sys_prompt, ask_prefix, continuation_prompt
+
     if lang_norm == "de":
         role_label = "Mama" if user_role == "mother" else ("Papa" if user_role == "father" else "Bezugsperson / Babysitter")
         rollup_text = ""
@@ -259,6 +375,7 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
             f"{rollup_text}"
         )
         ask_prefix = f"[{role_label} fragt]: {message}"
+        continuation_prompt = "Vervollständige deinen angefangenen Satz nahtlos ab der letzten Stelle und schließe mit '🌸 Süße Mışıl-Träume!' ab."
     elif lang_norm == "en":
         role_label = "Mom" if user_role == "mother" else ("Dad" if user_role == "father" else "Nanny / Caregiver")
         rollup_text = ""
@@ -280,6 +397,7 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
             f"{rollup_text}"
         )
         ask_prefix = f"[{role_label} Asks]: {message}"
+        continuation_prompt = "Complete your unfinished sentence seamlessly from where you left off and finish with '🌸 Wishing you sweet Mishil dreams.'"
     else:
         role_label = "Anne" if user_role == "mother" else ("Baba" if user_role == "father" else "Dadı / Bakıcı")
         rollup_text = ""
@@ -301,6 +419,23 @@ def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date
             f"{rollup_text}"
         )
         ask_prefix = f"[{role_label} Soruyor]: {message}"
+        continuation_prompt = "Yarım kalan cümleni kaldığın yerden eksiksiz tamamla ve '🌸 Mışıl uykular dilerim.' ile noktayı koy."
+    return sys_prompt, ask_prefix, continuation_prompt
+
+
+def _call_gemini_model(model_name: str, api_key: str, baby_name: str, birth_date: str, message: str, chat_history: List[Dict[str, str]], user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None, lang: str = "tr", audience: str = "baby") -> Optional[str]:
+    lang_norm = normalize_lang(lang)
+    audience_norm = normalize_audience(audience)
+    sys_prompt, ask_prefix, _ = _build_system_and_ask_prompt(
+        baby_name=baby_name,
+        birth_date=birth_date,
+        message=message,
+        user_role=user_role,
+        manual_leap=manual_leap,
+        routine_rollup=routine_rollup,
+        lang_norm=lang_norm,
+        audience_norm=audience_norm,
+    )
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={api_key}"
 
@@ -649,120 +784,202 @@ def _tier4_clinical_heuristic(baby_name: str, birth_date: str, message: str, use
             )
 
 
-def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None, lang: str = "tr") -> Dict[str, Any]:
-    """Multi-Tier AI Execution Pipeline with Role Awareness, Leap Sync & Bilingual (TR/EN) Support"""
+def _tier4_mom_companion_heuristic(
+    baby_name: str,
+    message: str,
+    user_role: str = "mother",
+    chat_history: Optional[List[Dict[str, str]]] = None,
+    lang: str = "tr",
+) -> str:
+    """Offline Tier-4 Maternal Self-Compassion & Adult Break Companion (TR / EN / DE)."""
     lang_norm = normalize_lang(lang)
+    crisis_reply = _check_maternal_crisis_guardrail(message, lang_norm, user_role)
+    if crisis_reply:
+        return crisis_reply
+
+    msg_low = (message or "").lower()
+    turn_count = len([h for h in (chat_history or []) if h.get("role") == "user"])
+
+    if lang_norm == "de":
+        hitap = "Liebe Mama" if user_role == "mother" else ("Lieber Papa" if user_role == "father" else "Liebes Du")
+        if any(w in msg_low for w in ["langweilig", "dunkel", "arm", "feststeck", "nichts tun", "ablenk", "geschichte"]):
+            return (
+                f"{hitap}, im dunklen Zimmer festzusitzen, während {baby_name} schläft, ist eine ganz eigene Art von Stille – dein Körper ruht, aber dein erwachsener Kopf sehnt sich nach echten Reizen.\n\n"
+                f"• **Kleiner Gedanken-Ausflug (ganz ohne Babythema):** Wusstest du, dass Seeotter im Schlaf Händchen halten, um nicht auseinanderzutreiben – und in Japan Cafés existieren, in denen man einfach nur schweigend dem Regen im Garten zusieht?\n"
+                f"• **Für die nächsten 3 Minuten:** Öffne auf dem Startbildschirm in der *Mama-Pause* eine Kultur-Mini-Karte oder das ruhige Nacht-Wortspiel.\n\n"
+                f"💛 Gönn auch dir einen sanften Mışıl-Atemzug."
+            )
+        if any(w in msg_low for w in ["erschöpft", "müde", "ausgelaugt", "kopf", "gedanken", "kann nicht schlafen", "überreizt", "touched"]):
+            return (
+                f"{hitap}, dieses „Hundemüde, aber innerlich hellwach“-Gefühl entsteht, weil dein Nervensystem stundenlang im Wachsamkeitsmodus war – das lässt sich nicht per Knopfdruck abschalten.\n\n"
+                f"• **Kiefer & Schultern lösen:** Lass deine Zunge sanft vom Gaumen sinken und atme einmal länger aus als ein (4 Sek. ein, 6 Sek. aus).\n"
+                f"• **Gedanken parken:** Schreib alles, was dir für morgen im Kopf kreist, kurz in die *Morgen-Erinnerungsbox*, damit dein Gehirn heute Nacht Feierabend machen darf.\n\n"
+                f"💛 Gönn auch dir einen sanften Mışıl-Atemzug."
+            )
+        if any(w in msg_low for w in ["mann", "partner", "schicht", "allein", "unglaublich", "unfair", "hilfe", "streit"]):
+            return (
+                f"{hitap}, nächtliche Erschöpfung lässt jede unausgesprochene Last doppelt schwer wirken – du verdienst echte Entlastung im Team, nicht nur „Hilfe auf Zuruf“.\n\n"
+                f"• **Leiser Schicht-Impuls statt Diskussion um 3 Uhr nachts:** Schick über *Partner zuflüstern* mit einem Tippen: *„Baby schläft, ich ruhe mich jetzt aus – die nächste Aufwach-Schicht gehört dir.“*\n"
+                f"• **Tagsüber klar vereinbaren:** Ein festes 4-Stunden-Schlaffenster ohne Babyverantwortung wirkt oft stärker als zehn kurze Pausen.\n\n"
+                f"💛 Gönn auch dir einen sanften Mışıl-Atemzug."
+            )
+        return (
+            f"{hitap}, jetzt wo {baby_name} schläft, gehört dieser kleine Insel-Moment nur dir – nicht der Küche, nicht der Wäsche und keinem Ratgeber.\n\n"
+            f"• Trink einen Schluck Wasser, lehn den Kopf zurück und erlaube dir 5 Minuten lang, absolut nichts Nützliches tun zu müssen.\n"
+            f"• Wenn du magst, erzähl mir einfach, wonach dir gerade der Sinn steht – ein kleiner Gesprächsimpuls, Gedanken sortieren oder einfach stilles Dasein.\n\n"
+            f"💛 Gönn auch dir einen sanften Mışıl-Atemzug."
+        )
+
+    if lang_norm == "en":
+        hitap = "Dear Mom" if user_role == "mother" else ("Dear Dad" if user_role == "father" else "Hey there")
+        if any(w in msg_low for w in ["bored", "dark", "stuck", "nap trap", "nap-trap", "nothing to do", "story", "distract"]):
+            return (
+                f"{hitap}, being nap-trapped in a pitch-dark room is such a surreal mix—your arms are full, yet your adult brain is starving for a spark that has nothing to do with diapers.\n\n"
+                f"• **Tiny Non-Baby Escape:** In Kyoto, artisans still repair cracked ceramics with gold lacquer (*Kintsugi*), treating every mend as the most valuable chapter of the bowl's history.\n"
+                f"• **Right Now One-Handed:** Peek at the *3-Min Adult Escape* cards or the calm night word puzzle in your *Mom Break* drawer—zero sound, zero pressure.\n\n"
+                f"💛 Take a gentle Mishil pause for yourself."
+            )
+        if any(w in msg_low for w in ["exhausted", "tired", "burnout", "burned out", "racing", "can't sleep", "touched out", "overwhelmed"]):
+            return (
+                f"{hitap}, feeling bone-tired yet wired happens because your nervous system has been standing guard on high alert—and being 'touched out' is a very real sensory overload, not ingratitude.\n\n"
+                f"• **60-Second Nervous System Drop:** Unclench your jaw, drop your tongue from the roof of your mouth, and make your exhale two seconds longer than your inhale.\n"
+                f"• **Park Tomorrow's Mental Tabs:** Drop any nagging errands into the *Remind Me Tomorrow* box so your brain stops holding the clipboard tonight.\n\n"
+                f"💛 Take a gentle Mishil pause for yourself."
+            )
+        if any(w in msg_low for w in ["partner", "husband", "spouse", "shift", "unfair", "alone", "lonely", "invisible"]):
+            return (
+                f"{hitap}, night watches can feel deeply lonely when the whole house is asleep and you feel like the invisible anchor holding everything together.\n\n"
+                f"• **Skip the 3 AM Debate—Use a 1-Tap Handoff:** Tap *Whisper to Partner* to quietly send *“Baby is down—you’re on the next wake shift”* or ask for water/tea without speaking a word.\n"
+                f"• **Remember:** Thousands of parents are awake under the same night sky right now—light the *Night-Watch Lantern* if you want a quiet pulse of solidarity.\n\n"
+                f"💛 Take a gentle Mishil pause for yourself."
+            )
+        return (
+            f"{hitap}, while {baby_name} is asleep, this quiet pocket belongs to *you*—not the sink, not the laundry, and not another parenting checklist.\n\n"
+            f"• Take one slow sip of water, rest your eyes from bright feeds, and give yourself full permission to do nothing productive right now.\n"
+            f"• Tell me what would feel good in this pause: venting, calming a busy mind, or chatting about something completely outside baby world.\n\n"
+            f"💛 Take a gentle Mishil pause for yourself."
+        )
+
+    hitap = "Canım anneciğim" if user_role == "mother" else ("Sevgili babacığım" if user_role == "father" else "Güzel kalpli bakım verenimiz")
+    if any(w in msg_low for w in ["sıkıl", "karanlık", "kucağım", "kıpırda", "ne yapacağım", "bunaldım", "hikaye", "anlat"]):
+        return (
+            f"{hitap}, karanlık odada ya da kucakta kıpırdayamadan beklerken insanın yetişkin zihninin sıkılması o kadar doğal ki; herkes bebeği sorarken senin sadece 'kendin' olmaya ihtiyacın var.\n\n"
+            f"• **Bebek-Dışı 1 Dakikalık Kaçamak:** Japonya'da *Tsundoku* diye harika bir kelime var; okuyamasan bile başucuna kitap dizmenin insana verdiği o huzurlu umudu anlatıyor—yani yarım kalan kitapların seni suçlamıyor, bekliyor.\n"
+            f"• **Tek Elle Sessiz Keyif:** Ana ekrandaki *Anne Molası* çekmecesinden *3 Dk Yetişkin Kaçamağı* kartlarına veya sessiz *Gece Kelimesi* bulmacasına göz atabilirsin.\n\n"
+            f"💛 Kendine de mışıl bir nefes ayır."
+        )
+    if any(w in msg_low for w in ["tükendim", "yoruldum", "zihnim", "uyuyamıyorum", "dokunul", "tahammül", "ağlamak", "suçlu"]):
+        return (
+            f"{hitap}, bedenin yorgunluktan sızlarken zihninin susmaması senin eksiğin değil; saatlerdir tetikte bekleyen sinir sisteminin bir anda frene basamamasıdır.\n\n"
+            f"• **Şu An 30 Saniyelik Bedensel İzin:** Çeneni gevşet, dilini damağından indir ve nefes verirken aldığından biraz daha uzun bırak; mutfaktaki dağınıklık bu gece bekleyebilir.\n"
+            f"• **Zihin Sekmelerini Kapat:** Aklında dönüp duran 'yarın şunu unutmayayım' notlarını *Sabah Hatırlat Kutusu*'na bırak ki beynin nöbeti devretsin.\n\n"
+            f"💛 Kendine de mışıl bir nefes ayır."
+        )
+    if any(w in msg_low for w in ["eşim", "kocam", "nöbet", "yalnız", "kimse", "anlamıyor", "yardım", "görünmez"]):
+        return (
+            f"{hitap}, herkes uyurken gece nöbetinde tek başına kalmak insana kendini görünmez hissettirebilir; ama bu emeğin her saniyesi çok gerçek ve ağır.\n\n"
+            f"• **Gece Yarısı Uzun Konuşma Yerine Tek Tık Devir:** *Anne Molası* içindeki *Eşime Fısılda* kartından tek dokunuşla *'Bebek uyudu, sonraki uyanma nöbeti sende'* veya *'Sessizce bir su/çay getirir misin?'* mesajını yollayabilirsin.\n"
+            f"• **Yalnız Değilsin:** İstersen *Gece Nöbeti Feneri*'ni yakıp şu an seninle aynı saatte uyanık olan diğer annelerle sessiz bir dayanışma selamı paylaşabilirsin.\n\n"
+            f"💛 Kendine de mışıl bir nefes ayır."
+        )
+    if turn_count >= 1:
+        return (
+            f"{hitap}, buradayım ve seni dinliyorum; {baby_name} uyurken bu birkaç dakika tamamen senin nefes alanın.\n\n"
+            f"• Şu an hiçbir şeyi 'düzeltmek' ya da verimli olmak zorunda değilsin; omuzlarını yastığa bırakıp sadece dinlenmek bile başlı başına bir iyiliktir.\n"
+            f"• İçini dökmeye devam etmek istersen ya da tamamen bebek-dışı bir şey konuşmak istersen yazman yeterli.\n\n"
+            f"💛 Kendine de mışıl bir nefes ayır."
+        )
+    return (
+        f"{hitap}, {baby_name} mışıl mışıl uyurken nihayet sıra sende—bu modda uyanıklık penceresi veya bez hesabı yok, sadece **sen** varsın.\n\n"
+        f"• Bir yudum su iç, omuzlarını arkaya bırak ve evdeki işlerin bu gece seni bekleyebileceğini kendine hatırlat.\n"
+        f"• Şu an zihnini yoran bir hissi paylaşmak mı, eşinle nöbet bölüşümü konuşmak mı, yoksa bebek-dışı keyifli bir mola mı sana iyi gelir?\n\n"
+        f"💛 Kendine de mışıl bir nefes ayır."
+    )
+
+
+def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None, lang: str = "tr", audience: str = "baby") -> Dict[str, Any]:
+    """Multi-Tier AI Execution Pipeline with Role Awareness, Mom Self-Care Mode & Trilingual (TR/EN/DE) Support"""
+    lang_norm = normalize_lang(lang)
+    audience_norm = normalize_audience(audience)
     chat_history = chat_history or []
+
+    # Deterministic crisis/safety guardrail always takes top priority without LLM latency
+    crisis_reply = _check_maternal_crisis_guardrail(message, lang_norm, user_role)
+    if crisis_reply:
+        return {
+            "reply": crisis_reply,
+            "tier_used": "Safety Guardrail (Immediate Crisis Support)",
+            "baby_name": baby_name,
+            "user_role": user_role,
+            "audience": audience_norm,
+            "timestamp": datetime.now().isoformat(),
+        }
+
     api_key = _find_gemini_api_key()
 
     reply = None
     tier_used = None
 
-    if api_key:
+    if api_key and not os.environ.get("PYTEST_CURRENT_TEST"):
         # Tier 1: Gemini 3.6 Flash
-        reply = _call_gemini_model("gemini-3.6-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup, lang_norm)
+        reply = _call_gemini_model("gemini-3.6-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup, lang_norm, audience_norm)
         if reply:
             tier_used = "Tier 1 (Google Gemini 3.6 Flash API)"
 
         # Tier 2: Gemini 3.5 Flash
         if not reply:
-            reply = _call_gemini_model("gemini-3.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup, lang_norm)
+            reply = _call_gemini_model("gemini-3.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup, lang_norm, audience_norm)
             if reply:
                 tier_used = "Tier 2 (Google Gemini 3.5 Flash API)"
 
-    # Tier 4: Clinical Sirkadiyen Heuristic Engine
+    # Tier 4: Offline Companion / Clinical Sirkadiyen Engine
     if not reply:
-        reply = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap, chat_history, lang_norm)
-        tier_used = "Tier 4 (Clinical Sirkadiyen Engine)"
+        if audience_norm == "mom":
+            reply = _tier4_mom_companion_heuristic(baby_name, message, user_role, chat_history, lang_norm)
+            tier_used = "Tier 4 (Maternal Companion Engine)"
+        else:
+            reply = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap, chat_history, lang_norm)
+            tier_used = "Tier 4 (Clinical Sirkadiyen Engine)"
 
-    logger.info(f"Mışıl Dadı AI executed for {baby_name} ({user_role}, lang={lang_norm}) using {tier_used}")
+    logger.info(f"Mışıl Dadı AI executed for {baby_name} ({user_role}, audience={audience_norm}, lang={lang_norm}) using {tier_used}")
 
     return {
         "reply": reply,
         "tier_used": tier_used,
         "baby_name": baby_name,
         "user_role": user_role,
+        "audience": audience_norm,
         "timestamp": datetime.now().isoformat()
     }
 
 
-def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None, lang: str = "tr"):
-    """Server-Sent Events (SSE) Live Token Streaming Generator for Mışıl Dadı AI (TR/EN)"""
+def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history: Optional[List[Dict[str, str]]] = None, user_role: str = "mother", manual_leap: Optional[int] = None, routine_rollup: Optional[Dict[str, Any]] = None, lang: str = "tr", audience: str = "baby"):
+    """Server-Sent Events (SSE) Live Token Streaming Generator for Mışıl Dadı AI (TR/EN/DE + Baby/Mom modes)"""
     import time
     lang_norm = normalize_lang(lang)
+    audience_norm = normalize_audience(audience)
     chat_history = chat_history or []
-    api_key = _find_gemini_api_key()
-    baby_info = _calc_baby_details(birth_date, manual_leap, lang_norm)
 
+    crisis_reply = _check_maternal_crisis_guardrail(message, lang_norm, user_role)
+    if crisis_reply:
+        yield f"data: {json.dumps({'text': crisis_reply, 'tier': 'Safety Guardrail (Immediate Crisis Support)'})}\n\n"
+        yield f"data: {json.dumps({'done': True})}\n\n"
+        return
+
+    api_key = _find_gemini_api_key()
     streamed_success = False
 
-    if api_key:
-        if lang_norm == "de":
-            role_label = "Mama" if user_role == "mother" else ("Papa" if user_role == "father" else "Bezugsperson / Babysitter")
-            rollup_text = ""
-            if routine_rollup:
-                rollup_text = (
-                    f"\n• Täglicher Gesamtschlaf: {routine_rollup.get('daily_sleep_hours', '—')} Stunden"
-                    f"\n• Mahlzeiten: {routine_rollup.get('feeding_count', 0)}-mal (Gesamt {routine_rollup.get('total_feeding_ml', 0)} ml, Ø alle {routine_rollup.get('avg_feeding_interval_hours', '—')} Std.)"
-                    f"\n• Windeln: {routine_rollup.get('diaper_wet', 0)} nass, {routine_rollup.get('diaper_dirty', 0)} voll"
-                    f"\n• Nächtliches Aufwachen: {routine_rollup.get('night_awakenings', 0)}-mal"
-                )
-            sys_prompt = (
-                f"{SYSTEM_PROMPT_DE}\n\n"
-                f"[AKTUELLER BABY-KONTEXT – NUR ALS KLINISCHER HINTERGRUND, NICHT ERZWINGEN WENN UNABHÄNGIG VON DER FRAGE]\n"
-                f"Rolle: {role_label}\n"
-                f"Babyname: {baby_name}\n"
-                f"Alter: {baby_info['age_formatted']}\n"
-                f"Entwicklungs-/Regressionsphase: {baby_info['leap_info']}\n"
-                f"Ideales MışılSpot-Wachfenster: {baby_info['wake_window_min']} Minuten"
-                f"{rollup_text}"
-            )
-            ask_prefix = f"[{role_label} fragt]: {message}"
-            continuation_prompt = "Vervollständige deinen angefangenen Satz nahtlos ab der letzten Stelle und schließe mit '🌸 Süße Mışıl-Träume!' ab."
-        elif lang_norm == "en":
-            role_label = "Mom" if user_role == "mother" else ("Dad" if user_role == "father" else "Nanny / Caregiver")
-            rollup_text = ""
-            if routine_rollup:
-                rollup_text = (
-                    f"\n• Daily Total Sleep: {routine_rollup.get('daily_sleep_hours', '—')} hours"
-                    f"\n• Feedings: {routine_rollup.get('feeding_count', 0)} times (Total {routine_rollup.get('total_feeding_ml', 0)} ml, avg every {routine_rollup.get('avg_feeding_interval_hours', '—')} hrs)"
-                    f"\n• Diapers: {routine_rollup.get('diaper_wet', 0)} wet, {routine_rollup.get('diaper_dirty', 0)} dirty"
-                    f"\n• Night Awakenings: {routine_rollup.get('night_awakenings', 0)} times"
-                )
-            sys_prompt = (
-                f"{SYSTEM_PROMPT_EN}\n\n"
-                f"[CURRENT BABY REFERENCE CONTEXT - FOR CLINICAL BACKGROUND ONLY, DO NOT FORCE INTO UNRELATED ANSWERS]\n"
-                f"Parent Role: {role_label}\n"
-                f"Baby Name: {baby_name}\n"
-                f"Age: {baby_info['age_formatted']}\n"
-                f"Developmental/Regression Stage: {baby_info['leap_info']}\n"
-                f"Ideal MishilSpot Wake Window: {baby_info['wake_window_min']} minutes"
-                f"{rollup_text}"
-            )
-            ask_prefix = f"[{role_label} Asks]: {message}"
-            continuation_prompt = "Complete your unfinished sentence seamlessly from where you left off and finish with '🌸 Wishing you sweet Mishil dreams.'"
-        else:
-            role_label = "Anne" if user_role == "mother" else ("Baba" if user_role == "father" else "Dadı / Bakıcı")
-            rollup_text = ""
-            if routine_rollup:
-                rollup_text = (
-                    f"\n• Günlük Toplam Uyku: {routine_rollup.get('daily_sleep_hours', '—')} saat"
-                    f"\n• Beslenme: {routine_rollup.get('feeding_count', 0)} kez (Toplam {routine_rollup.get('total_feeding_ml', 0)} ml, ort. {routine_rollup.get('avg_feeding_interval_hours', '—')} saat arayla)"
-                    f"\n• Bez Durumu: {routine_rollup.get('diaper_wet', 0)} ıslak, {routine_rollup.get('diaper_dirty', 0)} kirli"
-                    f"\n• Gece Uyanması: {routine_rollup.get('night_awakenings', 0)} kez"
-                )
-            sys_prompt = (
-                f"{SYSTEM_PROMPT}\n\n"
-                f"[GÜNCEL BEBEK REFERANS BİLGİSİ - YALNIZCA ARKA PLAN İÇİNDİR, SORUYLA DOĞRUDAN İLGİSİZSE CEVABA ZORLA EKLEME]\n"
-                f"Kullanıcı Rolü: {role_label}\n"
-                f"Bebek Adı: {baby_name}\n"
-                f"Yaş: {baby_info['age_formatted']}\n"
-                f"Gelişim/Regresyon Evresi: {baby_info['leap_info']}\n"
-                f"İdeal MışılSpot Uyanıklık Penceresi: {baby_info['wake_window_min']} dakika"
-                f"{rollup_text}"
-            )
-            ask_prefix = f"[{role_label} Soruyor]: {message}"
-            continuation_prompt = "Yarım kalan cümleni kaldığın yerden eksiksiz tamamla ve '🌸 Mışıl uykular dilerim.' ile noktayı koy."
+    if api_key and not os.environ.get("PYTEST_CURRENT_TEST"):
+        sys_prompt, ask_prefix, continuation_prompt = _build_system_and_ask_prompt(
+            baby_name=baby_name,
+            birth_date=birth_date,
+            message=message,
+            user_role=user_role,
+            manual_leap=manual_leap,
+            routine_rollup=routine_rollup,
+            lang_norm=lang_norm,
+            audience_norm=audience_norm,
+        )
 
         for candidate_model in ["gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash"]:
             if streamed_success:
@@ -780,7 +997,7 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
                 "contents": contents,
                 "systemInstruction": {"parts": [{"text": sys_prompt}]},
                 "generationConfig": {
-                    "temperature": 0.40,
+                    "temperature": 0.45 if audience_norm == "mom" else 0.40,
                     "maxOutputTokens": 2500
                 }
             }
@@ -853,14 +1070,20 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
             except Exception as err:
                 logger.warning(f"Live Gemini SSE streaming error with {candidate_model}: {err}")
 
-    # Fallback to local clinical progressive heuristic streaming if live API didn't stream
+    # Fallback to local progressive heuristic streaming if live API didn't stream
     if not streamed_success:
-        full_text = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap, chat_history, lang_norm)
+        if audience_norm == "mom":
+            full_text = _tier4_mom_companion_heuristic(baby_name, message, user_role, chat_history, lang_norm)
+            tier_label = "Tier 4 (Maternal Companion Streaming)"
+        else:
+            full_text = _tier4_clinical_heuristic(baby_name, birth_date, message, user_role, manual_leap, chat_history, lang_norm)
+            tier_label = "Tier 4 (Clinical Progressive Streaming)"
         words = full_text.split(" ")
         for i, word in enumerate(words):
             chunk = word + (" " if i < len(words) - 1 else "")
-            yield f"data: {json.dumps({'text': chunk, 'tier': 'Tier 4 (Clinical Progressive Streaming)'})}\n\n"
-            time.sleep(0.015)
+            yield f"data: {json.dumps({'text': chunk, 'tier': tier_label})}\n\n"
+            if not os.environ.get("PYTEST_CURRENT_TEST"):
+                time.sleep(0.015)
 
     yield f"data: {json.dumps({'done': True})}\n\n"
 

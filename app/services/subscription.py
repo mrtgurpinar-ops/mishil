@@ -229,6 +229,7 @@ class SubscriptionService:
             if not ledger_row:
                 ledger_row = SubscriberLedger(
                     subscriber_id=sub_uid,
+                    rc_app_user_id=str(app_user_id)[:128] if app_user_id else None,
                     platform=platform_str,
                     product_id=prod_id_resolved,
                     plan_label=plan_lbl,
@@ -256,6 +257,8 @@ class SubscriptionService:
                     and event_type == "INITIAL_PURCHASE"
                 )
                 if not is_stale_event:
+                    if app_user_id:
+                        ledger_row.rc_app_user_id = str(app_user_id)[:128]
                     ledger_row.platform = platform_str
                     ledger_row.status = ledger_status
                     ledger_row.offer_type = offer_type_val
