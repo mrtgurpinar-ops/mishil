@@ -236,8 +236,12 @@ _BASELINE_LOCK = threading.RLock()
 
 # first_open / daily_active sinyal kaydı için eşzamanlı çift-kayıt (TOCTOU) koruması.
 _APP_OPEN_SIGNAL_LOCK = threading.Lock()
+# BackgroundTasks thread-pool içinde eşzamanlı 15sn BridgeClick tekilleştirmesi için atomik kilit.
+_BRIDGE_CLICK_LOCK = threading.Lock()
+_SCHEMA_INIT_LOCK = threading.Lock()
 
 _SCHEMA_INITIALIZED = False
+_BRIDGE_TABLE_READY = False
 
 BOT_SIGNATURES = (
     "facebookexternalhit",
@@ -2419,69 +2423,86 @@ def ensure_historical_seed(db: Session) -> None:
     Sıfır Statik Veri İlkesi:
     Veritabanı şemasının mevcut olduğundan emin olur ve varsa kalıcı StoreSyncState
     önbelleğini yükler; hiçbir statik/sahte tıklama, kampanya veya abone verisi tohumlamaz.
+    Canlı ortamda ağır şema/temizlik sorguları süreç başına yalnızca bir kez koşturulur.
     """
+    global _SCHEMA_INITIALIZED, _BRIDGE_TABLE_READY
+    is_pytest = bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    is_prod_engine = False
     try:
-        bind_target = db.connection() if db is not None else engine
-        Base.metadata.create_all(bind=bind_target, checkfirst=True)
-        insp = inspect(bind_target)
-        if insp.has_table("store_daily_metrics"):
-            existing_cols = {col["name"] for col in insp.get_columns("store_daily_metrics")}
-            if "active_sessions" not in existing_cols:
-                db.execute(text("ALTER TABLE store_daily_metrics ADD COLUMN active_sessions INTEGER NOT NULL DEFAULT 0"))
-                db.commit()
-    except Exception as schema_exc:
-        logger.warning("Schema migration check warning: %s", schema_exc)
-        try:
-            db.rollback()
-        except Exception:
-            pass
-        try:
-            Base.metadata.create_all(bind=engine, checkfirst=True)
-        except Exception:
-            pass
+        is_prod_engine = (db is not None and db.get_bind() is engine) or (db is None)
+    except Exception:
+        is_prod_engine = False
 
-    # Eski v4.46.0 sürümünden veritabanında kalan tüm statik tohum kayıtlarını (HistoricalSeed vb.) temizle
-    try:
-        del_clicks = (
-            db.query(BridgeClick)
-            .filter(
-                (BridgeClick.user_agent == "Historical Railway Deployment Log (6a91615f)")
-                | (BridgeClick.fbclid == "railway_log_backfill")
-                | (BridgeClick.utm_campaign == "misil_launch_oct2026")
-            )
-            .delete(synchronize_session=False)
-        )
-        del_campaigns = (
-            db.query(CampaignConfig)
-            .filter(CampaignConfig.reported_impressions.in_([4014, 3850, 640, 410]))
-            .delete(synchronize_session=False)
-        )
-        del_metrics = (
-            db.query(StoreDailyMetric)
-            .filter(StoreDailyMetric.impressions.in_([85, 290, 620, 740, 810, 690, 520, 311]))
-            .delete(synchronize_session=False)
-        )
-        st_row_check = db.query(StoreSyncState).filter(StoreSyncState.state_key == "primary_store_baseline").first()
-        del_sync = 0
-        if st_row_check:
-            snap = st_row_check.snapshot_json if isinstance(st_row_check.snapshot_json, dict) else {}
-            if (
-                snap.get("apple_impressions_total") == 4066
-                or (st_row_check.last_synced_at_str and "28.10.2026 22:30" in st_row_check.last_synced_at_str)
-            ):
-                db.delete(st_row_check)
-                del_sync = 1
-                with _BASELINE_LOCK:
-                    OFFICIAL_STORE_BASELINE.clear()
-                    OFFICIAL_STORE_BASELINE.update(_empty_store_state())
-        if del_clicks or del_campaigns or del_metrics or del_sync:
-            db.commit()
-    except Exception as purge_exc:
-        logger.debug("Legacy seed purge skipped: %s", purge_exc)
-        try:
-            db.rollback()
-        except Exception:
-            pass
+    need_heavy_init = is_pytest or (not is_prod_engine) or (not _SCHEMA_INITIALIZED)
+    if need_heavy_init:
+        with _SCHEMA_INIT_LOCK:
+            if is_pytest or (not is_prod_engine) or (not _SCHEMA_INITIALIZED):
+                try:
+                    bind_target = db.connection() if db is not None else engine
+                    Base.metadata.create_all(bind=bind_target, checkfirst=True)
+                    insp = inspect(bind_target)
+                    if insp.has_table("store_daily_metrics"):
+                        existing_cols = {col["name"] for col in insp.get_columns("store_daily_metrics")}
+                        if "active_sessions" not in existing_cols:
+                            db.execute(text("ALTER TABLE store_daily_metrics ADD COLUMN active_sessions INTEGER NOT NULL DEFAULT 0"))
+                            db.commit()
+                except Exception as schema_exc:
+                    logger.warning("Schema migration check warning: %s", schema_exc)
+                    try:
+                        db.rollback()
+                    except Exception:
+                        pass
+                    try:
+                        Base.metadata.create_all(bind=engine, checkfirst=True)
+                    except Exception:
+                        pass
+
+                # Eski v4.46.0 sürümünden veritabanında kalan tüm statik tohum kayıtlarını (HistoricalSeed vb.) temizle
+                try:
+                    del_clicks = (
+                        db.query(BridgeClick)
+                        .filter(
+                            (BridgeClick.user_agent == "Historical Railway Deployment Log (6a91615f)")
+                            | (BridgeClick.fbclid == "railway_log_backfill")
+                            | (BridgeClick.utm_campaign == "misil_launch_oct2026")
+                        )
+                        .delete(synchronize_session=False)
+                    )
+                    del_campaigns = (
+                        db.query(CampaignConfig)
+                        .filter(CampaignConfig.reported_impressions.in_([4014, 3850, 640, 410]))
+                        .delete(synchronize_session=False)
+                    )
+                    del_metrics = (
+                        db.query(StoreDailyMetric)
+                        .filter(StoreDailyMetric.impressions.in_([85, 290, 620, 740, 810, 690, 520, 311]))
+                        .delete(synchronize_session=False)
+                    )
+                    st_row_check = db.query(StoreSyncState).filter(StoreSyncState.state_key == "primary_store_baseline").first()
+                    del_sync = 0
+                    if st_row_check:
+                        snap = st_row_check.snapshot_json if isinstance(st_row_check.snapshot_json, dict) else {}
+                        if (
+                            snap.get("apple_impressions_total") == 4066
+                            or (st_row_check.last_synced_at_str and "28.10.2026 22:30" in st_row_check.last_synced_at_str)
+                        ):
+                            db.delete(st_row_check)
+                            del_sync = 1
+                            with _BASELINE_LOCK:
+                                OFFICIAL_STORE_BASELINE.clear()
+                                OFFICIAL_STORE_BASELINE.update(_empty_store_state())
+                    if del_clicks or del_campaigns or del_metrics or del_sync:
+                        db.commit()
+                except Exception as purge_exc:
+                    logger.debug("Legacy seed purge skipped: %s", purge_exc)
+                    try:
+                        db.rollback()
+                    except Exception:
+                        pass
+
+                if is_prod_engine and not is_pytest:
+                    _SCHEMA_INITIALIZED = True
+                    _BRIDGE_TABLE_READY = True
 
     try:
         st_row = db.query(StoreSyncState).filter(StoreSyncState.state_key == "primary_store_baseline").first()
@@ -2499,79 +2520,184 @@ def ensure_historical_seed(db: Session) -> None:
         logger.debug("StoreSyncState load skipped: %s", e)
 
 
-def record_bridge_click(request: Request, route_path: str, target_store: str) -> None:
-    """Köprü tıklamasını sıfır gecikmeyle ve hata korumalı olarak kaydeder."""
-    db = SessionLocal()
-    try:
-        ensure_historical_seed(db)
+def extract_trusted_client_ip(request: Request) -> str:
+    """
+    Güvenilir istemci IP çıkarımı (Spoofing / Click-Fraud Korumalı):
+    1) Doğrudan TCP bağlantısı genel (public/global) bir IP'den geliyorsa (arada güvenilir
+       ters vekil/proxy yoksa), istemcinin enjekte edebileceği X-Forwarded-For ve
+       CF-Connecting-IP başlıklarını yok sayar ve doğrudan TCP peer IP'sini kullanır.
+    2) İstek güvenilir iç ağ vekilinden (Railway Envoy private CIDR / loopback / TestClient)
+       geliyorsa:
+       - Yalnızca CF-Ray başlığı eşlik ettiğinde geçerli CF-Connecting-IP'yi kabul eder,
+       - Aksi halde X-Real-IP veya ters vekilin sona eklediği (en sağdaki / rightmost)
+         geçerli X-Forwarded-For IP adresini alır (istemcinin sola eklediği sahte IP'leri atlar).
+    """
+    import ipaddress
 
-        ua_raw = request.headers.get("user-agent") or ""
-        ua_info = classify_user_agent(ua_raw)
+    peer_host = (request.client.host if request.client else "") or ""
 
-        client_ip = (
-            request.headers.get("cf-connecting-ip")
-            or request.headers.get("x-forwarded-for")
-            or (request.client.host if request.client else "unknown")
-        )
-        if "," in client_ip:
-            client_ip = client_ip.split(",")[0].strip()
-        ip_masked = mask_ip(client_ip, ua_raw)
+    def _valid_ip(candidate: Optional[str]) -> Optional[str]:
+        if not candidate:
+            return None
+        cleaned = candidate.strip()
+        if not cleaned:
+            return None
+        try:
+            return str(ipaddress.ip_address(cleaned))
+        except ValueError:
+            return None
 
-        country_raw = (
-            request.headers.get("cf-ipcountry")
-            or request.headers.get("x-country-code")
-            or "TR"
-        )
-        country_clean = "".join(ch for ch in country_raw.upper() if ch.isalnum())[:6] or "TR"
+    peer_valid = _valid_ip(peer_host)
+    is_trusted_proxy_hop = False
+    if peer_host == "testclient" or not peer_host:
+        is_trusted_proxy_hop = True
+    elif peer_valid:
+        ip_obj = ipaddress.ip_address(peer_valid)
+        is_trusted_proxy_hop = bool(ip_obj.is_private or ip_obj.is_loopback or ip_obj.is_link_local)
 
-        q_params = request.query_params
-        fbclid = q_params.get("fbclid")
-        utm_source = q_params.get("utm_source")
-        utm_campaign = q_params.get("utm_campaign")
-        referrer = request.headers.get("referer")
-        has_fbclid = bool(fbclid)
+    if not is_trusted_proxy_hop:
+        return peer_valid or "unknown"
 
-        channel = classify_channel(route_path, utm_source, has_fbclid)
+    if request.headers.get("cf-ray"):
+        cf_ip = _valid_ip(request.headers.get("cf-connecting-ip"))
+        if cf_ip:
+            return cf_ip
 
-        now_utc = datetime.now(timezone.utc)
-        cutoff = now_utc - timedelta(seconds=15)
-        recent_dup = (
-            db.query(BridgeClick.id)
-            .filter(
-                BridgeClick.route_path == route_path,
-                BridgeClick.ip_masked == ip_masked,
-                BridgeClick.created_at >= cutoff,
+    real_ip = _valid_ip(request.headers.get("x-real-ip"))
+    if real_ip:
+        return real_ip
+
+    xff_raw = request.headers.get("x-forwarded-for") or ""
+    if xff_raw:
+        for hop in reversed(xff_raw.split(",")):
+            hop_ip = _valid_ip(hop)
+            if hop_ip:
+                return hop_ip
+
+    return peer_valid or (peer_host if peer_host else "unknown")
+
+
+def capture_bridge_click_context(request: Request) -> Dict[str, Optional[str]]:
+    """
+    HTTP yanıtı gönderilmeden önce Request nesnesinden tıklama meta verilerini <0.1ms içinde
+    belleğe kopyalar; böylece veritabanı yazımı BackgroundTasks içinde güvenle çalışır.
+    """
+    ua_raw = request.headers.get("user-agent") or ""
+    client_ip = extract_trusted_client_ip(request)
+
+    country_raw = (
+        (request.headers.get("cf-ipcountry") if request.headers.get("cf-ray") else None)
+        or request.headers.get("x-country-code")
+        or "TR"
+    )
+    q_params = request.query_params
+    return {
+        "user_agent": ua_raw,
+        "client_ip": client_ip,
+        "country_raw": country_raw,
+        "fbclid": q_params.get("fbclid"),
+        "utm_source": q_params.get("utm_source"),
+        "utm_campaign": q_params.get("utm_campaign"),
+        "referrer": request.headers.get("referer"),
+    }
+
+
+def record_bridge_click(
+    request_or_ctx: Any,
+    route_path: str,
+    target_store: str,
+    db_override: Optional[Session] = None,
+) -> None:
+    """
+    Köprü tıklamasını hata korumalı, TOCTOU kilidiyle atomik ve sıfır şema-tarama blokajıyla kaydeder.
+    Hem doğrudan Request nesnesini hem de capture_bridge_click_context() sözlüğünü kabul eder.
+    """
+    global _BRIDGE_TABLE_READY
+    ctx = (
+        request_or_ctx
+        if isinstance(request_or_ctx, dict)
+        else capture_bridge_click_context(request_or_ctx)
+    )
+    owns_session = db_override is None
+    with _BRIDGE_CLICK_LOCK:
+        db = db_override if db_override is not None else SessionLocal()
+        try:
+            if not _BRIDGE_TABLE_READY or os.environ.get("PYTEST_CURRENT_TEST"):
+                try:
+                    BridgeClick.__table__.create(bind=db.get_bind(), checkfirst=True)
+                    if owns_session and not os.environ.get("PYTEST_CURRENT_TEST"):
+                        _BRIDGE_TABLE_READY = True
+                except Exception:
+                    pass
+
+            ua_raw = ctx.get("user_agent") or ""
+            ua_info = classify_user_agent(ua_raw)
+            client_ip = ctx.get("client_ip") or "unknown"
+            ip_masked = mask_ip(client_ip, ua_raw)
+
+            country_raw = ctx.get("country_raw") or "TR"
+            country_clean = "".join(ch for ch in country_raw.upper() if ch.isalnum())[:6] or "TR"
+
+            fbclid = ctx.get("fbclid")
+            utm_source = ctx.get("utm_source")
+            utm_campaign = ctx.get("utm_campaign")
+            referrer = ctx.get("referrer")
+            has_fbclid = bool(fbclid)
+
+            channel = classify_channel(route_path, utm_source, has_fbclid)
+
+            # Çoklu worker/replica ortamında (PostgreSQL) 15sn tekilleştirmenin atomik kalması için advisory lock
+            try:
+                bind_dialect = getattr(getattr(db.get_bind(), "dialect", None), "name", "")
+                if bind_dialect == "postgresql":
+                    adv_key = int.from_bytes(
+                        hashlib.sha256(f"bridge:{route_path}:{ip_masked}".encode("utf-8")).digest()[:8],
+                        "big",
+                    ) & 0x7FFFFFFFFFFFFFFF
+                    db.execute(text("SELECT pg_advisory_xact_lock(:k)"), {"k": adv_key})
+            except Exception:
+                pass
+
+            now_utc = datetime.now(timezone.utc)
+            cutoff = now_utc - timedelta(seconds=15)
+            recent_dup = (
+                db.query(BridgeClick.id)
+                .filter(
+                    BridgeClick.route_path == route_path,
+                    BridgeClick.ip_masked == ip_masked,
+                    BridgeClick.created_at >= cutoff,
+                )
+                .first()
             )
-            .first()
-        )
-        is_unique = (recent_dup is None) and (not ua_info["is_bot"])
+            is_unique = (recent_dup is None) and (not ua_info["is_bot"])
 
-        click = BridgeClick(
-            route_path=route_path[:60],
-            channel=channel,
-            os_family=ua_info["os_family"],
-            device_detail=ua_info["device_detail"],
-            app_webview=ua_info["app_webview"],
-            target_store=target_store,
-            is_bot=ua_info["is_bot"],
-            is_unique=is_unique,
-            has_fbclid=has_fbclid,
-            fbclid=fbclid[:250] if fbclid else None,
-            utm_source=utm_source[:95] if utm_source else None,
-            utm_campaign=utm_campaign[:95] if utm_campaign else None,
-            referrer=referrer[:250] if referrer else None,
-            country=country_clean,
-            ip_masked=ip_masked[:60],
-            user_agent=ua_raw[:500] if ua_raw else None,
-            created_at=now_utc,
-        )
-        db.add(click)
-        db.commit()
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Bridge click log error (ignored): {e}")
-    finally:
-        db.close()
+            click = BridgeClick(
+                route_path=route_path[:60],
+                channel=channel,
+                os_family=ua_info["os_family"],
+                device_detail=ua_info["device_detail"],
+                app_webview=ua_info["app_webview"],
+                target_store=target_store,
+                is_bot=ua_info["is_bot"],
+                is_unique=is_unique,
+                has_fbclid=has_fbclid,
+                fbclid=fbclid[:250] if fbclid else None,
+                utm_source=utm_source[:95] if utm_source else None,
+                utm_campaign=utm_campaign[:95] if utm_campaign else None,
+                referrer=referrer[:250] if referrer else None,
+                country=country_clean,
+                ip_masked=ip_masked[:60],
+                user_agent=ua_raw[:500] if ua_raw else None,
+                created_at=now_utc,
+            )
+            db.add(click)
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            logger.error(f"Bridge click log error (ignored): {e}")
+        finally:
+            if owns_session:
+                db.close()
 
 
 @router.post("/usage-signal")
@@ -2596,18 +2722,12 @@ async def record_app_open_signal(
     if os_family not in ("ios", "android", "desktop"):
         os_family = "ios"
 
-    client_ip = (
-        request.headers.get("cf-connecting-ip")
-        or request.headers.get("x-forwarded-for")
-        or (request.client.host if request.client else "unknown")
-    )
-    if "," in client_ip:
-        client_ip = client_ip.split(",")[0].strip()
+    client_ip = extract_trusted_client_ip(request)
     ip_masked = mask_ip(client_ip, ua_raw)
     base_ip = extract_base_ip(ip_masked)
 
     country_raw = (
-        request.headers.get("cf-ipcountry")
+        (request.headers.get("cf-ipcountry") if request.headers.get("cf-ray") else None)
         or request.headers.get("x-country-code")
         or "TR"
     )
@@ -2631,6 +2751,18 @@ async def record_app_open_signal(
     if needs_dedup_lock:
         _APP_OPEN_SIGNAL_LOCK.acquire()
     try:
+        if needs_dedup_lock:
+            try:
+                bind_dialect = getattr(getattr(db.get_bind(), "dialect", None), "name", "")
+                if bind_dialect == "postgresql":
+                    sig_adv_key = int.from_bytes(
+                        hashlib.sha256(f"sig:{clean_event}:{clean_uid}".encode("utf-8")).digest()[:8],
+                        "big",
+                    ) & 0x7FFFFFFFFFFFFFFF
+                    db.execute(text("SELECT pg_advisory_xact_lock(:k)"), {"k": sig_adv_key})
+            except Exception:
+                pass
+
         if clean_event == "first_open":
             existing_open = (
                 db.query(AppInstallSignal)
@@ -2665,14 +2797,32 @@ async def record_app_open_signal(
                     "match_confidence": existing_daily.match_confidence,
                 }
 
+        # Modern iPadOS Safari HTTP katmanında "Macintosh" UA gönderdiği için BridgeClick "desktop"
+        # olarak kaydedilebilir; istemci JS (isTouchMac) veya iPad native uygulaması ise os_family="ios"
+        # gönderir. Önce tam os_family=="ios" adayları değerlendirilir; yalnızca gerçek ios adayı yoksa
+        # aynı IP'deki Macintosh UA'lı desktop adayı yedek olarak devreye girer (aynı NAT'taki Mac trafiği
+        # gerçek iPhone tıklamasının önüne geçemez).
+        from sqlalchemy import or_, and_, case
+        os_filter_expr = (
+            or_(
+                BridgeClick.os_family == "ios",
+                and_(
+                    BridgeClick.os_family == "desktop",
+                    BridgeClick.user_agent.ilike("%Macintosh%"),
+                ),
+            )
+            if os_family == "ios"
+            else (BridgeClick.os_family == os_family)
+        )
+        os_priority_expr = case((BridgeClick.os_family == os_family, 0), else_=1)
         candidates: List[BridgeClick] = (
             db.query(BridgeClick)
             .filter(
                 BridgeClick.is_bot.is_(False),
-                BridgeClick.os_family == os_family,
+                os_filter_expr,
                 BridgeClick.created_at >= cutoff_24h,
             )
-            .order_by(desc(BridgeClick.created_at))
+            .order_by(os_priority_expr.asc(), desc(BridgeClick.created_at))
             .limit(200)
             .all()
         )
@@ -2695,8 +2845,9 @@ async def record_app_open_signal(
                     confidence = "medium"
                     break
 
-        if matched_click is None and candidates:
-            top_c = candidates[0]
+        exact_os_candidates = [c for c in candidates if c.os_family == os_family]
+        if matched_click is None and exact_os_candidates:
+            top_c = exact_os_candidates[0]
             top_time = top_c.created_at.replace(tzinfo=timezone.utc) if top_c.created_at.tzinfo is None else top_c.created_at
             if (now_utc - top_time).total_seconds() <= 900 and (top_c.country or "TR") == country_clean:
                 matched_click = top_c

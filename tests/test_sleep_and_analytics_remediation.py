@@ -1793,6 +1793,134 @@ def test_cockpit_v4_executive_app_shell_progressive_disclosure_and_search(client
     assert '<div class="cat-header">' not in html_txt
 
 
+def test_fast_native_store_bridge_instagram_iab_and_cockpit_parity(client, db_session):
+    """
+    /ios & /download Hızlı Yerel Mağaza Köprüsü ve Kokpit Sayım Bütünlüğü Testi:
+    1) iOS Instagram IAB -> itms-apps:// yerel App Store protokolü + instagram://extbrowser kaçışı (web apps.apple.com açılmaz).
+    2) Android Instagram IAB -> intent:// (com.android.vending) yerel Play Store protokolü (1200ms web Play Store yönlendirmesi yok).
+    3) Masaüstü (Windows/Mac) -> standart https://apps.apple.com web bağlantısı.
+    4) BackgroundTasks + capture_bridge_click_context -> BridgeClick, 15s tekilleştirme, bot filtresi ve kokpit özet sayılarını %100 korur.
+    """
+    from unittest.mock import patch
+    from app.main import APP_STORE_NATIVE_URL, APP_STORE_URL, GOOGLE_PLAY_INTENT_URL, INSTAGRAM_IOS_EXTBROWSER_URL
+    from app.api.v1.endpoints.analytics import (
+        _build_analytics_summary,
+        record_bridge_click as real_record_bridge_click,
+    )
+
+    ig_ios_ua = (
+        "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/22B83 "
+        "Instagram 356.0.0.28.90 (iPhone16,2; iOS 18_1; tr_TR; scale=3.00)"
+    )
+    ig_and_ua = (
+        "Mozilla/5.0 (Linux; Android 14; SM-S928B Build/UP1A.231005.007; wv) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/130.0.6723.86 "
+        "Mobile Safari/537.36 Instagram 356.0.0.41.101 Android"
+    )
+    win_desktop_ua = (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
+    )
+    meta_bot_ua = "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)"
+
+    def _bound_bridge_click(ctx, route_path, target_store):
+        real_record_bridge_click(ctx, route_path=route_path, target_store=target_store, db_override=db_session)
+
+    with patch("app.main.record_bridge_click", side_effect=_bound_bridge_click):
+        # 1) iOS Instagram IAB (/ios?fbclid=fb_test_ios_1)
+        res_ios = client.get(
+            "/ios?fbclid=fb_test_ios_1",
+            headers={"user-agent": ig_ios_ua, "x-forwarded-for": "88.241.10.21"},
+        )
+        assert res_ios.status_code == 200
+        assert "no-store" in res_ios.headers.get("cache-control", "")
+        assert f'href="{APP_STORE_NATIVE_URL}" id="storeOpenBtn"' in res_ios.text
+        assert 'id="iosExternalBrowserBtn"' in res_ios.text
+        assert INSTAGRAM_IOS_EXTBROWSER_URL in res_ios.text
+        assert "setTimeout(triggerStoreRedirect, 120)" not in res_ios.text
+
+        # Sahte X-Forwarded-For (sola eklenmiş sahte IP) ve CF-Ray olmayan sahte CF-Connecting-IP
+        # tekilleştirmeyi atlatamamalı (en sağdaki gerçek vekil IP 88.241.10.21 baz alınmalı)
+        res_ios_dup = client.get(
+            "/ios?fbclid=fb_test_ios_1",
+            headers={
+                "user-agent": ig_ios_ua,
+                "cf-connecting-ip": "1.2.3.4",
+                "x-forwarded-for": "5.6.7.8, 88.241.10.21",
+            },
+        )
+        assert res_ios_dup.status_code == 200
+
+        # 2) Android Instagram IAB (/ios?fbclid=fb_test_and_1)
+        res_and = client.get(
+            "/ios?fbclid=fb_test_and_1",
+            headers={"user-agent": ig_and_ua, "x-forwarded-for": "176.88.42.19"},
+        )
+        assert res_and.status_code == 200
+        assert f'href="{GOOGLE_PLAY_INTENT_URL}" id="storeOpenBtn"' in res_and.text
+        assert "window.location.replace(playHttpsUrl)" not in res_and.text
+        assert ", 1200)" not in res_and.text
+
+        # 3) Windows Masaüstü tarayıcı (/download) -> Google Play birincil + App Store alternatif (#desktopAltStoreBtn)
+        from app.main import GOOGLE_PLAY_URL
+        res_desk = client.get(
+            "/download",
+            headers={"user-agent": win_desktop_ua, "x-forwarded-for": "95.70.12.44"},
+        )
+        assert res_desk.status_code == 200
+        assert f'href="{GOOGLE_PLAY_URL}" id="storeOpenBtn"' in res_desk.text
+        assert f'href="{APP_STORE_URL}" id="desktopAltStoreBtn"' in res_desk.text
+
+        # 4) Meta Crawler botu (/ios) -> landing sayfası + bot filtresi
+        res_bot = client.get(
+            "/ios",
+            headers={"user-agent": meta_bot_ua, "x-forwarded-for": "66.220.149.11"},
+        )
+        assert res_bot.status_code == 200
+
+    summary = _build_analytics_summary(db_session, period="all")
+    assert summary["total_raw"] == 5
+    assert summary["total_bots"] == 1
+    assert summary["total_human"] == 4
+    assert summary["total_unique_human"] == 3  # 1 iOS + 1 Android (/ios) + 1 Desktop (/download)
+    assert summary["meta_ads"]["raw_hits"] == 4
+    assert summary["meta_ads"]["bot_probes"] == 1
+    assert summary["meta_ads"]["unique_clicks"] == 2
+    assert summary["meta_ads"]["ios_clicks"] == 1
+    assert summary["meta_ads"]["android_clicks"] == 1
+    assert summary["instagram_bio"]["unique_clicks"] == 1
+    assert summary["cumulative_kpis"]["desktop_bridge_clicks"] == 1
+    assert summary["webview_breakdown"].get("Instagram App") == 2
+
+    # 5) iPadOS ("Macintosh" UA) BridgeClick -> os_family="ios" AppInstallSignal eşleşme doğrulaması
+    ipados_safari_ua = (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.1 Safari/605.1.15"
+    )
+    with patch("app.main.record_bridge_click", side_effect=_bound_bridge_click):
+        res_ipad = client.get(
+            "/ios?fbclid=fb_ipad_01",
+            headers={"user-agent": ipados_safari_ua, "x-forwarded-for": "85.105.77.33"},
+        )
+        assert res_ipad.status_code == 200
+
+    ipad_sig = client.post(
+        "/api/v1/analytics/app-open-signal",
+        json={
+            "device_uid": "jump_ipad_01",
+            "event_type": "store_jump",
+            "os_family": "ios",
+            "platform": "bridge_interstitial",
+        },
+        headers={"user-agent": ipados_safari_ua, "x-forwarded-for": "85.105.77.33"},
+    )
+    assert ipad_sig.status_code == 200
+    assert ipad_sig.json()["matched_channel"] == "meta_ads"
+    assert ipad_sig.json()["match_confidence"] == "high"
+
+
+
 
 
 

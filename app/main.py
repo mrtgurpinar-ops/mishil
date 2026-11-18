@@ -11,7 +11,7 @@ if project_root not in sys.path:
 
 from typing import Optional
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, status
+from fastapi import BackgroundTasks, FastAPI, Request, status
 
 from fastapi.responses import JSONResponse, HTMLResponse, PlainTextResponse, FileResponse, RedirectResponse
 from fastapi.exceptions import RequestValidationError
@@ -23,7 +23,12 @@ from app.core.logging import setup_logging, get_logger, request_id_ctx
 from app.db.base import Base, engine, get_db
 import app.db.models  # Ensures all SQLAlchemy models are registered in Base.metadata
 from app.api.v1.router import api_router
-from app.api.v1.endpoints.analytics import record_bridge_click, run_periodic_store_sync_loop
+from app.api.v1.endpoints.analytics import (
+    BOT_SIGNATURES,
+    capture_bridge_click_context,
+    record_bridge_click,
+    run_periodic_store_sync_loop,
+)
 
 # Setup structured logging
 setup_logging(debug=settings.DEBUG)
@@ -368,19 +373,14 @@ async def landing_page():
     """)
 
 
-_BOT_USER_AGENTS = (
-    "facebookexternalhit",
-    "facebot",
-    "meta-externalagent",
-    "twitterbot",
-    "linkedinbot",
-    "googlebot",
-    "bingbot",
-    "whatsapp",
-    "slackbot",
-)
+_BOT_USER_AGENTS = BOT_SIGNATURES
 
 APP_STORE_URL = "https://apps.apple.com/app/m%C4%B1%C5%9F%C4%B1l-baby-bebek-uyku-ve-a%C4%9Flama/id6809223195"
+APP_STORE_SHORT_URL = "https://apps.apple.com/app/id6809223195"
+APP_STORE_NATIVE_URL = "itms-apps://apps.apple.com/app/id6809223195"
+INSTAGRAM_IOS_EXTBROWSER_URL = (
+    "instagram://extbrowser/?url=https%3A%2F%2Fapps.apple.com%2Fapp%2Fid6809223195"
+)
 GOOGLE_PLAY_URL = "https://play.google.com/store/apps/details?id=com.levitas.misilbaby"
 GOOGLE_PLAY_MARKET_URL = "market://details?id=com.levitas.misilbaby"
 GOOGLE_PLAY_INTENT_URL = (
@@ -390,17 +390,52 @@ GOOGLE_PLAY_INTENT_URL = (
 )
 
 
-def generate_interstitial_html(is_android: bool) -> str:
-    store_name = "Google Play" if is_android else "App Store"
-    target_url = GOOGLE_PLAY_URL if is_android else APP_STORE_URL
-    cta_href = GOOGLE_PLAY_INTENT_URL if is_android else APP_STORE_URL
-    store_icon = "🤖" if is_android else "🍏"
-    web_fallback_html = (
-        f'<a href="{GOOGLE_PLAY_URL}" id="storeWebFallbackBtn" class="sub-link" onclick="window.__sendStoreButtonSignal && window.__sendStoreButtonSignal(\'web_fallback\')">'
-        "Uygulama açılmazsa tarayıcıda Google Play sayfasını aç ↗</a>"
-        if is_android
-        else ""
-    )
+def generate_interstitial_html(
+    is_android: bool,
+    is_ios: Optional[bool] = None,
+    is_iab: bool = False,
+    prefer_android: Optional[bool] = None,
+) -> str:
+    if is_ios is None:
+        is_ios = not is_android
+    is_desktop = (not is_android) and (not is_ios)
+    if prefer_android is None:
+        prefer_android = bool(is_android)
+
+    use_play_primary = bool(is_android or (is_desktop and prefer_android))
+    store_name = "Google Play" if use_play_primary else "App Store"
+    if is_android:
+        cta_href = GOOGLE_PLAY_INTENT_URL
+    elif is_ios:
+        cta_href = APP_STORE_NATIVE_URL
+    else:
+        cta_href = GOOGLE_PLAY_URL if prefer_android else APP_STORE_URL
+    store_icon = "🤖" if use_play_primary else "🍏"
+    if is_android:
+        web_fallback_html = (
+            f'<a href="{GOOGLE_PLAY_URL}" id="storeWebFallbackBtn" class="sub-link" onclick="window.__sendStoreButtonSignal && window.__sendStoreButtonSignal(\'web_fallback\')">'
+            "Play Store uygulaması yüklü değilse tarayıcıda aç ↗</a>"
+        )
+    elif is_ios and is_iab:
+        web_fallback_html = (
+            f'<a href="{INSTAGRAM_IOS_EXTBROWSER_URL}" id="iosExternalBrowserBtn" class="sub-link" onclick="window.__sendStoreButtonSignal && window.__sendStoreButtonSignal(\'ios_safari_escape\')">'
+            "Açılmazsa Safari ile App Store'da aç ↗</a>"
+            '<p class="iab-hint">Instagram kısıtlarsa sağ üstteki <strong>•••</strong> menüsünden <strong>"Tarayıcıda Aç"</strong> seçin.</p>'
+        )
+    elif is_ios:
+        web_fallback_html = (
+            f'<a href="{APP_STORE_URL}" id="iosHttpsFallbackBtn" class="sub-link" onclick="window.__sendStoreButtonSignal && window.__sendStoreButtonSignal(\'ios_web_fallback\')">'
+            "Açılmazsa App Store web sayfasını aç ↗</a>"
+        )
+    elif is_desktop:
+        alt_href = APP_STORE_URL if prefer_android else GOOGLE_PLAY_URL
+        alt_label = "🍏 App Store Sayfasını Aç ↗" if prefer_android else "🤖 Google Play Sayfasını Aç ↗"
+        web_fallback_html = (
+            f'<a href="{alt_href}" id="desktopAltStoreBtn" class="sub-link" onclick="window.__sendStoreButtonSignal && window.__sendStoreButtonSignal(\'desktop_alt_store\')">'
+            f"{alt_label}</a>"
+        )
+    else:
+        web_fallback_html = ""
 
     return f"""<!DOCTYPE html>
 <html lang="tr">
@@ -408,6 +443,7 @@ def generate_interstitial_html(is_android: bool) -> str:
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Mışıl Baby — {store_name}'de Açılıyor...</title>
+  <meta name="apple-itunes-app" content="app-id=6809223195">
   <meta property="og:title" content="Mışıl Baby — Bebek Uyku & Ağlama Analizi">
   <meta property="og:description" content="Yapay zeka ağlama analizi ve beyaz gürültü. {store_name}'de.">
   <meta property="og:image" content="/icon-512.png">
@@ -431,18 +467,18 @@ def generate_interstitial_html(is_android: bool) -> str:
       padding: 24px;
       text-align: center;
     }}
-    .moon {{ font-size: 56px; margin-bottom: 20px; animation: pulse 1.6s ease-in-out infinite; }}
+    .moon {{ font-size: 56px; margin-bottom: 18px; animation: pulse 1.4s ease-in-out infinite; }}
     @keyframes pulse {{
       0%, 100% {{ transform: scale(1); filter: drop-shadow(0 0 10px rgba(232, 168, 85, 0.4)); }}
-      50% {{ transform: scale(1.12); filter: drop-shadow(0 0 24px rgba(232, 168, 85, 0.8)); }}
+      50% {{ transform: scale(1.1); filter: drop-shadow(0 0 24px rgba(232, 168, 85, 0.8)); }}
     }}
     h1 {{ font-size: 1.4rem; font-weight: 700; margin-bottom: 8px; color: #FFFFFF; }}
-    p {{ color: #94A3B8; font-size: 0.95rem; margin-bottom: 24px; max-width: 340px; line-height: 1.5; }}
+    p {{ color: #94A3B8; font-size: 0.95rem; margin-bottom: 22px; max-width: 340px; line-height: 1.5; }}
     .btn {{
       background: linear-gradient(135deg, #E8A855 0%, #D4882B 100%);
       color: #0B0F19;
-      font-weight: 700;
-      padding: 14px 28px;
+      font-weight: 800;
+      padding: 15px 30px;
       border-radius: 30px;
       text-decoration: none;
       display: inline-flex;
@@ -452,40 +488,58 @@ def generate_interstitial_html(is_android: bool) -> str:
     }}
     .sub-link {{
       margin-top: 16px;
-      color: #94A3B8;
-      font-size: 0.82rem;
+      color: #CBD5E1;
+      font-size: 0.84rem;
       text-decoration: underline;
-      opacity: 0.85;
+      opacity: 0.9;
+    }}
+    .iab-hint {{
+      margin-top: 12px;
+      margin-bottom: 0;
+      color: #64748B;
+      font-size: 0.78rem;
+      max-width: 310px;
     }}
   </style>
 </head>
 <body>
   <div class="moon">🌙</div>
   <h1>Mışıl Baby Açılıyor...</h1>
-  <p>{store_name} uygulamasına yönlendiriliyorsunuz. Otomatik açılmazsa aşağıdaki butona dokunun:</p>
-  <a href="{cta_href}" id="storeOpenBtn" class="btn" onclick="window.__sendStoreButtonSignal && window.__sendStoreButtonSignal('primary_cta')">
-    <span>{store_icon}</span> {store_name}'de Aç
+  <p>Telefonunuzdaki <strong>{store_name}</strong> uygulamasına yönlendiriliyorsunuz. Otomatik açılmazsa dokunun:</p>
+  <a href="{cta_href}" id="storeOpenBtn" class="btn" onclick="return window.__handlePrimaryStoreClick ? window.__handlePrimaryStoreClick(event) : true;">
+    <span>{store_icon}</span> {store_name} Uygulamasında Aç
   </a>
   {web_fallback_html}
   <script>
     (function() {{
       var ua = (navigator.userAgent || "").toLowerCase();
-      var isAnd = ua.indexOf("android") > -1 || {str(bool(is_android)).lower()};
-      var isIos = /iphone|ipad|ipod/.test(ua);
-      var isIab = /fban|fbav|instagram|wv|line|tiktok/.test(ua);
+      var isTouchMac = /macintosh/.test(ua) && navigator.maxTouchPoints && navigator.maxTouchPoints > 1;
+      var isIos = /iphone|ipad|ipod/.test(ua) || isTouchMac;
+      var isAnd = !isIos && (ua.indexOf("android") > -1 || {str(bool(is_android)).lower()});
+      var preferAndroidDesktop = {str(bool(prefer_android)).lower()};
+      var isIg = ua.indexOf("instagram") > -1;
+      var isIab = /fban|fbav|fb_iab|instagram|wv|line|tiktok|bytedancewebview|musical_ly/.test(ua);
       var jumpUid = "jump_" + Math.random().toString(36).slice(2, 10);
-      var playHttpsUrl = "{GOOGLE_PLAY_URL}";
       var playIntentUrl = "{GOOGLE_PLAY_INTENT_URL}";
-      var appStoreUrl = "{APP_STORE_URL}";
+      var playMarketUrl = "{GOOGLE_PLAY_MARKET_URL}";
+      var playHttpsUrl = "{GOOGLE_PLAY_URL}";
+      var appStoreNativeUrl = "{APP_STORE_NATIVE_URL}";
+      var appStoreHttpsUrl = "{APP_STORE_URL}";
+      var igIosEscapeUrl = "{INSTAGRAM_IOS_EXTBROWSER_URL}";
+
+      if (isTouchMac) {{
+        var mainBtn = document.getElementById("storeOpenBtn");
+        if (mainBtn) mainBtn.setAttribute("href", appStoreNativeUrl);
+      }}
 
       function emitBridgeSignal(evtType, platformTag) {{
         try {{
           var payload = JSON.stringify({{
             device_uid: jumpUid,
             event_type: evtType,
-            os_family: isAnd ? "android" : "ios",
+            os_family: isAnd ? "android" : (isIos ? "ios" : "desktop"),
             platform: platformTag || (isIab ? "bridge_iab" : "bridge_interstitial"),
-            app_version: "4.46.0"
+            app_version: "4.52.1"
           }});
           if (navigator.sendBeacon) {{
             var blob = new Blob([payload], {{ type: "application/json" }});
@@ -505,44 +559,64 @@ def generate_interstitial_html(is_android: bool) -> str:
         emitBridgeSignal("store_button_click", mode || (isIab ? "manual_cta_iab" : "manual_cta"));
       }};
 
-      emitBridgeSignal("store_jump", isIab ? "bridge_iab" : "bridge_interstitial");
-
-      function triggerStoreRedirect() {{
-        if (isAnd && !isIos) {{
-          // Android IAB & Chrome: Doğrudan yerel Google Play Store uygulamasını (com.android.vending) intent:// ile uyandır
-          try {{
-            window.location.replace(playIntentUrl);
-          }} catch (e) {{
-            window.location.href = playHttpsUrl;
-          }}
+      window.__handlePrimaryStoreClick = function(ev) {{
+        window.__sendStoreButtonSignal("primary_cta");
+        if (isIos && isIg) {{
           setTimeout(function() {{
             if (!document.hidden) {{
-              try {{
-                window.location.replace(playHttpsUrl);
-              }} catch (err2) {{
-                window.location.href = playHttpsUrl;
-              }}
+              try {{ window.location.href = igIosEscapeUrl; }} catch (igErr) {{}}
             }}
-          }}, 1200);
-        }} else {{
-          var target = isIos ? appStoreUrl : "{target_url}";
+          }}, 550);
+        }}
+        return true;
+      }};
+
+      emitBridgeSignal("store_jump", isIab ? "bridge_iab" : "bridge_interstitial");
+
+      function triggerNativeStoreNow() {{
+        if (isAnd) {{
+          // Android: Sadece yerel Google Play Store uygulamasını (com.android.vending) uyandır;
+          // ASLA play.google.com web sayfasını Instagram tarayıcısı içinde zorla açma.
           try {{
-            window.location.replace(target);
+            window.location.href = playIntentUrl;
           }} catch (e) {{
-            window.location.href = target;
+            try {{ window.location.href = playMarketUrl; }} catch (e2) {{}}
           }}
+          return;
+        }}
+        if (isIos) {{
+          // iOS: Sadece yerel App Store protokolünü (itms-apps://) tetikle;
+          // ASLA apps.apple.com web önizlemesini Instagram WKWebView içinde açma.
+          if (isIab) {{
+            try {{
+              var ifr = document.createElement("iframe");
+              ifr.style.display = "none";
+              ifr.src = appStoreNativeUrl;
+              document.body.appendChild(ifr);
+            }} catch (ifrErr) {{}}
+            try {{
+              window.location.href = appStoreNativeUrl;
+            }} catch (navErr) {{}}
+          }} else {{
+            try {{
+              window.location.replace(appStoreNativeUrl);
+            }} catch (e) {{
+              window.location.href = appStoreNativeUrl;
+            }}
+          }}
+          return;
+        }}
+        // Masaüstü (Mac / Windows): İşletim sistemi veya rota tercihine uygun mağaza sayfasına yönlendir
+        var desktopTarget = preferAndroidDesktop ? playHttpsUrl : appStoreHttpsUrl;
+        try {{
+          window.location.replace(desktopTarget);
+        }} catch (deskErr) {{
+          window.location.href = desktopTarget;
         }}
       }}
 
-      // Meta "Yönlendirme Sayfası Görünümü" (Landing Page View) sayacının IAB içinde
-      // onPageFinished / DOMContentLoaded olayını kaydetmesi için ilk boyamadan (120ms) hemen sonra yönlendir
-      if (document.readyState === "complete" || document.readyState === "interactive") {{
-        setTimeout(triggerStoreRedirect, 120);
-      }} else {{
-        window.addEventListener("DOMContentLoaded", function() {{
-          setTimeout(triggerStoreRedirect, 120);
-        }});
-      }}
+      // Sıfır yapay gecikme (0ms): DOM gövdesi çizildiği anda yerel mağaza protokolünü ateşle
+      triggerNativeStoreNow();
     }})();
   </script>
 </body>
@@ -554,50 +628,69 @@ def generate_interstitial_html(is_android: bool) -> str:
 @app.get("/app-store", response_class=HTMLResponse, tags=["Landing"])
 @app.get("/android", response_class=HTMLResponse, tags=["Landing"])
 @app.get("/play-store", response_class=HTMLResponse, tags=["Landing"])
-async def smart_app_store_bridge(request: Request):
-    """Universal Smart Store Bridge: Serves normal landing HTML to bots, client-redirects real users by OS."""
+async def smart_app_store_bridge(request: Request, background_tasks: BackgroundTasks):
+    """Universal Smart Store Bridge: Zero-latency (<5ms) native store launcher preserving 100% cockpit telemetry."""
     user_agent = (request.headers.get("user-agent") or "").lower()
     route_path = request.url.path or "/ios"
-    is_mobile_os = any(os_tok in user_agent for os_tok in ("iphone", "ipad", "ipod", "android"))
+    is_ios = any(os_tok in user_agent for os_tok in ("iphone", "ipad", "ipod"))
+    is_android = (not is_ios) and ("android" in user_agent)
+    is_mobile_os = is_ios or is_android
+    is_iab = any(
+        tok in user_agent
+        for tok in ("instagram", "fban", "fbav", "fb_iab", "tiktok", "bytedancewebview", "musical_ly", "line")
+    )
+    no_cache_headers = {
+        "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
+        "Pragma": "no-cache",
+        "Expires": "0",
+    }
 
-    # Meta botu veya crawler ise normal ana sayfayı 200 OK ile sun (böylece Meta yönlendirme tespit edemez)
-    # Not: Gerçek iPhone/Android WhatsApp uygulama içi tarayıcısı mobil OS imzası taşır; sadece önizleme botu taşımız.
-    is_crawler = any(
-        bot in user_agent
-        for bot in (
-            "facebookexternalhit",
-            "facebot",
-            "meta-externalagent",
-            "twitterbot",
-            "linkedinbot",
-            "googlebot",
-            "bingbot",
-            "slackbot",
-        )
-    ) or ("whatsapp" in user_agent and not is_mobile_os)
+    # Tek kaynaklı BOT_SIGNATURES + masaüstü WhatsApp önizleme botu kontrolü
+    is_crawler = any(bot in user_agent for bot in _BOT_USER_AGENTS) or (
+        "whatsapp" in user_agent and not is_mobile_os
+    )
+
+    click_ctx = capture_bridge_click_context(request)
 
     if is_crawler:
-        try:
-            record_bridge_click(request, route_path=route_path, target_store="landing_bot")
-        except Exception as exc:
-            logger.warning(f"Bridge click telemetry warning (bot): {exc}")
+        background_tasks.add_task(
+            record_bridge_click,
+            click_ctx,
+            route_path=route_path,
+            target_store="landing_bot",
+        )
         landing_file = os.path.join(project_root, "public", "index.html")
         if os.path.exists(landing_file):
             with open(landing_file, "r", encoding="utf-8") as f:
-                return HTMLResponse(content=f.read(), status_code=status.HTTP_200_OK)
-
-    # Cihaz tespiti: Android mi yoksa iOS/Diğer mi?
-    is_android = "android" in user_agent
-    try:
-        record_bridge_click(
-            request,
-            route_path=route_path,
-            target_store="google_play" if is_android else "app_store",
+                return HTMLResponse(content=f.read(), status_code=status.HTTP_200_OK, headers=no_cache_headers)
+        return HTMLResponse(
+            content="<!DOCTYPE html><html lang='tr'><head><meta charset='UTF-8'><title>Mışıl Baby</title></head><body><h1>Mışıl Baby</h1></body></html>",
+            status_code=status.HTTP_200_OK,
+            headers=no_cache_headers,
         )
-    except Exception as exc:
-        logger.warning(f"Bridge click telemetry warning (user): {exc}")
-    interstitial_html = generate_interstitial_html(is_android)
-    return HTMLResponse(content=interstitial_html, status_code=status.HTTP_200_OK)
+
+    is_android_route = route_path in ("/android", "/play-store")
+    is_ios_route = route_path in ("/ios", "/app-store")
+    is_windows_desktop = (not is_mobile_os) and ("windows" in user_agent)
+    prefer_android = bool(
+        is_android
+        or (not is_ios and (is_android_route or (is_windows_desktop and not is_ios_route)))
+    )
+
+    # Tıklama kaydını BackgroundTasks ile HTTP yanıtı gönderildikten hemen sonra yaz (<5ms TTFB, %100 aynı kokpit sayımı)
+    background_tasks.add_task(
+        record_bridge_click,
+        click_ctx,
+        route_path=route_path,
+        target_store="google_play" if prefer_android else "app_store",
+    )
+    interstitial_html = generate_interstitial_html(
+        is_android=is_android,
+        is_ios=is_ios,
+        is_iab=is_iab,
+        prefer_android=prefer_android,
+    )
+    return HTMLResponse(content=interstitial_html, status_code=status.HTTP_200_OK, headers=no_cache_headers)
 
 
 @app.get("/invite/{code}", response_class=HTMLResponse, tags=["Family"])
