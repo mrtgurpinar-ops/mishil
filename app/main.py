@@ -623,22 +623,23 @@ def generate_interstitial_html(
 </html>"""
 
 
-@app.get("/ios", response_class=HTMLResponse, tags=["Landing"])
-@app.get("/download", response_class=HTMLResponse, tags=["Landing"])
-@app.get("/app-store", response_class=HTMLResponse, tags=["Landing"])
-@app.get("/android", response_class=HTMLResponse, tags=["Landing"])
-@app.get("/play-store", response_class=HTMLResponse, tags=["Landing"])
+@app.get("/ios", response_model=None, tags=["Landing"])
+@app.get("/download", response_model=None, tags=["Landing"])
+@app.get("/app-store", response_model=None, tags=["Landing"])
+@app.get("/android", response_model=None, tags=["Landing"])
+@app.get("/play-store", response_model=None, tags=["Landing"])
 async def smart_app_store_bridge(request: Request, background_tasks: BackgroundTasks):
-    """Universal Smart Store Bridge: Zero-latency (<5ms) native store launcher preserving 100% cockpit telemetry."""
+    """
+    Universal Direct HTTP 302 Store Bridge (AppsFlyer OneLink Architecture):
+    - Meta / sosyal inceleme botlarına 200 OK resmi landing sayfası (index.html) sunar (reklam kısıtlarına takılmaz),
+    - Gerçek kullanıcılara ara 'Açılıyor...' HTML ekranı göstermeden <1ms içinde doğrudan HTTP 302 mağaza yönlendirmesi döner,
+    - Kokpit tıklama metriklerini BackgroundTasks üzerinden %100 eksiksiz kaydeder.
+    """
     user_agent = (request.headers.get("user-agent") or "").lower()
     route_path = request.url.path or "/ios"
     is_ios = any(os_tok in user_agent for os_tok in ("iphone", "ipad", "ipod"))
     is_android = (not is_ios) and ("android" in user_agent)
     is_mobile_os = is_ios or is_android
-    is_iab = any(
-        tok in user_agent
-        for tok in ("instagram", "fban", "fbav", "fb_iab", "tiktok", "bytedancewebview", "musical_ly", "line")
-    )
     no_cache_headers = {
         "Cache-Control": "no-store, no-cache, must-revalidate, max-age=0",
         "Pragma": "no-cache",
@@ -676,21 +677,20 @@ async def smart_app_store_bridge(request: Request, background_tasks: BackgroundT
         is_android
         or (not is_ios and (is_android_route or (is_windows_desktop and not is_ios_route)))
     )
+    target_url = GOOGLE_PLAY_URL if prefer_android else APP_STORE_SHORT_URL
 
-    # Tıklama kaydını BackgroundTasks ile HTTP yanıtı gönderildikten hemen sonra yaz (<5ms TTFB, %100 aynı kokpit sayımı)
+    # Tıklama kaydını BackgroundTasks ile HTTP 302 yanıtı gönderildikten hemen sonra yaz (<1ms TTFB, %100 aynı kokpit sayımı)
     background_tasks.add_task(
         record_bridge_click,
         click_ctx,
         route_path=route_path,
         target_store="google_play" if prefer_android else "app_store",
     )
-    interstitial_html = generate_interstitial_html(
-        is_android=is_android,
-        is_ios=is_ios,
-        is_iab=is_iab,
-        prefer_android=prefer_android,
+    return RedirectResponse(
+        url=target_url,
+        status_code=status.HTTP_302_FOUND,
+        headers=no_cache_headers,
     )
-    return HTMLResponse(content=interstitial_html, status_code=status.HTTP_200_OK, headers=no_cache_headers)
 
 
 @app.get("/invite/{code}", response_class=HTMLResponse, tags=["Family"])

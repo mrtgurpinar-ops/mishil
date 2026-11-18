@@ -2528,9 +2528,10 @@ def extract_trusted_client_ip(request: Request) -> str:
        CF-Connecting-IP başlıklarını yok sayar ve doğrudan TCP peer IP'sini kullanır.
     2) İstek güvenilir iç ağ vekilinden (Railway Envoy private CIDR / loopback / TestClient)
        geliyorsa:
-       - Yalnızca CF-Ray başlığı eşlik ettiğinde geçerli CF-Connecting-IP'yi kabul eder,
-       - Aksi halde X-Real-IP veya ters vekilin sona eklediği (en sağdaki / rightmost)
-         geçerli X-Forwarded-For IP adresini alır (istemcinin sola eklediği sahte IP'leri atlar).
+       - Yalnızca TRUST_CLOUDFLARE_HEADERS=true ve CF-Ray başlığı birlikte mevcutsa
+         geçerli CF-Connecting-IP'yi kabul eder,
+       - Aksi halde ters vekilin sona eklediği (en sağdaki / rightmost) geçerli
+         X-Forwarded-For IP adresini alır (istemcinin sola eklediği sahte IP'leri ve X-Real-IP'yi yok sayar).
     """
     import ipaddress
 
@@ -2558,14 +2559,15 @@ def extract_trusted_client_ip(request: Request) -> str:
     if not is_trusted_proxy_hop:
         return peer_valid or "unknown"
 
-    if request.headers.get("cf-ray"):
+    # Çıplak Railway domaininde (*.up.railway.app) istemci sahte CF-Ray + CF-Connecting-IP veya
+    # X-Real-IP gönderebileceği için bu başlıklara yalnızca açıkça TRUST_CLOUDFLARE_HEADERS=true
+    # tanımlandığında güvenilir; varsayılan olarak sadece Railway Envoy'un X-Forwarded-For sonuna
+    # eklediği (en sağdaki / rightmost) geçerli IP alınır.
+    trust_cf = os.environ.get("TRUST_CLOUDFLARE_HEADERS", "").strip().lower() in ("1", "true", "yes")
+    if trust_cf and request.headers.get("cf-ray"):
         cf_ip = _valid_ip(request.headers.get("cf-connecting-ip"))
         if cf_ip:
             return cf_ip
-
-    real_ip = _valid_ip(request.headers.get("x-real-ip"))
-    if real_ip:
-        return real_ip
 
     xff_raw = request.headers.get("x-forwarded-for") or ""
     if xff_raw:
@@ -2584,10 +2586,10 @@ def capture_bridge_click_context(request: Request) -> Dict[str, Optional[str]]:
     """
     ua_raw = request.headers.get("user-agent") or ""
     client_ip = extract_trusted_client_ip(request)
+    trust_cf = os.environ.get("TRUST_CLOUDFLARE_HEADERS", "").strip().lower() in ("1", "true", "yes")
 
     country_raw = (
-        (request.headers.get("cf-ipcountry") if request.headers.get("cf-ray") else None)
-        or request.headers.get("x-country-code")
+        (request.headers.get("cf-ipcountry") if (trust_cf and request.headers.get("cf-ray")) else None)
         or "TR"
     )
     q_params = request.query_params
@@ -2655,8 +2657,12 @@ def record_bridge_click(
                         "big",
                     ) & 0x7FFFFFFFFFFFFFFF
                     db.execute(text("SELECT pg_advisory_xact_lock(:k)"), {"k": adv_key})
-            except Exception:
-                pass
+            except Exception as lock_exc:
+                logger.warning("Advisory lock fallback (bridge): %s", lock_exc)
+                try:
+                    db.rollback()
+                except Exception:
+                    pass
 
             now_utc = datetime.now(timezone.utc)
             cutoff = now_utc - timedelta(seconds=15)
@@ -2726,9 +2732,9 @@ async def record_app_open_signal(
     ip_masked = mask_ip(client_ip, ua_raw)
     base_ip = extract_base_ip(ip_masked)
 
+    trust_cf = os.environ.get("TRUST_CLOUDFLARE_HEADERS", "").strip().lower() in ("1", "true", "yes")
     country_raw = (
-        (request.headers.get("cf-ipcountry") if request.headers.get("cf-ray") else None)
-        or request.headers.get("x-country-code")
+        (request.headers.get("cf-ipcountry") if (trust_cf and request.headers.get("cf-ray")) else None)
         or "TR"
     )
     country_clean = "".join(ch for ch in country_raw.upper() if ch.isalnum())[:6] or "TR"
@@ -2760,8 +2766,12 @@ async def record_app_open_signal(
                         "big",
                     ) & 0x7FFFFFFFFFFFFFFF
                     db.execute(text("SELECT pg_advisory_xact_lock(:k)"), {"k": sig_adv_key})
-            except Exception:
-                pass
+            except Exception as sig_lock_exc:
+                logger.warning("Advisory lock fallback (signal): %s", sig_lock_exc)
+                try:
+                    db.rollback()
+                except Exception:
+                    pass
 
         if clean_event == "first_open":
             existing_open = (
@@ -4640,7 +4650,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "bridge_unique_clicks": len(unique_human),
             "asa_clicks": asa_clicks_val,
             "total_acquisition_clicks": total_cumulative_visits_and_clicks,
-            "store_jumps_tracked": len(store_jumps) + len(unique_human),
+            "store_jumps_tracked": len(unique_human),
+            "legacy_store_jump_beacons": len(store_jumps),
             "store_button_clicks_tracked": len(store_button_clicks),
             "total_store_installs": total_cumulative_downloads,
             "first_open_signals": len(first_opens),

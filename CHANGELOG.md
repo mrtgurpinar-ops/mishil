@@ -2,6 +2,17 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.52.2] - 2026-11-18 (Canlı Backend & Köprü Paketi — Build 70 Aktif • Native EAS Build Gerekmez)
+### 🚀 `/ios` & `/download` Sıfır Ara Sayfalı (`HTTP 302`) Doğrudan Mağaza Yönlendirmesi & Kokpit Veri Bütünlüğü Zırhlaması (`app/main.py`, `app/api/v1/endpoints/analytics.py`, `tests/test_sleep_and_analytics_remediation.py`)
+1. **Ara `"Mışıl Baby Açılıyor..."` Ekranının Kaldırılması (`HTTP 302 Found`):**
+   - `smart_app_store_bridge` içindeki ara HTML yanıtı kaldırılarak gerçek kullanıcılara `<1 ms` içinde doğrudan `HTTP 302 Found` (`Cache-Control: no-store`) dönülecek şekilde güncellendi (`iOS / iPadOS` ➔ `https://apps.apple.com/app/id6809223195`, `Android` ➔ `https://play.google.com/store/apps/details?id=com.levitas.misilbaby`); kullanıcıya ikinci bir tıklama yaptırılmaz ve `"Açılıyor..."` ara ekranı gösterilmez.
+   - `BackgroundTasks` üzerinden kokpit tıklama sayımları (`BridgeClick` -> `visits_and_clicks_total`, `bridge_unique_clicks`, `meta_ads.unique_clicks`, `instagram_bio.unique_clicks`) korundu.
+2. **Seviye 3 Gerçek 3-Ajanlı Konsensüs Denetimi & Giderilen Bulgular (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-312` 1. tur ➔ `task-413` mimari teyit ➔ `task-454` nihai doğrulama: `FINAL_VERDICT: PASS`)** ve **Codex CLI (`gpt-6-luna`, `task-314` 1. tur ➔ `task-410` mimari teyit ➔ `task-451` son doğrulama)** gerçek terminal denetimlerinde ortak yakalanan tüm teknik bulgular yerel ortamda kapatıldı:
+     1. **Railway Header Spoofing & Advisory Lock Rollback (`analytics.py`):** Çıplak `*.up.railway.app` domaininde dışarıdan gönderilebilen sahte `CF-Ray` + `CF-Connecting-IP` / `CF-IPCountry` / `X-Real-IP` başlıklarıyla `15 sn` tekilleştirmenin atlanması engellendi (`TRUST_CLOUDFLARE_HEADERS=true` açıkça tanımlanmadıkça yalnızca Railway Envoy'un en sağa eklediği `X-Forwarded-For` IP'si baz alınır) ve `pg_advisory_xact_lock` hata bloğuna `db.rollback()` eklendi.
+     2. **`store_jumps_tracked` Çift Sayım / Donma Düzeltmesi (`analytics.py`):** `302` mimarisinde JS `store_jump` sinyali üretilmediği için `product_funnel.store_jumps_tracked` metriği `len(unique_human)` ile eşitlendi; geçmiş JS sinyalleri `legacy_store_jump_beacons` altında ayrıştırıldı.
+   - **Antigravity Yerel Doğrulama:** `51/51 pytest` yeşil, `GET /api/v1/analytics/dashboard` (`200 OK`, `217,535 byte`).
+
 ## [4.52.1] - 2026-11-18 (Canlı Backend & Köprü Paketi — Build 70 Aktif • Native EAS Build Gerekmez)
 ### ⚡ `/ios` & `/download` Sıfır Gecikmeli (`~1 ms`) Yerel Mağaza Yönlendirmesi, Instagram IAB Kaçış Motoru & Kokpit Sayım Zırhlaması (`app/main.py`, `app/api/v1/endpoints/analytics.py`, `tests/test_sleep_and_analytics_remediation.py`)
 1. **Sunucu Yanıt Süresi İyileştirmesi (`~400–900 ms` ➔ `~1 ms`) & `%100` Kokpit Sayım Bütünlüğü:**

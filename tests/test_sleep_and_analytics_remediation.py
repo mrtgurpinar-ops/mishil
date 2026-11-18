@@ -691,8 +691,9 @@ def test_priority1_android_intent_bridge_and_separated_cvr_metrics(client, db_se
     assert "id6809223195" in ios_html
     assert 'id="storeWebFallbackBtn"' not in ios_html
 
-    # Meta Reklam (/ios) üzerinden gelen Android Facebook In-App Browser (FBAN) isteği
+    # Meta Reklam (/ios) üzerinden gelen Android Facebook In-App Browser (FBAN) isteği -> Doğrudan HTTP 302
     from unittest.mock import patch
+    from app.main import GOOGLE_PLAY_URL
     with patch("app.main.record_bridge_click"):
         bridge_res = client.get(
             "/ios",
@@ -703,9 +704,10 @@ def test_priority1_android_intent_bridge_and_separated_cvr_metrics(client, db_se
                     "Mobile Safari/537.36 [FB_IAB/FB4A;FBAV/445.0.0.34.118;]"
                 )
             },
+            follow_redirects=False,
         )
-    assert bridge_res.status_code == 200
-    assert "intent://details?id=com.levitas.misilbaby" in bridge_res.text
+    assert bridge_res.status_code == 302
+    assert bridge_res.headers.get("location") == GOOGLE_PLAY_URL
 
     # Manuel buton tıklama sinyali (store_button_click) kaydı
     btn_sig_res = client.post(
@@ -1802,7 +1804,7 @@ def test_fast_native_store_bridge_instagram_iab_and_cockpit_parity(client, db_se
     4) BackgroundTasks + capture_bridge_click_context -> BridgeClick, 15s tekilleştirme, bot filtresi ve kokpit özet sayılarını %100 korur.
     """
     from unittest.mock import patch
-    from app.main import APP_STORE_NATIVE_URL, APP_STORE_URL, GOOGLE_PLAY_INTENT_URL, INSTAGRAM_IOS_EXTBROWSER_URL
+    from app.main import APP_STORE_SHORT_URL, GOOGLE_PLAY_URL
     from app.api.v1.endpoints.analytics import (
         _build_analytics_summary,
         record_bridge_click as real_record_bridge_click,
@@ -1828,56 +1830,60 @@ def test_fast_native_store_bridge_instagram_iab_and_cockpit_parity(client, db_se
         real_record_bridge_click(ctx, route_path=route_path, target_store=target_store, db_override=db_session)
 
     with patch("app.main.record_bridge_click", side_effect=_bound_bridge_click):
-        # 1) iOS Instagram IAB (/ios?fbclid=fb_test_ios_1)
+        # 1) iOS Instagram IAB (/ios?fbclid=fb_test_ios_1) -> Ara HTML yok, doğrudan HTTP 302 App Store
         res_ios = client.get(
             "/ios?fbclid=fb_test_ios_1",
             headers={"user-agent": ig_ios_ua, "x-forwarded-for": "88.241.10.21"},
+            follow_redirects=False,
         )
-        assert res_ios.status_code == 200
+        assert res_ios.status_code == 302
         assert "no-store" in res_ios.headers.get("cache-control", "")
-        assert f'href="{APP_STORE_NATIVE_URL}" id="storeOpenBtn"' in res_ios.text
-        assert 'id="iosExternalBrowserBtn"' in res_ios.text
-        assert INSTAGRAM_IOS_EXTBROWSER_URL in res_ios.text
-        assert "setTimeout(triggerStoreRedirect, 120)" not in res_ios.text
+        assert res_ios.headers.get("location") == APP_STORE_SHORT_URL
+        assert "Mışıl Baby Açılıyor" not in res_ios.text
 
-        # Sahte X-Forwarded-For (sola eklenmiş sahte IP) ve CF-Ray olmayan sahte CF-Connecting-IP
-        # tekilleştirmeyi atlatamamalı (en sağdaki gerçek vekil IP 88.241.10.21 baz alınmalı)
+        # Çıplak Railway domaininde sahte CF-Ray + CF-Connecting-IP + X-Real-IP + CF-IPCountry ve sola eklenmiş
+        # sahte X-Forwarded-For IP'si 15sn tekilleştirmeyi atlatamamalı (en sağdaki gerçek Envoy IP 88.241.10.21 baz alınmalı)
         res_ios_dup = client.get(
             "/ios?fbclid=fb_test_ios_1",
             headers={
                 "user-agent": ig_ios_ua,
+                "cf-ray": "fake-ray-999",
                 "cf-connecting-ip": "1.2.3.4",
+                "cf-ipcountry": "US",
+                "x-real-ip": "9.9.9.9",
                 "x-forwarded-for": "5.6.7.8, 88.241.10.21",
             },
+            follow_redirects=False,
         )
-        assert res_ios_dup.status_code == 200
+        assert res_ios_dup.status_code == 302
+        assert res_ios_dup.headers.get("location") == APP_STORE_SHORT_URL
 
-        # 2) Android Instagram IAB (/ios?fbclid=fb_test_and_1)
+        # 2) Android Instagram IAB (/ios?fbclid=fb_test_and_1) -> Ara HTML yok, doğrudan HTTP 302 Google Play
         res_and = client.get(
             "/ios?fbclid=fb_test_and_1",
             headers={"user-agent": ig_and_ua, "x-forwarded-for": "176.88.42.19"},
+            follow_redirects=False,
         )
-        assert res_and.status_code == 200
-        assert f'href="{GOOGLE_PLAY_INTENT_URL}" id="storeOpenBtn"' in res_and.text
-        assert "window.location.replace(playHttpsUrl)" not in res_and.text
-        assert ", 1200)" not in res_and.text
+        assert res_and.status_code == 302
+        assert res_and.headers.get("location") == GOOGLE_PLAY_URL
 
-        # 3) Windows Masaüstü tarayıcı (/download) -> Google Play birincil + App Store alternatif (#desktopAltStoreBtn)
-        from app.main import GOOGLE_PLAY_URL
+        # 3) Windows Masaüstü tarayıcı (/download) -> Doğrudan HTTP 302 Google Play
         res_desk = client.get(
             "/download",
             headers={"user-agent": win_desktop_ua, "x-forwarded-for": "95.70.12.44"},
+            follow_redirects=False,
         )
-        assert res_desk.status_code == 200
-        assert f'href="{GOOGLE_PLAY_URL}" id="storeOpenBtn"' in res_desk.text
-        assert f'href="{APP_STORE_URL}" id="desktopAltStoreBtn"' in res_desk.text
+        assert res_desk.status_code == 302
+        assert res_desk.headers.get("location") == GOOGLE_PLAY_URL
 
-        # 4) Meta Crawler botu (/ios) -> landing sayfası + bot filtresi
+        # 4) Meta Crawler botu (/ios) -> Yönlendirme yapılmaz, 200 OK resmi landing sayfası (Meta reklam uyumu)
         res_bot = client.get(
             "/ios",
             headers={"user-agent": meta_bot_ua, "x-forwarded-for": "66.220.149.11"},
+            follow_redirects=False,
         )
         assert res_bot.status_code == 200
+        assert res_bot.headers.get("location") is None
 
     summary = _build_analytics_summary(db_session, period="all")
     assert summary["total_raw"] == 5
@@ -1891,6 +1897,8 @@ def test_fast_native_store_bridge_instagram_iab_and_cockpit_parity(client, db_se
     assert summary["meta_ads"]["android_clicks"] == 1
     assert summary["instagram_bio"]["unique_clicks"] == 1
     assert summary["cumulative_kpis"]["desktop_bridge_clicks"] == 1
+    assert summary["product_funnel"]["store_jumps_tracked"] == 3
+    assert summary["product_funnel"]["legacy_store_jump_beacons"] == 0
     assert summary["webview_breakdown"].get("Instagram App") == 2
 
     # 5) iPadOS ("Macintosh" UA) BridgeClick -> os_family="ios" AppInstallSignal eşleşme doğrulaması
@@ -1902,8 +1910,10 @@ def test_fast_native_store_bridge_instagram_iab_and_cockpit_parity(client, db_se
         res_ipad = client.get(
             "/ios?fbclid=fb_ipad_01",
             headers={"user-agent": ipados_safari_ua, "x-forwarded-for": "85.105.77.33"},
+            follow_redirects=False,
         )
-        assert res_ipad.status_code == 200
+        assert res_ipad.status_code == 302
+        assert res_ipad.headers.get("location") == APP_STORE_SHORT_URL
 
     ipad_sig = client.post(
         "/api/v1/analytics/app-open-signal",
