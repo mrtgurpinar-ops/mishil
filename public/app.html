@@ -13386,6 +13386,9 @@
         `🍼 Nursing logged (${baseFeedObj.detail})`,
         `🍼 Stillen gespeichert (${baseFeedObj.detail})`
       ));
+      if (typeof window.sendMishilAnalyticsSignal === 'function') {
+        window.sendMishilAnalyticsSignal('routine_logged');
+      }
       if (typeof scheduleMishilDelightReview === 'function') {
         scheduleMishilDelightReview('routine_logged', 2000);
       }
@@ -19270,6 +19273,7 @@
     renderHomeTodayTimeline();
     renderAnalyticsView();
     if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced();
+    if (typeof window.sendMishilAnalyticsSignal === 'function') window.sendMishilAnalyticsSignal('routine_logged');
     showToast(trEnDe(`✅ ${labelLoc} başarıyla eklendi (${timeNow})`, `✅ ${labelLoc} logged (${timeNow})`, `✅ ${labelLoc} gespeichert (${timeNow})`));
   }
 
@@ -19947,6 +19951,9 @@
     renderAnalyticsView();
     renderHomeScreenScore();
     if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced({ immediate: true });
+    if (!isEditing && typeof window.sendMishilAnalyticsSignal === 'function') {
+      window.sendMishilAnalyticsSignal('routine_logged');
+    }
     if (typeof scheduleMishilDelightReview === 'function') {
       scheduleMishilDelightReview('routine_logged', 2000);
     }

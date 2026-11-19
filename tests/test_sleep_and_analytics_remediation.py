@@ -1930,6 +1930,272 @@ def test_fast_native_store_bridge_instagram_iab_and_cockpit_parity(client, db_se
     assert ipad_sig.json()["match_confidence"] == "high"
 
 
+def test_dynamic_rc_v2_google_play_orders_downgrade_mrr_and_zero_static_data(client, db_session, monkeypatch):
+    """
+    3-Ajan Konsensüs Kokpit Mutabakat Testi (%100 Dinamik & Sıfır Statik Veri):
+    1) _KNOWN_RC_PRODUCTION_CUSTOMERS gibi statik müşteri dizilerinin kaldırıldığı,
+    2) RevenueCat V2 opak product_id (prod24815efd12, prodec593d4420, proddd11361bba, prod2fc9b4842a) eşlemesinin
+       dinamik ürün kataloğu ile çalıştığı,
+    3) Çok sayfalı RC V2 müşteri taraması + Google Play orders/{orderId} çapraz doğrulaması ile:
+       - testPurchase içeren test siparişlerinin elendiği,
+       - REFUNDED (72s onaysız) siparişlerin cancelled olarak işlendiği,
+       - Aktif 7G Google Play denemelerinin SubscriberLedger'a doğru yazıldığı,
+    4) /subscriber-sync uç noktasında device_uid + plan + doğrulanmış RC V2 ile AttributeError oluşmadığı,
+    5) iOS yıllık denemeden 149.99 TL aylık ücrete geçen (#786416) abonenin misil_monthly'ye onarıldığı ve
+       will_not_renew abonelerin auto_renew_enabled=False korunduğu,
+    6) Yıllık denemelerin projected_total_mrr_net_try hesabında /12 ile normalize edildiği ve
+       switchPlatform('android') seçildiğinde #appleLedgerCard tablosunun gizlenmediği doğrulanır.
+    """
+    import app.api.v1.endpoints.analytics as an_mod
+    from app.db.models import SubscriberLedger, SubscriptionLifecycleEvent, StoreSyncState, AppInstallSignal
+
+    assert not hasattr(an_mod, "_KNOWN_RC_PRODUCTION_CUSTOMERS")
+
+    SubscriberLedger.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    SubscriptionLifecycleEvent.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    StoreSyncState.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    AppInstallSignal.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    db_session.query(SubscriberLedger).delete()
+    db_session.query(SubscriptionLifecycleEvent).delete()
+    db_session.query(StoreSyncState).delete()
+    db_session.query(AppInstallSignal).delete()
+    db_session.commit()
+
+    # Opak RC V2 product_id eşleme doğrulaması
+    sample_prod_map = {
+        "prod24815efd12": "misilaylik:misilaylik",
+        "prodec593d4420": "misil:misil",
+        "prod2fc9b4842a": "misil_monthly",
+        "proddd11361bba": "misil_annual",
+    }
+    assert an_mod._resolve_canonical_product_id("prodec593d4420", "android", sample_prod_map) == "misil"
+    assert an_mod._resolve_canonical_product_id("prod24815efd12", "android", sample_prod_map) == "misilaylik"
+    assert an_mod._resolve_canonical_product_id("proddd11361bba", "ios", sample_prod_map) == "misil_annual"
+    assert an_mod._resolve_canonical_product_id("prod2fc9b4842a", "ios", sample_prod_map) == "misil_monthly"
+
+    # iOS #786416: misil_annual denemeden 149.99 TL aylık ücrete geçmiş eski kayıt + 1 aktif yıllık deneme
+    db_session.add_all([
+        SubscriberLedger(
+            subscriber_id="259753775786416",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Yıllık VIP",
+            status="paid_active",
+            offer_type="standard_paid",
+            started_date="2026-10-30",
+            converted_or_renewed_date="2026-11-15",
+            maturity_or_renewal_date="2027-11-15",
+            auto_renew_enabled=True,
+            customer_price_try=149.99,
+            developer_proceeds_try=83.12,
+            expected_next_price_try=149.99,
+            expected_next_proceeds_try=83.12,
+            country="TR",
+            device_type="iPhone",
+        ),
+        SubscriberLedger(
+            subscriber_id="998877665544332",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Yıllık VIP",
+            status="intro_free_trial",
+            offer_type="intro_7d_trial",
+            started_date="2026-11-18",
+            maturity_or_renewal_date="2026-11-25",
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=599.99,
+            expected_next_proceeds_try=332.50,
+            country="TR",
+            device_type="iPhone",
+        ),
+    ])
+    db_session.commit()
+
+    # Dinamik RC V2 + Google Play orders mock'ları (2 aktif Android deneme, 1 72s iade, 1 testPurchase filtreli, 1 iOS will_not_renew)
+    monkeypatch.setattr(an_mod, "_get_revenuecat_v2_secret_key", lambda: "sk_test_dynamic_mock")
+    monkeypatch.setattr(an_mod, "_get_rc_v2_product_map", lambda sk=None: sample_prod_map)
+    monkeypatch.setattr(an_mod, "_get_google_play_access_token", lambda: "gp_oauth_mock_token")
+
+    class _FakeResp:
+        def __init__(self, status_code, data_obj):
+            self.status = status_code
+            self._raw = __import__("json").dumps(data_obj).encode("utf-8")
+
+        def read(self):
+            return self._raw
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+    def _fake_urlopen(req, timeout=5):
+        u = req.full_url if hasattr(req, "full_url") else str(req)
+        if "/customers?limit=100" in u and "starting_after" not in u:
+            return _FakeResp(200, {
+                "items": [
+                    {"id": "$RCAnonymousID:and_active_1", "last_seen_at": 1763500000000},
+                    {"id": "$RCAnonymousID:and_refund_1", "last_seen_at": 1762400000000},
+                ],
+                "next_page": "/v2/projects/proja1528882/customers?limit=100&starting_after=page2",
+            })
+        if "starting_after=page2" in u:
+            return _FakeResp(200, {
+                "items": [
+                    {"id": "$RCAnonymousID:and_test_order", "last_seen_at": 1763510000000},
+                    {"id": "$RCAnonymousID:ios_wnr_paid", "last_seen_at": 1763400000000},
+                ],
+                "next_page": None,
+            })
+        return _FakeResp(404, {})
+
+    def _fake_fetch_subs(cid, sk=None, rc_prod_map=None):
+        mapping = {
+            "$RCAnonymousID:and_active_1": [{
+                "customer_id": cid, "platform": "android", "store": "play_store",
+                "product_id": an_mod._resolve_canonical_product_id("prod24815efd12", "android", sample_prod_map),
+                "rc_status": "trialing", "auto_renewal_status": "will_renew", "auto_renew_enabled": True,
+                "starts_at_date": "2026-11-18", "current_period_starts_at_date": "2026-11-18",
+                "ends_at_date": "2026-11-25", "store_subscription_identifier": "GPA.3300-4310-2609-37553..0",
+                "country": "TR", "gross_usd": 0.0, "proceeds_usd": 0.0, "pending_product_id": None,
+            }],
+            "$RCAnonymousID:and_refund_1": [{
+                "customer_id": cid, "platform": "android", "store": "play_store",
+                "product_id": an_mod._resolve_canonical_product_id("prodec593d4420", "android", sample_prod_map),
+                "rc_status": "expired", "auto_renewal_status": "will_not_renew", "auto_renew_enabled": False,
+                "starts_at_date": "2026-11-04", "current_period_starts_at_date": "2026-11-04",
+                "ends_at_date": "2026-11-07", "store_subscription_identifier": "GPA.3392-3288-3097-06950",
+                "country": "TR", "gross_usd": 0.0, "proceeds_usd": 0.0, "pending_product_id": None,
+            }],
+            "$RCAnonymousID:and_test_order": [{
+                "customer_id": cid, "platform": "android", "store": "play_store",
+                "product_id": "misilaylik",
+                "rc_status": "trialing", "auto_renewal_status": "will_renew", "auto_renew_enabled": True,
+                "starts_at_date": "2026-11-19", "current_period_starts_at_date": "2026-11-19",
+                "ends_at_date": "2026-11-26", "store_subscription_identifier": "GPA.3399-0000-0000-00001",
+                "country": "TR", "gross_usd": 0.0, "proceeds_usd": 0.0, "pending_product_id": None,
+            }],
+            "$RCAnonymousID:ios_wnr_paid": [{
+                "customer_id": cid, "platform": "ios", "store": "app_store",
+                "product_id": "misil_monthly",
+                "rc_status": "active", "auto_renewal_status": "will_not_renew", "auto_renew_enabled": False,
+                "starts_at_date": "2026-10-30", "current_period_starts_at_date": "2026-11-15",
+                "ends_at_date": "2026-12-15", "store_subscription_identifier": "220000111222333",
+                "country": "TR", "gross_usd": 3.50, "proceeds_usd": 2.98, "pending_product_id": None,
+            }],
+        }
+        return mapping.get(cid, [])
+
+    def _fake_fetch_gp_order(oid, tok=None):
+        if oid == "GPA.3300-4310-2609-37553":
+            return {
+                "orderId": oid,
+                "state": "PROCESSED",
+                "buyerAddress": {"regionCode": "TR"},
+                "total": {"currencyCode": "TRY", "units": "0", "nanos": 0},
+                "lineItems": [{"productId": "misilaylik", "subscriptionDetails": {"offerPhase": "FREE_TRIAL", "servicePeriodEndTime": "2026-11-25T16:12:41Z"}}],
+            }
+        if oid == "GPA.3392-3288-3097-06950":
+            return {
+                "orderId": oid,
+                "state": "REFUNDED",
+                "buyerAddress": {"regionCode": "TR"},
+                "total": {"currencyCode": "TRY", "units": "0", "nanos": 0},
+                "lineItems": [{"productId": "misil", "subscriptionDetails": {"offerPhase": "FREE_TRIAL", "servicePeriodEndTime": "2026-11-07T02:27:25Z"}}],
+            }
+        if oid == "GPA.3399-0000-0000-00001":
+            return {"orderId": oid, "state": "PROCESSED", "testPurchase": {}}
+        return None
+
+    monkeypatch.setattr(an_mod.urllib.request, "urlopen", _fake_urlopen)
+    monkeypatch.setattr(an_mod, "_fetch_rc_v2_customer_production_subs", _fake_fetch_subs)
+    monkeypatch.setattr(an_mod, "_fetch_google_play_order", _fake_fetch_gp_order)
+
+    bridge_res = an_mod.sync_revenuecat_v2_production_bridge(db_session, latest_apple_report_date="2026-11-18")
+    assert bridge_res["connected"] is True
+    assert bridge_res["customers_checked"] == 4
+    assert bridge_res["android_test_filtered"] == 1
+    assert bridge_res["prod_android_checked"] == 2
+
+    # Doğrulanmış /subscriber-sync (device_uid + plan dahil) 500 AttributeError vermeden 200 dönmeli
+    monkeypatch.setenv("MISIL_ENABLE_TEST_RC_V2", "1")
+    monkeypatch.setattr(
+        an_mod,
+        "verify_revenuecat_v2_customer",
+        lambda cid: {
+            "customer_id": cid,
+            "platform": "android",
+            "store": "play_store",
+            "product_id": "misilaylik",
+            "rc_status": "trialing",
+            "auto_renewal_status": "will_renew",
+            "auto_renew_enabled": True,
+            "starts_at_date": "2026-11-19",
+            "current_period_starts_at_date": "2026-11-19",
+            "ends_at_date": "2026-11-26",
+            "store_subscription_identifier": "GPA.3393-7847-2790-81158",
+            "country": "TR",
+            "gross_usd": 0.0,
+            "proceeds_usd": 0.0,
+        },
+    )
+    sync_resp = client.post(
+        "/api/v1/analytics/subscriber-sync",
+        json={
+            "subscriber_id": "$RCAnonymousID:7c117007c62646838d032dd07dc05bc2",
+            "device_uid": "msl_verified_android_dev",
+            "platform": "android",
+            "product_id": "misilaylik",
+            "plan": "monthly",
+            "status": "intro_free_trial",
+        },
+    )
+    assert sync_resp.status_code == 200
+    assert sync_resp.json()["subscriber_id"] == "GPA.3393-7847-2790-81158"
+
+    # Dadı AI ve rutin sinyali sayımı
+    db_session.add_all([
+        AppInstallSignal(device_uid="dev_rt_1", event_type="routine_logged", os_family="android", platform="android_native"),
+        AppInstallSignal(device_uid="dev_dc_1", event_type="dadi_chat", os_family="ios", platform="ios_coach"),
+        AppInstallSignal(device_uid="dev_fo_de", event_type="first_open", os_family="android", platform="android_native", country="DE"),
+    ])
+    db_session.commit()
+
+    summary = an_mod._build_analytics_summary(db_session, period="all")
+    fl = summary["financial_ledger"]
+    ps_and = summary["platform_split"]["android"]
+    pr = summary["product_retention"]
+
+    # #786416: misil_monthly olarak onarılmış ve will_not_renew (auto_renew_enabled=False) korunmuş olmalı; paid_subs_count == 1
+    row_786 = db_session.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == "259753775786416").first()
+    assert row_786.product_id == "misil_monthly"
+    assert row_786.auto_renew_enabled is False
+    assert fl["paid_subs_count"] == 1
+    assert fl["active_paid_mrr_net_try"] == 0.0
+
+    # Android: 2 aktif deneme (GPA.3300... ve GPA.3393...) + 1 iade iptal (GPA.3392...), test siparişi yok!
+    assert ps_and["vip_count"] == 2
+    assert ps_and["total_vip_count"] == 3
+    assert ps_and["cancelled_vip_count"] == 1
+
+    # Yıllık deneme (332.50 / 12 = 27.71) + 2 Android aylık deneme (109.04 * 2 = 218.08) -> MRR = 245.79 (pipeline_7d_mrr_net_try ise 550.58)
+    assert fl["pipeline_7d_mrr_net_try"] == 550.58
+    assert fl["projected_total_mrr_net_try"] == 245.79
+    assert pr["routine_logs_count"] >= 1
+    assert pr["dadi_chats_count"] >= 1
+
+    # Android DE first_open ülke kırılımında görünmeli
+    de_country = next((c for c in fl["country_revenue_breakdown"] if c["code"] == "DE"), None)
+    assert de_country is not None and de_country["downloads"] >= 1
+
+    dash_html = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"}).text
+    assert "if (appLed) appLed.style.display = 'block';" in dash_html
+
+
+
 
 
 

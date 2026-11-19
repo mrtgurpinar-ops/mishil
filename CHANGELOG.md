@@ -2,6 +2,22 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.53.1] - 2026-11-19 (Canlı WebView & Backend Paketi — Build 70 Aktif • Native EAS Build Gerekmez)
+### 📊 Kurucu Kokpiti (`/admin/analytics`) Seviye-3 3-Ajanlı Konsensüs Denetimi & `%100` Dinamik Mağaza Mutabakatı (`app/api/v1/endpoints/analytics.py`, `app/services/subscription.py`, `app/api/v1/endpoints/coach.py`, `public/app.html`, `mobile/components/MishilUnifiedWebView.tsx`, `mobile/features/webview/offlineHtml.generated.ts`, `tests/test_sleep_and_analytics_remediation.py`)
+1. **Sıfır Statik Veri & `%100` Dinamik RevenueCat V2 + Google Play `orders` Mutabakat Motoru (`analytics.py`):**
+   - Sabit `_KNOWN_RC_PRODUCTION_CUSTOMERS` dizisi tamamen kaldırıldı; kalıcı `StoreSyncState` (`rc_v2_customer_scan_cache` + `resume_next_url`) ile tüm RevenueCat müşteri sayfaları (`limit=100`, çoklu `production` abonelik döngüsü) taranır hale getirildi.
+   - RevenueCat V2 opak ürün kimliklerini (`prod24815efd12`, `prodec593d4420`, `prod2fc9b4842a`, `proddd11361bba`) gerçek mağaza ürün kimlikleriyle eşleyen 6 saat önbellekli `_get_rc_v2_product_map` ve `_resolve_canonical_product_id` eklendi.
+   - Android `GPA.*` abonelikleri Google Play Developer API `orders/{orderId}` ile çapraz doğrulanarak `testPurchase` test siparişleri otomatik elendi, 72 saat onaysız iadeler (`REFUNDED`) `cancelled` durumuna alındı ve aktif Google Play 7G denemeleri deftere işlendi.
+2. **İstemci Senkron Çökmesi (`500 AttributeError`), Webhook Yenileme Geliri & SQLite/PostgreSQL Otomatik Göçü:**
+   - `ClientSubscriberSyncPayload` şemasına `device_uid` ve `plan` alanları eklendi; `ensure_historical_seed` içine eski şemalarda `subscriber_ledger.rc_app_user_id` ve `device_uid` için otomatik `ALTER TABLE ... ADD COLUMN` göçü eklendi.
+   - `subscription.py` içinde Google Play yenileme kimlikleri (`GPA.*..0` ➔ baz `GPA.*`) tekilleştirildi ve `RENEWAL` olaylarında `prev_conv_date != start_str` tahsilat biriktirme sırası düzeltildi.
+   - `MishilUnifiedWebView.tsx` içinde Android'de dışarıdan girilen Google Play promosyon kodlarının 72 saatte onaysız düşmemesi için 24 saat korumalı `Purchases.syncPurchases()` ve `addCustomerInfoUpdateListener` analitik senkronu eklendi.
+3. **iOS Plan Düşürme (`#786416`), `will_not_renew`, Yıllık `/12` MRR, Ülke Kurulumları & Sekme Görünürlüğü:**
+   - Yıllık denemeden `149.99 ₺` aylık ücrete geçen abonelerin `product_id = "misil_monthly"` güncellemesi ve `will_not_renew` (`auto_renew_enabled=False` iken `paid_subs_count` içinde kalıp ileri MRR'a `0` yazması) onarıldı.
+   - Yıllık denemeler `projected_total_mrr_*`, `ios_mrr_*`, `and_mrr_*` ve ülke MRR hesaplarında `/12` ile normalize edildi; günlük Apple ülke indirmeleri (`apple_country_downloads_by_date`, yeniden indirmeler dahil) kalıcı birleştirildi; Android kurulumları `AppInstallSignal` ülke dağılımına bağlandı; `routine_logged` ve `dadi_chat` (`coach.py` XFF sağ-hop + kova GC zırhlı) sayaçları ile `switchPlatform('android')` altında `#appleLedgerCard` görünürlüğü düzeltildi.
+4. **Gerçek 3-Ajanlı CLI Konsensüsü (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-136` Tur-1 teşhis ➔ `task-306` Tur-2 kod denetimi: `ONAY (PASS — Kritik Hata Yok)`)** + **Codex CLI (`gpt-6-luna`, `task-149` Tur-1 teşhis ➔ `task-307` Tur-2 bulgular ➔ `task-327` Tur-3 son doğrulama: `ONAY (PASS — Kritik Hata Yok)`)** + **Antigravity (`53/53 pytest`, `10/10 suite / 70 Jest`, `tsc --noEmit` 0 hata, `READY_FOR_RELEASE`)**.
+
 ## [4.53.0] - 2026-11-19 (Canlı WebView & Backend Paketi — Build 70 Aktif • Native EAS Build Gerekmez)
 ### 🤱 Tek Elle Canlı Emzirme Sayacı (`Sol / Sağ Göğüs`), Ortak Gece Eşlikçisi (`mode: 'sleep' | 'nursing'`), Anne Molası Keşfedilebilirlik Onarımı & Yapısal Aile Senkronu (`public/app.html`, `app/api/v1/endpoints/family.py`, `mobile/app.config.ts`, `mobile/features/webview/offlineHtml.generated.ts`, `tests/test_family_sync_and_mom_mode.py`, `tests/test_sleep_and_analytics_remediation.py`, `mobile/tests/liveNursingAndMomBreak.test.ts`, `mobile/tests/i18nGermanAndPolish.test.ts`)
 1. **Anne Molası Keşfedilebilirlik Onarımı & İlk Uyku Yıldız Kalkanı (`#mom-break-drawer`, `toggleLiveSleep`, `showToast`):**

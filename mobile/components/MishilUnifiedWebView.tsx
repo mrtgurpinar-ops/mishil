@@ -323,8 +323,20 @@ export default function MishilUnifiedWebView() {
       const ready = await initRevenueCat();
       if (!ready) return; // anahtarsız / mock mod — abonelik bayrağını değiştirme
       const Purchases = require('react-native-purchases').default;
-      const customerInfo = await Purchases.getCustomerInfo();
-      const active = hasActiveEntitlement(customerInfo);
+      let customerInfo = await Purchases.getCustomerInfo();
+      let active = hasActiveEntitlement(customerInfo);
+      if (!active && Platform.OS === 'android' && typeof Purchases.syncPurchases === 'function') {
+        try {
+          const lastSyncRaw = await AsyncStorage.getItem('@mishil_android_rc_sync_ts');
+          const lastSyncMs = lastSyncRaw ? parseInt(lastSyncRaw, 10) : 0;
+          if (!lastSyncMs || Date.now() - lastSyncMs > 24 * 3600 * 1000) {
+            await AsyncStorage.setItem('@mishil_android_rc_sync_ts', String(Date.now()));
+            await Purchases.syncPurchases();
+            customerInfo = await Purchases.getCustomerInfo();
+            active = hasActiveEntitlement(customerInfo);
+          }
+        } catch (_syncErr) {}
+      }
       const detectedPlan = active ? getPlanFromCustomerInfo(customerInfo) : null;
       if (!active) {
         void AsyncStorage.removeItem('@mishil_subscription_plan');
@@ -419,6 +431,20 @@ export default function MishilUnifiedWebView() {
           if (!active) {
             void AsyncStorage.removeItem('@mishil_subscription_plan');
           }
+          const activeEntsL = customerInfo?.entitlements?.active || {};
+          const firstEntKeyL = Object.keys(activeEntsL)[0];
+          const firstEntL = activeEntsL[PRO_ENTITLEMENT_ID] || activeEntsL['mışıl_baby_pro'] || (firstEntKeyL ? activeEntsL[firstEntKeyL] : null);
+          const subMetaJsonL = active && firstEntL ? JSON.stringify({
+            subscriberId: customerInfo?.originalAppUserId || undefined,
+            productId: firstEntL?.productIdentifier || undefined,
+            plan: detectedPlan || undefined,
+            periodType: firstEntL?.periodType || 'TRIAL',
+            store: firstEntL?.store || (Platform.OS === 'android' ? 'PLAY_STORE' : 'APP_STORE'),
+            platform: Platform.OS === 'android' ? 'android' : 'ios',
+            willRenew: firstEntL?.willRenew !== false,
+            originalPurchaseDate: firstEntL?.originalPurchaseDate || undefined,
+            expirationDate: firstEntL?.expirationDate || undefined,
+          }) : 'null';
           const planLine = detectedPlan
             ? `localStorage.setItem('mishil_subscription_plan', '${detectedPlan}');`
             : '';
@@ -430,6 +456,10 @@ export default function MishilUnifiedWebView() {
                   localStorage.setItem('mishil_rc_verified', 'true');
                   localStorage.removeItem('mishil_limited_explore_mode');
                   ${planLine}
+                  window.__MISHIL_SUB_META__ = ${subMetaJsonL};
+                  if (typeof window.syncSubscriberToAnalytics === 'function') {
+                    window.syncSubscriberToAnalytics(window.__MISHIL_SUB_META__);
+                  }
                 } else {
                   var isRev = localStorage.getItem('mishil_reviewer_bypass') === '1';
                   var isFamVip = localStorage.getItem('mishil_subscription_plan') === 'family_vip' && localStorage.getItem('mishil_family_vip_verified') === '1';

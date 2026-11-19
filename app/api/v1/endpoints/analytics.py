@@ -1,4 +1,5 @@
 import asyncio
+import concurrent.futures
 from datetime import datetime, timezone, timedelta
 import html
 import hashlib
@@ -582,14 +583,10 @@ def _convert_to_try(amount: float, currency_code: Optional[str]) -> float:
 
 
 REVENUECAT_V2_PROJECT_ID = os.environ.get("REVENUECAT_PROJECT_ID", "proja1528882")
-_KNOWN_RC_PRODUCTION_CUSTOMERS = (
-    "$RCAnonymousID:e8431b5b8c7c41288d675b9bf48b6007",
-    "$RCAnonymousID:7c117007c62646838d032dd07dc05bc2",
-    "$RCAnonymousID:e232bd0ecdb8410ba4c86d78a6a066aa",
-    "$RCAnonymousID:058a41e899994a1f885f30064bd8a316",
-    "$RCAnonymousID:77e71b1615804f3fb273d59017f70e10",
-    "$RCAnonymousID:d4017db6201f4455becf6bc33c7701df",
-)
+_RC_V2_PRODUCT_MAP_LOCK = threading.Lock()
+_RC_V2_PRODUCT_MAP_CACHE: Dict[str, Any] = {"ts": 0.0, "map": {}}
+_GP_OAUTH_TOKEN_LOCK = threading.Lock()
+_GP_OAUTH_TOKEN_CACHE: Dict[str, Any] = {"exp": 0.0, "token": None}
 
 
 def _get_revenuecat_v2_secret_key() -> Optional[str]:
@@ -613,6 +610,178 @@ def _get_revenuecat_v2_secret_key() -> Optional[str]:
                     return rc_sk
             except Exception:
                 pass
+    return None
+
+
+def _get_rc_v2_product_map(sk: Optional[str] = None) -> Dict[str, str]:
+    """
+    RevenueCat REST API v2 dahili ürün kimliklerini (örn. prod24815efd12, prodec593d4420)
+    gerçek mağaza ürün kimlikleriyle (store_identifier: misilaylik:misilaylik, misil:misil, misil_monthly, misil_annual)
+    dinamik olarak eşler (6 saatlik bellek önbelleği).
+    """
+    now_ts = time.time()
+    with _RC_V2_PRODUCT_MAP_LOCK:
+        cached_map = _RC_V2_PRODUCT_MAP_CACHE.get("map") or {}
+        if cached_map and (now_ts - float(_RC_V2_PRODUCT_MAP_CACHE.get("ts") or 0.0)) < 21600:
+            return dict(cached_map)
+
+    secret = sk or _get_revenuecat_v2_secret_key()
+    if not secret:
+        return {}
+    fetched_map: Dict[str, str] = {}
+    try:
+        next_url: Optional[str] = f"https://api.revenuecat.com/v2/projects/{REVENUECAT_V2_PROJECT_ID}/products?limit=100"
+        pages = 0
+        while next_url and pages < 5:
+            pages += 1
+            req = urllib.request.Request(
+                next_url,
+                headers={"Authorization": f"Bearer {secret}", "Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                if resp.status != 200:
+                    break
+                payload = json.loads(resp.read().decode("utf-8"))
+                for p_item in payload.get("items") or []:
+                    rc_pid = str(p_item.get("id") or "").strip()
+                    store_ident = str(p_item.get("store_identifier") or "").strip()
+                    if rc_pid and store_ident:
+                        fetched_map[rc_pid] = store_ident
+                raw_next = payload.get("next_page")
+                if raw_next and isinstance(raw_next, str):
+                    next_url = raw_next if raw_next.startswith("http") else f"https://api.revenuecat.com{raw_next}"
+                else:
+                    next_url = None
+    except Exception as exc:
+        logger.debug("RevenueCat V2 products catalog sync info: %s", exc)
+
+    if fetched_map:
+        with _RC_V2_PRODUCT_MAP_LOCK:
+            _RC_V2_PRODUCT_MAP_CACHE["ts"] = now_ts
+            _RC_V2_PRODUCT_MAP_CACHE["map"] = dict(fetched_map)
+        return fetched_map
+    with _RC_V2_PRODUCT_MAP_LOCK:
+        return dict(_RC_V2_PRODUCT_MAP_CACHE.get("map") or {})
+
+
+def _resolve_canonical_product_id(
+    raw_product_id: Optional[str],
+    platform: str,
+    rc_prod_map: Optional[Dict[str, str]] = None,
+) -> str:
+    """Ham veya RevenueCat opak product_id değerini platformun kanonik ürün kimliğine çevirir."""
+    raw_pid = str(raw_product_id or "").strip()
+    mapped_pid = (rc_prod_map or {}).get(raw_pid, raw_pid)
+    is_ann = _is_annual_product(mapped_pid) or _is_annual_product(raw_pid)
+    if platform == "android":
+        return "misil" if is_ann else "misilaylik"
+    return "misil_annual" if is_ann else "misil_monthly"
+
+
+def _get_google_play_access_token() -> Optional[str]:
+    """Google Play Developer API (androidpublisher) için önbellekli OAuth2 erişim jetonu üretir."""
+    if os.environ.get("PYTEST_CURRENT_TEST") and os.environ.get("MISIL_ENABLE_TEST_GP_API") != "1":
+        return None
+    if not jwt:
+        return None
+    now_gp = time.time()
+    with _GP_OAUTH_TOKEN_LOCK:
+        cached_tok = _GP_OAUTH_TOKEN_CACHE.get("token")
+        if cached_tok and float(_GP_OAUTH_TOKEN_CACHE.get("exp") or 0.0) > (now_gp + 60):
+            return str(cached_tok)
+
+    sa_raw = os.environ.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON")
+    if not sa_raw:
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+        sa_candidates = [
+            os.path.join(project_root, "mobile", "google-play-service-account.json"),
+            os.path.join(project_root, "..", "..", "projects", "mishil", "mobile", "google-play-service-account.json"),
+            os.path.join(project_root, "..", "..", "storage", "google_play_service_account.json"),
+            os.path.join(project_root, "storage", "google_play_service_account.json"),
+        ]
+        sa_path = next((p for p in sa_candidates if os.path.exists(p)), None)
+        if sa_path:
+            try:
+                with open(sa_path, "r", encoding="utf-8") as f:
+                    sa_raw = f.read()
+            except Exception:
+                sa_raw = None
+    if not sa_raw:
+        return None
+    try:
+        sa = json.loads(sa_raw)
+        iat_int = int(now_gp)
+        assertion = jwt.encode(
+            {
+                "iss": sa["client_email"],
+                "scope": "https://www.googleapis.com/auth/androidpublisher",
+                "aud": "https://oauth2.googleapis.com/token",
+                "iat": iat_int - 30,
+                "exp": iat_int + 3500,
+            },
+            sa["private_key"],
+            algorithm="RS256",
+        )
+        tok_data = urllib.parse.urlencode({
+            "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
+            "assertion": assertion,
+        }).encode("utf-8")
+        tok_req = urllib.request.Request(
+            "https://oauth2.googleapis.com/token",
+            data=tok_data,
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+        )
+        with urllib.request.urlopen(tok_req, timeout=4) as tok_resp:
+            if tok_resp.status == 200:
+                access_token = json.loads(tok_resp.read().decode("utf-8")).get("access_token")
+                if access_token:
+                    with _GP_OAUTH_TOKEN_LOCK:
+                        _GP_OAUTH_TOKEN_CACHE["token"] = access_token
+                        _GP_OAUTH_TOKEN_CACHE["exp"] = now_gp + 3000
+                    return str(access_token)
+    except Exception as exc:
+        logger.debug("Google Play OAuth token info: %s", exc)
+    return None
+
+
+def _parse_money_obj_try(money_obj: Any, default_ccy: str = "TRY") -> float:
+    """Google Play orders API Money nesnesini ({currencyCode, units, nanos}) TRY tutarına çevirir."""
+    if not isinstance(money_obj, dict):
+        return 0.0
+    try:
+        units_v = float(money_obj.get("units") or 0.0)
+        nanos_v = float(money_obj.get("nanos") or 0.0) / 1e9
+        raw_amt = units_v + nanos_v
+        if raw_amt <= 0:
+            return 0.0
+        ccy = str(money_obj.get("currencyCode") or default_ccy).strip().upper()
+        return _convert_to_try(raw_amt, ccy)
+    except Exception:
+        return 0.0
+
+
+def _fetch_google_play_order(order_id: str, access_token: Optional[str] = None) -> Optional[Dict[str, Any]]:
+    """
+    Google Play Developer API orders.get uç noktasından tekil GPA.* sipariş detayını çeker.
+    testPurchase alanı olan test siparişlerini, iadeleri (REFUNDED) ve gerçek tutarları doğrular.
+    """
+    clean_oid = str(order_id or "").strip().split("..")[0]
+    if not clean_oid.startswith("GPA."):
+        return None
+    tok = access_token or _get_google_play_access_token()
+    if not tok:
+        return None
+    try:
+        ord_url = (
+            "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/"
+            f"com.levitas.misilbaby/orders/{urllib.parse.quote(clean_oid, safe='')}"
+        )
+        ord_req = urllib.request.Request(ord_url, headers={"Authorization": f"Bearer {tok}"})
+        with urllib.request.urlopen(ord_req, timeout=4) as ord_resp:
+            if ord_resp.status == 200:
+                return json.loads(ord_resp.read().decode("utf-8"))
+    except Exception as exc:
+        logger.debug("Google Play orders.get info (%s): %s", clean_oid, exc)
     return None
 
 
@@ -644,49 +813,67 @@ def _parse_rc_v2_date(raw_val: Any) -> str:
     return datetime.fromtimestamp(ms / 1000.0, tz=tz_tr).strftime("%Y-%m-%d")
 
 
-def verify_revenuecat_v2_customer(customer_id: str) -> Optional[Dict[str, Any]]:
+def _fetch_rc_v2_customer_production_subs(
+    customer_id: str,
+    sk: Optional[str] = None,
+    rc_prod_map: Optional[Dict[str, str]] = None,
+) -> List[Dict[str, Any]]:
     """
-    RevenueCat REST API v2 üzerinden tekil müşterinin aboneliklerini sorgular.
-    Yalnızca environment == 'production' olan gerçek mağaza işlemlerini döndürür;
-    Sandbox test satın almalarını kesin olarak filtreler.
+    RevenueCat REST API v2 üzerinden tekil müşterinin TÜM production aboneliklerini döndürür.
+    Sandbox / test satın almalarını kesin olarak filtreler; opak RC product_id kimliklerini
+    dinamik ürün kataloğu üzerinden gerçek mağaza paketlerine (misil / misilaylik / misil_annual / misil_monthly) çevirir.
     """
     clean_cid = (customer_id or "").strip()
-    sk = _get_revenuecat_v2_secret_key()
-    if not clean_cid or not sk:
-        return None
-    try:
-        url = (
-            f"https://api.revenuecat.com/v2/projects/{REVENUECAT_V2_PROJECT_ID}"
-            f"/customers/{urllib.parse.quote(clean_cid, safe='')}/subscriptions"
-        )
-        req = urllib.request.Request(
-            url,
-            headers={"Authorization": f"Bearer {sk}", "Accept": "application/json"},
-        )
-        with urllib.request.urlopen(req, timeout=4) as resp:
-            if resp.status != 200:
-                return None
-            payload = json.loads(resp.read().decode("utf-8"))
-        items = payload.get("items") or []
-        prod_subs = [it for it in items if str(it.get("environment") or "").lower() == "production"]
-        if not prod_subs:
-            return None
-        # Aktif/deneme aboneliğini süresi dolmuş (expired) aboneliklerin önüne koy, ardından dönem başlangıcına göre sırala
-        prod_subs.sort(
-            key=lambda x: (
-                1 if str(x.get("status") or "").lower() in ("active", "trialing", "in_grace_period", "in_billing_retry") else 0,
-                _parse_rc_v2_ms(x.get("current_period_starts_at") or x.get("starts_at")),
-            ),
-            reverse=True,
-        )
-        sub = prod_subs[0]
+    secret = sk or _get_revenuecat_v2_secret_key()
+    if not clean_cid or not secret:
+        return []
+    prod_map = rc_prod_map if rc_prod_map is not None else _get_rc_v2_product_map(secret)
+    url = (
+        f"https://api.revenuecat.com/v2/projects/{REVENUECAT_V2_PROJECT_ID}"
+        f"/customers/{urllib.parse.quote(clean_cid, safe='')}/subscriptions"
+    )
+    payload: Optional[Dict[str, Any]] = None
+    for attempt in range(2):
+        try:
+            req = urllib.request.Request(
+                url,
+                headers={"Authorization": f"Bearer {secret}", "Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=5) as resp:
+                if resp.status == 200:
+                    payload = json.loads(resp.read().decode("utf-8"))
+                break
+        except urllib.error.HTTPError as http_err:
+            if http_err.code == 429 and attempt == 0:
+                time.sleep(0.6)
+                continue
+            return []
+        except Exception as exc:
+            logger.debug("RevenueCat V2 customer subscriptions info (%s): %s", clean_cid, exc)
+            return []
+
+    if not isinstance(payload, dict):
+        return []
+    items = payload.get("items") or []
+    prod_subs = [it for it in items if str(it.get("environment") or "").lower() == "production"]
+    if not prod_subs:
+        return []
+
+    prod_subs.sort(
+        key=lambda x: (
+            1 if str(x.get("status") or "").lower() in ("active", "trialing", "in_grace_period", "in_billing_retry") else 0,
+            _parse_rc_v2_ms(x.get("current_period_starts_at") or x.get("starts_at")),
+        ),
+        reverse=True,
+    )
+
+    normalized_list: List[Dict[str, Any]] = []
+    for sub in prod_subs:
         store_raw = str(sub.get("store") or "").lower()
         plat = "android" if "play" in store_raw else "ios"
         rc_prod_id = str(sub.get("product_id") or "")
-        if _is_annual_product(rc_prod_id):
-            norm_prod_id = "misil" if plat == "android" else "misil_annual"
-        else:
-            norm_prod_id = "misilaylik" if plat == "android" else "misil_monthly"
+        store_ident = prod_map.get(rc_prod_id, rc_prod_id)
+        norm_prod_id = _resolve_canonical_product_id(rc_prod_id, plat, prod_map)
         start_dt = _parse_rc_v2_date(sub.get("starts_at"))
         period_start_dt = _parse_rc_v2_date(sub.get("current_period_starts_at")) or start_dt
         exp_dt = _parse_rc_v2_date(sub.get("current_period_ends_at"))
@@ -696,11 +883,24 @@ def verify_revenuecat_v2_customer(customer_id: str) -> Optional[Dict[str, Any]]:
         gross_usd = float(rev_usd.get("gross") or 0.0)
         proc_usd = float(rev_usd.get("proceeds") or 0.0)
         pending_chg = sub.get("pending_changes") or {}
-        pending_prod = (pending_chg.get("product") or {}).get("id") if isinstance(pending_chg, dict) else None
-        return {
+        pending_prod_obj = (pending_chg.get("product") or {}) if isinstance(pending_chg, dict) else {}
+        pending_rc_pid = str(pending_prod_obj.get("id") or "") if isinstance(pending_prod_obj, dict) else ""
+        pending_store_ident = (
+            str(pending_prod_obj.get("store_identifier") or "")
+            if isinstance(pending_prod_obj, dict)
+            else ""
+        ) or prod_map.get(pending_rc_pid, pending_rc_pid)
+        pending_norm_pid = (
+            _resolve_canonical_product_id(pending_store_ident or pending_rc_pid, plat, prod_map)
+            if (pending_store_ident or pending_rc_pid)
+            else None
+        )
+        normalized_list.append({
             "customer_id": clean_cid,
             "platform": plat,
             "store": store_raw,
+            "rc_product_id": rc_prod_id,
+            "store_product_identifier": store_ident,
             "product_id": norm_prod_id,
             "rc_status": rc_status,
             "auto_renewal_status": ar_status,
@@ -712,11 +912,22 @@ def verify_revenuecat_v2_customer(customer_id: str) -> Optional[Dict[str, Any]]:
             "country": str(sub.get("country") or "TR").upper(),
             "gross_usd": gross_usd,
             "proceeds_usd": proc_usd,
-            "pending_product_id": pending_prod,
-        }
-    except Exception as exc:
-        logger.debug("RevenueCat V2 customer verify info (%s): %s", clean_cid, exc)
+            "pending_product_id": pending_norm_pid or (pending_rc_pid or None),
+        })
+    return normalized_list
+
+
+def verify_revenuecat_v2_customer(customer_id: str) -> Optional[Dict[str, Any]]:
+    """
+    RevenueCat REST API v2 üzerinden tekil müşterinin en güncel/aktif production aboneliğini sorgular.
+    Yalnızca environment == 'production' olan gerçek mağaza işlemlerini döndürür.
+    """
+    subs = _fetch_rc_v2_customer_production_subs(customer_id)
+    if not subs:
         return None
+    primary = dict(subs[0])
+    primary["all_subscriptions"] = subs
+    return primary
 
 
 def sync_revenuecat_v2_production_bridge(
@@ -724,214 +935,409 @@ def sync_revenuecat_v2_production_bridge(
     latest_apple_report_date: str = "",
 ) -> Dict[str, Any]:
     """
-    Apple App Store Connect'in 1 günlük (T-1 PST) rapor gecikmesini ve Google Play canlı aboneliklerini
-    RevenueCat REST API v2 üzerinden (yalnızca environment=='production') tamamlar:
-    1) Son 72 saat içinde aktif olan müşterileri + bilinen production aboneleri tarar (sayfalı tarama).
-    2) Apple TSV rapor tarihinden (latest_apple_report_date) sonra başlayan T-0 iOS aboneliklerini
-       'RC_T0_{store_subscription_identifier}' anahtarıyla geçici köprü kaydı olarak ekler;
-       Apple TSV raporu ertesi gün ulaştığında otomatik tekilleştirilir (çift sayım olmaz).
-    3) Google Play (play_store) production aboneliklerini doğrudan SubscriberLedger'a yazar.
-    4) Yıllık promosyon kodlu (DamlaEge2026) olup sonraki yenileme planını 'misil_monthly' (149.99 TL)
-       olarak değiştiren (will_change_product) aboneleri yakalar.
+    %100 Dinamik (Sıfır Statik Müşteri Listesi) RevenueCat REST API v2 & Google Play Orders Mutabakat Motoru:
+    1) Tüm RevenueCat müşteri sayfalarını (limit=100, tam sayfalama) tarar; kalıcı StoreSyncState önbelleği
+       sayesinde abonesi olmayan ve last_seen_at değişmeyen eski anonim cihazları tekrar sorgulamazken,
+       bilinen tüm aboneleri ve yeni/güncellenen müşterileri eksiksiz denetler.
+    2) Müşteri başına yalnızca ilk aboneliği değil, TÜM production aboneliklerini işler.
+    3) Android (GPA.*) siparişlerini Google Play Developer API orders/{orderId} ile çapraz doğrulayarak
+       test satın almalarını (testPurchase) eler, 72 saat onaysız iadeleri (REFUNDED) iptal olarak işler
+       ve gerçek TL/döviz tahsilatını yazar.
+    4) iOS tarafında T-0 canlı köprüyü, DamlaEge2026 -> Aylık VIP (will_change_product) geçişlerini ve
+       ücretli abonelerdeki yenileme kapatma (will_not_renew) durumunu günceller.
     """
     sk = _get_revenuecat_v2_secret_key()
     if not sk:
         return {"connected": False, "reason": "No RevenueCat V2 secret key"}
 
-    now_ms = int(time.time() * 1000)
-    cutoff_recent_ms = now_ms - (72 * 3600 * 1000)
-    candidate_cids: List[str] = list(_KNOWN_RC_PRODUCTION_CUSTOMERS)
-    recent_scored: List[tuple] = []
+    rc_prod_map = _get_rc_v2_product_map(sk)
+    cache_row = (
+        db.query(StoreSyncState)
+        .filter(StoreSyncState.state_key == "rc_v2_customer_scan_cache")
+        .first()
+    )
+    cache_data = dict(cache_row.snapshot_json or {}) if (cache_row and isinstance(cache_row.snapshot_json, dict)) else {}
+    non_sub_seen: Dict[str, int] = {
+        str(k): int(v or 0)
+        for k, v in (cache_data.get("non_sub_seen") or {}).items()
+        if k
+    }
+    known_prod_cids = {
+        str(c).strip()
+        for c in (cache_data.get("known_prod_cids") or [])
+        if str(c).strip()
+    }
+    for (rc_uid_db,) in db.query(SubscriberLedger.rc_app_user_id).filter(SubscriberLedger.rc_app_user_id.isnot(None)).all():
+        if rc_uid_db and str(rc_uid_db).strip():
+            known_prod_cids.add(str(rc_uid_db).strip())
 
+    discovered_seen_ms: Dict[str, int] = {}
+    candidate_cids: List[str] = []
+    candidate_set = set()
+
+    for k_cid in sorted(known_prod_cids):
+        candidate_cids.append(k_cid)
+        candidate_set.add(k_cid)
+
+    list_complete = False
+    resume_cursor_url: Optional[str] = str(cache_data.get("resume_next_url") or "").strip() or None
+    seen_page_urls = set()
     try:
-        next_url: Optional[str] = f"https://api.revenuecat.com/v2/projects/{REVENUECAT_V2_PROJECT_ID}/customers?limit=100"
+        next_url: Optional[str] = (
+            resume_cursor_url
+            or f"https://api.revenuecat.com/v2/projects/{REVENUECAT_V2_PROJECT_ID}/customers?limit=100"
+        )
         pages_fetched = 0
-        while next_url and pages_fetched < 3:
+        while next_url and next_url not in seen_page_urls and pages_fetched < 500:
+            seen_page_urls.add(next_url)
             pages_fetched += 1
             req = urllib.request.Request(
                 next_url,
                 headers={"Authorization": f"Bearer {sk}", "Accept": "application/json"},
             )
-            with urllib.request.urlopen(req, timeout=4) as resp:
+            with urllib.request.urlopen(req, timeout=6) as resp:
                 if resp.status != 200:
                     break
                 data = json.loads(resp.read().decode("utf-8"))
                 for c_item in data.get("items") or []:
                     cid = str(c_item.get("id") or "").strip()
-                    last_seen = _parse_rc_v2_ms(c_item.get("last_seen_at"))
-                    if cid and last_seen >= cutoff_recent_ms:
-                        recent_scored.append((last_seen, cid))
+                    if not cid:
+                        continue
+                    last_seen = _parse_rc_v2_ms(c_item.get("last_seen_at") or c_item.get("first_seen_at"))
+                    discovered_seen_ms[cid] = last_seen
+                    prev_non_sub_ts = non_sub_seen.get(cid)
+                    if cid in known_prod_cids or prev_non_sub_ts is None or last_seen > prev_non_sub_ts:
+                        if cid not in candidate_set:
+                            candidate_cids.append(cid)
+                            candidate_set.add(cid)
                 raw_next = data.get("next_page")
                 if raw_next and isinstance(raw_next, str):
                     next_url = raw_next if raw_next.startswith("http") else f"https://api.revenuecat.com{raw_next}"
+                    resume_cursor_url = next_url
                 else:
                     next_url = None
+                    resume_cursor_url = None
+                    list_complete = True
     except Exception as exc:
-        logger.debug("RevenueCat V2 customer list info: %s", exc)
+        logger.debug("RevenueCat V2 customer list pagination info: %s", exc)
 
-    recent_scored.sort(key=lambda x: x[0], reverse=True)
-    for _, cid in recent_scored:
-        if cid not in candidate_cids:
-            candidate_cids.append(cid)
+    subs_by_cid: Dict[str, List[Dict[str, Any]]] = {}
+    if candidate_cids:
+        max_workers = min(5, max(1, len(candidate_cids)))
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as pool:
+            fut_map = {
+                pool.submit(_fetch_rc_v2_customer_production_subs, cid, sk, rc_prod_map): cid
+                for cid in candidate_cids
+            }
+            for fut in concurrent.futures.as_completed(fut_map):
+                cid = fut_map[fut]
+                try:
+                    c_subs = fut.result()
+                except Exception:
+                    c_subs = []
+                if c_subs:
+                    subs_by_cid[cid] = c_subs
+                    known_prod_cids.add(cid)
+                    non_sub_seen.pop(cid, None)
+                elif cid in discovered_seen_ms and cid not in known_prod_cids:
+                    non_sub_seen[cid] = discovered_seen_ms[cid]
 
+    gp_access_token = _get_google_play_access_token()
     prod_ios_count = 0
     prod_android_count = 0
+    android_test_filtered = 0
     t0_bridge_upserts = 0
     pending_crossgrades: List[Dict[str, Any]] = []
+    ios_paid_will_not_renew: List[Dict[str, Any]] = []
 
-    for cid in candidate_cids[:40]:
-        v_sub = verify_revenuecat_v2_customer(cid)
-        if not v_sub:
-            continue
-        plat = v_sub["platform"]
-        st_date = v_sub["starts_at_date"]
-        conv_date = v_sub.get("current_period_starts_at_date") or st_date
-        exp_date = v_sub["ends_at_date"]
-        store_sub_id = v_sub["store_subscription_identifier"]
-        ar_status = v_sub["auto_renewal_status"]
-        rc_status = v_sub["rc_status"]
-        prod_id = v_sub["product_id"]
+    for cid in candidate_cids:
+        c_subs = subs_by_cid.get(cid) or []
+        for v_sub in c_subs:
+            plat = v_sub["platform"]
+            st_date = v_sub["starts_at_date"]
+            conv_date = v_sub.get("current_period_starts_at_date") or st_date
+            exp_date = v_sub["ends_at_date"]
+            store_sub_id = str(v_sub.get("store_subscription_identifier") or "").strip()
+            ar_status = v_sub["auto_renewal_status"]
+            rc_status = v_sub["rc_status"]
+            prod_id = v_sub["product_id"]
 
-        if plat == "ios":
-            prod_ios_count += 1
-            if ar_status == "will_change_product":
-                pending_crossgrades.append({
-                    "customer_id": cid,
-                    "store_subscription_identifier": store_sub_id,
-                    "started_date": st_date,
-                    "renewal_date": exp_date,
-                    "from_product_id": prod_id,
-                    "to_product_id": "misil_monthly",
-                    "expected_next_price_try": 149.99,
-                    "expected_next_proceeds_try": 83.12,
-                })
-            # Apple 1 günlük gecikme (T-0) köprüsü: Sadece latest_apple_report_date'den yeni olanları köprüle
-            if latest_apple_report_date and st_date > latest_apple_report_date and store_sub_id:
-                bridge_sid = f"RC_T0_{store_sub_id}"[:128]
-                # Aynı gün ve ürün için resmi Apple kayıt sayısı mevcut RC_T0_* sayısından azsa veya mevcut köprü kaydı varsa güncelle/ekle
-                official_cnt = (
-                    db.query(SubscriberLedger)
-                    .filter(
-                        SubscriberLedger.platform == "ios",
-                        SubscriberLedger.product_id == prod_id,
-                        SubscriberLedger.started_date == st_date,
-                        ~SubscriberLedger.subscriber_id.like("RC_T0_%"),
-                    )
-                    .count()
-                )
-                bridge_cnt = (
-                    db.query(SubscriberLedger)
-                    .filter(
-                        SubscriberLedger.platform == "ios",
-                        SubscriberLedger.product_id == prod_id,
-                        SubscriberLedger.started_date == st_date,
-                        SubscriberLedger.subscriber_id.like("RC_T0_%"),
-                        SubscriberLedger.subscriber_id != bridge_sid,
-                    )
-                    .count()
-                )
-                existing_b = db.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == bridge_sid).first()
-                if existing_b is not None or official_cnt <= bridge_cnt:
-                    is_paid = v_sub["gross_usd"] > 0
-                    std_g, std_n = _resolve_expected_trial_pricing(prod_id, 0.0, 0.0, "ios")
-                    c_gross = std_g if is_paid else 0.0
-                    c_net = std_n if is_paid else 0.0
-                    st_val = (
-                        "cancelled"
-                        if rc_status in ("expired", "unsubscribed") or not v_sub["auto_renew_enabled"]
-                        else ("paid_active" if is_paid else "intro_free_trial")
-                    )
-                    if existing_b:
-                        existing_b.product_id = prod_id
-                        existing_b.plan_label = "Yıllık VIP" if _is_annual_product(prod_id) else "Aylık Esnek VIP"
-                        existing_b.status = st_val
-                        existing_b.offer_type = "standard_paid" if is_paid else "intro_7d_trial"
-                        existing_b.auto_renew_enabled = v_sub["auto_renew_enabled"]
-                        existing_b.maturity_or_renewal_date = exp_date or st_date
-                        if is_paid:
-                            existing_b.customer_price_try = c_gross
-                            existing_b.developer_proceeds_try = c_net
-                            existing_b.converted_or_renewed_date = conv_date or existing_b.converted_or_renewed_date or st_date
-                        existing_b.expected_next_price_try = std_g if v_sub["auto_renew_enabled"] else 0.0
-                        existing_b.expected_next_proceeds_try = std_n if v_sub["auto_renew_enabled"] else 0.0
-                        existing_b.country = v_sub["country"]
-                        t0_bridge_upserts += 1
-                    else:
-                        db.add(
-                            SubscriberLedger(
-                                subscriber_id=bridge_sid,
-                                platform="ios",
-                                product_id=prod_id,
-                                plan_label="Yıllık VIP" if _is_annual_product(prod_id) else "Aylık Esnek VIP",
-                                status=st_val,
-                                offer_type="standard_paid" if is_paid else "intro_7d_trial",
-                                offer_code_name="RevenueCat T-0 Canlı Köprü",
-                                started_date=st_date,
-                                converted_or_renewed_date=conv_date if is_paid else None,
-                                maturity_or_renewal_date=exp_date or st_date,
-                                auto_renew_enabled=v_sub["auto_renew_enabled"],
-                                customer_price_try=c_gross,
-                                developer_proceeds_try=c_net,
-                                expected_next_price_try=std_g if v_sub["auto_renew_enabled"] else 0.0,
-                                expected_next_proceeds_try=std_n if v_sub["auto_renew_enabled"] else 0.0,
-                                country=v_sub["country"],
-                                device_type="iPhone",
-                            )
+            if plat == "ios":
+                prod_ios_count += 1
+                if ar_status == "will_change_product":
+                    to_pid = v_sub.get("pending_product_id") or "misil_monthly"
+                    if to_pid not in ("misil_monthly", "misil_annual"):
+                        to_pid = _resolve_canonical_product_id(to_pid, "ios", rc_prod_map)
+                    cg_g, cg_n = _resolve_expected_trial_pricing(to_pid, 0.0, 0.0, "ios")
+                    pending_crossgrades.append({
+                        "customer_id": cid,
+                        "store_subscription_identifier": store_sub_id,
+                        "started_date": st_date,
+                        "renewal_date": exp_date,
+                        "from_product_id": prod_id,
+                        "to_product_id": to_pid,
+                        "expected_next_price_try": cg_g,
+                        "expected_next_proceeds_try": cg_n,
+                    })
+                if rc_status == "active" and ar_status in ("will_not_renew", "unsubscribe_detected") and float(v_sub.get("gross_usd") or 0.0) > 0:
+                    ios_paid_will_not_renew.append({
+                        "customer_id": cid,
+                        "store_subscription_identifier": store_sub_id,
+                        "started_date": st_date,
+                        "converted_date": conv_date,
+                        "ends_at_date": exp_date,
+                        "product_id": prod_id,
+                        "country": v_sub["country"],
+                    })
+                # Apple 1 günlük gecikme (T-0) köprüsü: Sadece latest_apple_report_date'den yeni olanları köprüle
+                if latest_apple_report_date and st_date > latest_apple_report_date and store_sub_id:
+                    bridge_sid = f"RC_T0_{store_sub_id}"[:128]
+                    official_cnt = (
+                        db.query(SubscriberLedger)
+                        .filter(
+                            SubscriberLedger.platform == "ios",
+                            SubscriberLedger.product_id == prod_id,
+                            SubscriberLedger.started_date == st_date,
+                            ~SubscriberLedger.subscriber_id.like("RC_T0_%"),
                         )
-                        t0_bridge_upserts += 1
-        elif plat == "android":
-            prod_android_count += 1
-            and_sid = (store_sub_id or cid)[:128]
-            is_paid = v_sub["gross_usd"] > 0
-            std_g, std_n = _resolve_expected_trial_pricing(prod_id, 0.0, 0.0, "android")
-            c_gross = std_g if is_paid else 0.0
-            c_net = std_n if is_paid else 0.0
-            st_val = (
-                "cancelled"
-                if rc_status in ("expired", "unsubscribed") or not v_sub["auto_renew_enabled"]
-                else ("paid_active" if is_paid else "intro_free_trial")
-            )
-            existing_and = db.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == and_sid).first()
-            if existing_and:
-                existing_and.product_id = prod_id
-                existing_and.plan_label = "Mışıl Baby Yıllık VIP" if _is_annual_product(prod_id) else "Mışıl Baby Aylık VIP"
-                existing_and.status = st_val
-                existing_and.offer_type = "standard_paid" if is_paid else "intro_7d_trial"
-                existing_and.auto_renew_enabled = v_sub["auto_renew_enabled"]
-                existing_and.maturity_or_renewal_date = exp_date or st_date
-                if is_paid:
-                    existing_and.customer_price_try = c_gross
-                    existing_and.developer_proceeds_try = c_net
-                    existing_and.converted_or_renewed_date = conv_date or existing_and.converted_or_renewed_date or st_date
-                existing_and.expected_next_price_try = std_g if v_sub["auto_renew_enabled"] else 0.0
-                existing_and.expected_next_proceeds_try = std_n if v_sub["auto_renew_enabled"] else 0.0
-                existing_and.country = v_sub["country"]
-                t0_bridge_upserts += 1
-            else:
-                db.add(
-                    SubscriberLedger(
-                        subscriber_id=and_sid,
-                        platform="android",
-                        product_id=prod_id,
-                        plan_label="Mışıl Baby Yıllık VIP" if _is_annual_product(prod_id) else "Mışıl Baby Aylık VIP",
-                        status=st_val,
-                        offer_type="standard_paid" if is_paid else "intro_7d_trial",
-                        offer_code_name="Google Play / RevenueCat V2",
-                        started_date=st_date,
-                        converted_or_renewed_date=conv_date if is_paid else None,
-                        maturity_or_renewal_date=exp_date or st_date,
-                        auto_renew_enabled=v_sub["auto_renew_enabled"],
-                        customer_price_try=c_gross,
-                        developer_proceeds_try=c_net,
-                        expected_next_price_try=std_g if v_sub["auto_renew_enabled"] else 0.0,
-                        expected_next_proceeds_try=std_n if v_sub["auto_renew_enabled"] else 0.0,
-                        country=v_sub["country"],
-                        device_type="Android",
+                        .count()
                     )
-                )
-                t0_bridge_upserts += 1
+                    bridge_cnt = (
+                        db.query(SubscriberLedger)
+                        .filter(
+                            SubscriberLedger.platform == "ios",
+                            SubscriberLedger.product_id == prod_id,
+                            SubscriberLedger.started_date == st_date,
+                            SubscriberLedger.subscriber_id.like("RC_T0_%"),
+                            SubscriberLedger.subscriber_id != bridge_sid,
+                        )
+                        .count()
+                    )
+                    existing_b = db.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == bridge_sid).first()
+                    if existing_b is not None or official_cnt <= bridge_cnt:
+                        is_paid = float(v_sub.get("gross_usd") or 0.0) > 0
+                        std_g, std_n = _resolve_expected_trial_pricing(prod_id, 0.0, 0.0, "ios")
+                        c_gross = std_g if is_paid else 0.0
+                        c_net = std_n if is_paid else 0.0
+                        st_val = (
+                            "cancelled"
+                            if rc_status in ("expired", "unsubscribed") or (not is_paid and not v_sub["auto_renew_enabled"])
+                            else ("paid_active" if is_paid else "intro_free_trial")
+                        )
+                        if existing_b:
+                            existing_b.rc_app_user_id = cid[:128]
+                            existing_b.product_id = prod_id
+                            existing_b.plan_label = "Yıllık VIP" if _is_annual_product(prod_id) else "Aylık Esnek VIP"
+                            existing_b.status = st_val
+                            existing_b.offer_type = "standard_paid" if is_paid else "intro_7d_trial"
+                            existing_b.auto_renew_enabled = v_sub["auto_renew_enabled"]
+                            existing_b.maturity_or_renewal_date = exp_date or st_date
+                            if is_paid:
+                                existing_b.customer_price_try = c_gross
+                                existing_b.developer_proceeds_try = c_net
+                                existing_b.converted_or_renewed_date = conv_date or existing_b.converted_or_renewed_date or st_date
+                            existing_b.expected_next_price_try = std_g if v_sub["auto_renew_enabled"] else 0.0
+                            existing_b.expected_next_proceeds_try = std_n if v_sub["auto_renew_enabled"] else 0.0
+                            existing_b.country = v_sub["country"]
+                            t0_bridge_upserts += 1
+                        else:
+                            db.add(
+                                SubscriberLedger(
+                                    subscriber_id=bridge_sid,
+                                    rc_app_user_id=cid[:128],
+                                    platform="ios",
+                                    product_id=prod_id,
+                                    plan_label="Yıllık VIP" if _is_annual_product(prod_id) else "Aylık Esnek VIP",
+                                    status=st_val,
+                                    offer_type="standard_paid" if is_paid else "intro_7d_trial",
+                                    offer_code_name="RevenueCat T-0 Canlı Köprü",
+                                    started_date=st_date,
+                                    converted_or_renewed_date=conv_date if is_paid else None,
+                                    maturity_or_renewal_date=exp_date or st_date,
+                                    auto_renew_enabled=v_sub["auto_renew_enabled"],
+                                    customer_price_try=c_gross,
+                                    developer_proceeds_try=c_net,
+                                    expected_next_price_try=std_g if v_sub["auto_renew_enabled"] else 0.0,
+                                    expected_next_proceeds_try=std_n if v_sub["auto_renew_enabled"] else 0.0,
+                                    country=v_sub["country"],
+                                    device_type="iPhone",
+                                )
+                            )
+                            t0_bridge_upserts += 1
+            elif plat == "android":
+                base_order_id = store_sub_id.split("..")[0] if store_sub_id.startswith("GPA.") else (store_sub_id or cid)[:128]
+                gp_order = _fetch_google_play_order(base_order_id, gp_access_token) if base_order_id.startswith("GPA.") else None
+                if isinstance(gp_order, dict) and "testPurchase" in gp_order:
+                    android_test_filtered += 1
+                    continue
 
-    # Yıllık promosyon kodlu (DamlaEge2026) olup RevenueCat V2'de 'will_change_product' (misil_monthly) seçenleri işaretle
+                prod_android_count += 1
+                gp_state = str((gp_order or {}).get("state") or "").upper()
+                gp_gross_try = 0.0
+                gp_net_try = 0.0
+                gp_offer_phase = ""
+                gp_country = v_sub["country"]
+
+                if isinstance(gp_order, dict):
+                    b_region = str(((gp_order.get("buyerAddress") or {}).get("regionCode")) or "").strip().upper()
+                    if b_region:
+                        gp_country = b_region
+                    gp_gross_try = _parse_money_obj_try(gp_order.get("total"), "TRY")
+                    gp_net_try = _parse_money_obj_try(gp_order.get("developerRevenueInBuyerCurrency"), "TRY")
+                    gp_items = gp_order.get("lineItems") or []
+                    if gp_items and isinstance(gp_items[0], dict):
+                        li0 = gp_items[0]
+                        if li0.get("productId"):
+                            prod_id = _resolve_canonical_product_id(str(li0.get("productId")), "android", rc_prod_map)
+                        sub_det = li0.get("subscriptionDetails") or {}
+                        if isinstance(sub_det, dict):
+                            gp_offer_phase = str(sub_det.get("offerPhase") or "").upper()
+                            sp_start = _parse_rc_v2_date(sub_det.get("servicePeriodStartTime"))
+                            sp_end = _parse_rc_v2_date(sub_det.get("servicePeriodEndTime"))
+                            if sp_start and not st_date:
+                                st_date = sp_start
+                            if sp_end:
+                                exp_date = sp_end
+
+                is_refunded_or_canceled_gp = gp_state in ("REFUNDED", "CANCELED")
+                is_paid = (gp_gross_try > 0 or float(v_sub.get("gross_usd") or 0.0) > 0) and gp_state != "REFUNDED"
+                std_g, std_n = _resolve_expected_trial_pricing(prod_id, 0.0, 0.0, "android")
+                c_gross = gp_gross_try if gp_gross_try > 0 and not is_refunded_or_canceled_gp else (std_g if is_paid else 0.0)
+                c_net = (
+                    gp_net_try
+                    if gp_net_try > 0 and not is_refunded_or_canceled_gp
+                    else (round(c_gross * 0.727, 2) if c_gross > 0 else (std_n if is_paid else 0.0))
+                )
+                auto_renew_and = bool(v_sub["auto_renew_enabled"]) and not is_refunded_or_canceled_gp and rc_status not in ("expired", "unsubscribed")
+                if rc_status in ("expired", "unsubscribed") or is_refunded_or_canceled_gp or (not is_paid and not auto_renew_and):
+                    st_val = "cancelled"
+                    auto_renew_and = False
+                elif is_paid:
+                    st_val = "paid_active"
+                elif gp_offer_phase == "PROMOTIONAL":
+                    st_val = "offer_code_trial"
+                else:
+                    st_val = "intro_free_trial"
+
+                if gp_state == "REFUNDED" and not is_paid:
+                    and_offer_lbl = "7G Deneme İptal / 72s Onaysız (Google Play)"
+                elif st_val == "paid_active":
+                    and_offer_lbl = "Standart Ücretli (Google Play)"
+                else:
+                    and_offer_lbl = "7 Günlük Deneme (Google Play)"
+
+                and_plan_lbl = "Mışıl Baby Yıllık VIP" if _is_annual_product(prod_id) else "Mışıl Baby Aylık VIP"
+                and_of_type = (
+                    "standard_paid"
+                    if st_val == "paid_active"
+                    else ("offer_code" if st_val == "offer_code_trial" else "intro_7d_trial")
+                )
+                existing_and = db.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == base_order_id).first()
+                if existing_and:
+                    existing_and.rc_app_user_id = cid[:128]
+                    existing_and.platform = "android"
+                    existing_and.product_id = prod_id
+                    existing_and.plan_label = and_plan_lbl
+                    existing_and.status = st_val
+                    existing_and.offer_type = and_of_type
+                    existing_and.offer_code_name = and_offer_lbl[:95]
+                    existing_and.auto_renew_enabled = auto_renew_and
+                    if st_date:
+                        existing_and.started_date = st_date
+                    existing_and.maturity_or_renewal_date = exp_date or existing_and.maturity_or_renewal_date or st_date
+                    if is_paid:
+                        existing_and.customer_price_try = c_gross
+                        existing_and.developer_proceeds_try = c_net
+                        existing_and.converted_or_renewed_date = conv_date or existing_and.converted_or_renewed_date or st_date
+                    elif gp_state == "REFUNDED":
+                        existing_and.customer_price_try = 0.0
+                        existing_and.developer_proceeds_try = 0.0
+                    existing_and.expected_next_price_try = std_g if auto_renew_and and st_val != "offer_code_trial" else 0.0
+                    existing_and.expected_next_proceeds_try = std_n if auto_renew_and and st_val != "offer_code_trial" else 0.0
+                    existing_and.country = gp_country
+                    t0_bridge_upserts += 1
+                else:
+                    db.add(
+                        SubscriberLedger(
+                            subscriber_id=base_order_id,
+                            rc_app_user_id=cid[:128],
+                            platform="android",
+                            product_id=prod_id,
+                            plan_label=and_plan_lbl,
+                            status=st_val,
+                            offer_type=and_of_type,
+                            offer_code_name=and_offer_lbl[:95],
+                            started_date=st_date,
+                            converted_or_renewed_date=conv_date if is_paid else None,
+                            maturity_or_renewal_date=exp_date or st_date,
+                            auto_renew_enabled=auto_renew_and,
+                            customer_price_try=c_gross,
+                            developer_proceeds_try=c_net,
+                            expected_next_price_try=std_g if auto_renew_and and st_val != "offer_code_trial" else 0.0,
+                            expected_next_proceeds_try=std_n if auto_renew_and and st_val != "offer_code_trial" else 0.0,
+                            country=gp_country,
+                            device_type="Android",
+                        )
+                    )
+                    t0_bridge_upserts += 1
+
+    # iOS ücretli aktif olup RevenueCat V2'de oto-yenilemesini kapatmış (will_not_renew) aboneleri işaretle
+    if ios_paid_will_not_renew:
+        paid_ios_rows: List[SubscriberLedger] = (
+            db.query(SubscriberLedger)
+            .filter(SubscriberLedger.platform == "ios", SubscriberLedger.status == "paid_active")
+            .order_by(SubscriberLedger.started_date.asc(), SubscriberLedger.subscriber_id.asc())
+            .all()
+        )
+        matched_wnr_ids = set()
+        for wnr in ios_paid_will_not_renew:
+            wnr_st = wnr.get("started_date") or ""
+            wnr_pid = wnr.get("product_id") or ""
+            wnr_cc = wnr.get("country") or "TR"
+            target_paid = next(
+                (
+                    r for r in paid_ios_rows
+                    if r.subscriber_id not in matched_wnr_ids
+                    and (r.started_date == wnr_st or not wnr_st)
+                    and ((r.country or "TR").upper() == wnr_cc)
+                ),
+                None,
+            )
+            if target_paid:
+                matched_wnr_ids.add(target_paid.subscriber_id)
+                target_paid.rc_app_user_id = str(wnr["customer_id"])[:128]
+                if wnr_pid in ("misil_monthly", "misil_annual") and target_paid.product_id != wnr_pid:
+                    target_paid.product_id = wnr_pid
+                    target_paid.plan_label = "Yıllık VIP" if _is_annual_product(wnr_pid) else "Aylık Esnek VIP"
+                if wnr.get("ends_at_date"):
+                    target_paid.maturity_or_renewal_date = wnr["ends_at_date"]
+                target_paid.auto_renew_enabled = False
+                target_paid.expected_next_price_try = 0.0
+                target_paid.expected_next_proceeds_try = 0.0
+                wnr_ev_key = f"{target_paid.subscriber_id}:will_not_renew"[:128]
+                dup_wnr = (
+                    db.query(SubscriptionLifecycleEvent.id)
+                    .filter(
+                        SubscriptionLifecycleEvent.platform == "ios",
+                        SubscriptionLifecycleEvent.event_type == wnr_ev_key,
+                    )
+                    .first()
+                )
+                if dup_wnr is None:
+                    db.add(
+                        SubscriptionLifecycleEvent(
+                            event_date=wnr.get("converted_date") or wnr_st or datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                            platform="ios",
+                            event_type=wnr_ev_key,
+                            product_id=target_paid.product_id,
+                            plan_label=target_paid.plan_label,
+                            country=target_paid.country or "TR",
+                            device_type=target_paid.device_type or "iPhone",
+                            quantity=1,
+                        )
+                    )
+
+    # Yıllık promosyon kodlu (DamlaEge2026) olup RevenueCat V2'de 'will_change_product' seçenleri işaretle
     if pending_crossgrades:
         code_rows: List[SubscriberLedger] = (
             db.query(SubscriberLedger)
@@ -942,22 +1348,43 @@ def sync_revenuecat_v2_production_bridge(
             .order_by(SubscriberLedger.started_date.asc(), SubscriberLedger.subscriber_id.asc())
             .all()
         )
+        matched_cg_sids = set()
         for cg in pending_crossgrades:
             cg_start = cg.get("started_date") or ""
-            # Aynı başlangıç gününe sahip veya henüz plan değişimi işlenmemiş kodlu aboneyi eşleştir
+            cg_price = float(cg.get("expected_next_price_try") or 149.99)
+            cg_proc = float(cg.get("expected_next_proceeds_try") or 83.12)
+            cg_to_lbl = "Yıllık VIP" if _is_annual_product(cg.get("to_product_id")) else "Aylık VIP"
             target_row = next(
                 (
                     r for r in code_rows
-                    if (r.started_date == cg_start or not cg_start)
-                    and (r.expected_next_price_try or 0.0) == 0.0
+                    if r.subscriber_id not in matched_cg_sids
+                    and (r.started_date == cg_start or not cg_start)
                 ),
                 None,
             )
             if target_row:
-                target_row.expected_next_price_try = 149.99
-                target_row.expected_next_proceeds_try = 83.12
+                matched_cg_sids.add(target_row.subscriber_id)
+                target_row.rc_app_user_id = str(cg.get("customer_id") or "")[:128] or target_row.rc_app_user_id
+                target_row.expected_next_price_try = cg_price
+                target_row.expected_next_proceeds_try = cg_proc
                 base_code = (target_row.offer_code_name or "DamlaEge2026").split(" ➔")[0].strip()
-                target_row.offer_code_name = f"{base_code} ➔ Aylık VIP (149.99 ₺)"[:95]
+                target_row.offer_code_name = f"{base_code} ➔ {cg_to_lbl} ({cg_price:.2f} ₺)"[:95]
+
+    new_cache_payload = {
+        "non_sub_seen": non_sub_seen,
+        "known_prod_cids": sorted(known_prod_cids),
+        "last_list_complete": list_complete,
+        "resume_next_url": None if list_complete else resume_cursor_url,
+    }
+    if cache_row:
+        cache_row.snapshot_json = new_cache_payload
+    else:
+        db.add(
+            StoreSyncState(
+                state_key="rc_v2_customer_scan_cache",
+                snapshot_json=new_cache_payload,
+            )
+        )
 
     try:
         db.commit()
@@ -966,8 +1393,10 @@ def sync_revenuecat_v2_production_bridge(
 
     return {
         "connected": True,
+        "customers_checked": len(candidate_cids),
         "prod_ios_checked": prod_ios_count,
         "prod_android_checked": prod_android_count,
+        "android_test_filtered": android_test_filtered,
         "t0_bridge_upserts": t0_bridge_upserts,
         "pending_crossgrades": pending_crossgrades,
     }
@@ -1051,21 +1480,45 @@ def _reconcile_ios_ledger_and_cancellations(
             SubscriptionLifecycleEvent.event_type.like("%:refund"),
         ).all()
     }
+    will_not_renew_sids = {
+        (ev.event_type or "").split(":")[0]
+        for ev in db.query(SubscriptionLifecycleEvent).filter(
+            SubscriptionLifecycleEvent.platform == "ios",
+            SubscriptionLifecycleEvent.event_type.like("%:will_not_renew"),
+        ).all()
+    }
 
-    # 1) Ücretli aktif (paid_active) auto_renew_enabled onarımı + Yıllık 7G deneme (Default_Intro) 599.99 TL tarife onarımı
+    # 1) Ücretli aktif (paid_active) auto_renew_enabled / downgrade onarımı + Yıllık 7G deneme (Default_Intro) 599.99 TL tarife onarımı
     for r in ios_rows:
         if r.status == "paid_active" and (r.customer_price_try or 0.0) > 0 and r.subscriber_id not in refunded_sids:
-            if not r.auto_renew_enabled:
-                r.auto_renew_enabled = True
+            if _is_annual_product(r.product_id) and round(float(r.customer_price_try or 0.0), 2) == 149.99:
+                r.product_id = "misil_monthly"
+                r.plan_label = "Aylık Esnek VIP"
+                if r.converted_or_renewed_date and len(r.converted_or_renewed_date) == 10:
+                    try:
+                        dt_c = datetime.strptime(r.converted_or_renewed_date, "%Y-%m-%d")
+                        r.maturity_or_renewal_date = (dt_c + timedelta(days=30)).strftime("%Y-%m-%d")
+                    except Exception:
+                        pass
                 changed = True
-            if (r.expected_next_price_try or 0.0) <= 0:
-                r.expected_next_price_try = round(float(r.customer_price_try), 2)
-                changed = True
-            if (r.expected_next_proceeds_try or 0.0) <= 0:
-                r.expected_next_proceeds_try = round(
-                    float(r.developer_proceeds_try or round(float(r.customer_price_try) * 0.55417, 2)), 2
-                )
-                changed = True
+            if r.subscriber_id in will_not_renew_sids:
+                if r.auto_renew_enabled or (r.expected_next_price_try or 0.0) > 0:
+                    r.auto_renew_enabled = False
+                    r.expected_next_price_try = 0.0
+                    r.expected_next_proceeds_try = 0.0
+                    changed = True
+            else:
+                if not r.auto_renew_enabled:
+                    r.auto_renew_enabled = True
+                    changed = True
+                if (r.expected_next_price_try or 0.0) <= 0:
+                    r.expected_next_price_try = round(float(r.customer_price_try), 2)
+                    changed = True
+                if (r.expected_next_proceeds_try or 0.0) <= 0:
+                    r.expected_next_proceeds_try = round(
+                        float(r.developer_proceeds_try or round(float(r.customer_price_try) * 0.55417, 2)), 2
+                    )
+                    changed = True
 
         is_ann = _is_annual_product(r.product_id)
         of_name_low = (r.offer_code_name or "").strip().lower()
@@ -1249,6 +1702,7 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
     fetched_apple_reviews: List[Dict[str, Any]] = []
     fetched_gp_reviews: List[Dict[str, Any]] = []
     country_totals: Counter = Counter()
+    country_by_date_synced: Dict[str, Dict[str, int]] = {}
     latest_sub_state: Dict[str, int] = {}
     cancel_cohorts_synced: Counter = Counter()
     apple_connected = False
@@ -1293,7 +1747,10 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
             vendor_num = os.environ.get("ASC_VENDOR_NUMBER", "94806500")
             tz_tr_sync = timezone(timedelta(hours=3))
             today_d = datetime.now(tz_tr_sync).date()
-            scan_days = max(1, min(30, int(days_back)))
+            with _BASELINE_LOCK:
+                has_country_date_hist = bool(OFFICIAL_STORE_BASELINE.get("apple_country_downloads_by_date"))
+            effective_days = 45 if (int(days_back) <= 5 and not has_country_date_hist) else int(days_back)
+            scan_days = max(1, min(60, effective_days))
 
             for day_offset in range(scan_days, -1, -1):
                 rep_date = (today_d - timedelta(days=day_offset)).strftime("%Y-%m-%d")
@@ -1321,6 +1778,7 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                 day_sub_vip = 0
                                 day_gross_try = 0.0
                                 day_net_try = 0.0
+                                day_country_dl: Counter = Counter()
                                 for ln in lines[1:]:
                                     row_d = dict(zip(hdr, ln.split("\t")))
                                     p_type = (row_d.get("Product Type Identifier") or "").strip()
@@ -1334,14 +1792,20 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                         day_app_dl += units
                                         if units > 0:
                                             country_totals[cc] += units
+                                            day_country_dl[cc] += units
                                     elif p_type in ("3", "3F"):
                                         day_redl += units
                                         day_app_dl += units
+                                        if units > 0:
+                                            country_totals[cc] += units
+                                            day_country_dl[cc] += units
                                     elif p_type in ("IAY", "IA9", "IA1"):
                                         day_sub_vip += units
                                         if c_price > 0:
                                             day_gross_try += _convert_to_try(c_price * max(1, units), c_ccy)
                                             day_net_try += _convert_to_try(d_proc * max(1, units), p_ccy)
+                                if day_country_dl:
+                                    country_by_date_synced[rep_date] = dict(day_country_dl)
 
                                 db_s = SessionLocal()
                                 try:
@@ -1529,6 +1993,8 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                                 existing_sub.customer_price_try = max(0.0, round((existing_sub.customer_price_try or 0.0) - abs(c_price_try), 2))
                                                 existing_sub.developer_proceeds_try = max(0.0, round((existing_sub.developer_proceeds_try or 0.0) - abs(d_proc_try), 2))
                                             elif c_price_try > 0 and is_new_event and existing_sub.converted_or_renewed_date != ev_date:
+                                                existing_sub.product_id = prod_id
+                                                existing_sub.plan_label = plan_lbl
                                                 existing_sub.status = "paid_active"
                                                 existing_sub.offer_type = "standard_paid"
                                                 existing_sub.auto_renew_enabled = True
@@ -2207,9 +2673,25 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
             except Exception:
                 pass
             OFFICIAL_STORE_BASELINE["store_reviews"] = merged_revs
-        if country_totals:
+        if country_by_date_synced or country_totals:
+            merged_by_date: Dict[str, Dict[str, int]] = {}
+            existing_by_date = OFFICIAL_STORE_BASELINE.get("apple_country_downloads_by_date")
+            if isinstance(existing_by_date, dict):
+                for dt_k, cc_map in existing_by_date.items():
+                    if isinstance(cc_map, dict):
+                        merged_by_date[str(dt_k)] = {str(k): int(v or 0) for k, v in cc_map.items() if int(v or 0) > 0}
+            for dt_k, cc_map in country_by_date_synced.items():
+                merged_by_date[str(dt_k)] = {str(k): int(v or 0) for k, v in cc_map.items() if int(v or 0) > 0}
+            OFFICIAL_STORE_BASELINE["apple_country_downloads_by_date"] = merged_by_date
+            merged_country_totals: Counter = Counter()
+            if merged_by_date:
+                for cc_map in merged_by_date.values():
+                    for cc_code, cc_cnt in cc_map.items():
+                        merged_country_totals[cc_code] += int(cc_cnt or 0)
+            else:
+                merged_country_totals.update(country_totals)
             c_list = []
-            for cc_code, cc_cnt in country_totals.most_common():
+            for cc_code, cc_cnt in merged_country_totals.most_common():
                 meta_c = COUNTRY_META.get(cc_code, {"flag": "🌍", "name": cc_code})
                 c_list.append({"code": cc_code, "flag": meta_c["flag"], "name": meta_c["name"], "count": cc_cnt})
             OFFICIAL_STORE_BASELINE["apple_downloads_by_country"] = c_list
@@ -2277,7 +2759,7 @@ async def run_periodic_store_sync_loop(stop_event: asyncio.Event, interval_secon
     while not stop_event.is_set():
         try:
             logger.info("Triggering periodic background store sync...")
-            res = await run_in_threadpool(sync_live_store_apis, 30)
+            res = await run_in_threadpool(sync_live_store_apis, 45)
             logger.info("Periodic store sync completed. Synced: %s, Sources: %s", res.get("synced"), res.get("sources"))
         except Exception as e:
             logger.warning("Periodic store sync error: %s", e)
@@ -2445,6 +2927,14 @@ def ensure_historical_seed(db: Session) -> None:
                         existing_cols = {col["name"] for col in insp.get_columns("store_daily_metrics")}
                         if "active_sessions" not in existing_cols:
                             db.execute(text("ALTER TABLE store_daily_metrics ADD COLUMN active_sessions INTEGER NOT NULL DEFAULT 0"))
+                            db.commit()
+                    if insp.has_table("subscriber_ledger"):
+                        sl_cols = {col["name"] for col in insp.get_columns("subscriber_ledger")}
+                        if "rc_app_user_id" not in sl_cols:
+                            db.execute(text("ALTER TABLE subscriber_ledger ADD COLUMN rc_app_user_id VARCHAR(128)"))
+                            db.commit()
+                        if "device_uid" not in sl_cols:
+                            db.execute(text("ALTER TABLE subscriber_ledger ADD COLUMN device_uid VARCHAR(128)"))
                             db.commit()
                 except Exception as schema_exc:
                     logger.warning("Schema migration check warning: %s", schema_exc)
@@ -3180,6 +3670,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     vip_started_signals = [s for s in signals if s.event_type == "vip_started"]
     sleep_sound_signals = [s for s in signals if s.event_type == "sleep_sound_play"]
     cry_analysis_signals = [s for s in signals if s.event_type == "cry_analysis"]
+    routine_logged_signals = [s for s in signals if s.event_type == "routine_logged"]
+    dadi_chat_signals = [s for s in signals if s.event_type == "dadi_chat"]
     paywall_viewed_signals = [s for s in signals if s.event_type == "paywall_viewed"]
     paywall_cta_clicked_signals = [s for s in signals if s.event_type == "paywall_cta_clicked"]
     paywall_skipped_signals = [s for s in signals if s.event_type == "paywall_skipped"]
@@ -3197,6 +3689,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         s.device_uid for s in signals
         if s.device_uid and s.event_type in (
             "first_open", "daily_active", "baby_created", "vip_started", "sleep_sound_play", "cry_analysis",
+            "routine_logged", "dadi_chat",
             "paywall_viewed", "paywall_cta_clicked", "paywall_skipped", "purchase_cancelled", "purchase_error",
             "sound_preview_60s_ended", "cry_limit_reached", "dadi_limit_reached", "routine_limit_reached",
             "paywall_cancel_recovery_shown"
@@ -3464,12 +3957,14 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "realized_gross": 0.0, "realized_net": 0.0,
             "paid_mrr_gross": 0.0, "paid_mrr_net": 0.0,
             "pipeline_gross": 0.0, "pipeline_net": 0.0,
+            "pipeline_mrr_gross": 0.0, "pipeline_mrr_net": 0.0,
             "paid_cnt": 0, "trial_cnt": 0, "code_cnt": 0, "cancelled_cnt": 0,
         },
         "android": {
             "realized_gross": 0.0, "realized_net": 0.0,
             "paid_mrr_gross": 0.0, "paid_mrr_net": 0.0,
             "pipeline_gross": 0.0, "pipeline_net": 0.0,
+            "pipeline_mrr_gross": 0.0, "pipeline_mrr_net": 0.0,
             "paid_cnt": 0, "trial_cnt": 0, "code_cnt": 0, "cancelled_cnt": 0,
         },
     }
@@ -3520,7 +4015,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             paid_subs_cnt += 1
             pf_bucket["paid_cnt"] += 1
             lifecycle_stage = "paid_active"
-            lifecycle_badge = "💳 Ücretli Aktif"
+            lifecycle_badge = "💳 Ücretli Aktif" if r.auto_renew_enabled else "💳 Ücretli Aktif (Yenileme Kapalı)"
             trial_progress_pct = 100
             if r.auto_renew_enabled:
                 rec_gross = float(r.expected_next_price_try or r.customer_price_try or resolved_gross)
@@ -3556,11 +4051,15 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
                 pf_bucket["pipeline_gross"] += next_gross
                 pf_bucket["pipeline_net"] += next_net
                 if _is_annual_product(r.product_id):
-                    pipeline_7d_monthly_mrr_gross += next_gross / 12.0
-                    pipeline_7d_monthly_mrr_net += next_net / 12.0
+                    m_next_g = next_gross / 12.0
+                    m_next_n = next_net / 12.0
                 else:
-                    pipeline_7d_monthly_mrr_gross += next_gross
-                    pipeline_7d_monthly_mrr_net += next_net
+                    m_next_g = next_gross
+                    m_next_n = next_net
+                pipeline_7d_monthly_mrr_gross += m_next_g
+                pipeline_7d_monthly_mrr_net += m_next_n
+                pf_bucket["pipeline_mrr_gross"] += m_next_g
+                pf_bucket["pipeline_mrr_net"] += m_next_n
                 m_dt = r.maturity_or_renewal_date or "-"
 
                 # T4 Çözümü: Vade günü bugün veya geçmişteyse Apple 24-48s mutabakat penceresinde olarak ayır
@@ -3596,6 +4095,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
                         "is_reconciling": is_reconciling,
                         "status_label": "🔄 Tahsilat Mutabakatında" if is_reconciling else "⏳ Vadesi Gelecek Tahsilat",
                         "subscribers": [],
+                        "_platforms": set(),
                     }
                 renewal_by_date[m_dt]["count"] += 1
                 renewal_by_date[m_dt]["expected_gross_try"] = round(
@@ -3604,7 +4104,9 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
                 renewal_by_date[m_dt]["expected_net_try"] = round(
                     renewal_by_date[m_dt]["expected_net_try"] + next_net, 2
                 )
-                renewal_by_date[m_dt]["subscribers"].append(f"#{r.subscriber_id[-6:]} ({r.country})")
+                plat_tag = "🤖" if r_plat == "android" else "🍏"
+                renewal_by_date[m_dt]["subscribers"].append(f"{plat_tag} #{r.subscriber_id[-6:]} ({r.country})")
+                renewal_by_date[m_dt]["_platforms"].add(r_plat)
 
         s_dt = r.started_date or "-"
         if s_dt not in cohort_by_start_date:
@@ -3619,7 +4121,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
                 "cancelled": 0,
             }
         cohort_by_start_date[s_dt]["started_total"] += 1
-        if r.status != "cancelled" and r.auto_renew_enabled:
+        if r.status != "cancelled" and (r.status == "paid_active" or r.auto_renew_enabled):
             cohort_by_start_date[s_dt]["active_retained"] += 1
         else:
             cohort_by_start_date[s_dt]["cancelled"] += 1
@@ -3665,13 +4167,19 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             except Exception:
                 pass
 
-    # P0-4: Dinamik 7 günlük kohort olgunlaşma kesimi
+    # P0-4: Dinamik 7 günlük kohort olgunlaşma kesimi (doğrudan 0. gün ücretli alımları deneme paydasından ayırır)
     matured_cutoff_str = (now_tr.date() - timedelta(days=7)).strftime("%Y-%m-%d")
     matured_7d_cohort = [
         r for r in ledger_rows_db
         if r.offer_type in ("standard_paid", "intro_7d_trial")
         and r.started_date
         and r.started_date <= matured_cutoff_str
+        and not (
+            r.offer_type == "standard_paid"
+            and r.converted_or_renewed_date
+            and r.converted_or_renewed_date == r.started_date
+            and "deneme" not in (r.offer_code_name or "").lower()
+        )
     ]
     matured_converted = sum(1 for r in matured_7d_cohort if r.status == "paid_active")
     if len(matured_7d_cohort) > 0:
@@ -3817,10 +4325,28 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "name": str(c_entry.get("name") or COUNTRY_META.get(cc, {}).get("name") or cc),
         }
 
+    android_dl_by_country: Counter = Counter()
+    for fo_sig in first_opens:
+        if (fo_sig.os_family or "").lower() == "android":
+            fo_cc = str(fo_sig.country or "TR").strip().upper() or "TR"
+            android_dl_by_country[fo_cc] += 1
+    effective_and_country_dl: Counter = Counter()
+    gp_dl_int = int(google_play_downloads or 0)
+    if gp_dl_int > 0:
+        sig_and_tot = sum(android_dl_by_country.values())
+        if sig_and_tot == 0:
+            effective_and_country_dl["TR"] = gp_dl_int
+        else:
+            effective_and_country_dl.update(android_dl_by_country)
+            if sig_and_tot < gp_dl_int:
+                effective_and_country_dl["TR"] += (gp_dl_int - sig_and_tot)
+
     country_agg: Dict[str, Dict[str, Any]] = {}
-    all_country_codes = set(dl_by_country_map.keys()) | {
-        str(r.country or "TR").strip().upper() for r in ledger_rows_db
-    }
+    all_country_codes = (
+        set(dl_by_country_map.keys())
+        | set(effective_and_country_dl.keys())
+        | {str(r.country or "TR").strip().upper() for r in ledger_rows_db}
+    )
     if not all_country_codes:
         all_country_codes = {"TR"}
 
@@ -3828,9 +4354,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         c_meta = dl_by_country_map.get(cc) or {}
         c_flag = c_meta.get("flag") or COUNTRY_META.get(cc, {}).get("flag") or "🌍"
         c_name = c_meta.get("name") or COUNTRY_META.get(cc, {}).get("name") or cc
-        c_dl = int(c_meta.get("count", 0) or 0)
-        if cc == "TR":
-            c_dl += int(google_play_downloads or 0)
+        c_dl = int(c_meta.get("count", 0) or 0) + int(effective_and_country_dl.get(cc, 0) or 0)
         country_agg[cc] = {
             "code": cc,
             "flag": c_flag,
@@ -3874,8 +4398,9 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         elif lr.status == "intro_free_trial" and lr.auto_renew_enabled:
             ca["trial_subs_count"] += 1
             ca["active_vip_count"] += 1
-            ca["expected_mrr_gross_try"] = round(ca["expected_mrr_gross_try"] + exp_g, 2)
-            ca["expected_mrr_net_try"] = round(ca["expected_mrr_net_try"] + exp_n, 2)
+            m_div_tr = 12.0 if is_ann_lr else 1.0
+            ca["expected_mrr_gross_try"] = round(ca["expected_mrr_gross_try"] + (exp_g / m_div_tr), 2)
+            ca["expected_mrr_net_try"] = round(ca["expected_mrr_net_try"] + (exp_n / m_div_tr), 2)
         elif lr.status == "offer_code_trial":
             ca["offer_code_subs_count"] += 1
             ca["active_vip_count"] += 1
@@ -3929,6 +4454,13 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         "country_revenue_breakdown": country_revenue_breakdown,
     }
 
+    renewal_calendar_serialized: List[Dict[str, Any]] = []
+    for k_ren in sorted(renewal_by_date.keys()):
+        rc_item = dict(renewal_by_date[k_ren])
+        rc_plats = rc_item.pop("_platforms", set())
+        rc_item["platform"] = "all" if len(rc_plats) != 1 else next(iter(rc_plats))
+        renewal_calendar_serialized.append(rc_item)
+
     financial_ledger = {
         "realized_gross_try": round(realized_gross_try, 2),
         "realized_net_proceeds_try": round(realized_net_try, 2),
@@ -3959,9 +4491,9 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         "upcoming_7d_trials_count": upcoming_7d_cnt,
         "upcoming_7d_mrr_gross_try": round(upcoming_7d_gross, 2),
         "upcoming_7d_mrr_net_try": round(upcoming_7d_net, 2),
-        "projected_total_mrr_gross_try": round(active_paid_mrr_gross + pipeline_7d_gross, 2),
-        "projected_total_mrr_net_try": round(active_paid_mrr_net + pipeline_7d_net, 2),
-        "projected_total_arr_net_try": round((active_paid_mrr_net + pipeline_7d_net) * 12, 2),
+        "projected_total_mrr_gross_try": round(active_paid_mrr_gross + pipeline_7d_monthly_mrr_gross, 2),
+        "projected_total_mrr_net_try": round(active_paid_mrr_net + pipeline_7d_monthly_mrr_net, 2),
+        "projected_total_arr_net_try": round((active_paid_mrr_net + pipeline_7d_monthly_mrr_net) * 12, 2),
         "active_vip_subs_count": active_vip_total,
         "total_vip_records_count": len(ledger_rows_db),
         "offer_code_subs_count": offer_code_cnt,
@@ -3973,7 +4505,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         "matured_trials_converted": matured_converted,
         "matured_trial_to_paid_cvr_pct": matured_cvr_pct,
         "matured_trial_to_paid_cvr_str": matured_cvr_str,
-        "renewal_forecast_calendar": [renewal_by_date[k] for k in sorted(renewal_by_date.keys())],
+        "renewal_forecast_calendar": renewal_calendar_serialized,
     }
 
     # ========================================================================
@@ -4170,7 +4702,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
 
     product_retention = {
         "apple_official_sessions": apple_official_sessions,
-        "total_tracked_sessions": apple_sessions,
+        "live_telemetry_sessions": live_telemetry_sessions,
+        "total_tracked_sessions": max(apple_official_sessions, live_telemetry_sessions),
         "optin_active_devices": max(optin_ios_total_dev, distinct_signal_devices, db_babies_count),
         "optin_ios_total_devices": optin_ios_total_dev,
         "returning_optin_ios_devices": returning_optin_ios_dev,
@@ -4190,8 +4723,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         "babies_count": max(db_babies_count, len(baby_created_signals)),
         "sleep_logs_count": max(db_sleep_count, len(sleep_sound_signals)),
         "cry_events_count": max(db_cry_count, len(cry_analysis_signals)),
-        "routine_logs_count": db_routine_count,
-        "dadi_chats_count": db_dadi_count,
+        "routine_logs_count": max(db_routine_count, len(routine_logged_signals)),
+        "dadi_chats_count": max(db_dadi_count, len(dadi_chat_signals)),
         "age_buckets": age_buckets,
         "subscriber_cohorts": cohort_rows,
         "overall_retention_pct": overall_retention_pct,
@@ -4268,8 +4801,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     ios_code_cnt = int(plat_fin["ios"]["code_cnt"])
     ios_cancelled_cnt = int(plat_fin["ios"]["cancelled_cnt"])
     ios_active_cnt = ios_paid_cnt + ios_trial_cnt + ios_code_cnt
-    ios_mrr_net = round(plat_fin["ios"]["paid_mrr_net"] + plat_fin["ios"]["pipeline_net"], 2)
-    ios_mrr_gross = round(plat_fin["ios"]["paid_mrr_gross"] + plat_fin["ios"]["pipeline_gross"], 2)
+    ios_mrr_net = round(plat_fin["ios"]["paid_mrr_net"] + plat_fin["ios"]["pipeline_mrr_net"], 2)
+    ios_mrr_gross = round(plat_fin["ios"]["paid_mrr_gross"] + plat_fin["ios"]["pipeline_mrr_gross"], 2)
     ios_realized_net = round(plat_fin["ios"]["realized_net"], 2)
 
     and_paid_cnt = int(plat_fin["android"]["paid_cnt"])
@@ -4277,8 +4810,8 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     and_code_cnt = int(plat_fin["android"]["code_cnt"])
     and_cancelled_cnt = int(plat_fin["android"]["cancelled_cnt"])
     and_active_cnt = and_paid_cnt + and_trial_cnt + and_code_cnt
-    and_mrr_net = round(plat_fin["android"]["paid_mrr_net"] + plat_fin["android"]["pipeline_net"], 2)
-    and_mrr_gross = round(plat_fin["android"]["paid_mrr_gross"] + plat_fin["android"]["pipeline_gross"], 2)
+    and_mrr_net = round(plat_fin["android"]["paid_mrr_net"] + plat_fin["android"]["pipeline_mrr_net"], 2)
+    and_mrr_gross = round(plat_fin["android"]["paid_mrr_gross"] + plat_fin["android"]["pipeline_mrr_gross"], 2)
     and_realized_net = round(plat_fin["android"]["realized_net"], 2)
 
     all_reviews = sb.get("store_reviews") or []
@@ -4769,8 +5302,10 @@ class StoreSyncPushPayload(BaseModel):
 
 class ClientSubscriberSyncPayload(BaseModel):
     subscriber_id: str = Field(..., min_length=3, max_length=128)
+    device_uid: Optional[str] = Field(default=None, max_length=128)
     platform: str = Field(default="android", max_length=32)
     product_id: str = Field(default="misil", max_length=64)
+    plan: Optional[str] = Field(default=None, max_length=64)
     plan_label: Optional[str] = Field(default=None, max_length=100)
     status: str = Field(default="intro_free_trial", max_length=64)
     offer_type: Optional[str] = Field(default=None, max_length=64)
@@ -4792,51 +5327,12 @@ def verify_google_play_subscription_token(purchase_token: str) -> Optional[Dict[
     kullanarak Android abonelik token'ını doğrular (Service Account mevcutsa).
     """
     clean_tok = (purchase_token or "").strip()
-    if not clean_tok or not jwt:
+    if not clean_tok:
         return None
-    sa_raw = os.environ.get("GOOGLE_PLAY_SERVICE_ACCOUNT_JSON")
-    if not sa_raw:
-        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
-        sa_candidates = [
-            os.path.join(project_root, "..", "..", "storage", "google_play_service_account.json"),
-            os.path.join(project_root, "storage", "google_play_service_account.json"),
-        ]
-        sa_path = next((p for p in sa_candidates if os.path.exists(p)), None)
-        if sa_path:
-            try:
-                with open(sa_path, "r", encoding="utf-8") as f:
-                    sa_raw = f.read()
-            except Exception:
-                sa_raw = None
-    if not sa_raw:
+    access_token = _get_google_play_access_token()
+    if not access_token:
         return None
     try:
-        sa = json.loads(sa_raw)
-        now_gp = int(time.time())
-        assertion = jwt.encode(
-            {
-                "iss": sa["client_email"],
-                "scope": "https://www.googleapis.com/auth/androidpublisher",
-                "aud": "https://oauth2.googleapis.com/token",
-                "iat": now_gp - 30,
-                "exp": now_gp + 3600,
-            },
-            sa["private_key"],
-            algorithm="RS256",
-        )
-        tok_data = urllib.parse.urlencode({
-            "grant_type": "urn:ietf:params:oauth:grant-type:jwt-bearer",
-            "assertion": assertion,
-        }).encode("utf-8")
-        tok_req = urllib.request.Request(
-            "https://oauth2.googleapis.com/token",
-            data=tok_data,
-            headers={"Content-Type": "application/x-www-form-urlencoded"},
-        )
-        with urllib.request.urlopen(tok_req, timeout=4) as tok_resp:
-            access_token = json.loads(tok_resp.read().decode("utf-8")).get("access_token")
-        if not access_token:
-            return None
         v2_url = (
             "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/"
             f"com.levitas.misilbaby/purchases/subscriptionsv2/tokens/{urllib.parse.quote(clean_tok)}"
@@ -4919,28 +5415,29 @@ async def sync_client_subscriber_ledger(
     if (
         not is_admin_authed
         and not verified_gp_token
-        and "RCANONYMOUSID" in payload.subscriber_id.upper()
-        and not os.environ.get("PYTEST_CURRENT_TEST")
+        and not clean_sid.upper().startswith("DEV_")
+        and (not os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("MISIL_ENABLE_TEST_RC_V2") == "1")
     ):
         rc_v2 = await run_in_threadpool(verify_revenuecat_v2_customer, payload.subscriber_id.strip())
         if isinstance(rc_v2, dict) and rc_v2.get("store_subscription_identifier"):
             verified_rc_v2 = True
             plat = rc_v2["platform"]
             prod_id = rc_v2["product_id"]
-            store_sub_id = str(rc_v2["store_subscription_identifier"])
-            clean_sid = (f"RC_T0_{store_sub_id}" if plat == "ios" else store_sub_id)[:128]
+            store_sub_id = str(rc_v2["store_subscription_identifier"]).strip()
+            base_sub_id = store_sub_id.split("..")[0] if store_sub_id.startswith("GPA.") else store_sub_id
+            clean_sid = (f"RC_T0_{base_sub_id}" if plat == "ios" else base_sub_id)[:128]
             auto_renew = bool(rc_v2["auto_renew_enabled"])
             if rc_v2.get("starts_at_date"):
                 start_dt_str = rc_v2["starts_at_date"]
             if rc_v2.get("ends_at_date"):
                 mat_dt_str = rc_v2["ends_at_date"]
-            if rc_v2["rc_status"] in ("expired", "unsubscribed") or not auto_renew:
+            if rc_v2["rc_status"] in ("expired", "unsubscribed") or (float(rc_v2.get("gross_usd") or 0.0) <= 0 and not auto_renew):
                 st_val = "cancelled"
             elif float(rc_v2.get("gross_usd") or 0.0) > 0:
                 st_val = "paid_active"
             else:
                 st_val = "intro_free_trial"
-            offer_code_nm = "RevenueCat T-0 Canlı Köprü" if plat == "ios" else "Google Play / RevenueCat V2"
+            offer_code_nm = "RevenueCat T-0 Canlı Köprü" if plat == "ios" else "7 Günlük Deneme (Google Play)"
 
     # Kimliksiz/doğrulanmamış istemci çağrılarının sahte tahsilat (paid_active) yazmasını, DEV_* hayalet satırı üretmesini veya resmi Apple satırlarını ezmesini engelle
     if not is_admin_authed and not verified_gp_token and not verified_rc_v2:
@@ -5781,10 +6278,15 @@ async def analytics_dashboard_page(
     for rc in fl["renewal_forecast_calendar"]:
         subs_badges = " • ".join(html.escape(x) for x in rc["subscribers"])
         is_rec_cal = bool(rc.get("is_reconciling") or rc.get("reconciliation_status") == "reconciling")
+        rc_plat_val = str(rc.get("platform") or "all")
+        plat_attr = f' data-platform="{html.escape(rc_plat_val)}"' if rc_plat_val in ("ios", "android") else ""
         rec_border = "#2563EB" if is_rec_cal else "#059669"
-        rec_lbl = "🔄 APPLE MUTABAKATINDA" if is_rec_cal else "📅 YAKLAŞAN VADE"
+        if is_rec_cal:
+            rec_lbl = "🔄 GOOGLE PLAY MUTABAKATINDA" if rc_plat_val == "android" else ("🔄 APPLE MUTABAKATINDA" if rc_plat_val == "ios" else "🔄 MAĞAZA MUTABAKATINDA")
+        else:
+            rec_lbl = "📅 YAKLAŞAN VADE"
         renewal_calendar_html += f"""
-        <div class="step-box" style="border-left: 4px solid {rec_border};">
+        <div class="step-box"{plat_attr} style="border-left: 4px solid {rec_border};">
           <div class="step-num" style="color:{rec_border};">{rec_lbl}: {html.escape(str(rc['date']))}</div>
           <div class="step-val">{rc['count']} Abone</div>
           <div class="step-sub">Beklenen Tahsilat: <strong>{rc['expected_gross_try']:.2f} ₺ Brüt</strong> / <strong style="color:#059669;">{rc['expected_net_try']:.2f} ₺ Net</strong></div>
@@ -7799,7 +8301,7 @@ async def analytics_dashboard_page(
 
           <div class="bento-card tab2-sec tab2-sec-ledger" id="appleLedgerCard">
             <div class="section-head">
-              <span>📒 Abone Defteri ({f_vip} Aktif / {len(sub_ledger)} Kayıt)</span>
+              <span id="ledgerHeadSpan">📒 Abone Defteri ({f_vip} Aktif / {len(sub_ledger)} Kayıt)</span>
               <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <input type="search" id="appleLedgerSearchInput" class="table-search-input" placeholder="🔍 Abone ID, ülke, paket ara..." oninput="filterTableByQuery(this, 'appleLedgerTbody')" />
                 <button type="button" class="collapse-btn" id="btnToggleAppleLedger" onclick="toggleDetailWrap('appleLedgerTableWrap', 'btnToggleAppleLedger')">▲ Gizle</button>
@@ -7837,11 +8339,12 @@ async def analytics_dashboard_page(
               <div class="card-label">📱 UYGULAMA OTURUMLARI</div>
               <div class="big-num" style="color:#2563EB;">{pr['total_tracked_sessions']}</div>
               <div class="kpi-micro-meta">
-                <span class="kpi-micro-chip">🍏 {pr['apple_official_sessions']} r8</span>
+                <span class="kpi-micro-chip">⚡ {pr.get('live_telemetry_sessions', 0)} Canlı</span>
+                <span class="kpi-micro-chip">🍏 {pr['apple_official_sessions']} Opt-in r8</span>
                 <span class="kpi-micro-chip">⏱️ {pr['avg_session_duration_sec']} sn</span>
               </div>
               <div class="card-desc">
-                Apple r8 API doğrulanmış <strong>{pr['apple_official_sessions']} oturum</strong> ({pr['returning_sessions_total']} tekrar oturumu) • Ortalama süre: <strong>{pr['avg_session_duration_sec']} sn</strong>.
+                Canlı uygulama telemetrisi: <strong>{pr.get('live_telemetry_sessions', 0)} oturum</strong> • Apple r8 Opt-in: <strong>{pr['apple_official_sessions']} oturum</strong> ({pr['returning_sessions_total']} tekrar) • Ortalama süre: <strong>{pr['avg_session_duration_sec']} sn</strong>.
               </div>
             </div>
 
@@ -8356,9 +8859,13 @@ async def analytics_dashboard_page(
           var appRen = document.getElementById('appleRenewalCard');
           var appLed = document.getElementById('appleLedgerCard');
           var gpLed = document.getElementById('googlePlayLedgerCard');
-          if (appRen) appRen.style.display = (plat === 'android') ? 'none' : 'block';
-          if (appLed) appLed.style.display = (plat === 'android') ? 'none' : 'block';
+          var ledHead = document.getElementById('ledgerHeadSpan');
+          if (appRen) appRen.style.display = 'block';
+          if (appLed) appLed.style.display = 'block';
           if (gpLed) gpLed.style.display = (plat === 'ios') ? 'none' : 'block';
+          if (ledHead && p) {{
+            ledHead.textContent = '📒 Abone Defteri (' + (p.vip_count !== undefined ? p.vip_count : 0) + ' Aktif / ' + (p.total_vip_count !== undefined ? p.total_vip_count : 0) + ' Kayıt)';
+          }}
 
           var platNodes = document.querySelectorAll('[data-platform]');
           for (var m = 0; m < platNodes.length; m++) {{

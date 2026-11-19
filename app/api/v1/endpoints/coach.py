@@ -1,3 +1,4 @@
+import hashlib
 import os
 import time
 from collections import deque
@@ -7,6 +8,8 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 from typing import List, Dict, Optional, Any, Literal
 from app.services.ai_sleep_coach import ask_mishil_dadi, stream_mishil_dadi, normalize_lang, normalize_audience
+from app.db.base import SessionLocal
+from app.db.models import AppInstallSignal
 from app.core.logging import get_logger
 
 logger = get_logger("coach_endpoint")
@@ -17,6 +20,17 @@ _COACH_WINDOW_SEC = 600.0
 _COACH_MAX_REQ_PER_WINDOW = 25
 
 
+def _extract_coach_client_ip(request: Optional[Request]) -> str:
+    if request is None:
+        return "unknown"
+    forwarded = (request.headers.get("x-forwarded-for") or "").strip()
+    if forwarded:
+        hops = [h.strip() for h in forwarded.split(",") if h.strip()]
+        if hops:
+            return hops[-1]
+    return (request.client.host if request.client else "unknown") or "unknown"
+
+
 def _enforce_coach_abuse_rate_limit(request: Optional[Request], lang_norm: str = "tr") -> None:
     """
     S7 Güvenli Kota Koruma: Gerçek VIP aboneleri webhook gecikmesi yüzünden 402/403 ile mağdur etmeden,
@@ -24,12 +38,21 @@ def _enforce_coach_abuse_rate_limit(request: Optional[Request], lang_norm: str =
     """
     if os.environ.get("PYTEST_CURRENT_TEST") or request is None:
         return
-    forwarded = request.headers.get("x-forwarded-for") or ""
-    client_ip = (forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")) or "unknown"
+    client_ip = _extract_coach_client_ip(request)
     now = time.monotonic()
-    bucket = _COACH_IP_BUCKETS.setdefault(client_ip, deque())
-    while bucket and (now - bucket[0]) > _COACH_WINDOW_SEC:
-        bucket.popleft()
+    if len(_COACH_IP_BUCKETS) > 2048:
+        stale_ips = [k for k, dq in list(_COACH_IP_BUCKETS.items()) if not dq or (now - dq[-1]) > _COACH_WINDOW_SEC]
+        for s_ip in stale_ips:
+            _COACH_IP_BUCKETS.pop(s_ip, None)
+    bucket = _COACH_IP_BUCKETS.get(client_ip)
+    if bucket is not None:
+        while bucket and (now - bucket[0]) > _COACH_WINDOW_SEC:
+            bucket.popleft()
+        if not bucket:
+            _COACH_IP_BUCKETS.pop(client_ip, None)
+            bucket = None
+    if bucket is None:
+        bucket = _COACH_IP_BUCKETS.setdefault(client_ip, deque())
     if len(bucket) >= _COACH_MAX_REQ_PER_WINDOW:
         detail_msg = (
             "Anfragelimit erreicht. Bitte warte ein paar Minuten, bevor du weitere Fragen sendest."
@@ -98,6 +121,31 @@ def _resolve_default_baby_name(raw_name: Optional[str], lang_norm: str) -> str:
     return "Bebeğim"
 
 
+def _record_dadi_chat_telemetry(request: Optional[Request]) -> None:
+    """Sıfır-PII: Bilge Dadı AI sohbet sayacını AppInstallSignal ('dadi_chat') olarak kaydeder."""
+    try:
+        ua_low = ((request.headers.get("user-agent") if request else "") or "").lower()
+        os_fam = "android" if "android" in ua_low else ("ios" if any(k in ua_low for k in ("iphone", "ipad", "ipod")) else "desktop")
+        raw_ip = _extract_coach_client_ip(request)
+        anon_uid = "dadi_" + hashlib.sha256(f"{raw_ip}|{ua_low[:80]}".encode("utf-8")).hexdigest()[:16]
+        db = SessionLocal()
+        try:
+            AppInstallSignal.__table__.create(bind=db.get_bind(), checkfirst=True)
+            db.add(
+                AppInstallSignal(
+                    device_uid=anon_uid,
+                    event_type="dadi_chat",
+                    os_family=os_fam,
+                    platform=f"{os_fam}_coach",
+                )
+            )
+            db.commit()
+        finally:
+            db.close()
+    except Exception:
+        pass
+
+
 @router.post("/chat", response_model=CoachChatResponse, summary="Mışıl Dadı AI Ebeveyn Asistanına Soru Sor (JSON)")
 async def chat_with_coach(payload: CoachChatRequest, request: Request):
     """
@@ -122,6 +170,7 @@ async def chat_with_coach(payload: CoachChatRequest, request: Request):
             lang=lang_norm,
             audience=audience_norm,
         )
+        await run_in_threadpool(_record_dadi_chat_telemetry, request)
         return CoachChatResponse(**result)
     except Exception as e:
         logger.error(f"Coach chat error: {str(e)}", exc_info=True)
@@ -163,6 +212,7 @@ async def stream_coach_response(payload: CoachChatRequest, request: Request):
             lang=lang_norm,
             audience=audience_norm,
         )
+        await run_in_threadpool(_record_dadi_chat_telemetry, request)
         return StreamingResponse(
             generator,
             media_type="text/event-stream",

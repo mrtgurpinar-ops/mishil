@@ -146,7 +146,8 @@ class SubscriptionService:
         event_data = payload.get("event", {})
         event_type = event_data.get("type")
         app_user_id = event_data.get("app_user_id") or event_data.get("original_app_user_id")
-        product_id = str(event_data.get("product_id") or "")
+        raw_product_id = str(event_data.get("new_product_id") or event_data.get("product_id") or "")
+        product_id = raw_product_id.split(":")[0].strip() if ":" in raw_product_id else raw_product_id.strip()
         store_raw = str(event_data.get("store") or "").upper()
         period_type = str(event_data.get("period_type") or "NORMAL").upper()
         country_code = str(event_data.get("country_code") or "TR").upper()
@@ -178,7 +179,8 @@ class SubscriptionService:
 
         # Upsert SubscriberLedger & SubscriptionLifecycleEvent for Founder Dashboard (even for anonymous users)
         try:
-            sub_uid = str(event_data.get("original_transaction_id") or event_data.get("transaction_id") or app_user_id)
+            raw_sub_uid = str(event_data.get("original_transaction_id") or event_data.get("transaction_id") or app_user_id).strip()
+            sub_uid = (raw_sub_uid.split("..")[0] if raw_sub_uid.startswith("GPA.") else raw_sub_uid)[:128]
             now_dt = datetime.now(timezone.utc)
             purchased_ms = event_data.get("purchased_at_ms")
             exp_ms = event_data.get("expiration_at_ms")
@@ -194,9 +196,21 @@ class SubscriptionService:
             exp_gross = 599.99 if is_annual_prod else 149.99
             exp_net = round(exp_gross * (0.727 if platform_str == "android" else 0.55417), 2)
 
-            if event_type in ("CANCELLATION", "EXPIRATION"):
+            ledger_row = db.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == sub_uid).first()
+            already_paid_row = bool(ledger_row and ledger_row.status == "paid_active" and (ledger_row.customer_price_try or 0.0) > 0)
+
+            if event_type == "EXPIRATION":
                 ledger_status = "cancelled"
                 auto_renew = False
+            elif event_type == "CANCELLATION":
+                cancel_reason = str(event_data.get("cancel_reason") or "").upper()
+                is_refund = cancel_reason == "CUSTOMER_SUPPORT" or price_in_purchased_currency < 0
+                if already_paid_row and not is_refund and exp_dt > now_dt:
+                    ledger_status = "paid_active"
+                    auto_renew = False
+                else:
+                    ledger_status = "cancelled"
+                    auto_renew = False
             elif period_type == "TRIAL" or (price_in_purchased_currency <= 0.0 and event_type == "INITIAL_PURCHASE"):
                 ledger_status = "intro_free_trial"
                 auto_renew = True
@@ -215,7 +229,6 @@ class SubscriptionService:
                 else ("Mışıl Yıllık VIP" if is_annual_prod else "Mışıl Aylık Esnek")
             )
 
-            ledger_row = db.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == sub_uid).first()
             offer_type_val = (
                 "offer_code"
                 if ledger_status == "offer_code_trial"
@@ -257,17 +270,24 @@ class SubscriptionService:
                     and event_type == "INITIAL_PURCHASE"
                 )
                 if not is_stale_event:
+                    prev_conv_date = ledger_row.converted_or_renewed_date
                     if app_user_id:
                         ledger_row.rc_app_user_id = str(app_user_id)[:128]
                     ledger_row.platform = platform_str
+                    ledger_row.product_id = prod_id_resolved
+                    ledger_row.plan_label = plan_lbl
                     ledger_row.status = ledger_status
                     ledger_row.offer_type = offer_type_val
                     ledger_row.auto_renew_enabled = auto_renew
                     ledger_row.converted_or_renewed_date = start_str
                     ledger_row.maturity_or_renewal_date = exp_str
-                    if realized_gross > 0:
-                        ledger_row.customer_price_try = realized_gross
-                        ledger_row.developer_proceeds_try = realized_net
+                    if realized_gross > 0 and event_type not in ("CANCELLATION", "EXPIRATION", "PRODUCT_CHANGE"):
+                        if event_type == "RENEWAL" and prev_conv_date != start_str:
+                            ledger_row.customer_price_try = round((ledger_row.customer_price_try or 0.0) + realized_gross, 2)
+                            ledger_row.developer_proceeds_try = round((ledger_row.developer_proceeds_try or 0.0) + realized_net, 2)
+                        else:
+                            ledger_row.customer_price_try = max(float(ledger_row.customer_price_try or 0.0), realized_gross)
+                            ledger_row.developer_proceeds_try = max(float(ledger_row.developer_proceeds_try or 0.0), realized_net)
                     ledger_row.expected_next_price_try = exp_gross if auto_renew else 0.0
                     ledger_row.expected_next_proceeds_try = exp_net if auto_renew else 0.0
 
@@ -297,7 +317,7 @@ class SubscriptionService:
             db.commit()
         except Exception as ledger_err:
             db.rollback()
-            logger.warning(f"SubscriberLedger upsert failed inside RevenueCat webhook: {ledger_err}")
+            logger.error(f"SubscriberLedger upsert failed inside RevenueCat webhook: {ledger_err}", exc_info=True)
 
         # Find user
         user = None
