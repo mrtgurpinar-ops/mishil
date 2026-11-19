@@ -2,6 +2,23 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.53.0] - 2026-11-19 (Canlı WebView & Backend Paketi — Build 70 Aktif • Native EAS Build Gerekmez)
+### 🤱 Tek Elle Canlı Emzirme Sayacı (`Sol / Sağ Göğüs`), Ortak Gece Eşlikçisi (`mode: 'sleep' | 'nursing'`), Anne Molası Keşfedilebilirlik Onarımı & Yapısal Aile Senkronu (`public/app.html`, `app/api/v1/endpoints/family.py`, `mobile/app.config.ts`, `mobile/features/webview/offlineHtml.generated.ts`, `tests/test_family_sync_and_mom_mode.py`, `tests/test_sleep_and_analytics_remediation.py`, `mobile/tests/liveNursingAndMomBreak.test.ts`, `mobile/tests/i18nGermanAndPolish.test.ts`)
+1. **Anne Molası Keşfedilebilirlik Onarımı & İlk Uyku Yıldız Kalkanı (`#mom-break-drawer`, `toggleLiveSleep`, `showToast`):**
+   - Ekranı otomatik aşağı kaydırmayan (`scrollIntoView` yok; `Saatini Düzelt` ve `Bebek Uyandı` kontrolleri sabit kalır) yumuşak kehribar `@keyframes momDrawerReveal` açılış halesi eklendi.
+   - Ebeveyn başka bir sekmedeyken (örn. `Sesler` sekmesinde ninni açıkken) alt menüden **Uyut**'a bastığında tıklanabilir aksiyonlu bildirim (*"🌙 Canlı uyku başladı • ☕ Anne Molası hazır — Gör ➔"*) ile tek dokunuşta `Anne Molası` çekmecesine geçiş bağlandı.
+   - İlk canlı uyku başlatılışında mağaza yıldız isteminin (`live_sleep_started` +2 sn) `Anne Molası` keşfini bölmemesi için `mishil_sleep_delight_seen` kalkanı eklendi.
+2. **Kilit Ekranına Dayanıklı Tek Elle Canlı Emzirme Sayacı (`Sol / Sağ Göğüs`) & Kapsayıcı Beslenme Akışı:**
+   - **Profil Duyarlı Kapsayıcılık (`getPreferredFeedMethodForModal`):** Yalnızca `🤱 Anne Sütü (breast)` seçili profillerde Canlı Emzirme Sayacı varsayılan önde gelir; `🍼 Mama` ve `🥣 Ek Gıda` seçili profillerde hızlı `ml` girişi önde korunur.
+   - **Duvar Saati (`timestamp-delta`) + `180 dk` Güvenlik Sınırı:** `computeLiveNursingTotals` ekran kilitlendiğinde donan `setInterval` sayımı yerine `Date.now() - activeSideStartedAt + leftAccumMs / rightAccumMs` + `localStorage` + `visibilitychange` yeniden hesaplama mimarisini kullanır; `180 dk` unutma tavanı ve *"Son emzirilen göğüs"* (`mishil_last_nursing_side`) öneri rozeti içerir.
+   - **Sıfır Seans-Sonu Paywall Kesintisi & İki Bitiş Seçeneği:** Abonelik kontrolü (`requireActiveSubscription('routine_log')`) yalnızca sayacı **başlatırken** çalışır; aktif seans bitişinde Paywall asla araya girmez. Bitişte **`💾 Emzirmeyi Kaydet`** veya **`🌙 Memede Uyudu`** (mevcut uyku sürüyorsa rüya öğünü olarak çift uyku başlatmadan kaydeder; uyanıksa emzirmeyi kaydedip canlı uykuyu başlatır) seçenekleri sunulur.
+3. **Ortak Gece Eşlikçisi (`mode: 'sleep' | 'nursing'`) & 3 Dilli (`TR/EN/DE`) Aile Senkronu (`family.py`):**
+   - İkinci bir çekmece kopyalamadan `#mom-break-drawer` canlı emzirme sırasında **"🤱 Emzirme & Gece Eşlikçisi"** modunda açılır; `nursing_water` (*"Emziriyorum, su/çay getirir misin?"*) ve `nursing_burp_help` (*"Gazını çıkarmak için devralır mısın?"*) eş fısıltıları `TR / EN / DE` 3 dilde bağlandı.
+   - `resolveLocalizedRoutineCopy` içine `sideLabelMap` (`left / right / both` + `Sol X dk + Sağ Y dk`) ve `family.py` `RoutineLog.details_json` beyaz listesine (`side`, `leftMin`, `rightMin`, `durationMin`, `method`, `note` + `id`/`client_id` & `type`/`category` uyumluluğu + `icon` HTML temizliği) sıfır DB migration ile eklendi.
+4. **Seviye 3 Gerçek 3-Ajanlı Konsensüs & Doğrulama Kapısı (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-54` ➔ `task-96` 7 boyutlu optimumluk denetimi ➔ `task-274` son kod incelemesi: `FINAL_VERDICT: PASS`)** ve **Codex CLI (`gpt-6-luna`, `task-71` ➔ `task-97` 7 boyutlu red-team denetimi ➔ `task-275` son kod incelemesi: `FINAL_VERDICT: PASS`)** gerçek terminal denetimleriyle doğrulandı; savunma-derinliği notları (`escapeHtml(r.icon)`, `handleRoutineTypeChange` aktif emzirme muafiyeti ve VM uçtan uca persist/restore testi) kapatıldı.
+   - **Antigravity Yerel Doğrulama:** `52/52 pytest` yeşil, `10/10 suite / 70 Jest testi` yeşil, `tsc --noEmit` sıfır hata, `INLINE_SCRIPTS_OK: 1`, `offlineHtml.generated.ts` senkronize (`1187 KB`), `/api/v1/analytics/dashboard` `200 OK` ve `mobile_compliance_checker.py` `7/7 READY_FOR_RELEASE`.
+
 ## [4.52.2] - 2026-11-18 (Canlı Backend & Köprü Paketi — Build 70 Aktif • Native EAS Build Gerekmez)
 ### 🚀 `/ios` & `/download` Sıfır Ara Sayfalı (`HTTP 302`) Doğrudan Mağaza Yönlendirmesi & Kokpit Veri Bütünlüğü Zırhlaması (`app/main.py`, `app/api/v1/endpoints/analytics.py`, `tests/test_sleep_and_analytics_remediation.py`)
 1. **Ara `"Mışıl Baby Açılıyor..."` Ekranının Kaldırılması (`HTTP 302 Found`):**

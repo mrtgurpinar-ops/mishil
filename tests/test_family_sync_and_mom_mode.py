@@ -702,3 +702,137 @@ def test_cli_audit_remediations_non_family_idor_token_bypass_and_prod_secret(cli
         == 403
     )
 
+
+def test_v4530_live_nursing_routine_sync_and_context_whispers(client):
+    """
+    v4.53.0:
+    1. Canlı emzirme yapısal alanlarının (side='left'|'right'|'both', leftMin, rightMin, durationMin, method, note)
+       hem client_id/category hem id/type biçiminde aile üyeleri arasında kayıpsız senkronlandığını,
+       geçersiz side değerlerinin ise reddedildiğini doğrular.
+    2. Emzirme bağlamlı eş fısıltılarının (nursing_water, nursing_burp_help) TR/EN/DE 3 dilde ve
+       message / custom_note geriye dönük uyumluluğuyla çalıştığını doğrular.
+    """
+    r_create = client.post(
+        "/api/v1/family/create",
+        json={
+            "baby_name": "Defne",
+            "birth_date": "2026-07-01",
+            "creator_role": "mother",
+            "creator_name": "Elif",
+            "device_uid": "dev-nurse-mom",
+        },
+    )
+    assert r_create.status_code == 200
+    code = r_create.json()["invite_code"]
+    mom_token = r_create.json()["member_token"]
+
+    r_dad = client.post(
+        "/api/v1/family/join",
+        json={
+            "invite_code": code,
+            "role": "father",
+            "name": "Mert",
+            "device_uid": "dev-nurse-dad",
+        },
+    )
+    assert r_dad.status_code == 200
+    dad_token = r_dad.json()["member_token"]
+
+    now_ms = int(datetime.now(timezone.utc).timestamp() * 1000)
+    r_sync = client.post(
+        "/api/v1/family/sync",
+        headers={"X-Family-Member-Token": mom_token},
+        json={
+            "invite_code": code,
+            "device_uid": "dev-nurse-mom",
+            "routines": [
+                {
+                    "client_id": "rt_nurse_both_1",
+                    "category": "feeding",
+                    "sub_type": "breast",
+                    "side": "both",
+                    "leftMin": 12,
+                    "rightMin": 8,
+                    "duration_minutes": 20,
+                    "title": "Beslenme",
+                    "detail": "Anne Sütü • Sol 12 dk + Sağ 8 dk • 20 dk",
+                    "notes": "<b>Sakin emdi</b>",
+                    "time": "03:15",
+                    "timestamp_ms": now_ms,
+                },
+                {
+                    "id": "rt_nurse_invalid_side",
+                    "type": "feeding",
+                    "method": "breast",
+                    "side": "invalid_hack",
+                    "durationMin": 14,
+                    "title": "Beslenme",
+                    "detail": "Anne Sütü • 14 dk",
+                    "time": "05:30",
+                    "timestamp": now_ms + 1000,
+                },
+            ],
+        },
+    )
+    assert r_sync.status_code == 200
+
+    # Baba snapshot çektiğinde yapısal emzirme alanlarını ve temizlenmiş notu eksiksiz görür
+    r_pull = client.get(
+        f"/api/v1/family/sync/{code}?device_uid=dev-nurse-dad",
+        headers={"X-Family-Member-Token": dad_token},
+    )
+    assert r_pull.status_code == 200
+    routines = r_pull.json()["family"]["routines"]
+    by_id = {item["id"]: item for item in routines}
+
+    assert "rt_nurse_both_1" in by_id
+    both_item = by_id["rt_nurse_both_1"]
+    assert both_item["type"] == "feeding"
+    assert both_item["method"] == "breast"
+    assert both_item["side"] == "both"
+    assert both_item["leftMin"] == 12
+    assert both_item["rightMin"] == 8
+    assert both_item["durationMin"] == 20
+    assert both_item["note"] == "Sakin emdi"
+
+    assert "rt_nurse_invalid_side" in by_id
+    assert "side" not in by_id["rt_nurse_invalid_side"]
+    assert by_id["rt_nurse_invalid_side"]["durationMin"] == 14
+
+    # Emzirme fısıltı şablonları TR / EN / DE ve message alias kontrolü
+    for lang_code, tpl_key, expected_word in [
+        ("tr", "nursing_water", "Emziriyorum"),
+        ("en", "nursing_burp_help", "burping"),
+        ("de", "nursing_water", "stille"),
+    ]:
+        rw = client.post(
+            "/api/v1/family/whisper",
+            headers={"X-Family-Member-Token": mom_token},
+            json={
+                "invite_code": code,
+                "device_uid": "dev-nurse-mom",
+                "template_key": tpl_key,
+                "lang": lang_code,
+            },
+        )
+        assert rw.status_code == 200
+        w_out = rw.json()["whisper"]
+        assert expected_word in w_out["message_text"]
+        assert w_out["message"] == w_out["message_text"]
+
+    # Geriye dönük `message` alanı ile custom fısıltı
+    rw_custom = client.post(
+        "/api/v1/family/whisper",
+        headers={"X-Family-Member-Token": mom_token},
+        json={
+            "invite_code": code,
+            "device_uid": "dev-nurse-mom",
+            "template_key": "custom",
+            "message": "Emzirme yastığını getirir misin?",
+            "lang": "tr",
+        },
+    )
+    assert rw_custom.status_code == 200
+    assert rw_custom.json()["whisper"]["message_text"] == "Emzirme yastığını getirir misin?"
+
+

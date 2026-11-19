@@ -2615,6 +2615,26 @@
       opacity: 1;
       transform: translateX(-50%) translateY(0);
     }
+    .toast-msg.show.has-action {
+      pointer-events: auto;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px 8px 15px;
+    }
+    .toast-action-pill {
+      background: var(--accent);
+      color: #141B2E;
+      border: none;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-family: 'Sora', sans-serif;
+      font-size: 11px;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
 
     .mic-record-box {
       display: flex;
@@ -3243,6 +3263,69 @@
       padding: 12px 13px;
       margin-bottom: 12px;
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+      transition: border-color 0.35s ease, box-shadow 0.35s ease;
+    }
+    #mom-break-drawer.mom-drawer-reveal {
+      animation: momDrawerReveal 1.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes momDrawerReveal {
+      0% {
+        opacity: 0.55;
+        transform: translateY(-4px);
+        border-color: rgba(244, 162, 97, 0.95);
+        box-shadow: 0 0 0 3px rgba(244, 162, 97, 0.28), 0 12px 30px rgba(244, 162, 97, 0.25);
+      }
+      55% {
+        opacity: 1;
+        transform: translateY(0);
+        border-color: rgba(244, 162, 97, 0.9);
+        box-shadow: 0 0 0 4px rgba(244, 162, 97, 0.2), 0 10px 28px rgba(244, 162, 97, 0.22);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0);
+        border-color: rgba(244, 162, 97, 0.48);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
+      }
+    }
+    #home-live-nursing-bar {
+      display: none;
+      background: linear-gradient(145deg, rgba(44, 30, 52, 0.96) 0%, rgba(22, 28, 48, 0.98) 100%);
+      border: 1.5px solid rgba(244, 162, 97, 0.62);
+      border-radius: 16px;
+      padding: 11px 12px;
+      margin-bottom: 10px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.32);
+    }
+    .nursing-side-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .nursing-side-btn {
+      min-height: 54px;
+      border-radius: 13px;
+      border: 1.5px solid rgba(255, 255, 255, 0.14);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--heading-night);
+      font-family: 'Sora', sans-serif;
+      padding: 8px 10px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      transition: all 0.2s ease;
+    }
+    .nursing-side-btn.active {
+      background: rgba(244, 162, 97, 0.24);
+      border-color: var(--accent);
+      box-shadow: 0 0 16px rgba(244, 162, 97, 0.26);
+    }
+    .nursing-side-btn.recommended:not(.active) {
+      border-color: rgba(46, 213, 115, 0.55);
     }
     .mom-break-tabs {
       display: grid;
@@ -3827,7 +3910,7 @@
 
       <!-- REVIEWER TEST BYPASS TRIGGER (GOOGLE PLAY ANSWER 15748846) -->
       <div style="text-align: center; margin-top: 8px; margin-bottom: 6px;">
-        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.52.0 (Build 70)</span>
+        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.53.0 (Build 70)</span>
       </div>
     </div>
   </div>
@@ -3915,14 +3998,39 @@
 
         <div id="last-sleep-quick-edit-bar" style="display: none; align-items: center; justify-content: space-between; gap: 8px; background: rgba(244, 162, 97, 0.12); border: 1px dashed rgba(244, 162, 97, 0.45); border-radius: 14px; padding: 9px 12px; margin-top: -4px; margin-bottom: 12px;"><div style="font-size: 11px; color: var(--text-night); line-height: 15px;"><span>🌙 Son Uyku: <strong id="last-sleep-quick-summary" style="color: var(--heading-night);">—</strong></span><div style="font-size: 10px; color: var(--text-muted);" id="last-sleep-quick-sub">Uyuyakaldıysanız veya uyanış saati farklıysa düzeltin</div></div><button type="button" id="btn-last-sleep-quick-edit" onclick="editLatestSleepRoutine()" style="background: rgba(244, 162, 97, 0.22); border: 1px solid var(--accent); color: var(--accent); border-radius: 10px; padding: 6px 10px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0;">✏️ Saatleri Düzenle</button></div>
 
-        <!-- ☕ ANNE MOLASI & GECE NÖBETİ DAYANIŞMASI (YALNIZCA BEBEK UYURKEN OTOMATİK AÇILIR — TEK EL KARANLIK ODA DOSTU) -->
+        <!-- 🤱 CANLI EMZİRME AKTİF ŞERİDİ (TEK EL KARANLIK ODA DOSTU • KİLİT EKRANINA DAYANIKLI) -->
+        <div id="home-live-nursing-bar">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <div style="min-width: 0;">
+              <div style="font-family: 'Sora'; font-size: 12.5px; font-weight: 800; color: var(--heading-night);" id="home-nursing-title">🤱 Canlı Emzirme • 00:00</div>
+              <div style="font-size: 10.5px; color: var(--accent); margin-top: 2px;" id="home-nursing-sub">Sol 00:00 • Sağ 00:00</div>
+            </div>
+            <button type="button" onclick="cancelLiveNursingSession()" aria-label="Emzirme Sayacını İptal Et" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: var(--text-muted); border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: 700; cursor: pointer; flex-shrink: 0;" id="btn-home-nursing-cancel">✕ İptal</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px;">
+            <button type="button" class="nursing-side-btn" id="btn-home-nurse-left" onclick="toggleLiveNursingSide('left')" style="min-height: 44px; flex-direction: row; gap: 6px;">
+              <span style="font-size: 11.5px; font-weight: 800;" id="lbl-home-nurse-left">🤱 Sol</span>
+              <span style="font-size: 11px; color: var(--accent); font-weight: 700;" id="lbl-home-nurse-left-time">00:00</span>
+            </button>
+            <button type="button" class="nursing-side-btn" id="btn-home-nurse-right" onclick="toggleLiveNursingSide('right')" style="min-height: 44px; flex-direction: row; gap: 6px;">
+              <span style="font-size: 11.5px; font-weight: 800;" id="lbl-home-nurse-right">🤱 Sağ</span>
+              <span style="font-size: 11px; color: var(--accent); font-weight: 700;" id="lbl-home-nurse-right-time">00:00</span>
+            </button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1.15fr; gap: 6px; margin-top: 7px;">
+            <button type="button" id="btn-home-nursing-save" onclick="completeLiveNursingSession(false)" style="min-height: 38px; border-radius: 10px; border: 1px solid rgba(46, 213, 115, 0.55); background: rgba(46, 213, 115, 0.16); color: #2ED573; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer;">💾 Emzirmeyi Kaydet</button>
+            <button type="button" id="btn-home-nursing-sleep" onclick="completeLiveNursingSession(true)" style="min-height: 38px; border-radius: 10px; border: none; background: linear-gradient(135deg, var(--accent) 0%, #E07A5F 100%); color: #141B2E; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer;">🌙 Memede Uyudu</button>
+          </div>
+        </div>
+
+        <!-- ☕ ANNE MOLASI & GECE EŞLİKÇİSİ (BEBEK UYURKEN VEYA CANLI EMZİRMEDE AÇILIR — TEK EL KARANLIK ODA DOSTU) -->
         <div id="mom-break-drawer">
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer;" onclick="toggleMomBreakCollapsed()">
             <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-              <span style="font-size: 18px; flex-shrink: 0;">☕</span>
+              <span style="font-size: 18px; flex-shrink: 0;" id="mom-break-icon">☕</span>
               <div style="min-width: 0;">
-                <div style="font-family: 'Sora'; font-size: 12.5px; font-weight: 800; color: var(--heading-night);">Bebek Uyuyor • Anne Molası</div>
-                <div style="font-size: 10.5px; color: var(--accent); margin-top: 1px;">Bebeğiniz uyurken birkaç dakika sadece sizin 💛</div>
+                <div style="font-family: 'Sora'; font-size: 12.5px; font-weight: 800; color: var(--heading-night);" id="mom-break-title">Bebek Uyuyor • Anne Molası</div>
+                <div style="font-size: 10.5px; color: var(--accent); margin-top: 1px;" id="mom-break-subtitle">Bebeğiniz uyurken birkaç dakika sadece sizin 💛</div>
               </div>
             </div>
             <button type="button" id="mom-break-collapse-btn" style="background: rgba(255,255,255,0.07); border: 1px solid var(--border-night); color: var(--accent); border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: 700; cursor: pointer; flex-shrink: 0;">Küçült ▴</button>
@@ -3982,10 +4090,10 @@
                   Odaya seslenmeden eşinizin telefonuna tek dokunuşla sessiz not bırakın:
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
-                  <button type="button" onclick="sendFamilyWhisperTemplate('tea_water')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🍵 Su / çay getirir misin?</button>
-                  <button type="button" onclick="sendFamilyWhisperTemplate('next_shift_yours')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🍼 Sıradaki uyanış sende 💛</button>
-                  <button type="button" onclick="sendFamilyWhisperTemplate('trapped_under_baby')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🤱 Altında kaldım, yardım!</button>
-                  <button type="button" onclick="sendFamilyWhisperTemplate('thank_you_love')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🤍 İyi ki varsın, teşekkürler</button>
+                  <button type="button" id="btn-whisper-water" onclick="sendContextAwareWhisper('water')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🍵 Su / çay getirir misin?</button>
+                  <button type="button" id="btn-whisper-shift" onclick="sendFamilyWhisperTemplate('next_shift_yours')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🍼 Sıradaki uyanış sende 💛</button>
+                  <button type="button" id="btn-whisper-trapped" onclick="sendContextAwareWhisper('assist')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🤱 Altında kaldım, yardım!</button>
+                  <button type="button" id="btn-whisper-thanks" onclick="sendFamilyWhisperTemplate('thank_you_love')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🤍 İyi ki varsın, teşekkürler</button>
                 </div>
                 <div style="display: flex; gap: 6px;">
                   <input type="text" id="mom-whisper-custom-input" class="form-input" placeholder="Eşinize kısa sessiz not yazın..." maxlength="140" onkeydown="if(event.key==='Enter') sendCustomFamilyWhisper()" style="margin-bottom: 0; padding: 7px 10px; font-size: 11px;" />
@@ -5270,7 +5378,7 @@
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
     </div>
     <div style="text-align: center; margin-top: 8px;">
-      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.52.0 (Build 70)</span>
+      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.53.0 (Build 70)</span>
     </div>
   </div>
 </div>
@@ -5507,12 +5615,48 @@
           <option value="solid">🥣 Katı / Ek Gıda</option>
         </select>
       </div>
+
+      <!-- TEK EL CANLI EMZİRME KRONOMETRESİ (YALNIZCA ANNE SÜTÜ SEÇİLİYKEN VE YENİ KAYITTA GÖRÜNÜR) -->
+      <div id="live-nursing-modal-card" style="display: none; background: rgba(244, 162, 97, 0.08); border: 1px solid rgba(244, 162, 97, 0.38); border-radius: 14px; padding: 11px 12px; margin-bottom: 12px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+          <div style="font-family: 'Sora'; font-size: 12px; font-weight: 800; color: var(--heading-night);" id="live-nursing-modal-title">⏱️ Canlı Emzirme Sayacı</div>
+          <span style="font-size: 10.5px; font-weight: 700; color: #2ED573;" id="live-nursing-modal-total">00:00</span>
+        </div>
+        <div style="font-size: 10.5px; color: var(--accent); margin-top: 3px;" id="live-nursing-memory-badge">Başlamak istediğiniz göğüse dokunun</div>
+        <div class="nursing-side-grid">
+          <button type="button" class="nursing-side-btn" id="btn-modal-nurse-left" onclick="toggleLiveNursingSide('left')">
+            <span style="font-size: 12px; font-weight: 800;" id="lbl-modal-nurse-left">🤱 Sol Göğüs</span>
+            <span style="font-size: 11px; color: var(--accent); font-weight: 700;" id="lbl-modal-nurse-left-time">00:00</span>
+          </button>
+          <button type="button" class="nursing-side-btn" id="btn-modal-nurse-right" onclick="toggleLiveNursingSide('right')">
+            <span style="font-size: 12px; font-weight: 800;" id="lbl-modal-nurse-right">🤱 Sağ Göğüs</span>
+            <span style="font-size: 11px; color: var(--accent); font-weight: 700;" id="lbl-modal-nurse-right-time">00:00</span>
+          </button>
+        </div>
+        <div id="live-nursing-modal-actions" style="display: none; margin-top: 9px;">
+          <div style="display: grid; grid-template-columns: 1fr 1.15fr; gap: 6px; margin-bottom: 6px;">
+            <button type="button" id="btn-modal-nursing-save" onclick="completeLiveNursingSession(false)" style="min-height: 40px; border-radius: 10px; border: 1px solid rgba(46, 213, 115, 0.55); background: rgba(46, 213, 115, 0.16); color: #2ED573; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer;">💾 Emzirmeyi Kaydet</button>
+            <button type="button" id="btn-modal-nursing-sleep" onclick="completeLiveNursingSession(true)" style="min-height: 40px; border-radius: 10px; border: none; background: linear-gradient(135deg, var(--accent) 0%, #E07A5F 100%); color: #141B2E; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer;">🌙 Memede Uyudu</button>
+          </div>
+          <button type="button" id="btn-modal-nursing-companion" onclick="openNursingCompanionOnHome()" style="width: 100%; min-height: 35px; border-radius: 9px; border: 1px solid rgba(244, 162, 97, 0.42); background: rgba(255,255,255,0.05); color: #FAF5EE; font-size: 10.5px; font-weight: 700; cursor: pointer;">☕ Gece Eşlikçisini & Loş Feneri Gör (Ana Ekran) ➔</button>
+        </div>
+      </div>
+
       <div class="form-group" id="routine-feed-amount-wrap">
         <label class="form-label" id="routine-feed-amount-label">Miktar (ml)</label>
         <input type="number" inputmode="numeric" min="0" step="5" class="form-input" id="routine-modal-feed-amount" placeholder="Örn: 140" />
       </div>
+      <div class="form-group" id="routine-feed-side-wrap" style="display: none;">
+        <label class="form-label" id="routine-feed-side-label">Emzirilen Taraf (opsiyonel)</label>
+        <select class="form-input" id="routine-modal-feed-side">
+          <option value="">Belirtilmedi</option>
+          <option value="left">Sol Göğüs</option>
+          <option value="right">Sağ Göğüs</option>
+          <option value="both">Sol + Sağ Göğüs</option>
+        </select>
+      </div>
       <div class="form-group" id="routine-feed-duration-wrap" style="display: none;">
-        <label class="form-label">Süre (dk)</label>
+        <label class="form-label" id="routine-feed-duration-label">Süre (dk)</label>
         <input type="number" inputmode="numeric" min="0" step="1" class="form-input" id="routine-modal-feed-duration" placeholder="Örn: 20" />
       </div>
       <div class="form-group">
@@ -6129,7 +6273,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.52.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.53.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -6437,7 +6581,17 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.52.0', date: '15 Kasım 2026', dateEn: 'November 15, 2026', dateDe: '15. November 2026', latest: true, items: [
+    { v: '4.53.0', date: '19 Kasım 2026', dateEn: 'November 19, 2026', dateDe: '19. November 2026', latest: true, items: [
+      '🤱 Tek Elle Canlı Emzirme Sayacı (Sol / Sağ Göğüs) & Son Göğüs Hafızası: Anne Sütü seçili profillerde kilit ekranında bile şaşmayan Sol / Sağ göğüs kronometresi, en son hangi göğüsten emzirildiğini hatırlatan akıllı rozet ve emzirme bitişinde tek dokunuşla "💾 Emzirmeyi Kaydet" veya "🌙 Memede Uyudu (Kaydet & Canlı Uykuyu Başlat)" seçenekleri eklendi (mama/biberon kullanan ailelerde hızlı ml akışı önde korunur).',
+      '☕ Ortak Gece Eşlikçisi & Anne Molası Keşfedilebilirlik Onarımı: Canlı emzirme sırasında da aynı karanlık oda çekmecesi "🤱 Emzirme & Gece Eşlikçisi" modunda açılır ("🍵 Emziriyorum, su getirir misin?" ve "🤱 Gazını çıkarmak için devralır mısın?" eş fısıltılarıyla); başka sekmedeyken (örn. Sesler) Uyut butonuna basıldığında tıklanabilir yönlendirme bildirimi ve ekranı kaydırmayan sıcak kehribar açılış halesi devreye alındı.'
+    ], itemsEn: [
+      '🤱 One-Handed Live Nursing Timer (Left / Right Breast) & Last-Side Memory: Added a lock-screen-accurate Left / Right breast stopwatch for breastfeeding profiles with smart last-side reminders and 1-tap completion options ("💾 Save Nursing" or "🌙 Fell Asleep Nursing -> Start Live Sleep"), while keeping fast ml entry front-and-center for formula/bottle families.',
+      '☕ Shared Night Companion & Mom Break Discoverability Upgrade: The dark-room drawer now also opens in "🤱 Nursing & Night Companion" mode during live nursing (with context-aware partner whispers for water or burping help), plus a warm non-scrolling amber reveal halo and a tappable shortcut toast when starting sleep from another tab.'
+    ], itemsDe: [
+      '🤱 Einhändige Live-Stilluhr (Linke / Rechte Brust) & Seiten-Gedächtnis: Für Still-Profile gibt es nun eine sperrbildschirmsichere Links/Rechts-Stoppuhr mit Erinnerung an die zuletzt gestillte Seite sowie 1-Tipp-Abschluss („💾 Stillen speichern“ oder „🌙 Beim Stillen eingeschlafen -> Live-Schlaf starten“); bei Pre-Nahrung/Fläschchen bleibt die schnelle ml-Eingabe im Vordergrund.',
+      '☕ Gemeinsamer Nachtbegleiter & bessere Sichtbarkeit der Mama-Pause: Die Dunkelzimmer-Schublade öffnet sich beim Live-Stillen im Modus „🤱 Still- & Nachtbegleiter“ (inkl. stillem Partner-Flüstern für Wasser oder Bäuerchen-Hilfe) und zeigt beim Schlafstart aus anderen Tabs einen antippbaren Direkt-Hinweis ohne automatisches Wegscrollen.'
+    ]},
+    { v: '4.52.0', date: '15 Kasım 2026', dateEn: 'November 15, 2026', dateDe: '15. November 2026', items: [
       'Ortak Aile & Eş Takibi Netleştirme (Maks. 3 Üye • PostgreSQL Kalıcı Bulut Senkronu): İlk kurulum ekranından Ana Ekran üst çubuğuna ("👩 + Eşini Bağla" / "👨‍👩‍👧 Aile Aktif • 2/3") ve VIP plan kartlarına kadar aynı bebeğin Anne, Baba ve Bakıcı tarafından (en fazla 3 üye) tek VIP abonelikle canlı takip edildiği netleştirildi; aile odaları, rutinler, uykular, aşılar ve gelişim atakları kalıcı veritabanı ve imzalı canlı senkron köprüsüne taşındı.',
       '☕ Bebek Uyuyor • Anne Molası & Mışıl Dadı "💛 Kendim İçin" Modu: Bebeğiniz uyurken tek elle kullanabileceğiniz Anne Molası çekmecesi eklendi — karanlığı bozmayan 🕯️ Gece Nöbeti Dayanışma Feneri, bebek-dışı 🧩 3 Dk Yetişkin Merak Kartları & Kelime Çözücü, eşinizin telefonuna sessizce düşen 🤝 Tek Tık "Eşime Fısılda" nöbet devri, 🌬️ 60 Sn Sessiz Haptik Nefes & Sabaha Not kutusu ve Mışıl Dadı içinde annenin kendisine özel şefkatli dertleşme modu ("👶 Bebek İçin | 💛 Kendim İçin") kullanıma sunuldu.'
     ], itemsEn: [
@@ -8497,8 +8651,27 @@
         formula: pick('Mama / Biberon', 'Formula', 'Pre-Nahrung'),
         solid: pick('Ek Gıda', 'Solid Food', 'Beikost')
       };
+      const sideLabelMap = {
+        left: pick('Sol Göğüs', 'Left Breast', 'Linke Brust'),
+        right: pick('Sağ Göğüs', 'Right Breast', 'Rechte Brust'),
+        both: pick('Sol + Sağ Göğüs', 'Both Breasts', 'Beide Brüste')
+      };
       const baseMethod = methodLabelMap[methodCode] || (rawDetail || pick('Anne Sütü', 'Breast Milk', 'Muttermilch'));
       const parts = [baseMethod];
+      const normSide = r.side ? String(r.side).trim().toLowerCase() : '';
+      if (normSide && sideLabelMap[normSide]) {
+        const lMin = Number(r.leftMin) > 0 ? Math.round(Number(r.leftMin)) : 0;
+        const rMin = Number(r.rightMin) > 0 ? Math.round(Number(r.rightMin)) : 0;
+        if (normSide === 'both' && lMin > 0 && rMin > 0) {
+          parts.push(pick(
+            `Sol ${lMin} dk + Sağ ${rMin} dk`,
+            `Left ${lMin}m + Right ${rMin}m`,
+            `Links ${lMin} Min. + Rechts ${rMin} Min.`
+          ));
+        } else {
+          parts.push(sideLabelMap[normSide]);
+        }
+      }
       if (r.amountMl && Number(r.amountMl) > 0) parts.push(`${Number(r.amountMl)} ml`);
       if (r.durationMin && Number(r.durationMin) > 0) parts.push(`${Number(r.durationMin)} ${pick('dk', 'min', 'Min.')}`);
       if (r.note && String(r.note).trim()) parts.push(String(r.note).trim());
@@ -9306,6 +9479,10 @@
   function selectOnboardingFeedMethod(method) {
     hapticPulse();
     onboardingFeedMethod = ['breast', 'formula', 'solid'].includes(method) ? method : 'breast';
+    try {
+      const mappedPref = onboardingFeedMethod === 'formula' ? 'bottle_formula' : onboardingFeedMethod;
+      localStorage.setItem('mishil_preferred_feed_method', mappedPref);
+    } catch (_pfe) {}
     ['breast', 'formula', 'solid'].forEach(k => {
       const btn = document.getElementById(`onb-feed-method-${k}`);
       if (btn) btn.classList.toggle('active', k === onboardingFeedMethod);
@@ -11623,6 +11800,7 @@
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'visible') {
       recordDistinctVisitAndCheckRating(false);
+      if (typeof syncLiveNursingUI === 'function') syncLiveNursingUI();
     }
   });
 
@@ -12125,13 +12303,19 @@
       };
     }
     const iconMap = { feeding: '🍼', diaper: '🚼', custom: '✨' };
+    const normSrvSide = sr.side && ['left', 'right', 'both'].includes(String(sr.side).toLowerCase())
+      ? String(sr.side).toLowerCase()
+      : undefined;
     return {
       id: cid,
       type: rType,
       icon: sr.icon || iconMap[rType] || '✨',
       title: sr.title || (rType === 'feeding' ? 'Beslenme' : (rType === 'diaper' ? 'Bez Değişimi' : 'Özel Rutin')),
       method: sr.sub_type || sr.method || undefined,
-      kind: sr.sub_type || sr.kind || undefined,
+      side: normSrvSide,
+      leftMin: sr.leftMin || null,
+      rightMin: sr.rightMin || null,
+      kind: sr.sub_type || sr.kind || sr.diaperStatus || undefined,
       amountMl: sr.amount_ml || sr.amountMl || null,
       durationMin: sr.duration_minutes || sr.durationMin || null,
       note: sr.notes || sr.note || '',
@@ -12139,7 +12323,7 @@
       time: hhmm,
       timestamp: evtTs,
       durationMins: 0,
-      actorName: sr.actor_name || ''
+      actorName: sr.actor_name || sr.actorName || ''
     };
   }
 
@@ -12510,26 +12694,48 @@
         try { checkedLeaps = JSON.parse(localStorage.getItem('mishil_checked_leaps') || '{}') || {}; } catch (_lpe) {}
         const uRole = localStorage.getItem('mishil_user_role') || 'mother';
         const uName = localStorage.getItem('mishil_user_name') || getDefaultParentRoleName(uRole);
-        const serializedRoutines = (Array.isArray(activeRoutines) ? activeRoutines : []).slice(0, 80).map(r => ({
-          client_id: String(r.id || ('rt_' + Date.now())),
-          category: r.type || 'sleep',
-          sub_type: r.method || r.kind || r.sleepKind || null,
-          amount_ml: r.amountMl || null,
-          duration_minutes: r.type === 'sleep' ? (r.durationMins || 0) : (r.durationMin || null),
-          title: r.title || '',
-          detail: r.detail || '',
-          notes: r.note || r.customNote || '',
-          quality: r.quality || null,
-          time: r.time || '',
-          start: r.start || null,
-          end: r.end || null,
-          timestamp_ms: r.endTs || r.timestamp || Date.now(),
-          start_ts: r.startTs || null,
-          end_ts: r.endTs || null,
-          logged_at: new Date(r.endTs || r.timestamp || Date.now()).toISOString(),
-          actor_name: r.actorName || uName,
-          actor_role: uRole
-        }));
+        const serializedRoutines = (Array.isArray(activeRoutines) ? activeRoutines : []).slice(0, 80).map(r => {
+          const cidVal = String(r.id || ('rt_' + Date.now()));
+          const rTypeVal = r.type || 'sleep';
+          return {
+            id: cidVal,
+            client_id: cidVal,
+            type: rTypeVal,
+            category: rTypeVal,
+            icon: r.icon || undefined,
+            sub_type: r.method || r.kind || r.sleepKind || null,
+            method: r.method || null,
+            side: r.side || null,
+            leftMin: r.leftMin || null,
+            rightMin: r.rightMin || null,
+            diaperStatus: r.kind || null,
+            sleepKind: r.sleepKind || null,
+            amount_ml: r.amountMl || null,
+            amountMl: r.amountMl || null,
+            duration_minutes: rTypeVal === 'sleep' ? (r.durationMins || 0) : (r.durationMin || null),
+            durationMins: rTypeVal === 'sleep' ? (r.durationMins || 0) : 0,
+            durationMin: rTypeVal === 'feeding' ? (r.durationMin || null) : null,
+            title: r.title || '',
+            detail: r.detail || '',
+            note: r.note || r.customNote || '',
+            notes: r.note || r.customNote || '',
+            quality: r.quality || null,
+            time: r.time || '',
+            start: r.start || null,
+            end: r.end || null,
+            timestamp: r.endTs || r.timestamp || Date.now(),
+            timestamp_ms: r.endTs || r.timestamp || Date.now(),
+            startTs: r.startTs || null,
+            start_ts: r.startTs || null,
+            endTs: r.endTs || null,
+            end_ts: r.endTs || null,
+            logged_at: new Date(r.endTs || r.timestamp || Date.now()).toISOString(),
+            actorName: r.actorName || uName,
+            actor_name: r.actorName || uName,
+            actorRole: uRole,
+            actor_role: uRole
+          };
+        });
 
         const res = await fetchWithTimeout(`${getApiBaseUrl()}/family/sync`, {
           method: 'POST',
@@ -12786,14 +12992,517 @@
   let momBreathTimer = null;
   let momBreathRemainingSec = 0;
   let activeIncomingWhisper = null;
+  let momDrawerRevealTimer = null;
+
+  // =========================================================================
+  // 🤱 TEK EL CANLI EMZİRME SAYACI (SOL / SAĞ GÖĞÜS • KİLİT EKRANI DAYANIKLI)
+  // =========================================================================
+  const LIVE_NURSING_STORAGE_KEY = 'mishil_live_nursing_state';
+  const LAST_NURSING_SIDE_KEY = 'mishil_last_nursing_side';
+  const LIVE_NURSING_MAX_DURATION_MS = 180 * 60 * 1000; // 3 saat unutma üst sınırı
+  let isNursing = false;
+  let liveNursingState = null;
+  let liveNursingInterval = null;
+
+  function formatMmSsFromMs(msVal) {
+    const totalSec = Math.max(0, Math.floor((Number(msVal) || 0) / 1000));
+    const hrs = Math.floor(totalSec / 3600);
+    const mins = Math.floor((totalSec % 3600) / 60);
+    const secs = totalSec % 60;
+    if (hrs > 0) {
+      return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  }
+
+  function computeLiveNursingTotals(stateObj, nowMs) {
+    const refNow = typeof nowMs === 'number' && Number.isFinite(nowMs) ? nowMs : Date.now();
+    if (!stateObj || typeof stateObj !== 'object') {
+      return { leftMs: 0, rightMs: 0, totalMs: 0, capped: false };
+    }
+    let leftMs = Math.max(0, Number(stateObj.leftAccumMs) || 0);
+    let rightMs = Math.max(0, Number(stateObj.rightAccumMs) || 0);
+    if ((stateObj.activeSide === 'left' || stateObj.activeSide === 'right') && Number(stateObj.activeSideStartedAt) > 0) {
+      const delta = Math.max(0, refNow - Number(stateObj.activeSideStartedAt));
+      if (stateObj.activeSide === 'left') leftMs += delta;
+      else rightMs += delta;
+    }
+    const rawTotal = leftMs + rightMs;
+    if (rawTotal > LIVE_NURSING_MAX_DURATION_MS) {
+      const excess = rawTotal - LIVE_NURSING_MAX_DURATION_MS;
+      if (stateObj.activeSide === 'left') leftMs = Math.max(0, leftMs - excess);
+      else if (stateObj.activeSide === 'right') rightMs = Math.max(0, rightMs - excess);
+      else {
+        const scale = LIVE_NURSING_MAX_DURATION_MS / rawTotal;
+        leftMs = Math.round(leftMs * scale);
+        rightMs = Math.max(0, LIVE_NURSING_MAX_DURATION_MS - leftMs);
+      }
+      return { leftMs, rightMs, totalMs: LIVE_NURSING_MAX_DURATION_MS, capped: true };
+    }
+    return { leftMs, rightMs, totalMs: leftMs + rightMs, capped: false };
+  }
+  window.computeLiveNursingTotals = computeLiveNursingTotals;
+
+  function persistLiveNursingState() {
+    try {
+      if (!isNursing || !liveNursingState) {
+        localStorage.removeItem(LIVE_NURSING_STORAGE_KEY);
+      } else {
+        localStorage.setItem(LIVE_NURSING_STORAGE_KEY, JSON.stringify(liveNursingState));
+      }
+    } catch (_lne) {}
+  }
+
+  function ensureLiveNursingTicker() {
+    if (liveNursingInterval) clearInterval(liveNursingInterval);
+    if (!isNursing) return;
+    liveNursingInterval = setInterval(() => {
+      syncLiveNursingUI();
+    }, 1000);
+  }
+
+  function getPreferredFeedMethodForModal() {
+    try {
+      if (Array.isArray(activeRoutines)) {
+        const latestFeed = activeRoutines.find(r => r && r.type === 'feeding' && r.method);
+        if (latestFeed && latestFeed.method) {
+          if (latestFeed.method === 'formula') return 'bottle_formula';
+          if (latestFeed.method === 'bottle_breast') return 'bottle_ebm';
+          if (['breast', 'bottle_ebm', 'bottle_formula', 'solid'].includes(latestFeed.method)) {
+            return latestFeed.method;
+          }
+        }
+      }
+      const savedPref = localStorage.getItem('mishil_preferred_feed_method');
+      if (savedPref && ['breast', 'bottle_ebm', 'bottle_formula', 'solid'].includes(savedPref)) {
+        return savedPref;
+      }
+      if (onboardingFeedMethod === 'formula') return 'bottle_formula';
+      if (onboardingFeedMethod === 'solid') return 'solid';
+    } catch (_pfm) {}
+    return 'breast';
+  }
+  window.getPreferredFeedMethodForModal = getPreferredFeedMethodForModal;
+
+  function syncLiveNursingUI() {
+    const nowMs = Date.now();
+    const totals = computeLiveNursingTotals(liveNursingState, nowMs);
+    if (isNursing && liveNursingState && liveNursingState.activeSide && totals.capped) {
+      liveNursingState.leftAccumMs = totals.leftMs;
+      liveNursingState.rightAccumMs = totals.rightMs;
+      liveNursingState.activeSide = null;
+      liveNursingState.activeSideStartedAt = 0;
+      persistLiveNursingState();
+      showToast(trEnDe(
+        '⏱️ Canlı emzirme sayacı 3 saat üst sınırında duraklatıldı; kaydedebilirsiniz.',
+        '⏱️ Nursing timer paused at the 3-hour safety limit; ready to save.',
+        '⏱️ Stilluhr nach 3 Stunden Sicherheitslimit pausiert; bereit zum Speichern.'
+      ));
+    }
+
+    const lastSide = (function() {
+      try { return localStorage.getItem(LAST_NURSING_SIDE_KEY) || ''; } catch (_lse) { return ''; }
+    })();
+    const recSide = lastSide === 'left' ? 'right' : (lastSide === 'right' ? 'left' : '');
+    const activeSide = (isNursing && liveNursingState) ? liveNursingState.activeSide : null;
+
+    const homeBar = document.getElementById('home-live-nursing-bar');
+    if (homeBar) {
+      const isTourOpen = document.body.classList.contains('spotlight-tour-open');
+      homeBar.style.display = (isNursing && !isTourOpen) ? 'block' : 'none';
+      const hTitle = document.getElementById('home-nursing-title');
+      const hSub = document.getElementById('home-nursing-sub');
+      const hCancel = document.getElementById('btn-home-nursing-cancel');
+      const hLeftBtn = document.getElementById('btn-home-nurse-left');
+      const hRightBtn = document.getElementById('btn-home-nurse-right');
+      const hLeftLbl = document.getElementById('lbl-home-nurse-left');
+      const hRightLbl = document.getElementById('lbl-home-nurse-right');
+      const hLeftTime = document.getElementById('lbl-home-nurse-left-time');
+      const hRightTime = document.getElementById('lbl-home-nurse-right-time');
+      const hSave = document.getElementById('btn-home-nursing-save');
+      const hSleep = document.getElementById('btn-home-nursing-sleep');
+
+      const pausedTag = !activeSide ? trEnDe(' (Duraklatıldı)', ' (Paused)', ' (Pausiert)') : '';
+      if (hTitle) {
+        hTitle.textContent = trEnDe(
+          `🤱 Canlı Emzirme • ${formatMmSsFromMs(totals.totalMs)}${pausedTag}`,
+          `🤱 Live Nursing • ${formatMmSsFromMs(totals.totalMs)}${pausedTag}`,
+          `🤱 Live-Stillen • ${formatMmSsFromMs(totals.totalMs)}${pausedTag}`
+        );
+      }
+      if (hSub) {
+        hSub.textContent = trEnDe(
+          `Sol ${formatMmSsFromMs(totals.leftMs)} • Sağ ${formatMmSsFromMs(totals.rightMs)}`,
+          `Left ${formatMmSsFromMs(totals.leftMs)} • Right ${formatMmSsFromMs(totals.rightMs)}`,
+          `Links ${formatMmSsFromMs(totals.leftMs)} • Rechts ${formatMmSsFromMs(totals.rightMs)}`
+        );
+      }
+      if (hCancel) hCancel.textContent = trEnDe('✕ İptal', '✕ Cancel', '✕ Abbrechen');
+      if (hLeftLbl) hLeftLbl.textContent = activeSide === 'left' ? trEnDe('⏸ Sol Aktif', '⏸ Left Active', '⏸ Links aktiv') : trEnDe('🤱 Sol', '🤱 Left', '🤱 Links');
+      if (hRightLbl) hRightLbl.textContent = activeSide === 'right' ? trEnDe('⏸ Sağ Aktif', '⏸ Right Active', '⏸ Rechts aktiv') : trEnDe('🤱 Sağ', '🤱 Right', '🤱 Rechts');
+      if (hLeftTime) hLeftTime.textContent = formatMmSsFromMs(totals.leftMs);
+      if (hRightTime) hRightTime.textContent = formatMmSsFromMs(totals.rightMs);
+      if (hLeftBtn) hLeftBtn.classList.toggle('active', activeSide === 'left');
+      if (hRightBtn) hRightBtn.classList.toggle('active', activeSide === 'right');
+      if (hSave) hSave.textContent = trEnDe('💾 Emzirmeyi Kaydet', '💾 Save Nursing', '💾 Stillen speichern');
+      if (hSleep) {
+        hSleep.textContent = isSleeping
+          ? trEnDe('🌙 Rüya Öğünü Kaydet', '🌙 Save Dream Feed', '🌙 Traum-Mahlzeit speichern')
+          : trEnDe('🌙 Memede Uyudu', '🌙 Fell Asleep Nursing', '🌙 Eingeschlafen');
+      }
+    }
+
+    const modalCard = document.getElementById('live-nursing-modal-card');
+    if (modalCard) {
+      const mSel = document.getElementById('routine-modal-feed-method');
+      const methodVal = mSel ? mSel.value : 'breast';
+      const showCard = (methodVal === 'breast' && editingRoutineId === null) || isNursing;
+      modalCard.style.display = showCard ? 'block' : 'none';
+
+      const mTitle = document.getElementById('live-nursing-modal-title');
+      const mTotal = document.getElementById('live-nursing-modal-total');
+      const mMem = document.getElementById('live-nursing-memory-badge');
+      const mLeftBtn = document.getElementById('btn-modal-nurse-left');
+      const mRightBtn = document.getElementById('btn-modal-nurse-right');
+      const mLeftLbl = document.getElementById('lbl-modal-nurse-left');
+      const mRightLbl = document.getElementById('lbl-modal-nurse-right');
+      const mLeftTime = document.getElementById('lbl-modal-nurse-left-time');
+      const mRightTime = document.getElementById('lbl-modal-nurse-right-time');
+      const mActions = document.getElementById('live-nursing-modal-actions');
+      const mSave = document.getElementById('btn-modal-nursing-save');
+      const mSleep = document.getElementById('btn-modal-nursing-sleep');
+      const mComp = document.getElementById('btn-modal-nursing-companion');
+
+      if (mTitle) mTitle.textContent = trEnDe('⏱️ Canlı Emzirme Sayacı', '⏱️ Live Nursing Stopwatch', '⏱️ Live-Stilluhr');
+      if (mTotal) mTotal.textContent = formatMmSsFromMs(totals.totalMs);
+      if (mMem) {
+        if (isNursing && activeSide) {
+          mMem.textContent = activeSide === 'left'
+            ? trEnDe('Sol göğüs sayıyor • Duraklatmak veya sağa geçmek için dokunun', 'Left breast running • Tap to pause or switch to right', 'Linke Brust läuft • Zum Pausieren oder Wechseln tippen')
+            : trEnDe('Sağ göğüs sayıyor • Duraklatmak veya sola geçmek için dokunun', 'Right breast running • Tap to pause or switch to left', 'Rechte Brust läuft • Zum Pausieren oder Wechseln tippen');
+        } else if (isNursing && !activeSide) {
+          mMem.textContent = trEnDe('⏸ Duraklatıldı • Devam etmek için göğüs seçin veya kaydedin', '⏸ Paused • Tap a side to resume or save below', '⏸ Pausiert • Seite zum Fortsetzen tippen oder speichern');
+        } else if (lastSide === 'left') {
+          mMem.textContent = trEnDe('Son emzirilen: Sol Göğüs • Şimdi önerilen: Sağ Göğüs ✨', 'Last side: Left Breast • Suggested next: Right Breast ✨', 'Zuletzt: Linke Brust • Jetzt empfohlen: Rechte Brust ✨');
+        } else if (lastSide === 'right') {
+          mMem.textContent = trEnDe('Son emzirilen: Sağ Göğüs • Şimdi önerilen: Sol Göğüs ✨', 'Last side: Right Breast • Suggested next: Left Breast ✨', 'Zuletzt: Rechte Brust • Jetzt empfohlen: Linke Brust ✨');
+        } else {
+          mMem.textContent = trEnDe('Başlamak istediğiniz göğüse dokunun (Ekran kilitlense de şaşmaz)', 'Tap a side to start timing (Accurate even when screen locks)', 'Seite zum Starten antippen (Auch bei gesperrtem Display exakt)');
+        }
+      }
+      if (mLeftLbl) mLeftLbl.textContent = activeSide === 'left' ? trEnDe('⏸ Sol Göğüs (Aktif)', '⏸ Left Breast (Active)', '⏸ Linke Brust (Aktiv)') : trEnDe('🤱 Sol Göğüs', '🤱 Left Breast', '🤱 Linke Brust');
+      if (mRightLbl) mRightLbl.textContent = activeSide === 'right' ? trEnDe('⏸ Sağ Göğüs (Aktif)', '⏸ Right Breast (Active)', '⏸ Rechte Brust (Aktiv)') : trEnDe('🤱 Sağ Göğüs', '🤱 Right Breast', '🤱 Rechte Brust');
+      if (mLeftTime) mLeftTime.textContent = formatMmSsFromMs(totals.leftMs);
+      if (mRightTime) mRightTime.textContent = formatMmSsFromMs(totals.rightMs);
+      if (mLeftBtn) {
+        mLeftBtn.classList.toggle('active', activeSide === 'left');
+        mLeftBtn.classList.toggle('recommended', !isNursing && recSide === 'left');
+      }
+      if (mRightBtn) {
+        mRightBtn.classList.toggle('active', activeSide === 'right');
+        mRightBtn.classList.toggle('recommended', !isNursing && recSide === 'right');
+      }
+      if (mActions) mActions.style.display = isNursing ? 'block' : 'none';
+      if (mSave) mSave.textContent = trEnDe('💾 Emzirmeyi Kaydet', '💾 Save Nursing', '💾 Stillen speichern');
+      if (mSleep) {
+        mSleep.textContent = isSleeping
+          ? trEnDe('🌙 Rüya Öğünü Kaydet', '🌙 Save Dream Feed', '🌙 Traum-Mahlzeit speichern')
+          : trEnDe('🌙 Memede Uyudu', '🌙 Fell Asleep Nursing', '🌙 Eingeschlafen');
+      }
+      if (mComp) mComp.textContent = trEnDe('☕ Gece Eşlikçisini & Loş Feneri Gör (Ana Ekran) ➔', '☕ Open Night Companion & Warm Glow (Home) ➔', '☕ Nachtbegleiter & Sanftes Licht öffnen (Start) ➔');
+    }
+  }
+  window.syncLiveNursingUI = syncLiveNursingUI;
+
+  function toggleLiveNursingSide(side) {
+    const normSide = side === 'right' ? 'right' : 'left';
+    hapticPulse();
+    if (!isNursing) {
+      if (!requireActiveSubscription('routine_log')) {
+        return false;
+      }
+      const nowMs = Date.now();
+      isNursing = true;
+      liveNursingState = {
+        sessionStartedAt: nowMs,
+        activeSide: normSide,
+        activeSideStartedAt: nowMs,
+        leftAccumMs: 0,
+        rightAccumMs: 0,
+        lastTouchedSide: normSide
+      };
+      persistLiveNursingState();
+      ensureLiveNursingTicker();
+      syncLiveNursingUI();
+      syncMomBreakDrawerVisibility();
+      triggerMomDrawerRevealGlow();
+      return true;
+    }
+
+    const nowMs = Date.now();
+    const totals = computeLiveNursingTotals(liveNursingState, nowMs);
+    liveNursingState.leftAccumMs = totals.leftMs;
+    liveNursingState.rightAccumMs = totals.rightMs;
+
+    if (liveNursingState.activeSide === normSide) {
+      liveNursingState.activeSide = null;
+      liveNursingState.activeSideStartedAt = 0;
+    } else {
+      liveNursingState.activeSide = normSide;
+      liveNursingState.activeSideStartedAt = nowMs;
+      liveNursingState.lastTouchedSide = normSide;
+    }
+    persistLiveNursingState();
+    syncLiveNursingUI();
+    syncMomBreakDrawerVisibility();
+    return true;
+  }
+  window.toggleLiveNursingSide = toggleLiveNursingSide;
+
+  function openNursingCompanionOnHome() {
+    closeAddRoutineModal();
+    switchTab('home');
+    switchHomeSegment('sweetspot');
+    syncLiveNursingUI();
+    syncMomBreakDrawerVisibility();
+    triggerMomDrawerRevealGlow();
+  }
+  window.openNursingCompanionOnHome = openNursingCompanionOnHome;
+
+  function cancelLiveNursingSession() {
+    hapticPulse();
+    if (liveNursingInterval) {
+      clearInterval(liveNursingInterval);
+      liveNursingInterval = null;
+    }
+    isNursing = false;
+    liveNursingState = null;
+    persistLiveNursingState();
+    syncLiveNursingUI();
+    syncMomBreakDrawerVisibility();
+    showToast(trEnDe('🤱 Canlı emzirme sayacı iptal edildi', '🤱 Live nursing timer canceled', '🤱 Live-Stilluhr abgebrochen'));
+  }
+  window.cancelLiveNursingSession = cancelLiveNursingSession;
+
+  function completeLiveNursingSession(startSleepAfter) {
+    if (!isNursing || !liveNursingState) return null;
+    hapticImpact('medium');
+    const nowMs = Date.now();
+    const totals = computeLiveNursingTotals(liveNursingState, nowMs);
+    const leftMin = totals.leftMs > 0 ? Math.max(1, Math.round(totals.leftMs / 60000)) : 0;
+    const rightMin = totals.rightMs > 0 ? Math.max(1, Math.round(totals.rightMs / 60000)) : 0;
+    let side = liveNursingState.lastTouchedSide || 'left';
+    if (totals.leftMs > 0 && totals.rightMs > 0) side = 'both';
+    else if (totals.leftMs > 0) side = 'left';
+    else if (totals.rightMs > 0) side = 'right';
+
+    const totalMin = Math.max(1, (leftMin + rightMin) || Math.round(totals.totalMs / 60000) || 1);
+    const lastUsedBreast = liveNursingState.lastTouchedSide || (side === 'right' ? 'right' : 'left');
+    try {
+      localStorage.setItem(LAST_NURSING_SIDE_KEY, lastUsedBreast);
+      localStorage.setItem('mishil_preferred_feed_method', 'breast');
+    } catch (_lbe) {}
+
+    if (liveNursingInterval) {
+      clearInterval(liveNursingInterval);
+      liveNursingInterval = null;
+    }
+    isNursing = false;
+    liveNursingState = null;
+    persistLiveNursingState();
+
+    const noteInp = document.getElementById('routine-modal-feed-note');
+    const modalEl = document.getElementById('modal-routine');
+    const isModalOpen = !!(modalEl && modalEl.classList.contains('active'));
+    const optionalNote = (isModalOpen && noteInp && noteInp.value) ? noteInp.value.trim() : '';
+    if (isModalOpen && noteInp) noteInp.value = '';
+
+    const endDate = new Date(nowMs);
+    const baseFeedObj = {
+      id: 'rt_' + nowMs + '_' + Math.random().toString(36).slice(2, 6),
+      type: 'feeding',
+      icon: '🍼',
+      title: trEnDe('Beslenme', 'Milk / Feeding', 'Mahlzeit'),
+      method: 'breast',
+      side: side,
+      leftMin: leftMin > 0 ? leftMin : null,
+      rightMin: rightMin > 0 ? rightMin : null,
+      amountMl: null,
+      durationMin: totalMin,
+      note: optionalNote,
+      detail: '',
+      time: formatTimeHHMM(endDate),
+      timestamp: endDate.getTime(),
+      durationMins: 0
+    };
+    const localized = resolveLocalizedRoutineCopy(baseFeedObj);
+    baseFeedObj.title = localized.title;
+    baseFeedObj.detail = localized.detail;
+
+    activeRoutines.unshift(baseFeedObj);
+    sortActiveRoutines();
+    localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+    broadcastRealtimeEvent('ROUTINE_ADDED', { routine: baseFeedObj });
+    if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced({ immediate: true });
+
+    if (isModalOpen) {
+      modalEl.classList.remove('active');
+    }
+
+    syncLiveNursingUI();
+    renderHomeTodayTimeline();
+    renderHomeScreenScore();
+    renderAnalyticsView();
+
+    if (startSleepAfter) {
+      if (isSleeping) {
+        syncMomBreakDrawerVisibility();
+        showToast(trEnDe(
+          `🍼 Rüya öğünü kaydedildi (${baseFeedObj.detail}) • Canlı uyku devam ediyor`,
+          `🍼 Dream feed logged (${baseFeedObj.detail}) • Live sleep continues`,
+          `🍼 Traum-Mahlzeit gespeichert (${baseFeedObj.detail}) • Live-Schlaf läuft weiter`
+        ));
+      } else {
+        toggleLiveSleep();
+        if (isSleeping) {
+          showToast(trEnDe(
+            `🌙 Emzirme kaydedildi (${totalMin} dk) ve canlı uyku başlatıldı`,
+            `🌙 Nursing saved (${totalMin} min) & live sleep started`,
+            `🌙 Stillen gespeichert (${totalMin} Min.) & Live-Schlaf gestartet`
+          ));
+        } else {
+          syncMomBreakDrawerVisibility();
+          showToast(trEnDe(
+            `🍼 Emzirme kaydedildi (${baseFeedObj.detail})`,
+            `🍼 Nursing logged (${baseFeedObj.detail})`,
+            `🍼 Stillen gespeichert (${baseFeedObj.detail})`
+          ));
+        }
+      }
+    } else {
+      syncMomBreakDrawerVisibility();
+      showToast(trEnDe(
+        `🍼 Emzirme kaydedildi (${baseFeedObj.detail})`,
+        `🍼 Nursing logged (${baseFeedObj.detail})`,
+        `🍼 Stillen gespeichert (${baseFeedObj.detail})`
+      ));
+      if (typeof scheduleMishilDelightReview === 'function') {
+        scheduleMishilDelightReview('routine_logged', 2000);
+      }
+    }
+    return baseFeedObj;
+  }
+  window.completeLiveNursingSession = completeLiveNursingSession;
+
+  function checkAndRestoreLiveNursing() {
+    try {
+      const raw = localStorage.getItem(LIVE_NURSING_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== 'object' || !parsed.sessionStartedAt) {
+        localStorage.removeItem(LIVE_NURSING_STORAGE_KEY);
+        return;
+      }
+      // 16 saatten eski unutulmuş taslağı temizle
+      if ((Date.now() - Number(parsed.sessionStartedAt)) > 16 * 3600000) {
+        localStorage.removeItem(LIVE_NURSING_STORAGE_KEY);
+        return;
+      }
+      isNursing = true;
+      liveNursingState = {
+        sessionStartedAt: Number(parsed.sessionStartedAt) || Date.now(),
+        activeSide: (parsed.activeSide === 'left' || parsed.activeSide === 'right') ? parsed.activeSide : null,
+        activeSideStartedAt: Number(parsed.activeSideStartedAt) || 0,
+        leftAccumMs: Math.max(0, Number(parsed.leftAccumMs) || 0),
+        rightAccumMs: Math.max(0, Number(parsed.rightAccumMs) || 0),
+        lastTouchedSide: parsed.lastTouchedSide === 'right' ? 'right' : 'left'
+      };
+      ensureLiveNursingTicker();
+      syncLiveNursingUI();
+    } catch (_rne) {
+      localStorage.removeItem(LIVE_NURSING_STORAGE_KEY);
+    }
+  }
+  window.checkAndRestoreLiveNursing = checkAndRestoreLiveNursing;
+
+  function triggerMomDrawerRevealGlow() {
+    const drawer = document.getElementById('mom-break-drawer');
+    if (!drawer || drawer.style.display === 'none') return;
+    drawer.classList.remove('mom-drawer-reveal');
+    void drawer.offsetWidth;
+    drawer.classList.add('mom-drawer-reveal');
+    if (momDrawerRevealTimer) clearTimeout(momDrawerRevealTimer);
+    momDrawerRevealTimer = setTimeout(() => {
+      drawer.classList.remove('mom-drawer-reveal');
+    }, 1900);
+  }
+  window.triggerMomDrawerRevealGlow = triggerMomDrawerRevealGlow;
 
   function syncMomBreakDrawerVisibility() {
     const drawer = document.getElementById('mom-break-drawer');
     if (!drawer) return;
     const isTourOpen = document.body.classList.contains('spotlight-tour-open');
-    const shouldShow = !!isSleeping && !isTourOpen;
+    const shouldShow = (!!isSleeping || !!isNursing) && !isTourOpen;
+    const mode = isNursing ? 'nursing' : 'sleep';
+    drawer.setAttribute('data-mom-mode', mode);
     drawer.style.display = shouldShow ? 'block' : 'none';
+    syncLiveNursingUI();
     if (shouldShow) {
+      const iconEl = document.getElementById('mom-break-icon');
+      const titleEl = document.getElementById('mom-break-title');
+      const subEl = document.getElementById('mom-break-subtitle');
+      const wWater = document.getElementById('btn-whisper-water');
+      const wTrapped = document.getElementById('btn-whisper-trapped');
+      if (mode === 'nursing') {
+        if (iconEl) iconEl.textContent = '🤱';
+        if (titleEl) {
+          titleEl.textContent = trEnDe(
+            'Emzirme & Gece Eşlikçisi',
+            'Nursing & Night Companion',
+            'Still- & Nachtbegleiter'
+          );
+        }
+        if (subEl) {
+          subEl.textContent = trEnDe(
+            'Bebeğinizi beslerken yalnız değilsiniz; tek elle her şey yanınızda 💛',
+            'Right beside you while feeding—one-handed comfort & calm 💛',
+            'Beim Füttern an Ihrer Seite – alles einhändig griffbereit 💛'
+          );
+        }
+        if (wWater) wWater.textContent = trEnDe('🍵 Emziriyorum, su getirir misin?', '🍵 Nursing—could you bring water?', '🍵 Ich stille – bringst du Wasser?');
+        if (wTrapped) wTrapped.textContent = trEnDe('🤱 Gazını çıkarmak için devralır mısın?', '🤱 Take over for burping?', '🤱 Übernimmst du das Bäuerchen?');
+      } else {
+        if (iconEl) iconEl.textContent = '☕';
+        if (titleEl) {
+          titleEl.textContent = trEnDe(
+            'Bebek Uyuyor • Anne Molası',
+            'Baby Sleeping • Mom Break',
+            'Baby schläft • Mama-Pause'
+          );
+        }
+        if (subEl) {
+          subEl.textContent = trEnDe(
+            'Bebeğiniz uyurken birkaç dakika sadece sizin 💛',
+            'A few quiet minutes just for you while your baby sleeps 💛',
+            'Ein paar ruhige Minuten nur für Sie, während Ihr Baby schläft 💛'
+          );
+        }
+        if (wWater) wWater.textContent = trEnDe('🍵 Su / çay getirir misin?', '🍵 Ask for water / tea', '🍵 Um Wasser / Tee bitten');
+        if (wTrapped) wTrapped.textContent = trEnDe('🤱 Altında kaldım, yardım!', '🤱 Nap-trapped, help!', '🤱 Auf dem Arm eingeschlafen!');
+      }
+      const collapseBtnEl = document.getElementById('mom-break-collapse-btn');
+      if (collapseBtnEl) {
+        collapseBtnEl.textContent = momBreakCollapsed
+          ? trEnDe('Aç ▾', 'Expand ▾', 'Öffnen ▾')
+          : trEnDe('Küçült ▴', 'Minimize ▴', 'Einklappen ▴');
+      }
+      syncMomLanternButtonUI();
+      if (!momBreathTimer) {
+        const bBtn = document.getElementById('btn-mom-breath-toggle');
+        const bSt = document.getElementById('mom-breath-status');
+        if (bBtn) bBtn.textContent = trEnDe('Başlat (60 sn)', 'Start (60s)', 'Start (60 Sek.)');
+        if (bSt) bSt.textContent = trEnDe('4 sn al • 4 sn tut • 6 sn ver (Sıfır ses, nazik titreşim)', '4s inhale • 4s hold • 6s exhale (Silent haptic guide)', '4s ein • 4s halten • 6s aus (Lautlose Haptik)');
+      }
       renderHomeFamilyPill();
       renderMomEscapeAndPuzzle();
       renderMomMorningNotes();
@@ -12964,6 +13673,11 @@
       en: '🍵 Could you quietly bring a glass of water / tea?',
       de: '🍵 Kannst du mir leise ein Glas Wasser / Tee bringen?'
     },
+    nursing_water: {
+      tr: '🤱 Emziriyorum ve kıpırdayamıyorum; sessizce bir su/çay getirir misin?',
+      en: "🤱 I'm nursing and can't move right now—could you quietly bring some water or tea?",
+      de: '🤱 Ich stille gerade und kann mich kaum bewegen – bringst du mir leise Wasser/Tee?'
+    },
     next_shift_yours: {
       tr: '🍼 Bebek uyudu; sıradaki uyanış nöbeti sende canım 💛',
       en: '🍼 Baby is asleep; next wake-up shift is yours love 💛',
@@ -12974,12 +13688,26 @@
       en: '🤱 Nap-trapped under the baby—could you quietly come help?',
       de: '🤱 Auf meinem Arm eingeschlafen – kannst du kurz leise helfen?'
     },
+    nursing_burp_help: {
+      tr: '🤱 Emzirme bitmek üzere; gazını çıkarmak için devralabilir misin? 💛',
+      en: '🤱 Almost done nursing—could you take over for burping? 💛',
+      de: '🤱 Fast fertig mit dem Stillen – übernimmst du kurz das Bäuerchen? 💛'
+    },
     thank_you_love: {
       tr: '🤍 Bu geceki desteğin için teşekkür ederim, iyi ki varsın.',
       en: '🤍 Thank you for having my back tonight, glad we are a team.',
       de: '🤍 Danke für deine Unterstützung heute Nacht, schön dass wir ein Team sind.'
     }
   };
+
+  function sendContextAwareWhisper(kind) {
+    if (kind === 'water') {
+      sendFamilyWhisperTemplate(isNursing ? 'nursing_water' : 'tea_water');
+    } else if (kind === 'assist') {
+      sendFamilyWhisperTemplate(isNursing ? 'nursing_burp_help' : 'trapped_under_baby');
+    }
+  }
+  window.sendContextAwareWhisper = sendContextAwareWhisper;
 
   async function dispatchFamilyWhisper(templateKey, rawMessage) {
     const fCode = localStorage.getItem('mishil_family_code');
@@ -12990,15 +13718,20 @@
     const cleanMsg = String(rawMessage || '').trim().slice(0, 140);
     if (!cleanMsg) return;
     try {
+      const payloadBody = {
+        invite_code: fCode,
+        device_uid: getOrCreateMishilDeviceUid(),
+        template_key: templateKey || 'custom',
+        lang: getAppLang()
+      };
+      if (!templateKey || templateKey === 'custom') {
+        payloadBody.custom_note = cleanMsg;
+        payloadBody.message = cleanMsg;
+      }
       const res = await fetchWithTimeout(`${getApiBaseUrl()}/family/whisper`, {
         method: 'POST',
         headers: getFamilyAuthHeaders(),
-        body: JSON.stringify({
-          invite_code: fCode,
-          device_uid: getOrCreateMishilDeviceUid(),
-          template_key: templateKey || 'custom',
-          message: cleanMsg
-        }),
+        body: JSON.stringify(payloadBody),
         timeout: 5000
       });
       if (res && res.ok) {
@@ -13058,7 +13791,7 @@
       `💌 ${candidate.sender_name || 'Your partner'} whispered:`,
       `💌 ${candidate.sender_name || 'Ihr Partner'} flüstert:`
     );
-    textEl.textContent = String(candidate.message || '');
+    textEl.textContent = String(candidate.message_text || candidate.message || '');
     banner.style.display = 'flex';
   }
 
@@ -17235,7 +17968,7 @@
       const timeWithDate = formatRoutineCardTimeWithDate(r, now);
       item.innerHTML = `
         <div class="timeline-left">
-          <div class="timeline-dot">${r.icon || '✨'}</div>
+          <div class="timeline-dot">${escapeHtml(r.icon || '✨')}</div>
           ${nextDayKey === dayKey ? '<div class="timeline-line"></div>' : ''}
         </div>
         <div class="timeline-card">
@@ -17332,15 +18065,50 @@
         if (liveTimer) liveTimer.textContent = trEnDe(`💤 Canlı Uyku: ${hrs}:${mins}:${secs}`, `💤 Live Sleep: ${hrs}:${mins}:${secs}`, `💤 Live-Schlaf: ${hrs}:${mins}:${secs}`);
       }, 1000);
 
-      showToast(trEnDe('🌙 Bebek uykuya daldı, canlı takip başladı', '🌙 Baby fell asleep, live tracking started', '🌙 Baby ist eingeschlafen, Live-Tracking läuft'));
+      const viewHomeEl = document.getElementById('view-home');
+      const segSpotEl = document.getElementById('home-seg-sweetspot');
+      const isOnHomeSweetspot = !!(viewHomeEl && viewHomeEl.classList.contains('active') && (!segSpotEl || segSpotEl.style.display !== 'none'));
       hapticImpact('medium');
       broadcastRealtimeEvent('SLEEP_STARTED', { by: role, startTime: sleepStartTime.toISOString() });
       syncLiveSleepToNative('START', sleepStartTime);
       if (typeof updateLiveSleepStartUI === 'function') updateLiveSleepStartUI();
       if (typeof syncMomBreakDrawerVisibility === 'function') syncMomBreakDrawerVisibility();
+      if (isOnHomeSweetspot) {
+        showToast(trEnDe(
+          '🌙 Bebek uykuya daldı • ☕ Anne Molası açıldı',
+          '🌙 Baby fell asleep • ☕ Mom Break opened',
+          '🌙 Baby schläft • ☕ Mama-Pause geöffnet'
+        ));
+        triggerMomDrawerRevealGlow();
+      } else {
+        showToast(
+          trEnDe(
+            '🌙 Canlı uyku başladı • ☕ Anne Molası hazır',
+            '🌙 Live sleep started • ☕ Mom Break ready',
+            '🌙 Live-Schlaf läuft • ☕ Mama-Pause bereit'
+          ),
+          {
+            actionLabel: trEnDe('Gör ➔', 'Open ➔', 'Öffnen ➔'),
+            durationMs: 4600,
+            onAction: () => {
+              switchTab('home');
+              switchHomeSegment('sweetspot');
+              syncMomBreakDrawerVisibility();
+              triggerMomDrawerRevealGlow();
+            }
+          }
+        );
+      }
       if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced({ immediate: true });
-      if (typeof scheduleMishilDelightReview === 'function') {
-        scheduleMishilDelightReview('live_sleep_started', 2000, () => !!isSleeping);
+      const hasSeenFirstSleepDelight = (function() {
+        try { return localStorage.getItem('mishil_sleep_delight_seen') === '1'; } catch (_sde) { return false; }
+      })();
+      if (hasSeenFirstSleepDelight) {
+        if (typeof scheduleMishilDelightReview === 'function') {
+          scheduleMishilDelightReview('live_sleep_started', 2000, () => !!isSleeping);
+        }
+      } else {
+        try { localStorage.setItem('mishil_sleep_delight_seen', '1'); } catch (_sde2) {}
       }
     } else {
       if (typeof cancelPendingDelightReviewByReason === 'function') {
@@ -18036,12 +18804,54 @@
   // NOT: hapticPulse() tek tanım — yukarıda (native köprü + vibrate fallback).
   // Buradaki ikinci tanım iOS'ta haptiği tamamen öldürüyordu (navigator.vibrate yok), kaldırıldı.
 
-  function showToast(msg) {
+  let _toastHideTimer = null;
+  function showToast(msg, opts) {
     const toast = document.getElementById('toast');
-    toast.textContent = msg;
+    if (!toast) return;
+    if (_toastHideTimer) {
+      clearTimeout(_toastHideTimer);
+      _toastHideTimer = null;
+    }
+    toast.innerHTML = '';
+    toast.classList.remove('has-action');
+    toast.onclick = null;
+
+    const options = opts && typeof opts === 'object' ? opts : null;
+    if (options && options.actionLabel && typeof options.onAction === 'function') {
+      const spanTxt = document.createElement('span');
+      spanTxt.textContent = String(msg || '');
+      const btnAct = document.createElement('button');
+      btnAct.type = 'button';
+      btnAct.className = 'toast-action-pill';
+      btnAct.textContent = String(options.actionLabel);
+      const triggerAction = (ev) => {
+        if (ev) ev.stopPropagation();
+        if (_toastHideTimer) {
+          clearTimeout(_toastHideTimer);
+          _toastHideTimer = null;
+        }
+        toast.classList.remove('show', 'has-action');
+        toast.onclick = null;
+        hapticPulse();
+        options.onAction();
+      };
+      btnAct.onclick = triggerAction;
+      toast.onclick = triggerAction;
+      toast.appendChild(spanTxt);
+      toast.appendChild(btnAct);
+      toast.classList.add('has-action');
+    } else {
+      toast.textContent = msg;
+    }
+
     toast.classList.add('show');
     hapticPulse();
-    setTimeout(() => toast.classList.remove('show'), 2800);
+    const waitMs = (options && Number(options.durationMs) > 0) ? Number(options.durationMs) : 2800;
+    _toastHideTimer = setTimeout(() => {
+      toast.classList.remove('show', 'has-action');
+      toast.onclick = null;
+      _toastHideTimer = null;
+    }, waitMs);
   }
 
   function closeModalOnOverlay(e, modalId) {
@@ -18471,7 +19281,7 @@
 
   function handleRoutineTypeChange(type) {
     hapticPulse();
-    if (type !== 'sleep' && !isSubscriptionCurrentlyActive()) {
+    if (type !== 'sleep' && !(isNursing && type === 'feeding') && !isSubscriptionCurrentlyActive()) {
       const selEl = document.getElementById('routine-modal-type');
       if (selEl) selEl.value = 'sleep';
       openVipRenewalModal('routine_log');
@@ -18509,20 +19319,31 @@
   function onFeedMethodChange() {
     const m = (document.getElementById('routine-modal-feed-method') || {}).value || 'breast';
     const amtWrap = document.getElementById('routine-feed-amount-wrap');
+    const sideWrap = document.getElementById('routine-feed-side-wrap');
     const durWrap = document.getElementById('routine-feed-duration-wrap');
+    const durLabel = document.getElementById('routine-feed-duration-label');
     const amtLabel = document.getElementById('routine-feed-amount-label');
     if (m === 'breast') {
       if (amtWrap) amtWrap.style.display = 'none';
+      if (sideWrap) sideWrap.style.display = 'block';
       if (durWrap) durWrap.style.display = 'block';
+      if (durLabel) {
+        durLabel.textContent = (editingRoutineId === null)
+          ? trEnDe('Veya Geçmiş Emzirme Süresi (dk)', 'Or Manual Past Duration (min)', 'Oder manuelle Stilldauer (Min.)')
+          : trEnDe('Süre (dk)', 'Duration (min)', 'Dauer (Min.)');
+      }
     } else if (m === 'solid') {
       if (amtWrap) amtWrap.style.display = 'block';
+      if (sideWrap) sideWrap.style.display = 'none';
       if (durWrap) durWrap.style.display = 'none';
       if (amtLabel) amtLabel.textContent = trEnDe('Miktar (gram, opsiyonel)', 'Amount (grams, optional)', 'Menge (Gramm, optional)');
     } else {
       if (amtWrap) amtWrap.style.display = 'block';
+      if (sideWrap) sideWrap.style.display = 'none';
       if (durWrap) durWrap.style.display = 'none';
       if (amtLabel) amtLabel.textContent = trEnDe('Miktar (ml)', 'Amount (ml)', 'Menge (ml)');
     }
+    if (typeof syncLiveNursingUI === 'function') syncLiveNursingUI();
   }
 
   function calcModalSleepDuration() {
@@ -18908,10 +19729,12 @@
       calcModalSleepDuration();
     } else if (item.type === 'feeding') {
       const mSel = document.getElementById('routine-modal-feed-method');
+      const sideSel = document.getElementById('routine-modal-feed-side');
       const amtInp = document.getElementById('routine-modal-feed-amount');
       const durInp = document.getElementById('routine-modal-feed-duration');
       const noteInp = document.getElementById('routine-modal-feed-note');
       if (mSel) mSel.value = item.method || 'breast';
+      if (sideSel) sideSel.value = (item.side && ['left', 'right', 'both'].includes(item.side)) ? item.side : '';
       if (amtInp) amtInp.value = item.amountMl || '';
       if (durInp) durInp.value = item.durationMin || '';
       if (noteInp) noteInp.value = item.note || '';
@@ -18930,6 +19753,10 @@
   function submitCustomRoutineUnified() {
     hapticPulse();
     const type = document.getElementById('routine-modal-type').value;
+    if (type !== 'sleep' && !isSubscriptionCurrentlyActive()) {
+      openVipRenewalModal('routine_log');
+      return;
+    }
     const now = new Date();
     const existingIdx = editingRoutineId ? activeRoutines.findIndex(r => r.id === editingRoutineId) : -1;
     const existingItem = existingIdx !== -1 ? activeRoutines[existingIdx] : null;
@@ -19014,6 +19841,8 @@
       } catch (_e) {}
     } else if (type === 'feeding') {
       const method = (document.getElementById('routine-modal-feed-method') || {}).value || 'breast';
+      const rawSideVal = method === 'breast' ? ((document.getElementById('routine-modal-feed-side') || {}).value || '') : '';
+      const sideVal = ['left', 'right', 'both'].includes(rawSideVal) ? rawSideVal : undefined;
       const amountMl = method === 'breast' ? null : (parseInt(document.getElementById('routine-modal-feed-amount').value, 10) || null);
       const durationMin = method === 'breast' ? (parseInt(document.getElementById('routine-modal-feed-duration').value, 10) || null) : null;
       const note = (document.getElementById('routine-modal-feed-note').value || '').trim();
@@ -19021,26 +19850,35 @@
       const timeNow = normalizeHHMM(evTimeVal, existingItem ? (existingItem.time || formatTimeHHMM(now)) : formatTimeHHMM(now));
       const baseEvtDate = resolveModalEventDate(explicitDateStr, timeNow, existingItem, now);
       const effectiveFeedTime = formatTimeHHMM(baseEvtDate);
-      let detail = isDe()
-        ? (FEED_METHOD_LABEL_DE[method] || FEED_METHOD_LABEL[method])
-        : (isEn() ? (FEED_METHOD_LABEL_EN[method] || FEED_METHOD_LABEL[method]) : FEED_METHOD_LABEL[method]);
-      if (amountMl) detail += ` • ${amountMl} ${method === 'solid' ? 'g' : 'ml'}`;
-      if (durationMin) detail += trEnDe(` • ${durationMin} dk`, ` • ${durationMin} min`, ` • ${durationMin} Min.`);
-      if (note) detail += ` • ${note}`;
+      try {
+        localStorage.setItem('mishil_preferred_feed_method', method);
+        if (sideVal === 'left' || sideVal === 'right') {
+          localStorage.setItem(LAST_NURSING_SIDE_KEY, sideVal);
+        }
+      } catch (_mpf) {}
+      const preservedLeftMin = (isEditing && existingItem && existingItem.side === sideVal && existingItem.leftMin) ? existingItem.leftMin : null;
+      const preservedRightMin = (isEditing && existingItem && existingItem.side === sideVal && existingItem.rightMin) ? existingItem.rightMin : null;
       const feedObj = {
         id: existingItem ? existingItem.id : ('rt_' + Date.now()),
         type: 'feeding',
         icon: '🍼',
         title: trEnDe('Beslenme', 'Milk / Feeding', 'Mahlzeit'),
         method: method,
+        side: sideVal,
+        leftMin: preservedLeftMin,
+        rightMin: preservedRightMin,
         amountMl: amountMl,
         durationMin: durationMin,
         note: note,
-        detail: detail,
+        detail: '',
         time: effectiveFeedTime,
         timestamp: baseEvtDate.getTime(),
         durationMins: 0
       };
+      const localizedCopy = resolveLocalizedRoutineCopy(feedObj);
+      feedObj.title = localizedCopy.title;
+      feedObj.detail = localizedCopy.detail;
+      const detail = feedObj.detail;
       if (isEditing) activeRoutines[existingIdx] = feedObj;
       else activeRoutines.unshift(feedObj);
       sortActiveRoutines();
@@ -19121,10 +19959,18 @@
   }
 
   function openAddRoutineModal() {
-    if (!requireActiveSubscription('routine_log')) {
+    const preSel = document.getElementById('routine-modal-type');
+    const preType = preSel ? preSel.value : 'sleep';
+    if (!(isNursing && preType === 'feeding') && !requireActiveSubscription('routine_log')) {
       return;
     }
     editingRoutineId = null;
+    const mSel = document.getElementById('routine-modal-feed-method');
+    if (mSel) {
+      mSel.value = isNursing ? 'breast' : getPreferredFeedMethodForModal();
+    }
+    const sideSel = document.getElementById('routine-modal-feed-side');
+    if (sideSel) sideSel.value = '';
     const headerTitle = document.getElementById('routine-modal-header-title');
     const submitBtn = document.getElementById('routine-modal-submit-btn');
     if (headerTitle) headerTitle.textContent = trEnDe('+ Manuel Rutin & Uyku Ekle', '+ Add Routine & Sleep Log', '+ Routine & Schlaf eintragen');
@@ -19184,6 +20030,12 @@
     document.body.classList.remove('spotlight-tour-open');
     document.body.classList.remove('mom-lantern-glow-active');
     if (typeof stopMomSilentBreathing === 'function') stopMomSilentBreathing();
+    if (liveNursingInterval) {
+      clearInterval(liveNursingInterval);
+      liveNursingInterval = null;
+    }
+    isNursing = false;
+    liveNursingState = null;
     const spotOv = document.getElementById('spotlight-tour-overlay');
     if (spotOv) spotOv.classList.remove('active');
     clearFreeSoundPreviewTimer({ clearNativePreviewTimer: true });
@@ -20009,7 +20861,86 @@
     "👨‍👩‍👧 Tek Bebek • Ortak Aile Paylaşımı": "👨‍👩‍👧 Single Baby • Co-Parent Family Sync",
     "Anne, Baba ve Dadı/Bakıcı (en fazla 3 kişi) kendi telefonlarından Mışıl Baby'yi indirip bu kodu girdiğinde aynı bebeğin tüm uyku ve bakım kayıtları canlı birleşir.": "When Mom, Dad, and Caregiver (up to 3 people) install Mışıl Baby on their phones and enter this code, all sleep and care logs for the same baby sync live.",
     "📲 Davet Bağlantısı Paylaş": "📲 Share Invite Link",
-    "⚙️ Tüm Aile Ayarları & Başka Koda Bağlan ➔": "⚙️ All Family Settings & Join Another Code ➔"
+    "⚙️ Tüm Aile Ayarları & Başka Koda Bağlan ➔": "⚙️ All Family Settings & Join Another Code ➔",
+    "Emzirilen Taraf (opsiyonel)": "Breast Side (optional)",
+    "Belirtilmedi": "Not specified",
+    "Sol Göğüs": "Left Breast",
+    "Sağ Göğüs": "Right Breast",
+    "Sol + Sağ Göğüs": "Both Breasts",
+    "⏱️ Canlı Emzirme Sayacı": "⏱️ Live Nursing Stopwatch",
+    "Başlamak istediğiniz göğüse dokunun": "Tap a side to start timing",
+    "🤱 Sol Göğüs": "🤱 Left Breast",
+    "🤱 Sağ Göğüs": "🤱 Right Breast",
+    "💾 Emzirmeyi Kaydet": "💾 Save Nursing",
+    "🌙 Memede Uyudu": "🌙 Fell Asleep Nursing",
+    "✕ İptal": "✕ Cancel",
+    "Odaya seslenmeden eşinizin telefonuna tek dokunuşla sessiz not bırakın:": "Send a 1-tap silent note to your partner's phone without speaking aloud:",
+    "🍵 Su / çay getirir misin?": "🍵 Ask for water / tea",
+    "🍼 Sıradaki uyanış sende 💛": "🍼 Next wake shift is yours 💛",
+    "🤱 Altında kaldım, yardım!": "🤱 Nap-trapped, help!",
+    "🤍 İyi ki varsın, teşekkürler": "🤍 Glad we're a team, thank you",
+    "Dil Değiştir": "Switch Language",
+    "Aile & Eş Senkronizasyonu": "Family & Partner Sync",
+    "Gece Beşiği Modu": "Night Crib Mode",
+    "Profil ve Ayarlar": "Profile & Settings",
+    "Canlı Uyku Başlat / Bitir": "Start / End Live Sleep",
+    "Emzirme Sayacını İptal Et": "Cancel Nursing Timer",
+    "Teklifi Gizle": "Dismiss Offer",
+    "Hoş Geldin Rehberini Kapat": "Dismiss Welcome Guide",
+    "Ülke Aşı Protokolü": "Country Vaccine Schedule",
+    "Sesi Kapat": "Stop Sound",
+    "Canlı Uyku Takibi": "Live Sleep Tracking",
+    "Eşinizin oluşturduğu Aile Kodu mu var?": "Have a Family Code from your partner?",
+    "Tek dokunuşla bağlanın; aynı bebeği 3 kişiye kadar ortak canlı takip edin": "Connect in 1 tap and track the same baby live (up to 3 caregivers)",
+    "Katıl ➔": "Join ➔",
+    "👨‍👩‍👧 Kurulumdan sonra eşinizi ve bakıcınızı Aile Kodunuzla ücretsiz bağlayabilirsiniz (Maks. 3 Üye)": "👨‍👩‍👧 After setup, connect your partner & caregiver free with your Family Code (Max 3)",
+    "👨‍👩‍👧 Ortak Aile Takibi (Anne, Baba, Bakıcı)": "👨‍👩‍👧 Shared Family Sync (Mom, Dad, Caregiver)",
+    "🔒 3 Üye VIP": "🔒 3-Member VIP",
+    "3 kişiye kadar": "up to 3 members",
+    "ortak canlı bebek takibi": "live shared baby tracking",
+    "Tek VIP ile": "With 1 VIP,",
+    "👨‍👩‍👧 Tek VIP ile": "👨‍👩‍👧 With 1 VIP,",
+    "👩 + Eşini Bağla": "👩 + Connect Partner",
+    "Eşinizden Sessiz Fısıltı": "Silent Whisper from Partner",
+    "✓ Aldım 🤍": "✓ Got It 🤍",
+    "🤱 Canlı Emzirme • 00:00": "🤱 Live Nursing • 00:00",
+    "Sol 00:00 • Sağ 00:00": "Left 00:00 • Right 00:00",
+    "🤱 Sol": "🤱 Left",
+    "🤱 Sağ": "🤱 Right",
+    "Bebek Uyuyor • Anne Molası": "Baby Sleeping • Mom Break",
+    "Bebeğiniz uyurken birkaç dakika sadece sizin 💛": "A few quiet minutes just for you while your baby sleeps 💛",
+    "Emzirme & Gece Eşlikçisi": "Nursing & Night Companion",
+    "Bebeğinizi beslerken yalnız değilsiniz; tek elle her şey yanınızda 💛": "Right beside you while feeding—one-handed comfort & calm 💛",
+    "Fener": "Lantern",
+    "3 Dk Mola": "3-Min Escape",
+    "Fısılda": "Whisper",
+    "Nefes & Not": "Breathe & Note",
+    "🕯️ Şu an uyanık nöbet feneri yakan ebeveynler yanınızda": "🕯️ Fellow parents on night watch are right here with you",
+    "Karanlığı bozmayan sıcak kehribar ekran halesi açar; bebek uyanmaz, kamera izni gerekmez.": "Casts a soft amber screen halo without ruining dark adaptation—wakes nobody, needs no camera.",
+    "💛 Yalnız Değilsin Selamı Gönder": "💛 Send Solidarity Wave",
+    "✨ Yetişkin Merak Köşesi": "✨ Adult Curiosity Corner",
+    "🌙 Gece Kelime Çözücü": "🌙 Night Word Unscrambler",
+    "Gönder 💌": "Send 💌",
+    "👨‍👩‍👧 Eşiniz henüz bağlı değil (1 / 3 Üye)": "👨‍👩‍👧 Partner not connected yet (1 / 3 Members)",
+    "Aile Kodunuzu paylaşın; hem aynı bebeği canlı takip edin hem de tek tıkla \"Su getirir misin / Sıradaki nöbet sende\" fısıltısı gönderin.": "Share your Family Code to track the same baby live and send 1-tap silent whispers like \"Could you bring water / Next shift is yours\".",
+    "📲 Eşini Aile Koduyla Bağla (Maks. 3 Üye)": "📲 Connect Partner via Family Code (Max 3)",
+    "🌬️ 60 Sn Sessiz Haptik Nefes": "🌬️ 60s Silent Haptic Breathing",
+    "+ Ekle": "+ Add",
+    "💛 Kendim İçin": "💛 For Myself",
+    "🩺 Yargısız duygusal destek amaçlıdır; tıbbi/psikiyatrik tanı yerine geçmez (Acil destek: 112 / 182).": "🩺 Judgment-free emotional support; not medical/psychiatric advice (Crisis support: 988 / local emergency).",
+    "Aile Kodu Hazırlanıyor • Maks. 3 Üye": "Family Code Ready • Max 3 Members",
+    "Anne, baba ve dadı (en fazla 3 üye) aynı bebeğin uykusunu, beslenmesini, aşılarını ve MışılSpot™ saatlerini tek VIP abonelikle kendi telefonlarından canlı senkron takip eder.": "Mom, dad, and nanny (up to 3 members) track the same baby's sleep, feedings, vaccines, and MışılSpot™ windows live on their own phones under 1 VIP plan.",
+    "6 Haneli Aile Paylaşım Kodunuz (Maks. 3 Üye)": "Your 6-Digit Family Share Code (Max 3)",
+    "📋 Kodu Kopyala": "📋 Copy Code",
+    "👨‍👩‍👧 Ortak Aile & Eş Takibi": "👨‍👩‍👧 Shared Family & Partner Sync",
+    "Aynı bebeği en fazla 3 kişi": "Up to 3 caregivers",
+    "(Anne, Baba, Dadı/Bakıcı) kendi telefonundan canlı takip eder. Bir kişi uykuyu veya beslenmeyi kaydettiğinde diğer telefonlarda da anında güncellenir.": "(Mom, Dad, Caregiver) track the same baby live from their own phones. Logging a sleep or feed updates everyone instantly.",
+    "📲 Eşini Davet Et": "📲 Invite Partner",
+    "👥 Bağlı Aile Üyeleri": "👥 Connected Family Members",
+    "1 / 3 Üye": "1 / 3 Members",
+    "🔗 Eşinizin oluşturduğu başka bir Aile Koduna mı bağlanacaksınız?": "🔗 Joining an existing Family Code created by your partner?",
+    "☕ Gece Eşlikçisini & Loş Feneri Gör (Ana Ekran) ➔": "☕ Open Night Companion & Warm Glow (Home) ➔",
+    "Veya Geçmiş Emzirme Süresi (dk)": "Or Manual Past Duration (min)"
   };
 
   const TR_TO_DE_EXACT_MAP = {
@@ -20760,7 +21691,86 @@
     "👨‍👩‍👧 Tek Bebek • Ortak Aile Paylaşımı": "👨‍👩‍👧 Ein Baby • Gemeinsames Familien-Tracking",
     "Anne, Baba ve Dadı/Bakıcı (en fazla 3 kişi) kendi telefonlarından Mışıl Baby'yi indirip bu kodu girdiğinde aynı bebeğin tüm uyku ve bakım kayıtları canlı birleşir.": "Wenn Mama, Papa und Betreuungsperson (max. 3 Personen) Mışıl Baby installieren und diesen Code eingeben, werden alle Einträge live synchronisiert.",
     "📲 Davet Bağlantısı Paylaş": "📲 Einladungslink teilen",
-    "⚙️ Tüm Aile Ayarları & Başka Koda Bağlan ➔": "⚙️ Alle Familieneinstellungen & Code eingeben ➔"
+    "⚙️ Tüm Aile Ayarları & Başka Koda Bağlan ➔": "⚙️ Alle Familieneinstellungen & Code eingeben ➔",
+    "Emzirilen Taraf (opsiyonel)": "Gestillte Seite (optional)",
+    "Belirtilmedi": "Nicht angegeben",
+    "Sol Göğüs": "Linke Brust",
+    "Sağ Göğüs": "Rechte Brust",
+    "Sol + Sağ Göğüs": "Beide Brüste",
+    "⏱️ Canlı Emzirme Sayacı": "⏱️ Live-Stilluhr",
+    "Başlamak istediğiniz göğüse dokunun": "Seite zum Starten antippen",
+    "🤱 Sol Göğüs": "🤱 Linke Brust",
+    "🤱 Sağ Göğüs": "🤱 Rechte Brust",
+    "💾 Emzirmeyi Kaydet": "💾 Stillen speichern",
+    "🌙 Memede Uyudu": "🌙 Eingeschlafen",
+    "✕ İptal": "✕ Abbrechen",
+    "Odaya seslenmeden eşinizin telefonuna tek dokunuşla sessiz not bırakın:": "Senden Sie Ihrem Partner lautlos per 1-Tipp eine Nachricht aufs Handy:",
+    "🍵 Su / çay getirir misin?": "🍵 Um Wasser / Tee bitten",
+    "🍼 Sıradaki uyanış sende 💛": "🍼 Nächste Schicht für dich 💛",
+    "🤱 Altında kaldım, yardım!": "🤱 Auf dem Arm eingeschlafen!",
+    "🤍 İyi ki varsın, teşekkürler": "🤍 Schön, dass wir ein Team sind",
+    "Dil Değiştir": "Sprache wechseln",
+    "Aile & Eş Senkronizasyonu": "Familien- & Partner-Sync",
+    "Gece Beşiği Modu": "Nachtwiegen-Modus",
+    "Profil ve Ayarlar": "Profil & Einstellungen",
+    "Canlı Uyku Başlat / Bitir": "Live-Schlaf starten / beenden",
+    "Emzirme Sayacını İptal Et": "Stilluhr abbrechen",
+    "Teklifi Gizle": "Angebot ausblenden",
+    "Hoş Geldin Rehberini Kapat": "Willkommenshilfe schließen",
+    "Ülke Aşı Protokolü": "Impfkalender nach Land",
+    "Sesi Kapat": "Ton stoppen",
+    "Canlı Uyku Takibi": "Live-Schlaftracking",
+    "Eşinizin oluşturduğu Aile Kodu mu var?": "Haben Sie bereits einen Familiencode vom Partner?",
+    "Tek dokunuşla bağlanın; aynı bebeği 3 kişiye kadar ortak canlı takip edin": "Mit 1 Tipp verbinden & dasselbe Baby mit bis zu 3 Personen live begleiten",
+    "Katıl ➔": "Beitreten ➔",
+    "👨‍👩‍👧 Kurulumdan sonra eşinizi ve bakıcınızı Aile Kodunuzla ücretsiz bağlayabilirsiniz (Maks. 3 Üye)": "👨‍👩‍👧 Nach dem Start können Sie Partner & Betreuung kostenlos per Familiencode verbinden (Max. 3)",
+    "👨‍👩‍👧 Ortak Aile Takibi (Anne, Baba, Bakıcı)": "👨‍👩‍👧 Gemeinsames Familien-Tracking (Mama, Papa, Betreuung)",
+    "🔒 3 Üye VIP": "🔒 3-Personen-VIP",
+    "3 kişiye kadar": "bis zu 3 Personen",
+    "ortak canlı bebek takibi": "gemeinsames Live-Babytracking",
+    "Tek VIP ile": "Mit 1 VIP:",
+    "👨‍👩‍👧 Tek VIP ile": "👨‍👩‍👧 Mit 1 VIP:",
+    "👩 + Eşini Bağla": "👩 + Partner verbinden",
+    "Eşinizden Sessiz Fısıltı": "Stille Nachricht vom Partner",
+    "✓ Aldım 🤍": "✓ Gesehen 🤍",
+    "🤱 Canlı Emzirme • 00:00": "🤱 Live-Stillen • 00:00",
+    "Sol 00:00 • Sağ 00:00": "Links 00:00 • Rechts 00:00",
+    "🤱 Sol": "🤱 Links",
+    "🤱 Sağ": "🤱 Rechts",
+    "Bebek Uyuyor • Anne Molası": "Baby schläft • Mama-Pause",
+    "Bebeğiniz uyurken birkaç dakika sadece sizin 💛": "Ein paar ruhige Minuten nur für Sie, während Ihr Baby schläft 💛",
+    "Emzirme & Gece Eşlikçisi": "Still- & Nachtbegleiter",
+    "Bebeğinizi beslerken yalnız değilsiniz; tek elle her şey yanınızda 💛": "Beim Füttern an Ihrer Seite – alles einhändig griffbereit 💛",
+    "Fener": "Laterne",
+    "3 Dk Mola": "3-Min.-Auszeit",
+    "Fısılda": "Flüstern",
+    "Nefes & Not": "Atmen & Notiz",
+    "🕯️ Şu an uyanık nöbet feneri yakan ebeveynler yanınızda": "🕯️ Andere wache Eltern in der Nachtschicht sind gerade bei Ihnen",
+    "Karanlığı bozmayan sıcak kehribar ekran halesi açar; bebek uyanmaz, kamera izni gerekmez.": "Erzeugt ein warmes Bernsteinschimmern ohne Blendung – weckt das Baby nicht und benötigt keine Kamera.",
+    "💛 Yalnız Değilsin Selamı Gönder": "💛 Stillen Gruß senden",
+    "✨ Yetişkin Merak Köşesi": "✨ Wissens-Auszeit für Eltern",
+    "🌙 Gece Kelime Çözücü": "🌙 Ruhiges Nacht-Worträtsel",
+    "Gönder 💌": "Senden 💌",
+    "👨‍👩‍👧 Eşiniz henüz bağlı değil (1 / 3 Üye)": "👨‍👩‍👧 Partner noch nicht verbunden (1 / 3 Personen)",
+    "Aile Kodunuzu paylaşın; hem aynı bebeği canlı takip edin hem de tek tıkla \"Su getirir misin / Sıradaki nöbet sende\" fısıltısı gönderin.": "Teilen Sie Ihren Familiencode, um dasselbe Baby live zu begleiten und per 1-Tipp stille Nachrichten wie „Bringst du Wasser / Nächste Schicht für dich“ zu senden.",
+    "📲 Eşini Aile Koduyla Bağla (Maks. 3 Üye)": "📲 Partner per Familiencode verbinden (Max. 3)",
+    "🌬️ 60 Sn Sessiz Haptik Nefes": "🌬️ 60 Sek. lautlose Haptik-Atmung",
+    "+ Ekle": "+ Hinzufügen",
+    "💛 Kendim İçin": "💛 Für mich",
+    "🩺 Yargısız duygusal destek amaçlıdır; tıbbi/psikiyatrik tanı yerine geçmez (Acil destek: 112 / 182).": "🩺 Einfühlsame emotionale Begleitung; ersetzt keine ärztliche Beratung (Krisenhilfe: 112 / 0800 111 0 111).",
+    "Aile Kodu Hazırlanıyor • Maks. 3 Üye": "Familiencode bereit • Max. 3 Personen",
+    "Anne, baba ve dadı (en fazla 3 üye) aynı bebeğin uykusunu, beslenmesini, aşılarını ve MışılSpot™ saatlerini tek VIP abonelikle kendi telefonlarından canlı senkron takip eder.": "Mama, Papa und Betreuung (bis zu 3 Personen) verfolgen Schlaf, Mahlzeiten, Impfungen und MışılSpot™-Zeiten desselben Babys mit 1 VIP-Abo live synchron.",
+    "6 Haneli Aile Paylaşım Kodunuz (Maks. 3 Üye)": "Ihr 6-stelliger Familiencode (Max. 3)",
+    "📋 Kodu Kopyala": "📋 Code kopieren",
+    "👨‍👩‍👧 Ortak Aile & Eş Takibi": "👨‍👩‍👧 Gemeinsamer Familien- & Partner-Sync",
+    "Aynı bebeği en fazla 3 kişi": "Bis zu 3 Personen",
+    "(Anne, Baba, Dadı/Bakıcı) kendi telefonundan canlı takip eder. Bir kişi uykuyu veya beslenmeyi kaydettiğinde diğer telefonlarda da anında güncellenir.": "(Mama, Papa, Betreuung) begleiten dasselbe Baby live auf dem eigenen Handy. Jeder Schlaf- oder Mahlzeiteintrag ist sofort überall aktuell.",
+    "📲 Eşini Davet Et": "📲 Partner einladen",
+    "👥 Bağlı Aile Üyeleri": "👥 Verbundene Familienmitglieder",
+    "1 / 3 Üye": "1 / 3 Verbunden",
+    "🔗 Eşinizin oluşturduğu başka bir Aile Koduna mı bağlanacaksınız?": "🔗 Möchten Sie einem bestehenden Familiencode Ihres Partners beitreten?",
+    "☕ Gece Eşlikçisini & Loş Feneri Gör (Ana Ekran) ➔": "☕ Nachtbegleiter & Sanftes Licht öffnen (Start) ➔",
+    "Veya Geçmiş Emzirme Süresi (dk)": "Oder manuelle Stilldauer (Min.)"
   };
 
   const REVERSE_TO_TR_EXACT_MAP = {};
@@ -21159,6 +22169,8 @@
     renderVaccineSchedule();
     if (typeof renderDadiChipsAndIntroForMode === 'function') renderDadiChipsAndIntroForMode();
     if (typeof syncMomBreakDrawerVisibility === 'function') syncMomBreakDrawerVisibility();
+    if (typeof onFeedMethodChange === 'function') onFeedMethodChange();
+    if (typeof syncRatingSheetStoreAndLanguageUI === 'function') syncRatingSheetStoreAndLanguageUI();
     checkWelcomeGuideVisibility();
     const onbEl = document.getElementById('screen-onboarding');
     if (window.__mishilWasExitingOnboarding && (!onbEl || !onbEl.classList.contains('active')) && !isPurchaseInFlight) {
@@ -21176,6 +22188,7 @@
   updateSubscriptionStatusUI();
   applyAppTheme();
   checkAndRestoreLiveSleep();
+  if (typeof checkAndRestoreLiveNursing === 'function') checkAndRestoreLiveNursing();
   renderFamilyMembers();
   renderSoundsList();
   renderHomeTodayTimeline();

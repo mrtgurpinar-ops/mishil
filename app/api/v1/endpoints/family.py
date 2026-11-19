@@ -58,18 +58,24 @@ WHISPER_TEMPLATES_TR = {
     "next_shift_yours": "🌙 Bebek uyudu, ben biraz dinleniyorum. Sonraki uyanma nöbeti sende 💛",
     "trapped_under_baby": "🤫 Kucağımda uyuyakaldı! Şarjım/suyum uzakta, sessizce bakar mısın?",
     "thank_you_love": "💛 İyi ki varsın, bu geceki desteğin bana çok iyi geldi.",
+    "nursing_water": "🤱 Emziriyorum ve kıpırdayamıyorum; sessizce bir su/çay getirir misin?",
+    "nursing_burp_help": "🤱 Emzirme bitmek üzere; gazını çıkarmak için devralabilir misin? 💛",
 }
 WHISPER_TEMPLATES_EN = {
     "tea_water": "☕ Baby is asleep and I can't move—could you quietly bring some water or tea?",
     "next_shift_yours": "🌙 Baby is down, I'm resting now. You're on the next wake shift 💛",
     "trapped_under_baby": "🤫 Nap-trapped! Could you quietly check on me with water/charger?",
     "thank_you_love": "💛 Thank you for having my back tonight—it means so much.",
+    "nursing_water": "🤱 I'm nursing and can't move right now—could you quietly bring some water or tea?",
+    "nursing_burp_help": "🤱 Almost done nursing—could you take over for burping? 💛",
 }
 WHISPER_TEMPLATES_DE = {
     "tea_water": "☕ Das Baby schläft und ich kann mich kaum bewegen – bringst du mir leise Wasser/Tee?",
     "next_shift_yours": "🌙 Baby schläft, ich ruhe mich kurz aus. Die nächste Aufwach-Schicht gehört dir 💛",
     "trapped_under_baby": "🤫 Baby schläft auf meinem Arm! Kannst du leise kurz nach mir schauen?",
     "thank_you_love": "💛 Danke, dass du heute Nacht für uns da bist – das tut so gut.",
+    "nursing_water": "🤱 Ich stille gerade und kann mich kaum bewegen – bringst du mir leise Wasser/Tee?",
+    "nursing_burp_help": "🤱 Fast fertig mit dem Stillen – übernimmst du kurz das Bäuerchen? 💛",
 }
 
 
@@ -353,7 +359,23 @@ def _serialize_routines_for_family(db: Session, baby_id: int, limit: int = 80) -
             "actorRole": r.actor_role or details.get("actorRole") or "",
             "deleted": bool(r.is_deleted),
         }
-        for opt_key in ("start", "end", "startTs", "endTs", "durationMins", "quality", "sleepKind", "amountMl", "diaperStatus"):
+        for opt_key in (
+            "start",
+            "end",
+            "startTs",
+            "endTs",
+            "durationMins",
+            "durationMin",
+            "method",
+            "side",
+            "leftMin",
+            "rightMin",
+            "note",
+            "quality",
+            "sleepKind",
+            "amountMl",
+            "diaperStatus",
+        ):
             if opt_key in details:
                 item[opt_key] = details[opt_key]
         out.append(item)
@@ -372,7 +394,7 @@ def _upsert_family_routines(
     for raw_item in routines_payload[:100]:
         if not isinstance(raw_item, dict):
             continue
-        cid = sanitize_device_uid(str(raw_item.get("id") or ""))[:120]
+        cid = sanitize_device_uid(str(raw_item.get("id") or raw_item.get("client_id") or ""))[:120]
         if not cid:
             continue
         existing = (
@@ -387,7 +409,7 @@ def _upsert_family_routines(
                 existing.updated_at = datetime.now(timezone.utc)
             continue
 
-        raw_type = str(raw_item.get("type") or "custom").lower().strip()
+        raw_type = str(raw_item.get("type") or raw_item.get("category") or "custom").lower().strip()
         if raw_type == "feeding":
             rtype_enum = RoutineType.FEEDING
         elif raw_type == "diaper":
@@ -397,7 +419,12 @@ def _upsert_family_routines(
         else:
             rtype_enum = RoutineType.CUSTOM
 
-        ts_ms = raw_item.get("timestamp") or raw_item.get("startTs")
+        ts_ms = (
+            raw_item.get("timestamp")
+            or raw_item.get("timestamp_ms")
+            or raw_item.get("startTs")
+            or raw_item.get("start_ts")
+        )
         try:
             start_dt = (
                 datetime.fromtimestamp(float(ts_ms) / 1000.0, tz=timezone.utc)
@@ -407,12 +434,21 @@ def _upsert_family_routines(
         except Exception:
             start_dt = datetime.now(timezone.utc)
 
-        actor_nm = sanitize_plain_text(raw_item.get("actorName"), max_len=60, default=default_actor_name)
-        actor_rl = str(raw_item.get("actorRole") or default_actor_role).lower()[:32]
+        actor_nm = sanitize_plain_text(
+            raw_item.get("actorName") or raw_item.get("actor_name"),
+            max_len=60,
+            default=default_actor_name,
+        )
+        actor_rl = str(raw_item.get("actorRole") or raw_item.get("actor_role") or default_actor_role).lower()[:32]
+        safe_icon_raw = re.sub(r"<[^>]*>", "", str(raw_item.get("icon") or ""))
         safe_details: Dict[str, Any] = {
             "id": cid,
             "type": sanitize_plain_text(raw_type, max_len=24, default="custom"),
-            "icon": sanitize_plain_text(raw_item.get("icon"), max_len=12, default="🌙"),
+            "icon": sanitize_plain_text(
+                safe_icon_raw,
+                max_len=12,
+                default=("🍼" if raw_type == "feeding" else ("🚼" if raw_type == "diaper" else "🌙")),
+            ),
             "title": sanitize_plain_text(raw_item.get("title"), max_len=120, default="Rutin"),
             "detail": sanitize_plain_text(raw_item.get("detail"), max_len=240, default=""),
             "time": sanitize_plain_text(raw_item.get("time"), max_len=16, default=start_dt.strftime("%H:%M")),
@@ -420,13 +456,71 @@ def _upsert_family_routines(
             "actorName": actor_nm,
             "actorRole": actor_rl,
         }
-        for opt_k in ("start", "end", "startTs", "endTs", "durationMins", "quality", "sleepKind", "amountMl", "diaperStatus"):
-            if opt_k in raw_item and raw_item[opt_k] is not None:
-                val = raw_item[opt_k]
-                if isinstance(val, (int, float, bool)):
-                    safe_details[opt_k] = val
-                else:
-                    safe_details[opt_k] = sanitize_plain_text(str(val), max_len=40)
+
+        normalized_opts: Dict[str, Any] = {
+            "start": raw_item.get("start"),
+            "end": raw_item.get("end"),
+            "startTs": raw_item.get("startTs") if raw_item.get("startTs") is not None else raw_item.get("start_ts"),
+            "endTs": raw_item.get("endTs") if raw_item.get("endTs") is not None else raw_item.get("end_ts"),
+            "durationMins": (
+                raw_item.get("durationMins")
+                if raw_item.get("durationMins") is not None
+                else (raw_item.get("duration_minutes") if raw_type == "sleep" else None)
+            ),
+            "durationMin": (
+                raw_item.get("durationMin")
+                if raw_item.get("durationMin") is not None
+                else (raw_item.get("duration_minutes") if raw_type == "feeding" else None)
+            ),
+            "method": raw_item.get("method") or (raw_item.get("sub_type") if raw_type == "feeding" else None),
+            "side": raw_item.get("side"),
+            "leftMin": raw_item.get("leftMin"),
+            "rightMin": raw_item.get("rightMin"),
+            "note": raw_item.get("note") if raw_item.get("note") is not None else raw_item.get("notes"),
+            "quality": raw_item.get("quality"),
+            "sleepKind": raw_item.get("sleepKind") or (raw_item.get("sub_type") if raw_type == "sleep" else None),
+            "amountMl": raw_item.get("amountMl") if raw_item.get("amountMl") is not None else raw_item.get("amount_ml"),
+            "diaperStatus": raw_item.get("diaperStatus") or (raw_item.get("sub_type") if raw_type == "diaper" else None),
+        }
+
+        for opt_k, val in normalized_opts.items():
+            if val is None or val == "":
+                continue
+            if opt_k == "side":
+                side_norm = str(val).strip().lower()
+                if side_norm in ("left", "right", "both"):
+                    safe_details["side"] = side_norm
+                continue
+            if opt_k in ("durationMins", "durationMin", "leftMin", "rightMin", "amountMl"):
+                if isinstance(val, bool):
+                    continue
+                try:
+                    num_val = int(round(float(val)))
+                    if 0 <= num_val <= 2880:
+                        safe_details[opt_k] = num_val
+                except Exception:
+                    pass
+                continue
+            if opt_k in ("startTs", "endTs"):
+                if isinstance(val, bool):
+                    continue
+                try:
+                    ts_int = int(float(val))
+                    if 0 < ts_int <= 9999999999999:
+                        safe_details[opt_k] = ts_int
+                except Exception:
+                    pass
+                continue
+            if opt_k == "note":
+                no_tags = re.sub(r"<[^>]*>", "", str(val))
+                clean_note = sanitize_plain_text(no_tags, max_len=160)
+                if clean_note:
+                    safe_details["note"] = clean_note
+                continue
+            if isinstance(val, (int, float, bool)):
+                safe_details[opt_k] = val
+            else:
+                safe_details[opt_k] = sanitize_plain_text(str(val), max_len=40)
 
         if existing:
             existing.routine_type = rtype_enum
@@ -481,6 +575,7 @@ def _serialize_unread_whispers(
                 "sender_role": w.sender_role,
                 "template_key": w.template_key,
                 "message_text": w.message_text,
+                "message": w.message_text,
                 "created_at": w.created_at.isoformat() if w.created_at else datetime.now(timezone.utc).isoformat(),
             }
         )
@@ -633,10 +728,19 @@ class FamilyWhisperRequest(BaseModel):
     invite_code: str = Field(..., min_length=4, max_length=20)
     member_token: Optional[str] = Field(default=None, max_length=256)
     device_uid: Optional[str] = Field(default=None, max_length=128)
-    template_key: Optional[Literal["tea_water", "next_shift_yours", "trapped_under_baby", "thank_you_love", "custom"]] = Field(
-        default="tea_water"
-    )
+    template_key: Optional[
+        Literal[
+            "tea_water",
+            "next_shift_yours",
+            "trapped_under_baby",
+            "thank_you_love",
+            "nursing_water",
+            "nursing_burp_help",
+            "custom",
+        ]
+    ] = Field(default="tea_water")
     custom_note: Optional[str] = Field(default=None, max_length=140)
+    message: Optional[str] = Field(default=None, max_length=140)
     lang: Optional[str] = Field(default="tr", max_length=12)
 
 
@@ -1158,10 +1262,11 @@ async def send_family_whisper(
         no_tags = re.sub(r"<[^>]*>", "", str(raw_note))
         return sanitize_plain_text(no_tags, max_len=max_len)
 
-    if tkey == "custom" and payload.custom_note:
-        msg_text = _strip_html(payload.custom_note, 140)
+    raw_custom_input = payload.custom_note if payload.custom_note is not None else payload.message
+    if tkey == "custom" and raw_custom_input:
+        msg_text = _strip_html(raw_custom_input, 140)
     else:
-        msg_text = tpl_map.get(tkey) or _strip_html(payload.custom_note, 140)
+        msg_text = tpl_map.get(tkey) or _strip_html(raw_custom_input, 140)
         if payload.custom_note and tkey != "custom":
             extra = _strip_html(payload.custom_note, 80)
             if extra:
@@ -1199,6 +1304,7 @@ async def send_family_whisper(
         "sender_role": whisper.sender_role,
         "template_key": whisper.template_key,
         "message_text": whisper.message_text,
+        "message": whisper.message_text,
         "created_at": whisper.created_at.isoformat(),
     }
     _notify_relay_best_effort(room_key, "PARTNER_WHISPER", whisper_out)

@@ -252,7 +252,8 @@ describe('Mışıl Baby v4.50.0 — German (DE / DACH) & Multilingual Polish Sui
   });
 
   it('6. v4.52.0 Shared Single-Baby Family Hub (max 3 members) & Mom Break Drawer XSS/Bridge/i18n guarantees', () => {
-    expect(scriptCode).toContain("version: '4.52.0'");
+    expect(scriptCode).toContain("version: '4.53.0'");
+    expect(scriptCode).toContain("{ v: '4.53.0'");
     expect(scriptCode).toContain("{ v: '4.52.0'");
     expect(html).not.toContain("|| 'MSL782'");
     expect(html).not.toContain('value="MSL782"');
