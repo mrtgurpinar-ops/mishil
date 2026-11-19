@@ -1,7 +1,7 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
 // Uygulama sürümü tek yerden — hem iOS buildNumber hem Android versionCode ile hizalı
-const APP_VERSION = '4.53.0';
+const APP_VERSION = '4.54.0';
 const BUILD_NUMBER = 70;
 
 

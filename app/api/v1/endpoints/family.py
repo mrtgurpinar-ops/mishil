@@ -13,7 +13,7 @@ import re
 import secrets
 import time
 import urllib.request
-from typing import Any, Dict, List, Literal, Optional, Tuple
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from fastapi.responses import JSONResponse
@@ -60,6 +60,7 @@ WHISPER_TEMPLATES_TR = {
     "thank_you_love": "💛 İyi ki varsın, bu geceki desteğin bana çok iyi geldi.",
     "nursing_water": "🤱 Emziriyorum ve kıpırdayamıyorum; sessizce bir su/çay getirir misin?",
     "nursing_burp_help": "🤱 Emzirme bitmek üzere; gazını çıkarmak için devralabilir misin? 💛",
+    "handoff_fed_burped": "🤱 Beslendi ve gazı çıkarıldı; sıradaki uyanış nöbeti sende 💛",
 }
 WHISPER_TEMPLATES_EN = {
     "tea_water": "☕ Baby is asleep and I can't move—could you quietly bring some water or tea?",
@@ -68,6 +69,7 @@ WHISPER_TEMPLATES_EN = {
     "thank_you_love": "💛 Thank you for having my back tonight—it means so much.",
     "nursing_water": "🤱 I'm nursing and can't move right now—could you quietly bring some water or tea?",
     "nursing_burp_help": "🤱 Almost done nursing—could you take over for burping? 💛",
+    "handoff_fed_burped": "🤱 Fed and burped—the next wake-up shift is yours 💛",
 }
 WHISPER_TEMPLATES_DE = {
     "tea_water": "☕ Das Baby schläft und ich kann mich kaum bewegen – bringst du mir leise Wasser/Tee?",
@@ -76,6 +78,7 @@ WHISPER_TEMPLATES_DE = {
     "thank_you_love": "💛 Danke, dass du heute Nacht für uns da bist – das tut so gut.",
     "nursing_water": "🤱 Ich stille gerade und kann mich kaum bewegen – bringst du mir leise Wasser/Tee?",
     "nursing_burp_help": "🤱 Fast fertig mit dem Stillen – übernimmst du kurz das Bäuerchen? 💛",
+    "handoff_fed_burped": "🤱 Gefüttert und Bäuerchen gemacht – die nächste Aufwach-Schicht gehört dir 💛",
 }
 
 
@@ -414,10 +417,15 @@ def _upsert_family_routines(
             rtype_enum = RoutineType.FEEDING
         elif raw_type == "diaper":
             rtype_enum = RoutineType.DIAPER
-        elif raw_type == "medication":
-            rtype_enum = RoutineType.MEDICATION
+        elif raw_type == "sleep":
+            rtype_enum = RoutineType.SLEEP
+        elif raw_type == "bath":
+            rtype_enum = RoutineType.BATH
+        elif raw_type == "tummy_time":
+            rtype_enum = RoutineType.TUMMY_TIME
         else:
-            rtype_enum = RoutineType.CUSTOM
+            # Store custom/medication routines safely using existing PG enum MOOD while preserving exact client `type` in details_json
+            rtype_enum = RoutineType.MOOD
 
         ts_ms = (
             raw_item.get("timestamp")
@@ -634,6 +642,7 @@ def build_family_snapshot(
         "active_sleep_start_iso": family.active_sleep_start_iso,
         "active_sleep_actor": family.active_sleep_actor,
         "whispers": whispers_out,
+        "pending_whispers": whispers_out,
         "created_at": family.created_at.isoformat() if family.created_at else datetime.now(timezone.utc).isoformat(),
     }
 
@@ -683,8 +692,9 @@ class FamilyCreateRequest(BaseModel):
     original_transaction_id: Optional[str] = Field(default=None, max_length=128)
     purchase_token: Optional[str] = Field(default=None, max_length=512)
     routines: Optional[List[Dict[str, Any]]] = Field(default_factory=list)
-    checked_vaccines: Optional[List[str]] = Field(default=None)
-    checked_leaps: Optional[List[str]] = Field(default=None)
+    checked_vaccines: Optional[Union[List[str], Dict[str, Any]]] = Field(default=None)
+    checked_leaps: Optional[Union[List[str], Dict[str, Any]]] = Field(default=None)
+    manual_leap: Optional[int] = Field(default=None)
     active_sleep_start_iso: Optional[str] = Field(default=None, max_length=64)
 
 
@@ -707,8 +717,10 @@ class FamilySyncUpdateRequest(BaseModel):
     birth_date: Optional[str] = Field(default=None, max_length=16)
     premature_weeks: Optional[int] = Field(default=None, ge=0, le=20)
     routines: Optional[List[Dict[str, Any]]] = Field(default=None)
-    checked_vaccines: Optional[List[str]] = Field(default=None)
-    checked_leaps: Optional[List[str]] = Field(default=None)
+    deleted_routine_ids: Optional[List[str]] = Field(default=None)
+    checked_vaccines: Optional[Union[List[str], Dict[str, Any]]] = Field(default=None)
+    checked_leaps: Optional[Union[List[str], Dict[str, Any]]] = Field(default=None)
+    manual_leap: Optional[int] = Field(default=None)
     active_sleep_start_iso: Optional[str] = Field(default="__UNCHANGED__", max_length=64)
     active_sleep_actor: Optional[str] = Field(default=None, max_length=80)
     subscriber_id: Optional[str] = Field(default=None, max_length=128)
@@ -736,9 +748,10 @@ class FamilyWhisperRequest(BaseModel):
             "thank_you_love",
             "nursing_water",
             "nursing_burp_help",
+            "handoff_fed_burped",
             "custom",
         ]
-    ] = Field(default="tea_water")
+    ] = Field(default="next_shift_yours")
     custom_note: Optional[str] = Field(default=None, max_length=140)
     message: Optional[str] = Field(default=None, max_length=140)
     lang: Optional[str] = Field(default="tr", max_length=12)
@@ -755,6 +768,7 @@ class NightWatchPulseRequest(BaseModel):
     device_uid: str = Field(..., min_length=4, max_length=128)
     is_sleeping_watch: bool = Field(default=True)
     send_heart: bool = Field(default=False)
+    send_cheer: Optional[bool] = Field(default=None)
 
 
 def _parse_birth_date(raw_bdate: Optional[str]) -> datetime:
@@ -765,12 +779,19 @@ def _parse_birth_date(raw_bdate: Optional[str]) -> datetime:
         return datetime(2026, 4, 11, tzinfo=timezone.utc)
 
 
-def _sanitize_key_list(items: Optional[List[str]]) -> List[str]:
+def _sanitize_key_list(items: Optional[Union[List[str], Dict[str, Any]]]) -> List[str]:
     if items is None:
+        return []
+    raw_seq: List[Any]
+    if isinstance(items, dict):
+        raw_seq = [k for k, v in items.items() if v]
+    elif isinstance(items, list):
+        raw_seq = items
+    else:
         return []
     seen = set()
     out: List[str] = []
-    for raw in items[:150]:
+    for raw in raw_seq[:150]:
         cleaned = sanitize_plain_text(str(raw), max_len=64)
         if cleaned and cleaned not in seen:
             seen.add(cleaned)
@@ -1364,21 +1385,22 @@ async def night_watch_solidarity_pulse(
     )
 
     row = db.query(NightWatchPresence).filter(NightWatchPresence.device_hash == dev_hash).first()
+    wants_heart = bool(payload.send_heart or payload.send_cheer)
     heart_recorded = False
     if not row:
         row = NightWatchPresence(
             device_hash=dev_hash,
             is_sleeping_watch=bool(payload.is_sleeping_watch),
-            hearts_sent=1 if payload.send_heart else 0,
-            last_heart_sent_at=now if payload.send_heart else None,
+            hearts_sent=1 if wants_heart else 0,
+            last_heart_sent_at=now if wants_heart else None,
             last_seen_at=now,
         )
-        heart_recorded = bool(payload.send_heart)
+        heart_recorded = wants_heart
         db.add(row)
     else:
         row.is_sleeping_watch = bool(payload.is_sleeping_watch)
         row.last_seen_at = now
-        if payload.send_heart:
+        if wants_heart:
             last_h = row.last_heart_sent_at
             if last_h and last_h.tzinfo is None:
                 last_h = last_h.replace(tzinfo=timezone.utc)

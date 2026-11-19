@@ -852,7 +852,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
 
     // Extract getSpotlightSteps and verify 6 full-app targets across TR / EN / DE
     const fnStart = html.indexOf('function getSpotlightSteps()');
-    const fnEnd = html.indexOf('let spotlightTrackingRafId = null;', fnStart);
+    const fnEnd = html.indexOf('var spotlightTrackingRafId = null;', fnStart);
     expect(fnStart).toBeGreaterThan(0);
     expect(fnEnd).toBeGreaterThan(fnStart);
 
@@ -906,7 +906,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(html.includes('id="sounds-settings-btn"')).toBe(true);
 
     const fnStart = html.indexOf('function getSpotlightSteps()');
-    const fnEnd = html.indexOf('let spotlightTrackingRafId = null;', fnStart);
+    const fnEnd = html.indexOf('var spotlightTrackingRafId = null;', fnStart);
     let activeLang = 'tr';
     const tourCtx = {
       getBaby: () => ({ name: 'Atlas' }),

@@ -3327,85 +3327,33 @@
     .nursing-side-btn.recommended:not(.active) {
       border-color: rgba(46, 213, 115, 0.55);
     }
-    .mom-break-tabs {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 5px;
-      margin-top: 10px;
-      margin-bottom: 10px;
-    }
-    .mom-break-tab-btn {
-      min-height: 36px;
-      border-radius: 10px;
-      border: 1px solid var(--border-night);
-      background: rgba(255, 255, 255, 0.04);
-      color: var(--text-night);
-      font-family: 'Sora', sans-serif;
-      font-size: 10px;
-      font-weight: 700;
-      padding: 4px 4px;
-      cursor: pointer;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-      line-height: 1.15;
-    }
-    .mom-break-tab-btn.active {
-      background: rgba(244, 162, 97, 0.22);
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-    .mom-break-panel {
-      display: none;
-      background: rgba(12, 16, 30, 0.55);
-      border: 1px solid rgba(255, 255, 255, 0.07);
-      border-radius: 13px;
-      padding: 11px 12px;
-    }
-    .mom-break-panel.active {
-      display: block;
-    }
-    body.mom-lantern-glow-active::after {
-      content: '';
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 5;
-      box-shadow: inset 0 0 68px rgba(244, 162, 97, 0.34), inset 0 0 18px rgba(224, 122, 95, 0.28);
-      animation: momLanternPulse 4.5s ease-in-out infinite;
-    }
-    @keyframes momLanternPulse {
-      0%, 100% { opacity: 0.72; }
-      50% { opacity: 1; }
-    }
     .mom-breath-ring {
-      width: 68px;
-      height: 68px;
+      width: 46px;
+      height: 46px;
+      flex-shrink: 0;
       border-radius: 50%;
-      margin: 6px auto 8px;
       background: radial-gradient(circle, rgba(244, 162, 97, 0.42) 0%, rgba(244, 162, 97, 0.08) 72%);
       border: 2px solid var(--accent);
       display: flex;
       align-items: center;
       justify-content: center;
       font-family: 'Sora', sans-serif;
-      font-size: 11px;
+      font-size: 10.5px;
       font-weight: 800;
-      color: #FFF;
+      color: var(--heading-night);
       transition: transform 0.4s ease;
     }
     .mom-breath-ring.breathing {
       animation: momBreathExpand 14s ease-in-out infinite;
     }
     @keyframes momBreathExpand {
-      0% { transform: scale(0.86); box-shadow: 0 0 8px rgba(244, 162, 97, 0.2); }
-      28.5% { transform: scale(1.22); box-shadow: 0 0 26px rgba(244, 162, 97, 0.55); }
-      57.1% { transform: scale(1.22); box-shadow: 0 0 28px rgba(244, 162, 97, 0.6); }
-      100% { transform: scale(0.86); box-shadow: 0 0 8px rgba(244, 162, 97, 0.2); }
+      0% { transform: scale(0.88); box-shadow: 0 0 8px rgba(244, 162, 97, 0.2); }
+      28.5% { transform: scale(1.16); box-shadow: 0 0 22px rgba(244, 162, 97, 0.52); }
+      57.1% { transform: scale(1.16); box-shadow: 0 0 24px rgba(244, 162, 97, 0.56); }
+      100% { transform: scale(0.88); box-shadow: 0 0 8px rgba(244, 162, 97, 0.2); }
     }
-    .dadi-audience-switch {
+    .dadi-audience-switch,
+    .feed-mode-switch {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 6px;
@@ -3415,7 +3363,8 @@
       padding: 4px;
       margin-bottom: 10px;
     }
-    .dadi-aud-btn {
+    .dadi-aud-btn,
+    .feed-mode-btn {
       min-height: 36px;
       border-radius: 9px;
       border: 1px solid transparent;
@@ -3427,10 +3376,27 @@
       cursor: pointer;
       transition: all 0.18s ease;
     }
-    .dadi-aud-btn.active {
+    .dadi-aud-btn.active,
+    .feed-mode-btn.active {
       background: rgba(244, 162, 97, 0.2);
       border-color: var(--accent);
       color: var(--accent);
+    }
+    [data-theme="light"] #mom-break-drawer,
+    [data-theme="light"] #home-live-nursing-bar,
+    [data-theme="light"] #coach-mom-breathe-bar {
+      background: #FFFFFF !important;
+      border-color: rgba(217, 119, 6, 0.35) !important;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.06) !important;
+    }
+    [data-theme="light"] .dadi-audience-switch,
+    [data-theme="light"] .feed-mode-switch {
+      background: rgba(15, 23, 42, 0.05) !important;
+      border-color: rgba(15, 23, 42, 0.1) !important;
+    }
+    [data-theme="light"] .nursing-side-btn {
+      background: rgba(15, 23, 42, 0.04);
+      border-color: rgba(15, 23, 42, 0.14);
     }
   </style>
 
@@ -3964,6 +3930,31 @@
           <button type="button" onclick="ackActiveFamilyWhisper()" style="background: var(--accent); color: #141B2E; border: none; border-radius: 10px; padding: 7px 11px; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap; flex-shrink: 0;">✓ Aldım 🤍</button>
         </div>
 
+        <!-- 🤱 CANLI EMZİRME AKTİF ŞERİDİ (ANA EKRAN EN ÜSTÜNDE • KAYDIRMADAN GÖRÜNÜR) -->
+        <div id="home-live-nursing-bar">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+            <div style="min-width: 0;">
+              <div style="font-family: 'Sora'; font-size: 12.5px; font-weight: 800; color: var(--heading-night);" id="home-nursing-title">🤱 Canlı Emzirme • 00:00</div>
+              <div style="font-size: 10.5px; color: var(--accent); margin-top: 2px;" id="home-nursing-sub">Sol 00:00 • Sağ 00:00</div>
+            </div>
+            <button type="button" onclick="cancelLiveNursingSession()" aria-label="Emzirme Sayacını İptal Et" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: var(--text-muted); border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: 700; cursor: pointer; flex-shrink: 0;" id="btn-home-nursing-cancel">✕ İptal</button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px;">
+            <button type="button" class="nursing-side-btn" id="btn-home-nurse-left" onclick="toggleLiveNursingSide('left')" style="min-height: 44px; flex-direction: row; gap: 6px;">
+              <span style="font-size: 11.5px; font-weight: 800;" id="lbl-home-nurse-left">🤱 Sol</span>
+              <span style="font-size: 11px; color: var(--accent); font-weight: 700;" id="lbl-home-nurse-left-time">00:00</span>
+            </button>
+            <button type="button" class="nursing-side-btn" id="btn-home-nurse-right" onclick="toggleLiveNursingSide('right')" style="min-height: 44px; flex-direction: row; gap: 6px;">
+              <span style="font-size: 11.5px; font-weight: 800;" id="lbl-home-nurse-right">🤱 Sağ</span>
+              <span style="font-size: 11px; color: var(--accent); font-weight: 700;" id="lbl-home-nurse-right-time">00:00</span>
+            </button>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1.15fr; gap: 6px; margin-top: 7px;">
+            <button type="button" id="btn-home-nursing-save" onclick="completeLiveNursingSession(false)" style="min-height: 38px; border-radius: 10px; border: 1px solid rgba(46, 213, 115, 0.55); background: rgba(46, 213, 115, 0.16); color: #2ED573; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer;">💾 Emzirmeyi Kaydet</button>
+            <button type="button" id="btn-home-nursing-sleep" onclick="completeLiveNursingSession(true)" style="min-height: 38px; border-radius: 10px; border: none; background: linear-gradient(135deg, var(--accent) 0%, #E07A5F 100%); color: #141B2E; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer;">🌙 Memede Uyudu</button>
+          </div>
+        </div>
+
         <!-- PROPOSAL 2B: ORGANIC WARM BENTO (HERO HİLAL DAİMA İLK EKRANDA - ABOVE THE FOLD) -->
         <!-- 1. PANORAMİK HERO HİLAL BENTO KARTI -->
         <div class="hero-organic-card" id="home-organic-hero">
@@ -3998,140 +3989,45 @@
 
         <div id="last-sleep-quick-edit-bar" style="display: none; align-items: center; justify-content: space-between; gap: 8px; background: rgba(244, 162, 97, 0.12); border: 1px dashed rgba(244, 162, 97, 0.45); border-radius: 14px; padding: 9px 12px; margin-top: -4px; margin-bottom: 12px;"><div style="font-size: 11px; color: var(--text-night); line-height: 15px;"><span>🌙 Son Uyku: <strong id="last-sleep-quick-summary" style="color: var(--heading-night);">—</strong></span><div style="font-size: 10px; color: var(--text-muted);" id="last-sleep-quick-sub">Uyuyakaldıysanız veya uyanış saati farklıysa düzeltin</div></div><button type="button" id="btn-last-sleep-quick-edit" onclick="editLatestSleepRoutine()" style="background: rgba(244, 162, 97, 0.22); border: 1px solid var(--accent); color: var(--accent); border-radius: 10px; padding: 6px 10px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0;">✏️ Saatleri Düzenle</button></div>
 
-        <!-- 🤱 CANLI EMZİRME AKTİF ŞERİDİ (TEK EL KARANLIK ODA DOSTU • KİLİT EKRANINA DAYANIKLI) -->
-        <div id="home-live-nursing-bar">
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
-            <div style="min-width: 0;">
-              <div style="font-family: 'Sora'; font-size: 12.5px; font-weight: 800; color: var(--heading-night);" id="home-nursing-title">🤱 Canlı Emzirme • 00:00</div>
-              <div style="font-size: 10.5px; color: var(--accent); margin-top: 2px;" id="home-nursing-sub">Sol 00:00 • Sağ 00:00</div>
-            </div>
-            <button type="button" onclick="cancelLiveNursingSession()" aria-label="Emzirme Sayacını İptal Et" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14); color: var(--text-muted); border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: 700; cursor: pointer; flex-shrink: 0;" id="btn-home-nursing-cancel">✕ İptal</button>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 8px;">
-            <button type="button" class="nursing-side-btn" id="btn-home-nurse-left" onclick="toggleLiveNursingSide('left')" style="min-height: 44px; flex-direction: row; gap: 6px;">
-              <span style="font-size: 11.5px; font-weight: 800;" id="lbl-home-nurse-left">🤱 Sol</span>
-              <span style="font-size: 11px; color: var(--accent); font-weight: 700;" id="lbl-home-nurse-left-time">00:00</span>
-            </button>
-            <button type="button" class="nursing-side-btn" id="btn-home-nurse-right" onclick="toggleLiveNursingSide('right')" style="min-height: 44px; flex-direction: row; gap: 6px;">
-              <span style="font-size: 11.5px; font-weight: 800;" id="lbl-home-nurse-right">🤱 Sağ</span>
-              <span style="font-size: 11px; color: var(--accent); font-weight: 700;" id="lbl-home-nurse-right-time">00:00</span>
-            </button>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1.15fr; gap: 6px; margin-top: 7px;">
-            <button type="button" id="btn-home-nursing-save" onclick="completeLiveNursingSession(false)" style="min-height: 38px; border-radius: 10px; border: 1px solid rgba(46, 213, 115, 0.55); background: rgba(46, 213, 115, 0.16); color: #2ED573; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer;">💾 Emzirmeyi Kaydet</button>
-            <button type="button" id="btn-home-nursing-sleep" onclick="completeLiveNursingSession(true)" style="min-height: 38px; border-radius: 10px; border: none; background: linear-gradient(135deg, var(--accent) 0%, #E07A5F 100%); color: #141B2E; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer;">🌙 Memede Uyudu</button>
-          </div>
-        </div>
-
-        <!-- ☕ ANNE MOLASI & GECE EŞLİKÇİSİ (BEBEK UYURKEN VEYA CANLI EMZİRMEDE AÇILIR — TEK EL KARANLIK ODA DOSTU) -->
+        <!-- 🤝 SADE EŞ NÖBET NOTU ŞERİDİ (BEBEK UYURKEN VEYA CANLI EMZİRMEDE VARSAYILAN KAPALI TEK SATIR) -->
         <div id="mom-break-drawer">
           <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer;" onclick="toggleMomBreakCollapsed()">
             <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-              <span style="font-size: 18px; flex-shrink: 0;" id="mom-break-icon">☕</span>
+              <span style="font-size: 17px; flex-shrink: 0;" id="mom-break-icon">🤝</span>
               <div style="min-width: 0;">
-                <div style="font-family: 'Sora'; font-size: 12.5px; font-weight: 800; color: var(--heading-night);" id="mom-break-title">Bebek Uyuyor • Anne Molası</div>
-                <div style="font-size: 10.5px; color: var(--accent); margin-top: 1px;" id="mom-break-subtitle">Bebeğiniz uyurken birkaç dakika sadece sizin 💛</div>
+                <div style="font-family: 'Sora'; font-size: 12px; font-weight: 800; color: var(--heading-night);" id="mom-break-title">Eşime Sessiz Nöbet Notu</div>
+                <div style="font-size: 10.5px; color: var(--accent); margin-top: 1px;" id="mom-break-subtitle">Eşiniz uygulamayı açtığında ekranın en üstünde görür</div>
               </div>
             </div>
-            <button type="button" id="mom-break-collapse-btn" style="background: rgba(255,255,255,0.07); border: 1px solid var(--border-night); color: var(--accent); border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: 700; cursor: pointer; flex-shrink: 0;">Küçült ▴</button>
+            <button type="button" id="mom-break-collapse-btn" style="background: rgba(255,255,255,0.07); border: 1px solid var(--border-night); color: var(--accent); border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: 700; cursor: pointer; flex-shrink: 0;">Not Bırak ▾</button>
           </div>
 
-          <div id="mom-break-body">
-            <div class="mom-break-tabs">
-              <button type="button" class="mom-break-tab-btn active" id="mom-tab-lantern" onclick="switchMomBreakTab('lantern')"><span>🕯️</span><span>Fener</span></button>
-              <button type="button" class="mom-break-tab-btn" id="mom-tab-escape" onclick="switchMomBreakTab('escape')"><span>🧩</span><span>3 Dk Mola</span></button>
-              <button type="button" class="mom-break-tab-btn" id="mom-tab-whisper" onclick="switchMomBreakTab('whisper')"><span>🤝</span><span>Fısılda</span></button>
-              <button type="button" class="mom-break-tab-btn" id="mom-tab-breathe" onclick="switchMomBreakTab('breathe')"><span>🌬️</span><span>Nefes & Not</span></button>
-            </div>
+          <div id="mom-break-body" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.12);">
 
-            <!-- 1. SESSİZ GECE NÖBETİ FENERİ & DAYANIŞMA SAYACI -->
-            <div class="mom-break-panel active" id="mom-panel-lantern">
-              <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
-                <div style="font-size: 11.5px; color: var(--heading-night); font-weight: 700; line-height: 15px;" id="mom-night-watch-label">
-                  🕯️ Şu an uyanık nöbet feneri yakan ebeveynler yanınızda
-                </div>
-                <button type="button" id="btn-mom-lantern-glow" onclick="toggleMomLanternGlow()" style="background: rgba(244, 162, 97, 0.18); border: 1px solid var(--accent); color: var(--accent); border-radius: 9px; padding: 6px 9px; font-size: 10.5px; font-weight: 800; cursor: pointer; white-space: nowrap;">🕯️ Loş Fener Aç</button>
+            <div id="mom-whisper-connected-box">
+              <div style="font-size: 10.5px; color: var(--text-muted); line-height: 15px; margin-bottom: 8px;">
+                Eşiniz uygulamayı açtığında ekranın en üstünde görür:
               </div>
-              <div style="font-size: 10.5px; color: var(--text-muted); line-height: 15px; margin-bottom: 9px;">
-                Karanlığı bozmayan sıcak kehribar ekran halesi açar; bebek uyanmaz, kamera izni gerekmez.
+              <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
+                <button type="button" id="btn-whisper-shift" onclick="sendFamilyWhisperTemplate('next_shift_yours')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--heading-night); border-radius: 9px; padding: 8px 10px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left;">🍼 Sıradaki uyanış nöbeti sende 💛</button>
+                <button type="button" id="btn-whisper-fed-burped" onclick="sendFamilyWhisperTemplate('handoff_fed_burped')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--heading-night); border-radius: 9px; padding: 8px 10px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left;">🤱 Beslendi ve gazı çıkarıldı; sıradaki uyanış sende 💛</button>
+                <button type="button" id="btn-whisper-thanks" onclick="sendFamilyWhisperTemplate('thank_you_love')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--heading-night); border-radius: 9px; padding: 8px 10px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left;">🤍 İyi ki varsın, desteğin çok iyi geldi</button>
               </div>
-              <button type="button" id="btn-mom-night-cheer" onclick="pulseNightWatchSolidarity(true)" style="width: 100%; min-height: 36px; border-radius: 10px; border: 1px solid rgba(244, 162, 97, 0.45); background: rgba(244, 162, 97, 0.12); color: #FAF5EE; font-family: 'Sora'; font-size: 11px; font-weight: 700; cursor: pointer;">
-                💛 Yalnız Değilsin Selamı Gönder
-              </button>
-            </div>
-
-            <!-- 2. BEBEK-DIŞI 3 DK YETİŞKİN KAÇAMAĞI & MİNİ KELİME BULMACASI -->
-            <div class="mom-break-panel" id="mom-panel-escape">
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                <span id="mom-escape-cat-badge" style="font-size: 9.5px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.4px;">✨ Yetişkin Merak Köşesi</span>
-                <button type="button" onclick="nextMomEscapeCard()" style="background: rgba(244, 162, 97, 0.16); border: 1px solid rgba(244, 162, 97, 0.4); color: var(--accent); border-radius: 8px; padding: 3px 9px; font-size: 10px; font-weight: 800; cursor: pointer;">Sonraki Kart ➔</button>
-              </div>
-              <div id="mom-escape-card-title" style="font-family: 'Sora'; font-size: 12.5px; font-weight: 700; color: #FAF5EE; margin-bottom: 4px;">—</div>
-              <div id="mom-escape-card-body" style="font-size: 11px; color: var(--text-night); line-height: 16px; margin-bottom: 10px;">—</div>
-
-              <div style="border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                  <span style="font-size: 10.5px; font-weight: 700; color: var(--heading-night);">🌙 Gece Kelime Çözücü</span>
-                  <span id="mom-puzzle-score-badge" style="font-size: 10px; color: #2ED573; font-weight: 700;">✓ 0 Çözüldü</span>
-                </div>
-                <div id="mom-puzzle-hint" style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 6px;">—</div>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                  <span id="mom-puzzle-scrambled" style="font-family: 'Sora'; font-size: 13px; font-weight: 800; letter-spacing: 2px; color: var(--accent); background: rgba(244,162,97,0.12); border: 1px solid rgba(244,162,97,0.3); border-radius: 8px; padding: 6px 9px; white-space: nowrap;">—</span>
-                  <input type="text" id="mom-puzzle-input" class="form-input" placeholder="Tahmininiz..." maxlength="16" onkeydown="if(event.key==='Enter') checkMomWordPuzzle()" style="margin-bottom: 0; padding: 6px 9px; font-size: 11.5px; text-transform: uppercase;" />
-                  <button type="button" onclick="checkMomWordPuzzle()" style="background: var(--accent); color: #141B2E; border: none; border-radius: 8px; padding: 7px 10px; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer; flex-shrink: 0;">Çöz</button>
-                </div>
+              <div style="display: flex; gap: 6px;">
+                <input type="text" id="mom-whisper-custom-input" class="form-input" placeholder="Eşinize kısa nöbet notu yazın..." maxlength="140" onkeydown="if(event.key==='Enter') sendCustomFamilyWhisper()" style="margin-bottom: 0; padding: 7px 10px; font-size: 11px;" />
+                <button type="button" onclick="sendCustomFamilyWhisper()" style="background: var(--accent); color: #141B2E; border: none; border-radius: 9px; padding: 7px 11px; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;">Gönder 💌</button>
               </div>
             </div>
-
-            <!-- 3. TEK TIK EŞİME FISILDA & SESSİZ NÖBET DEVRİ -->
-            <div class="mom-break-panel" id="mom-panel-whisper">
-              <div id="mom-whisper-connected-box">
-                <div style="font-size: 10.5px; color: var(--text-muted); margin-bottom: 7px;">
-                  Odaya seslenmeden eşinizin telefonuna tek dokunuşla sessiz not bırakın:
-                </div>
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px;">
-                  <button type="button" id="btn-whisper-water" onclick="sendContextAwareWhisper('water')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🍵 Su / çay getirir misin?</button>
-                  <button type="button" id="btn-whisper-shift" onclick="sendFamilyWhisperTemplate('next_shift_yours')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🍼 Sıradaki uyanış sende 💛</button>
-                  <button type="button" id="btn-whisper-trapped" onclick="sendContextAwareWhisper('assist')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🤱 Altında kaldım, yardım!</button>
-                  <button type="button" id="btn-whisper-thanks" onclick="sendFamilyWhisperTemplate('thank_you_love')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: #FAF5EE; border-radius: 9px; padding: 7px 8px; font-size: 10.5px; font-weight: 600; cursor: pointer; text-align: left;">🤍 İyi ki varsın, teşekkürler</button>
-                </div>
-                <div style="display: flex; gap: 6px;">
-                  <input type="text" id="mom-whisper-custom-input" class="form-input" placeholder="Eşinize kısa sessiz not yazın..." maxlength="140" onkeydown="if(event.key==='Enter') sendCustomFamilyWhisper()" style="margin-bottom: 0; padding: 7px 10px; font-size: 11px;" />
-                  <button type="button" onclick="sendCustomFamilyWhisper()" style="background: var(--accent); color: #141B2E; border: none; border-radius: 9px; padding: 7px 11px; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;">Gönder 💌</button>
-                </div>
-              </div>
 
               <div id="mom-whisper-invite-cta" style="display: none; text-align: center; padding: 4px 2px;">
-                <div style="font-size: 11.5px; font-weight: 700; color: var(--heading-night); margin-bottom: 4px;">👨‍👩‍👧 Eşiniz henüz bağlı değil (1 / 3 Üye)</div>
-                <div style="font-size: 10.5px; color: var(--text-muted); line-height: 15px; margin-bottom: 8px;">
-                  Aile Kodunuzu paylaşın; hem aynı bebeği canlı takip edin hem de tek tıkla "Su getirir misin / Sıradaki nöbet sende" fısıltısı gönderin.
+                <div id="mom-whisper-invite-title" style="font-size: 11.5px; font-weight: 700; color: var(--heading-night); margin-bottom: 4px;">👨‍👩‍👧 Eşiniz henüz bağlı değil (1 / 3 Üye)</div>
+                <div id="mom-whisper-invite-desc" style="font-size: 10.5px; color: var(--text-muted); line-height: 15px; margin-bottom: 8px;">
+                  Aile Kodunuzu paylaşın; hem aynı bebeği canlı takip edin hem de tek dokunuşla sessiz nöbet notu bırakın.
                 </div>
-                <button type="button" onclick="openFamilyQuickHub()" style="width: 100%; min-height: 36px; background: var(--accent); color: #141B2E; border: none; border-radius: 10px; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer;">
+                <button type="button" id="mom-whisper-invite-btn" onclick="openFamilyQuickHub()" style="width: 100%; min-height: 36px; background: var(--accent); color: #141B2E; border: none; border-radius: 10px; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer;">
                   📲 Eşini Aile Koduyla Bağla (Maks. 3 Üye)
                 </button>
               </div>
-            </div>
-
-            <!-- 4. 60 SN SESSİZ HAPTİK NEFES & SABAH HATIRLAT KUTUSU -->
-            <div class="mom-break-panel" id="mom-panel-breathe">
-              <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 8px;">
-                <div style="flex: 1;">
-                  <div style="font-size: 11.5px; font-weight: 700; color: #FAF5EE;">🌬️ 60 Sn Sessiz Haptik Nefes</div>
-                  <div id="mom-breath-status" style="font-size: 10.5px; color: var(--text-muted); margin-top: 2px;">4 sn al • 4 sn tut • 6 sn ver (Sıfır ses, nazik titreşim)</div>
-                  <button type="button" id="btn-mom-breath-toggle" onclick="toggleMomSilentBreathing()" style="margin-top: 6px; background: rgba(244, 162, 97, 0.18); border: 1px solid var(--accent); color: var(--accent); border-radius: 9px; padding: 5px 11px; font-size: 10.5px; font-weight: 800; cursor: pointer;">Başlat (60 sn)</button>
-                </div>
-                <div class="mom-breath-ring" id="mom-breath-ring">4-4-6</div>
-              </div>
-
-              <div style="border-top: 1px dashed rgba(255,255,255,0.1); padding-top: 8px;">
-                <div style="font-size: 10.5px; font-weight: 700; color: var(--heading-night); margin-bottom: 5px;">🧠 Gece Aklıma Geldi • Sabaha Not</div>
-                <div style="display: flex; gap: 6px; margin-bottom: 6px;">
-                  <input type="text" id="mom-morning-note-input" class="form-input" placeholder="Sabah unutmayayım (örn: bez siparişi, doktor sorusu)..." maxlength="120" onkeydown="if(event.key==='Enter') addMomMorningNote()" style="margin-bottom: 0; padding: 6px 9px; font-size: 11px;" />
-                  <button type="button" onclick="addMomMorningNote()" style="background: rgba(255,255,255,0.1); border: 1px solid var(--border-night); color: var(--accent); border-radius: 8px; padding: 6px 10px; font-size: 11px; font-weight: 800; cursor: pointer; flex-shrink: 0;">+ Ekle</button>
-                </div>
-                <div id="mom-morning-notes-list" style="display: flex; flex-direction: column; gap: 4px; max-height: 110px; overflow-y: auto;" class="no-scrollbar"></div>
-              </div>
-            </div>
           </div>
         </div>
 
@@ -4206,10 +4102,9 @@
           </div>
         </div>
 
-        <!-- GECE 03:00 TEK EL BAŞPARMAK BÖLGESİ (ABOVE-THE-FOLD): 4'LÜ HIZLI RUTİN KAYDI -->
+        <!-- TEK NET BAKIM & YARDIMCI KARTLAR (SON KAYIT SAATLERİ DOĞRUDAN KART ÜSTÜNDE • TEKRAR YOK) -->
         <div class="section-title" id="home-quick-tools-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <span>Hızlı Rutin & Gece Araçları</span>
-          <button type="button" onclick="openAddRoutineModal()" style="min-height: 32px; background: rgba(244, 162, 97, 0.14); border: 1px solid rgba(244, 162, 97, 0.35); border-radius: 999px; padding: 4px 11px; font-size: 11px; font-weight: 700; color: var(--accent); cursor: pointer;">+ Detaylı Ekle ➔</button>
+          <span>Hızlı Bakım & Araçlar</span>
         </div>
         
         <div class="quick-bento-grid">
@@ -4247,42 +4142,22 @@
           </div>
         </div>
 
-        <!-- 2. ÇİFTLİ ORGANİK BENTO GRID (CANLI BAKIM ÖZETİ & DENGE SKORU) -->
-        <div class="grid-organic-duo">
-          <!-- Sol: Denge & Ritim (Adaçayı Yeşili) -->
-          <div class="bento-card-sage" onclick="switchTab('analytics')">
-            <div style="font-size: 11px; font-weight: 700; color: var(--sage); letter-spacing: 0.3px; text-transform: uppercase;">Denge & Ritim</div>
-            <div class="soft-score-dial" style="position: relative; width: 66px; height: 66px; margin: 4px 0;">
+        <!-- 2. TEK KOMPAKT DENGE & BUGÜNKÜ UYKU ÖZET KARTI (MÜKERRER BAKIM LİSTESİ KALDIRILDI) -->
+        <div class="bento-card-sage" onclick="switchTab('analytics')" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 11px 14px; margin-bottom: 10px; gap: 10px;">
+          <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+            <div class="soft-score-dial" style="position: relative; width: 46px; height: 46px; flex-shrink: 0; margin: 0;">
               <svg viewBox="0 0 72 72" style="width: 100%; height: 100%; transform: rotate(-90deg);">
                 <circle cx="36" cy="36" r="30" fill="none" stroke="rgba(116, 198, 157, 0.18)" stroke-width="7" />
                 <circle id="home-bento-score-fill" cx="36" cy="36" r="30" fill="none" stroke="var(--sage)" stroke-width="7" stroke-dasharray="188" stroke-dashoffset="30" stroke-linecap="round" />
               </svg>
-              <div id="home-bento-score-val" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Sora'; font-size: 18px; font-weight: 800; color: var(--sage);">%84</div>
+              <div id="home-bento-score-val" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Sora'; font-size: 13px; font-weight: 800; color: var(--sage);">%84</div>
             </div>
-            <div id="home-bento-score-badge" class="soft-balance-pill state-in-rhythm" style="background: rgba(116, 198, 157, 0.2); color: var(--sage); font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 8px;">🟢 Ritimde</div>
-          </div>
-
-          <!-- Sağ: Canlı Bakım Özeti (Huckleberry Benchmark: Son Kayıtlar — Xh Ym Önce) -->
-          <div class="bento-card-peach" style="justify-content: space-between;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <span style="font-size: 10.5px; font-weight: 800; color: var(--accent); letter-spacing: 0.3px; text-transform: uppercase;">Bakım Özeti</span>
-              <button type="button" onclick="openAddRoutineModal()" style="min-height: 28px; padding: 2px 9px; border-radius: 8px; background: rgba(244, 162, 97, 0.16); border: 1px solid rgba(244, 162, 97, 0.35); font-size: 10.5px; font-weight: 800; color: var(--accent); cursor: pointer;">+Kayıt</button>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 5px; width: 100%;">
-              <div class="care-summary-row" onclick="openRoutineModalFor('feeding')" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(244,162,97,0.22); border-radius: 9px; padding: 6px 8px; cursor: pointer;">
-                <span style="font-size: 10.5px; color: var(--text-night);">🍼 Beslenme</span>
-                <strong id="home-last-feed-ago" style="font-size: 10.5px; color: var(--heading-night);">Kayıt ekle +</strong>
-              </div>
-              <div class="care-summary-row" onclick="openRoutineModalFor('diaper')" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(244,162,97,0.22); border-radius: 9px; padding: 6px 8px; cursor: pointer;">
-                <span style="font-size: 10.5px; color: var(--text-night);">🚼 Son Bez</span>
-                <strong id="home-last-diaper-ago" style="font-size: 10.5px; color: var(--heading-night);">Kayıt ekle +</strong>
-              </div>
-              <div class="care-summary-row" onclick="switchHomeSegment('timeline')" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(116,198,157,0.25); border-radius: 9px; padding: 6px 8px; cursor: pointer;">
-                <span style="font-size: 10.5px; color: var(--text-night);">🌙 Bugün Uyku</span>
-                <strong id="home-today-sleep-total" style="font-size: 10.5px; color: var(--sage);">0dk (0 uyku)</strong>
-              </div>
+            <div style="min-width: 0; text-align: left;">
+              <div style="font-size: 10.5px; font-weight: 800; color: var(--sage); letter-spacing: 0.3px; text-transform: uppercase;">Denge & Ritim</div>
+              <div style="font-size: 11px; color: var(--text-night); margin-top: 2px;"><span>🌙 Bugün Uyku: </span><strong id="home-today-sleep-total" style="color: var(--heading-night);">0dk (0 uyku)</strong></div>
             </div>
           </div>
+          <div id="home-bento-score-badge" class="soft-balance-pill state-in-rhythm" style="background: rgba(116, 198, 157, 0.2); color: var(--sage); font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 8px; flex-shrink: 0;">🟢 Ritimde</div>
         </div>
 
         <!-- NAPPER BENCHMARK: 24 SAATLİK GÖRSEL SİRKADİYEN GÜNLÜK ŞERİT -->
@@ -4632,7 +4507,7 @@
         <button type="button" class="dadi-aud-btn" id="dadi-mode-btn-mom" onclick="switchDadiAudience('mom')">💛 Kendim İçin</button>
       </div>
 
-      <!-- Ağlama Sesi Acil Çözücü Çubuğu (Dadı İçine Entegre) -->
+      <!-- Ağlama Sesi Acil Çözücü Çubuğu (Bebek Modunda Görünür) -->
       <div class="card" id="coach-cry-solver-bar" style="border: 1px solid var(--accent); background: rgba(36, 30, 50, 0.9); cursor: pointer; display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; margin-bottom: 12px;" onclick="openCryModal()">
         <div style="display: flex; align-items: center; gap: 10px;">
           <span style="font-size: 22px;">🎙️</span>
@@ -4642,6 +4517,18 @@
           </div>
         </div>
         <span class="early-leap-btn" style="margin: 0; padding: 4px 8px; font-size: 10px;">Dinle 🎙️</span>
+      </div>
+
+      <!-- 60 Sn Sessiz Haptik Nefes Çubuğu (Kendim İçin Modunda Görünür • %100 Ücretsiz) -->
+      <div class="card" id="coach-mom-breathe-bar" style="display: none; border: 1px solid rgba(244, 162, 97, 0.45); background: rgba(36, 30, 50, 0.9); align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1;">
+          <div class="mom-breath-ring" id="mom-breath-ring">4-4-6</div>
+          <div style="min-width: 0;">
+            <div style="font-family: 'Sora'; font-size: 12.5px; font-weight: 700; color: var(--heading-night);" id="coach-mom-breathe-title">🌬️ 60 Sn Sessiz Nefes Molası</div>
+            <div style="font-size: 10.5px; color: var(--accent); margin-top: 2px;" id="mom-breath-status">4 sn al • 4 sn tut • 6 sn ver (Sıfır ses, nazik titreşim)</div>
+          </div>
+        </div>
+        <button type="button" id="btn-mom-breath-toggle" onclick="toggleMomSilentBreathing()" style="background: rgba(244, 162, 97, 0.2); border: 1px solid var(--accent); color: var(--accent); border-radius: 9px; padding: 6px 11px; font-family: 'Sora'; font-size: 10.5px; font-weight: 800; cursor: pointer; white-space: nowrap; flex-shrink: 0;">Başlat (60 sn)</button>
       </div>
 
       <div class="dadi-container">
@@ -5606,7 +5493,12 @@
 
     <!-- 2. FEEDING DYNAMIC FIELDS -->
     <div id="routine-feeding-fields" style="display: none;">
-      <div class="form-group">
+      <div class="feed-mode-switch" id="feed-entry-mode-switch">
+        <button type="button" class="feed-mode-btn active" id="feed-mode-btn-live" onclick="setFeedingEntryMode('live')">⏱️ Şimdi Emzir</button>
+        <button type="button" class="feed-mode-btn" id="feed-mode-btn-manual" onclick="setFeedingEntryMode('manual')">📝 Geçmiş / Biberon Ekle</button>
+      </div>
+
+      <div class="form-group" id="routine-feed-method-group">
         <label class="form-label">Besleme Türü</label>
         <select class="form-input" id="routine-modal-feed-method" onchange="onFeedMethodChange()">
           <option value="breast">🤱 Anne Sütü (Emzirme)</option>
@@ -5616,7 +5508,7 @@
         </select>
       </div>
 
-      <!-- TEK EL CANLI EMZİRME KRONOMETRESİ (YALNIZCA ANNE SÜTÜ SEÇİLİYKEN VE YENİ KAYITTA GÖRÜNÜR) -->
+      <!-- TEK EL CANLI EMZİRME KRONOMETRESİ (YALNIZCA "ŞİMDİ EMZİR" MODUNDA GÖRÜNÜR • MANUEL ALANLAR GİZLENİR) -->
       <div id="live-nursing-modal-card" style="display: none; background: rgba(244, 162, 97, 0.08); border: 1px solid rgba(244, 162, 97, 0.38); border-radius: 14px; padding: 11px 12px; margin-bottom: 12px;">
         <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
           <div style="font-family: 'Sora'; font-size: 12px; font-weight: 800; color: var(--heading-night);" id="live-nursing-modal-title">⏱️ Canlı Emzirme Sayacı</div>
@@ -5638,7 +5530,7 @@
             <button type="button" id="btn-modal-nursing-save" onclick="completeLiveNursingSession(false)" style="min-height: 40px; border-radius: 10px; border: 1px solid rgba(46, 213, 115, 0.55); background: rgba(46, 213, 115, 0.16); color: #2ED573; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer;">💾 Emzirmeyi Kaydet</button>
             <button type="button" id="btn-modal-nursing-sleep" onclick="completeLiveNursingSession(true)" style="min-height: 40px; border-radius: 10px; border: none; background: linear-gradient(135deg, var(--accent) 0%, #E07A5F 100%); color: #141B2E; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer;">🌙 Memede Uyudu</button>
           </div>
-          <button type="button" id="btn-modal-nursing-companion" onclick="openNursingCompanionOnHome()" style="width: 100%; min-height: 35px; border-radius: 9px; border: 1px solid rgba(244, 162, 97, 0.42); background: rgba(255,255,255,0.05); color: #FAF5EE; font-size: 10.5px; font-weight: 700; cursor: pointer;">☕ Gece Eşlikçisini & Loş Feneri Gör (Ana Ekran) ➔</button>
+          <button type="button" id="btn-modal-nursing-home" onclick="returnToHomeDuringNursing()" style="width: 100%; min-height: 35px; border-radius: 9px; border: 1px solid var(--border-night); background: rgba(255,255,255,0.05); color: var(--heading-night); font-size: 10.5px; font-weight: 700; cursor: pointer;">🏠 Ana Ekrana Dön (Sayaç Üstte Devam Eder) ➔</button>
         </div>
       </div>
 
@@ -5659,7 +5551,7 @@
         <label class="form-label" id="routine-feed-duration-label">Süre (dk)</label>
         <input type="number" inputmode="numeric" min="0" step="1" class="form-input" id="routine-modal-feed-duration" placeholder="Örn: 20" />
       </div>
-      <div class="form-group">
+      <div class="form-group" id="routine-feed-note-wrap">
         <label class="form-label">Not (opsiyonel)</label>
         <input type="text" class="form-input" id="routine-modal-feed-note" placeholder="Örn: sağ göğüs, huzursuzdu" />
       </div>
@@ -5882,6 +5774,26 @@
     }
     return '/api/v1';
   }
+
+  async function fetchWithTimeout(resource, options) {
+    const opts = Object.assign({}, options || {});
+    const timeoutMs = Number(opts.timeout) > 0 ? Number(opts.timeout) : 8000;
+    delete opts.timeout;
+    if (typeof AbortController === 'undefined') {
+      return fetch(resource, opts);
+    }
+    const controller = new AbortController();
+    const timerId = setTimeout(() => {
+      try { controller.abort(); } catch (_ae) {}
+    }, timeoutMs);
+    opts.signal = controller.signal;
+    try {
+      return await fetch(resource, opts);
+    } finally {
+      clearTimeout(timerId);
+    }
+  }
+  window.fetchWithTimeout = fetchWithTimeout;
   let isPurchaseInFlight = false;
 
   window.MishilNative = {
@@ -6273,7 +6185,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.53.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.54.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -6415,7 +6327,8 @@
           freeSoundUsed: soundUsed,
           freeSoundElapsedMs: soundUsed ? FREE_SOUND_PREVIEW_TOTAL_MS : elapsed,
           freeCryUsed: localStorage.getItem('mishil_free_cry_used') === '1',
-          freeDadiUsed: localStorage.getItem('mishil_free_dadi_question_used') === '1'
+          freeDadiUsed: localStorage.getItem('mishil_free_dadi_question_used') === '1',
+          freeMomDadiUsed: localStorage.getItem('mishil_free_mom_dadi_used') === '1'
         }
       }));
     } catch (_sqe) {}
@@ -6553,18 +6466,32 @@
     try { return localStorage.getItem('mishil_free_dadi_question_used') === '1'; } catch (_de) { return false; }
   }
 
+  function hasUsedFreeMomDadiQuestion() {
+    try { return localStorage.getItem('mishil_free_mom_dadi_used') === '1'; } catch (_mde) { return false; }
+  }
+
   function canAccessCoachTab() {
-    return (typeof isSubscriptionCurrentlyActive === 'function' ? isSubscriptionCurrentlyActive() : isPaidOrVerifiedVip()) || !hasUsedFreeDadiQuestion();
+    return (typeof isSubscriptionCurrentlyActive === 'function' ? isSubscriptionCurrentlyActive() : isPaidOrVerifiedVip())
+      || !hasUsedFreeDadiQuestion()
+      || !hasUsedFreeMomDadiQuestion();
   }
 
-  function canAskDadiQuestion() {
+  function canAskDadiQuestion(audienceOverride) {
     if (typeof isSubscriptionCurrentlyActive === 'function' ? isSubscriptionCurrentlyActive() : isPaidOrVerifiedVip()) return true;
-    return !hasUsedFreeDadiQuestion();
+    const aud = (audienceOverride || (typeof activeDadiAudience !== 'undefined' ? activeDadiAudience : 'baby')) === 'mom' ? 'mom' : 'baby';
+    return aud === 'mom' ? !hasUsedFreeMomDadiQuestion() : !hasUsedFreeDadiQuestion();
   }
 
-  function markFreeDadiQuestionUsedIfNeeded() {
+  function markFreeDadiQuestionUsedIfNeeded(audienceOverride) {
     if (typeof isSubscriptionCurrentlyActive === 'function' ? isSubscriptionCurrentlyActive() : isPaidOrVerifiedVip()) return;
-    try { localStorage.setItem('mishil_free_dadi_question_used', '1'); } catch (_mde) {}
+    const aud = (audienceOverride || (typeof activeDadiAudience !== 'undefined' ? activeDadiAudience : 'baby')) === 'mom' ? 'mom' : 'baby';
+    try {
+      if (aud === 'mom') {
+        localStorage.setItem('mishil_free_mom_dadi_used', '1');
+      } else {
+        localStorage.setItem('mishil_free_dadi_question_used', '1');
+      }
+    } catch (_mde) {}
     syncDeviceQuotasToNative();
     if (typeof updateDadiFreeQuotaUI === 'function') updateDadiFreeQuotaUI();
   }
@@ -6577,11 +6504,25 @@
   window.getFreeSoundElapsedMs = getFreeSoundElapsedMs;
   window.getRemainingFreeSoundPreviewMs = getRemainingFreeSoundPreviewMs;
   window.hasUsedFreeCryAnalysis = hasUsedFreeCryAnalysis;
+  window.hasUsedFreeMomDadiQuestion = hasUsedFreeMomDadiQuestion;
   window.maskSpotTimeStr = maskSpotTimeStr;
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.53.0', date: '19 Kasım 2026', dateEn: 'November 19, 2026', dateDe: '19. November 2026', latest: true, items: [
+    { v: '4.54.0', date: '19 Kasım 2026', dateEn: 'November 19, 2026', dateDe: '19. November 2026', latest: true, items: [
+      '🌿 Çıkararak Sadeleştirme & Sıfır Bilişsel Yük Mimarisi: Ana ekranda canlı emzirme şeridi en üste (kaydırmadan görünür konuma) taşındı; tekrar eden "+ Detaylı Ekle" ve ayrı "Bakım Özeti" kutusu kaldırılarak son beslenme ve bez zamanları doğrudan hızlı kartların üstünde birleştirildi.',
+      '⏱️ Beslenme Ekranında Net Ayrım ("Şimdi Emzir" | "Geçmiş / Biberon Ekle"): Canlı emzirme kronometresi açıkken manuel geçmiş giriş alanları ve alttaki ikinci kayıt butonu gizlenerek kafa karışıklığı giderildi; mama/biberon kullanan aileler için hızlı ml girişi varsayılan korundu.',
+      '💛 İzole "Kendim İçin" Köşesi & Dürüst Eş Nöbet Notu: Anne Molası içindeki çalışmayan loş fener, selam sayacı, bulmaca ve sabaha not kalabalığı temizlenip varsayılan kapalı tek satırlık "🤝 Eşime Sessiz Nöbet Notu"na indirildi (PARTNER_WHISPER canlı senkronu onarıldı); 60 sn sessiz nefes ve bebek sohbetinden/kotasından %100 ayrılmış şefkatli dertleşme Mışıl Dadı -> "💛 Kendim İçin" sekmesinde toplandı.'
+    ], itemsEn: [
+      '🌿 Radical Simplification & Zero Cognitive Load Home Layout: Moved the active live nursing bar to the very top of Home (always above the fold) and eliminated duplicate "+ Add Routine" and redundant Care Summary cards—showing live last-fed and last-diaper times directly on quick cards.',
+      '⏱️ Mutually Exclusive Feeding Modes ("Nurse Now" | "Log Past / Bottle"): Separated live breastfeeding stopwatch mode from manual past/bottle logging so two competing save flows never appear together, while preserving fast ml defaults for formula/bottle families.',
+      '💛 Isolated "For Myself" Sanctuary & Honest Partner Shift Note: Removed clutter (lantern, solidarity counter, word puzzle, morning to-do) in favor of a single collapsed "🤝 Silent Partner Shift Note" strip (with fixed live PARTNER_WHISPER sync), and placed 60s silent haptic breathing plus isolated chat history & independent free quota inside Mışıl Nanny -> "💛 For Myself".'
+    ], itemsDe: [
+      '🌿 Konsequente Vereinfachung & ruhige Startseite ohne Doppelungen: Die aktive Live-Stillleiste steht nun ganz oben im sichtbaren Bereich; doppelte „+ Eintragen“-Buttons und redundante Pflege-Boxen wurden entfernt, während letzte Mahlzeit- und Windelzeiten direkt auf den Schnellkarten stehen.',
+      '⏱️ Klare Trennung im Mahlzeiten-Fenster („Jetzt stillen“ | „Nachtragen / Fläschchen“): Live-Stilluhr und manuelle Nacherfassung werden strikt getrennt angezeigt (ohne doppelte Speichern-Buttons), wobei für Fläschchen/Pre-Nahrung weiterhin die schnelle ml-Eingabe vorausgewählt bleibt.',
+      '💛 Isolierter Bereich „Für mich“ & ehrliche Partner-Schichtnotiz: Unnötige Extras (Laterne, Grußzähler, Worträtsel, Morgen-Notiz) wurden entfernt; auf der Startseite bleibt eine eingeklappte „🤝 Stille Schichtnotiz an Partner“ (inkl. repariertem PARTNER_WHISPER-Echtzeitsync), während die 60-Sek.-Atmung sowie ein getrennter Gesprächsverlauf mit eigenem Gratis-Kontingent unter Mışıl Nanny -> „💛 Für mich“ gebündelt sind.'
+    ]},
+    { v: '4.53.0', date: '19 Kasım 2026', dateEn: 'November 19, 2026', dateDe: '19. November 2026', items: [
       '🤱 Tek Elle Canlı Emzirme Sayacı (Sol / Sağ Göğüs) & Son Göğüs Hafızası: Anne Sütü seçili profillerde kilit ekranında bile şaşmayan Sol / Sağ göğüs kronometresi, en son hangi göğüsten emzirildiğini hatırlatan akıllı rozet ve emzirme bitişinde tek dokunuşla "💾 Emzirmeyi Kaydet" veya "🌙 Memede Uyudu (Kaydet & Canlı Uykuyu Başlat)" seçenekleri eklendi (mama/biberon kullanan ailelerde hızlı ml akışı önde korunur).',
       '☕ Ortak Gece Eşlikçisi & Anne Molası Keşfedilebilirlik Onarımı: Canlı emzirme sırasında da aynı karanlık oda çekmecesi "🤱 Emzirme & Gece Eşlikçisi" modunda açılır ("🍵 Emziriyorum, su getirir misin?" ve "🤱 Gazını çıkarmak için devralır mısın?" eş fısıltılarıyla); başka sekmedeyken (örn. Sesler) Uyut butonuna basıldığında tıklanabilir yönlendirme bildirimi ve ekranı kaydırmayan sıcak kehribar açılış halesi devreye alındı.'
     ], itemsEn: [
@@ -7789,9 +7730,58 @@
   // =========================================================================
   // 2. MIŞIL DADI AI CHAT ENGINE (4-TIER CASCADING BACKEND API • BABY & MOM MODES)
   // =========================================================================
-  let dadiChatHistory = [];
+  const dadiChatHistories = { baby: [], mom: [] };
   let isDadiGenerating = false;
   let activeDadiAudience = 'baby';
+
+  function getDadiHistoryFor(mode) {
+    return mode === 'mom' ? dadiChatHistories.mom : dadiChatHistories.baby;
+  }
+
+  function buildDadiIntroHtmlForMode(mode) {
+    const isMom = mode === 'mom';
+    const _b = typeof getBaby === 'function' ? getBaby() : null;
+    const bName = escapeHtml((_b && _b.name) ? _b.name : (localStorage.getItem('mishil_baby_name') || trEnDe('Bebeğiniz', 'Your baby', 'Ihr Baby')));
+    if (isMom) {
+      return trEnDe(
+        `💛 <strong>Bu köşe sadece sizin için, sevgili anne.</strong> Herkes bebeği sorarken sizin ne kadar yorulduğunuzu biliyorum. Suçluluk hissi, uykusuzluk, tükenmişlik veya sadece içinizi dökmek istediğiniz ne varsa yargısızca dinlemek için buradayım.`,
+        `💛 <strong>This space is just for you, mama.</strong> While everyone asks about the baby, your exhaustion and feelings matter too. Share anything on your heart—mom guilt, racing thoughts, or night fatigue—judgment-free.`,
+        `💛 <strong>Dieser Raum gehört ganz Ihnen, liebe Mama.</strong> Während alle nach dem Baby fragen, zählen hier Sie. Ob Erschöpfung, Gedankenkarussell oder Schuldgefühle – ich höre Ihnen wertfrei und warmherzig zu.`
+      );
+    }
+    return trEnDe(
+      `🌸 <strong>Merhaba sevgili anneciğim/babacığım!</strong> Ben Mışıl Dadı. <strong id="chat-baby-mention">${bName}</strong>'in sirkadiyen ritmine, ayına ve uyku geçmişine hakimim. Uykuya direnişler, gece bölünmeleri veya beslenme düzeniyle ilgili aklınıza takılan her şeyi bana sorabilirsiniz.`,
+      `🌸 <strong>Hello dear parent!</strong> I am Mışıl Nanny. I know <strong id="chat-baby-mention">${bName}</strong>'s circadian rhythm, age, and sleep history. Ask me anything about bedtime resistance, night wakings, or feeding routines.`,
+      `🌸 <strong>Hallo liebe Mama, lieber Papa!</strong> Ich bin Mışıl Nanny und kenne den Rhythmus und das Alter von <strong id="chat-baby-mention">${bName}</strong>. Fragen Sie mich jederzeit zu Einschlafbegleitung, Nachtschlaf oder Stillroutinen.`
+    );
+  }
+
+  function renderDadiMessagesForActiveMode() {
+    const container = document.getElementById('chat-messages-container');
+    if (!container) return;
+    const mode = activeDadiAudience === 'mom' ? 'mom' : 'baby';
+    const history = getDadiHistoryFor(mode);
+    container.innerHTML = '';
+    const introDiv = document.createElement('div');
+    introDiv.className = 'chat-bubble-dadi';
+    introDiv.id = 'chat-dadi-intro-bubble';
+    introDiv.innerHTML = buildDadiIntroHtmlForMode(mode);
+    container.appendChild(introDiv);
+
+    history.forEach(entry => {
+      if (!entry || !entry.content) return;
+      const b = document.createElement('div');
+      if (entry.role === 'user') {
+        b.className = 'chat-bubble-user';
+        b.textContent = String(entry.content);
+      } else {
+        b.className = 'chat-bubble-dadi';
+        b.innerHTML = formatMarkdown(entry.content);
+      }
+      container.appendChild(b);
+    });
+    container.scrollTop = container.scrollHeight;
+  }
 
   function setDadiChipsState(enabled) {
     document.querySelectorAll('.ai-chip').forEach(chip => {
@@ -7832,6 +7822,21 @@
     const cryBar = document.getElementById('coach-cry-solver-bar');
     if (cryBar) cryBar.style.display = isMom ? 'none' : 'flex';
 
+    const breatheBar = document.getElementById('coach-mom-breathe-bar');
+    if (breatheBar) breatheBar.style.display = isMom ? 'flex' : 'none';
+    const bTitle = document.getElementById('coach-mom-breathe-title');
+    if (bTitle) {
+      bTitle.textContent = trEnDe('🌬️ 60 Sn Sessiz Nefes Molası', '🌬️ 60s Silent Breathing Pause', '🌬️ 60 Sek. Stille Atempause');
+    }
+    if (!isMom && typeof stopMomSilentBreathing === 'function') {
+      stopMomSilentBreathing();
+    } else if (isMom && typeof momBreathTimer !== 'undefined' && !momBreathTimer) {
+      const bBtn = document.getElementById('btn-mom-breath-toggle');
+      const bSt = document.getElementById('mom-breath-status');
+      if (bBtn) bBtn.textContent = trEnDe('Başlat (60 sn)', 'Start (60s)', 'Start (60 Sek.)');
+      if (bSt) bSt.textContent = trEnDe('4 sn al • 4 sn tut • 6 sn ver (Sıfır ses, nazik titreşim)', '4s inhale • 4s hold • 6s exhale (Silent haptic guide)', '4s ein • 4s halten • 6s aus (Lautlose Haptik)');
+    }
+
     const safetyNote = document.getElementById('dadi-mom-safety-note');
     if (safetyNote) {
       safetyNote.style.display = isMom ? 'block' : 'none';
@@ -7845,7 +7850,7 @@
     const hdrSub = document.getElementById('coach-header-subtitle');
     if (hdrSub) {
       hdrSub.textContent = isMom
-        ? trEnDe('💛 Anne Şefkat & Gece Dertleşme Köşesi', '💛 Maternal Self-Compassion & Night Companion', '💛 Einfühlsame Mama-Auszeit & Nachtbegleitung')
+        ? trEnDe('💛 Anne Şefkat & Dertleşme Köşesi', '💛 Maternal Self-Compassion Corner', '💛 Einfühlsame Mama-Auszeit')
         : trEnDe('7/24 Şefkatli Uyku & Gelişim Danışmanı', '24/7 Gentle Sleep & Development Coach', '24/7 Sanfte Schlaf- & Entwicklungsberatung');
     }
 
@@ -7871,24 +7876,7 @@
       setDadiChipsState(!isDadiGenerating);
     }
 
-    const introBubble = document.getElementById('chat-dadi-intro-bubble');
-    if (introBubble && dadiChatHistory.length === 0) {
-      const _b = typeof getBaby === 'function' ? getBaby() : null;
-      const bName = escapeHtml((_b && _b.name) ? _b.name : (localStorage.getItem('mishil_baby_name') || trEnDe('Bebeğiniz', 'Your baby', 'Ihr Baby')));
-      if (isMom) {
-        introBubble.innerHTML = trEnDe(
-          `💛 <strong>Bu köşe sadece sizin için, sevgili anne.</strong> Herkes bebeği sorarken sizin ne kadar yorulduğunuzu biliyorum. Suçluluk hissi, uykusuzluk, tükenmişlik veya sadece içinizi dökmek istediğiniz ne varsa yargısızca dinlemek için buradayım.`,
-          `💛 <strong>This space is just for you, mama.</strong> While everyone asks about the baby, your exhaustion and feelings matter too. Share anything on your heart—mom guilt, racing thoughts, or night fatigue—judgment-free.`,
-          `💛 <strong>Dieser Raum gehört ganz Ihnen, liebe Mama.</strong> Während alle nach dem Baby fragen, zählen hier Sie. Ob Erschöpfung, Gedankenkarussell oder Schuldgefühle – ich höre Ihnen wertfrei und warmherzig zu.`
-        );
-      } else {
-        introBubble.innerHTML = trEnDe(
-          `🌸 <strong>Merhaba sevgili anneciğim/babacığım!</strong> Ben Mışıl Dadı. <strong id="chat-baby-mention">${bName}</strong>'in sirkadiyen ritmine, ayına ve uyku geçmişine hakimim. Uykuya direnişler, gece bölünmeleri veya beslenme düzeniyle ilgili aklınıza takılan her şeyi bana sorabilirsiniz.`,
-          `🌸 <strong>Hello dear parent!</strong> I am Mışıl Nanny. I know <strong id="chat-baby-mention">${bName}</strong>'s circadian rhythm, age, and sleep history. Ask me anything about bedtime resistance, night wakings, or feeding routines.`,
-          `🌸 <strong>Hallo liebe Mama, lieber Papa!</strong> Ich bin Mışıl Nanny und kenne den Rhythmus und das Alter von <strong id="chat-baby-mention">${bName}</strong>. Fragen Sie mich jederzeit zu Einschlafbegleitung, Nachtschlaf oder Stillroutinen.`
-        );
-      }
-    }
+    renderDadiMessagesForActiveMode();
     updateDadiFreeQuotaUI();
   }
 
@@ -7906,10 +7894,10 @@
     const isMom = activeDadiAudience === 'mom';
     if (isPaidOrVerifiedVip()) {
       const stdPh = isMom
-        ? trEnDe('💛 İçinizi dökün, bu köşede sadece siz varsınız...', '💛 Share how you feel tonight, this space is for you...', '💛 Schreiben Sie sich alles von der Seele...')
+        ? trEnDe('💛 İçinizi dökün, bu köşede sadece siz varsınız...', '💛 Share how you feel, this space is just for you...', '💛 Schreiben Sie sich alles von der Seele...')
         : trEnDe("Mışıl Dadı'ya bebeğinizin uykusunu sorun...", "Ask Mışıl Nanny about your baby's sleep...", 'Fragen Sie Mışıl Nanny zum Schlaf Ihres Babys...');
       input.setAttribute('placeholder', stdPh);
-    } else if (!hasUsedFreeDadiQuestion()) {
+    } else if (canAskDadiQuestion(activeDadiAudience)) {
       const freePh = isMom
         ? trEnDe("🎁 Mışıl Dadı'ya kendiniz için 1 ücretsiz mesajınızı yazın...", '🎁 Write your 1st free message for yourself...', '🎁 Schreiben Sie Ihre 1. kostenlose Nachricht für sich...')
         : trEnDe("🎁 Mışıl Dadı'ya 1 ücretsiz sorunuzu yazın...", '🎁 Ask your 1st free question to Mışıl Nanny...', '🎁 Stellen Sie Ihre 1. kostenlose Frage an Mışıl Nanny...');
@@ -7952,13 +7940,15 @@
 
   async function submitDadiChat(userText) {
     if (isDadiGenerating) return;
-    if (!canAskDadiQuestion()) {
+    const reqAudience = activeDadiAudience === 'mom' ? 'mom' : 'baby';
+    if (!canAskDadiQuestion(reqAudience)) {
       openVipRenewalModal('ai_nanny');
       return;
     }
     isDadiGenerating = true;
     setDadiChipsState(false);
 
+    const activeHistory = getDadiHistoryFor(reqAudience);
     const container = document.getElementById('chat-messages-container');
     const typingIndicator = document.getElementById('dadi-typing-indicator');
 
@@ -7971,7 +7961,7 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    dadiChatHistory.push({ role: 'user', content: userText });
+    activeHistory.push({ role: 'user', content: userText });
 
     const _b = getBaby();
     const babyName = _b ? _b.name : (localStorage.getItem('mishil_baby_name') || BABY_FALLBACK_NAME);
@@ -8002,9 +7992,9 @@
           manual_leap: manualLeap,
           routine_rollup: typeof calculateRoutineRollup === 'function' ? calculateRoutineRollup() : null,
           message: userText,
-          chat_history: dadiChatHistory.slice(-8),
+          chat_history: activeHistory.slice(-8),
           lang: getAppLang(),
-          audience: activeDadiAudience
+          audience: reqAudience
         })
       };
       if (abortCtrl) fetchOpts.signal = abortCtrl.signal;
@@ -8036,14 +8026,14 @@
                 if (parsed.text) {
                   if (typingIndicator) typingIndicator.style.display = 'none';
 
-                  if (!dadiBubble && container) {
+                  if (!dadiBubble && container && activeDadiAudience === reqAudience) {
                     dadiBubble = document.createElement('div');
                     dadiBubble.className = 'chat-bubble-dadi';
                     container.appendChild(dadiBubble);
                   }
 
                   accumulatedText += parsed.text;
-                  if (dadiBubble) dadiBubble.innerHTML = formatMarkdown(accumulatedText);
+                  if (dadiBubble && activeDadiAudience === reqAudience) dadiBubble.innerHTML = formatMarkdown(accumulatedText);
                   if (container) container.scrollTop = container.scrollHeight;
                 }
               } catch (e) {}
@@ -8053,25 +8043,25 @@
       }
 
       if (accumulatedText) {
-        dadiChatHistory.push({ role: 'assistant', content: accumulatedText });
-        markFreeDadiQuestionUsedIfNeeded();
+        activeHistory.push({ role: 'assistant', content: accumulatedText });
+        markFreeDadiQuestionUsedIfNeeded(reqAudience);
         hapticPulse();
         if (typeof scheduleMishilDelightReview === 'function') {
           scheduleMishilDelightReview('dadi_reply_completed', 10000);
         }
       } else {
-        fallbackDadiLocalResponse(babyName, birthDate, userText);
+        fallbackDadiLocalResponse(babyName, birthDate, userText, reqAudience);
       }
     } catch (err) {
       console.warn('Streaming error, falling back to local heuristic:', err);
       if (dadiBubble && accumulatedText) {
-        dadiChatHistory.push({ role: 'assistant', content: accumulatedText });
-        markFreeDadiQuestionUsedIfNeeded();
+        activeHistory.push({ role: 'assistant', content: accumulatedText });
+        markFreeDadiQuestionUsedIfNeeded(reqAudience);
         if (typeof scheduleMishilDelightReview === 'function') {
           scheduleMishilDelightReview('dadi_reply_completed', 10000);
         }
       } else {
-        fallbackDadiLocalResponse(babyName, birthDate, userText);
+        fallbackDadiLocalResponse(babyName, birthDate, userText, reqAudience);
       }
     } finally {
       if (streamTimeoutId) clearTimeout(streamTimeoutId);
@@ -8101,15 +8091,17 @@
       .replace(/\n/g, '<br/>');
   }
 
-  function fallbackDadiLocalResponse(babyName, birthDate, userText) {
+  function fallbackDadiLocalResponse(babyName, birthDate, userText, audienceArg) {
     setTimeout(() => {
+      const fbAud = (audienceArg || activeDadiAudience) === 'mom' ? 'mom' : 'baby';
+      const fbHistory = getDadiHistoryFor(fbAud);
       const calc = calculateMışılSpot(birthDate);
       const q = (userText || '').toLowerCase();
       const routines = (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines)) ? activeRoutines : [];
       const rollup = (typeof calculateRoutineRollup === 'function') ? calculateRoutineRollup() : null;
       const curLang = getAppLang();
 
-      if (activeDadiAudience === 'mom') {
+      if (fbAud === 'mom') {
         const crisisRe = /kendime zarar|bebeğe zarar|ölmek istiyorum|intihar|dayanamıyorum artık|yaşamak istemiyorum|hurt myself|harm myself|harm my baby|suicide|end my life|mir etwas antun|baby wehtun|suizid|nicht mehr leben/i;
         let momReply = '';
         if (crisisRe.test(q)) {
@@ -8119,15 +8111,15 @@
               ? '💛 **Dear mama, please do not carry this heavy moment alone.** Reaching out right now is an act of courage.\n\n• Please wake your partner or call someone you trust nearby.\n• **24/7 Immediate Support:** Call or text **988** (Lifeline), **1-833-TLC-MAMA**, or **112 / 911**.\n\nYou matter deeply, and support is right here for you. 🤍'
               : '💛 **Sevgili anne, lütfen bu ağır anı tek başınıza taşımayın.** Şu an hissettiğiniz yük çok gerçek ve yardım istemek en büyük güçtür.\n\n• Lütfen hemen yanınızdaki eşinize veya güvendiğiniz bir yakınınıza seslenin, bebeği güvenli beşiğine bırakın.\n• **7/24 Ücretsiz Destek:** **112 Acil** veya **182 (MHRS Ruh Sağlığı Destek)** hattını hemen arayabilirsiniz.\n\nSiz çok değerlisiniz ve yalnız değilsiniz. 🤍');
         } else if (curLang === 'de') {
-          momReply = `💛 **Atmen Sie erst einmal tief aus, liebe Mama.** Dass Sie erschöpft sind, bedeutet nicht, dass Sie versagen – es zeigt, wie viel Liebe und Kraft Sie Tag und Nacht geben.\n\n• Lassen Sie heute alles Nicht-Dringende liegen; ein Glas Wasser und 3 ruhige Atemzüge reichen völlig.\n• Wenn Ihr Kopf rast: Nutzen Sie in der **Mama-Pause** die 60-Sekunden-Atmung oder schreiben Sie Gedanken kurz in die Morgen-Notiz.\n\nSie machen das wunderbar. 🤍`;
+          momReply = `💛 **Atmen Sie erst einmal tief aus, liebe Mama.** Dass Sie erschöpft sind, bedeutet nicht, dass Sie versagen – es zeigt, wie viel Liebe und Kraft Sie Tag und Nacht geben.\n\n• Lassen Sie alles Nicht-Dringende ruhig liegen; ein Glas Wasser und ein paar ruhige Atemzüge reichen völlig.\n• Wenn Ihr Kopf rast: Starten Sie direkt oben die **60-Sekunden-Atmung**.\n\nSie machen das wunderbar. 🤍`;
         } else if (curLang === 'en') {
-          momReply = `💛 **Take one slow exhale first, mama.** Feeling touched-out, guilty, or exhausted does not mean you are failing—it means you have been carrying so much with love.\n\n• Give yourself permission to leave every non-essential chore for tomorrow; sip some water and rest your shoulders.\n• If your mind won't slow down while the baby sleeps, try the **60s Silent Breathing** or **Partner Whisper** inside Mom Break.\n\nYou are doing more than enough tonight. 🤍`;
+          momReply = `💛 **Take one slow exhale first, mama.** Feeling touched-out, guilty, or exhausted does not mean you are failing—it means you have been carrying so much with love.\n\n• Give yourself permission to leave every non-essential chore for tomorrow; sip some water and rest your shoulders.\n• If your mind won't slow down, tap **60s Silent Breathing** right above.\n\nYou are doing more than enough. 🤍`;
         } else {
-          momReply = `💛 **Önce omuzlarınızı yavaşça gevşetin ve derin bir nefes verin, sevgili anne.** Yorulmanız, bunalmanız ya da "yeterince iyi miyim?" diye sormanız kötü bir anne olduğunuzu değil; ne kadar çok emek verdiğinizi gösterir.\n\n• Bu gece acil olmayan her işi yarına bırakma izniniz var; bir yudum su için ve sırtınızı yaslayın.\n• Zihniniz susmuyorsa Ana Ekrandaki **☕ Anne Molası** çekmecesinden 60 sn sessiz nefes açabilir veya eşinize tek tıkla **"Sıradaki uyanış sende"** fısıltısı gönderebilirsiniz.\n\nBebeğiniz için en güvenli liman zaten sizsiniz, bu gece kendinize de şefkat gösterin. 🤍`;
+          momReply = `💛 **Önce omuzlarınızı yavaşça gevşetin ve derin bir nefes verin, sevgili anne.** Yorulmanız, bunalmanız ya da "yeterince iyi miyim?" diye sormanız kötü bir anne olduğunuzu değil; ne kadar çok emek verdiğinizi gösterir.\n\n• Acil olmayan her işi yarına bırakma izniniz var; bir yudum su için ve sırtınızı yaslayın.\n• Zihniniz susmuyorsa hemen üstteki **🌬️ 60 Sn Sessiz Nefes** rehberini başlatabilirsiniz.\n\nBebeğiniz için en güvenli liman zaten sizsiniz, kendinize de şefkat gösterin. 🤍`;
         }
-        renderDadiReply(momReply);
-        dadiChatHistory.push({ role: 'assistant', content: momReply });
-        markFreeDadiQuestionUsedIfNeeded();
+        fbHistory.push({ role: 'assistant', content: momReply });
+        if (activeDadiAudience === 'mom') renderDadiReply(momReply);
+        markFreeDadiQuestionUsedIfNeeded('mom');
         return;
       }
 
@@ -8165,9 +8157,9 @@
                      `• Wenn Sie 15 Minuten vor Ablauf mit einem ruhigen Einschlafritual (gedimmtes Licht + Rosa Rauschen) beginnen, sinkt der Einschlafwiderstand deutlich.\n` +
                      `• Ich bin rund um die Uhr für Sie da! 🌙\n\n🌸 Wir wünschen ruhige Träume.`;
         }
-        renderDadiReply(replyDe);
-        dadiChatHistory.push({ role: 'assistant', content: replyDe });
-        markFreeDadiQuestionUsedIfNeeded();
+        fbHistory.push({ role: 'assistant', content: replyDe });
+        if (activeDadiAudience === 'baby') renderDadiReply(replyDe);
+        markFreeDadiQuestionUsedIfNeeded('baby');
         if (typeof scheduleMishilDelightReview === 'function') {
           scheduleMishilDelightReview('dadi_reply_completed', 10000);
         }
@@ -8208,9 +8200,9 @@
                      `• Starting your wind-down routine (dim lights + white noise + gentle shushing) 15 minutes before the window ends reduces bedtime resistance by up to 80%.\n` +
                      `• I am here for you 24/7 whenever you need guidance! 🌙\n\n🌸 Wishing you sweet Mishil dreams.`;
         }
-        renderDadiReply(replyEn);
-        dadiChatHistory.push({ role: 'assistant', content: replyEn });
-        markFreeDadiQuestionUsedIfNeeded();
+        fbHistory.push({ role: 'assistant', content: replyEn });
+        if (activeDadiAudience === 'baby') renderDadiReply(replyEn);
+        markFreeDadiQuestionUsedIfNeeded('baby');
         if (typeof scheduleMishilDelightReview === 'function') {
           scheduleMishilDelightReview('dadi_reply_completed', 10000);
         }
@@ -8252,9 +8244,9 @@
                  `• Sorularınız için gece veya gündüz dilediğiniz zaman buradayım! 🌙`;
       }
 
-      renderDadiReply(reply);
-      dadiChatHistory.push({ role: 'assistant', content: reply });
-      markFreeDadiQuestionUsedIfNeeded();
+      fbHistory.push({ role: 'assistant', content: reply });
+      if (activeDadiAudience === 'baby') renderDadiReply(reply);
+      markFreeDadiQuestionUsedIfNeeded('baby');
       if (typeof scheduleMishilDelightReview === 'function') {
         scheduleMishilDelightReview('dadi_reply_completed', 10000);
       }
@@ -10029,7 +10021,9 @@
     if ((isSubscribed || isCompleted) && hasProfile) {
       ensureExistingFreemiumSoftVip();
       screenEl.classList.remove('active');
-      if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
+      setTimeout(() => {
+        if (typeof maybeStartFirstTimeSpotlightTour === 'function') maybeStartFirstTimeSpotlightTour();
+      }, 0);
       return;
     }
 
@@ -12149,13 +12143,24 @@
     }
     const whisperConnected = document.getElementById('mom-whisper-connected-box');
     const whisperInviteCta = document.getElementById('mom-whisper-invite-cta');
+    const hasCloudMember = typeof getFamilyMemberToken === 'function' && Boolean(getFamilyMemberToken());
     if (whisperConnected && whisperInviteCta) {
-      if (count >= 2) {
+      if (count >= 2 && hasCloudMember) {
         whisperConnected.style.display = 'block';
         whisperInviteCta.style.display = 'none';
       } else {
         whisperConnected.style.display = 'none';
         whisperInviteCta.style.display = 'block';
+        const invTitle = document.getElementById('mom-whisper-invite-title');
+        const invDesc = document.getElementById('mom-whisper-invite-desc');
+        const invBtn = document.getElementById('mom-whisper-invite-btn');
+        if (invTitle) invTitle.textContent = trEnDe('👨‍👩‍👧 Eşiniz henüz bağlı değil (1 / 3 Üye)', '👨‍👩‍👧 Partner not connected yet (1 / 3 Members)', '👨‍👩‍👧 Partner noch nicht verbunden (1 / 3 Mitglieder)');
+        if (invDesc) invDesc.textContent = trEnDe(
+          'Aile Kodunuzu paylaşın; hem aynı bebeği canlı takip edin hem de tek dokunuşla sessiz nöbet notu bırakın.',
+          'Share your Family Code to track the same baby live and leave one-tap silent shift notes.',
+          'Teilen Sie Ihren Familiencode, um dasselbe Baby live zu begleiten und mit einem Tipp leise Schicht-Notizen zu hinterlassen.'
+        );
+        if (invBtn) invBtn.textContent = trEnDe('📲 Eşini Aile Koduyla Bağla (Maks. 3 Üye)', '📲 Connect Partner with Family Code (Max 3)', '📲 Partner per Familiencode verbinden (Max. 3)');
       }
     }
   }
@@ -12359,14 +12364,20 @@
     }
 
     if (fam.checked_vaccines && typeof fam.checked_vaccines === 'object') {
-      const mergedVac = Object.assign({}, getCompletedVaccines(), fam.checked_vaccines);
+      const incomingVacObj = Array.isArray(fam.checked_vaccines)
+        ? fam.checked_vaccines.reduce((acc, k) => { if (k) acc[String(k)] = true; return acc; }, {})
+        : fam.checked_vaccines;
+      const mergedVac = Object.assign({}, getCompletedVaccines(), incomingVacObj);
       localStorage.setItem('mishil_completed_vaccines', JSON.stringify(mergedVac));
     }
 
     if (fam.checked_leaps && typeof fam.checked_leaps === 'object') {
       let localLeaps = {};
       try { localLeaps = JSON.parse(localStorage.getItem('mishil_checked_leaps') || '{}') || {}; } catch (_lle) {}
-      localStorage.setItem('mishil_checked_leaps', JSON.stringify(Object.assign({}, localLeaps, fam.checked_leaps)));
+      const incomingLeapObj = Array.isArray(fam.checked_leaps)
+        ? fam.checked_leaps.reduce((acc, k) => { if (k) acc[String(k)] = true; return acc; }, {})
+        : fam.checked_leaps;
+      localStorage.setItem('mishil_checked_leaps', JSON.stringify(Object.assign({}, localLeaps, incomingLeapObj)));
     }
 
     if (Object.prototype.hasOwnProperty.call(fam, 'manual_leap')) {
@@ -12413,8 +12424,11 @@
       syncMomBreakDrawerVisibility();
     }
 
-    if (Array.isArray(fam.pending_whispers)) {
-      renderIncomingFamilyWhisperBanner(fam.pending_whispers);
+    const incomingWhispers = Array.isArray(fam.pending_whispers)
+      ? fam.pending_whispers
+      : (Array.isArray(fam.whispers) ? fam.whispers : null);
+    if (incomingWhispers) {
+      renderIncomingFamilyWhisperBanner(incomingWhispers);
     }
 
     renderFamilyMembers();
@@ -12915,94 +12929,24 @@
   }
 
   // =========================================================================
-  // ☕ ANNE MOLASI (MOM BREAK WHILE BABY SLEEPS) & SESSİZ FISILTI MOTORU
+  // 🤝 SADE EŞ NÖBET NOTU & 60 SN SESSİZ NEFES MOTORU (SIFIR BİLİŞSEL YÜK)
   // =========================================================================
-  const MOM_ADULT_ESCAPE_CARDS = [
-    {
-      catTr: '🌌 Gece Gökyüzü', catEn: '🌌 Night Sky', catDe: '🌌 Nachthimmel',
-      titleTr: 'Yıldız Işığının Zaman Yolculuğu', titleEn: 'Time-Traveling Starlight', titleDe: 'Zeitreise des Sternenlichts',
-      bodyTr: 'Bu gece pencereden görünen pek çok yıldızın ışığı dünyaya ulaşmak için yüzlerce yıl yol aldı; şu an baktığınız parıltı aslında Rönesans döneminden kalma bir mektup gibi.',
-      bodyEn: 'Light from many stars visible tonight traveled hundreds of years to reach your window—gazing up is like reading a quiet postcard sent during the Renaissance.',
-      bodyDe: 'Das Licht vieler Sterne vor Ihrem Fenster war Hunderte Jahre unterwegs – ein leiser Gruß aus vergangenen Jahrhunderten.'
-    },
-    {
-      catTr: '☕ Kahve Kültürü', catEn: '☕ Coffee Lore', catDe: '☕ Kaffeekultur',
-      titleTr: 'Sabah Kahvesinin Etiyopya Efsanesi', titleEn: 'The Ethiopian Legend of Morning Coffee', titleDe: 'Die äthiopische Legende des Kaffees',
-      bodyTr: '9. yüzyılda çoban Kaldi, kırmızı kahve kirazlarını yiyen keçilerinin neşeyle zıpladığını fark etti. Yarın sabah içeceğiniz ilk sıcak yudum 1.100 yıllık bir keşif geleneği.',
-      bodyEn: 'In the 9th century, herder Kaldi noticed his goats dancing after eating bright red coffee cherries—making tomorrow morning’s warm cup a 1,100-year ritual.',
-      bodyDe: 'Im 9. Jahrhundert entdeckte der Hirte Kaldi tanzende Ziegen nach roten Kaffeekirschen – Ihr morgiger Kaffee trägt 1.100 Jahre Geschichte in sich.'
-    },
-    {
-      catTr: '🌊 Doğa Harikası', catEn: '🌊 Ocean Wonder', catDe: '🌊 Naturwunder',
-      titleTr: 'El Ele Uyuyan Deniz Samurları', titleEn: 'Sea Otters Holding Paws at Night', titleDe: 'Seeotter schlafen Pfote in Pfote',
-      bodyTr: 'Pasifik deniz samurları gece akıntıda birbirlerinden uzaklaşmamak için uyurken el ele tutuşur veya kendilerini yosun battaniyelere sarar.',
-      bodyEn: 'Pacific sea otters hold paws while floating asleep on their backs so ocean currents never drift them apart in the dark.',
-      bodyDe: 'Seeotter halten im Schlaf Pfötchen, damit die Meeresströmung sie nachts nicht voneinander trennt.'
-    },
-    {
-      catTr: '🎨 Sanat & Renk', catEn: '🎨 Art & Color', catDe: '🎨 Kunst & Farbe',
-      titleTr: 'Van Gogh’un Gece Mavisi Tutkusu', titleEn: 'Van Gogh’s Midnight Palette', titleDe: 'Van Goghs Liebe zum Nachtblau',
-      bodyTr: 'Vincent van Gogh kardeşine yazdığı mektupta "Gece, gündüzden çok daha canlı ve renkli" demişti; Yıldızlı Gece tablosunu tam da şafak sökmeden önceki sessizlikte resmetti.',
-      bodyEn: 'Van Gogh wrote to his brother Theo that "the night is more alive and more richly colored than the day," painting Starry Night in pre-dawn stillness.',
-      bodyDe: 'Van Gogh schrieb seinem Bruder: „Die Nacht ist lebendiger und farbenreicher als der Tag“ – so entstand die Sternennacht.'
-    },
-    {
-      catTr: '📚 Edebiyat Notu', catEn: '📚 Literary Note', catDe: '📚 Literaturnotiz',
-      titleTr: 'Japoncada "Tsundoku" Kelimesi', titleEn: 'The Japanese Word "Tsundoku"', titleDe: 'Das japanische Wort „Tsundoku“',
-      bodyTr: 'Okumak niyetiyle alınıp başucunda üst üste biriken kitap kulesine Japoncada "Tsundoku" denir ve suçluluk değil, merakın zarif bir işareti sayılır.',
-      bodyEn: '"Tsundoku" describes buying books and letting them stack warmly on your nightstand—celebrated in Japan as curiosity, never something to feel guilty about.',
-      bodyDe: '„Tsundoku“ beschreibt den liebevollen Stapel ungelesener Bücher auf dem Nachttisch – ein Zeichen von Neugier statt Pflicht.'
-    },
-    {
-      catTr: '🌿 Botanik Sırları', catEn: '🌿 Botanical Secret', catDe: '🌿 Botanik-Geheimnis',
-      titleTr: 'Yağmur Sonrası Toprak Kokusu: Petrichor', titleEn: 'Why Rain Smells So Calming: Petrichor', titleDe: 'Der Duft nach Sommerregen: Petrichor',
-      bodyTr: 'Yağmur damlaları kuru toprağa değdiğinde bitkilerin sakladığı uçucu yağlar havaya karışır; "petrichor" adı verilen bu koku insan beyninde anında güven hissi uyandırır.',
-      bodyEn: 'When raindrops hit dry earth, plant oils release an aroma called "petrichor," which human noses detect at parts-per-trillion to trigger instant calm.',
-      bodyDe: 'Wenn Regentropfen auf trockene Erde treffen, entsteht „Petrichor“ – ein Duft, der unser Nervensystem sofort beruhigt.'
-    }
-  ];
-
-  const MOM_WORD_PUZZLES = {
-    tr: [
-      { word: 'KAHVE', scrambled: 'V E K A H', hint: 'Sabahın ilk sıcak ödülü ☕' },
-      { word: 'DENİZ', scrambled: 'Z İ N E D', hint: 'Dalga sesiyle dinlendiren mavilik 🌊' },
-      { word: 'KİTAP', scrambled: 'P A T İ K', hint: 'Sessiz bir mola sayfası 📖' },
-      { word: 'BAHAR', scrambled: 'R A H A B', hint: 'Çiçek açan ılık mevsim 🌸' },
-      { word: 'YILDIZ', scrambled: 'Z I D L I Y', hint: 'Gece gökyüzünün sessiz feneri ✨' }
-    ],
-    en: [
-      { word: 'COFFEE', scrambled: 'F E C O F E', hint: 'Tomorrow morning’s warm reward ☕' },
-      { word: 'BREEZE', scrambled: 'Z E R E B E', hint: 'Gentle coastal air 🌊' },
-      { word: 'STARRY', scrambled: 'R Y S T A R', hint: 'Quiet lights in the night sky ✨' },
-      { word: 'GARDEN', scrambled: 'N E D R A G', hint: 'A calm green sanctuary 🌿' },
-      { word: 'VELVET', scrambled: 'T E V L E V', hint: 'Soft, luxurious night texture 💜' }
-    ],
-    de: [
-      { word: 'KAFFEE', scrambled: 'F E K A E F', hint: 'Warmer Genuss am Morgen ☕' },
-      { word: 'STERNE', scrambled: 'E N R E T S', hint: 'Stille Lichter am Nachthimmel ✨' },
-      { word: 'MEER', scrambled: 'R E E M', hint: 'Beruhigendes Wellenrauschen 🌊' },
-      { word: 'GARTEN', scrambled: 'N E T R A G', hint: 'Grüne Oase der Ruhe 🌿' },
-      { word: 'ROMAN', scrambled: 'N A M O R', hint: 'Ein gutes Buch für stille Minuten 📖' }
-    ]
-  };
-
-  let momEscapeCardIndex = 0;
-  let momPuzzleIndex = 0;
-  let momBreakCollapsed = false;
-  let momBreathTimer = null;
-  let momBreathRemainingSec = 0;
-  let activeIncomingWhisper = null;
-  let momDrawerRevealTimer = null;
+  var momBreakCollapsed = true;
+  var momBreathTimer = null;
+  var momBreathRemainingSec = 0;
+  var activeIncomingWhisper = null;
+  var momDrawerRevealTimer = null;
+  var feedingEntryMode = 'live';
 
   // =========================================================================
   // 🤱 TEK EL CANLI EMZİRME SAYACI (SOL / SAĞ GÖĞÜS • KİLİT EKRANI DAYANIKLI)
   // =========================================================================
-  const LIVE_NURSING_STORAGE_KEY = 'mishil_live_nursing_state';
-  const LAST_NURSING_SIDE_KEY = 'mishil_last_nursing_side';
-  const LIVE_NURSING_MAX_DURATION_MS = 180 * 60 * 1000; // 3 saat unutma üst sınırı
-  let isNursing = false;
-  let liveNursingState = null;
-  let liveNursingInterval = null;
+  var LIVE_NURSING_STORAGE_KEY = 'mishil_live_nursing_state';
+  var LAST_NURSING_SIDE_KEY = 'mishil_last_nursing_side';
+  var LIVE_NURSING_MAX_DURATION_MS = 180 * 60 * 1000; // 3 saat unutma üst sınırı
+  var isNursing = false;
+  var liveNursingState = null;
+  var liveNursingInterval = null;
 
   function formatMmSsFromMs(msVal) {
     const totalSec = Math.max(0, Math.floor((Number(msVal) || 0) / 1000));
@@ -13154,10 +13098,12 @@
 
     const modalCard = document.getElementById('live-nursing-modal-card');
     if (modalCard) {
-      const mSel = document.getElementById('routine-modal-feed-method');
-      const methodVal = mSel ? mSel.value : 'breast';
-      const showCard = (methodVal === 'breast' && editingRoutineId === null) || isNursing;
+      const showCard = editingRoutineId === null && feedingEntryMode === 'live';
       modalCard.style.display = showCard ? 'block' : 'none';
+      const noteWrap = document.getElementById('routine-feed-note-wrap');
+      if (noteWrap && editingRoutineId === null && (document.getElementById('routine-modal-type') || {}).value === 'feeding') {
+        noteWrap.style.display = (feedingEntryMode === 'manual' || isNursing) ? 'block' : 'none';
+      }
 
       const mTitle = document.getElementById('live-nursing-modal-title');
       const mTotal = document.getElementById('live-nursing-modal-total');
@@ -13171,7 +13117,7 @@
       const mActions = document.getElementById('live-nursing-modal-actions');
       const mSave = document.getElementById('btn-modal-nursing-save');
       const mSleep = document.getElementById('btn-modal-nursing-sleep');
-      const mComp = document.getElementById('btn-modal-nursing-companion');
+      const mHomeBtn = document.getElementById('btn-modal-nursing-home');
 
       if (mTitle) mTitle.textContent = trEnDe('⏱️ Canlı Emzirme Sayacı', '⏱️ Live Nursing Stopwatch', '⏱️ Live-Stilluhr');
       if (mTotal) mTotal.textContent = formatMmSsFromMs(totals.totalMs);
@@ -13209,7 +13155,7 @@
           ? trEnDe('🌙 Rüya Öğünü Kaydet', '🌙 Save Dream Feed', '🌙 Traum-Mahlzeit speichern')
           : trEnDe('🌙 Memede Uyudu', '🌙 Fell Asleep Nursing', '🌙 Eingeschlafen');
       }
-      if (mComp) mComp.textContent = trEnDe('☕ Gece Eşlikçisini & Loş Feneri Gör (Ana Ekran) ➔', '☕ Open Night Companion & Warm Glow (Home) ➔', '☕ Nachtbegleiter & Sanftes Licht öffnen (Start) ➔');
+      if (mHomeBtn) mHomeBtn.textContent = trEnDe('🏠 Ana Ekrana Dön (Sayaç Üstte Devam Eder) ➔', '🏠 Back to Home (Timer Continues at Top) ➔', '🏠 Zur Startseite (Uhr läuft oben weiter) ➔');
     }
   }
   window.syncLiveNursingUI = syncLiveNursingUI;
@@ -13259,15 +13205,15 @@
   }
   window.toggleLiveNursingSide = toggleLiveNursingSide;
 
-  function openNursingCompanionOnHome() {
+  function returnToHomeDuringNursing() {
     closeAddRoutineModal();
     switchTab('home');
     switchHomeSegment('sweetspot');
     syncLiveNursingUI();
     syncMomBreakDrawerVisibility();
-    triggerMomDrawerRevealGlow();
   }
-  window.openNursingCompanionOnHome = openNursingCompanionOnHome;
+  window.returnToHomeDuringNursing = returnToHomeDuringNursing;
+  window.openNursingCompanionOnHome = returnToHomeDuringNursing;
 
   function cancelLiveNursingSession() {
     hapticPulse();
@@ -13289,6 +13235,14 @@
     hapticImpact('medium');
     const nowMs = Date.now();
     const totals = computeLiveNursingTotals(liveNursingState, nowMs);
+    if (totals.totalMs <= 0) {
+      showToast(trEnDe(
+        '🤱 Kaydetmeden önce Sol veya Sağ göğüs sayacını başlatın',
+        '🤱 Start the Left or Right nursing timer before saving',
+        '🤱 Bitte starten Sie vor dem Speichern Links oder Rechts'
+      ));
+      return null;
+    }
     const leftMin = totals.leftMs > 0 ? Math.max(1, Math.round(totals.leftMs / 60000)) : 0;
     const rightMin = totals.rightMs > 0 ? Math.max(1, Math.round(totals.rightMs / 60000)) : 0;
     let side = liveNursingState.lastTouchedSide || 'left';
@@ -13450,72 +13404,53 @@
     drawer.setAttribute('data-mom-mode', mode);
     drawer.style.display = shouldShow ? 'block' : 'none';
     syncLiveNursingUI();
+    const bodyEl = document.getElementById('mom-break-body');
     if (shouldShow) {
+      const nowH = new Date().getHours();
+      const isNightHours = nowH >= 20 || nowH < 7;
       const iconEl = document.getElementById('mom-break-icon');
       const titleEl = document.getElementById('mom-break-title');
       const subEl = document.getElementById('mom-break-subtitle');
-      const wWater = document.getElementById('btn-whisper-water');
-      const wTrapped = document.getElementById('btn-whisper-trapped');
+      const collapseBtnEl = document.getElementById('mom-break-collapse-btn');
+      const wShift = document.getElementById('btn-whisper-shift');
+      const wFed = document.getElementById('btn-whisper-fed-burped');
+      const wThanks = document.getElementById('btn-whisper-thanks');
+
       if (mode === 'nursing') {
         if (iconEl) iconEl.textContent = '🤱';
         if (titleEl) {
-          titleEl.textContent = trEnDe(
-            'Emzirme & Gece Eşlikçisi',
-            'Nursing & Night Companion',
-            'Still- & Nachtbegleiter'
-          );
+          titleEl.textContent = isNightHours
+            ? trEnDe('Gece Emzirmesi • Eşime Nöbet Notu', 'Night Nursing • Partner Shift Note', 'Nachtstillen • Schicht-Notiz')
+            : trEnDe('Emzirme Molası • Eşime Nöbet Notu', 'Nursing Break • Partner Shift Note', 'Stillpause • Schicht-Notiz');
         }
-        if (subEl) {
-          subEl.textContent = trEnDe(
-            'Bebeğinizi beslerken yalnız değilsiniz; tek elle her şey yanınızda 💛',
-            'Right beside you while feeding—one-handed comfort & calm 💛',
-            'Beim Füttern an Ihrer Seite – alles einhändig griffbereit 💛'
-          );
-        }
-        if (wWater) wWater.textContent = trEnDe('🍵 Emziriyorum, su getirir misin?', '🍵 Nursing—could you bring water?', '🍵 Ich stille – bringst du Wasser?');
-        if (wTrapped) wTrapped.textContent = trEnDe('🤱 Gazını çıkarmak için devralır mısın?', '🤱 Take over for burping?', '🤱 Übernimmst du das Bäuerchen?');
       } else {
-        if (iconEl) iconEl.textContent = '☕';
+        if (iconEl) iconEl.textContent = isNightHours ? '🌙' : '☕';
         if (titleEl) {
-          titleEl.textContent = trEnDe(
-            'Bebek Uyuyor • Anne Molası',
-            'Baby Sleeping • Mom Break',
-            'Baby schläft • Mama-Pause'
-          );
+          titleEl.textContent = isNightHours
+            ? trEnDe('Gece Uykusu • Eşime Nöbet Notu', 'Night Sleep • Partner Shift Note', 'Nachtschlaf • Schicht-Notiz')
+            : trEnDe('Bebek Uyuyor • Eşime Nöbet Notu', 'Baby Sleeping • Partner Shift Note', 'Baby schläft • Schicht-Notiz');
         }
-        if (subEl) {
-          subEl.textContent = trEnDe(
-            'Bebeğiniz uyurken birkaç dakika sadece sizin 💛',
-            'A few quiet minutes just for you while your baby sleeps 💛',
-            'Ein paar ruhige Minuten nur für Sie, während Ihr Baby schläft 💛'
-          );
-        }
-        if (wWater) wWater.textContent = trEnDe('🍵 Su / çay getirir misin?', '🍵 Ask for water / tea', '🍵 Um Wasser / Tee bitten');
-        if (wTrapped) wTrapped.textContent = trEnDe('🤱 Altında kaldım, yardım!', '🤱 Nap-trapped, help!', '🤱 Auf dem Arm eingeschlafen!');
       }
-      const collapseBtnEl = document.getElementById('mom-break-collapse-btn');
+      if (subEl) {
+        subEl.textContent = trEnDe(
+          'Eşiniz uygulamayı açtığında ekranın en üstünde görür',
+          'Shown at the top of your partner\'s app when opened',
+          'Erscheint beim Öffnen ganz oben bei Ihrem Partner'
+        );
+      }
+      if (wShift) wShift.textContent = trEnDe('🍼 Sıradaki uyanış nöbeti sende 💛', '🍼 Next wake-up shift is yours 💛', '🍼 Die nächste Aufwach-Schicht gehört dir 💛');
+      if (wFed) wFed.textContent = trEnDe('🤱 Beslendi ve gazı çıkarıldı; sıradaki uyanış sende 💛', '🤱 Fed and burped—next wake-up shift is yours 💛', '🤱 Gefüttert & Bäuerchen gemacht – nächste Schicht gehört dir 💛');
+      if (wThanks) wThanks.textContent = trEnDe('🤍 İyi ki varsın, desteğin çok iyi geldi', '🤍 Thank you for having my back, glad we are a team', '🤍 Danke für deine Unterstützung, schön dass wir ein Team sind');
+      if (bodyEl) bodyEl.style.display = momBreakCollapsed ? 'none' : 'block';
       if (collapseBtnEl) {
         collapseBtnEl.textContent = momBreakCollapsed
-          ? trEnDe('Aç ▾', 'Expand ▾', 'Öffnen ▾')
+          ? trEnDe('Not Bırak ▾', 'Leave Note ▾', 'Notiz ▾')
           : trEnDe('Küçült ▴', 'Minimize ▴', 'Einklappen ▴');
       }
-      syncMomLanternButtonUI();
-      if (!momBreathTimer) {
-        const bBtn = document.getElementById('btn-mom-breath-toggle');
-        const bSt = document.getElementById('mom-breath-status');
-        if (bBtn) bBtn.textContent = trEnDe('Başlat (60 sn)', 'Start (60s)', 'Start (60 Sek.)');
-        if (bSt) bSt.textContent = trEnDe('4 sn al • 4 sn tut • 6 sn ver (Sıfır ses, nazik titreşim)', '4s inhale • 4s hold • 6s exhale (Silent haptic guide)', '4s ein • 4s halten • 6s aus (Lautlose Haptik)');
-      }
       renderHomeFamilyPill();
-      renderMomEscapeAndPuzzle();
-      renderMomMorningNotes();
-      pulseNightWatchSolidarity(false);
     } else {
-      stopMomSilentBreathing();
-      if (document.body.classList.contains('mom-lantern-glow-active')) {
-        document.body.classList.remove('mom-lantern-glow-active');
-        syncMomLanternButtonUI();
-      }
+      momBreakCollapsed = true;
+      if (bodyEl) bodyEl.style.display = 'none';
     }
   }
   window.syncMomBreakDrawerVisibility = syncMomBreakDrawerVisibility;
@@ -13528,189 +13463,54 @@
     if (bodyEl) bodyEl.style.display = momBreakCollapsed ? 'none' : 'block';
     if (btnEl) {
       btnEl.textContent = momBreakCollapsed
-        ? trEnDe('Aç ▾', 'Expand ▾', 'Öffnen ▾')
+        ? trEnDe('Not Bırak ▾', 'Leave Note ▾', 'Notiz ▾')
         : trEnDe('Küçült ▴', 'Minimize ▴', 'Einklappen ▴');
     }
+    if (!momBreakCollapsed) renderHomeFamilyPill();
   }
   window.toggleMomBreakCollapsed = toggleMomBreakCollapsed;
 
-  function switchMomBreakTab(tabKey) {
-    hapticPulse();
-    ['lantern', 'escape', 'whisper', 'breathe'].forEach(k => {
-      const btn = document.getElementById('mom-tab-' + k);
-      const panel = document.getElementById('mom-panel-' + k);
-      if (btn) btn.classList.toggle('active', k === tabKey);
-      if (panel) panel.classList.toggle('active', k === tabKey);
-    });
-    if (tabKey === 'whisper') renderHomeFamilyPill();
-    if (tabKey === 'escape') renderMomEscapeAndPuzzle();
-    if (tabKey === 'breathe') renderMomMorningNotes();
-  }
-  window.switchMomBreakTab = switchMomBreakTab;
-
-  function syncMomLanternButtonUI() {
-    const btn = document.getElementById('btn-mom-lantern-glow');
-    if (!btn) return;
-    const active = document.body.classList.contains('mom-lantern-glow-active');
-    btn.textContent = active
-      ? trEnDe('🕯️ Feneri Kapat', '🕯️ Turn Off Glow', '🕯️ Licht aus')
-      : trEnDe('🕯️ Loş Fener Aç', '🕯️ Warm Screen Glow', '🕯️ Sanftes Licht');
-  }
-
-  function toggleMomLanternGlow() {
-    hapticPulse();
-    document.body.classList.toggle('mom-lantern-glow-active');
-    syncMomLanternButtonUI();
-  }
-  window.toggleMomLanternGlow = toggleMomLanternGlow;
-
-  async function pulseNightWatchSolidarity(sendCheer) {
-    if (sendCheer) hapticPulse();
-    const labelEl = document.getElementById('mom-night-watch-label');
-    try {
-      const res = await fetchWithTimeout(`${getApiBaseUrl()}/family/night-watch/pulse`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          device_uid: getOrCreateMishilDeviceUid(),
-          send_cheer: !!sendCheer
-        }),
-        timeout: 4000
-      });
-      if (res && res.ok) {
-        const data = await res.json();
-        const cnt = Math.max(1, Number(data.active_parents_count || 1));
-        const cheers = Math.max(0, Number(data.cheers_received || 0));
-        if (labelEl) {
-          if (cnt > 1) {
-            labelEl.textContent = trEnDe(
-              `🕯️ Şu an ${cnt} ebeveyn sizinle birlikte gece nöbetinde${cheers > 0 ? ` • 💛 ${cheers} selam` : ''}`,
-              `🕯️ ${cnt} parents are awake on night watch with you right now${cheers > 0 ? ` • 💛 ${cheers} cheers` : ''}`,
-              `🕯️ Gerade halten ${cnt} Eltern gemeinsam mit Ihnen Nachtwache${cheers > 0 ? ` • 💛 ${cheers} Grüße` : ''}`
-            );
-          } else {
-            labelEl.textContent = trEnDe(
-              '🕯️ Gece nöbeti feneriniz yanıyor • Bu sessiz saatte yalnız değilsiniz',
-              '🕯️ Your night-watch lantern is lit • You are never alone in this quiet hour',
-              '🕯️ Ihre Nachtwachen-Laterne leuchtet • Sie sind in dieser stillen Stunde nicht allein'
-            );
-          }
-        }
-        if (sendCheer) {
-          showToast(trEnDe(
-            '💛 Uykusuz nöbetteki diğer annelere/babalara sessiz selamınız ulaştı!',
-            '💛 Your silent solidarity wave was sent to fellow night-watch parents!',
-            '💛 Ihr stiller Gruß wurde an andere wache Eltern gesendet!'
-          ));
-        }
-      }
-    } catch (_nwe) {
-      if (sendCheer) {
-        showToast(trEnDe('💛 Gece nöbeti selamınız kaydedildi', '💛 Solidarity wave noted', '💛 Stiller Gruß gespeichert'));
-      }
-    }
-  }
-  window.pulseNightWatchSolidarity = pulseNightWatchSolidarity;
-
-  function renderMomEscapeAndPuzzle() {
-    const card = MOM_ADULT_ESCAPE_CARDS[momEscapeCardIndex % MOM_ADULT_ESCAPE_CARDS.length];
-    const catEl = document.getElementById('mom-escape-cat-badge');
-    const titleEl = document.getElementById('mom-escape-card-title');
-    const bodyEl = document.getElementById('mom-escape-card-body');
-    if (card) {
-      if (catEl) catEl.textContent = trEnDe(card.catTr, card.catEn, card.catDe);
-      if (titleEl) titleEl.textContent = trEnDe(card.titleTr, card.titleEn, card.titleDe);
-      if (bodyEl) bodyEl.textContent = trEnDe(card.bodyTr, card.bodyEn, card.bodyDe);
-    }
-
-    const lang = getAppLang();
-    const pList = MOM_WORD_PUZZLES[lang] || MOM_WORD_PUZZLES.tr;
-    const pItem = pList[momPuzzleIndex % pList.length];
-    const hintEl = document.getElementById('mom-puzzle-hint');
-    const scrEl = document.getElementById('mom-puzzle-scrambled');
-    const scoreEl = document.getElementById('mom-puzzle-score-badge');
-    const solvedCount = parseInt(localStorage.getItem('mishil_mom_puzzle_solved') || '0', 10) || 0;
-    if (pItem && hintEl && scrEl) {
-      hintEl.textContent = pItem.hint;
-      scrEl.textContent = pItem.scrambled;
-    }
-    if (scoreEl) {
-      scoreEl.textContent = trEnDe(`✓ ${solvedCount} Çözüldü`, `✓ ${solvedCount} Solved`, `✓ ${solvedCount} Gelöst`);
-    }
-  }
-
-  function nextMomEscapeCard() {
-    hapticPulse();
-    momEscapeCardIndex = (momEscapeCardIndex + 1) % MOM_ADULT_ESCAPE_CARDS.length;
-    renderMomEscapeAndPuzzle();
-  }
-  window.nextMomEscapeCard = nextMomEscapeCard;
-
-  function checkMomWordPuzzle() {
-    hapticPulse();
-    const inp = document.getElementById('mom-puzzle-input');
-    if (!inp) return;
-    const lang = getAppLang();
-    const pList = MOM_WORD_PUZZLES[lang] || MOM_WORD_PUZZLES.tr;
-    const pItem = pList[momPuzzleIndex % pList.length];
-    const normGuess = (inp.value || '').trim().toLocaleUpperCase(lang === 'tr' ? 'tr-TR' : undefined);
-    const normTarget = pItem.word.toLocaleUpperCase(lang === 'tr' ? 'tr-TR' : undefined);
-    if (!normGuess) return;
-    if (normGuess === normTarget) {
-      hapticSuccess();
-      const nextScore = (parseInt(localStorage.getItem('mishil_mom_puzzle_solved') || '0', 10) || 0) + 1;
-      localStorage.setItem('mishil_mom_puzzle_solved', String(nextScore));
-      inp.value = '';
-      momPuzzleIndex = (momPuzzleIndex + 1) % pList.length;
-      renderMomEscapeAndPuzzle();
-      showToast(trEnDe(`✨ Harika! "${pItem.word}" doğru çözüldü`, `✨ Nice! "${pItem.word}" solved`, `✨ Super! „${pItem.word}“ gelöst`));
-    } else {
-      showToast(trEnDe('🌙 Yaklaştınız, harflere tekrar göz atın', '🌙 Close! Try rearranging the letters', '🌙 Fast! Versuchen Sie die Buchstaben noch einmal'));
-    }
-  }
-  window.checkMomWordPuzzle = checkMomWordPuzzle;
-
   const WHISPER_TEMPLATES_COPY = {
-    tea_water: {
-      tr: '🍵 Odaya sessizce bir bardak su / çay getirir misin?',
-      en: '🍵 Could you quietly bring a glass of water / tea?',
-      de: '🍵 Kannst du mir leise ein Glas Wasser / Tee bringen?'
-    },
-    nursing_water: {
-      tr: '🤱 Emziriyorum ve kıpırdayamıyorum; sessizce bir su/çay getirir misin?',
-      en: "🤱 I'm nursing and can't move right now—could you quietly bring some water or tea?",
-      de: '🤱 Ich stille gerade und kann mich kaum bewegen – bringst du mir leise Wasser/Tee?'
-    },
     next_shift_yours: {
       tr: '🍼 Bebek uyudu; sıradaki uyanış nöbeti sende canım 💛',
       en: '🍼 Baby is asleep; next wake-up shift is yours love 💛',
       de: '🍼 Baby schläft; die nächste Aufwach-Schicht gehört dir 💛'
     },
-    trapped_under_baby: {
-      tr: '🤱 Kucağımda uyuyakaldı, kıpırdayamıyorum — sessizce gelir misin?',
-      en: '🤱 Nap-trapped under the baby—could you quietly come help?',
-      de: '🤱 Auf meinem Arm eingeschlafen – kannst du kurz leise helfen?'
-    },
-    nursing_burp_help: {
-      tr: '🤱 Emzirme bitmek üzere; gazını çıkarmak için devralabilir misin? 💛',
-      en: '🤱 Almost done nursing—could you take over for burping? 💛',
-      de: '🤱 Fast fertig mit dem Stillen – übernimmst du kurz das Bäuerchen? 💛'
+    handoff_fed_burped: {
+      tr: '🤱 Beslendi ve gazı çıkarıldı; sıradaki uyanış nöbeti sende 💛',
+      en: '🤱 Fed and burped—the next wake-up shift is yours 💛',
+      de: '🤱 Gefüttert und Bäuerchen gemacht – die nächste Aufwach-Schicht gehört dir 💛'
     },
     thank_you_love: {
-      tr: '🤍 Bu geceki desteğin için teşekkür ederim, iyi ki varsın.',
-      en: '🤍 Thank you for having my back tonight, glad we are a team.',
-      de: '🤍 Danke für deine Unterstützung heute Nacht, schön dass wir ein Team sind.'
+      tr: '🤍 İyi ki varsın, desteğin bana çok iyi geldi.',
+      en: '🤍 Thank you for having my back, glad we are a team.',
+      de: '🤍 Danke für deine Unterstützung, schön dass wir ein Team sind.'
     }
   };
 
-  function sendContextAwareWhisper(kind) {
-    if (kind === 'water') {
-      sendFamilyWhisperTemplate(isNursing ? 'nursing_water' : 'tea_water');
-    } else if (kind === 'assist') {
-      sendFamilyWhisperTemplate(isNursing ? 'nursing_burp_help' : 'trapped_under_baby');
+  var isDispatchingWhisper = false;
+  var lastWhisperSentAtMs = 0;
+
+  function getAckedWhisperIds() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem('mishil_acked_whisper_ids') || '[]');
+      return Array.isArray(parsed) ? parsed.map(String).slice(0, 60) : [];
+    } catch (_awe) {
+      return [];
     }
   }
-  window.sendContextAwareWhisper = sendContextAwareWhisper;
+
+  function recordAckedWhisperId(wid) {
+    if (wid === null || wid === undefined || wid === '') return;
+    try {
+      const sId = String(wid);
+      const cur = getAckedWhisperIds();
+      if (!cur.includes(sId)) {
+        cur.unshift(sId);
+        localStorage.setItem('mishil_acked_whisper_ids', JSON.stringify(cur.slice(0, 60)));
+      }
+    } catch (_rawe) {}
+  }
 
   async function dispatchFamilyWhisper(templateKey, rawMessage) {
     const fCode = localStorage.getItem('mishil_family_code');
@@ -13720,6 +13520,9 @@
     }
     const cleanMsg = String(rawMessage || '').trim().slice(0, 140);
     if (!cleanMsg) return;
+    const nowW = Date.now();
+    if (isDispatchingWhisper || (nowW - lastWhisperSentAtMs < 1200)) return;
+    isDispatchingWhisper = true;
     try {
       const payloadBody = {
         invite_code: fCode,
@@ -13738,17 +13541,20 @@
         timeout: 5000
       });
       if (res && res.ok) {
+        lastWhisperSentAtMs = Date.now();
         hapticSuccess();
         showToast(trEnDe(
-          '💌 Sessiz fısıltınız eşinizin ekranına iletildi!',
-          '💌 Silent whisper delivered to your partner!',
-          '💌 Stille Nachricht an Ihren Partner gesendet!'
+          '💌 Nöbet notunuz bırakıldı — eşiniz uygulamayı açtığında en üstte görecek!',
+          '💌 Shift note saved — your partner will see it right at the top when opening the app!',
+          '💌 Schicht-Notiz hinterlegt – Ihr Partner sieht sie beim Öffnen ganz oben!'
         ));
       } else {
-        showToast(trEnDe('⚠️ Fısıltı gönderilemedi, bağlantıyı kontrol edin', '⚠️ Could not send whisper', '⚠️ Nachricht konnte nicht gesendet werden'));
+        showToast(trEnDe('⚠️ Nöbet notu gönderilemedi, bağlantıyı kontrol edin', '⚠️ Could not send shift note', '⚠️ Schicht-Notiz konnte nicht gesendet werden'));
       }
     } catch (_we) {
       showToast(trEnDe('⚠️ Bağlantı hatası, lütfen tekrar deneyin', '⚠️ Connection error', '⚠️ Verbindungsfehler'));
+    } finally {
+      isDispatchingWhisper = false;
     }
   }
 
@@ -13778,8 +13584,10 @@
     if (!banner || !senderEl || !textEl) return;
     const myUid = getOrCreateMishilDeviceUid();
     const myName = localStorage.getItem('mishil_user_name') || '';
+    const ackedSet = new Set(getAckedWhisperIds());
     const candidate = (Array.isArray(whispers) ? whispers : []).find(w => {
       if (!w || w.acknowledged) return false;
+      if (w.id !== undefined && w.id !== null && ackedSet.has(String(w.id))) return false;
       if (w.sender_device_uid && w.sender_device_uid === myUid) return false;
       if (!w.sender_device_uid && myName && w.sender_name === myName) return false;
       return true;
@@ -13805,6 +13613,7 @@
     const w = activeIncomingWhisper;
     activeIncomingWhisper = null;
     if (!w || !w.id) return;
+    recordAckedWhisperId(w.id);
     try {
       await fetchWithTimeout(`${getApiBaseUrl()}/family/whisper/ack`, {
         method: 'POST',
@@ -13873,61 +13682,6 @@
     momBreathTimer = setInterval(updateBreathTick, 1000);
   }
   window.toggleMomSilentBreathing = toggleMomSilentBreathing;
-
-  function getMomMorningNotes() {
-    try {
-      const arr = JSON.parse(localStorage.getItem('mishil_mom_morning_notes') || '[]');
-      return Array.isArray(arr) ? arr : [];
-    } catch (_mne) {
-      return [];
-    }
-  }
-
-  function renderMomMorningNotes() {
-    const listEl = document.getElementById('mom-morning-notes-list');
-    if (!listEl) return;
-    const notes = getMomMorningNotes();
-    if (notes.length === 0) {
-      listEl.innerHTML = `<div style="font-size: 10px; color: var(--text-muted); padding: 2px 0;">${escapeHtml(trEnDe('Gece aklınıza takılanları buraya bırakın, zihniniz rahatlasın.', 'Park racing midnight thoughts here so your mind can rest.', 'Notieren Sie nächtliche Gedanken hier, damit Ihr Kopf frei wird.'))}</div>`;
-      return;
-    }
-    listEl.innerHTML = notes.map(n => `
-      <div style="display: flex; align-items: center; justify-content: space-between; gap: 6px; background: rgba(255,255,255,0.04); border-radius: 7px; padding: 5px 8px;">
-        <label style="display: flex; align-items: center; gap: 7px; flex: 1; min-width: 0; cursor: pointer; font-size: 11px; color: ${n.done ? 'var(--text-muted)' : '#FAF5EE'}; text-decoration: ${n.done ? 'line-through' : 'none'};">
-          <input type="checkbox" ${n.done ? 'checked' : ''} onchange="toggleMomMorningNote('${escapeHtml(String(n.id))}')" style="accent-color: var(--accent);" />
-          <span style="overflow-wrap: anywhere;">${escapeHtml(String(n.text || ''))}</span>
-        </label>
-        <button type="button" onclick="deleteMomMorningNote('${escapeHtml(String(n.id))}')" style="background: none; border: none; color: var(--text-muted); font-size: 11px; cursor: pointer; padding: 2px 4px;">✕</button>
-      </div>
-    `).join('');
-  }
-
-  function addMomMorningNote() {
-    hapticPulse();
-    const inp = document.getElementById('mom-morning-note-input');
-    const txt = inp ? inp.value.trim() : '';
-    if (!txt) return;
-    const notes = getMomMorningNotes();
-    notes.unshift({ id: 'mn_' + Date.now(), text: txt.slice(0, 120), done: false });
-    localStorage.setItem('mishil_mom_morning_notes', JSON.stringify(notes.slice(0, 25)));
-    if (inp) inp.value = '';
-    renderMomMorningNotes();
-  }
-  window.addMomMorningNote = addMomMorningNote;
-
-  function toggleMomMorningNote(id) {
-    const notes = getMomMorningNotes().map(n => String(n.id) === String(id) ? Object.assign({}, n, { done: !n.done }) : n);
-    localStorage.setItem('mishil_mom_morning_notes', JSON.stringify(notes));
-    renderMomMorningNotes();
-  }
-  window.toggleMomMorningNote = toggleMomMorningNote;
-
-  function deleteMomMorningNote(id) {
-    const notes = getMomMorningNotes().filter(n => String(n.id) !== String(id));
-    localStorage.setItem('mishil_mom_morning_notes', JSON.stringify(notes));
-    renderMomMorningNotes();
-  }
-  window.deleteMomMorningNote = deleteMomMorningNote;
 
   // =========================================================================
   // 24 SAATLİK BEBEK RİTMİ & ZİRVE SAATLER
@@ -15139,7 +14893,7 @@
   // =========================================================================
   // 4 ADIMLI İNTERAKTİF SPOTLIGHT UYGULAMALI ANLATIM TURU (COACH-MARK WALKTHROUGH)
   // =========================================================================
-  let spotlightStepIndex = 0;
+  var spotlightStepIndex = 0;
 
   function getSpotlightSteps() {
     const baby = typeof getBaby === 'function' ? getBaby() : null;
@@ -15357,8 +15111,8 @@
     ];
   }
 
-  let spotlightTrackingRafId = null;
-  let spotlightScrollCleanup = null;
+  var spotlightTrackingRafId = null;
+  var spotlightScrollCleanup = null;
 
   function clearSpotlightDockFocus() {
     document.querySelectorAll('#app-bottom-dock .spotlight-dock-focus').forEach((el) => {
@@ -15802,7 +15556,7 @@
   window.handleSpotlightDockTap = handleSpotlightDockTap;
   document.addEventListener('click', handleSpotlightDockTap, true);
 
-  let spotlightAutoTimer = null;
+  var spotlightAutoTimer = null;
   function maybeStartFirstTimeSpotlightTour() {
     if (localStorage.getItem('mishil_spotlight_tour_done') === 'true') return;
     const onb = document.getElementById('screen-onboarding');
@@ -15955,7 +15709,8 @@
     const currSym = getActiveCurrencySymbol();
     const zeroToday = trEnDe(`Bugün ${currSym}0`, `${currSym}0 Today`, `Heute ${currSym}0`);
     const previewTrackName = window.__lastPreviewedSoundName__ || trEnDe('Sakinleştirici Ninni', 'Soothing Lullaby', 'Beruhigendes Wiegenlied');
-    const usedFreeDadi = hasUsedFreeDadiQuestion();
+    const isMomDadiPaywall = contextFeature === 'ai_nanny' && typeof activeDadiAudience !== 'undefined' && activeDadiAudience === 'mom';
+    const usedFreeDadi = isMomDadiPaywall ? hasUsedFreeMomDadiQuestion() : hasUsedFreeDadiQuestion();
 
     const effectiveFeature = contextFeature;
 
@@ -15976,13 +15731,19 @@
         title: `⏱️ 45–60-Min.-Einschlaf-Timer & Nachtmodus freischalten`,
         sub: `Testen Sie 7 Tage gratis (${zeroToday}) für sanftes Ausblenden im Tiefschlaf und den augenschonenden Nachtmodus.`
       },
-      ai_nanny: usedFreeDadi ? {
+      ai_nanny: isMomDadiPaywall ? (usedFreeDadi ? {
+        title: '💛 Unbegrenzte 24/7 Mışıl Nanny™ Begleitung für Sie freischalten',
+        sub: `Sie haben Ihre kostenlose Nachricht im Bereich „Für mich“ genutzt. Starten Sie Ihre 7-tägige Gratis-Testphase (${zeroToday}) für persönliche Begleitung rund um die Uhr.`
+      } : {
+        title: '💛 24/7 Mışıl Nanny™ Begleitung für Sie öffnen',
+        sub: 'Ein geschützter Raum für Ihre eigenen Gedanken, Erschöpfung und Ruhe — 7 Tage kostenlos testen.'
+      }) : (usedFreeDadi ? {
         title: `🤖 Unbegrenzte 24/7 Mışıl Nanny™ für ${babyName} freischalten`,
         sub: `Sie haben Ihre kostenlose Frage genutzt. Starten Sie Ihre 7-tägige Gratis-Testphase (${zeroToday}) für persönliche Begleitung rund um die Uhr.`
       } : {
         title: `🤖 24/7 Mışıl Nanny™ Persönlichen Schlafcoach öffnen`,
         sub: `Erhalten Sie selbst um 03:00 Uhr nachts sofort Antworten passend zu ${babyName}s Alter und Schlafverlauf — 7 Tage gratis.`
-      },
+      }),
       analytics: {
         title: `📊 ${babyName}s Entwicklungssprünge & Schlafberichte öffnen`,
         sub: 'Starten Sie Ihre 7-tägige Gratis-Testphase für alle 10 Entwicklungssprünge und Wochenanalysen.'
@@ -16022,13 +15783,19 @@
         title: `⏱️ Unlock 45-60 Min Auto-Off & Night Crib Mode`,
         sub: `Try 7 days free (${zeroToday}) for gentle audio fade-out once your baby is in deep sleep and dim Night Crib mode.`
       },
-      ai_nanny: usedFreeDadi ? {
+      ai_nanny: isMomDadiPaywall ? (usedFreeDadi ? {
+        title: '💛 Continue Unlimited 24/7 Mışıl Nanny™ Support for Yourself',
+        sub: `You used your 1 free message in "For Me". Start your 7-day free VIP trial (${zeroToday}) for unlimited 24/7 compassionate support.`
+      } : {
+        title: '💛 Unlock 24/7 Mışıl Nanny™ Support for Yourself',
+        sub: 'A calm, non-judgmental space for your own rest and well-being — 7 days free.'
+      }) : (usedFreeDadi ? {
         title: `🤖 Continue Unlimited 24/7 Mışıl Nanny™ for ${babyName}`,
         sub: `You used your 1 free Mışıl Nanny question. Start your 7-day free VIP trial (${zeroToday}) for unlimited 24/7 personal sleep coaching.`
       } : {
         title: `🤖 Unlock 24/7 Mışıl Nanny™ Personal Sleep Coach`,
         sub: `Get instant guidance tailored to ${babyName}'s age and sleep logs even at 3:00 AM — 7 days free.`
-      },
+      }),
       analytics: {
         title: `📊 Unlock ${babyName}'s Growth Leaps & Sleep Reports`,
         sub: 'Start your 7-day free trial for the 10 Wonder Weeks leaps calendar and weekly sleep analytics.'
@@ -16066,13 +15833,19 @@
         title: `⏱️ 45-60 Dk Otomatik Kapanma & Gece Beşiği Modunu Açın`,
         sub: `Bebeğiniz derin uykuya geçtiğinde sesin kademeli kısılarak kapanması ve loş Gece Beşiği modu için 7 gün ücretsiz deneyin (${zeroToday}).`
       },
-      ai_nanny: usedFreeDadi ? {
+      ai_nanny: isMomDadiPaywall ? (usedFreeDadi ? {
+        title: '💛 Kendiniz İçin Sınırsız 7/24 Mışıl Dadı™ Desteğini Açın',
+        sub: `Kendim İçin bölümündeki 1 ücretsiz mesaj hakkınızı kullandınız. Gece gündüz sınırsız şefkatli eşlik için 7 gün ücretsiz VIP başlatın (${zeroToday}).`
+      } : {
+        title: '💛 Kendiniz İçin 7/24 Mışıl Dadı™ Desteğini Açın',
+        sub: 'Yorgunluğunuzu ve duygularınızı yargısızca paylaşabileceğiniz sakin alan — 7 gün ücretsiz.'
+      }) : (usedFreeDadi ? {
         title: `🤖 ${babyName} İçin Sınırsız 7/24 Mışıl Dadı™ Rehberliğini Açın`,
         sub: `1 ücretsiz Mışıl Dadı soru hakkınızı kullandınız. Gece gündüz sınırsız kişisel uyku koçluğu için 7 gün ücretsiz VIP başlatın (${zeroToday}).`
       } : {
         title: `🤖 7/24 Mışıl Dadı™ Kişisel Uyku Rehberini Açın`,
         sub: `Gece 03:00'te bile ${babyName}'in yaşına ve uyku geçmişine özel anında yanıt alın — 7 gün ücretsiz.`
-      },
+      }),
       analytics: {
         title: `📊 ${babyName}'in Büyüme Atakları & Uyku Raporlarını Açın`,
         sub: '10 büyüme atağı (Wonder Weeks) takvimi ve haftalık uyku analizi için 7 günlük ücretsiz denemenizi başlatın.'
@@ -18078,20 +17851,20 @@
       if (typeof syncMomBreakDrawerVisibility === 'function') syncMomBreakDrawerVisibility();
       if (isOnHomeSweetspot) {
         showToast(trEnDe(
-          '🌙 Bebek uykuya daldı • ☕ Anne Molası açıldı',
-          '🌙 Baby fell asleep • ☕ Mom Break opened',
-          '🌙 Baby schläft • ☕ Mama-Pause geöffnet'
+          '🌙 Canlı uyku takibi başladı',
+          '🌙 Live sleep tracking started',
+          '🌙 Live-Schlaftracking gestartet'
         ));
         triggerMomDrawerRevealGlow();
       } else {
         showToast(
           trEnDe(
-            '🌙 Canlı uyku başladı • ☕ Anne Molası hazır',
-            '🌙 Live sleep started • ☕ Mom Break ready',
-            '🌙 Live-Schlaf läuft • ☕ Mama-Pause bereit'
+            '🌙 Canlı uyku takibi başladı',
+            '🌙 Live sleep tracking started',
+            '🌙 Live-Schlaftracking gestartet'
           ),
           {
-            actionLabel: trEnDe('Gör ➔', 'Open ➔', 'Öffnen ➔'),
+            actionLabel: trEnDe('Ana Ekran ➔', 'Home ➔', 'Start ➔'),
             durationMs: 4600,
             onAction: () => {
               switchTab('home');
@@ -18444,7 +18217,7 @@
             loadBabyProfile();
           } else if (msg.type === 'PROFILE_UPDATED' || msg.type === 'FAMILY_SYNC_UPDATED') {
             if (typeof pullFamilySyncSnapshot === 'function') pullFamilySyncSnapshot({ silent: true });
-          } else if (msg.type === 'WHISPER_CREATED') {
+          } else if (msg.type === 'PARTNER_WHISPER' || msg.type === 'WHISPER_CREATED') {
             if (msg.payload && typeof renderIncomingFamilyWhisperBanner === 'function') {
               renderIncomingFamilyWhisperBanner([msg.payload]);
             } else if (typeof pullFamilySyncSnapshot === 'function') {
@@ -18918,6 +18691,8 @@
         return;
       }
       if (typeof updateDadiFreeQuotaUI === 'function') updateDadiFreeQuotaUI();
+    } else if (typeof stopMomSilentBreathing === 'function' && typeof momBreathTimer !== 'undefined' && momBreathTimer) {
+      stopMomSilentBreathing();
     }
 
     if (!fromTour && tabName !== 'settings') {
@@ -19283,6 +19058,50 @@
     handleRoutineTypeChange(type);
   }
 
+  function syncFeedingModalModeUI() {
+    const typeVal = (document.getElementById('routine-modal-type') || {}).value || 'sleep';
+    const isEditing = editingRoutineId !== null;
+    const isLiveFeedView = typeVal === 'feeding' && !isEditing && feedingEntryMode === 'live';
+
+    const modeSwitch = document.getElementById('feed-entry-mode-switch');
+    const btnLive = document.getElementById('feed-mode-btn-live');
+    const btnMan = document.getElementById('feed-mode-btn-manual');
+    if (modeSwitch) modeSwitch.style.display = (typeVal === 'feeding' && !isEditing) ? 'grid' : 'none';
+    if (btnLive) {
+      btnLive.classList.toggle('active', feedingEntryMode === 'live');
+      btnLive.textContent = trEnDe('⏱️ Şimdi Emzir', '⏱️ Nurse Now', '⏱️ Jetzt stillen');
+    }
+    if (btnMan) {
+      btnMan.classList.toggle('active', feedingEntryMode === 'manual');
+      btnMan.textContent = trEnDe('📝 Geçmiş / Biberon Ekle', '📝 Log Past / Bottle', '📝 Nachtragen / Fläschchen');
+    }
+
+    const dateGrp = document.getElementById('routine-date-group');
+    const nsTimeWrap = document.getElementById('routine-non-sleep-time-wrap');
+    const submitBtn = document.getElementById('routine-modal-submit-btn');
+    const methodGrp = document.getElementById('routine-feed-method-group');
+    const noteWrap = document.getElementById('routine-feed-note-wrap');
+
+    if (dateGrp) dateGrp.style.display = isLiveFeedView ? 'none' : 'block';
+    if (nsTimeWrap) nsTimeWrap.style.display = (typeVal !== 'sleep' && !isLiveFeedView) ? 'block' : 'none';
+    if (submitBtn) submitBtn.style.display = isLiveFeedView ? 'none' : 'block';
+    if (methodGrp) methodGrp.style.display = isLiveFeedView ? 'none' : 'block';
+    if (noteWrap && typeVal === 'feeding') {
+      noteWrap.style.display = (!isLiveFeedView || isNursing) ? 'block' : 'none';
+    }
+  }
+
+  function setFeedingEntryMode(mode) {
+    hapticPulse();
+    feedingEntryMode = mode === 'manual' ? 'manual' : 'live';
+    if (feedingEntryMode === 'live') {
+      const mSel = document.getElementById('routine-modal-feed-method');
+      if (mSel) mSel.value = 'breast';
+    }
+    onFeedMethodChange();
+  }
+  window.setFeedingEntryMode = setFeedingEntryMode;
+
   function handleRoutineTypeChange(type) {
     hapticPulse();
     if (type !== 'sleep' && !(isNursing && type === 'feeding') && !isSubscriptionCurrentlyActive()) {
@@ -19305,8 +19124,7 @@
     document.getElementById('routine-feeding-fields').style.display = (type === 'feeding') ? 'block' : 'none';
     document.getElementById('routine-diaper-fields').style.display = (type === 'diaper') ? 'block' : 'none';
     document.getElementById('routine-custom-fields').style.display = (type === 'custom') ? 'block' : 'none';
-    const nsTimeWrap = document.getElementById('routine-non-sleep-time-wrap');
-    if (nsTimeWrap) nsTimeWrap.style.display = (type !== 'sleep') ? 'block' : 'none';
+    syncFeedingModalModeUI();
     if (type === 'sleep') calcModalSleepDuration();
     if (type === 'feeding') onFeedMethodChange();
   }
@@ -19321,21 +19139,22 @@
     breast: 'Muttermilch', bottle_ebm: 'Fläschchen (Muttermilch)', bottle_formula: 'Pre-Nahrung / Milchpulver', solid: 'Beikost'
   };
   function onFeedMethodChange() {
-    const m = (document.getElementById('routine-modal-feed-method') || {}).value || 'breast';
+    const isLiveOnly = editingRoutineId === null && feedingEntryMode === 'live';
+    const m = isLiveOnly ? 'breast' : ((document.getElementById('routine-modal-feed-method') || {}).value || 'breast');
     const amtWrap = document.getElementById('routine-feed-amount-wrap');
     const sideWrap = document.getElementById('routine-feed-side-wrap');
     const durWrap = document.getElementById('routine-feed-duration-wrap');
     const durLabel = document.getElementById('routine-feed-duration-label');
     const amtLabel = document.getElementById('routine-feed-amount-label');
-    if (m === 'breast') {
+    if (isLiveOnly) {
+      if (amtWrap) amtWrap.style.display = 'none';
+      if (sideWrap) sideWrap.style.display = 'none';
+      if (durWrap) durWrap.style.display = 'none';
+    } else if (m === 'breast') {
       if (amtWrap) amtWrap.style.display = 'none';
       if (sideWrap) sideWrap.style.display = 'block';
       if (durWrap) durWrap.style.display = 'block';
-      if (durLabel) {
-        durLabel.textContent = (editingRoutineId === null)
-          ? trEnDe('Veya Geçmiş Emzirme Süresi (dk)', 'Or Manual Past Duration (min)', 'Oder manuelle Stilldauer (Min.)')
-          : trEnDe('Süre (dk)', 'Duration (min)', 'Dauer (Min.)');
-      }
+      if (durLabel) durLabel.textContent = trEnDe('Süre (dk)', 'Duration (min)', 'Dauer (Min.)');
     } else if (m === 'solid') {
       if (amtWrap) amtWrap.style.display = 'block';
       if (sideWrap) sideWrap.style.display = 'none';
@@ -19347,6 +19166,7 @@
       if (durWrap) durWrap.style.display = 'none';
       if (amtLabel) amtLabel.textContent = trEnDe('Miktar (ml)', 'Amount (ml)', 'Menge (ml)');
     }
+    syncFeedingModalModeUI();
     if (typeof syncLiveNursingUI === 'function') syncLiveNursingUI();
   }
 
@@ -19732,6 +19552,7 @@
       }
       calcModalSleepDuration();
     } else if (item.type === 'feeding') {
+      feedingEntryMode = 'manual';
       const mSel = document.getElementById('routine-modal-feed-method');
       const sideSel = document.getElementById('routine-modal-feed-side');
       const amtInp = document.getElementById('routine-modal-feed-amount');
@@ -19972,9 +19793,11 @@
       return;
     }
     editingRoutineId = null;
+    const prefMethod = isNursing ? 'breast' : getPreferredFeedMethodForModal();
+    feedingEntryMode = (isNursing || prefMethod === 'breast') ? 'live' : 'manual';
     const mSel = document.getElementById('routine-modal-feed-method');
     if (mSel) {
-      mSel.value = isNursing ? 'breast' : getPreferredFeedMethodForModal();
+      mSel.value = prefMethod;
     }
     const sideSel = document.getElementById('routine-modal-feed-side');
     if (sideSel) sideSel.value = '';
@@ -20035,7 +19858,6 @@
   function confirmDeleteAccount() {
     cleanupSpotlightTracking();
     document.body.classList.remove('spotlight-tour-open');
-    document.body.classList.remove('mom-lantern-glow-active');
     if (typeof stopMomSilentBreathing === 'function') stopMomSilentBreathing();
     if (liveNursingInterval) {
       clearInterval(liveNursingInterval);
@@ -20074,7 +19896,8 @@
       freeSoundUsed: hasUsedFreeSoundPreview(),
       freeSoundElapsedMs: getFreeSoundElapsedMs(),
       freeCryUsed: hasUsedFreeCryAnalysis(),
-      freeDadiUsed: hasUsedFreeDadiQuestion()
+      freeDadiUsed: hasUsedFreeDadiQuestion(),
+      freeMomDadiUsed: hasUsedFreeMomDadiQuestion()
     };
     const preservedDeviceQuotaKeys = [
       'mishil_device_onboarded_once',
@@ -20086,6 +19909,7 @@
       'mishil_free_sound_elapsed_ms',
       'mishil_free_cry_used',
       'mishil_free_dadi_question_used',
+      'mishil_free_mom_dadi_used',
       'mishil_soft_vip_cry_count',
       'mishil_strict_sub_mig_v2'
     ];
@@ -20947,7 +20771,21 @@
     "1 / 3 Üye": "1 / 3 Members",
     "🔗 Eşinizin oluşturduğu başka bir Aile Koduna mı bağlanacaksınız?": "🔗 Joining an existing Family Code created by your partner?",
     "☕ Gece Eşlikçisini & Loş Feneri Gör (Ana Ekran) ➔": "☕ Open Night Companion & Warm Glow (Home) ➔",
-    "Veya Geçmiş Emzirme Süresi (dk)": "Or Manual Past Duration (min)"
+    "Veya Geçmiş Emzirme Süresi (dk)": "Or Manual Past Duration (min)",
+    "Hızlı Bakım & Araçlar": "Quick Care & Tools",
+    "🌙 Bugün Uyku:": "🌙 Today Sleep:",
+    "Eşime Sessiz Nöbet Notu": "Silent Partner Shift Note",
+    "Eşiniz uygulamayı açtığında ekranın en üstünde görür": "Shown at the top of your partner's app when opened",
+    "Eşiniz uygulamayı açtığında ekranın en üstünde görür:": "Shown at the top of your partner's app when opened:",
+    "Not Bırak ▾": "Leave Note ▾",
+    "🍼 Sıradaki uyanış nöbeti sende 💛": "🍼 Next wake-up shift is yours 💛",
+    "🤱 Beslendi ve gazı çıkarıldı; sıradaki uyanış sende 💛": "🤱 Fed and burped—next wake-up shift is yours 💛",
+    "🤍 İyi ki varsın, desteğin çok iyi geldi": "🤍 Thank you for having my back, glad we are a team",
+    "Aile Kodunuzu paylaşın; hem aynı bebeği canlı takip edin hem de tek dokunuşla sessiz nöbet notu bırakın.": "Share your Family Code to track the same baby live and leave 1-tap silent shift notes.",
+    "🌬️ 60 Sn Sessiz Nefes Molası": "🌬️ 60s Silent Breathing Pause",
+    "⏱️ Şimdi Emzir": "⏱️ Nurse Now",
+    "📝 Geçmiş / Biberon Ekle": "📝 Log Past / Bottle",
+    "🏠 Ana Ekrana Dön (Sayaç Üstte Devam Eder) ➔": "🏠 Back to Home (Timer Continues at Top) ➔"
   };
 
   const TR_TO_DE_EXACT_MAP = {
@@ -21777,7 +21615,21 @@
     "1 / 3 Üye": "1 / 3 Verbunden",
     "🔗 Eşinizin oluşturduğu başka bir Aile Koduna mı bağlanacaksınız?": "🔗 Möchten Sie einem bestehenden Familiencode Ihres Partners beitreten?",
     "☕ Gece Eşlikçisini & Loş Feneri Gör (Ana Ekran) ➔": "☕ Nachtbegleiter & Sanftes Licht öffnen (Start) ➔",
-    "Veya Geçmiş Emzirme Süresi (dk)": "Oder manuelle Stilldauer (Min.)"
+    "Veya Geçmiş Emzirme Süresi (dk)": "Oder manuelle Stilldauer (Min.)",
+    "Hızlı Bakım & Araçlar": "Schnellpflege & Hilfen",
+    "🌙 Bugün Uyku:": "🌙 Heute Schlaf:",
+    "Eşime Sessiz Nöbet Notu": "Stille Schicht-Notiz an Partner",
+    "Eşiniz uygulamayı açtığında ekranın en üstünde görür": "Erscheint beim Öffnen ganz oben bei Ihrem Partner",
+    "Eşiniz uygulamayı açtığında ekranın en üstünde görür:": "Erscheint beim Öffnen ganz oben bei Ihrem Partner:",
+    "Not Bırak ▾": "Notiz ▾",
+    "🍼 Sıradaki uyanış nöbeti sende 💛": "🍼 Die nächste Aufwach-Schicht gehört dir 💛",
+    "🤱 Beslendi ve gazı çıkarıldı; sıradaki uyanış sende 💛": "🤱 Gefüttert & Bäuerchen gemacht – nächste Schicht gehört dir 💛",
+    "🤍 İyi ki varsın, desteğin çok iyi geldi": "🤍 Danke für deine Unterstützung, schön dass wir ein Team sind",
+    "Aile Kodunuzu paylaşın; hem aynı bebeği canlı takip edin hem de tek dokunuşla sessiz nöbet notu bırakın.": "Teilen Sie Ihren Familiencode für gemeinsames Live-Tracking und 1-Tipp-Schichtnotizen.",
+    "🌬️ 60 Sn Sessiz Nefes Molası": "🌬️ 60 Sek. Stille Atempause",
+    "⏱️ Şimdi Emzir": "⏱️ Jetzt stillen",
+    "📝 Geçmiş / Biberon Ekle": "📝 Nachtragen / Fläschchen",
+    "🏠 Ana Ekrana Dön (Sayaç Üstte Devam Eder) ➔": "🏠 Zur Startseite (Uhr läuft oben weiter) ➔"
   };
 
   const REVERSE_TO_TR_EXACT_MAP = {};
@@ -21815,6 +21667,7 @@
     "Şifrenizi girin": "Enter password",
     "Tahmininiz...": "Your guess...",
     "Eşinize kısa sessiz not yazın...": "Write a short silent note to your partner...",
+    "Eşinize kısa nöbet notu yazın...": "Write a short shift note to your partner...",
     "Sabah unutmayayım (örn: bez siparişi, doktor sorusu)...": "Remember tomorrow (e.g., order diapers, ask pediatrician)..."
   };
 
@@ -21845,6 +21698,7 @@
     "Şifrenizi girin": "Passwort eingeben",
     "Tahmininiz...": "Ihr Tipp...",
     "Eşinize kısa sessiz not yazın...": "Kurze lautlose Nachricht an Ihren Partner...",
+    "Eşinize kısa nöbet notu yazın...": "Kurze Schicht-Notiz an Ihren Partner...",
     "Sabah unutmayayım (örn: bez siparişi, doktor sorusu)...": "Für morgen merken (z. B. Windeln bestellen, Arztfrage)..."
   };
 
@@ -22096,6 +21950,10 @@
     }
   }
   window.setAppLanguage = setAppLanguage;
+  function applyLanguage(lang) {
+    return setAppLanguage(lang, { silent: true, explicit: false });
+  }
+  window.applyLanguage = applyLanguage;
 
   function toggleAppLanguage() {
     const cur = getAppLang();

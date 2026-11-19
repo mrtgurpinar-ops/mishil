@@ -799,11 +799,14 @@ def test_v4530_live_nursing_routine_sync_and_context_whispers(client):
     assert "side" not in by_id["rt_nurse_invalid_side"]
     assert by_id["rt_nurse_invalid_side"]["durationMin"] == 14
 
-    # Emzirme fısıltı şablonları TR / EN / DE ve message alias kontrolü
+    # Emzirme ve nöbet devri fısıltı şablonları TR / EN / DE ve message alias kontrolü
     for lang_code, tpl_key, expected_word in [
         ("tr", "nursing_water", "Emziriyorum"),
         ("en", "nursing_burp_help", "burping"),
         ("de", "nursing_water", "stille"),
+        ("tr", "handoff_fed_burped", "gazı çıkarıldı"),
+        ("en", "handoff_fed_burped", "burped"),
+        ("de", "handoff_fed_burped", "Bäuerchen"),
     ]:
         rw = client.post(
             "/api/v1/family/whisper",
@@ -820,6 +823,14 @@ def test_v4530_live_nursing_routine_sync_and_context_whispers(client):
         assert expected_word in w_out["message_text"]
         assert w_out["message"] == w_out["message_text"]
 
+    # Geriye dönük `send_cheer` alias desteği kontrolü (/night-watch/pulse)
+    r_cheer_alias = client.post(
+        "/api/v1/family/night-watch/pulse",
+        json={"device_uid": "dev-legacy-cheer-client", "send_cheer": True},
+    )
+    assert r_cheer_alias.status_code == 200
+    assert r_cheer_alias.json()["heart_sent"] is True
+
     # Geriye dönük `message` alanı ile custom fısıltı
     rw_custom = client.post(
         "/api/v1/family/whisper",
@@ -834,5 +845,87 @@ def test_v4530_live_nursing_routine_sync_and_context_whispers(client):
     )
     assert rw_custom.status_code == 200
     assert rw_custom.json()["whisper"]["message_text"] == "Emzirme yastığını getirir misin?"
+
+
+def test_family_create_and_sync_accept_dict_vaccines_custom_routines_and_pending_whispers(client):
+    """
+    E2E Regresyon Koruması (v4.54.0):
+    1) app.html `checked_vaccines` ve `checked_leaps` alanlarını Dict (`{"vac_0": True}`, `{}`) olarak gönderdiğinde 422 dönmemeli.
+    2) `sleep` veya `custom` rutinleri `/family/sync` ile gönderildiğinde `RoutineType.CUSTOM` AttributeError (500) oluşmamalı.
+    3) Snapshot yanıtı hem `whispers` hem `pending_whispers` dizisini dönmeli.
+    """
+    r_create = client.post(
+        "/api/v1/family/create",
+        json={
+            "invite_code": "MB-E2E987",
+            "device_uid": "dev-e2e-mom-1",
+            "creator_role": "mother",
+            "creator_name": "Zeynep",
+            "baby_name": "Atlas",
+            "birth_date": "2026-07-15",
+            "checked_vaccines": {"vac_hep_b_1": True, "vac_unused": False},
+            "checked_leaps": {"leap_1": True},
+            "manual_leap": None,
+        },
+    )
+    assert r_create.status_code == 200
+    c_body = r_create.json()
+    mom_tok = c_body["member_token"]
+    assert c_body["family"]["checked_vaccines"] == ["vac_hep_b_1"]
+    assert c_body["family"]["checked_leaps"] == ["leap_1"]
+
+    r_join = client.post(
+        "/api/v1/family/join",
+        json={
+            "invite_code": "MB-E2E987",
+            "role": "father",
+            "name": "Murat",
+            "device_uid": "dev-e2e-dad-1",
+        },
+    )
+    assert r_join.status_code == 200
+    dad_tok = r_join.json()["member_token"]
+
+    r_sync = client.post(
+        "/api/v1/family/sync",
+        headers={"X-Family-Member-Token": mom_tok},
+        json={
+            "invite_code": "MB-E2E987",
+            "device_uid": "dev-e2e-mom-1",
+            "checked_vaccines": {"vac_bcg": True},
+            "checked_leaps": {},
+            "deleted_routine_ids": [],
+            "routines": [
+                {"id": "rt_sleep_1", "type": "sleep", "title": "Gece Uykusu", "durationMins": 45, "timestamp": 1795120000000},
+                {"id": "rt_custom_1", "type": "custom", "title": "D Vitamini", "detail": "3 damla", "timestamp": 1795120500000},
+            ],
+        },
+    )
+    assert r_sync.status_code == 200
+    synced_by_id = {r["id"]: r for r in r_sync.json()["family"]["routines"]}
+    assert synced_by_id["rt_sleep_1"]["type"] == "sleep"
+    assert synced_by_id["rt_custom_1"]["type"] == "custom"
+
+    r_w = client.post(
+        "/api/v1/family/whisper",
+        headers={"X-Family-Member-Token": mom_tok},
+        json={
+            "invite_code": "MB-E2E987",
+            "device_uid": "dev-e2e-mom-1",
+            "template_key": "handoff_fed_burped",
+            "lang": "tr",
+        },
+    )
+    assert r_w.status_code == 200
+
+    r_dad_pull = client.get(
+        "/api/v1/family/sync/MB-E2E987?device_uid=dev-e2e-dad-1",
+        headers={"X-Family-Member-Token": dad_tok},
+    )
+    assert r_dad_pull.status_code == 200
+    dad_fam = r_dad_pull.json()["family"]
+    assert len(dad_fam["pending_whispers"]) == 1
+    assert dad_fam["pending_whispers"] == dad_fam["whispers"]
+
 
 

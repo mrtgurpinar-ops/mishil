@@ -223,4 +223,59 @@ describe('Mışıl Baby v4.53.0 — Live Nursing Timer, Inclusivity & Mom Break 
     expect(store.mishil_last_nursing_side).toBe('right');
     expect(store.mishil_live_nursing_state).toBeUndefined();
   });
+
+  it('6. v4.54.0 Zero Cognitive Load: isolated baby/mom chat histories, independent mom free quota, nursing bar above fold & PARTNER_WHISPER sync', () => {
+    // Active nursing bar must appear BEFORE #home-organic-hero so it never falls below the fold
+    expect(html.indexOf('id="home-live-nursing-bar"')).toBeLessThan(html.indexOf('id="home-organic-hero"'));
+    // Removed clutter modules must NOT remain in DOM
+    expect(html).not.toContain('id="mom-panel-lantern"');
+    expect(html).not.toContain('id="mom-panel-escape"');
+    expect(html).not.toContain('id="mom-puzzle-input"');
+    expect(html).not.toContain('id="mom-morning-note-input"');
+    expect(html).not.toContain('id="btn-modal-nursing-companion"');
+    // WebSocket must listen for backend PARTNER_WHISPER event
+    expect(scriptCode).toContain("msg.type === 'PARTNER_WHISPER'");
+    // Paywall & native quota bridge must honor independent mom free message quota
+    expect(scriptCode).toContain('isMomDadiPaywall ? hasUsedFreeMomDadiQuestion() : hasUsedFreeDadiQuestion()');
+    expect(scriptCode).toContain("freeMomDadiUsed: localStorage.getItem('mishil_free_mom_dadi_used') === '1'");
+    // E2E & Adversarial QA Regression Guards: fetchWithTimeout, applyLanguage, 0s nursing guard, ackedWhisperIds & double-tap whisper lock
+    expect(scriptCode).toContain('async function fetchWithTimeout(resource, options)');
+    expect(scriptCode).toContain('window.applyLanguage = applyLanguage;');
+    expect(scriptCode).toContain('if (totals.totalMs <= 0)');
+    expect(scriptCode).toContain('recordAckedWhisperId(w.id)');
+    expect(scriptCode).toContain('if (isDispatchingWhisper || (nowW - lastWhisperSentAtMs < 1200)) return;');
+
+    // Verify independent baby vs mom free quotas and separate chat histories
+    const quotaSnippet = [
+      'let activeDadiAudience = "baby";',
+      'function isSubscriptionCurrentlyActive() { return false; }',
+      'function isPaidOrVerifiedVip() { return false; }',
+      'function syncDeviceQuotasToNative() {}',
+      extractFuncBlock(scriptCode, 'function hasUsedFreeDadiQuestion('),
+      extractFuncBlock(scriptCode, 'function hasUsedFreeMomDadiQuestion('),
+      extractFuncBlock(scriptCode, 'function canAskDadiQuestion('),
+      extractFuncBlock(scriptCode, 'function markFreeDadiQuestionUsedIfNeeded('),
+    ].join('\n');
+
+    const store = {};
+    const ctx = {
+      localStorage: {
+        getItem: (k) => (k in store ? store[k] : null),
+        setItem: (k, v) => { store[k] = String(v); },
+      },
+    };
+    vm.runInNewContext(
+      quotaSnippet + '\nthis._q = { canAsk: canAskDadiQuestion, markUsed: markFreeDadiQuestionUsedIfNeeded };',
+      ctx
+    );
+
+    // Using baby free question does NOT block mom's 1st free message!
+    expect(ctx._q.canAsk('baby')).toBe(true);
+    expect(ctx._q.canAsk('mom')).toBe(true);
+    ctx._q.markUsed('baby');
+    expect(ctx._q.canAsk('baby')).toBe(false);
+    expect(ctx._q.canAsk('mom')).toBe(true);
+    ctx._q.markUsed('mom');
+    expect(ctx._q.canAsk('mom')).toBe(false);
+  });
 });
