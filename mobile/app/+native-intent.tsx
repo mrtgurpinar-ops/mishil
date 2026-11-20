@@ -21,7 +21,11 @@ export function isSleepDeepLink(urlOrPath?: string | null): boolean {
     lower === 'sleep' ||
     lower === '/sleep' ||
     lower === 'misilbaby://sleep' ||
-    lower === 'misilbaby:///sleep'
+    lower === 'misilbaby:///sleep' ||
+    lower === 'nursing' ||
+    lower === '/nursing' ||
+    lower === 'misilbaby://nursing' ||
+    lower === 'misilbaby:///nursing'
   ) {
     return true;
   }
@@ -29,7 +33,12 @@ export function isSleepDeepLink(urlOrPath?: string | null): boolean {
   const schemeMatch = lower.match(/^[a-z][a-z0-9+.-]*:\/\/(.*)$/);
   if (schemeMatch) {
     const remainder = schemeMatch[1].replace(/^\/+/, '');
-    if (remainder === 'sleep' || remainder.startsWith('sleep/')) {
+    if (
+      remainder === 'sleep' ||
+      remainder.startsWith('sleep/') ||
+      remainder === 'nursing' ||
+      remainder.startsWith('nursing/')
+    ) {
       return true;
     }
   }

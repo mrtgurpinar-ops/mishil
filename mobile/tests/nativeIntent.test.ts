@@ -26,6 +26,9 @@ describe('Expo Router +native-intent deep-link interceptor (v4.51.1)', () => {
     expect(nativeIntent.isSleepDeepLink('MISILBABY://SLEEP/')).toBe(true);
     expect(nativeIntent.isSleepDeepLink('/sleep')).toBe(true);
     expect(nativeIntent.isSleepDeepLink('sleep')).toBe(true);
+    expect(nativeIntent.isSleepDeepLink('misilbaby://nursing')).toBe(true);
+    expect(nativeIntent.isSleepDeepLink('misilbaby:///nursing')).toBe(true);
+    expect(nativeIntent.isSleepDeepLink('/nursing')).toBe(true);
 
     expect(nativeIntent.isSleepDeepLink('')).toBe(false);
     expect(nativeIntent.isSleepDeepLink(null)).toBe(false);

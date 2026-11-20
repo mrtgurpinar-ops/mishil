@@ -19,7 +19,7 @@ object MishilLiveSleepNotifier {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       val manager = context.getSystemService(NotificationManager::class.java)
       if (manager.getNotificationChannel(CHANNEL_ID) == null) {
-        val channel = NotificationChannel(CHANNEL_ID, "Canlı Uyku Takibi", NotificationManager.IMPORTANCE_LOW).apply {
+        val channel = NotificationChannel(CHANNEL_ID, "Canlı Uyku & Emzirme Takibi", NotificationManager.IMPORTANCE_LOW).apply {
           lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
           setShowBadge(false)
           enableVibration(false)
@@ -30,8 +30,9 @@ object MishilLiveSleepNotifier {
     }
   }
 
-  private fun contentIntent(context: Context): PendingIntent {
-    val deepLinkIntent = Intent(Intent.ACTION_VIEW, Uri.parse("misilbaby://sleep")).apply {
+  private fun contentIntent(context: Context, mode: String): PendingIntent {
+    val uriStr = if (mode == "nursing") "misilbaby://nursing" else "misilbaby://sleep"
+    val deepLinkIntent = Intent(Intent.ACTION_VIEW, Uri.parse(uriStr)).apply {
       setPackage(context.packageName)
       addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
     }
@@ -48,21 +49,51 @@ object MishilLiveSleepNotifier {
     )
   }
 
-  fun show(context: Context, startEpochMs: Long, title: String, subtitle: String) {
+  private fun formatPausedElapsed(rawSec: Int): String {
+    val sec = rawSec.coerceAtLeast(0)
+    val hrs = sec / 3600
+    val mins = (sec % 3600) / 60
+    val secs = sec % 60
+    return if (hrs > 0) {
+      String.format("%02d:%02d:%02d ⏸", hrs, mins, secs)
+    } else {
+      String.format("%02d:%02d ⏸", mins, secs)
+    }
+  }
+
+  fun show(
+    context: Context,
+    startEpochMs: Long,
+    title: String,
+    subtitle: String,
+    mode: String = "sleep",
+    isPaused: Boolean = false,
+    pausedElapsedSec: Int = 0
+  ) {
     ensureChannel(context)
+    val effectiveSubtitle = if (isPaused) {
+      val pausedStr = formatPausedElapsed(pausedElapsedSec)
+      if (subtitle.isNotBlank()) "$subtitle · $pausedStr" else pausedStr
+    } else {
+      subtitle
+    }
+
     val builder = NotificationCompat.Builder(context, CHANNEL_ID)
       .setContentTitle(title)
-      .setContentText(subtitle)
+      .setContentText(effectiveSubtitle)
       .setSmallIcon(android.R.drawable.ic_menu_recent_history)
       .setColor(MISHIL_AMBER_COLOR)
       .setOngoing(true)
-      .setShowWhen(true)
-      .setWhen(startEpochMs)
-      .setUsesChronometer(true)
       .setOnlyAlertOnce(true)
       .setCategory(NotificationCompat.CATEGORY_STOPWATCH)
       .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-      .setContentIntent(contentIntent(context))
+      .setContentIntent(contentIntent(context, mode))
+
+    if (isPaused) {
+      builder.setShowWhen(false).setUsesChronometer(false)
+    } else {
+      builder.setShowWhen(true).setWhen(startEpochMs).setUsesChronometer(true)
+    }
 
     applyApi36LiveUpdate(builder)
 

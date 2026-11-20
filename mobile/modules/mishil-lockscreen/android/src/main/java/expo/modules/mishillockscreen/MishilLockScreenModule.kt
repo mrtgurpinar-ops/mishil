@@ -27,6 +27,9 @@ class StartLiveSleepOptions : Record {
   @Field var babyName: String? = null
   @Field var showBabyNameOnLockScreen: Boolean? = null
   @Field var lang: String? = null
+  @Field var mode: String? = null
+  @Field var isPaused: Boolean? = null
+  @Field var pausedElapsedSec: Int? = null
 }
 
 class UpdateLiveSleepOptions : Record {
@@ -35,6 +38,9 @@ class UpdateLiveSleepOptions : Record {
   @Field var subtitle: String? = null
   @Field var babyName: String? = null
   @Field var showBabyNameOnLockScreen: Boolean? = null
+  @Field var mode: String? = null
+  @Field var isPaused: Boolean? = null
+  @Field var pausedElapsedSec: Int? = null
 }
 
 class MishilLockScreenModule : Module() {
@@ -47,6 +53,9 @@ class MishilLockScreenModule : Module() {
   private var sleepSubtitleStore: String = ""
   private var sleepBabyName: String? = null
   private var sleepShowBabyName: Boolean = false
+  private var sleepModeStore: String = "sleep"
+  private var sleepIsPausedStore: Boolean = false
+  private var sleepPausedElapsedSecStore: Int = 0
 
   private val serviceConnection = object : ServiceConnection {
     override fun onServiceConnected(name: ComponentName?, binder: IBinder?) {
@@ -152,7 +161,18 @@ class MishilLockScreenModule : Module() {
       sleepSubtitleStore = options.subtitle ?: ""
       sleepBabyName = options.babyName
       sleepShowBabyName = options.showBabyNameOnLockScreen ?: false
-      MishilLiveSleepNotifier.show(context, options.startEpochMs.toLong(), resolveDisplayTitle(), sleepSubtitleStore)
+      sleepModeStore = if (options.mode == "nursing") "nursing" else "sleep"
+      sleepIsPausedStore = options.isPaused ?: false
+      sleepPausedElapsedSecStore = (options.pausedElapsedSec ?: 0).coerceAtLeast(0)
+      MishilLiveSleepNotifier.show(
+        context,
+        options.startEpochMs.toLong(),
+        resolveDisplayTitle(),
+        sleepSubtitleStore,
+        sleepModeStore,
+        sleepIsPausedStore,
+        sleepPausedElapsedSecStore
+      )
       true
     }
 
@@ -162,12 +182,26 @@ class MishilLockScreenModule : Module() {
       options.subtitle?.let { sleepSubtitleStore = it }
       options.babyName?.let { sleepBabyName = it }
       options.showBabyNameOnLockScreen?.let { sleepShowBabyName = it }
-      MishilLiveSleepNotifier.show(context, options.startEpochMs.toLong(), resolveDisplayTitle(), sleepSubtitleStore)
+      options.mode?.let { sleepModeStore = if (it == "nursing") "nursing" else "sleep" }
+      options.isPaused?.let { sleepIsPausedStore = it }
+      options.pausedElapsedSec?.let { sleepPausedElapsedSecStore = it.coerceAtLeast(0) }
+      MishilLiveSleepNotifier.show(
+        context,
+        options.startEpochMs.toLong(),
+        resolveDisplayTitle(),
+        sleepSubtitleStore,
+        sleepModeStore,
+        sleepIsPausedStore,
+        sleepPausedElapsedSecStore
+      )
       true
     }
 
     AsyncFunction("stopLiveSleep") {
       sleepStartEpochMs = null
+      sleepModeStore = "sleep"
+      sleepIsPausedStore = false
+      sleepPausedElapsedSecStore = 0
       MishilLiveSleepNotifier.cancel(context)
     }
 
@@ -181,7 +215,9 @@ class MishilLockScreenModule : Module() {
       )
       base + mapOf(
         "sleepActive" to (sleepStartEpochMs != null),
-        "sleepStartEpochMs" to sleepStartEpochMs
+        "sleepStartEpochMs" to sleepStartEpochMs,
+        "activityMode" to if (sleepStartEpochMs != null) sleepModeStore else null,
+        "activityPaused" to if (sleepStartEpochMs != null) sleepIsPausedStore else false
       )
     }
 
@@ -193,11 +229,21 @@ class MishilLockScreenModule : Module() {
     }
   }
 
+  private fun stripLeadingActivityEmoji(raw: String): String {
+    return when {
+      raw.startsWith("🤱 ") -> raw.removePrefix("🤱 ")
+      raw.startsWith("🌙 ") -> raw.removePrefix("🌙 ")
+      else -> raw
+    }
+  }
+
   private fun resolveDisplayTitle(): String {
-    return if (sleepShowBabyName && !sleepBabyName.isNullOrEmpty()) {
-      "🌙 $sleepBabyName"
+    val icon = if (sleepModeStore == "nursing") "🤱" else "🌙"
+    val cleanLabel = stripLeadingActivityEmoji(sleepLabelStore)
+    return if (sleepShowBabyName && !sleepBabyName.isNullOrEmpty() && sleepModeStore != "nursing") {
+      "$icon $sleepBabyName"
     } else {
-      "🌙 $sleepLabelStore"
+      "$icon $cleanLabel"
     }
   }
 }

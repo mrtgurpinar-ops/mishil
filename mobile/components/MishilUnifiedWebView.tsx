@@ -80,6 +80,7 @@ const INJECT_APP_META = `
   window.MishilNative.quotaBridge = true;
   window.MishilNative.quotasHydrated = false;
   window.MishilNative.liveSleepBridge = true;
+  window.MishilNative.nursingLockScreenV2 = true;
   true;
 `;
 
@@ -951,6 +952,9 @@ export default function MishilUnifiedWebView() {
               babyName: msg.babyName ? String(msg.babyName) : undefined,
               showBabyNameOnLockScreen: Boolean(msg.showBabyNameOnLockScreen),
               lang: (msg.lang === 'en' || msg.lang === 'de') ? msg.lang : 'tr',
+              mode: msg.mode === 'nursing' ? 'nursing' : 'sleep',
+              isPaused: Boolean(msg.isPaused),
+              pausedElapsedSec: typeof msg.pausedElapsedSec === 'number' ? Number(msg.pausedElapsedSec) : undefined,
             });
           }
           break;
@@ -963,6 +967,9 @@ export default function MishilUnifiedWebView() {
               subtitle: msg.subtitle ? String(msg.subtitle) : undefined,
               babyName: msg.babyName ? String(msg.babyName) : undefined,
               showBabyNameOnLockScreen: typeof msg.showBabyNameOnLockScreen === 'boolean' ? msg.showBabyNameOnLockScreen : undefined,
+              mode: msg.mode ? (msg.mode === 'nursing' ? 'nursing' : 'sleep') : undefined,
+              isPaused: typeof msg.isPaused === 'boolean' ? msg.isPaused : undefined,
+              pausedElapsedSec: typeof msg.pausedElapsedSec === 'number' ? Number(msg.pausedElapsedSec) : undefined,
             });
           }
           break;

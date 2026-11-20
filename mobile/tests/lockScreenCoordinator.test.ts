@@ -340,6 +340,67 @@ describe('native live sleep coordinator', () => {
       expect.objectContaining({ startEpochMs: startEpochMs - 900000, sleepLabel: 'Gece Uykusu' })
     );
   });
+
+  it('supports v4.54.1 nursing Live Activity mode, paused elapsed freeze, 3h nursing age cap & byte-identical Codable Swift attributes', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-11-20T03:00:00Z'));
+    const startEpochMs = Date.now() - 240000; // 4 dk
+    const ctx = setup(null, true);
+
+    await ctx.coordinator.startNativeLiveSleep({
+      startEpochMs,
+      sleepLabel: 'Emzirme · Sol Göğüs',
+      subtitle: 'Sol 04:00 · Sağ 00:00',
+      lang: 'tr',
+      mode: 'nursing',
+      isPaused: false,
+      pausedElapsedSec: 240,
+    });
+    expect(ctx.native.startLiveSleep).toHaveBeenCalledWith(
+      expect.objectContaining({ mode: 'nursing', isPaused: false, pausedElapsedSec: 240 })
+    );
+
+    await ctx.coordinator.updateNativeLiveSleep({
+      startEpochMs,
+      sleepLabel: 'Emzirme · Duraklatıldı',
+      isPaused: true,
+      pausedElapsedSec: 315,
+    });
+    expect(JSON.parse(ctx.stored)).toEqual(
+      expect.objectContaining({ mode: 'nursing', isPaused: true, pausedElapsedSec: 315 })
+    );
+
+    // 3.5 saat geçmiş unutulmuş emzirme oturumu (<16s olsa bile >3s emzirme sınırında) temizlenmeli!
+    const staleNursingCtx = setup(
+      JSON.stringify({
+        active: true,
+        startEpochMs: Date.now() - 3.5 * 3600000,
+        sleepLabel: 'Emzirme · Sol Göğüs',
+        subtitle: 'Sol 04:00 · Sağ 00:00',
+        lang: 'tr',
+        mode: 'nursing',
+        isPaused: false,
+        pausedElapsedSec: 240,
+      }),
+      true
+    );
+    await staleNursingCtx.coordinator.reconcileNativeLiveSleepOnLaunch();
+    expect(staleNursingCtx.native.stopLiveSleep).toHaveBeenCalledTimes(1);
+    expect(staleNursingCtx.asyncStorage.removeItem).toHaveBeenCalledWith('@mishil_live_sleep_native');
+
+    // Her iki MishilSleepAttributes.swift dosyası birebir aynı ve decodeIfPresent geriye dönük uyumlu olmalı
+    const attrTarget = fs.readFileSync(
+      path.resolve(__dirname, '../targets/MishilLiveActivity/MishilSleepAttributes.swift'),
+      'utf8'
+    );
+    const attrModule = fs.readFileSync(
+      path.resolve(__dirname, '../modules/mishil-lockscreen/ios/MishilSleepAttributes.swift'),
+      'utf8'
+    );
+    expect(attrTarget.replace(/\r\n/g, '\n')).toBe(attrModule.replace(/\r\n/g, '\n'));
+    expect(attrTarget).toContain('decodeIfPresent(String.self, forKey: .mode) ?? "sleep"');
+    expect(attrTarget).toContain('decodeIfPresent(Bool.self, forKey: .isPaused) ?? false');
+    expect(attrTarget).toContain('decodeIfPresent(Int.self, forKey: .pausedElapsedSec) ?? 0');
+  });
 });
 
 describe('Live Activity config plugin', () => {

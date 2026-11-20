@@ -24,6 +24,9 @@ struct StartLiveSleepOptions: Record {
   @Field var babyName: String? = nil
   @Field var showBabyNameOnLockScreen: Bool? = nil
   @Field var lang: String? = nil
+  @Field var mode: String? = nil
+  @Field var isPaused: Bool? = nil
+  @Field var pausedElapsedSec: Int? = nil
 }
 
 struct UpdateLiveSleepOptions: Record {
@@ -32,6 +35,9 @@ struct UpdateLiveSleepOptions: Record {
   @Field var subtitle: String? = nil
   @Field var babyName: String? = nil
   @Field var showBabyNameOnLockScreen: Bool? = nil
+  @Field var mode: String? = nil
+  @Field var isPaused: Bool? = nil
+  @Field var pausedElapsedSec: Int? = nil
 }
 
 public class MishilLockScreenModule: Module {
@@ -53,9 +59,10 @@ public class MishilLockScreenModule: Module {
   private var previewLastResumeUptime: Double = 0
   private var previewTimer: DispatchSourceTimer?
 
-  // Canlı Uyku (ActivityKit) durumu — iOS 8 saatlik sistem sınırına karşı 7. saatte ön planda tazeleme destekli
+  // Canlı Uyku & Canlı Emzirme (ActivityKit) durumu — iOS 8 saatlik sistem sınırına karşı 7. saatte ön planda tazeleme destekli
   private static let activityStaleAfterSeconds: TimeInterval = 8 * 3600
   private static let activityMaxSleepSeconds: TimeInterval = 16 * 3600
+  private static let activityMaxNursingSeconds: TimeInterval = 3 * 3600
   private static let activityRolloverThresholdMs: Double = 7 * 3600 * 1000
   private var sleepStartEpochMs: Double?
   private var activityCreatedAtEpochMs: Double?
@@ -63,6 +70,9 @@ public class MishilLockScreenModule: Module {
   private var sleepSubtitleStore: String = ""
   private var sleepBabyName: String?
   private var sleepShowBabyName: Bool = false
+  private var sleepModeStore: String = "sleep"
+  private var sleepIsPausedStore: Bool = false
+  private var sleepPausedElapsedSecStore: Int = 0
 
   public func definition() -> ModuleDefinition {
     Name("MishilLockScreen")
@@ -353,18 +363,27 @@ public class MishilLockScreenModule: Module {
     sendEvent("onPlaybackStateChanged", payload)
   }
 
-  // MARK: - Live Sleep (ActivityKit)
+  // MARK: - Live Sleep & Nursing (ActivityKit)
 
-  private func resolveDisplayTitle(sleepLabel: String, babyName: String?, showBabyName: Bool) -> String {
-    if showBabyName, let name = babyName, !name.isEmpty {
-      return "🌙 \(name)"
-    }
-    return "🌙 \(sleepLabel)"
+  private func stripLeadingActivityEmoji(_ raw: String) -> String {
+    if raw.hasPrefix("🤱 ") { return String(raw.dropFirst(2)) }
+    if raw.hasPrefix("🌙 ") { return String(raw.dropFirst(2)) }
+    return raw
   }
 
-  private func computeActivityStaleDate(startEpochMs: Double) -> Date {
+  private func resolveDisplayTitle(sleepLabel: String, babyName: String?, showBabyName: Bool, mode: String) -> String {
+    let icon = (mode == "nursing") ? "🤱" : "🌙"
+    let cleanLabel = stripLeadingActivityEmoji(sleepLabel)
+    if showBabyName, let name = babyName, !name.isEmpty, mode != "nursing" {
+      return "\(icon) \(name)"
+    }
+    return "\(icon) \(cleanLabel)"
+  }
+
+  private func computeActivityStaleDate(startEpochMs: Double, mode: String) -> Date {
     let now = Date()
-    let maxEnd = Date(timeIntervalSince1970: startEpochMs / 1000.0).addingTimeInterval(Self.activityMaxSleepSeconds)
+    let maxWindow = (mode == "nursing") ? Self.activityMaxNursingSeconds : Self.activityMaxSleepSeconds
+    let maxEnd = Date(timeIntervalSince1970: startEpochMs / 1000.0).addingTimeInterval(maxWindow)
     let eightHoursFromNow = now.addingTimeInterval(Self.activityStaleAfterSeconds)
     return min(eightHoursFromNow, max(now.addingTimeInterval(60), maxEnd))
   }
@@ -394,17 +413,28 @@ public class MishilLockScreenModule: Module {
     sleepSubtitleStore = options.subtitle ?? ""
     sleepBabyName = options.babyName
     sleepShowBabyName = options.showBabyNameOnLockScreen ?? false
+    sleepModeStore = (options.mode == "nursing") ? "nursing" : "sleep"
+    sleepIsPausedStore = options.isPaused ?? false
+    sleepPausedElapsedSecStore = max(0, options.pausedElapsedSec ?? 0)
 
     #if canImport(ActivityKit)
     if #available(iOS 16.2, *) {
-      let displayTitle = resolveDisplayTitle(sleepLabel: sleepLabelStore, babyName: sleepBabyName, showBabyName: sleepShowBabyName)
+      let displayTitle = resolveDisplayTitle(
+        sleepLabel: sleepLabelStore,
+        babyName: sleepBabyName,
+        showBabyName: sleepShowBabyName,
+        mode: sleepModeStore
+      )
       let state = MishilSleepAttributes.ContentState(
         startEpochMs: options.startEpochMs,
         sleepLabel: sleepLabelStore,
         subtitle: sleepSubtitleStore,
-        displayTitle: displayTitle
+        displayTitle: displayTitle,
+        mode: sleepModeStore,
+        isPaused: sleepIsPausedStore,
+        pausedElapsedSec: sleepPausedElapsedSecStore
       )
-      let staleDate = computeActivityStaleDate(startEpochMs: options.startEpochMs)
+      let staleDate = computeActivityStaleDate(startEpochMs: options.startEpochMs, mode: sleepModeStore)
       let nowMs = Date().timeIntervalSince1970 * 1000.0
       let existing = Activity<MishilSleepAttributes>.activities
       let activeCandidates = existing.filter { $0.activityState == .active }
@@ -454,17 +484,28 @@ public class MishilLockScreenModule: Module {
     if let subtitle = options.subtitle { sleepSubtitleStore = subtitle }
     if let name = options.babyName { sleepBabyName = name }
     if let show = options.showBabyNameOnLockScreen { sleepShowBabyName = show }
+    if let m = options.mode { sleepModeStore = (m == "nursing") ? "nursing" : "sleep" }
+    if let p = options.isPaused { sleepIsPausedStore = p }
+    if let sec = options.pausedElapsedSec { sleepPausedElapsedSecStore = max(0, sec) }
 
     #if canImport(ActivityKit)
     if #available(iOS 16.2, *) {
-      let displayTitle = resolveDisplayTitle(sleepLabel: sleepLabelStore, babyName: sleepBabyName, showBabyName: sleepShowBabyName)
+      let displayTitle = resolveDisplayTitle(
+        sleepLabel: sleepLabelStore,
+        babyName: sleepBabyName,
+        showBabyName: sleepShowBabyName,
+        mode: sleepModeStore
+      )
       let state = MishilSleepAttributes.ContentState(
         startEpochMs: options.startEpochMs,
         sleepLabel: sleepLabelStore,
         subtitle: sleepSubtitleStore,
-        displayTitle: displayTitle
+        displayTitle: displayTitle,
+        mode: sleepModeStore,
+        isPaused: sleepIsPausedStore,
+        pausedElapsedSec: sleepPausedElapsedSecStore
       )
-      let staleDate = computeActivityStaleDate(startEpochMs: options.startEpochMs)
+      let staleDate = computeActivityStaleDate(startEpochMs: options.startEpochMs, mode: sleepModeStore)
       let nowMs = Date().timeIntervalSince1970 * 1000.0
       let needsRollover = activityCreatedAtEpochMs != nil && (nowMs - activityCreatedAtEpochMs!) >= Self.activityRolloverThresholdMs
       let activeActivity = Activity<MishilSleepAttributes>.activities.first(where: { $0.activityState == .active })
@@ -478,12 +519,15 @@ public class MishilLockScreenModule: Module {
 
       // iOS 8 saat sınırıyla aktiviteyi düşürdüyse ve uygulama ön plandaysa aynı başlangıç saatiyle otomatik yeniden kur
       if UIApplication.shared.applicationState == .active {
-        let recreateOptions = StartLiveSleepOptions()
+        var recreateOptions = StartLiveSleepOptions()
         recreateOptions.startEpochMs = options.startEpochMs
         recreateOptions.sleepLabel = sleepLabelStore
         recreateOptions.subtitle = sleepSubtitleStore
         recreateOptions.babyName = sleepBabyName
         recreateOptions.showBabyNameOnLockScreen = sleepShowBabyName
+        recreateOptions.mode = sleepModeStore
+        recreateOptions.isPaused = sleepIsPausedStore
+        recreateOptions.pausedElapsedSec = sleepPausedElapsedSecStore
         return handleStartLiveSleep(recreateOptions)
       }
       return false
@@ -495,6 +539,9 @@ public class MishilLockScreenModule: Module {
   private func handleStopLiveSleep() {
     sleepStartEpochMs = nil
     activityCreatedAtEpochMs = nil
+    sleepModeStore = "sleep"
+    sleepIsPausedStore = false
+    sleepPausedElapsedSecStore = 0
     #if canImport(ActivityKit)
     if #available(iOS 16.2, *) {
       let existing = Activity<MishilSleepAttributes>.activities
@@ -517,6 +564,8 @@ public class MishilLockScreenModule: Module {
       "previewExhausted": !isVipSession && previewBudgetMs > 0 && previewRemainingMs <= 0,
       "sleepActive": systemSleepHealthy,
       "sleepStartEpochMs": systemSleepHealthy ? sleepStartEpochMs : nil,
+      "activityMode": systemSleepHealthy ? sleepModeStore : nil,
+      "activityPaused": systemSleepHealthy ? sleepIsPausedStore : false,
     ]
   }
 }

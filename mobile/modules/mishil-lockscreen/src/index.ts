@@ -10,6 +10,8 @@ export interface PlayAudioOptions {
   previewBudgetMs?: number;
 }
 
+export type LiveActivityMode = 'sleep' | 'nursing';
+
 export interface StartLiveSleepOptions {
   startEpochMs: number;
   sleepLabel: string;
@@ -17,6 +19,9 @@ export interface StartLiveSleepOptions {
   babyName?: string;
   showBabyNameOnLockScreen?: boolean;
   lang?: 'tr' | 'en' | 'de';
+  mode?: LiveActivityMode;
+  isPaused?: boolean;
+  pausedElapsedSec?: number;
 }
 
 export interface UpdateLiveSleepOptions {
@@ -25,6 +30,9 @@ export interface UpdateLiveSleepOptions {
   subtitle?: string;
   babyName?: string;
   showBabyNameOnLockScreen?: boolean;
+  mode?: LiveActivityMode;
+  isPaused?: boolean;
+  pausedElapsedSec?: number;
 }
 
 export interface LockScreenState {
@@ -35,6 +43,8 @@ export interface LockScreenState {
   previewExhausted: boolean;
   sleepActive: boolean;
   sleepStartEpochMs: number | null;
+  activityMode?: LiveActivityMode | null;
+  activityPaused?: boolean;
 }
 
 export type PlaybackEventReason =
