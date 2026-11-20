@@ -179,7 +179,7 @@ describe('Mışıl Baby v4.53.0 — Live Nursing Timer, Inclusivity & Mom Break 
       extractFuncBlock(scriptCode, 'function persistLiveNursingState('),
       extractFuncBlock(scriptCode, 'function ensureLiveNursingTicker('),
       extractFuncBlock(scriptCode, 'function resolveLocalizedRoutineCopy('),
-      'function syncLiveNursingUI() {}',
+      'function syncLiveNursingUI() {} function syncLiveNursingToNative() {}',
       extractFuncBlock(scriptCode, 'function toggleLiveNursingSide('),
       extractFuncBlock(scriptCode, 'function completeLiveNursingSession('),
       extractFuncBlock(scriptCode, 'function checkAndRestoreLiveNursing('),
@@ -277,5 +277,335 @@ describe('Mışıl Baby v4.53.0 — Live Nursing Timer, Inclusivity & Mom Break 
     expect(ctx._q.canAsk('mom')).toBe(true);
     ctx._q.markUsed('mom');
     expect(ctx._q.canAsk('mom')).toBe(false);
+  });
+
+  it('7. v4.54.1 Live Nursing Lock Screen / Live Activity bridge: Build 70 immediate compatibility, Build 71 V2 pause freeze & Dream-Feed sleep restoration', () => {
+    const sentMessages = [];
+    const store = {
+      mishil_baby_name: 'Atlas',
+      mishil_lockscreen_show_name: '1',
+    };
+
+    const bridgeSnippet = [
+      'var LIVE_NURSING_STORAGE_KEY = "mishil_live_nursing_state";',
+      'var LAST_NURSING_SIDE_KEY = "mishil_last_nursing_side";',
+      'var LIVE_NURSING_MAX_DURATION_MS = 180 * 60 * 1000;',
+      'var isNursing = false;',
+      'var liveNursingState = null;',
+      'var liveNursingInterval = null;',
+      'var isSleeping = false;',
+      'var sleepStartTime = null;',
+      'var nursingNativeSyncTimer = null;',
+      'var lastNativeActivityDispatched = null;',
+      'function getAppLang() { return "tr"; }',
+      'function trEnDe(t, _e, _d) { return t; }',
+      'function nativeAudioSend(obj) { __pushMsg(obj); }',
+      extractFuncBlock(scriptCode, 'function formatMmSsFromMs('),
+      extractFuncBlock(scriptCode, 'function computeLiveNursingTotals('),
+      extractFuncBlock(scriptCode, 'function hasNursingLockScreenV2('),
+      extractFuncBlock(scriptCode, 'function syncLiveSleepToNative('),
+      extractFuncBlock(scriptCode, 'function dispatchLiveNursingToNativeNow('),
+      extractFuncBlock(scriptCode, 'function syncLiveNursingToNative('),
+      extractFuncBlock(scriptCode, 'function reconcileActiveLockscreenActivity('),
+    ].join('\n');
+
+    const ctx = {
+      window: {
+        ReactNativeWebView: { postMessage: () => {} },
+        MishilNative: { liveSleepBridge: true, nursingLockScreenV2: false },
+      },
+      localStorage: {
+        getItem: (k) => (k in store ? store[k] : null),
+        setItem: (k, v) => { store[k] = String(v); },
+      },
+      Date,
+      Math,
+      Number,
+      String,
+      Boolean,
+      setTimeout,
+      clearTimeout,
+      __pushMsg: (m) => sentMessages.push(m),
+    };
+    vm.runInNewContext(
+      bridgeSnippet +
+        '\nthis._api = { syncNursing: syncLiveNursingToNative, syncSleep: syncLiveSleepToNative, reconcile: reconcileActiveLockscreenActivity, setState: (s) => { isNursing = s.isNursing; liveNursingState = s.liveNursingState; isSleeping = s.isSleeping; sleepStartTime = s.sleepStartTime; } };',
+      ctx
+    );
+
+    const refNow = Date.now();
+    // 1) Build 70 (nursingLockScreenV2 = false): active left breast sends LIVE_SLEEP_START with 🤱 prefix, showBabyNameOnLockScreen=false, and baby name in subtitle
+    ctx._api.setState({
+      isNursing: true,
+      liveNursingState: {
+        sessionStartedAt: refNow - 180000,
+        activeSide: 'left',
+        activeSideStartedAt: refNow - 60000,
+        leftAccumMs: 120000,
+        rightAccumMs: 60000,
+        lastTouchedSide: 'left',
+      },
+      isSleeping: false,
+      sleepStartTime: null,
+    });
+    ctx._api.syncNursing('START', { immediate: true });
+    expect(sentMessages.length).toBe(1);
+    expect(sentMessages[0]).toEqual(
+      expect.objectContaining({
+        type: 'LIVE_SLEEP_START',
+        sleepLabel: '🤱 Emzirme · Sol Göğüs',
+        showBabyNameOnLockScreen: false,
+        mode: 'nursing',
+        isPaused: false,
+      })
+    );
+    expect(sentMessages[0].subtitle).toContain('Atlas · Sol 03:00 · Sağ 01:00');
+    expect(Math.abs((refNow - 240000) - sentMessages[0].startEpochMs)).toBeLessThan(1500);
+
+    // 2) Build 70 pause: stops hardware clock so Lock Screen never ticks falsely
+    sentMessages.length = 0;
+    ctx._api.setState({
+      isNursing: true,
+      liveNursingState: {
+        sessionStartedAt: refNow - 240000,
+        activeSide: null,
+        activeSideStartedAt: 0,
+        leftAccumMs: 180000,
+        rightAccumMs: 60000,
+        lastTouchedSide: 'left',
+      },
+      isSleeping: false,
+      sleepStartTime: null,
+    });
+    ctx._api.syncNursing('UPDATE', { immediate: true });
+    expect(sentMessages[0]).toEqual({ type: 'LIVE_SLEEP_STOP' });
+
+    // 3) Build 71+ (nursingLockScreenV2 = true) pause: keeps frozen paused state on Lock Screen!
+    sentMessages.length = 0;
+    ctx.window.MishilNative.nursingLockScreenV2 = true;
+    ctx._api.syncNursing('UPDATE', { immediate: true });
+    expect(sentMessages[0]).toEqual(
+      expect.objectContaining({
+        type: 'LIVE_SLEEP_UPDATE',
+        sleepLabel: 'Emzirme · Duraklatıldı',
+        mode: 'nursing',
+        isPaused: true,
+        pausedElapsedSec: 240,
+      })
+    );
+
+    // 4) Dream-Feed (isSleeping = true while nursing finishes): immediately restores original sleepStartTime!
+    sentMessages.length = 0;
+    const origSleepDate = new Date(refNow - 45 * 60000);
+    ctx._api.setState({
+      isNursing: false,
+      liveNursingState: null,
+      isSleeping: true,
+      sleepStartTime: origSleepDate,
+    });
+    ctx._api.syncNursing('STOP', { immediate: true });
+    expect(sentMessages[0]).toEqual(
+      expect.objectContaining({
+        type: 'LIVE_SLEEP_START',
+        startEpochMs: origSleepDate.getTime(),
+        mode: 'sleep',
+        isPaused: false,
+      })
+    );
+
+    // 5) Build 70 foreground reconcile WITHOUT activityMode: stale sleep activity on Lock Screen is replaced by active nursing!
+    sentMessages.length = 0;
+    ctx.window.MishilNative.nursingLockScreenV2 = false;
+    ctx._api.setState({
+      isNursing: true,
+      liveNursingState: {
+        sessionStartedAt: refNow - 120000,
+        activeSide: 'right',
+        activeSideStartedAt: refNow - 60000,
+        leftAccumMs: 60000,
+        rightAccumMs: 0,
+        lastTouchedSide: 'right',
+      },
+      isSleeping: true,
+      sleepStartTime: origSleepDate,
+    });
+    ctx._api.reconcile({ sleepActive: true, sleepStartEpochMs: origSleepDate.getTime() }); // Build 70 omits activityMode!
+    expect(sentMessages.length).toBe(1);
+    expect(sentMessages[0]).toEqual(
+      expect.objectContaining({
+        type: 'LIVE_SLEEP_START',
+        sleepLabel: '🤱 Emzirme · Sağ Göğüs',
+        mode: 'nursing',
+      })
+    );
+  });
+
+  test('8. v4.54.1: mapServerRoutineToClientItem preserves camelCase server timestamps, self-heals 07:25 poisoned yesterday logs without touching valid overnight/edited logs, and calibrates morning wake', () => {
+    const appHtml = fs.readFileSync(APP_HTML_PATH, 'utf8');
+    const startIdx = appHtml.indexOf('function parseRoutineHHMMStrict(');
+    const endIdx = appHtml.indexOf('function hydrateClientStateFromFamilySnapshot(');
+    expect(startIdx).toBeGreaterThan(0);
+    expect(endIdx).toBeGreaterThan(startIdx);
+
+    const spotStart = appHtml.indexOf('function calculateMışılSpot(');
+    const spotEnd = appHtml.indexOf('// 10 Scientific BabySteps', spotStart);
+    expect(spotStart).toBeGreaterThan(0);
+    expect(spotEnd).toBeGreaterThan(spotStart);
+
+    const nowMorning = new Date(2026, 10, 20, 7, 26, 0); // 20 Nov 2026 07:26 local
+    const yestCreatedMs = new Date(2026, 10, 19, 22, 46, 0).getTime(); // 19 Nov 2026 22:46 local
+    const yestTrueStartMs = new Date(2026, 10, 19, 21, 30, 0).getTime();
+    const yestTrueEndMs = new Date(2026, 10, 19, 22, 45, 0).getTime();
+    const poisoned725Ms = new Date(2026, 10, 20, 7, 25, 12).getTime();
+
+    const vmCtx = {
+      window: {},
+      Date,
+      Math,
+      Number,
+      String,
+      Array,
+      Object,
+      isNaN,
+      parseInt,
+      localStorage: {
+        getItem: () => null,
+      },
+      activeRoutines: [],
+      getAppLang: () => 'tr',
+      trEnDe: (tr) => tr,
+      getPrematureWeeksStored: () => 0,
+      isSameLocalCalendarDay: (a, b) =>
+        a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate(),
+      formatPlanDayTimeLabel: (dt, now) => {
+        const hhmm = `${String(dt.getHours()).padStart(2, '0')}:${String(dt.getMinutes()).padStart(2, '0')}`;
+        if (dt.getDate() === now.getDate()) return hhmm;
+        return `Dün ${hhmm}`;
+      },
+      WONDER_WEEKS_LEAPS: [{ num: 1, startWeek: 4, endWeek: 5, stormWeek: 5, title: 'Duyular' }],
+      getActiveLeapNumber: () => 1,
+      getLeapTitle: (l) => l.title,
+    };
+
+    vm.runInNewContext(
+      appHtml.slice(startIdx, endIdx) + '\n' + appHtml.slice(spotStart, spotEnd),
+      vmCtx
+    );
+
+    // A) CamelCase server routine (family.py output without timestamp_ms/end_ts) preserves exact yesterday timestamps!
+    const mapped = vmCtx.mapServerRoutineToClientItem({
+      id: `slp_${yestCreatedMs}_xy12`,
+      type: 'sleep',
+      title: 'Gece Uykusu',
+      start: '21:30',
+      end: '22:45',
+      time: '22:45',
+      timestamp: yestTrueEndMs,
+      startTs: yestTrueStartMs,
+      endTs: yestTrueEndMs,
+      durationMins: 75,
+      sleepKind: 'night',
+      actorName: 'Anne',
+    });
+    expect(mapped.endTs).toBe(yestTrueEndMs);
+    expect(mapped.startTs).toBe(yestTrueStartMs);
+    expect(mapped.timestamp).toBe(yestTrueEndMs);
+    expect(mapped.actorName).toBe('Anne');
+    expect(mapped.sleepKind).toBe('night');
+
+    // B) Self-heal already-poisoned 07:25 yesterday sleep & feeding logs, WITHOUT touching valid overnight (21:30 -> 06:45) or user-edited logs!
+    const validOvernightStart = new Date(2026, 10, 19, 21, 30, 0).getTime();
+    const validOvernightEnd = new Date(2026, 10, 20, 6, 45, 0).getTime();
+    const validEditedEnd = new Date(2026, 10, 20, 6, 55, 0).getTime();
+
+    const mixedList = [
+      {
+        id: `slp_${yestCreatedMs}_pois`,
+        type: 'sleep',
+        start: '21:30',
+        end: '22:45',
+        time: '22:45',
+        durationMins: 75,
+        startTs: poisoned725Ms - 75 * 60000,
+        endTs: poisoned725Ms,
+        timestamp: poisoned725Ms,
+      },
+      {
+        id: `rt_${new Date(2026, 10, 19, 19, 10, 0).getTime()}`,
+        type: 'feeding',
+        time: '19:10',
+        timestamp: poisoned725Ms,
+      },
+      {
+        id: `slp_${validOvernightEnd}_ok`,
+        type: 'sleep',
+        start: '21:30',
+        end: '06:45',
+        time: '06:45',
+        durationMins: 555,
+        startTs: validOvernightStart,
+        endTs: validOvernightEnd,
+        timestamp: validOvernightEnd,
+      },
+      {
+        id: `slp_${yestCreatedMs}_edit`,
+        type: 'sleep',
+        start: '05:45',
+        end: '06:55',
+        time: '06:55',
+        durationMins: 70,
+        startTs: validEditedEnd - 70 * 60000,
+        endTs: validEditedEnd,
+        timestamp: validEditedEnd,
+        editedAtMs: nowMorning.getTime(),
+      },
+      {
+        id: 'onb_slp_init',
+        type: 'sleep',
+        sleepKind: 'onb_nap',
+        end: '06:45',
+        time: '06:45',
+        endTs: poisoned725Ms,
+        timestamp: poisoned725Ms,
+      },
+    ];
+
+    const healRes = vmCtx.repairCorruptedRoutineTimestamps(mixedList, nowMorning);
+    expect(healRes.repairedCount).toBe(2);
+
+    // Yesterday's sleep snapped back to 19 Nov 21:30 -> 22:45 (strictly before 20 Nov 00:00 todayStart!)
+    const todayStartMs = new Date(2026, 10, 20, 0, 0, 0).getTime();
+    expect(mixedList[0].endTs).toBe(yestTrueEndMs);
+    expect(mixedList[0].startTs).toBe(yestTrueStartMs);
+    expect(mixedList[0].endTs).toBeLessThan(todayStartMs);
+    expect(mixedList[1].timestamp).toBe(new Date(2026, 10, 19, 19, 10, 0).getTime());
+
+    // Valid overnight & user-edited logs remained 100% untouched!
+    expect(mixedList[2].endTs).toBe(validOvernightEnd);
+    expect(mixedList[2].startTs).toBe(validOvernightStart);
+    expect(mixedList[2].repairedAtMs).toBeUndefined();
+    expect(mixedList[3].endTs).toBe(validEditedEnd);
+    expect(mixedList[3].repairedAtMs).toBeUndefined();
+
+    // C) Morning MışılSpot calibration when only yesterday's night log exists (>= 6h gap across midnight)
+    const RealDate = Date;
+    vmCtx.Date = class extends RealDate {
+      constructor(...args) {
+        if (args.length === 0) {
+          super(nowMorning.getTime());
+        } else {
+          super(...args);
+        }
+      }
+      static now() {
+        return nowMorning.getTime();
+      }
+    };
+    vmCtx.activeRoutines = [mixedList[0]]; // Only yesterday 22:45 sleep
+    const morningCalc = vmCtx.calculateMışılSpot('2026-08-15');
+    expect(morningCalc.needsWakeCalibration).toBe(true);
+    expect(morningCalc.isOverdue).toBe(false);
+    expect(morningCalc.heroDisplayTime).toBe('☀️ Uyanış?');
+    expect(morningCalc.statusNote).toContain('Dün 22:45');
   });
 });

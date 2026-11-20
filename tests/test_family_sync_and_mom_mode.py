@@ -928,4 +928,140 @@ def test_family_create_and_sync_accept_dict_vaccines_custom_routines_and_pending
     assert dad_fam["pending_whispers"] == dad_fam["whispers"]
 
 
+def test_morning_sync_timestamp_parity_anti_poison_shield_and_sleeplog_self_heal(client):
+    """
+    v4.54.1 regresyon testi:
+    1) /family/sync hem camelCase (timestamp/startTs/endTs) hem snake_case (timestamp_ms/start_ts/end_ts) döner.
+    2) Düzenlenmemiş (editedAtMs yok) ve saat etiketleri değişmemiş dünkü kaydın eski istemci tarafından
+       sabah 07:25 Date.now() ile ileri sarılması engellenir; buna karşın editedAtMs veya repairedAtMs ile
+       yapılan gerçek güncelleme kabul edilir.
+    3) Zaten bozulmuş bir RoutineLog kaydı, aynı client_id'li SleepLog kaydı üzerinden otomatik iyileşir.
+    """
+    r_create = client.post(
+        "/api/v1/family/create",
+        json={
+            "invite_code": "MB-SYNC725",
+            "baby_name": "Atlas",
+            "birth_date": "2026-08-15",
+            "creator_role": "mother",
+            "creator_name": "Elif",
+            "device_uid": "dev-sync-mom",
+        },
+    )
+    assert r_create.status_code == 200
+    mom_tok = r_create.json()["member_token"]
+
+    yest_start_ms = 1795114200000  # Dün 21:30
+    yest_end_ms = 1795118700000    # Dün 22:45
+    morning_725_ms = yest_end_ms + 9 * 3600 * 1000  # Ertesi sabah 07:45 sahte zehirlenme
+
+    # 1. Normal dün gece uykusu hem /sleep/log hem /family/sync ile kaydedilir
+    r_slp = client.post(
+        "/api/v1/sleep/log",
+        headers={"X-Family-Member-Token": mom_tok},
+        json={
+            "family_code": "MB-SYNC725",
+            "device_uid": "dev-sync-mom",
+            "client_id": "slp_1795118700000_ab12",
+            "start_time": "2026-11-19T18:30:00Z",
+            "end_time": "2026-11-19T19:45:00Z",
+            "duration_minutes": 75,
+            "sleep_type": "night",
+        },
+    )
+    assert r_slp.status_code == 200
+    true_slp_end_ms = int(datetime(2026, 11, 19, 19, 45, tzinfo=timezone.utc).timestamp() * 1000)
+    true_slp_start_ms = int(datetime(2026, 11, 19, 18, 30, tzinfo=timezone.utc).timestamp() * 1000)
+
+    # Diyelim ki eski v4.54.0 istemcisi ilk kayıtta zaten zehirlenmiş 07:25 damgası yazmış olsun:
+    r_poisoned_initial = client.post(
+        "/api/v1/family/sync",
+        headers={"X-Family-Member-Token": mom_tok},
+        json={
+            "invite_code": "MB-SYNC725",
+            "device_uid": "dev-sync-mom",
+            "routines": [
+                {
+                    "id": "slp_1795118700000_ab12",
+                    "type": "sleep",
+                    "title": "Gece Uykusu",
+                    "start": "21:30",
+                    "end": "22:45",
+                    "time": "22:45",
+                    "durationMins": 75,
+                    "timestamp": true_slp_end_ms + 31200000,  # Bozuk 07:25 damgası!
+                    "startTs": true_slp_end_ms + 31200000 - 75 * 60000,
+                    "endTs": true_slp_end_ms + 31200000,
+                },
+                {
+                    "id": "rt_1763575200000",
+                    "type": "feeding",
+                    "title": "Emzirme",
+                    "time": "21:00",
+                    "timestamp": 1763575200000,
+                },
+            ],
+        },
+    )
+    assert r_poisoned_initial.status_code == 200
+    by_id = {r["id"]: r for r in r_poisoned_initial.json()["family"]["routines"]}
+
+    # SleepLog çapası sayesinde bozuk RoutineLog anında gerçek dün saatine iyileşmiş dönmeli!
+    healed_slp = by_id["slp_1795118700000_ab12"]
+    assert healed_slp["endTs"] == true_slp_end_ms
+    assert healed_slp["end_ts"] == true_slp_end_ms
+    assert healed_slp["startTs"] == true_slp_start_ms
+    assert healed_slp["start_ts"] == true_slp_start_ms
+    assert healed_slp["timestamp"] == true_slp_end_ms
+    assert healed_slp["timestamp_ms"] == true_slp_end_ms
+    assert healed_slp["createdAtMs"] == 1795118700000
+
+    # 2. Eski bir istemci rt_1763575200000 kaydını düzenlemeden (editedAtMs yok) ileri sararsa kalkan engeller!
+    r_stale_push = client.post(
+        "/api/v1/family/sync",
+        headers={"X-Family-Member-Token": mom_tok},
+        json={
+            "invite_code": "MB-SYNC725",
+            "device_uid": "dev-sync-mom",
+            "routines": [
+                {
+                    "id": "rt_1763575200000",
+                    "type": "feeding",
+                    "title": "Emzirme",
+                    "time": "21:00",
+                    "timestamp": 1763575200000 + 36000000,  # Sahte sabah Date.now()
+                }
+            ],
+        },
+    )
+    assert r_stale_push.status_code == 200
+    feed_after_stale = {r["id"]: r for r in r_stale_push.json()["family"]["routines"]}["rt_1763575200000"]
+    assert feed_after_stale["timestamp"] == 1763575200000
+
+    # 3. Kullanıcı kaydı gerçekten düzenlediğinde (editedAtMs mevcut) yeni saat kabul edilir!
+    r_real_edit = client.post(
+        "/api/v1/family/sync",
+        headers={"X-Family-Member-Token": mom_tok},
+        json={
+            "invite_code": "MB-SYNC725",
+            "device_uid": "dev-sync-mom",
+            "routines": [
+                {
+                    "id": "rt_1763575200000",
+                    "type": "feeding",
+                    "title": "Emzirme",
+                    "time": "21:15",
+                    "timestamp": 1763576100000,
+                    "editedAtMs": 1763612000000,
+                }
+            ],
+        },
+    )
+    assert r_real_edit.status_code == 200
+    feed_after_edit = {r["id"]: r for r in r_real_edit.json()["family"]["routines"]}["rt_1763575200000"]
+    assert feed_after_edit["timestamp"] == 1763576100000
+    assert feed_after_edit["editedAtMs"] == 1763612000000
+
+
+
 

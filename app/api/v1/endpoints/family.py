@@ -337,6 +337,50 @@ def _ensure_family_room_key(family: FamilyGroup) -> str:
     return family.room_key
 
 
+_ROUTINE_ID_EPOCH_RE = re.compile(r"^(?:slp|rt)_(\d{12,14})(?:_|$)")
+
+
+def _as_utc_dt(dt: Optional[datetime]) -> Optional[datetime]:
+    if dt is None:
+        return None
+    if dt.tzinfo is None:
+        return dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone(timezone.utc)
+
+
+def _extract_routine_id_created_ms(cid: Optional[str]) -> Optional[int]:
+    if not cid:
+        return None
+    m = _ROUTINE_ID_EPOCH_RE.match(str(cid).strip())
+    if not m:
+        return None
+    try:
+        val = int(m.group(1))
+        return val if 946684800000 <= val <= 9999999999999 else None
+    except Exception:
+        return None
+
+
+def _safe_epoch_ms(val: Any, fallback: int = 0) -> int:
+    if val is None or isinstance(val, bool):
+        return fallback
+    try:
+        parsed = int(float(val))
+        return parsed if 0 < parsed <= 9999999999999 else fallback
+    except Exception:
+        return fallback
+
+
+def _safe_pos_int(val: Any, fallback: int = 0, max_val: int = 2880) -> int:
+    if val is None or isinstance(val, bool):
+        return fallback
+    try:
+        parsed = int(round(float(val)))
+        return parsed if 0 < parsed <= max_val else fallback
+    except Exception:
+        return fallback
+
+
 def _serialize_routines_for_family(db: Session, baby_id: int, limit: int = 80) -> List[Dict[str, Any]]:
     rows = (
         db.query(RoutineLog)
@@ -345,23 +389,93 @@ def _serialize_routines_for_family(db: Session, baby_id: int, limit: int = 80) -
         .limit(limit)
         .all()
     )
+    sleep_rows = (
+        db.query(SleepLog)
+        .filter(SleepLog.baby_id == baby_id, SleepLog.client_id.isnot(None))
+        .order_by(SleepLog.id.asc())
+        .all()
+    )
+    sleep_by_cid: Dict[str, SleepLog] = {str(s.client_id): s for s in sleep_rows if s.client_id}
+
+    dirty_healed = False
     out: List[Dict[str, Any]] = []
     for r in rows:
         details = dict(r.details_json or {})
         cid = r.client_id or details.get("id") or f"rt_{r.id}"
         rtype_val = r.routine_type.value if hasattr(r.routine_type, "value") else str(r.routine_type)
+        resolved_type = details.get("type") or (
+            "sleep" if rtype_val in ("custom", "mood") and details.get("sleepKind") else rtype_val
+        )
+
+        id_created_ms = _extract_routine_id_created_ms(cid)
+        db_created_dt = _as_utc_dt(getattr(r, "created_at", None))
+        created_at_ms = id_created_ms or (int(db_created_dt.timestamp() * 1000) if db_created_dt else None)
+        edited_at_ms = _safe_epoch_ms(details.get("editedAtMs"), 0) or None
+
+        row_start_utc = _as_utc_dt(r.start_time) or datetime.now(timezone.utc)
+        row_start_ms = int(row_start_utc.timestamp() * 1000)
+        ts_ms = _safe_epoch_ms(details.get("timestamp"), row_start_ms)
+
+        # Self-heal poisoned sleep rows from authoritative SleepLog table when not user-edited
+        if resolved_type == "sleep" and not edited_at_ms and cid in sleep_by_cid:
+            sl = sleep_by_cid[cid]
+            sl_end_utc = _as_utc_dt(sl.end_time)
+            sl_start_utc = _as_utc_dt(sl.start_time)
+            if sl_end_utc is not None:
+                sl_end_ms = int(sl_end_utc.timestamp() * 1000)
+                fallback_span = (
+                    max(1, round((sl_end_ms - int(sl_start_utc.timestamp() * 1000)) / 60000))
+                    if sl_start_utc is not None
+                    else 45
+                )
+                sl_dur = (
+                    _safe_pos_int(sl.duration_minutes, 0)
+                    or _safe_pos_int(details.get("durationMins"), 0)
+                    or fallback_span
+                )
+                sl_start_ms = (
+                    int(sl_start_utc.timestamp() * 1000)
+                    if sl_start_utc is not None
+                    else (sl_end_ms - sl_dur * 60000)
+                )
+                stored_end_ms = _safe_epoch_ms(details.get("endTs"), ts_ms)
+                if abs(stored_end_ms - sl_end_ms) > 5 * 60 * 1000:
+                    ts_ms = sl_end_ms
+                    details["timestamp"] = sl_end_ms
+                    details["endTs"] = sl_end_ms
+                    details["startTs"] = sl_start_ms
+                    details["durationMins"] = sl_dur
+                    r.start_time = sl_end_utc
+                    r.details_json = dict(details)
+                    dirty_healed = True
+
+        actor_name_val = r.actor_name or details.get("actorName") or ""
+        actor_role_val = r.actor_role or details.get("actorRole") or ""
+        try:
+            logged_iso = datetime.fromtimestamp(ts_ms / 1000.0, tz=timezone.utc).isoformat()
+        except Exception:
+            logged_iso = row_start_utc.isoformat()
+
         item: Dict[str, Any] = {
             "id": cid,
-            "type": details.get("type") or ("sleep" if rtype_val == "custom" and details.get("sleepKind") else rtype_val),
-            "icon": details.get("icon") or ("🍼" if rtype_val == "feeding" else ("🚼" if rtype_val == "diaper" else "🌙")),
+            "client_id": cid,
+            "type": resolved_type,
+            "category": resolved_type,
+            "icon": details.get("icon") or ("🍼" if resolved_type == "feeding" else ("🚼" if resolved_type == "diaper" else "🌙")),
             "title": details.get("title") or "",
             "detail": details.get("detail") or (r.notes or ""),
-            "time": details.get("time") or r.start_time.strftime("%H:%M"),
-            "timestamp": details.get("timestamp") or int(r.start_time.timestamp() * 1000),
-            "actorName": r.actor_name or details.get("actorName") or "",
-            "actorRole": r.actor_role or details.get("actorRole") or "",
+            "time": details.get("time") or row_start_utc.strftime("%H:%M"),
+            "timestamp": ts_ms,
+            "timestamp_ms": ts_ms,
+            "logged_at": logged_iso,
+            "actorName": actor_name_val,
+            "actor_name": actor_name_val,
+            "actorRole": actor_role_val,
+            "actor_role": actor_role_val,
             "deleted": bool(r.is_deleted),
         }
+        if created_at_ms is not None:
+            item["createdAtMs"] = created_at_ms
         for opt_key in (
             "start",
             "end",
@@ -378,10 +492,27 @@ def _serialize_routines_for_family(db: Session, baby_id: int, limit: int = 80) -
             "sleepKind",
             "amountMl",
             "diaperStatus",
+            "editedAtMs",
+            "repairedAtMs",
         ):
             if opt_key in details:
                 item[opt_key] = details[opt_key]
+        if "startTs" in item and item["startTs"] is not None:
+            item["start_ts"] = item["startTs"]
+        if "endTs" in item and item["endTs"] is not None:
+            item["end_ts"] = item["endTs"]
+        if resolved_type == "sleep" and "durationMins" in item and item["durationMins"] is not None:
+            item["duration_minutes"] = item["durationMins"]
+        elif resolved_type == "feeding" and "durationMin" in item and item["durationMin"] is not None:
+            item["duration_minutes"] = item["durationMin"]
         out.append(item)
+
+    if dirty_healed:
+        try:
+            db.flush()
+        except Exception:
+            db.rollback()
+        out.sort(key=lambda x: _safe_epoch_ms(x.get("endTs") or x.get("timestamp"), 0), reverse=True)
     return out
 
 
@@ -489,6 +620,8 @@ def _upsert_family_routines(
             "sleepKind": raw_item.get("sleepKind") or (raw_item.get("sub_type") if raw_type == "sleep" else None),
             "amountMl": raw_item.get("amountMl") if raw_item.get("amountMl") is not None else raw_item.get("amount_ml"),
             "diaperStatus": raw_item.get("diaperStatus") or (raw_item.get("sub_type") if raw_type == "diaper" else None),
+            "editedAtMs": raw_item.get("editedAtMs") if raw_item.get("editedAtMs") is not None else raw_item.get("edited_at_ms"),
+            "repairedAtMs": raw_item.get("repairedAtMs") if raw_item.get("repairedAtMs") is not None else raw_item.get("repaired_at_ms"),
         }
 
         for opt_k, val in normalized_opts.items():
@@ -509,7 +642,7 @@ def _upsert_family_routines(
                 except Exception:
                     pass
                 continue
-            if opt_k in ("startTs", "endTs"):
+            if opt_k in ("startTs", "endTs", "editedAtMs", "repairedAtMs"):
                 if isinstance(val, bool):
                     continue
                 try:
@@ -531,6 +664,32 @@ def _upsert_family_routines(
                 safe_details[opt_k] = sanitize_plain_text(str(val), max_len=40)
 
         if existing:
+            prev_det = dict(existing.details_json or {})
+            prev_start_utc = _as_utc_dt(existing.start_time)
+            prev_fallback_ms = int(prev_start_utc.timestamp() * 1000) if prev_start_utc else 0
+            prev_ts_ms = _safe_epoch_ms(prev_det.get("timestamp"), prev_fallback_ms)
+            inc_ts_ms = _safe_epoch_ms(safe_details.get("endTs") or safe_details.get("timestamp"), 0)
+            same_clock_labels = (
+                (safe_details.get("time") or "") == (prev_det.get("time") or "")
+                and (safe_details.get("start") or "") == (prev_det.get("start") or "")
+                and (safe_details.get("end") or "") == (prev_det.get("end") or "")
+            )
+            # Block stale client Date.now() poisoning when user neither edited nor repaired the routine
+            if (
+                prev_ts_ms > 0
+                and inc_ts_ms > prev_ts_ms + 10 * 60 * 1000
+                and same_clock_labels
+                and not safe_details.get("editedAtMs")
+                and not safe_details.get("repairedAtMs")
+            ):
+                safe_details["timestamp"] = prev_ts_ms
+                if "startTs" in prev_det:
+                    safe_details["startTs"] = prev_det["startTs"]
+                if "endTs" in prev_det:
+                    safe_details["endTs"] = prev_det["endTs"]
+                if prev_start_utc is not None:
+                    start_dt = prev_start_utc
+
             existing.routine_type = rtype_enum
             existing.start_time = start_dt
             existing.details_json = safe_details
@@ -1160,6 +1319,23 @@ async def sync_family_bidirectional(
             baby.premature_weeks = payload.premature_weeks
         if payload.routines is not None:
             _upsert_family_routines(db, baby.id, payload.routines, actor_name, actor_role)
+        if payload.deleted_routine_ids:
+            clean_del_ids = [
+                sanitize_device_uid(str(did))[:120]
+                for did in payload.deleted_routine_ids[:150]
+                if did
+            ]
+            clean_del_ids = [d for d in clean_del_ids if d]
+            if clean_del_ids:
+                del_rows = (
+                    db.query(RoutineLog)
+                    .filter(RoutineLog.baby_id == baby.id, RoutineLog.client_id.in_(clean_del_ids))
+                    .all()
+                )
+                now_del_utc = datetime.now(timezone.utc)
+                for dr in del_rows:
+                    dr.is_deleted = True
+                    dr.updated_at = now_del_utc
 
     if payload.checked_vaccines is not None:
         merged_vax = set(family.checked_vaccines_json or []) | set(_sanitize_key_list(payload.checked_vaccines))

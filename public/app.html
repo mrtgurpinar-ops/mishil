@@ -5802,6 +5802,8 @@
     storeReviewBridge: !!(window.MishilNative && window.MishilNative.storeReviewBridge),
     quotaBridge: !!(window.MishilNative && window.MishilNative.quotaBridge),
     quotasHydrated: !!(window.MishilNative && window.MishilNative.quotasHydrated),
+    liveSleepBridge: !!(window.MishilNative && window.MishilNative.liveSleepBridge),
+    nursingLockScreenV2: !!(window.MishilNative && window.MishilNative.nursingLockScreenV2),
 
     haptic: function(level) {
       if (window.ReactNativeWebView) {
@@ -6117,10 +6119,27 @@
     if (window.ReactNativeWebView) window.ReactNativeWebView.postMessage(JSON.stringify(obj));
   }
 
-  // Canlı Uyku (ActivityKit / Android bildirimi) native köprüsü — yalnızca uygulama içinde çalışır
-  function syncLiveSleepToNative(action, startDateObj) {
+  // Canlı Uyku & Canlı Emzirme (ActivityKit / Android bildirimi) native köprüsü — Build 70 anında uyumlu + Build 71 V2 destekli
+  var nursingNativeSyncTimer = null;
+  var lastNativeActivityDispatched = null; // 'nursing' | 'sleep' | null
+
+  function hasNursingLockScreenV2() {
+    return !!(window.MishilNative && window.MishilNative.nursingLockScreenV2);
+  }
+
+  function syncLiveSleepToNative(action, startDateObj, opts) {
     if (!window.ReactNativeWebView) return;
+    var options = opts || {};
+    if (!options.bypassNursingGuard && typeof isNursing !== 'undefined' && isNursing && liveNursingState) {
+      if (liveNursingState.activeSide || hasNursingLockScreenV2()) {
+        if (action === 'STOP') {
+          syncLiveNursingToNative('START', { immediate: true });
+        }
+        return;
+      }
+    }
     if (action === 'STOP') {
+      lastNativeActivityDispatched = null;
       nativeAudioSend({ type: 'LIVE_SLEEP_STOP' });
       return;
     }
@@ -6137,6 +6156,7 @@
     var babyName = '';
     try { babyName = localStorage.getItem('mishil_baby_name') || ''; } catch (_slbn) {}
 
+    lastNativeActivityDispatched = 'sleep';
     nativeAudioSend({
       type: action === 'UPDATE' ? 'LIVE_SLEEP_UPDATE' : 'LIVE_SLEEP_START',
       startEpochMs: startDate.getTime(),
@@ -6144,8 +6164,128 @@
       subtitle: subtitle,
       babyName: babyName,
       showBabyNameOnLockScreen: showBabyName,
-      lang: getAppLang()
+      lang: getAppLang(),
+      mode: 'sleep',
+      isPaused: false,
+      pausedElapsedSec: 0
     });
+  }
+
+  function dispatchLiveNursingToNativeNow(action) {
+    if (!window.ReactNativeWebView) return;
+    if (action === 'STOP' || !isNursing || !liveNursingState) {
+      if (typeof isSleeping !== 'undefined' && isSleeping && sleepStartTime instanceof Date) {
+        var sleepAge = Date.now() - sleepStartTime.getTime();
+        if (sleepAge >= 0 && sleepAge <= 16 * 3600000) {
+          syncLiveSleepToNative('START', sleepStartTime, { bypassNursingGuard: true });
+          return;
+        }
+      }
+      lastNativeActivityDispatched = null;
+      nativeAudioSend({ type: 'LIVE_SLEEP_STOP' });
+      return;
+    }
+
+    var nowMs = Date.now();
+    var totals = computeLiveNursingTotals(liveNursingState, nowMs);
+    var activeSide = liveNursingState.activeSide;
+    var isV2 = hasNursingLockScreenV2();
+
+    // Build 70'te donanım kronometresi duraklatılamadığı için yanlış ileri sayımı önlemek adına duraklatmada kapatılır (veya aktif uykuya döner);
+    // devam edildiğinde toplam birikmiş süreyle kaldığı saniyeden yeniden açılır. Build 71+ (V2) ise dondurulmuş süreyi (⏸) kilit ekranında tutar.
+    if (!activeSide && !isV2) {
+      if (typeof isSleeping !== 'undefined' && isSleeping && sleepStartTime instanceof Date) {
+        syncLiveSleepToNative('START', sleepStartTime, { bypassNursingGuard: true });
+      } else {
+        lastNativeActivityDispatched = null;
+        nativeAudioSend({ type: 'LIVE_SLEEP_STOP' });
+      }
+      return;
+    }
+
+    var effectiveStartEpochMs = Math.max(1, Math.round(nowMs - totals.totalMs));
+    var pausedSec = Math.max(0, Math.floor(totals.totalMs / 1000));
+    var prefixEmoji = isV2 ? '' : '🤱 ';
+    var sideLabel = !activeSide
+      ? trEnDe(`${prefixEmoji}Emzirme · Duraklatıldı`, `${prefixEmoji}Nursing · Paused`, `${prefixEmoji}Stillen · Pausiert`)
+      : (activeSide === 'right'
+        ? trEnDe(`${prefixEmoji}Emzirme · Sağ Göğüs`, `${prefixEmoji}Nursing · Right`, `${prefixEmoji}Stillen · Rechts`)
+        : trEnDe(`${prefixEmoji}Emzirme · Sol Göğüs`, `${prefixEmoji}Nursing · Left`, `${prefixEmoji}Stillen · Links`));
+
+    var leftStr = formatMmSsFromMs(totals.leftMs);
+    var rightStr = formatMmSsFromMs(totals.rightMs);
+    var splitSummary = trEnDe(
+      `Sol ${leftStr} · Sağ ${rightStr}`,
+      `Left ${leftStr} · Right ${rightStr}`,
+      `Links ${leftStr} · Rechts ${rightStr}`
+    );
+    var showBabyName = false;
+    try { showBabyName = localStorage.getItem('mishil_lockscreen_show_name') === '1'; } catch (_nlsn) {}
+    var babyName = '';
+    try { babyName = (localStorage.getItem('mishil_baby_name') || '').trim(); } catch (_nlbn) {}
+    var subtitle = (showBabyName && babyName) ? `${babyName} · ${splitSummary}` : splitSummary;
+
+    lastNativeActivityDispatched = 'nursing';
+    nativeAudioSend({
+      type: action === 'UPDATE' ? 'LIVE_SLEEP_UPDATE' : 'LIVE_SLEEP_START',
+      startEpochMs: effectiveStartEpochMs,
+      sleepLabel: sideLabel,
+      subtitle: subtitle,
+      babyName: babyName,
+      // Build 70 resolveDisplayTitle başlığı "🌙 <babyName>" ile ezmesin diye false gönderilir; bebek adı subtitle içinde korunur
+      showBabyNameOnLockScreen: false,
+      lang: getAppLang(),
+      mode: 'nursing',
+      isPaused: !activeSide,
+      pausedElapsedSec: pausedSec
+    });
+  }
+
+  function syncLiveNursingToNative(action, opts) {
+    if (!window.ReactNativeWebView) return;
+    var options = opts || {};
+    if (nursingNativeSyncTimer) {
+      clearTimeout(nursingNativeSyncTimer);
+      nursingNativeSyncTimer = null;
+    }
+    if (action === 'START' || action === 'STOP' || options.immediate) {
+      dispatchLiveNursingToNativeNow(action);
+      return;
+    }
+    nursingNativeSyncTimer = setTimeout(function() {
+      nursingNativeSyncTimer = null;
+      dispatchLiveNursingToNativeNow('UPDATE');
+    }, 800);
+  }
+  window.syncLiveNursingToNative = syncLiveNursingToNative;
+
+  function reconcileActiveLockscreenActivity(state) {
+    var st = state || {};
+    var nowR = Date.now();
+    if (typeof isNursing !== 'undefined' && isNursing && liveNursingState) {
+      var nTotals = computeLiveNursingTotals(liveNursingState, nowR);
+      if (nTotals.totalMs <= LIVE_NURSING_MAX_DURATION_MS && (liveNursingState.activeSide || hasNursingLockScreenV2())) {
+        var expectedNursingEpoch = Math.max(1, Math.round(nowR - nTotals.totalMs));
+        var epochMatchesNursing = typeof st.sleepStartEpochMs === 'number' && Math.abs(st.sleepStartEpochMs - expectedNursingEpoch) < 3000;
+        var modeMismatchOnNursing = st.activityMode
+          ? st.activityMode !== 'nursing'
+          : (!epochMatchesNursing || lastNativeActivityDispatched !== 'nursing');
+        if (!st.sleepActive || modeMismatchOnNursing) {
+          syncLiveNursingToNative('START', { immediate: true });
+        }
+        return;
+      }
+    }
+    if (typeof isSleeping !== 'undefined' && isSleeping && sleepStartTime instanceof Date) {
+      var sleepAgeMs = nowR - sleepStartTime.getTime();
+      var epochMatchesSleep = typeof st.sleepStartEpochMs === 'number' && Math.abs(st.sleepStartEpochMs - sleepStartTime.getTime()) < 3000;
+      var modeMismatchOnSleep = st.activityMode
+        ? st.activityMode === 'nursing'
+        : (!epochMatchesSleep || lastNativeActivityDispatched !== 'sleep');
+      if (sleepAgeMs >= 0 && sleepAgeMs <= 16 * 3600000 && (!st.sleepActive || modeMismatchOnSleep)) {
+        syncLiveSleepToNative('START', sleepStartTime, { bypassNursingGuard: true });
+      }
+    }
   }
 
   function onLockscreenStateSync(state) {
@@ -6166,12 +6306,7 @@
         if (typeof updatePlayerUI === 'function') updatePlayerUI();
       }
     }
-    if (typeof isSleeping !== 'undefined' && isSleeping && liveSleepStartTime instanceof Date) {
-      var sleepAgeMs = Date.now() - liveSleepStartTime.getTime();
-      if (sleepAgeMs >= 0 && sleepAgeMs <= 16 * 3600000 && !state.sleepActive) {
-        syncLiveSleepToNative('START', liveSleepStartTime);
-      }
-    }
+    reconcileActiveLockscreenActivity(state);
   }
 
   document.addEventListener('visibilitychange', function() {
@@ -6185,7 +6320,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.54.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.54.1', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -6509,7 +6644,17 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.54.0', date: '19 Kasım 2026', dateEn: 'November 19, 2026', dateDe: '19. November 2026', latest: true, items: [
+    { v: '4.54.1', date: '20 Kasım 2026', dateEn: 'November 20, 2026', dateDe: '20. November 2026', latest: true, items: [
+      '🤱 Kilit Ekranı & Dynamic Island Canlı Emzirme Etkinliği: Sol veya Sağ göğüs sayacını başlattığınızda telefonunuz kilitli olsa bile toplam emzirme süresi, aktif göğüs ve sol/sağ dağılımı Canlı Etkinlikler (Live Activities) ile kilit ekranı bildiriminde saniyesi saniyesine görünür; "Memede Uyudu" ve Rüya Öğünü geçişleriyle kesintisiz uyumludur.',
+      '🛡️ Aile Senkronu Tarih Koruması & Sabah Uyanış Kalibrasyonu: Sabah senkronizasyonunda dünkü uyku kayıtlarının bugüne taşmasına ve MışılSpot uyanış saatinin kaymasına yol açan zaman damgası uyumsuzluğu giderildi; etkilenen geçmiş kayıtlar otomatik olarak gerçek gün ve saatlerine geri yüklenir, dün geceden kalan kayıtlarda ise tek dokunuşla "☀️ Sabah Uyanışını Gir" kalibrasyonu sunulur.'
+    ], itemsEn: [
+      '🤱 Lock Screen & Dynamic Island Live Nursing Activity: Starting the Left or Right breast timer now displays your cumulative nursing time, active side, and left/right breakdown directly in iOS Live Activities & Android lock-screen stopwatch—seamlessly transitioning on "Fell Asleep Nursing" and Dream Feeds.',
+      '🛡️ Family Sync Timestamp Protection & Morning Wake Calibration: Fixed a family-sync timestamp mismatch that shifted yesterday\'s sleep logs into Today and skewed morning MışılSpot wake times; affected past entries automatically self-heal to their true date/time, with a 1-tap "☀️ Log Morning Wake" calibration when the last log was from last night.'
+    ], itemsDe: [
+      '🤱 Live-Stilluhr auf Sperrbildschirm & Dynamic Island: Sobald Sie Links oder Rechts starten, erscheinen Gesamtstillzeit, aktive Seite und Links/Rechts-Aufteilung live auf dem Sperrbildschirm – inklusive nahtlosem Übergang bei „Beim Stillen eingeschlafen“ und Traum-Mahlzeiten.',
+      '🛡️ Familien-Sync-Zeitschutz & Morgen-Kalibrierung: Ein Zeitstempel-Abgleichsfehler, durch den gestrige Schlafeinträge unter „Heute“ erschienen, wurde behoben; betroffene Einträge werden automatisch auf ihr echtes Datum zurückgesetzt, inklusive 1-Tipp-„☀️ Aufwachzeit eintragen“ am Morgen.'
+    ]},
+    { v: '4.54.0', date: '19 Kasım 2026', dateEn: 'November 19, 2026', dateDe: '19. November 2026', items: [
       '🌿 Çıkararak Sadeleştirme & Sıfır Bilişsel Yük Mimarisi: Ana ekranda canlı emzirme şeridi en üste (kaydırmadan görünür konuma) taşındı; tekrar eden "+ Detaylı Ekle" ve ayrı "Bakım Özeti" kutusu kaldırılarak son beslenme ve bez zamanları doğrudan hızlı kartların üstünde birleştirildi.',
       '⏱️ Beslenme Ekranında Net Ayrım ("Şimdi Emzir" | "Geçmiş / Biberon Ekle"): Canlı emzirme kronometresi açıkken manuel geçmiş giriş alanları ve alttaki ikinci kayıt butonu gizlenerek kafa karışıklığı giderildi; mama/biberon kullanan aileler için hızlı ml girişi varsayılan korundu.',
       '💛 İzole "Kendim İçin" Köşesi & Dürüst Eş Nöbet Notu: Anne Molası içindeki çalışmayan loş fener, selam sayacı, bulmaca ve sabaha not kalabalığı temizlenip varsayılan kapalı tek satırlık "🤝 Eşime Sessiz Nöbet Notu"na indirildi (PARTNER_WHISPER canlı senkronu onarıldı); 60 sn sessiz nefes ve bebek sohbetinden/kotasından %100 ayrılmış şefkatli dertleşme Mışıl Dadı -> "💛 Kendim İçin" sekmesinde toplandı.'
@@ -12273,29 +12418,198 @@
     if (modal) modal.classList.remove('active');
   }
 
-  function mapServerRoutineToClientItem(sr) {
+  function parseRoutineHHMMStrict(raw) {
+    if (!raw || typeof raw !== 'string') return null;
+    const m = raw.trim().match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return null;
+    const hh = parseInt(m[1], 10);
+    const mm = parseInt(m[2], 10);
+    if (isNaN(hh) || isNaN(mm) || hh < 0 || hh > 23 || mm < 0 || mm > 59) return null;
+    return {
+      hh,
+      mm,
+      totalMins: hh * 60 + mm,
+      str: `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
+    };
+  }
+
+  function circularClockDiffMins(minsA, minsB) {
+    const diff = Math.abs(minsA - minsB) % 1440;
+    return diff > 720 ? (1440 - diff) : diff;
+  }
+
+  function extractRoutineIdCreatedMs(idVal) {
+    if (!idVal) return 0;
+    const m = String(idVal).trim().match(/^(?:slp|rt)_(\d{12,14})(?:_|$)/);
+    if (!m) return 0;
+    const ms = Number(m[1]);
+    return (Number.isFinite(ms) && ms >= 946684800000 && ms <= 9999999999999) ? ms : 0;
+  }
+
+  function repairCorruptedRoutineTimestamps(routinesList, nowRef) {
+    if (!Array.isArray(routinesList) || routinesList.length === 0) {
+      return { repairedCount: 0, list: routinesList };
+    }
+    const nowDate = (nowRef instanceof Date && !isNaN(nowRef.getTime())) ? nowRef : new Date();
+    const nowMs = nowDate.getTime();
+    let repairedCount = 0;
+
+    for (let i = 0; i < routinesList.length; i++) {
+      const r = routinesList[i];
+      if (!r || typeof r !== 'object') continue;
+      const rawIdStr = String(r.id || '');
+      if (
+        r.sleepKind === 'live'
+        || r.sleepKind === 'onb_night'
+        || r.sleepKind === 'onb_nap'
+        || rawIdStr === 'onb_slp_init'
+        || rawIdStr.indexOf('onb_') === 0
+      ) {
+        continue;
+      }
+
+      const isUserEdited = Number(r.editedAtMs) > 0;
+      if (isUserEdited) continue;
+
+      const rType = r.type || 'sleep';
+      const idCreatedMs = extractRoutineIdCreatedMs(r.id) || (Number(r.createdAtMs) > 0 ? Number(r.createdAtMs) : 0);
+
+      if (rType === 'sleep') {
+        let parsedEnd = parseRoutineHHMMStrict(r.end) || parseRoutineHHMMStrict(r.time);
+        let parsedStart = parseRoutineHHMMStrict(r.start);
+        if (!parsedEnd && typeof r.detail === 'string') {
+          const rangeMatch = r.detail.match(/(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})/);
+          if (rangeMatch) {
+            parsedStart = parsedStart || parseRoutineHHMMStrict(rangeMatch[1]);
+            parsedEnd = parseRoutineHHMMStrict(rangeMatch[2]);
+          }
+        }
+        const actualEndTs = Number(r.endTs || r.timestamp || 0);
+        const actualDt = actualEndTs > 0 ? new Date(actualEndTs) : null;
+        const hasValidActual = !!(actualDt && !isNaN(actualDt.getTime()));
+        const actualMins = hasValidActual ? (actualDt.getHours() * 60 + actualDt.getMinutes()) : -1;
+
+        const clockMismatch = !!(parsedEnd && (!hasValidActual || circularClockDiffMins(parsedEnd.totalMins, actualMins) > 2));
+        const uneditedFutureJump = !isUserEdited && idCreatedMs > 0 && hasValidActual && (actualEndTs > idCreatedMs + 10 * 60000);
+
+        if (!clockMismatch && !uneditedFutureJump) continue;
+        if (!parsedEnd) continue;
+
+        const anchorMs = (!isUserEdited && idCreatedMs > 0 && idCreatedMs <= nowMs + 5 * 60000) ? idCreatedMs : nowMs;
+        const anchorDt = new Date(anchorMs);
+        const candEnd = new Date(anchorDt.getFullYear(), anchorDt.getMonth(), anchorDt.getDate(), parsedEnd.hh, parsedEnd.mm, 0, 0);
+        let guard = 0;
+        while (candEnd.getTime() > anchorMs + 5 * 60000 && guard < 4) {
+          candEnd.setDate(candEnd.getDate() - 1);
+          guard++;
+        }
+
+        let durMins = Number(r.durationMins) > 0 ? Math.round(Number(r.durationMins)) : 0;
+        if (durMins <= 0 && parsedStart) {
+          let eM = parsedEnd.totalMins;
+          if (eM < parsedStart.totalMins) eM += 1440;
+          durMins = Math.max(1, eM - parsedStart.totalMins);
+        }
+        if (durMins <= 0) durMins = 45;
+
+        let candStart = new Date(candEnd.getTime() - durMins * 60000);
+        if (parsedStart) {
+          const startDayOffset = parsedEnd.totalMins < parsedStart.totalMins ? -1 : 0;
+          const explicitStart = new Date(candEnd.getFullYear(), candEnd.getMonth(), candEnd.getDate() + startDayOffset, parsedStart.hh, parsedStart.mm, 0, 0);
+          if (explicitStart.getTime() < candEnd.getTime() && (candEnd.getTime() - explicitStart.getTime()) <= 24 * 3600000) {
+            candStart = explicitStart;
+            if (!(Number(r.durationMins) > 0)) {
+              durMins = Math.max(1, Math.round((candEnd.getTime() - candStart.getTime()) / 60000));
+            }
+          }
+        }
+
+        r.startTs = candStart.getTime();
+        r.endTs = candEnd.getTime();
+        r.timestamp = candEnd.getTime();
+        r.durationMins = durMins;
+        r.end = parsedEnd.str;
+        r.time = parsedEnd.str;
+        if (parsedStart) r.start = parsedStart.str;
+        r.repairedAtMs = nowMs;
+        repairedCount++;
+      } else {
+        const parsedTime = parseRoutineHHMMStrict(r.time);
+        const actualTs = Number(r.timestamp || 0);
+        const actualDt = actualTs > 0 ? new Date(actualTs) : null;
+        const hasValidActual = !!(actualDt && !isNaN(actualDt.getTime()));
+        const actualMins = hasValidActual ? (actualDt.getHours() * 60 + actualDt.getMinutes()) : -1;
+
+        const clockMismatch = !!(parsedTime && (!hasValidActual || circularClockDiffMins(parsedTime.totalMins, actualMins) > 2));
+        const uneditedFutureJump = !isUserEdited && idCreatedMs > 0 && hasValidActual && (actualTs > idCreatedMs + 10 * 60000);
+
+        if (!clockMismatch && !uneditedFutureJump) continue;
+        if (!parsedTime) continue;
+
+        const anchorMs = (!isUserEdited && idCreatedMs > 0 && idCreatedMs <= nowMs + 5 * 60000) ? idCreatedMs : nowMs;
+        const anchorDt = new Date(anchorMs);
+        const candEvt = new Date(anchorDt.getFullYear(), anchorDt.getMonth(), anchorDt.getDate(), parsedTime.hh, parsedTime.mm, 0, 0);
+        let guard = 0;
+        while (candEvt.getTime() > anchorMs + 5 * 60000 && guard < 4) {
+          candEvt.setDate(candEvt.getDate() - 1);
+          guard++;
+        }
+
+        r.timestamp = candEvt.getTime();
+        r.time = parsedTime.str;
+        r.repairedAtMs = nowMs;
+        repairedCount++;
+      }
+    }
+
+    return { repairedCount, list: routinesList };
+  }
+  window.repairCorruptedRoutineTimestamps = repairCorruptedRoutineTimestamps;
+
+  function mapServerRoutineToClientItem(sr, existingLocal) {
     if (!sr || typeof sr !== 'object') return null;
-    const cid = String(sr.client_id || sr.id || ('srv_' + Date.now()));
-    const rType = sr.category || sr.type || 'sleep';
-    const evtTs = sr.timestamp_ms || (sr.logged_at ? new Date(sr.logged_at).getTime() : Date.now());
+    const loc = (existingLocal && typeof existingLocal === 'object') ? existingLocal : null;
+    const cid = String(sr.client_id || sr.id || (loc && loc.id) || ('srv_' + Date.now()));
+    const rType = sr.type || sr.category || (loc && loc.type) || 'sleep';
+    const rawServerTs = Number(
+      (sr.timestamp != null ? sr.timestamp : null)
+      ?? (sr.timestamp_ms != null ? sr.timestamp_ms : null)
+      ?? (sr.endTs != null ? sr.endTs : null)
+      ?? (sr.end_ts != null ? sr.end_ts : null)
+      ?? (sr.logged_at ? new Date(sr.logged_at).getTime() : NaN)
+    );
+    const fallbackLocalTs = loc ? Number(loc.endTs || loc.timestamp || 0) : 0;
+    const evtTs = (Number.isFinite(rawServerTs) && rawServerTs > 0)
+      ? rawServerTs
+      : (fallbackLocalTs > 0 ? fallbackLocalTs : Date.now());
     const evtDate = new Date(evtTs);
-    const hhmm = sr.time || `${String(evtDate.getHours()).padStart(2, '0')}:${String(evtDate.getMinutes()).padStart(2, '0')}`;
+    const hhmm = sr.time || (loc && loc.time) || `${String(evtDate.getHours()).padStart(2, '0')}:${String(evtDate.getMinutes()).padStart(2, '0')}`;
+    const createdAtMs = Number(sr.createdAtMs || (loc && loc.createdAtMs) || extractRoutineIdCreatedMs(cid) || 0) || undefined;
+    const editedAtMs = Number(sr.editedAtMs || sr.edited_at_ms || (loc && loc.editedAtMs) || 0) || undefined;
+    const repairedAtMs = Number(sr.repairedAtMs || sr.repaired_at_ms || (loc && loc.repairedAtMs) || 0) || undefined;
+
     if (rType === 'sleep') {
-      const dur = Math.max(1, Number(sr.duration_minutes || sr.durationMins || 45));
-      const endTs = sr.end_ts || evtTs;
-      const startTs = sr.start_ts || (endTs - dur * 60000);
+      const rawDurVal = sr.durationMins != null
+        ? Number(sr.durationMins)
+        : (sr.duration_minutes != null ? Number(sr.duration_minutes) : (loc && loc.durationMins != null ? Number(loc.durationMins) : 45));
+      const dur = Math.max(1, Number.isFinite(rawDurVal) && rawDurVal > 0 ? Math.round(rawDurVal) : 45);
+      const rawEnd = Number((sr.endTs != null ? sr.endTs : null) ?? (sr.end_ts != null ? sr.end_ts : null) ?? evtTs);
+      const endTs = (Number.isFinite(rawEnd) && rawEnd > 0) ? rawEnd : evtTs;
+      const rawStart = Number((sr.startTs != null ? sr.startTs : null) ?? (sr.start_ts != null ? sr.start_ts : null) ?? NaN);
+      const startTs = (Number.isFinite(rawStart) && rawStart > 0 && rawStart < endTs) ? rawStart : (endTs - dur * 60000);
       const sDt = new Date(startTs);
       const eDt = new Date(endTs);
-      const sStr = sr.start || `${String(sDt.getHours()).padStart(2, '0')}:${String(sDt.getMinutes()).padStart(2, '0')}`;
-      const eStr = sr.end || `${String(eDt.getHours()).padStart(2, '0')}:${String(eDt.getMinutes()).padStart(2, '0')}`;
+      const sStr = sr.start || (loc && loc.start) || `${String(sDt.getHours()).padStart(2, '0')}:${String(sDt.getMinutes()).padStart(2, '0')}`;
+      const eStr = sr.end || (loc && loc.end) || `${String(eDt.getHours()).padStart(2, '0')}:${String(eDt.getMinutes()).padStart(2, '0')}`;
       const isNight = sDt.getHours() >= 20 || sDt.getHours() < 7;
+      const preservedKind = sr.sleepKind || (loc && loc.sleepKind) || (isNight ? 'night' : 'nap');
       return {
         id: cid,
         type: 'sleep',
-        icon: '🌙',
-        sleepKind: isNight ? 'night' : 'nap',
-        title: sr.title || (isNight ? 'Gece Uykusu' : '1. Gündüz Uykusu (Nap 1)'),
-        detail: sr.detail || `${dur} dk uyku (${sStr} - ${eStr})`,
+        icon: sr.icon || (loc && loc.icon) || '🌙',
+        sleepKind: preservedKind,
+        title: sr.title || (loc && loc.title) || (isNight ? 'Gece Uykusu' : '1. Gündüz Uykusu (Nap 1)'),
+        detail: sr.detail || (loc && loc.detail) || `${dur} dk uyku (${sStr} - ${eStr})`,
         time: eStr,
         start: sStr,
         end: eStr,
@@ -12303,34 +12617,44 @@
         startTs: startTs,
         endTs: endTs,
         durationMins: dur,
-        quality: sr.quality || (dur >= 45 ? 'deep' : 'short'),
-        actorName: sr.actor_name || ''
+        quality: sr.quality || (loc && loc.quality) || (dur >= 45 ? 'deep' : 'short'),
+        actorName: sr.actorName || sr.actor_name || (loc && loc.actorName) || '',
+        actorRole: sr.actorRole || sr.actor_role || (loc && loc.actorRole) || '',
+        createdAtMs: createdAtMs,
+        editedAtMs: editedAtMs,
+        repairedAtMs: repairedAtMs
       };
     }
     const iconMap = { feeding: '🍼', diaper: '🚼', custom: '✨' };
     const normSrvSide = sr.side && ['left', 'right', 'both'].includes(String(sr.side).toLowerCase())
       ? String(sr.side).toLowerCase()
-      : undefined;
+      : (loc && loc.side ? loc.side : undefined);
     return {
       id: cid,
       type: rType,
-      icon: sr.icon || iconMap[rType] || '✨',
-      title: sr.title || (rType === 'feeding' ? 'Beslenme' : (rType === 'diaper' ? 'Bez Değişimi' : 'Özel Rutin')),
-      method: sr.sub_type || sr.method || undefined,
+      icon: sr.icon || (loc && loc.icon) || iconMap[rType] || '✨',
+      title: sr.title || (loc && loc.title) || (rType === 'feeding' ? 'Beslenme' : (rType === 'diaper' ? 'Bez Değişimi' : 'Özel Rutin')),
+      method: sr.method || sr.sub_type || (loc && loc.method) || undefined,
       side: normSrvSide,
-      leftMin: sr.leftMin || null,
-      rightMin: sr.rightMin || null,
-      kind: sr.sub_type || sr.kind || sr.diaperStatus || undefined,
-      amountMl: sr.amount_ml || sr.amountMl || null,
-      durationMin: sr.duration_minutes || sr.durationMin || null,
-      note: sr.notes || sr.note || '',
-      detail: sr.detail || sr.notes || '',
+      leftMin: sr.leftMin != null ? sr.leftMin : (loc && loc.leftMin != null ? loc.leftMin : null),
+      rightMin: sr.rightMin != null ? sr.rightMin : (loc && loc.rightMin != null ? loc.rightMin : null),
+      kind: sr.diaperStatus || sr.kind || sr.sub_type || (loc && loc.kind) || undefined,
+      amountMl: sr.amountMl != null ? sr.amountMl : (sr.amount_ml != null ? sr.amount_ml : (loc && loc.amountMl != null ? loc.amountMl : null)),
+      durationMin: sr.durationMin != null ? sr.durationMin : (sr.duration_minutes != null ? sr.duration_minutes : (loc && loc.durationMin != null ? loc.durationMin : null)),
+      note: (sr.note != null ? sr.note : sr.notes) || (loc && loc.note) || '',
+      customNote: (rType === 'custom' ? ((sr.note != null ? sr.note : sr.notes) || (loc && loc.customNote) || '') : undefined),
+      detail: sr.detail || sr.notes || (loc && loc.detail) || '',
       time: hhmm,
       timestamp: evtTs,
       durationMins: 0,
-      actorName: sr.actor_name || sr.actorName || ''
+      actorName: sr.actorName || sr.actor_name || (loc && loc.actorName) || '',
+      actorRole: sr.actorRole || sr.actor_role || (loc && loc.actorRole) || '',
+      createdAtMs: createdAtMs,
+      editedAtMs: editedAtMs,
+      repairedAtMs: repairedAtMs
     };
   }
+  window.mapServerRoutineToClientItem = mapServerRoutineToClientItem;
 
   function hydrateClientStateFromFamilySnapshot(fam, opts) {
     if (!fam || typeof fam !== 'object') return;
@@ -12392,14 +12716,27 @@
         if (loc && loc.id && !deletedSet.has(String(loc.id))) byId.set(String(loc.id), loc);
       });
       fam.routines.forEach(sr => {
-        const mappedItem = mapServerRoutineToClientItem(sr);
+        const srKey = sr && (sr.client_id || sr.id) ? String(sr.client_id || sr.id) : '';
+        if (sr && sr.deleted) {
+          if (srKey) {
+            byId.delete(srKey);
+            if (typeof recordDeletedRoutineId === 'function') recordDeletedRoutineId(srKey);
+          }
+          return;
+        }
+        const existingLoc = srKey ? byId.get(srKey) : null;
+        const mappedItem = mapServerRoutineToClientItem(sr, existingLoc);
         if (!mappedItem || deletedSet.has(String(mappedItem.id))) return;
         byId.set(String(mappedItem.id), mappedItem);
       });
       activeRoutines = Array.from(byId.values());
+      const healRes = repairCorruptedRoutineTimestamps(activeRoutines);
       if (typeof sortActiveRoutines === 'function') sortActiveRoutines();
       else if (typeof recomputeDailyNapIndices === 'function') recomputeDailyNapIndices(activeRoutines);
       localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
+      if (healRes.repairedCount > 0 && !options.fromPush && typeof pushFamilySyncDebounced === 'function') {
+        pushFamilySyncDebounced();
+      }
     }
 
     if (fam.active_sleep_start_iso) {
@@ -12746,8 +13083,10 @@
             logged_at: new Date(r.endTs || r.timestamp || Date.now()).toISOString(),
             actorName: r.actorName || uName,
             actor_name: r.actorName || uName,
-            actorRole: uRole,
-            actor_role: uRole
+            actorRole: r.actorRole || uRole,
+            actor_role: r.actorRole || uRole,
+            editedAtMs: r.editedAtMs || null,
+            repairedAtMs: r.repairedAtMs || null
           };
         });
 
@@ -12806,6 +13145,9 @@
         }
         if (data && data.family) {
           hydrateClientStateFromFamilySnapshot(data.family, { fromPull: true, authoritativeSleepStop: true });
+          if (!isSleeping && typeof loadBabyProfile === 'function') {
+            loadBabyProfile();
+          }
           renderHomeTodayTimeline();
           renderHomeScreenScore();
           renderAnalyticsView();
@@ -13037,6 +13379,7 @@
       liveNursingState.activeSide = null;
       liveNursingState.activeSideStartedAt = 0;
       persistLiveNursingState();
+      syncLiveNursingToNative('UPDATE', { immediate: true });
       showToast(trEnDe(
         '⏱️ Canlı emzirme sayacı 3 saat üst sınırında duraklatıldı; kaydedebilirsiniz.',
         '⏱️ Nursing timer paused at the 3-hour safety limit; ready to save.',
@@ -13180,6 +13523,7 @@
       persistLiveNursingState();
       ensureLiveNursingTicker();
       syncLiveNursingUI();
+      syncLiveNursingToNative('START', { immediate: true });
       syncMomBreakDrawerVisibility();
       triggerMomDrawerRevealGlow();
       return true;
@@ -13190,6 +13534,7 @@
     liveNursingState.leftAccumMs = totals.leftMs;
     liveNursingState.rightAccumMs = totals.rightMs;
 
+    const wasPaused = !liveNursingState.activeSide;
     if (liveNursingState.activeSide === normSide) {
       liveNursingState.activeSide = null;
       liveNursingState.activeSideStartedAt = 0;
@@ -13200,6 +13545,13 @@
     }
     persistLiveNursingState();
     syncLiveNursingUI();
+    if (wasPaused && liveNursingState.activeSide) {
+      syncLiveNursingToNative('START', { immediate: true });
+    } else if (!liveNursingState.activeSide) {
+      syncLiveNursingToNative('UPDATE', { immediate: true });
+    } else {
+      syncLiveNursingToNative('UPDATE');
+    }
     syncMomBreakDrawerVisibility();
     return true;
   }
@@ -13224,6 +13576,7 @@
     isNursing = false;
     liveNursingState = null;
     persistLiveNursingState();
+    syncLiveNursingToNative('STOP', { immediate: true });
     syncLiveNursingUI();
     syncMomBreakDrawerVisibility();
     showToast(trEnDe('🤱 Canlı emzirme sayacı iptal edildi', '🤱 Live nursing timer canceled', '🤱 Live-Stilluhr abgebrochen'));
@@ -13310,6 +13663,7 @@
 
     if (startSleepAfter) {
       if (isSleeping) {
+        syncLiveNursingToNative('STOP', { immediate: true });
         syncMomBreakDrawerVisibility();
         showToast(trEnDe(
           `🍼 Rüya öğünü kaydedildi (${baseFeedObj.detail}) • Canlı uyku devam ediyor`,
@@ -13325,6 +13679,7 @@
             `🌙 Stillen gespeichert (${totalMin} Min.) & Live-Schlaf gestartet`
           ));
         } else {
+          syncLiveNursingToNative('STOP', { immediate: true });
           syncMomBreakDrawerVisibility();
           showToast(trEnDe(
             `🍼 Emzirme kaydedildi (${baseFeedObj.detail})`,
@@ -13334,6 +13689,7 @@
         }
       }
     } else {
+      syncLiveNursingToNative('STOP', { immediate: true });
       syncMomBreakDrawerVisibility();
       showToast(trEnDe(
         `🍼 Emzirme kaydedildi (${baseFeedObj.detail})`,
@@ -13376,6 +13732,7 @@
       };
       ensureLiveNursingTicker();
       syncLiveNursingUI();
+      syncLiveNursingToNative('START', { immediate: true });
     } catch (_rne) {
       localStorage.removeItem(LIVE_NURSING_STORAGE_KEY);
     }
@@ -16206,6 +16563,11 @@
           disp.style.color = 'var(--accent)';
           disp.style.cursor = 'pointer';
           disp.onclick = () => openVipRenewalModal('mishil_spot');
+        } else if (calc.needsWakeCalibration) {
+          disp.textContent = calc.heroDisplayTime;
+          disp.style.color = 'var(--accent)';
+          disp.style.cursor = 'pointer';
+          disp.onclick = () => { if (typeof openMorningWakeQuickModal === 'function') openMorningWakeQuickModal(); };
         } else {
           disp.textContent = calc.heroDisplayTime || calc.displayTime || calc.sweetSpotTime;
           disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
@@ -16222,6 +16584,10 @@
           );
           sub.style.cursor = 'pointer';
           sub.onclick = () => openVipRenewalModal('mishil_spot');
+        } else if (calc.needsWakeCalibration) {
+          sub.textContent = calc.statusNote;
+          sub.style.cursor = 'pointer';
+          sub.onclick = () => { if (typeof openMorningWakeQuickModal === 'function') openMorningWakeQuickModal(); };
         } else {
           sub.textContent = calc.statusNote;
           sub.style.cursor = 'default';
@@ -16231,6 +16597,8 @@
       if (badge) {
         if (spotLocked) {
           badge.textContent = trEnDe('🔒 Gün Boyu MışılSpot™ (VIP)', '🔒 All-Day MışılSpot™ (VIP)', '🔒 Ganztägiger MışılSpot™ (VIP)');
+        } else if (calc.needsWakeCalibration) {
+          badge.textContent = trEnDe('☀️ Sabah Uyanışı Bekleniyor', '☀️ Awaiting Morning Wake', '☀️ Aufwachzeit eintragen');
         } else {
           badge.textContent = calc.isOverdue
             ? trEnDe('⚠️ Şimdi Uyutun (Vakti Geldi)', '⚠️ Sleep Now (Window Due)', '⚠️ Jetzt hinlegen (Fällig)')
@@ -16473,6 +16841,7 @@
     // Gerçek MışılSpot: Bebeğin son uyku kaydındaki uyanma saatini referans al
     let nextSleepDate = null;
     let isOverdue = false;
+    let needsWakeCalibration = false;
     let statusNote = '';
 
     const sleepLogs = (typeof activeRoutines !== 'undefined' && Array.isArray(activeRoutines))
@@ -16487,27 +16856,40 @@
         const elapsedMins = Math.floor((now.getTime() - lastWakeDate.getTime()) / 60000);
         // Son uyanma son 48 saat içindeyse ("Dün" sabah kayıtları dahil)
         if (elapsedMins >= 0 && elapsedMins < 2880) {
-          nextSleepDate = new Date(lastWakeDate.getTime() + wakeWindowMinutes * 60000);
           const wakeDayLabel = typeof formatPlanDayTimeLabel === 'function'
             ? formatPlanDayTimeLabel(lastWakeDate, now, getAppLang())
             : `${String(lastWakeDate.getHours()).padStart(2, '0')}:${String(lastWakeDate.getMinutes()).padStart(2, '0')}`;
-          if (now.getTime() > nextSleepDate.getTime()) {
-            isOverdue = true;
-            const spotDayLabel = typeof formatPlanDayTimeLabel === 'function'
-              ? formatPlanDayTimeLabel(nextSleepDate, now, getAppLang())
-              : `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
+          const isPriorDayOvernightGap = (typeof isSameLocalCalendarDay === 'function')
+            ? (!isSameLocalCalendarDay(lastWakeDate, now) && elapsedMins >= 360)
+            : (elapsedMins >= 600);
+          if (isPriorDayOvernightGap) {
+            needsWakeCalibration = true;
+            nextSleepDate = new Date(now.getTime() + wakeWindowMinutes * 60000);
             statusNote = trEnDe(
-              `⚠️ Son uyanış: ${wakeDayLabel} • Hedef (${spotDayLabel}) geçti, şimdi uyutun`,
-              `⚠️ Last wake: ${wakeDayLabel} • Target (${spotDayLabel}) passed, put to sleep now`,
-              `⚠️ Aufgewacht: ${wakeDayLabel} • Ziel (${spotDayLabel}) vorbei, jetzt schlafen legen`
+              `Son kayıt: ${wakeDayLabel} • Bugünkü ilk MışılSpot™ için sabah uyanışını girin`,
+              `Last log: ${wakeDayLabel} • Log morning wake for today's first MışılSpot™`,
+              `Letzter Eintrag: ${wakeDayLabel} • Aufwachzeit für heutigen MışılSpot™ eintragen`
             );
           } else {
-            const remMins = Math.floor((nextSleepDate.getTime() - now.getTime()) / 60000);
-            statusNote = trEnDe(
-              `Son uyanış (${wakeDayLabel}) • ${remMins} dk sonra uyku vakti`,
-              `From last wake (${wakeDayLabel}) • sleep time in ${remMins} min`,
-              `Ab Aufwachen (${wakeDayLabel}) • Schlafenszeit in ${remMins} Min.`
-            );
+            nextSleepDate = new Date(lastWakeDate.getTime() + wakeWindowMinutes * 60000);
+            if (now.getTime() > nextSleepDate.getTime()) {
+              isOverdue = true;
+              const spotDayLabel = typeof formatPlanDayTimeLabel === 'function'
+                ? formatPlanDayTimeLabel(nextSleepDate, now, getAppLang())
+                : `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
+              statusNote = trEnDe(
+                `⚠️ Son uyanış: ${wakeDayLabel} • Hedef (${spotDayLabel}) geçti, şimdi uyutun`,
+                `⚠️ Last wake: ${wakeDayLabel} • Target (${spotDayLabel}) passed, put to sleep now`,
+                `⚠️ Aufgewacht: ${wakeDayLabel} • Ziel (${spotDayLabel}) vorbei, jetzt schlafen legen`
+              );
+            } else {
+              const remMins = Math.floor((nextSleepDate.getTime() - now.getTime()) / 60000);
+              statusNote = trEnDe(
+                `Son uyanış (${wakeDayLabel}) • ${remMins} dk sonra uyku vakti`,
+                `From last wake (${wakeDayLabel}) • sleep time in ${remMins} min`,
+                `Ab Aufwachen (${wakeDayLabel}) • Schlafenszeit in ${remMins} Min.`
+              );
+            }
           }
         }
       }
@@ -16522,24 +16904,37 @@
         const wakeDayLabel = typeof formatPlanDayTimeLabel === 'function'
           ? formatPlanDayTimeLabel(onbWakeDate, now, getAppLang())
           : `${String(onbWakeDate.getHours()).padStart(2, '0')}:${String(onbWakeDate.getMinutes()).padStart(2, '0')}`;
-        nextSleepDate = new Date(onbWakeTs + wakeWindowMinutes * 60000);
-        if (now.getTime() > nextSleepDate.getTime()) {
-          isOverdue = true;
-          const spotDayLabel = typeof formatPlanDayTimeLabel === 'function'
-            ? formatPlanDayTimeLabel(nextSleepDate, now, getAppLang())
-            : `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
+        const isPriorOnbGap = (typeof isSameLocalCalendarDay === 'function')
+          ? (!isSameLocalCalendarDay(onbWakeDate, now) && onbElapsedMins >= 360)
+          : (onbElapsedMins >= 600);
+        if (isPriorOnbGap) {
+          needsWakeCalibration = true;
+          nextSleepDate = new Date(now.getTime() + wakeWindowMinutes * 60000);
           statusNote = trEnDe(
-            `⚠️ Son uyanış: ${wakeDayLabel} • Hedef (${spotDayLabel}) geçti, şimdi uyutun`,
-            `⚠️ Last wake: ${wakeDayLabel} • Target (${spotDayLabel}) passed, put to sleep now`,
-            `⚠️ Aufgewacht: ${wakeDayLabel} • Ziel (${spotDayLabel}) vorbei, jetzt schlafen legen`
+            `Son kayıt: ${wakeDayLabel} • Bugünkü ilk MışılSpot™ için sabah uyanışını girin`,
+            `Last log: ${wakeDayLabel} • Log morning wake for today's first MışılSpot™`,
+            `Letzter Eintrag: ${wakeDayLabel} • Aufwachzeit für heutigen MışılSpot™ eintragen`
           );
         } else {
-          const remMins = Math.max(1, Math.floor((nextSleepDate.getTime() - now.getTime()) / 60000));
-          statusNote = trEnDe(
-            `Son uyanış (${wakeDayLabel}) • ${remMins} dk sonra uyku vakti`,
-            `From last wake (${wakeDayLabel}) • sleep time in ${remMins} min`,
-            `Ab Aufwachen (${wakeDayLabel}) • Schlafenszeit in ${remMins} Min.`
-          );
+          nextSleepDate = new Date(onbWakeTs + wakeWindowMinutes * 60000);
+          if (now.getTime() > nextSleepDate.getTime()) {
+            isOverdue = true;
+            const spotDayLabel = typeof formatPlanDayTimeLabel === 'function'
+              ? formatPlanDayTimeLabel(nextSleepDate, now, getAppLang())
+              : `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
+            statusNote = trEnDe(
+              `⚠️ Son uyanış: ${wakeDayLabel} • Hedef (${spotDayLabel}) geçti, şimdi uyutun`,
+              `⚠️ Last wake: ${wakeDayLabel} • Target (${spotDayLabel}) passed, put to sleep now`,
+              `⚠️ Aufgewacht: ${wakeDayLabel} • Ziel (${spotDayLabel}) vorbei, jetzt schlafen legen`
+            );
+          } else {
+            const remMins = Math.max(1, Math.floor((nextSleepDate.getTime() - now.getTime()) / 60000));
+            statusNote = trEnDe(
+              `Son uyanış (${wakeDayLabel}) • ${remMins} dk sonra uyku vakti`,
+              `From last wake (${wakeDayLabel}) • sleep time in ${remMins} min`,
+              `Ab Aufwachen (${wakeDayLabel}) • Schlafenszeit in ${remMins} Min.`
+            );
+          }
         }
       } else {
         nextSleepDate = new Date(now.getTime() + wakeWindowMinutes * 60000);
@@ -16585,9 +16980,12 @@
       ),
       sweetSpotTime: `${th}:${tm}`,
       displayTime: isOverdue ? `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}` : `${th}:${tm}`,
-      heroDisplayTime: isOverdue ? trEnDe('Şimdi', 'Now', 'Jetzt') : `${th}:${tm}`,
+      heroDisplayTime: needsWakeCalibration
+        ? trEnDe('☀️ Uyanış?', '☀️ Wake?', '☀️ Wach?')
+        : (isOverdue ? trEnDe('Şimdi', 'Now', 'Jetzt') : `${th}:${tm}`),
       wakeWindowMin: wakeWindowMinutes,
       isOverdue: isOverdue,
+      needsWakeCalibration: needsWakeCalibration,
       statusNote: statusNote
     };
   }
@@ -16861,8 +17259,17 @@
       activeRoutines = [];
     }
   }
-  if (Array.isArray(activeRoutines) && activeRoutines.length > 0 && typeof recomputeDailyNapIndices === 'function') {
-    recomputeDailyNapIndices(activeRoutines);
+  if (Array.isArray(activeRoutines) && activeRoutines.length > 0) {
+    if (typeof repairCorruptedRoutineTimestamps === 'function') {
+      const _bootHeal = repairCorruptedRoutineTimestamps(activeRoutines);
+      if (_bootHeal.repairedCount > 0) {
+        window.__mishilBootHealedRoutines = true;
+      }
+    }
+    activeRoutines.sort((a, b) => ((b && (b.endTs || b.timestamp)) || 0) - ((a && (a.endTs || a.timestamp)) || 0));
+    if (typeof recomputeDailyNapIndices === 'function') {
+      recomputeDailyNapIndices(activeRoutines);
+    }
     try {
       localStorage.setItem('mishil_active_routines', JSON.stringify(activeRoutines));
     } catch (_reSave) {}
@@ -17028,6 +17435,15 @@
             stripSum.onclick = (e) => {
               if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
               openVipRenewalModal('mishil_spot');
+            };
+          }
+        } else if (calc.needsWakeCalibration) {
+          if (stripSum) {
+            stripSum.textContent = trEnDe('☀️ Sabah Uyanışını Gir ›', '☀️ Log Morning Wake ›', '☀️ Aufwachzeit ›');
+            stripSum.style.cursor = 'pointer';
+            stripSum.onclick = (e) => {
+              if (e && typeof e.stopPropagation === 'function') e.stopPropagation();
+              if (typeof openMorningWakeQuickModal === 'function') openMorningWakeQuickModal();
             };
           }
         } else {
@@ -17785,9 +18201,9 @@
     document.getElementById('modal-cry').classList.remove('active');
   }
 
-  let isSleeping = false;
-  let sleepStartTime = null;
-  let sleepInterval = null;
+  var isSleeping = false;
+  var sleepStartTime = null;
+  var sleepInterval = null;
 
   async function toggleLiveSleep() {
     hapticPulse();
@@ -18215,7 +18631,7 @@
             ));
             if (typeof pullFamilySyncSnapshot === 'function') pullFamilySyncSnapshot({ silent: true });
             loadBabyProfile();
-          } else if (msg.type === 'PROFILE_UPDATED' || msg.type === 'FAMILY_SYNC_UPDATED') {
+          } else if (msg.type === 'PROFILE_UPDATED' || msg.type === 'FAMILY_SYNC_UPDATED' || msg.type === 'ROUTINE_ADDED') {
             if (typeof pullFamilySyncSnapshot === 'function') pullFamilySyncSnapshot({ silent: true });
           } else if (msg.type === 'PARTNER_WHISPER' || msg.type === 'WHISPER_CREATED') {
             if (msg.payload && typeof renderIncomingFamilyWhisperBanner === 'function') {
@@ -18851,6 +19267,11 @@
           disp.style.color = 'var(--accent)';
           disp.style.cursor = 'pointer';
           disp.onclick = () => openVipRenewalModal('mishil_spot');
+        } else if (calc.needsWakeCalibration) {
+          disp.textContent = calc.heroDisplayTime;
+          disp.style.color = 'var(--accent)';
+          disp.style.cursor = 'pointer';
+          disp.onclick = () => { if (typeof openMorningWakeQuickModal === 'function') openMorningWakeQuickModal(); };
         } else {
           disp.textContent = calc.heroDisplayTime || calc.displayTime || calc.sweetSpotTime;
           disp.style.color = calc.isOverdue ? 'var(--danger)' : 'var(--heading-night)';
@@ -18867,6 +19288,10 @@
           );
           sub.style.cursor = 'pointer';
           sub.onclick = () => openVipRenewalModal('mishil_spot');
+        } else if (calc.needsWakeCalibration) {
+          sub.textContent = calc.statusNote;
+          sub.style.cursor = 'pointer';
+          sub.onclick = () => { if (typeof openMorningWakeQuickModal === 'function') openMorningWakeQuickModal(); };
         } else {
           sub.textContent = calc.statusNote;
           sub.style.cursor = 'default';
@@ -18876,6 +19301,8 @@
       if (badge) {
         if (spotLocked && !isSleeping) {
           badge.textContent = trEnDe('🔒 Gün Boyu MışılSpot™ (VIP)', '🔒 All-Day MışılSpot™ (VIP)', '🔒 Ganztägiger MışılSpot™ (VIP)');
+        } else if (calc.needsWakeCalibration && !isSleeping) {
+          badge.textContent = trEnDe('☀️ Sabah Uyanışı Bekleniyor', '☀️ Awaiting Morning Wake', '☀️ Aufwachzeit eintragen');
         } else {
           badge.textContent = calc.isOverdue
             ? trEnDe('⚠️ Şimdi Uyutun (Vakti Geldi)', '⚠️ Sleep Now (Window Due)', '⚠️ Jetzt hinlegen (Fällig)')
@@ -19403,6 +19830,8 @@
   function updateLastSleepQuickEditBar() {
     const bar = document.getElementById('last-sleep-quick-edit-bar');
     const sumEl = document.getElementById('last-sleep-quick-summary');
+    const subEl = document.getElementById('last-sleep-quick-sub');
+    const btnEl = document.getElementById('btn-last-sleep-quick-edit');
     if (!bar || !sumEl) return;
     if (isSleeping) {
       bar.style.display = 'none';
@@ -19416,15 +19845,89 @@
       return;
     }
     const last = sleepLogs[0];
+    const now = new Date();
+    const lastEndTs = last.endTs || last.timestamp || 0;
+    const elapsedMins = lastEndTs > 0 ? Math.floor((now.getTime() - lastEndTs) / 60000) : 0;
+    const isPriorDayStale = lastEndTs > 0 && elapsedMins >= 360 && (typeof isSameLocalCalendarDay === 'function' ? !isSameLocalCalendarDay(new Date(lastEndTs), now) : elapsedMins >= 600);
     const dMins = last.durationMins || 0;
     const dText = Math.floor(dMins / 60) > 0
       ? trEnDe(`${Math.floor(dMins / 60)}s ${dMins % 60}dk`, `${Math.floor(dMins / 60)}h ${dMins % 60}m`, `${Math.floor(dMins / 60)} Std. ${dMins % 60} Min.`)
       : trEnDe(`${dMins} dk`, `${dMins} min`, `${dMins} Min.`);
-    const timeLabel = formatRoutineCardTimeWithDate(last, new Date());
+    const timeLabel = formatRoutineCardTimeWithDate(last, now);
     const range = `${timeLabel} (${dText})`;
     sumEl.textContent = range;
+    if (isPriorDayStale) {
+      if (subEl) {
+        subEl.textContent = trEnDe(
+          'Bugünkü ilk MışılSpot™ için sabah uyanış saatini kaydedin',
+          'Log morning wake time to calibrate today\'s first MışılSpot™',
+          'Morgen-Aufwachzeit eintragen, um heutigen MışılSpot™ zu starten'
+        );
+      }
+      if (btnEl) {
+        btnEl.textContent = trEnDe('☀️ Sabah Uyanışını Gir', '☀️ Log Morning Wake', '☀️ Aufwachzeit eintragen');
+        btnEl.onclick = openMorningWakeQuickModal;
+      }
+    } else {
+      if (subEl) {
+        subEl.textContent = trEnDe(
+          'Uyuyakaldıysanız veya uyanış saati farklıysa düzeltin',
+          'Adjust times if wake-up or sleep start differed',
+          'Passen Sie die Zeiten an, falls Aufwachzeit abwich'
+        );
+      }
+      if (btnEl) {
+        btnEl.textContent = trEnDe('✏️ Saatleri Düzenle', '✏️ Edit Times', '✏️ Zeiten bearbeiten');
+        btnEl.onclick = editLatestSleepRoutine;
+      }
+    }
     bar.style.display = 'flex';
   }
+
+  function openMorningWakeQuickModal() {
+    hapticPulse();
+    if (!isSubscriptionCurrentlyActive() && hasUsedFirstFreeSpotAha()) {
+      openVipRenewalModal('routine_log');
+      return;
+    }
+    editingRoutineId = null;
+    const sel = document.getElementById('routine-modal-type');
+    if (sel) sel.value = 'sleep';
+    const now = new Date();
+    const endH = String(now.getHours()).padStart(2, '0');
+    const endM = String(now.getMinutes()).padStart(2, '0');
+    const startInput = document.getElementById('routine-modal-start');
+    const endInput = document.getElementById('routine-modal-end');
+    if (startInput) startInput.value = '21:30';
+    if (endInput) endInput.value = `${endH}:${endM}`;
+    const dateInput = document.getElementById('routine-modal-date');
+    if (dateInput) {
+      const todayIso = getLocalDateIsoString(now);
+      dateInput.max = todayIso;
+      dateInput.value = todayIso;
+      syncRoutineModalDatePills();
+    }
+    const headerTitle = document.getElementById('routine-modal-header-title');
+    const submitBtn = document.getElementById('routine-modal-submit-btn');
+    if (headerTitle) {
+      headerTitle.textContent = trEnDe(
+        '☀️ Sabah Uyanışı & Gece Uykusu Kaydet',
+        '☀️ Log Morning Wake & Night Sleep',
+        '☀️ Morgen-Aufwachzeit & Nachtschlaf eintragen'
+      );
+    }
+    if (submitBtn) {
+      submitBtn.textContent = trEnDe(
+        '💾 Uyanışı Kaydet & MışılSpot\'u Başlat',
+        '💾 Save Wake & Calibrate MışılSpot',
+        '💾 Aufwachzeit speichern & MışılSpot starten'
+      );
+    }
+    handleRoutineTypeChange('sleep');
+    const modal = document.getElementById('modal-routine');
+    if (modal) modal.classList.add('active');
+  }
+  window.openMorningWakeQuickModal = openMorningWakeQuickModal;
 
   function editLatestSleepRoutine() {
     const sleepLogs = (Array.isArray(activeRoutines) ? activeRoutines : []).filter(r => r.type === 'sleep');
@@ -19623,7 +20126,9 @@
         startTs: startDate.getTime(),
         endTs: endDate.getTime(),
         durationMins: durMins,
-        quality: quality
+        quality: quality,
+        createdAtMs: existingItem && existingItem.createdAtMs ? existingItem.createdAtMs : undefined,
+        editedAtMs: isEditing ? now.getTime() : undefined
       };
 
       if (isEditing) {
@@ -19698,7 +20203,9 @@
         detail: '',
         time: effectiveFeedTime,
         timestamp: baseEvtDate.getTime(),
-        durationMins: 0
+        durationMins: 0,
+        createdAtMs: existingItem && existingItem.createdAtMs ? existingItem.createdAtMs : undefined,
+        editedAtMs: isEditing ? now.getTime() : undefined
       };
       const localizedCopy = resolveLocalizedRoutineCopy(feedObj);
       feedObj.title = localizedCopy.title;
@@ -19731,7 +20238,9 @@
         detail: kindLabel,
         time: effectiveDiaperTime,
         timestamp: baseEvtDate.getTime(),
-        durationMins: 0
+        durationMins: 0,
+        createdAtMs: existingItem && existingItem.createdAtMs ? existingItem.createdAtMs : undefined,
+        editedAtMs: isEditing ? now.getTime() : undefined
       };
       if (isEditing) activeRoutines[existingIdx] = diaperObj;
       else activeRoutines.unshift(diaperObj);
@@ -19755,7 +20264,9 @@
         detail: customDetail,
         time: effectiveCustomTime,
         timestamp: baseEvtDate.getTime(),
-        durationMins: 0
+        durationMins: 0,
+        createdAtMs: existingItem && existingItem.createdAtMs ? existingItem.createdAtMs : undefined,
+        editedAtMs: isEditing ? now.getTime() : undefined
       };
       if (isEditing) activeRoutines[existingIdx] = customObj;
       else activeRoutines.unshift(customObj);
@@ -21926,6 +22437,11 @@
       recomputeDailyNapIndices(activeRoutines);
     }
     renderAllViews();
+    if (typeof isNursing !== 'undefined' && isNursing && liveNursingState) {
+      syncLiveNursingToNative('UPDATE', { immediate: true });
+    } else if (typeof isSleeping !== 'undefined' && isSleeping && sleepStartTime instanceof Date) {
+      syncLiveSleepToNative('UPDATE', sleepStartTime);
+    }
     const spotTourEl = document.getElementById('spotlight-tour-overlay');
     if (spotTourEl && spotTourEl.classList.contains('active') && typeof renderSpotlightStep === 'function') {
       renderSpotlightStep();
@@ -22087,6 +22603,9 @@
       const _fCodeInit = localStorage.getItem('mishil_family_code');
       if (localStorage.getItem('mishil_onboarding_completed') === 'true' && _bInit && _bInit.bdate && _fCodeInit && _fCodeInit !== 'MSL782' && !localStorage.getItem('mishil_family_member_token')) {
         syncFamilyToCloud(_fCodeInit, _bInit.name, _bInit.bdate, localStorage.getItem('mishil_user_role') || 'mother', localStorage.getItem('mishil_user_name') || '');
+      } else if (window.__mishilBootHealedRoutines && localStorage.getItem('mishil_family_member_token')) {
+        window.__mishilBootHealedRoutines = false;
+        pushFamilySyncDebounced({ immediate: true });
       } else {
         triggerForegroundFamilyPull();
       }
