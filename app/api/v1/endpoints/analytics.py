@@ -349,8 +349,8 @@ def _empty_store_state() -> Dict[str, Any]:
                 "grace_period": "14 Gün (P14D)",
                 "price_try": 599.99,
                 "net_proceeds_try": 436.20,
-                "free_trial_offer_id": "3daystrial",
-                "free_trial_label": "7 Gün Ücretsiz Deneme (P7D • Aktif)",
+                "free_trial_offer_id": "-",
+                "free_trial_label": "Denemesiz • Doğrudan Yıllık VIP",
             },
             {
                 "product_id": "misilaylik",
@@ -361,8 +361,8 @@ def _empty_store_state() -> Dict[str, Any]:
                 "grace_period": "7 Gün (P7D)",
                 "price_try": 149.99,
                 "net_proceeds_try": 109.05,
-                "free_trial_offer_id": "freeytrial",
-                "free_trial_label": "7 Gün Ücretsiz Deneme (P7D • Aktif)",
+                "free_trial_offer_id": "intro-first-month",
+                "free_trial_label": "İlk Ay 49.99 ₺ Başlangıç Teklifi (P1M)",
             },
         ],
         "daily_store_series": {},
@@ -1219,16 +1219,23 @@ def sync_revenuecat_v2_production_bridge(
                 else:
                     st_val = "intro_free_trial"
 
+                is_intro_gp = bool(
+                    not _is_annual_product(prod_id)
+                    and is_paid
+                    and (gp_offer_phase in ("INTRODUCTORY", "SINGLE_PAYMENT", "RECURRING") or (0.0 < c_gross < 100.0 and gp_country == "TR"))
+                )
                 if gp_state == "REFUNDED" and not is_paid:
-                    and_offer_lbl = "7G Deneme İptal / 72s Onaysız (Google Play)"
+                    and_offer_lbl = "İptal / 72s Onaysız (Google Play)"
+                elif st_val == "paid_active" and is_intro_gp:
+                    and_offer_lbl = "İlk Ay İndirimli Başlangıç (Google Play)"
                 elif st_val == "paid_active":
                     and_offer_lbl = "Standart Ücretli (Google Play)"
                 else:
-                    and_offer_lbl = "7 Günlük Deneme (Google Play)"
+                    and_offer_lbl = "Deneme / Promosyon (Google Play)"
 
                 and_plan_lbl = "Mışıl Baby Yıllık VIP" if _is_annual_product(prod_id) else "Mışıl Baby Aylık VIP"
                 and_of_type = (
-                    "standard_paid"
+                    ("intro_1m_discounted" if is_intro_gp else "standard_paid")
                     if st_val == "paid_active"
                     else ("offer_code" if st_val == "offer_code_trial" else "intro_7d_trial")
                 )
@@ -1512,14 +1519,21 @@ def _reconcile_ios_ledger_and_cancellations(
                     r.auto_renew_enabled = True
                     changed = True
                 if (r.expected_next_price_try or 0.0) <= 0:
-                    r.expected_next_price_try = round(float(r.customer_price_try), 2)
+                    if r.offer_type == "intro_1m_discounted":
+                        std_g_i, std_n_i = _resolve_expected_trial_pricing(r.product_id, 0.0, 0.0, "ios")
+                        r.expected_next_price_try = std_g_i
+                        r.expected_next_proceeds_try = std_n_i
+                    else:
+                        r.expected_next_price_try = round(float(r.customer_price_try), 2)
                     changed = True
                 if (r.expected_next_proceeds_try or 0.0) <= 0:
                     r.expected_next_proceeds_try = round(
-                        float(r.developer_proceeds_try or round(float(r.customer_price_try) * 0.55417, 2)), 2
+                        float(r.developer_proceeds_try or round(float(r.expected_next_price_try or r.customer_price_try) * 0.55417, 2)), 2
                     )
                     changed = True
 
+        if r.offer_type == "intro_1m_discounted":
+            continue
         is_ann = _is_annual_product(r.product_id)
         of_name_low = (r.offer_code_name or "").strip().lower()
         is_default_intro = (
@@ -2508,8 +2522,8 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                             dur_lbl = "Yıllık (P1Y)" if "Y" in dur_raw else "Aylık (P1M)"
                                             grace_raw = ar_type.get("gracePeriodDuration") or "P7D"
                                             grace_lbl = "14 Gün (P14D)" if "14" in grace_raw else "7 Gün (P7D)"
-                                            offer_id = ar_type.get("legacyCompatibleSubscriptionOfferId") or "-"
-                                            offer_lbl = "7 Gün Ücretsiz Deneme (P7D • Aktif)" if offer_id and offer_id != "-" else "Standart"
+                                            offer_id = "-"
+                                            offer_lbl = "Denemesiz • Standart"
                                             try:
                                                 gp_off_req = urllib.request.Request(
                                                     f"https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.levitas.misilbaby/subscriptions/{p_id}/basePlans/{bp_id}/offers",
@@ -2523,8 +2537,25 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
                                                                 offer_id = off_item.get("offerId") or offer_id
                                                                 phases = off_item.get("phases") or []
                                                                 if phases:
-                                                                    ph_dur = phases[0].get("duration") or "P7D"
-                                                                    offer_lbl = f"7 Gün Ücretsiz Deneme ({ph_dur} • Aktif)" if "7D" in ph_dur or "1W" in ph_dur else f"Teklif ({ph_dur} • Aktif)"
+                                                                    ph0 = phases[0]
+                                                                    ph_dur = ph0.get("duration") or "P1M"
+                                                                    tr_off_p = 0.0
+                                                                    has_free_ph = False
+                                                                    for r_ph in (ph0.get("regionalConfigs") or []):
+                                                                        if "free" in r_ph:
+                                                                            has_free_ph = True
+                                                                        if r_ph.get("regionCode") == "TR" and isinstance(r_ph.get("price"), dict):
+                                                                            tr_off_p = round(
+                                                                                float(r_ph["price"].get("units") or 0)
+                                                                                + (float(r_ph["price"].get("nanos") or 0) / 1e9),
+                                                                                2,
+                                                                            )
+                                                                    if tr_off_p > 0:
+                                                                        offer_lbl = f"İlk Ay {tr_off_p:.2f} ₺ Başlangıç Teklifi ({ph_dur})"
+                                                                    elif has_free_ph:
+                                                                        offer_lbl = f"Eski Deneme ({ph_dur} • Aktif)"
+                                                                    else:
+                                                                        offer_lbl = f"Başlangıç Teklifi ({ph_dur} • Aktif)"
                                                                 break
                                             except Exception:
                                                 pass
@@ -4015,7 +4046,12 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             paid_subs_cnt += 1
             pf_bucket["paid_cnt"] += 1
             lifecycle_stage = "paid_active"
-            lifecycle_badge = "💳 Ücretli Aktif" if r.auto_renew_enabled else "💳 Ücretli Aktif (Yenileme Kapalı)"
+            if r.offer_type == "intro_1m_discounted":
+                lifecycle_badge = (
+                    "✨ İlk Ay İndirimli Aktif" if r.auto_renew_enabled else "✨ İlk Ay İndirimli (Yenileme Kapalı)"
+                )
+            else:
+                lifecycle_badge = "💳 Ücretli Aktif" if r.auto_renew_enabled else "💳 Ücretli Aktif (Yenileme Kapalı)"
             trial_progress_pct = 100
             if r.auto_renew_enabled:
                 rec_gross = float(r.expected_next_price_try or r.customer_price_try or resolved_gross)
@@ -4393,8 +4429,10 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             ca["realized_net_try"] = round(ca["realized_net_try"] + d_p, 2)
             if lr.auto_renew_enabled:
                 m_div = 12.0 if is_ann_lr else 1.0
-                ca["expected_mrr_gross_try"] = round(ca["expected_mrr_gross_try"] + (c_p / m_div), 2)
-                ca["expected_mrr_net_try"] = round(ca["expected_mrr_net_try"] + (d_p / m_div), 2)
+                mrr_base_g = exp_g if exp_g > 0 else c_p
+                mrr_base_n = exp_n if exp_n > 0 else d_p
+                ca["expected_mrr_gross_try"] = round(ca["expected_mrr_gross_try"] + (mrr_base_g / m_div), 2)
+                ca["expected_mrr_net_try"] = round(ca["expected_mrr_net_try"] + (mrr_base_n / m_div), 2)
         elif lr.status == "intro_free_trial" and lr.auto_renew_enabled:
             ca["trial_subs_count"] += 1
             ca["active_vip_count"] += 1
@@ -5488,10 +5526,13 @@ async def sync_client_subscriber_ledger(
         c_gross = round(float(payload.customer_price_try or (std_gross if st_val == "paid_active" else 0.0)), 2)
         c_net = round(float(payload.developer_proceeds_try or (round(c_gross * net_ratio, 2) if c_gross > 0 else 0.0)), 2)
 
+    is_intro_payload = (payload.offer_type or "").strip() == "intro_1m_discounted"
     if st_val == "cancelled" or not auto_renew:
         exp_gross, exp_net = 0.0, 0.0
     elif st_val == "offer_code_trial":
         exp_gross, exp_net = 0.0, 0.0
+    elif is_intro_payload:
+        exp_gross, exp_net = std_gross, std_net
     else:
         exp_gross, exp_net = (c_gross, c_net) if c_gross > 0 else (std_gross, std_net)
 
@@ -5499,7 +5540,11 @@ async def sync_client_subscriber_ledger(
         "standard_paid" if st_val == "paid_active" else ("offer_code" if st_val == "offer_code_trial" else "intro_7d_trial")
     )
     if not offer_code_nm:
-        offer_code_nm = "Standart Ücretli" if st_val == "paid_active" else "7 Günlük Deneme"
+        offer_code_nm = (
+            "İlk Ay İndirimli Başlangıç"
+            if is_intro_payload
+            else ("Standart Ücretli" if st_val == "paid_active" else "Tarihsel Deneme")
+        )
 
     cntry_clean = "".join(ch for ch in (payload.country or "TR").upper() if ch.isalnum())[:16] or "TR"
     dev_clean = (payload.device_type or ("Android" if plat == "android" else "iPhone")).strip()[:64]
@@ -6299,7 +6344,8 @@ async def analytics_dashboard_page(
         lc_stage = sl.get("lifecycle_stage", sl["status"])
         lc_prog = int(sl.get("trial_progress_pct", 50) or 50)
         if sl["status"] == "paid_active":
-            st_badge = '<span class="badge" style="background:rgba(16,185,129,0.15); color:#059669;">💳 Ücretli Aktif</span>'
+            paid_lbl_html = html.escape(str(sl.get("lifecycle_badge") or "💳 Ücretli Aktif"))
+            st_badge = f'<span class="badge" style="background:rgba(16,185,129,0.15); color:#059669;">{paid_lbl_html}</span>'
             bar_color = "#10B981"
         elif sl["status"] == "offer_code_trial":
             st_badge = f'<span class="badge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">🎟️ Kodlu ({html.escape(str(sl["offer_code_name"]))})</span>'
@@ -6465,7 +6511,7 @@ async def analytics_dashboard_page(
         f"✅ <strong>Canlı Android Abone Durumu:</strong> Google Play üzerinde <strong>{ps_and.get('vip_count', 0)} Aktif Android VIP</strong> "
         f"(Toplam {ps_and.get('total_vip_count', 0)} Kayıt • Beklenen/Aktif Net MRR: <strong>{float(ps_and.get('mrr_net_try', 0.0)):.2f} ₺</strong>) bulunmaktadır."
         if int(ps_and.get("total_vip_count", 0) or 0) > 0
-        else f"🔍 <strong>Neden Android'de 0 Abone Görünüyor? (Canlı API Teşhisi):</strong> Google Play Developer API (<code>monetization.subscriptions</code>) üzerinde <strong>Mışıl Baby Yıllık VIP (599.99 ₺ + 7G Ücretsiz Deneme)</strong> ve <strong>Mışıl Baby Aylık VIP (149.99 ₺ + 7G Ücretsiz Deneme)</strong> paketleriniz <strong>ACTIVE (Yayında)</strong> durumdadır. Ancak <strong>{ps_and.get('touchpoints', 0)} Android köprü tıklamasından</strong> gelen <strong>{kpis['android_downloads']} Android kurulumu</strong> içerisinden henüz Google Play faturalandırmasını (7G deneme veya ücretli) başlatan kullanıcı olmamıştır (<strong>0 Aktif Android Abone</strong>). Yeni bir Android abonesi başladığında bu tabloya otomatik olarak düşer."
+        else f"🔍 <strong>Neden Android'de 0 Abone Görünüyor? (Canlı API Teşhisi):</strong> Google Play Developer API (<code>monetization.subscriptions</code>) üzerinde <strong>Mışıl Baby Yıllık VIP (599.99 ₺ • Denemesiz)</strong> ve <strong>Mışıl Baby Aylık VIP (İlk Ay 49.99 ₺ ➔ 149.99 ₺/ay)</strong> paketleriniz <strong>ACTIVE (Yayında)</strong> durumdadır. Ancak <strong>{ps_and.get('touchpoints', 0)} Android köprü tıklamasından</strong> gelen <strong>{kpis['android_downloads']} Android kurulumu</strong> içerisinden henüz Google Play aboneliği başlatan kullanıcı olmamıştır (<strong>0 Aktif Android Abone</strong>). Yeni bir Android abonesi başladığında bu tabloya otomatik olarak düşer."
     )
 
     sr = fl.get("store_reconciliation") or {}
@@ -8042,9 +8088,9 @@ async def analytics_dashboard_page(
                 <tr>
                   <td><strong>4. Canlı Abonelik Paketleri</strong></td>
                   <td style="font-weight:700;">4 Aktif Paket (iOS + Android)</td>
-                  <td><strong>2 Paket:</strong> <code>misil_annual</code> & <code>misil_monthly</code> (7G Deneme)</td>
-                  <td><strong>{len(gp_catalog)} Paket Aktif:</strong> <code>misil</code> (599.99 ₺) & <code>misilaylik</code> (149.99 ₺) + 7G Deneme</td>
-                  <td><span class="badge badge-gp">Her İki Mağazada 7G Deneme Aktif</span></td>
+                  <td><strong>2 Paket:</strong> <code>misil_annual</code> (599.99 ₺) & <code>misil_monthly</code> (İlk Ay 49.99 ₺ ➔ 149.99 ₺)</td>
+                  <td><strong>{len(gp_catalog)} Paket Aktif:</strong> <code>misil</code> (599.99 ₺) & <code>misilaylik</code> (İlk Ay 49.99 ₺ ➔ 149.99 ₺)</td>
+                  <td><span class="badge badge-gp">İlk Ay 49.99 ₺ Başlangıç + Hard Paywall</span></td>
                 </tr>
                 <tr>
                   <td><strong>5. Aktif VIP Abone & Net MRR</strong></td>
@@ -8284,7 +8330,7 @@ async def analytics_dashboard_page(
                       <th>Mağaza Paket Başlığı</th>
                       <th>Durum</th>
                       <th>Periyot</th>
-                      <th>Ücretsiz Deneme Teklifi</th>
+                      <th>Başlangıç Teklifi</th>
                       <th>Offer ID</th>
                       <th>Ek Süre (Grace)</th>
                       <th>Türkiye Fiyatı (Brüt / Net)</th>

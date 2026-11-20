@@ -24,13 +24,13 @@ export const useSubscriptionStatus = () => {
         );
         return data;
       } catch {
-        // Safe default: Active trial
+        // Safe default: Hard Paywall — unverified client starts inactive until subscription is confirmed
         return {
-          user_id: 1,
-          status: 'trial',
-          plan: 'yearly',
-          is_active: true,
-          days_left_in_trial: 7,
+          user_id: 0,
+          status: 'expired',
+          plan: undefined,
+          is_active: false,
+          days_left_in_trial: 0,
         };
       }
     },
@@ -39,9 +39,8 @@ export const useSubscriptionStatus = () => {
 
   const startTrialMutation = useMutation({
     mutationFn: async () => {
-      const { data } = await apiClient.post<SubscriptionStatusResponse>(
-        '/subscription/start-trial',
-        {}
+      const { data } = await apiClient.get<SubscriptionStatusResponse>(
+        '/subscription/status'
       );
       return data;
     },
@@ -52,9 +51,9 @@ export const useSubscriptionStatus = () => {
 
   return {
     subscription: statusQuery.data,
-    isPremiumActive: statusQuery.data?.is_active ?? true,
-    isTrial: statusQuery.data?.status === 'trial',
-    daysLeftInTrial: statusQuery.data?.days_left_in_trial ?? 7,
+    isPremiumActive: statusQuery.data?.is_active ?? false,
+    isTrial: false,
+    daysLeftInTrial: 0,
     isLoading: statusQuery.isLoading || startTrialMutation.isPending,
     startTrial: startTrialMutation.mutateAsync,
   };

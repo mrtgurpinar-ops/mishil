@@ -232,12 +232,12 @@ export default function SettingsScreen() {
         <View style={styles.subStatusRow}>
           <View style={{ flex: 1, marginRight: 10 }}>
             <Text style={[styles.subPlan, { color: theme.colors.heading }]}>
-              {isTrial ? '7 Günlük Ücretsiz Deneme' : 'Mishil Yıllık Premium'}
+              {subscription?.is_active ? 'Mışıl Baby VIP Aktif' : 'Mışıl Baby VIP Üyeliği'}
             </Text>
             <Text style={[styles.subDesc, { color: theme.colors.textMuted }]}>
-              {isTrial
-                ? `Denemenin bitmesine ${daysLeftInTrial} gün kaldı.`
-                : 'Tüm özellikler sınırsız aktif.'}
+              {subscription?.is_active
+                ? 'Tüm VIP özellikler sınırsız aktif.'
+                : 'Tüm özellikleri açmak için VIP planınızı seçin.'}
             </Text>
           </View>
           <Button

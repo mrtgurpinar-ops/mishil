@@ -25,6 +25,7 @@ import * as MishilLockScreen from '../modules/mishil-lockscreen/src';
 import { OFFLINE_HTML } from '../features/webview/offlineHtml.generated';
 import {
   syncCareNotifications,
+  cancelAllCareNotifications,
   getStoredNotificationSettings,
   saveStoredNotificationSettings,
   normalizeCareLang,
@@ -81,6 +82,7 @@ const INJECT_APP_META = `
   window.MishilNative.quotasHydrated = false;
   window.MishilNative.liveSleepBridge = true;
   window.MishilNative.nursingLockScreenV2 = true;
+  window.MishilNative.introEligibilityBridge = true;
   true;
 `;
 
@@ -345,11 +347,21 @@ export default function MishilUnifiedWebView() {
       const activeEnts = customerInfo?.entitlements?.active || {};
       const firstEntKey = Object.keys(activeEnts)[0];
       const firstEnt = activeEnts[PRO_ENTITLEMENT_ID] || activeEnts['mışıl_baby_pro'] || (firstEntKey ? activeEnts[firstEntKey] : null);
+      if (active) {
+        void AsyncStorage.setItem('@mishil_subscription_active', 'true');
+        void AsyncStorage.setItem('@mishil_has_ever_subscribed', '1');
+      } else {
+        void AsyncStorage.setItem('@mishil_subscription_active', 'false');
+        const [, rawFamPlan] = (await AsyncStorage.multiGet(['@mishil_subscription_plan']))[0] || ['', null];
+        if (rawFamPlan !== 'family_vip') {
+          void cancelAllCareNotifications();
+        }
+      }
       const subMetaJson = active && firstEnt ? JSON.stringify({
         subscriberId: customerInfo?.originalAppUserId || undefined,
         productId: firstEnt?.productIdentifier || undefined,
         plan: detectedPlan || undefined,
-        periodType: firstEnt?.periodType || 'TRIAL',
+        periodType: firstEnt?.periodType || 'NORMAL',
         store: firstEnt?.store || (Platform.OS === 'android' ? 'PLAY_STORE' : 'APP_STORE'),
         platform: Platform.OS === 'android' ? 'android' : 'ios',
         willRenew: firstEnt?.willRenew !== false,
@@ -365,6 +377,8 @@ export default function MishilUnifiedWebView() {
             if (${active ? 'true' : 'false'}) {
               localStorage.setItem('mishil_subscription_active', 'true');
               localStorage.setItem('mishil_rc_verified', 'true');
+              localStorage.setItem('mishil_has_ever_subscribed', '1');
+              localStorage.removeItem('mishil_trial_start');
               localStorage.removeItem('mishil_limited_explore_mode');
               ${planLine}
               window.__MISHIL_SUB_META__ = ${subMetaJson};
@@ -379,17 +393,10 @@ export default function MishilUnifiedWebView() {
                 localStorage.removeItem('mishil_trial_start');
                 localStorage.removeItem('mishil_rc_verified');
                 localStorage.removeItem('mishil_family_vip_verified');
-                localStorage.setItem('mishil_subscription_plan', 'free');
+                localStorage.setItem('mishil_subscription_plan', 'none');
                 window.__MISHIL_SUB_META__ = null;
-                if (typeof switchTab === 'function') {
-                  var coach = document.getElementById('view-coach');
-                  var analyticsView = document.getElementById('view-analytics');
-                  var softActive = typeof isSubscriptionCurrentlyActive === 'function' && isSubscriptionCurrentlyActive();
-                  var coachAllowed = typeof canAccessCoachTab === 'function' ? canAccessCoachTab() : softActive;
-                  if ((analyticsView && analyticsView.classList.contains('active') && !softActive) || (coach && coach.classList.contains('active') && !coachAllowed)) {
-                    switchTab('home');
-                  }
-                }
+                if (typeof stopAllAudio === 'function') stopAllAudio();
+                if (typeof checkOnboardingState === 'function') checkOnboardingState();
               }
             }
             if (typeof loadBabyProfile === 'function') loadBabyProfile();
@@ -429,8 +436,13 @@ export default function MishilUnifiedWebView() {
           if (isPurchaseInProgressRef.current) return;
           const active = hasActiveEntitlement(customerInfo);
           const detectedPlan = active ? getPlanFromCustomerInfo(customerInfo) : null;
-          if (!active) {
+          if (active) {
+            void AsyncStorage.setItem('@mishil_subscription_active', 'true');
+            void AsyncStorage.setItem('@mishil_has_ever_subscribed', '1');
+          } else {
             void AsyncStorage.removeItem('@mishil_subscription_plan');
+            void AsyncStorage.setItem('@mishil_subscription_active', 'false');
+            void cancelAllCareNotifications();
           }
           const activeEntsL = customerInfo?.entitlements?.active || {};
           const firstEntKeyL = Object.keys(activeEntsL)[0];
@@ -439,7 +451,7 @@ export default function MishilUnifiedWebView() {
             subscriberId: customerInfo?.originalAppUserId || undefined,
             productId: firstEntL?.productIdentifier || undefined,
             plan: detectedPlan || undefined,
-            periodType: firstEntL?.periodType || 'TRIAL',
+            periodType: firstEntL?.periodType || 'NORMAL',
             store: firstEntL?.store || (Platform.OS === 'android' ? 'PLAY_STORE' : 'APP_STORE'),
             platform: Platform.OS === 'android' ? 'android' : 'ios',
             willRenew: firstEntL?.willRenew !== false,
@@ -455,6 +467,8 @@ export default function MishilUnifiedWebView() {
                 if (${active ? 'true' : 'false'}) {
                   localStorage.setItem('mishil_subscription_active', 'true');
                   localStorage.setItem('mishil_rc_verified', 'true');
+                  localStorage.setItem('mishil_has_ever_subscribed', '1');
+                  localStorage.removeItem('mishil_trial_start');
                   localStorage.removeItem('mishil_limited_explore_mode');
                   ${planLine}
                   window.__MISHIL_SUB_META__ = ${subMetaJsonL};
@@ -469,7 +483,9 @@ export default function MishilUnifiedWebView() {
                     localStorage.removeItem('mishil_trial_start');
                     localStorage.removeItem('mishil_rc_verified');
                     localStorage.removeItem('mishil_family_vip_verified');
-                    localStorage.setItem('mishil_subscription_plan', 'free');
+                    localStorage.setItem('mishil_subscription_plan', 'none');
+                    if (typeof stopAllAudio === 'function') stopAllAudio();
+                    if (typeof checkOnboardingState === 'function') checkOnboardingState();
                   }
                 }
                 if (typeof loadBabyProfile === 'function') loadBabyProfile();
@@ -496,12 +512,13 @@ export default function MishilUnifiedWebView() {
   // AsyncStorage'dan profil ve onboarding durumunu WebView localStorage'ına hidrate et (Çift Katmanlı Koruma)
   const hydrateWebViewStorage = useCallback(async () => {
     try {
-      const [[, rawProfile], [, rawOnboarding], [, rawPlan], [, rawSavedLang], [, rawReviewLastTs]] = await AsyncStorage.multiGet([
+      const [[, rawProfile], [, rawOnboarding], [, rawPlan], [, rawSavedLang], [, rawReviewLastTs], [, rawEverSub]] = await AsyncStorage.multiGet([
         '@mishil_baby_profile',
         '@mishil_onboarding_completed',
         '@mishil_subscription_plan',
         APP_LANG_KEY,
         NATIVE_REVIEW_STORAGE_KEY,
+        '@mishil_has_ever_subscribed',
       ]);
 
       const resolvedSavedLang = rawSavedLang ? normalizeCareLang(rawSavedLang) : null;
@@ -555,6 +572,7 @@ export default function MishilUnifiedWebView() {
               ${rawOnboarding === 'true' ? `if (!localStorage.getItem('mishil_onboarding_completed')) { localStorage.setItem('mishil_onboarding_completed', 'true'); modified = true; }` : ''}
               ${shouldHydrateFamilyPlan ? `if (!localStorage.getItem('mishil_subscription_plan') && localStorage.getItem('mishil_family_vip_verified') === '1') { localStorage.setItem('mishil_subscription_plan', 'family_vip'); modified = true; }` : ''}
               ${safeReviewTs ? `if (!localStorage.getItem('mishil_native_review_last_ts')) { localStorage.setItem('mishil_native_review_last_ts', '${safeReviewTs}'); }` : ''}
+              ${rawEverSub === '1' ? `if (localStorage.getItem('mishil_has_ever_subscribed') !== '1') { localStorage.setItem('mishil_has_ever_subscribed', '1'); modified = true; }` : ''}
               ${deviceQuotas.onboardedOnce ? `if (localStorage.getItem('mishil_device_onboarded_once') !== '1') { localStorage.setItem('mishil_device_onboarded_once', '1'); modified = true; }` : ''}
               ${deviceQuotas.firstSpotUsed ? `if (localStorage.getItem('mishil_first_spot_aha_used') !== '1') { localStorage.setItem('mishil_first_spot_aha_used', '1'); modified = true; }` : ''}
               ${deviceQuotas.freeSoundUsed ? `if (localStorage.getItem('mishil_free_sound_used') !== '1') { localStorage.setItem('mishil_free_sound_used', '1'); modified = true; }` : ''}
@@ -634,17 +652,43 @@ export default function MishilUnifiedWebView() {
     void sendLockscreenStateSync();
 
     // Canlı mağaza fiyatlarını (RevenueCat Offerings) web tarafına dinamik aktar
+    // Not: Özel paket kimliklerinde (misil / misilaylik) RevenueCat packageType='CUSTOM' döndürebildiği için hem packageType hem identifier kontrol edilir.
+    const findOfferingByPlan = (list: any[], target: 'monthly' | 'yearly') => {
+      if (!Array.isArray(list)) return undefined;
+      if (target === 'yearly') {
+        return (
+          list.find(o => o.packageType === 'ANNUAL') ||
+          list.find(o => {
+            const id = String(o?.identifier || '').toLowerCase();
+            const pid = String(o?.rawPackage?.product?.identifier || '').split(':')[0].toLowerCase();
+            return id.includes('annual') || id.includes('yearly') || id === 'misil' || pid === 'misil_annual' || pid === 'misil';
+          })
+        );
+      }
+      return (
+        list.find(o => o.packageType === 'MONTHLY') ||
+        list.find(o => {
+          const id = String(o?.identifier || '').toLowerCase();
+          const pid = String(o?.rawPackage?.product?.identifier || '').split(':')[0].toLowerCase();
+          return id.includes('month') || id.includes('aylik') || pid === 'misil_monthly' || pid === 'misilaylik';
+        })
+      );
+    };
+
     (async () => {
       try {
         const offerings = await getOfferings();
-        const m = offerings.find(o => o.packageType === 'MONTHLY');
-        const a = offerings.find(o => o.packageType === 'ANNUAL');
+        const m = findOfferingByPlan(offerings, 'monthly');
+        const a = findOfferingByPlan(offerings, 'yearly');
         const pricePayload = {
           monthly: m?.priceString || undefined,
           yearly: a?.priceString || undefined,
           monthlyPrice: m?.price,
           yearlyPrice: a?.price,
           currencyCode: m?.currencyCode || a?.currencyCode,
+          introMonthly: m?.introPriceString || undefined,
+          introMonthlyPrice: m?.introPrice,
+          introEligibility: m?.introEligibility || 'unknown',
         };
         webviewRef.current?.injectJavaScript(`
           (function() {
@@ -658,14 +702,19 @@ export default function MishilUnifiedWebView() {
       } catch (e) {}
     })();
 
-    // Bildirim ayarlarını ve 14 günlük bakım bildirimlerini OS kuyruğuna senkronize et
+    // Bildirim ayarlarını ve 14 günlük bakım bildirimlerini yalnızca aktif VIP / Aile VIP abonesiyse OS kuyruğuna senkronize et
     (async () => {
       try {
-        const rawProfile = await AsyncStorage.getItem('@mishil_baby_profile');
+        const [[, rawProfile], [, rawSubAct], [, rawSubPlan]] = await AsyncStorage.multiGet([
+          '@mishil_baby_profile',
+          '@mishil_subscription_active',
+          '@mishil_subscription_plan',
+        ]);
         let pObj: any = null;
         try { pObj = rawProfile ? JSON.parse(rawProfile) : null; } catch {}
         const notifSettings = await getStoredNotificationSettings();
-        if (pObj?.babyName) {
+        const isVipStored = rawSubAct === 'true' || rawSubPlan === 'family_vip';
+        if (pObj?.babyName && isVipStored) {
           await syncCareNotifications(
             {
               babyName: pObj.babyName,
@@ -675,6 +724,8 @@ export default function MishilUnifiedWebView() {
             },
             notifSettings
           );
+        } else if (!isVipStored) {
+          await cancelAllCareNotifications();
         }
         webviewRef.current?.injectJavaScript(`
           (function() {
@@ -789,8 +840,27 @@ export default function MishilUnifiedWebView() {
     // Native kalıcı depoya da yaz (Çift Katmanlı Koruma)
     void AsyncStorage.setItem('@mishil_onboarding_completed', 'true');
     void AsyncStorage.setItem('@mishil_subscription_active', 'true');
-    void AsyncStorage.setItem('@mishil_trial_start', new Date().toISOString());
+    void AsyncStorage.setItem('@mishil_has_ever_subscribed', '1');
+    void AsyncStorage.removeItem('@mishil_trial_start');
     if (plan) void AsyncStorage.setItem('@mishil_subscription_plan', String(plan));
+    void (async () => {
+      try {
+        const rawProfile = await AsyncStorage.getItem('@mishil_baby_profile');
+        const pObj = rawProfile ? JSON.parse(rawProfile) : null;
+        if (pObj?.babyName) {
+          const notifSettings = await getStoredNotificationSettings();
+          await syncCareNotifications(
+            {
+              babyName: pObj.babyName,
+              babyBdate: pObj.babyBdate,
+              lang: pObj.lang || appLangRef.current,
+              vaccineCountry: pObj.vaccineCountry || notifSettings.vaccineCountry,
+            },
+            notifSettings
+          );
+        }
+      } catch {}
+    })();
 
     webviewRef.current?.injectJavaScript(`
       (function() {
@@ -802,7 +872,8 @@ export default function MishilUnifiedWebView() {
           if (typeof commitOnboardingProfile === 'function') commitOnboardingProfile();
           localStorage.setItem('mishil_onboarding_completed', 'true');
           localStorage.setItem('mishil_subscription_active', 'true');
-          localStorage.setItem('mishil_trial_start', new Date().toISOString());
+          localStorage.setItem('mishil_has_ever_subscribed', '1');
+          localStorage.removeItem('mishil_trial_start');
           ${planLine}
           var screen = document.getElementById('screen-onboarding');
           if (screen) screen.classList.remove('active');
@@ -836,15 +907,23 @@ export default function MishilUnifiedWebView() {
           const notifSettings = await getStoredNotificationSettings();
           notifSettings.lang = nextLang;
           await saveStoredNotificationSettings({ lang: nextLang });
-          await syncCareNotifications(
-            {
-              babyName: pObj?.babyName,
-              babyBdate: pObj?.babyBdate,
-              lang: nextLang,
-              vaccineCountry: pObj?.vaccineCountry || notifSettings.vaccineCountry,
-            },
-            notifSettings
-          );
+          const [[, rawSubActL], [, rawSubPlanL]] = await AsyncStorage.multiGet([
+            '@mishil_subscription_active',
+            '@mishil_subscription_plan',
+          ]);
+          if (rawSubActL === 'true' || rawSubPlanL === 'family_vip' || msg.isVipActive) {
+            await syncCareNotifications(
+              {
+                babyName: pObj?.babyName,
+                babyBdate: pObj?.babyBdate,
+                lang: nextLang,
+                vaccineCountry: pObj?.vaccineCountry || notifSettings.vaccineCountry,
+              },
+              notifSettings
+            );
+          } else {
+            await cancelAllCareNotifications();
+          }
           break;
         }
 
@@ -854,15 +933,26 @@ export default function MishilUnifiedWebView() {
             const payloadLang = msg.payload.lang ? updateNativeLang(msg.payload.lang) : appLangRef.current;
             const profileToStore = { ...msg.payload, lang: payloadLang };
             void AsyncStorage.setItem('@mishil_baby_profile', JSON.stringify(profileToStore));
+            if (msg.payload.subscriptionPlan === 'family_vip') {
+              void AsyncStorage.setItem('@mishil_subscription_plan', 'family_vip');
+            }
             if (msg.payload.vaccineCountry) {
               void saveStoredNotificationSettings({ vaccineCountry: msg.payload.vaccineCountry });
             }
-            void syncCareNotifications({
-              babyName: msg.payload.babyName,
-              babyBdate: msg.payload.babyBdate,
-              lang: payloadLang,
-              vaccineCountry: msg.payload.vaccineCountry,
-            });
+            void AsyncStorage.multiGet(['@mishil_subscription_active', '@mishil_subscription_plan']).then(
+              ([[, rAct], [, rPln]]) => {
+                if (rAct === 'true' || rPln === 'family_vip' || msg.payload?.subscriptionPlan === 'family_vip' || msg.payload?.isVipActive) {
+                  void syncCareNotifications({
+                    babyName: msg.payload.babyName,
+                    babyBdate: msg.payload.babyBdate,
+                    lang: payloadLang,
+                    vaccineCountry: msg.payload.vaccineCountry,
+                  });
+                } else {
+                  void cancelAllCareNotifications();
+                }
+              }
+            );
           }
           break;
 
@@ -870,18 +960,26 @@ export default function MishilUnifiedWebView() {
           if (msg.payload) {
             const nextLang = msg.payload.lang ? updateNativeLang(msg.payload.lang) : appLangRef.current;
             void saveStoredNotificationSettings({ ...msg.payload, lang: nextLang }).then(async (updatedSettings) => {
-              const rawProfile = await AsyncStorage.getItem('@mishil_baby_profile');
+              const [[, rawProfile], [, rAct], [, rPln]] = await AsyncStorage.multiGet([
+                '@mishil_baby_profile',
+                '@mishil_subscription_active',
+                '@mishil_subscription_plan',
+              ]);
               let pObj: any = null;
               try { pObj = rawProfile ? JSON.parse(rawProfile) : null; } catch {}
-              await syncCareNotifications(
-                {
-                  babyName: pObj?.babyName,
-                  babyBdate: pObj?.babyBdate,
-                  lang: nextLang,
-                  vaccineCountry: msg.payload.vaccineCountry || pObj?.vaccineCountry || updatedSettings.vaccineCountry,
-                },
-                updatedSettings
-              );
+              if (rAct === 'true' || rPln === 'family_vip' || msg.payload?.isVipActive) {
+                await syncCareNotifications(
+                  {
+                    babyName: pObj?.babyName,
+                    babyBdate: pObj?.babyBdate,
+                    lang: nextLang,
+                    vaccineCountry: msg.payload.vaccineCountry || pObj?.vaccineCountry || updatedSettings.vaccineCountry,
+                  },
+                  updatedSettings
+                );
+              } else {
+                await cancelAllCareNotifications();
+              }
               webToast(
                 nextLang === 'de'
                   ? '✅ Benachrichtigungseinstellungen aktualisiert.'
@@ -998,11 +1096,20 @@ export default function MishilUnifiedWebView() {
           `);
 
           try {
-            const plan = msg.plan || 'monthly';
+            const plan = msg.plan === 'yearly' ? 'yearly' : 'monthly';
             const offerings = await getOfferings();
-            const pkg = offerings.find(o =>
-              plan === 'yearly' ? o.packageType === 'ANNUAL' : o.packageType === 'MONTHLY'
-            );
+            const pkg = offerings.find(o => {
+              if (plan === 'yearly') {
+                if (o.packageType === 'ANNUAL') return true;
+                const id = String(o?.identifier || '').toLowerCase();
+                const pid = String(o?.rawPackage?.product?.identifier || '').split(':')[0].toLowerCase();
+                return id.includes('annual') || id.includes('yearly') || id === 'misil' || pid === 'misil_annual' || pid === 'misil';
+              }
+              if (o.packageType === 'MONTHLY') return true;
+              const id = String(o?.identifier || '').toLowerCase();
+              const pid = String(o?.rawPackage?.product?.identifier || '').split(':')[0].toLowerCase();
+              return id.includes('month') || id.includes('aylik') || pid === 'misil_monthly' || pid === 'misilaylik';
+            });
 
             let result = await purchasePackage(pkg?.identifier || plan, pkg?.rawPackage);
 
@@ -1038,7 +1145,7 @@ export default function MishilUnifiedWebView() {
                 productId: firstEnt?.productIdentifier || pkg?.identifier || (Platform.OS === 'android' ? (plan === 'yearly' ? 'misil' : 'misilaylik') : (plan === 'yearly' ? 'misil_annual' : 'misil_monthly')),
                 platform: Platform.OS === 'android' ? 'android' : 'ios',
                 store: firstEnt?.store || (Platform.OS === 'android' ? 'PLAY_STORE' : 'APP_STORE'),
-                periodType: firstEnt?.periodType || 'TRIAL',
+                periodType: firstEnt?.periodType || 'NORMAL',
                 willRenew: firstEnt ? firstEnt.willRenew !== false : true,
                 originalPurchaseDate: firstEnt?.originalPurchaseDate || undefined,
                 expirationDate: firstEnt?.expirationDate || undefined,

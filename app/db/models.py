@@ -46,7 +46,7 @@ class User(Base):
     full_name = Column(String(100), nullable=True)
     subscription_status = Column(
         SQLEnum(SubscriptionStatus),
-        default=SubscriptionStatus.TRIAL,
+        default=SubscriptionStatus.EXPIRED,
         nullable=False,
     )
     trial_ends_at = Column(DateTime(timezone=True), nullable=True)
@@ -299,9 +299,10 @@ class Subscription(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
-    plan = Column(SQLEnum(SubscriptionPlan), default=SubscriptionPlan.YEARLY, nullable=True)
-    status = Column(SQLEnum(SubscriptionStatus), default=SubscriptionStatus.TRIAL, nullable=False)
+    plan = Column(SQLEnum(SubscriptionPlan), default=SubscriptionPlan.MONTHLY, nullable=True)
+    status = Column(SQLEnum(SubscriptionStatus), default=SubscriptionStatus.EXPIRED, nullable=False)
     trial_ends_at = Column(DateTime(timezone=True), nullable=True)
+    current_period_end = Column(DateTime(timezone=True), nullable=True)
     provider_ref = Column(String(255), nullable=True)
     updated_at = Column(
         DateTime(timezone=True),

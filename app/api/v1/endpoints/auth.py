@@ -90,7 +90,7 @@ def register(payload: UserRegisterRequest, db: Session = Depends(get_db)):
         email=payload.email,
         hashed_password=get_password_hash(payload.password),
         full_name=payload.full_name,
-        subscription_status=SubscriptionStatus.TRIAL,
+        subscription_status=SubscriptionStatus.EXPIRED,
     )
     db.add(user)
     db.commit()

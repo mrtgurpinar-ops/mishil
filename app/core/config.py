@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # General App Config
     APP_NAME: str = "mishil"
     APP_TITLE: str = "Mishil API - Baby Sleep & Routines"
-    APP_VERSION: str = "4.52.0"
+    APP_VERSION: str = "4.55.0"
     ENVIRONMENT: str = "development"
     DEBUG: bool = False  # Default False — production-safe. Set DEBUG=True in .env for local dev.
     PORT: int = 8000
@@ -56,16 +56,24 @@ class Settings(BaseSettings):
     def warn_insecure_defaults(self) -> "Settings":
         """Block startup in production if JWT_SECRET is left at the embedded development default."""
         default_secret = "mishil_default_dev_jwt_secret_key_change_in_production_32_bytes"
-        if self.ENVIRONMENT.strip().lower() == "production" and self.JWT_SECRET == default_secret:
-            raise RuntimeError(
-                "FATAL SECURITY ERROR: JWT_SECRET is set to the default development value in production! "
-                "Set a strong JWT_SECRET environment variable before starting the production server."
-            )
+        if self.ENVIRONMENT.strip().lower() == "production":
+            if self.JWT_SECRET == default_secret:
+                raise RuntimeError(
+                    "FATAL SECURITY ERROR: JWT_SECRET is set to the default development value in production! "
+                    "Set a strong JWT_SECRET environment variable before starting the production server."
+                )
+            if self.REVENUECAT_WEBHOOK_SECRET in ("", "rc_webhook_secret_example_key"):
+                import logging
+                logging.getLogger("mishil.config").warning(
+                    "SECURITY WARNING: REVENUECAT_WEBHOOK_SECRET is not configured in production; "
+                    "incoming RevenueCat webhooks will fail-closed (HTTP 503) until configured."
+                )
         return self
 
-    # RevenueCat & Subscription
+    # RevenueCat & Subscription (v4.55.0: Free trial retired -> Intro 1st month paid offer)
     REVENUECAT_WEBHOOK_SECRET: str = "rc_webhook_secret_example_key"
-    TRIAL_DURATION_DAYS: int = 7
+    TRIAL_DURATION_DAYS: int = 0
+    INTRO_FIRST_MONTH_PRICE_TRY: float = 49.99
 
     # Audio & Cry Analysis Constraints
     MAX_AUDIO_UPLOAD_SIZE_BYTES: int = 10 * 1024 * 1024  # 10 MB

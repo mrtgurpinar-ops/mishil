@@ -1245,15 +1245,12 @@ def test_v4_48_0_returning_users_and_paywall_cancellation_cro(client, db_session
     assert "applyQuickLastWakeMinsAgo(" in app_html
     assert "vipRenewalSelectedPlan = 'monthly';" in app_html
     assert "paywall_cancel_recovery_shown" in app_html
-    assert "sound_preview_60s_ended" in app_html
     assert "getDynamicPricingState" in app_html
+    assert "resolveMonthlyIntroEligibility" in app_html
     assert "report-next-sweetspot-time" in app_html
-    assert "onboarding-trial-end-text" in app_html
     assert "vip-calibration-progress-box" in app_html
     assert "mishil_family_vip_verified" in app_html
-    assert "mishil_soft_vip_24h_granted" in app_html
-    assert "mishil_soft_vip_cry_count" in app_html
-    assert "version: '4.54.1'" in app_html
+    assert "version: '4.55.0'" in app_html
 
 
 def test_s8_ios_rc_anonymous_id_ghost_purge_and_unverified_sync_ignore(client, db_session):
@@ -2193,6 +2190,297 @@ def test_dynamic_rc_v2_google_play_orders_downgrade_mrr_and_zero_static_data(cli
 
     dash_html = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"}).text
     assert "if (appLed) appLed.style.display = 'block';" in dash_html
+
+
+def test_v4_55_0_hard_paywall_paid_intro_webhook_and_zero_legacy_copy(client, db_session):
+    """
+    v4.55.0:
+    1) POST /api/v1/subscription/start-trial -> 410 Gone (ücretsiz deneme tamamen emekli edildi),
+    2) RevenueCat INITIAL_PURCHASE (period_type='INTRO', price=49.99 TRY) -> is_active=True, current_period_end dolu,
+       SubscriberLedger offer_type='intro_1m_discounted', customer_price_try=49.99, expected_next_price_try=149.99,
+    3) İadesiz CANCELLATION -> current_period_end dolana kadar is_active=True ve User.subscription_status=ACTIVE korunur;
+       süre dolduğunda EXPIRED'a düşer; iadeli (CUSTOMER_SUPPORT) CANCELLATION anında iptal eder,
+    4) Kurucu Kokpiti HTML render (200 OK) '✨ İlk Ay İndirimli Aktif' rozetini içerir ve statik '7 Gün Ücretsiz Deneme' içermez,
+    5) Tüm depo (app.html aktif kod, terms.html, APP_STORE_LISTING.md, STORE_LISTING.md, mobile/ kaynak dosyaları) sıfır eski söylem taramasından geçer.
+    """
+    import os
+    import re
+    from datetime import datetime, timezone, timedelta
+    from app.db.models import User, Subscription, SubscriberLedger
+    from app.models.enums import SubscriptionStatus
+    from app.services.subscription import SubscriptionService
+    from app.core.config import settings
+    wh_auth = f"Bearer {settings.REVENUECAT_WEBHOOK_SECRET}" if settings.REVENUECAT_WEBHOOK_SECRET else None
+
+    # 1. Yeni kayıt EXPIRED doğar ve /start-trial 410 Gone döner
+    reg_res = client.post(
+        "/api/v1/auth/register",
+        json={"email": "intro49_parent@mishil.app", "password": "securepassword123", "full_name": "Zeynep Yılmaz"},
+    )
+    assert reg_res.status_code == 201
+    reg_json = reg_res.json()
+    assert reg_json["subscription_status"] == SubscriptionStatus.EXPIRED.value
+    token = reg_json["access_token"]
+
+    trial_res = client.post(
+        "/api/v1/subscription/start-trial",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert trial_res.status_code == 410
+
+    # 2. RevenueCat INITIAL_PURCHASE (İlk Ay 49.99 TRY INTRO)
+    user = db_session.query(User).filter(User.email == "intro49_parent@mishil.app").first()
+    assert user is not None
+    now_utc = datetime.now(timezone.utc)
+    exp_future_ms = int((now_utc + timedelta(days=30)).timestamp() * 1000)
+    purch_ms = int(now_utc.timestamp() * 1000)
+
+    SubscriptionService.process_revenuecat_webhook(
+        db_session,
+        {
+            "event": {
+                "type": "INITIAL_PURCHASE",
+                "app_user_id": str(user.id),
+                "original_transaction_id": "590009998887771",
+                "product_id": "misil_monthly",
+                "period_type": "INTRO",
+                "price": 49.99,
+                "currency": "TRY",
+                "takehome_percentage": 0.85,
+                "purchased_at_ms": purch_ms,
+                "expiration_at_ms": exp_future_ms,
+                "store": "APP_STORE",
+                "country_code": "TR",
+                "environment": "PRODUCTION",
+            }
+        },
+        wh_auth,
+    )
+
+    db_session.expire_all()
+    sub = db_session.query(Subscription).filter(Subscription.user_id == user.id).first()
+    assert sub is not None
+    assert sub.status == SubscriptionStatus.ACTIVE
+    assert sub.current_period_end is not None
+    assert SubscriptionService.calculate_status(user, sub)["is_active"] is True
+
+    led = db_session.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == "590009998887771").first()
+    assert led is not None
+    assert led.offer_type == "intro_1m_discounted"
+    assert led.status == "paid_active"
+    assert abs(float(led.customer_price_try) - 49.99) < 0.01
+    assert abs(float(led.expected_next_price_try) - 149.99) < 0.01
+
+    # 2b. Aktif İlk Ay İndirimli aboneyken Kurucu Kokpiti HTML render kontrolü (200 OK + 'İlk Ay İndirimli Aktif')
+    dash_active_resp = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"})
+    assert dash_active_resp.status_code == 200
+    assert "İlk Ay İndirimli Aktif" in dash_active_resp.text
+    assert 'offer_badge": "7 Gün Ücretsiz Deneme"' not in dash_active_resp.text
+
+    # 3a. İadesiz CANCELLATION (UNSUBSCRIBE): ödenmiş 30 günlük dönem bitene kadar is_active=True korunmalı!
+    SubscriptionService.process_revenuecat_webhook(
+        db_session,
+        {
+            "event": {
+                "type": "CANCELLATION",
+                "app_user_id": str(user.id),
+                "original_transaction_id": "590009998887771",
+                "product_id": "misil_monthly",
+                "period_type": "INTRO",
+                "cancel_reason": "UNSUBSCRIBE",
+                "expiration_at_ms": exp_future_ms,
+                "store": "APP_STORE",
+                "environment": "PRODUCTION",
+            }
+        },
+        wh_auth,
+    )
+    db_session.expire_all()
+    sub_after_unsub = db_session.query(Subscription).filter(Subscription.user_id == user.id).first()
+    user_after_unsub = db_session.query(User).filter(User.id == user.id).first()
+    led_after_unsub = db_session.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == "590009998887771").first()
+    assert sub_after_unsub.status == SubscriptionStatus.CANCELLED
+    assert led_after_unsub.status == "paid_active"
+    assert led_after_unsub.auto_renew_enabled is False
+
+    status_mid_period = SubscriptionService.calculate_status(user_after_unsub, sub_after_unsub)
+    assert status_mid_period["is_active"] is True
+
+    # 4. Otomatik yenileme kapatıldıktan sonra kokpitte 'İlk Ay İndirimli (Yenileme Kapalı)' görünmeli
+    dash_resp = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"})
+    assert dash_resp.status_code == 200
+    assert "İlk Ay İndirimli (Yenileme Kapalı)" in dash_resp.text
+
+    # 3b. Dönem sonu geçtiğinde calculate_status EXPIRED'a düşürmeli
+    sub_after_unsub.current_period_end = now_utc - timedelta(hours=2)
+    db_session.commit()
+    status_expired = SubscriptionService.calculate_status(user_after_unsub, sub_after_unsub)
+    assert status_expired["is_active"] is False
+    assert status_expired["status"] == SubscriptionStatus.EXPIRED
+
+    # 3c. İadeli (CUSTOMER_SUPPORT) CANCELLATION gelecekteki dönem sonuna rağmen anında erişimi kapatmalı
+    sub_after_unsub.status = SubscriptionStatus.ACTIVE
+    sub_after_unsub.current_period_end = now_utc + timedelta(days=20)
+    user_after_unsub.subscription_status = SubscriptionStatus.ACTIVE
+    db_session.commit()
+
+    SubscriptionService.process_revenuecat_webhook(
+        db_session,
+        {
+            "event": {
+                "type": "CANCELLATION",
+                "app_user_id": str(user.id),
+                "original_transaction_id": "590009998887771",
+                "product_id": "misil_monthly",
+                "period_type": "INTRO",
+                "cancel_reason": "CUSTOMER_SUPPORT",
+                "expiration_at_ms": int((now_utc + timedelta(days=20)).timestamp() * 1000),
+                "store": "APP_STORE",
+                "environment": "PRODUCTION",
+            }
+        },
+        wh_auth,
+    )
+    db_session.expire_all()
+    sub_refunded = db_session.query(Subscription).filter(Subscription.user_id == user.id).first()
+    assert sub_refunded.status == SubscriptionStatus.EXPIRED
+    assert SubscriptionService.calculate_status(user_after_unsub, sub_refunded)["is_active"] is False
+
+    # 5. Sıfır Eski Söylem & Eski Fiyat Denetimi (Zero-Legacy-Copy Lint)
+    proj_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    forbidden_re = re.compile(
+        r"7\s*g[üu]n\s*[üu]cretsiz|7\s*g[üu]nl[üu]k\s*[üu]cretsiz|free\s*trial|7-day\s*free|7\s*days\s*free|"
+        r"gratis[- ]?testphase|7\s*tage\s*(?:gratis|kostenlos)|bug[üu]n\s*[₺$€£]0|[₺$€£]0\s*today|heute\s*0\s*€|"
+        r"s[ıi]n[ıi]rl[ıi]\s*modda|limited\s*mode|basismodus|299[.,]99|(?<!5)(?<!1)(?<!4)99[.,]99\s*(?:tl|₺|/ay)",
+        re.IGNORECASE,
+    )
+    for rel_file in ("public/terms.html", "APP_STORE_LISTING.md", "STORE_LISTING.md"):
+        full_p = os.path.join(proj_root, rel_file)
+        txt = open(full_p, "r", encoding="utf-8").read()
+        # terms.html ve mağaza açıklamalarında 'no free trial / ücretsiz deneme süresi bulunmamaktadır' cümlelerini hariç tut
+        cleaned = re.sub(
+            r"(?:no\s+free\s+tier\s+or\s+free\s+trial|[üu]cretsiz\s+deneme\s+s[üu]resi\s+bulunmamaktad[ıi]r|keine\s+gratis-testphase)",
+            "",
+            txt,
+            flags=re.IGNORECASE,
+        )
+        m = forbidden_re.search(cleaned)
+        assert m is None, f"{rel_file} içinde eski söylem/fiyat bulundu: {m.group(0)}"
+
+    app_raw = open(os.path.join(proj_root, "public", "app.html"), "r", encoding="utf-8").read()
+    app_no_comments = re.sub(r"<!--[\s\S]*?-->|^\s*//.*$", "", app_raw, flags=re.MULTILINE)
+    m_app = forbidden_re.search(app_no_comments)
+    assert m_app is None, f"public/app.html içinde eski söylem/fiyat bulundu: {m_app.group(0)}"
+
+
+def test_v4_55_0_redteam_audit_guards_webhook_fx_and_family_revoke(db_session, monkeypatch):
+    """Red-Team QA (Claude task-859 + Codex task-860): Prod webhook secret fail-closed, EUR/UZS FX + expected_next_price_try ve push-based FamilyGroup VIP iptali."""
+    from fastapi import HTTPException
+    from app.core.config import settings
+    from app.db.models import User, SubscriberLedger, FamilyGroup
+    from app.services.subscription import SubscriptionService
+
+    SubscriberLedger.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    FamilyGroup.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+
+    # 1. Production ortamında varsayılan webhook secret ile gelen istek fail-closed (HTTP 503) dönmeli
+    monkeypatch.setattr(settings, "ENVIRONMENT", "production")
+    monkeypatch.setattr(settings, "REVENUECAT_WEBHOOK_SECRET", "rc_webhook_secret_example_key")
+    try:
+        SubscriptionService.process_revenuecat_webhook(
+            db_session,
+            {"event": {"type": "INITIAL_PURCHASE", "app_user_id": "1"}},
+            "Bearer rc_webhook_secret_example_key",
+        )
+        assert False, "Production default webhook secret HTTP 503 fırlatmalıydı"
+    except HTTPException as exc:
+        assert exc.status_code == 503
+
+    monkeypatch.setattr(settings, "ENVIRONMENT", "development")
+    monkeypatch.setattr(settings, "REVENUECAT_WEBHOOK_SECRET", "prod_strong_rc_secret_2026")
+    wh_auth = "Bearer prod_strong_rc_secret_2026"
+
+    # 2. Yabancı para birimi (EUR 1.99 -> 4.99 EUR) İlk Ay İndirimli alımında hem gerçekleşen hem beklenen TL doğru hesaplanmalı
+    SubscriptionService.process_revenuecat_webhook(
+        db_session,
+        {
+            "event": {
+                "type": "INITIAL_PURCHASE",
+                "app_user_id": "$RCAnonymousID:de_parent_1",
+                "original_transaction_id": "59000777000111",
+                "product_id": "misil_monthly",
+                "period_type": "INTRO",
+                "price": 2.15,
+                "price_in_purchased_currency": 1.99,
+                "currency": "EUR",
+                "country_code": "DE",
+                "store": "APP_STORE",
+            }
+        },
+        wh_auth,
+    )
+    led_eur = db_session.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == "59000777000111").first()
+    assert led_eur is not None
+    assert led_eur.offer_type == "intro_1m_discounted"
+    assert round(led_eur.customer_price_try, 2) == round(1.99 * 37.50, 2)
+    assert round(led_eur.expected_next_price_try, 2) == round(4.99 * 37.50, 2)
+
+    # 3. Tanınmayan yerel para biriminde (örn. JPY) USD fallback (price * 34.50) çalışmalı, 1:1 TL yazmamalı
+    SubscriptionService.process_revenuecat_webhook(
+        db_session,
+        {
+            "event": {
+                "type": "INITIAL_PURCHASE",
+                "app_user_id": "$RCAnonymousID:jp_parent_1",
+                "original_transaction_id": "59000777000222",
+                "product_id": "misil_monthly",
+                "period_type": "NORMAL",
+                "price": 4.99,
+                "price_in_purchased_currency": 800.0,
+                "currency": "JPY",
+                "country_code": "JP",
+                "store": "APP_STORE",
+            }
+        },
+        wh_auth,
+    )
+    led_jpy = db_session.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == "59000777000222").first()
+    assert led_jpy is not None
+    assert round(led_jpy.customer_price_try, 2) == round(4.99 * 34.50, 2)
+
+    # 4. Push-based FamilyGroup VIP iptali: kurucu EXPIRATION aldığında vip_active anında False olmalı
+    owner = User(email="fam_owner_v455@test.com", hashed_password="x")
+    db_session.add(owner)
+    db_session.commit()
+    fg = FamilyGroup(
+        name="Test Ailem",
+        created_by_user_id=owner.id,
+        vip_active=True,
+        vip_plan="monthly",
+        vip_subscriber_id="59000777000111",
+    )
+    db_session.add(fg)
+    db_session.commit()
+
+    SubscriptionService.process_revenuecat_webhook(
+        db_session,
+        {
+            "event": {
+                "type": "EXPIRATION",
+                "app_user_id": "$RCAnonymousID:de_parent_1",
+                "original_transaction_id": "59000777000111",
+                "product_id": "misil_monthly",
+                "store": "APP_STORE",
+            }
+        },
+        wh_auth,
+    )
+    db_session.expire_all()
+    fg_after = db_session.query(FamilyGroup).filter(FamilyGroup.id == fg.id).first()
+    assert fg_after.vip_active is False
+    assert fg_after.vip_plan == "free"
+
+
 
 
 

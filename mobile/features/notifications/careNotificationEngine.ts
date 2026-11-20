@@ -467,3 +467,21 @@ export async function syncCareNotifications(
     return { scheduledCount: 0, scheduledItems: [] };
   }
 }
+
+/**
+ * Abonelik sona erdiğinde veya kilitli Hard Paywall durumunda bekleyen Mışıl bakım bildirimlerini temizler.
+ */
+export async function cancelAllCareNotifications(): Promise<void> {
+  if (Platform.OS === 'web') return;
+  try {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    for (const notif of scheduled) {
+      const data = notif.content?.data as any;
+      if (data && data.isMishilCareNotification) {
+        await Notifications.cancelScheduledNotificationAsync(notif.identifier).catch(() => {});
+      }
+    }
+  } catch (err) {
+    console.warn('[CareNotification] cancelAllCareNotifications hatası:', err);
+  }
+}

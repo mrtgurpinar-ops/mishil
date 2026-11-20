@@ -1,6 +1,14 @@
-# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.51.1 / Build 70 Canlı Yayın & EAS Dağıtımı)
+# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.55.0 Railway Canlıda • Mağaza İlk Ay ₺49,99 Aktif • Build 71 EAS Derlemesinde)
 
-> **🚀 `v4.51.1` (`Build 70`) Canlı Yayın & Çift Platform EAS Derleme Paketi (2026-11-13):**
+> **🚀💎 `v4.55.0` (`Build 71`) Sıfır Freemium (Hard Paywall) & İlk Ay `₺49,99` Ücretli Başlangıç Paketi (2026-11-20 — Railway Canlıda + Mağaza Aktif + Build 71 EAS Kuyruğunda):**
+> - **Model Geçişi:** Freemium (`FREE_SOUND_PREVIEW_TOTAL_MS = 0`, `SOFT_VIP_DURATION_MS = 0`, `#onboarding-skip-wrap` kapatıldı) ve 7 Gün Ücretsiz Deneme (`Bugün ₺0`) `TR / EN / DE` 3 dilde ve 174 ülkede tamamen emekli edildi.
+> - **Yeni Tarife & Apple 3.1.2c 3-Durumlu Uygunluk:** Aylık VIP (`misil_monthly` `#6809228860` / `misilaylik`) **İlk Ay `₺49,99` ➔ 2. aydan itibaren `₺149,99/ay`** (`eligible` doğrulanmış mağaza teklifi / `unknown_new_user` koşullu not / `ineligible` doğrudan `₺149,99/ay`); Yıllık VIP (`misil_annual` `#6809228257` / `misil`) **`₺599,99/yıl`** (`%67` tasarruf, denemesiz doğrudan yıllık).
+> - **Apple 2.1b Unified Submission & Canlı Geçiş Sırası (MG Onayı Sonrası):**
+>   1. `python projects/mishil/scripts/sync_ppp_store_pricing.py --apply` (Google Play `freeytrial`/`3daystrial` kapatma + 174 ülke `intro-first-month` `P1M`; Apple ASC `FREE_TRIAL` silme + `PAY_UP_FRONT` `ONE_MONTH` `49.99 TRY` / PPP girişleri).
+>   2. `Build 71` EAS derlemesi (`iOS + Android`) ve App Store Connect'te **Uygulama İkili Dosyası (`Build 71`) + `misil_monthly` + `misil_annual` Birleşik İnceleme Gönderimi (`Unified Submission`)** + Google Play App Access PIN (`MISIL-REV-9842` — `v4.55.0 (Build 71)` 5x dokunuş).
+>   3. Mağaza teklifleriyle senkron Railway canlı dağıtımı (`git push`).
+
+> **🚀 `v4.51.1` (`Build 70`) Canlı Yayın & Çift Platform EAS Dağıtım Paketi (2026-11-13):**
 > - **Kilit Ekranı Deep-Link (`misilbaby://sleep`, `Build 70`):** `mobile/app/+native-intent.tsx`, `sleep.tsx`, `+not-found.tsx`, `_layout.tsx`, `MishilUnifiedWebView.tsx` (`ExpoLinking` + `Linking` + `focusSleepViewInWebView`) ve Android `MishilLiveSleepNotifier.kt` / `MishilMediaPlaybackService.kt` (`FLAG_ACTIVITY_SINGLE_TOP | FLAG_ACTIVITY_CLEAR_TOP`) ile `Unmatched Route` ekranı tamamen kapatıldı.
 > - **WebView Çok Günlü Tarih, `"Dün"` 48s Penceresi & Onboarding Rutin Kalıcılığı (`public/app.html` + `offlineHtml.generated.ts`):** `2880 dk` `"Dün"` uyanış penceresi + `"Şimdi"` kahraman etiketi, `skipOnboardingToApp` rutin kalıcılığı (Freemium kilidi korunarak), `#routine-modal-date` tarih seçici (`resolveSleepTimestamps` açık `"Bugün"` sabitleme + `effectiveStart/End` senkronu dahil), gün gruplu Analiz aktivite çizelgesi ve `activeDaysCount` haftalık uyku ortalaması tamamlandı (`Claude Code CLI task-362 -> task-410: CLAUDE_VERDICT: PASS`, `9 suite / 61 Jest testi`, `tsc --noEmit` sıfır hata, `7/7 READY_FOR_RELEASE`).
 

@@ -17,7 +17,7 @@ def start_free_trial(
     current_user: User = Depends(get_current_user),
 ):
     """
-    Activate 3-day free trial period for the authenticated user.
+    Retired endpoint (HTTP 410 Gone): Free trials are disabled in v4.55.0+.
     """
     return SubscriptionService.start_trial(db=db, user=current_user)
 

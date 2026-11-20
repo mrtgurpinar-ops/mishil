@@ -21,7 +21,7 @@ class TestAuthRegistrationAndLogin:
         data = res.json()
         assert "access_token" in data
         assert data["email"] == unique_email
-        assert data["subscription_status"] == SubscriptionStatus.TRIAL.value
+        assert data["subscription_status"] == SubscriptionStatus.EXPIRED.value
 
     def test_duplicate_registration_fails(self, client):
         unique_email = f"dup_{int(datetime.now().timestamp())}@mishil.app"

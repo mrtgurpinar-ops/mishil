@@ -235,9 +235,8 @@ describe('Mışıl Baby v4.53.0 — Live Nursing Timer, Inclusivity & Mom Break 
     expect(html).not.toContain('id="btn-modal-nursing-companion"');
     // WebSocket must listen for backend PARTNER_WHISPER event
     expect(scriptCode).toContain("msg.type === 'PARTNER_WHISPER'");
-    // Paywall & native quota bridge must honor independent mom free message quota
-    expect(scriptCode).toContain('isMomDadiPaywall ? hasUsedFreeMomDadiQuestion() : hasUsedFreeDadiQuestion()');
-    expect(scriptCode).toContain("freeMomDadiUsed: localStorage.getItem('mishil_free_mom_dadi_used') === '1'");
+    // v4.55.0 Hard Paywall: Coach & Mom Corner strictly require active VIP subscription (zero free question bypass)
+    expect(scriptCode).toContain("const isMomDadiPaywall = contextFeature === 'ai_nanny' && typeof activeDadiAudience !== 'undefined' && activeDadiAudience === 'mom';");
     // E2E & Adversarial QA Regression Guards: fetchWithTimeout, applyLanguage, 0s nursing guard, ackedWhisperIds & double-tap whisper lock
     expect(scriptCode).toContain('async function fetchWithTimeout(resource, options)');
     expect(scriptCode).toContain('window.applyLanguage = applyLanguage;');
@@ -245,11 +244,12 @@ describe('Mışıl Baby v4.53.0 — Live Nursing Timer, Inclusivity & Mom Break 
     expect(scriptCode).toContain('recordAckedWhisperId(w.id)');
     expect(scriptCode).toContain('if (isDispatchingWhisper || (nowW - lastWhisperSentAtMs < 1200)) return;');
 
-    // Verify independent baby vs mom free quotas and separate chat histories
+    // Verify Hard Paywall blocks unsubscribed Dadi access for both 'baby' and 'mom', and unlocks when VIP is active
     const quotaSnippet = [
       'let activeDadiAudience = "baby";',
-      'function isSubscriptionCurrentlyActive() { return false; }',
-      'function isPaidOrVerifiedVip() { return false; }',
+      'let vipActive = false;',
+      'function isSubscriptionCurrentlyActive() { return vipActive; }',
+      'function isPaidOrVerifiedVip() { return vipActive; }',
       'function syncDeviceQuotasToNative() {}',
       extractFuncBlock(scriptCode, 'function hasUsedFreeDadiQuestion('),
       extractFuncBlock(scriptCode, 'function hasUsedFreeMomDadiQuestion('),
@@ -265,18 +265,15 @@ describe('Mışıl Baby v4.53.0 — Live Nursing Timer, Inclusivity & Mom Break 
       },
     };
     vm.runInNewContext(
-      quotaSnippet + '\nthis._q = { canAsk: canAskDadiQuestion, markUsed: markFreeDadiQuestionUsedIfNeeded };',
+      quotaSnippet + '\nthis._q = { canAsk: canAskDadiQuestion, setVip: (v) => { vipActive = v; } };',
       ctx
     );
 
-    // Using baby free question does NOT block mom's 1st free message!
+    expect(ctx._q.canAsk('baby')).toBe(false);
+    expect(ctx._q.canAsk('mom')).toBe(false);
+    ctx._q.setVip(true);
     expect(ctx._q.canAsk('baby')).toBe(true);
     expect(ctx._q.canAsk('mom')).toBe(true);
-    ctx._q.markUsed('baby');
-    expect(ctx._q.canAsk('baby')).toBe(false);
-    expect(ctx._q.canAsk('mom')).toBe(true);
-    ctx._q.markUsed('mom');
-    expect(ctx._q.canAsk('mom')).toBe(false);
   });
 
   it('7. v4.54.1 Live Nursing Lock Screen / Live Activity bridge: Build 70 immediate compatibility, Build 71 V2 pause freeze & Dream-Feed sleep restoration', () => {

@@ -11,7 +11,7 @@ Bu doküman, Google Play Console'da **"Ana Mağaza Girişi" (Main Store Listing)
 | **Uygulama Adı (App Name):** | `Mışıl Baby: Bebek Uyku & Ses` *(30 Karakter)* |
 | **Varsayılan Dil:** | Türkçe (tr-TR) |
 | **Uygulama Türü:** | Uygulama (App) |
-| **Ücretsiz / Ücretli:** | Ücretsiz (İsteğe bağlı uygulama içi satın alma / Freemium) |
+| **Ücretsiz / Ücretli:** | Ücretsiz İndirme (Uygulama İçi VIP Abonelik Gerektirir) |
 
 ---
 
@@ -57,8 +57,12 @@ Gece emzirmeleri ve alt değişimlerinde bebeğinizin uykusunu açmayan, mavi ı
 • T.C. Sağlık Bakanlığı, DSÖ, STIKO ve uluslararası çocukluk çağı aşı takvimlerini bebeğinizin doğum tarihine göre takip edin ve hatırlatıcı bildirimler alın.
 • BabySteps™ 10 Zihinsel Gelişim Sıçraması takvimi ile hassas dönemleri önceden görün.
 
-📊 7. GÜNLÜK RUTİN & RİTİM ANALİZİ
-Beslenme (anne sütü, mama, ek gıda), alt değişimi ve uyku sürelerini tek dokunuşla kaydedin; haftalık uyku grafikleri ile bebeğinizin ritmini izleyin.
+📊 7. GÜNLÜK RUTİN & ORTAK AİLE TAKİBİ
+Beslenme (anne sütü, mama, ek gıda), alt değişimi ve uyku sürelerini tek dokunuşla kaydedin; haftalık uyku grafikleri ve 6 haneli Aile Kodu ile en fazla 3 aile üyesine kadar bebeğinizin ritmini ortak izleyin.
+
+💳 ABONELİK BİLGİLENDİRMESİ:
+• Mışıl Baby abonelik tabanlı bir uygulamadır; kişisel uyku planı, MışılSpot™ pencereleri, 18+ stüdyo sesi ve Mışıl Dadı™ özelliklerine erişim için aktif bir aylık veya yıllık Mışıl VIP aboneliği (veya aktif bir Aile Kodu daveti) gereklidir.
+• Abonelikler Google Play hesabınız üzerinden yönetilir ve dilediğiniz zaman Google Play Abonelikler bölümünden iptal edilebilir.
 
 🔒 GİZLİLİK VE TIBBİ FERAGATNAME:
 • Mışıl Baby yetişkin ebeveynlere yönelik bilgilendirici bir bakım ve uyku rehberidir; tıbbi tanı veya tedavi cihazı değildir. Sağlık konularında daima çocuk sağlığı ve hastalıkları uzmanınıza danışınız.
@@ -119,8 +123,12 @@ Studio-recorded sounds crafted to recreate the comforting resonance of the womb:
 🌙 4. SMART WARM NIGHTLIGHT & SLEEP TIMER
 Eye-friendly, dimmable warm screen light for night feedings and diaper changes, paired with continuous background playback and gentle volume fade-out.
 
-📊 5. MIŞILSPOT™ WAKE WINDOWS, ROUTINE & GLOBAL VACCINE TRACKER
-Age-tailored wake windows, quick sleep/feeding/diaper logging, BabySteps™ 10 developmental leap tracking, and immunization schedules across major national guidelines (CDC, NHS, STIKO, WHO, and more).
+📊 5. MIŞILSPOT™ WAKE WINDOWS, ROUTINE & SHARED FAMILY TRACKER
+Age-tailored wake windows, quick sleep/feeding/diaper logging, BabySteps™ 10 developmental leap tracking, shared live sync across up to 3 caregivers via Family Code, and immunization schedules across major national guidelines (CDC, NHS, STIKO, WHO, and more).
+
+💳 SUBSCRIPTION INFORMATION:
+• Mışıl Baby is a subscription-based app; an active monthly or annual Mışıl VIP subscription (or an active Family Code invite) is required to access your personal sleep plan, MışılSpot™ windows, 18+ studio sounds, and Mışıl Nanny™.
+• Subscriptions are managed through your Google Play account and can be canceled anytime in Google Play Subscriptions.
 
 🔒 PRIVACY & MEDICAL DISCLAIMER:
 • Mışıl Baby is an informational parenting companion for adult caregivers and is not a medical diagnostic or treatment device. Always consult a qualified pediatrician for medical guidance.
@@ -173,8 +181,12 @@ Augenschonendes, warmes Bildschirmlicht für nächtliches Stillen, Fläschchenge
 ⏱️ 4. EINSCHLAFTIMER & HINTERGRUNDWIEDERGABE
 Unterbrechungsfreie Wiedergabe bei gesperrtem Bildschirm inklusive sanftem Ausblenden (Fade-Out).
 
-📊 5. MIŞILSPOT™ WACHFENSTER, TAGESPROTOKOLL & IMPFPASS (STIKO / BAG)
-Altersgerechte Wachfenster (inkl. Frühchen-Korrektur), Dokumentation von Schlaf, Mahlzeiten und Windeln, Begleitung der 10 BabySteps™-Entwicklungssprünge sowie Impfkalender-Erinnerungen für Deutschland, Österreich und die Schweiz.
+📊 5. MIŞILSPOT™ WACHFENSTER, FAMILIEN-SYNC & IMPFPASS (STIKO / BAG)
+Altersgerechte Wachfenster (inkl. Frühchen-Korrektur), Dokumentation von Schlaf, Mahlzeiten und Windeln mit bis zu 3 Personen per Familiencode, Begleitung der 10 BabySteps™-Entwicklungssprünge sowie Impfkalender-Erinnerungen für Deutschland, Österreich und die Schweiz.
+
+💳 ABONNEMENT-HINWEIS:
+• Mışıl Baby ist eine abonnementbasierte App; für den Zugriff auf Ihren persönlichen Schlafplan, MışılSpot™-Wachfenster, 18+ Studio-Klänge und Mışıl Nanny™ ist ein aktives Monats- oder Jahres-VIP-Abonnement (oder ein aktiver Familiencode) erforderlich.
+• Abonnements werden über Ihr Google-Play-Konto abgerechnet und können jederzeit in den Google-Play-Abonnementeinstellungen verwaltet oder gekündigt werden.
 
 🔒 DATENSCHUTZ & MEDIZINISCHER HINWEIS:
 • Mışıl Baby ist eine Informations- und Orientierungshilfe für erwachsene Eltern und kein Medizinprodukt. Wenden Sie sich bei gesundheitlichen Fragen stets an Ihre Kinderärztin oder Ihren Kinderarzt.

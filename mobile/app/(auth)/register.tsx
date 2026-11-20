@@ -52,7 +52,7 @@ export default function RegisterScreen() {
           id: 1,
           email: email || 'demo@mishil.app',
           full_name: fullName || 'Ebeveyn',
-          subscription_status: 'trial',
+          subscription_status: 'expired',
         },
         'mock_jwt_token_for_testing'
       );
@@ -73,7 +73,7 @@ export default function RegisterScreen() {
             Hesap Oluştur
           </Text>
           <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-            7 günlük ücretsiz denemenizle uyku takibine hemen başlayın.
+            Bebeğinize özel uyku haritası ve Mışıl VIP için profilinizi oluşturun.
           </Text>
         </View>
 

@@ -344,16 +344,18 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(step8Html.includes('id="btn-report-unlock-plan"')).toBe(true);
     expect(step8Html.includes('id="onboarding-plan-monthly"')).toBe(false);
 
-    // Step 9 contains focused paywall, immediate skip (opacity: 1), legal links, and Reviewer PIN trigger
+    // Step 9 contains Hard Paywall (zero skip button), dual 1st-month/month-2 pricing, Family Code, Apple 5.1.1v delete, legal links, and Reviewer PIN trigger
     expect(step9Html.includes('id="onboarding-plan-monthly"')).toBe(true);
     expect(step9Html.includes('id="onboarding-plan-yearly"')).toBe(true);
     expect(step9Html.includes('id="btn-onboarding-pro"')).toBe(true);
-    expect(step9Html.includes('id="onboarding-skip-wrap" style="text-align: center; margin-top: 8px; opacity: 1;"')).toBe(true);
+    expect(step9Html.includes('id="onboarding-skip-wrap"')).toBe(false);
+    expect(step9Html.includes('openJoinFamilyModal()')).toBe(true);
+    expect(step9Html.includes('id="onb-paywall-delete-btn"')).toBe(true);
     expect(step9Html.includes('id="paywall-version-trigger"')).toBe(true);
 
     // Apple Guideline 3.1.2c: total annual billed amount (.price-yearly-text) must precede monthly equivalent (.price-yearly-monthly-eq-text)
     const yearlyCardStart = step9Html.indexOf('id="onboarding-plan-yearly"');
-    const yearlySlice = step9Html.slice(yearlyCardStart, yearlyCardStart + 1400);
+    const yearlySlice = step9Html.slice(yearlyCardStart, yearlyCardStart + 2200);
     expect(yearlySlice.indexOf('price-yearly-text')).toBeGreaterThan(-1);
     expect(yearlySlice.indexOf('price-yearly-monthly-eq-text')).toBeGreaterThan(yearlySlice.indexOf('price-yearly-text'));
   });
@@ -407,17 +409,12 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(loggedDe.chips.vaccineChip).toBe('💉 Impfpass aktuell ✓');
   });
 
-  it('enforces honest 1-shot Freemium value gate without 24h cardless Soft VIP trial cannibalization', () => {
+  it('enforces v4.55.0 Hard Paywall & paid 1st-month intro architecture without free trial or freemium bypasses', () => {
     const htmlPath = path.resolve(__dirname, '../../public/app.html');
     const html = fs.readFileSync(htmlPath, 'utf8');
     expect(html.includes('var SOFT_VIP_DURATION_MS = 0;')).toBe(true);
-    expect(html.includes('return !isSubscriptionCurrentlyActive() && hasUsedFirstFreeSpotAha();')).toBe(true);
-    expect(html.includes("localStorage.setItem('mishil_first_spot_aha_used', '1');")).toBe(true);
-    expect(html.includes("localStorage.setItem('mishil_free_sound_used', '1');")).toBe(true);
-    expect(html.includes("localStorage.setItem('mishil_free_cry_used', '1');")).toBe(true);
-    expect(html.includes('mishil_onb_live_sleep_promoted')).toBe(true);
-    expect(html.includes('skipQuotaConsume: true')).toBe(true);
-    expect(html.includes('freeSoundPreviewTrackId')).toBe(true);
+    expect(html.includes('var FREE_SOUND_PREVIEW_TOTAL_MS = 0;')).toBe(true);
+    expect(html.includes('return !isSubscriptionCurrentlyActive();')).toBe(true);
     expect(html.includes('chk-medical-disclaimer')).toBe(false);
     expect(html.includes('toggleDisclaimerConsent')).toBe(false);
 
@@ -568,7 +565,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(afterConcurrent.freeSoundElapsedMs).toBe(58900);
   });
 
-  it('v4.50.2: enforces cumulative 60s sound timer, Spotlight zero-drift, full-width drawer, and 3-layer repeat-onboarding shield', () => {
+  it('v4.50.2+: enforces Hard Paywall zero free sound preview, Spotlight zero-drift, full-width drawer, and repeat-onboarding shield', () => {
     const htmlPath = path.resolve(__dirname, '../../public/app.html');
     const html = fs.readFileSync(htmlPath, 'utf8');
 
@@ -577,12 +574,10 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(html.includes('function updateSpotlightGeometry(')).toBe(true);
     expect(html.includes('target.scrollIntoView({ behavior: \'smooth\'')).toBe(false);
 
-    // Cumulative 60s sound preview + unified native AUDIO_TIMER cap (sub-second exact without 1000ms inflation)
-    expect(html.includes('var FREE_SOUND_PREVIEW_TOTAL_MS = 60000;')).toBe(true);
-    expect(html.includes('mishil_free_sound_elapsed_ms')).toBe(true);
-    expect(html.includes('Math.min(Math.max(1, remainingMs), freeCapMs)')).toBe(true);
+    // v4.55.0: Free sound preview retired (0ms) — sounds require active VIP subscription
+    expect(html.includes('var FREE_SOUND_PREVIEW_TOTAL_MS = 0;')).toBe(true);
 
-    // 3-layer Freemium anti-repeat + Keychain bridge hooks
+    // Repeat-onboarding & Keychain personal-data clear bridge hooks
     expect(html.includes("openVipRenewalModal('restart_quiz')")).toBe(true);
     expect(html.includes('if (!isSubscriptionCurrentlyActive() && isRepeatDeviceOnboarding())')).toBe(true);
     expect(html.includes('if (prev === 8 && !isSubscriptionCurrentlyActive() && isRepeatDeviceOnboarding())')).toBe(true);
@@ -655,11 +650,11 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     const htmlPath = path.resolve(__dirname, '../../public/app.html');
     const html = fs.readFileSync(htmlPath, 'utf8');
 
-    // 1. skipOnboardingToApp no longer deletes onb_slp_init / onb_feed_init / onb_diaper_init or mishil_onboarding_last_wake_ts
+    // 1. skipOnboardingToApp is strictly blocked under Hard Paywall and never wipes onboarding logs
     const skipIdx = html.indexOf('function skipOnboardingToApp(');
     expect(skipIdx).toBeGreaterThan(0);
-    const skipSlice = html.slice(skipIdx, skipIdx + 1600);
-    expect(skipSlice.includes("localStorage.setItem('mishil_first_spot_aha_used', '1')")).toBe(true);
+    const skipSlice = html.slice(skipIdx, skipIdx + 350);
+    expect(skipSlice.includes('openOnboardingPaywallStep()')).toBe(true);
     expect(skipSlice.includes("r.id !== 'onb_slp_init'")).toBe(false);
     expect(skipSlice.includes("removeItem('mishil_onboarding_last_wake_ts')")).toBe(false);
 
@@ -994,5 +989,246 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     });
     expect(nextCalled).toBe(1);
     expect(dockVm.spotlightStepIndex).toBe(4);
+  });
+
+  it('v4.55.0: enforces 3-state First-Month Intro Eligibility (Apple 3.1.2c), Hard Paywall lock & live care session protection', () => {
+    const ts = require('typescript');
+    const htmlPath = path.resolve(__dirname, '../../public/app.html');
+    const html = fs.readFileSync(htmlPath, 'utf8');
+    const scriptCode = html.slice(html.indexOf('<script>') + 8, html.lastIndexOf('</script>'));
+
+    function extractBlock(src, marker) {
+      const idx = src.indexOf(marker);
+      if (idx === -1) throw new Error('Marker not found: ' + marker);
+      let depth = 0;
+      let started = false;
+      for (let i = idx; i < src.length; i++) {
+        if (src[i] === '{') { depth++; started = true; }
+        else if (src[i] === '}') {
+          depth--;
+          if (started && depth === 0) return src.slice(idx, i + 1);
+        }
+      }
+      throw new Error('Unclosed block: ' + marker);
+    }
+
+    // Full inline <script> syntax verification (guards against any unbalanced brace anywhere in app.html)
+    expect(() => new vm.Script(scriptCode, { filename: 'app.html' })).not.toThrow();
+    expect(scriptCode).toContain('function enforceHardPaywallIfNeeded()');
+    expect(scriptCode).toContain("const REVIEWER_PINS = ['MISIL-REV-9842'];");
+    // Spotlight Tour Hard Paywall guard (Claude task-859 #1: tour must never launch over active paywall or for unsubscribed user)
+    const startTourBlock = extractBlock(scriptCode, 'function startSpotlightTour(');
+    expect(startTourBlock).toContain('!isSubscriptionCurrentlyActive()');
+    expect(startTourBlock).toContain("getElementById('vip-renewal-modal')");
+    const switchTabBlock = extractBlock(scriptCode, 'function switchTab(');
+    expect(switchTabBlock).not.toContain('!fromTour && tabName === \'analytics\'');
+    expect(switchTabBlock).not.toContain('!fromTour && !canAccessCoachTab()');
+
+    const currMapStart = scriptCode.indexOf('const CURRENCY_CODE_MAP = {');
+    const currMapEnd = scriptCode.indexOf('};', currMapStart) + 2;
+    const introMapStart = scriptCode.indexOf('const INTRO_FIRST_MONTH_PPP_BY_CURRENCY = {');
+    const introMapEnd = scriptCode.indexOf('};', introMapStart) + 2;
+    const pricingSnippet = [
+      'var activeLang = "tr";',
+      'function isEn() { return activeLang === "en"; }',
+      'function isDe() { return activeLang === "de"; }',
+      'function trEnDe(tr, en, de) { return activeLang === "de" ? de : (activeLang === "en" ? en : tr); }',
+      scriptCode.slice(currMapStart, currMapEnd),
+      scriptCode.slice(introMapStart, introMapEnd),
+      extractBlock(scriptCode, 'function parseNumericPrice('),
+      extractBlock(scriptCode, 'function resolveCurrencySymbolFromStore('),
+      extractBlock(scriptCode, 'function hasLocalPriorSubscriptionOrTrialTrace('),
+      extractBlock(scriptCode, 'function hasPositiveStoreIntroOffer('),
+      extractBlock(scriptCode, 'function resolveMonthlyIntroEligibility('),
+      extractBlock(scriptCode, 'function formatLocalizedPriceDisplay('),
+      extractBlock(scriptCode, 'function getDynamicPricingState('),
+      extractBlock(scriptCode, 'function buildPaywallCtaLabel('),
+      extractBlock(scriptCode, 'function buildPaywallLegalTimelineLabel('),
+      extractBlock(scriptCode, 'function hasActiveInProgressCareSession('),
+    ].join('\n');
+
+    const store = {};
+    const vmCtx = {
+      window: { __MISHIL_STORE_PRICES__: {}, __MISHIL_SUB_META__: null },
+      localStorage: {
+        getItem: (k) => (k in store ? store[k] : null),
+        setItem: (k, v) => { store[k] = String(v); },
+        removeItem: (k) => { delete store[k]; },
+      },
+      isSleeping: false,
+      isNursing: false,
+      liveNursingState: null,
+      Intl,
+      Number,
+      String,
+      Math,
+      JSON,
+    };
+    vm.runInNewContext(
+      pricingSnippet + '\nthis._p = { dp: getDynamicPricingState, cta: buildPaywallCtaLabel, legal: buildPaywallLegalTimelineLabel, care: hasActiveInProgressCareSession, setLang: (l) => { activeLang = l; } };',
+      vmCtx
+    );
+
+    // State 1: Store-verified eligible new subscriber -> ₺49,99 1st month + ₺149,99/ay renewal
+    const dpEligible = vmCtx._p.dp({
+      monthly: '₺149,99',
+      monthlyPrice: 149.99,
+      yearly: '₺599,99',
+      yearlyPrice: 599.99,
+      currencyCode: 'TRY',
+      introMonthly: '₺49,99',
+      introMonthlyPrice: 49.99,
+      introEligibility: 'eligible',
+    });
+    expect(dpEligible.showIntroOffer).toBe(true);
+    expect(dpEligible.isStoreVerifiedIntro).toBe(true);
+    expect(dpEligible.introMonthlyStr).toBe('₺49,99');
+    expect(dpEligible.monthlyStr).toBe('₺149,99');
+    expect(vmCtx._p.cta('monthly', dpEligible)).toBe('✨ İlk Ay ₺49,99 ile VIP Başlat');
+    expect(vmCtx._p.legal('monthly', dpEligible)).toContain('2. aydan itibaren Aylık ₺149,99/ay');
+
+    // State 2a: Store reports 'ineligible' (returning/former trial user) -> ZERO ₺49,99 claim, shows ₺149,99/ay directly
+    const dpIneligible = vmCtx._p.dp({
+      monthly: '₺149,99',
+      monthlyPrice: 149.99,
+      yearly: '₺599,99',
+      yearlyPrice: 599.99,
+      currencyCode: 'TRY',
+      introMonthly: '₺49,99',
+      introMonthlyPrice: 49.99,
+      introEligibility: 'ineligible',
+    });
+    expect(dpIneligible.showIntroOffer).toBe(false);
+    expect(vmCtx._p.cta('monthly', dpIneligible)).toBe('🌙 Aylık VIP Başlat (₺149,99/ay)');
+    expect(vmCtx._p.cta('monthly', dpIneligible)).not.toContain('₺49,99');
+
+    // State 2b: Legacy client ('unknown') WITH local prior subscription trace -> treated as 'ineligible'
+    store.mishil_has_ever_subscribed = '1';
+    const dpLocalPrior = vmCtx._p.dp({ monthly: '₺149,99', monthlyPrice: 149.99, yearly: '₺599,99', yearlyPrice: 599.99, currencyCode: 'TRY' });
+    expect(dpLocalPrior.introEligibility).toBe('ineligible');
+    expect(dpLocalPrior.showIntroOffer).toBe(false);
+    delete store.mishil_has_ever_subscribed;
+
+    // State 3a: Web preview client with zero prior trace -> 'unknown_new_user' (primary headline stays ₺149,99/ay; conditional 'Uygun' copy shown)
+    const dpUnknownNew = vmCtx._p.dp({ monthly: '₺149,99', monthlyPrice: 149.99, yearly: '₺599,99', yearlyPrice: 599.99, currencyCode: 'TRY' });
+    expect(dpUnknownNew.introEligibility).toBe('unknown_new_user');
+    expect(dpUnknownNew.showIntroOffer).toBe(false);
+    expect(dpUnknownNew.isStoreVerifiedIntro).toBe(false);
+    expect(dpUnknownNew.isConditionalUnknownIntro).toBe(true);
+    expect(vmCtx._p.cta('monthly', dpUnknownNew)).toContain('Uygun Hesaplarda İlk Ay ₺49,99');
+    expect(vmCtx._p.legal('monthly', dpUnknownNew)).toContain('Uygun yeni abonelerde ilk ay');
+
+    // State 3b: Native ReactNativeWebView before StoreKit/Play returns positive introMonthlyPrice -> 'ineligible' (NEVER claims unverified intro price)
+    Object.assign(vmCtx.window, { ReactNativeWebView: { postMessage: () => {} } });
+    const dpNativeUnverified = vmCtx._p.dp({ monthly: '₺149,99', monthlyPrice: 149.99, yearly: '₺599,99', yearlyPrice: 599.99, currencyCode: 'TRY' });
+    expect(dpNativeUnverified.introEligibility).toBe('ineligible');
+    expect(dpNativeUnverified.showIntroOffer).toBe(false);
+    expect(dpNativeUnverified.isConditionalUnknownIntro).toBe(false);
+    expect(vmCtx._p.cta('monthly', dpNativeUnverified)).toBe('🌙 Aylık VIP Başlat (₺149,99/ay)');
+    Reflect.deleteProperty(vmCtx.window, 'ReactNativeWebView');
+
+    // Care session protection: mishil_live_nursing_state & mishil_live_sleep_start protect active parent mid-session
+    expect(vmCtx._p.care()).toBe(false);
+    store.mishil_live_nursing_state = JSON.stringify({ activeSide: 'left', leftAccumMs: 15000, rightAccumMs: 0 });
+    expect(vmCtx._p.care()).toBe(true);
+    delete store.mishil_live_nursing_state;
+    expect(vmCtx._p.care()).toBe(false);
+
+    // RevenueCat native intro-offer & eligibility verification (iOS $0 trial rejection + Android multi-phase paid intro)
+    const rcPath = path.resolve(__dirname, '../features/subscription/revenuecat.ts');
+    const rcSource = fs.readFileSync(rcPath, 'utf8');
+    const rcTranspiled = ts.transpileModule(rcSource, {
+      compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, esModuleInterop: true },
+    });
+    let mockPlatformOS = 'ios';
+    let mockEligStatus = 2; // INTRO_ELIGIBILITY_STATUS_ELIGIBLE
+    let mockOfferingsPayload = null;
+    const rcMod = { exports: {} };
+    const rcRequire = (id) => {
+      if (id === 'react-native') return { Platform: { get OS() { return mockPlatformOS; } } };
+      if (id === 'expo-constants') return { __esModule: true, default: { expoConfig: { extra: {} } } };
+      if (id.includes('constants/Config') || id === '@/constants/Config') return { Config: { REVENUECAT_API_KEY_IOS: 'appl_test_key', REVENUECAT_API_KEY_ANDROID: 'goog_test_key' } };
+      if (id === 'react-native-purchases') {
+        const purchasesMock = {
+          LOG_LEVEL: { WARN: 'WARN' },
+          INTRO_ELIGIBILITY_STATUS: {
+            INTRO_ELIGIBILITY_STATUS_UNKNOWN: 0,
+            INTRO_ELIGIBILITY_STATUS_INELIGIBLE: 1,
+            INTRO_ELIGIBILITY_STATUS_ELIGIBLE: 2,
+          },
+          setLogLevel: () => {},
+          configure: () => {},
+          getOfferings: async () => mockOfferingsPayload,
+          checkTrialOrIntroductoryPriceEligibility: async (pids) => ({ [pids[0]]: { status: mockEligStatus } }),
+        };
+        return { __esModule: true, default: purchasesMock, ...purchasesMock };
+      }
+      return require(id);
+    };
+    new Function('exports', 'require', 'module', '__filename', '__dirname', rcTranspiled.outputText)(
+      rcMod.exports, rcRequire, rcMod, rcPath, path.dirname(rcPath)
+    );
+    return (async () => {
+      // 1) iOS legacy $0 FREE_TRIAL must NEVER be treated as a paid intro offer
+      mockPlatformOS = 'ios';
+      mockEligStatus = 2;
+      mockOfferingsPayload = {
+        current: {
+          availablePackages: [{
+            identifier: '$rc_monthly',
+            packageType: 'MONTHLY',
+            product: {
+              identifier: 'misil_monthly',
+              title: 'Mışıl Monthly',
+              description: 'VIP',
+              priceString: '₺149,99',
+              price: 149.99,
+              currencyCode: 'TRY',
+              introPrice: { price: 0, priceString: '₺0,00' },
+            },
+          }],
+        },
+      };
+      const iosZeroTrialRes = await rcMod.exports.getOfferings();
+      expect(iosZeroTrialRes[0].introEligibility).toBe('ineligible');
+      expect(iosZeroTrialRes[0].introPrice).toBeUndefined();
+
+      // 2) iOS paid ₺49,99 intro + ELIGIBLE -> 'eligible' & introPrice = 49.99
+      mockOfferingsPayload.current.availablePackages[0].product.introPrice = { price: 49.99, priceString: '₺49,99' };
+      const iosPaidIntroRes = await rcMod.exports.getOfferings();
+      expect(iosPaidIntroRes[0].introEligibility).toBe('eligible');
+      expect(iosPaidIntroRes[0].introPrice).toBe(49.99);
+      expect(iosPaidIntroRes[0].introPriceString).toBe('₺49,99');
+
+      // 3) Android multi-phase subscriptionOption (Phase 1: 49.99 TRY -> Phase 2: 149.99 TRY)
+      mockPlatformOS = 'android';
+      mockOfferingsPayload = {
+        current: {
+          availablePackages: [{
+            identifier: '$rc_monthly',
+            packageType: 'MONTHLY',
+            product: {
+              identifier: 'misilaylik:misilaylik',
+              title: 'Mışıl Aylık',
+              description: 'VIP',
+              priceString: '₺149,99',
+              price: 149.99,
+              currencyCode: 'TRY',
+              subscriptionOptions: [{
+                id: 'misilaylik:intro-first-month',
+                pricingPhases: [
+                  { price: { amountMicros: 49990000, formatted: '₺49,99', currencyCode: 'TRY' } },
+                  { price: { amountMicros: 149990000, formatted: '₺149,99', currencyCode: 'TRY' } },
+                ],
+              }],
+            },
+          }],
+        },
+      };
+      const androidPaidIntroRes = await rcMod.exports.getOfferings();
+      expect(androidPaidIntroRes[0].introEligibility).toBe('eligible');
+      expect(androidPaidIntroRes[0].introPrice).toBe(49.99);
+      expect(androidPaidIntroRes[0].introPriceString).toBe('₺49,99');
+    })();
   });
 });

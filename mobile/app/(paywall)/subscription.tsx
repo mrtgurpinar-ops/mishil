@@ -6,8 +6,9 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  BackHandler,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { Stack, useRouter } from 'expo-router';
 import { useAppStore } from '../../store/useAppStore';
 import { getTheme } from '../../lib/theme';
 import { Card } from '../../components/ui/Card';
@@ -18,13 +19,25 @@ import { useSubscriptionStatus } from '../../features/subscription/hooks/useSubs
 export default function SubscriptionScreen() {
   const router = useRouter();
   const isDarkMode = useAppStore((state) => state.isDarkMode);
+  const user = useAppStore((state) => state.user);
   const theme = getTheme(isDarkMode);
-  const { startTrial } = useSubscriptionStatus();
+  const { startTrial, isPremiumActive } = useSubscriptionStatus();
+  const canDismissPaywall = Boolean(isPremiumActive || user?.subscription_status === 'active');
 
   const [offerings, setOfferings] = useState<PackageOffer[]>(FALLBACK_OFFERINGS);
   const [selectedPlan, setSelectedPlan] = useState<string>('misil');
   const [loading, setLoading] = useState(false);
   const [loadingOfferings, setLoadingOfferings] = useState(true);
+
+  useEffect(() => {
+    const backSub = BackHandler.addEventListener('hardwareBackPress', () => {
+      if (!canDismissPaywall) {
+        return true;
+      }
+      return false;
+    });
+    return () => backSub.remove();
+  }, [canDismissPaywall]);
 
   useEffect(() => {
     let isMounted = true;
@@ -56,7 +69,6 @@ export default function SubscriptionScreen() {
       }
     } catch (e) {
       console.warn('Purchase error:', e);
-      router.back();
     } finally {
       setLoading(false);
     }
@@ -76,23 +88,32 @@ export default function SubscriptionScreen() {
   };
 
   return (
-    <ScrollView
-      style={[styles.container, { backgroundColor: theme.colors.background }]}
-      contentContainerStyle={styles.scroll}
-    >
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
-          <Text style={[styles.closeIcon, { color: theme.colors.textMuted }]}>
-            ✕ Kapat
-          </Text>
-        </TouchableOpacity>
+    <>
+      <Stack.Screen
+        options={{
+          gestureEnabled: canDismissPaywall,
+          headerBackVisible: canDismissPaywall,
+        }}
+      />
+      <ScrollView
+        style={[styles.container, { backgroundColor: theme.colors.background }]}
+        contentContainerStyle={styles.scroll}
+      >
+        <View style={styles.header}>
+          {canDismissPaywall ? (
+            <TouchableOpacity onPress={() => router.back()} style={styles.closeBtn}>
+              <Text style={[styles.closeIcon, { color: theme.colors.textMuted }]}>
+                ✕ Kapat
+              </Text>
+            </TouchableOpacity>
+          ) : null}
 
-        <Text style={styles.badge}>Mishil Premium</Text>
+          <Text style={styles.badge}>Mışıl Baby VIP</Text>
         <Text style={[styles.title, { color: theme.colors.heading }]}>
           Bebeğinizin Tüm Uyku & Ağlama İpuçları Cebinizde
         </Text>
         <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-          7 gün boyunca hiçbir ücret ödemeden deneyin. Memnun kalmazsanız dilediğiniz an tek tıkla iptal edin.
+          Aylık VIP planınızı uygun yeni aboneler için ilk ay indirimli avantajla veya avantajlı Yıllık VIP ile başlatın. İstediğiniz an mağaza ayarlarından iptal edebilirsiniz.
         </Text>
       </View>
 
@@ -140,7 +161,7 @@ export default function SubscriptionScreen() {
               >
                 {offer.packageType === 'ANNUAL' ? (
                   <View style={styles.bestValueBadge}>
-                    <Text style={styles.bestValueText}>En Çok Tercih Edilen • 7 Gün Ücretsiz</Text>
+                    <Text style={styles.bestValueText}>En Avantajlı • %67 Tasarruf</Text>
                   </View>
                 ) : null}
 
@@ -153,14 +174,23 @@ export default function SubscriptionScreen() {
                       {offer.description}
                     </Text>
                   </View>
-                  <Text
-                    style={[
-                      styles.planPrice,
-                      { color: isSelected ? theme.colors.accent : theme.colors.heading },
-                    ]}
-                  >
-                    {offer.priceString}
-                  </Text>
+                  <View style={{ alignItems: 'flex-end' }}>
+                    <Text
+                      style={[
+                        styles.planPrice,
+                        { color: isSelected ? theme.colors.accent : theme.colors.heading },
+                      ]}
+                    >
+                      {offer.introEligibility === 'eligible' && offer.introPriceString
+                        ? `${offer.introPriceString} / ilk ay`
+                        : offer.priceString}
+                    </Text>
+                    {offer.introEligibility === 'eligible' && offer.introPriceString ? (
+                      <Text style={{ fontSize: 11, color: theme.colors.textMuted, marginTop: 2 }}>
+                        2. aydan: {offer.priceString}
+                      </Text>
+                    ) : null}
+                  </View>
                 </View>
               </Card>
             </TouchableOpacity>
@@ -170,19 +200,29 @@ export default function SubscriptionScreen() {
 
       {/* CTA Button */}
       <Button
-        title="7 Gün Ücretsiz Başla"
+        title="Mışıl VIP Başlat"
         onPress={handlePurchase}
         loading={loading}
         size="lg"
         style={styles.ctaBtn}
       />
 
+      <TouchableOpacity
+        onPress={handleRestore}
+        disabled={loading}
+        style={{ alignSelf: 'center', paddingVertical: 10 }}
+      >
+        <Text style={{ fontSize: 13, fontWeight: '600', color: theme.colors.accent, textDecorationLine: 'underline' }}>
+          Satın Alımları Geri Yükle
+        </Text>
+      </TouchableOpacity>
+
       {/* Honest Transparency Terms */}
       <Text style={[styles.termsText, { color: theme.colors.textMuted }]}>
-        7 günlük ücretsiz deneme süreniz sona ermeden 24 saat önce iptal ederseniz hiçbir ücret yansıtılmaz.
-        Abonelik App Store / Google Play hesabınız üzerinden yönetilir ve otomatik yenilenir.
+        Abonelik App Store / Google Play hesabınız üzerinden yönetilir ve mevcut dönemin bitiminden en az 24 saat önce iptal edilmediği sürece otomatik yenilenir.
       </Text>
-    </ScrollView>
+      </ScrollView>
+    </>
   );
 }
 

@@ -107,6 +107,9 @@ def run_safe_schema_migrations(db_engine) -> None:
             ("rc_app_user_id", "VARCHAR(128)"),
             ("device_uid", "VARCHAR(128)"),
         ],
+        "subscriptions": [
+            ("current_period_end", "TIMESTAMP"),
+        ],
     }
 
     try:
