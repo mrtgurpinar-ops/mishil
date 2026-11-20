@@ -15,6 +15,7 @@ from app.core.logging import get_logger
 from app.api.v1.endpoints.analytics import (
     ADMIN_PINS,
     authorize_admin_request,
+    invalidate_analytics_summary_cache,
     verify_admin_pin,
     sanitize_csv_cell,
     _ADMIN_SESSION_COOKIE,
@@ -30,7 +31,7 @@ router = APIRouter(prefix="/feedback", tags=["Anne Geri Bildirimi & 5 Yıldız �
 
 @router.post("", response_model=BaseResponse, status_code=status.HTTP_201_CREATED)
 @router.post("/", response_model=BaseResponse, status_code=status.HTTP_201_CREATED)
-async def submit_feedback(
+def submit_feedback(
     payload: FeedbackCreate,
     request: Request,
     db: Session = Depends(get_db),
@@ -55,6 +56,7 @@ async def submit_feedback(
         )
         db.add(fb)
         db.commit()
+        invalidate_analytics_summary_cache()
         db.refresh(fb)
         logger.info(f"New mother feedback received [ID: {fb.id}, sentiment: {fb.sentiment}, age: {fb.baby_age_months}m]")
         return BaseResponse(success=True, message="Geri bildiriminiz sevgiyle alındı. Miniğinize mışıl mışıl uykular dileriz.")
@@ -68,7 +70,7 @@ async def submit_feedback(
 
 
 @router.get("/list", response_model=List[FeedbackResponse])
-async def list_feedbacks(
+def list_feedbacks(
     request: Request,
     pin: Optional[str] = Query(None),
     x_admin_pin: Optional[str] = Header(None),
@@ -84,7 +86,7 @@ async def list_feedbacks(
 
 
 @router.get("/export.csv")
-async def export_feedbacks_csv(
+def export_feedbacks_csv(
     request: Request,
     pin: Optional[str] = Query(None),
     x_admin_pin: Optional[str] = Header(None),
@@ -143,7 +145,7 @@ async def feedback_login_post(
 
 
 @router.get("/dashboard", response_class=HTMLResponse)
-async def feedback_dashboard_page(
+def feedback_dashboard_page(
     request: Request,
     pin: Optional[str] = Query(None),
     db: Session = Depends(get_db),

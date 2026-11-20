@@ -8,14 +8,26 @@ from app.core.config import settings
 db_url = settings.DATABASE_URL
 
 # SQLite requires check_same_thread=False for FastAPI sync + async mixing
-connect_args = {"check_same_thread": False} if db_url.startswith("sqlite") else {}
+is_sqlite = db_url.startswith("sqlite")
+connect_args = {"check_same_thread": False} if is_sqlite else {}
+pool_kwargs = (
+    {}
+    if is_sqlite
+    else {
+        "pool_size": 10,
+        "max_overflow": 20,
+        "pool_timeout": 15,
+        "pool_recycle": 1800,
+    }
+)
 
 try:
     engine = create_engine(
         db_url,
         echo=settings.DEBUG and settings.ENVIRONMENT == "development",
         connect_args=connect_args,
-        pool_pre_ping=True
+        pool_pre_ping=True,
+        **pool_kwargs,
     )
     # Test connection on non-sqlite to catch driver or connection issues early
     if not db_url.startswith("sqlite"):

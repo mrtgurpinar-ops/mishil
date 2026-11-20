@@ -1,6 +1,10 @@
 # Antigravity Devir Teslim — Mışıl Baby
 
-> **`[handoff] [cross-lane]` Notu (2026-11-20 · `v4.54.1` · YERELDE COMMIT'Lİ / CANLI PUSH ONAYI BEKLİYOR):**
+> **`[cross-lane]` Notu (2026-11-20 · `v4.55.0-perf` & `Build 71` Mağaza Gönderimi · Railway Canlıda):**
+> - **Mağaza Durumu (`v4.55.0` / `Build 71`):** Google Play Production kanalına yüklendi ve yayınlandı (`status: completed`, `versionCodes: ['71']`, EAS Submission `b5a84135-1b2b-4810-9818-4104840501ba`, Edit `05920689398117499351` `HTTP 200`); Apple App Store Connect üzerinde `1a88331d-8665-4785-8ab4-8097f8a497e7` sürümüne bağlanıp incelemeye gönderildi (**`WAITING_FOR_REVIEW`**, Review Submission `a5d44511-b6f9-4b36-85fb-dd0a320df144`). İnceleme notlarıyla tam uyum için `APP_VERSION = '4.55.0'` sabit tutuldu.
+> - **Kurucu Kokpiti Hızlandırma (`[cross-lane]` — `app/main.py`, `app/db/base.py`, `app/api/v1/endpoints/analytics.py`, `app/api/v1/endpoints/feedback.py`, `app/services/subscription.py`, `tests/test_sleep_and_analytics_remediation.py`):** MG'nin `"kokpit çok yavaş açılıyor"` -> `"uygula ve canlıya al"` talimatı üzerine Uvicorn event-loop kilidi (`async def` ➔ `def`), `%87` `GZipMiddleware` (`247.9 KB` ➔ `32.1 KB`), `_ClickSlim` / `_SignalSlim` sütun projeksiyonu, tek sorguda 8 tablo sayımı, `_LEDGER_RECONCILE_LOCK` + monotonik `_LEDGER_RECONCILE_GEN`, olay-güdümlü `10 sn` `_SUMMARY_CACHE` (`record_bridge_click`, `submit_feedback`, `process_revenuecat_webhook` vb. anında invalidation) ve bloklamayan single-flight arka plan mağaza senkronu tamamlandı. **Seviye 2 Gerçek CLI Kanıtı:** `Claude Code CLI` (`task-1444` Tur-1 ➔ `task-1497` Tur-2: `CLAUDE_REVIEW_VERDICT: PASS`) + `58/58 pytest` (`task-1487`).
+
+> **`[handoff] [cross-lane]` Notu (2026-11-20 · `v4.54.1` · `v4.55.0 / Build 71` İle Canlıya Alındı):**
 > - **Durum:** Canlı Railway ortamında şu an `v4.54.0` (`d410428`) çalışmaktadır. `v4.54.1` paketi yerel depoda eksiksiz tamamlanmış, tüm testlerden ve Seviye-3 3-ajanlı denetimden geçmiş ve yeni konuşmaya devredilmek üzere **yerel olarak commit edilmiştir (`d55789f` + bu commit — `origin/main` üzerine PUSH EDİLMEDİ)**.
 > - **Tamamlanan İşler (`v4.54.1`):**
 >   1. **Canlı Emzirme ➔ Canlı Etkinlikler (`Live Activities / Dynamic Island / Android Lock Screen`):**

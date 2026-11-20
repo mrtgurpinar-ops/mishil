@@ -423,6 +423,11 @@ class SubscriptionService:
                         fg.vip_plan = "yearly" if is_annual_prod else "monthly"
 
             db.commit()
+            try:
+                from app.api.v1.endpoints.analytics import invalidate_analytics_summary_cache
+                invalidate_analytics_summary_cache(mark_reconcile=True)
+            except Exception:
+                pass
         except Exception as ledger_err:
             db.rollback()
             logger.error(f"SubscriberLedger upsert failed inside RevenueCat webhook: {ledger_err}", exc_info=True)
@@ -503,4 +508,9 @@ class SubscriptionService:
             fg.vip_plan = ("yearly" if is_annual_prod else "monthly") if is_sub_active_now else "free"
 
         db.commit()
+        try:
+            from app.api.v1.endpoints.analytics import invalidate_analytics_summary_cache
+            invalidate_analytics_summary_cache(mark_reconcile=True)
+        except Exception:
+            pass
         return {"status": "success", "event_type": event_type, "user_id": user.id}

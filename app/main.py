@@ -17,6 +17,7 @@ from fastapi.responses import JSONResponse, HTMLResponse, PlainTextResponse, Fil
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 from app.core.config import settings
 from app.core.logging import setup_logging, get_logger, request_id_ctx
@@ -187,7 +188,8 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS Middleware
+# GZip & CORS Middleware (compresses ~220 KB cockpit HTML -> ~30 KB and ~1.2 MB /app -> ~210 KB)
+app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.CORS_ORIGINS,

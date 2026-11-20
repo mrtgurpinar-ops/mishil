@@ -20,14 +20,15 @@ import urllib.request
 import urllib.error
 import urllib.parse
 from collections import Counter
-from typing import Optional, Dict, Any, List
+from types import SimpleNamespace
+from typing import Optional, Dict, Any, List, NamedTuple, Tuple
 from urllib.parse import quote
 from fastapi import APIRouter, Depends, HTTPException, Request, status, Query, Header, Form
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
-from sqlalchemy import desc, inspect, text
+from sqlalchemy import desc, func, inspect, select, text
 
 try:
     import jwt
@@ -587,6 +588,74 @@ _RC_V2_PRODUCT_MAP_LOCK = threading.Lock()
 _RC_V2_PRODUCT_MAP_CACHE: Dict[str, Any] = {"ts": 0.0, "map": {}}
 _GP_OAUTH_TOKEN_LOCK = threading.Lock()
 _GP_OAUTH_TOKEN_CACHE: Dict[str, Any] = {"exp": 0.0, "token": None}
+
+# Kokpit hızlandırma katmanı: hafif projeksiyonlar, anında geçersiz kılınan (instant-invalidated)
+# kısa ömürlü özet önbelleği ve tekil uçuş (single-flight) mağaza senkron kilidi
+class _ClickSlim(NamedTuple):
+    id: int
+    created_at: datetime
+    route_path: str
+    os_family: str
+    app_webview: Optional[str]
+    is_bot: bool
+    is_unique: bool
+
+
+class _SignalSlim(NamedTuple):
+    event_type: str
+    os_family: Optional[str]
+    device_uid: Optional[str]
+    country: Optional[str]
+    matched_channel: Optional[str]
+    match_confidence: Optional[str]
+    created_at: datetime
+
+
+_SUMMARY_CACHE_LOCK = threading.Lock()
+_SUMMARY_CACHE: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+_SUMMARY_CACHE_TTL_SEC: float = float(os.environ.get("MISIL_ANALYTICS_CACHE_TTL_SEC", "10.0"))
+_BASELINE_LOADED_STAMP: Optional[Tuple[str, str]] = None
+_LEDGER_RECONCILE_LOCK = threading.Lock()
+_LEDGER_RECONCILE_GEN: int = 1
+_LEDGER_RECONCILED_GEN: int = 0
+_STORE_SYNC_EXEC_LOCK = threading.Lock()
+_STORE_SYNC_LAST_STATUS: Dict[str, Any] = {
+    "running": False,
+    "started_at": "",
+    "last_synced_at": "",
+    "last_sources": [],
+}
+
+
+def invalidate_analytics_summary_cache(
+    mark_reconcile: bool = False,
+    reset_baseline_stamp: bool = False,
+) -> None:
+    """Yeni tıklama, sinyal, geri bildirim, abonelik veya mağaza senkronu geldiği an kokpit önbelleğini sıfırlar."""
+    global _LEDGER_RECONCILE_GEN, _BASELINE_LOADED_STAMP
+    with _SUMMARY_CACHE_LOCK:
+        _SUMMARY_CACHE.clear()
+        if mark_reconcile:
+            _LEDGER_RECONCILE_GEN += 1
+    if reset_baseline_stamp:
+        with _BASELINE_LOCK:
+            _BASELINE_LOADED_STAMP = None
+
+
+def trigger_background_store_sync(days_back: int = 7) -> bool:
+    """Mağaza API senkronizasyonunu HTTP yanıtını bekletmeden arka planda tekil olarak başlatır."""
+    if _STORE_SYNC_EXEC_LOCK.locked():
+        return False
+
+    def _bg_worker() -> None:
+        try:
+            sync_live_store_apis(days_back=days_back)
+        except Exception as bg_exc:
+            logger.warning("Background store sync warning: %s", bg_exc)
+
+    t = threading.Thread(target=_bg_worker, name="mishil-bg-store-sync", daemon=True)
+    t.start()
+    return True
 
 
 def _get_revenuecat_v2_secret_key() -> Optional[str]:
@@ -1675,6 +1744,33 @@ def _reconcile_ios_ledger_and_cancellations(
 
 def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
     """
+    Tekil Uçuş (Single-Flight) korumalı resmi mağaza senkronizasyonu.
+    Eşzamanlı çağrılarda ikinci bir ağır tarama başlatmaz; mevcut çalışma bilgisini döndürür.
+    """
+    if not _STORE_SYNC_EXEC_LOCK.acquire(blocking=False):
+        return {
+            "synced": False,
+            "already_running": True,
+            "sources": list(_STORE_SYNC_LAST_STATUS.get("last_sources") or []),
+            "apple_connected": True,
+            "google_connected": True,
+            "synced_at": str(_STORE_SYNC_LAST_STATUS.get("last_synced_at") or ""),
+        }
+    _STORE_SYNC_LAST_STATUS["running"] = True
+    _STORE_SYNC_LAST_STATUS["started_at"] = datetime.now(timezone(timedelta(hours=3))).strftime("%d.%m.%Y %H:%M TSİ")
+    try:
+        res = _sync_live_store_apis_inner(days_back=days_back)
+        _STORE_SYNC_LAST_STATUS["last_synced_at"] = str(res.get("synced_at") or "")
+        _STORE_SYNC_LAST_STATUS["last_sources"] = list(res.get("sources") or [])
+        invalidate_analytics_summary_cache(mark_reconcile=False, reset_baseline_stamp=True)
+        return res
+    finally:
+        _STORE_SYNC_LAST_STATUS["running"] = False
+        _STORE_SYNC_EXEC_LOCK.release()
+
+
+def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
+    """
     P0-1 & Sıfır Statik Veri Çözümü:
     Ağ G/Ç işlemleri _BASELINE_LOCK dışında yürütülür; Apple App Store Connect API ve
     Google Play Developer API verileri doğrudan StoreDailyMetric, SubscriberLedger,
@@ -1682,6 +1778,16 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
     """
     if not jwt:
         return {"synced": False, "sources": [], "reason": "PyJWT not available"}
+
+    # Sunucu açılışında OFFICIAL_STORE_BASELINE henüz yüklenmemişse DB'den hızlıca ısıt
+    try:
+        db_pre = SessionLocal()
+        try:
+            ensure_historical_seed(db_pre)
+        finally:
+            db_pre.close()
+    except Exception:
+        pass
 
     project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
     env_p8_path = os.environ.get("ASC_PRIVATE_KEY_PATH")
@@ -1767,6 +1873,7 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
             scan_days = max(1, min(60, effective_days))
 
             for day_offset in range(scan_days, -1, -1):
+                time.sleep(0.005)
                 rep_date = (today_d - timedelta(days=day_offset)).strftime("%Y-%m-%d")
 
                 # 1) SALES Raporu -> StoreDailyMetric upsert
@@ -2769,6 +2876,23 @@ def sync_live_store_apis(days_back: int = 5) -> Dict[str, Any]:
     }
 
 
+def _determine_periodic_sync_days() -> int:
+    """Veritabanında geçmiş günlük metrikler ve ülke serisi zaten varsa yalnızca son 5 günü tarar."""
+    try:
+        db_chk = SessionLocal()
+        try:
+            ios_cnt = db_chk.query(func.count(StoreDailyMetric.id)).filter(StoreDailyMetric.platform == "ios").scalar() or 0
+            st_row = db_chk.query(StoreSyncState).filter(StoreSyncState.state_key == "primary_store_baseline").first()
+            snap = (st_row.snapshot_json or {}) if (st_row and isinstance(st_row.snapshot_json, dict)) else {}
+            if ios_cnt >= 3 and bool(snap.get("apple_country_downloads_by_date")):
+                return 5
+        finally:
+            db_chk.close()
+    except Exception:
+        pass
+    return 45
+
+
 async def run_periodic_store_sync_loop(stop_event: asyncio.Event, interval_seconds: int = 21600):
     """
     Railway üzerinde çalışan periyodik arka plan senkronizasyonu.
@@ -2780,17 +2904,18 @@ async def run_periodic_store_sync_loop(stop_event: asyncio.Event, interval_secon
         return
 
     logger.info("Starting periodic store sync background loop (interval=%ds)...", interval_seconds)
-    # İlk çalışma için sunucu açılışından sonra 15 saniye bekle
+    # İlk çalışma için konteyner ısınmasının tamamlanmasını bekle (45 sn)
     try:
-        await asyncio.wait_for(stop_event.wait(), timeout=15)
+        await asyncio.wait_for(stop_event.wait(), timeout=45)
         return
     except asyncio.TimeoutError:
         pass
 
     while not stop_event.is_set():
         try:
-            logger.info("Triggering periodic background store sync...")
-            res = await run_in_threadpool(sync_live_store_apis, 45)
+            sync_days = await run_in_threadpool(_determine_periodic_sync_days)
+            logger.info("Triggering periodic background store sync (days_back=%d)...", sync_days)
+            res = await run_in_threadpool(sync_live_store_apis, sync_days)
             logger.info("Periodic store sync completed. Synced: %s, Sources: %s", res.get("synced"), res.get("sources"))
         except Exception as e:
             logger.warning("Periodic store sync error: %s", e)
@@ -3025,10 +3150,32 @@ def ensure_historical_seed(db: Session) -> None:
                     _SCHEMA_INITIALIZED = True
                     _BRIDGE_TABLE_READY = True
 
+    global _BASELINE_LOADED_STAMP
     try:
+        if is_prod_engine and not is_pytest:
+            st_meta = (
+                db.query(StoreSyncState.updated_at, StoreSyncState.last_synced_at_str)
+                .filter(StoreSyncState.state_key == "primary_store_baseline")
+                .first()
+            )
+            if st_meta is None:
+                return
+            cur_stamp = (str(st_meta[0] or ""), str(st_meta[1] or ""))
+            with _BASELINE_LOCK:
+                if _BASELINE_LOADED_STAMP == cur_stamp:
+                    return
+        else:
+            cur_stamp = None
+
         st_row = db.query(StoreSyncState).filter(StoreSyncState.state_key == "primary_store_baseline").first()
         if st_row and isinstance(st_row.snapshot_json, dict):
             with _BASELINE_LOCK:
+                row_stamp = (
+                    str(getattr(st_row, "updated_at", "") or ""),
+                    str(st_row.last_synced_at_str or ""),
+                )
+                if is_prod_engine and not is_pytest and _BASELINE_LOADED_STAMP == row_stamp:
+                    return
                 for k, v in st_row.snapshot_json.items():
                     masked_v = _mask_sensitive_sync_value(v)
                     if k == "apple_sync_status" and isinstance(masked_v, str) and "AuthKey_" in masked_v:
@@ -3037,6 +3184,8 @@ def ensure_historical_seed(db: Session) -> None:
                         OFFICIAL_STORE_BASELINE[k] = masked_v
                 if st_row.last_synced_at_str:
                     OFFICIAL_STORE_BASELINE["last_synced_at"] = _mask_sensitive_sync_value(st_row.last_synced_at_str)
+                if is_prod_engine and not is_pytest:
+                    _BASELINE_LOADED_STAMP = row_stamp
     except Exception as e:
         logger.debug("StoreSyncState load skipped: %s", e)
 
@@ -3219,6 +3368,7 @@ def record_bridge_click(
             )
             db.add(click)
             db.commit()
+            invalidate_analytics_summary_cache()
         except Exception as e:
             db.rollback()
             logger.error(f"Bridge click log error (ignored): {e}")
@@ -3229,7 +3379,7 @@ def record_bridge_click(
 
 @router.post("/usage-signal")
 @router.post("/app-open-signal")
-async def record_app_open_signal(
+def record_app_open_signal(
     payload: AppSignalPayload,
     request: Request,
     db: Session = Depends(get_db),
@@ -3402,6 +3552,7 @@ async def record_app_open_signal(
         db.add(sig)
         db.commit()
         db.refresh(sig)
+        invalidate_analytics_summary_cache()
 
         return {
             "status": "ok",
@@ -3416,7 +3567,7 @@ async def record_app_open_signal(
 
 
 @router.post("/campaign-config")
-async def update_campaign_config(
+def update_campaign_config(
     request: Request,
     pin: Optional[str] = Form(None),
     channel_key: str = Form(...),
@@ -3452,6 +3603,7 @@ async def update_campaign_config(
         cfg.notes = notes[:240]
     cfg.updated_at = datetime.now(timezone.utc)
     db.commit()
+    invalidate_analytics_summary_cache()
 
     resp = RedirectResponse(
         url=f"/api/v1/analytics/dashboard?updated={quote(clean_key)}",
@@ -3570,32 +3722,99 @@ _TR_MONTHS = {
 }
 
 
-def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]:
+def _build_analytics_summary(
+    db: Session,
+    period: str = "all",
+    use_cache: Optional[bool] = None,
+) -> Dict[str, Any]:
+    global _LEDGER_NEEDS_RECONCILE
+    if period not in ALLOWED_PERIODS:
+        raise ValueError(f"Unsupported period filter: {period}")
+
+    is_pytest_env = bool(os.environ.get("PYTEST_CURRENT_TEST"))
+    is_prod_live = (not is_pytest_env) and (db is not None and db.get_bind() is engine)
+    cache_enabled = is_prod_live if use_cache is None else bool(use_cache)
+
+    if cache_enabled and _SUMMARY_CACHE_TTL_SEC > 0:
+        now_mono = time.monotonic()
+        with _SUMMARY_CACHE_LOCK:
+            cached_entry = _SUMMARY_CACHE.get(period)
+            if cached_entry is not None and (now_mono - cached_entry[0]) <= _SUMMARY_CACHE_TTL_SEC:
+                return copy.deepcopy(cached_entry[1])
+
     ensure_historical_seed(db)
 
-    all_clicks: List[BridgeClick] = (
-        db.query(BridgeClick)
+    # Hafif sütun projeksiyonu: 100.000 satır için ağır user_agent/fbclid/referrer metinlerini ve tam ORM nesnelerini yükleme
+    click_tuples = (
+        db.query(
+            BridgeClick.id,
+            BridgeClick.created_at,
+            BridgeClick.route_path,
+            BridgeClick.os_family,
+            BridgeClick.app_webview,
+            BridgeClick.is_bot,
+            BridgeClick.is_unique,
+        )
         .order_by(desc(BridgeClick.created_at))
         .limit(100000)
         .all()
     )
+    all_clicks: List[_ClickSlim] = [_ClickSlim(*row) for row in click_tuples]
 
-    signals: List[AppInstallSignal] = (
-        db.query(AppInstallSignal)
+    sig_tuples = (
+        db.query(
+            AppInstallSignal.event_type,
+            AppInstallSignal.os_family,
+            AppInstallSignal.device_uid,
+            AppInstallSignal.country,
+            AppInstallSignal.matched_channel,
+            AppInstallSignal.match_confidence,
+            AppInstallSignal.created_at,
+        )
         .order_by(desc(AppInstallSignal.created_at))
         .limit(100000)
         .all()
     )
+    signals: List[_SignalSlim] = [_SignalSlim(*row) for row in sig_tuples]
 
-    # Gerçek DB Aktivasyon Sayıları
-    db_users_count = db.query(User.id).count()
-    db_babies_count = db.query(Baby.id).count()
-    db_cry_count = db.query(CryEvent.id).count()
-    db_sleep_count = db.query(SleepLog.id).count()
-    db_routine_count = db.query(RoutineLog.id).count()
-    db_dadi_count = db.query(DadiChatHistory.id).count()
-    db_feedbacks: List[Feedback] = db.query(Feedback).order_by(desc(Feedback.created_at)).limit(100).all()
-    db_subs_count = db.query(Subscription.id).count()
+    # 8 ayrı DB ağ gidiş-dönüşü (8 x RTT) yerine TEK birleşik SQL alt sorgusu
+    counts_row = db.execute(
+        select(
+            select(func.count(User.id)).scalar_subquery(),
+            select(func.count(Baby.id)).scalar_subquery(),
+            select(func.count(CryEvent.id)).scalar_subquery(),
+            select(func.count(SleepLog.id)).scalar_subquery(),
+            select(func.count(RoutineLog.id)).scalar_subquery(),
+            select(func.count(DadiChatHistory.id)).scalar_subquery(),
+            select(func.count(Subscription.id)).scalar_subquery(),
+            select(func.count(Feedback.id)).scalar_subquery(),
+        )
+    ).one()
+    (
+        db_users_count,
+        db_babies_count,
+        db_cry_count,
+        db_sleep_count,
+        db_routine_count,
+        db_dadi_count,
+        db_subs_count,
+        db_feedbacks_total_cnt,
+    ) = [int(v or 0) for v in counts_row]
+    db_feedbacks_cnt_capped = min(100, db_feedbacks_total_cnt)
+    fb_rows = db.query(Feedback).order_by(desc(Feedback.created_at)).limit(20).all()
+    db_feedbacks = [
+        SimpleNamespace(
+            id=fb.id,
+            message=fb.message,
+            sentiment=fb.sentiment,
+            baby_age_months=fb.baby_age_months,
+            contact_info=fb.contact_info,
+            platform=fb.platform,
+            app_version=fb.app_version,
+            created_at=fb.created_at,
+        )
+        for fb in fb_rows
+    ]
 
     tz_tr = timezone(timedelta(hours=3))
     now_tr = datetime.now(tz_tr)
@@ -3932,18 +4151,32 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
     # ========================================================================
     # FAZ 2: KURUMSAL GELİR, 3 KADEMELİ MRR ŞELALESİ VE ABONE DEFTERİ
     # ========================================================================
-    try:
-        active_trials_target_val = int(sb.get("apple_vip_active_trials", 0) or 0)
-        if _reconcile_ios_ledger_and_cancellations(
-            db,
-            active_trials_target=active_trials_target_val if active_trials_target_val > 0 else None,
-        ):
-            db.commit()
-    except Exception:
-        try:
-            db.rollback()
-        except Exception:
-            pass
+    global _LEDGER_RECONCILED_GEN
+    with _SUMMARY_CACHE_LOCK:
+        req_reconcile_gen = _LEDGER_RECONCILE_GEN
+        done_reconcile_gen = _LEDGER_RECONCILED_GEN
+    if (not is_prod_live) or (done_reconcile_gen < req_reconcile_gen):
+        with _LEDGER_RECONCILE_LOCK:
+            with _SUMMARY_CACHE_LOCK:
+                target_reconcile_gen = _LEDGER_RECONCILE_GEN
+                already_reconciled_gen = _LEDGER_RECONCILED_GEN
+            if (not is_prod_live) or (already_reconciled_gen < target_reconcile_gen):
+                try:
+                    active_trials_target_val = int(sb.get("apple_vip_active_trials", 0) or 0)
+                    if _reconcile_ios_ledger_and_cancellations(
+                        db,
+                        active_trials_target=active_trials_target_val if active_trials_target_val > 0 else None,
+                    ):
+                        db.commit()
+                    if is_prod_live:
+                        with _SUMMARY_CACHE_LOCK:
+                            if _LEDGER_RECONCILED_GEN < target_reconcile_gen:
+                                _LEDGER_RECONCILED_GEN = target_reconcile_gen
+                except Exception:
+                    try:
+                        db.rollback()
+                    except Exception:
+                        pass
 
     ledger_rows_db: List[SubscriberLedger] = (
         db.query(SubscriberLedger)
@@ -5125,7 +5358,33 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         },
     ]
 
-    return {
+    recent_ids = [c.id for c in active_raw_set[:100]]
+    recent_clicks_detached: List[SimpleNamespace] = []
+    if recent_ids:
+        rc_rows = db.query(BridgeClick).filter(BridgeClick.id.in_(recent_ids)).all()
+        rc_by_id = {rc.id: rc for rc in rc_rows}
+        for rid in recent_ids:
+            rc = rc_by_id.get(rid)
+            if rc is not None:
+                recent_clicks_detached.append(
+                    SimpleNamespace(
+                        id=rc.id,
+                        created_at=rc.created_at,
+                        route_path=rc.route_path,
+                        channel=rc.channel,
+                        os_family=rc.os_family,
+                        device_detail=rc.device_detail,
+                        app_webview=rc.app_webview,
+                        target_store=rc.target_store,
+                        is_bot=rc.is_bot,
+                        is_unique=rc.is_unique,
+                        has_fbclid=rc.has_fbclid,
+                        country=rc.country,
+                        ip_masked=rc.ip_masked,
+                    )
+                )
+
+    result_summary = {
         "period": period,
         "period_label": period_label,
         "period_clicks_count": len(period_clicks),
@@ -5274,7 +5533,7 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
             "sleep_logs": max(db_sleep_count, len(sleep_sound_signals)),
             "routine_logs": db_routine_count,
             "dadi_chats": db_dadi_count,
-            "feedbacks_count": len(db_feedbacks),
+            "feedbacks_count": db_feedbacks_cnt_capped,
             "feedbacks_list": db_feedbacks[:20],
             "subscriptions_count": apple_vip,
             "unmatched_organic_opens": unmatched_organic_opens,
@@ -5283,12 +5542,16 @@ def _build_analytics_summary(db: Session, period: str = "all") -> Dict[str, Any]
         "os_breakdown": dict(os_counts),
         "webview_breakdown": dict(webview_counts),
         "hourly_all_tr": dict(hourly_all_time),
-        "recent_clicks": active_raw_set[:100],
+        "recent_clicks": recent_clicks_detached,
     }
+    if cache_enabled and _SUMMARY_CACHE_TTL_SEC > 0:
+        with _SUMMARY_CACHE_LOCK:
+            _SUMMARY_CACHE[period] = (time.monotonic(), copy.deepcopy(result_summary))
+    return result_summary
 
 
 @router.get("/summary")
-async def get_analytics_summary(
+def get_analytics_summary(
     request: Request,
     pin: Optional[str] = Query(None),
     period: str = Query("all"),
@@ -5385,7 +5648,7 @@ def verify_google_play_subscription_token(purchase_token: str) -> Optional[Dict[
 
 
 @router.post("/subscriber-sync")
-async def sync_client_subscriber_ledger(
+def sync_client_subscriber_ledger(
     payload: ClientSubscriberSyncPayload,
     request: Request,
     db: Session = Depends(get_db),
@@ -5417,10 +5680,10 @@ async def sync_client_subscriber_ledger(
     mat_dt_str = (payload.maturity_or_renewal_date or "").strip()[:10]
     offer_code_nm = (payload.offer_code_name or "").strip()[:95] or None
 
-    # Google Play purchase_token varsa subscriptionsv2 API ile doğrula
+    # Google Play purchase_token varsa subscriptionsv2 API ile doğrula (endpoint sync def olduğu için zaten worker threadpool'da çalışır)
     verified_gp_token = False
     if plat == "android" and payload.purchase_token:
-        gp_v2 = await run_in_threadpool(verify_google_play_subscription_token, payload.purchase_token)
+        gp_v2 = verify_google_play_subscription_token(payload.purchase_token)
         if isinstance(gp_v2, dict):
             verified_gp_token = True
             sub_state = str(gp_v2.get("subscriptionState") or "")
@@ -5456,7 +5719,7 @@ async def sync_client_subscriber_ledger(
         and not clean_sid.upper().startswith("DEV_")
         and (not os.environ.get("PYTEST_CURRENT_TEST") or os.environ.get("MISIL_ENABLE_TEST_RC_V2") == "1")
     ):
-        rc_v2 = await run_in_threadpool(verify_revenuecat_v2_customer, payload.subscriber_id.strip())
+        rc_v2 = verify_revenuecat_v2_customer(payload.subscriber_id.strip())
         if isinstance(rc_v2, dict) and rc_v2.get("store_subscription_identifier"):
             verified_rc_v2 = True
             plat = rc_v2["platform"]
@@ -5636,6 +5899,7 @@ async def sync_client_subscriber_ledger(
         )
 
     db.commit()
+    invalidate_analytics_summary_cache(mark_reconcile=True)
     return {
         "ok": True,
         "status": "ok",
@@ -5649,7 +5913,7 @@ async def sync_client_subscriber_ledger(
 
 
 @router.post("/store-sync-push")
-async def ingest_local_store_sync(
+def ingest_local_store_sync(
     payload: StoreSyncPushPayload,
     request: Request,
     pin: Optional[str] = Query(None),
@@ -5782,6 +6046,7 @@ async def ingest_local_store_sync(
     db.flush()
     _reconcile_ios_ledger_and_cancellations(db)
     db.commit()
+    invalidate_analytics_summary_cache(mark_reconcile=False, reset_baseline_stamp=True)
     return {
         "status": "ok",
         "upserted_daily_metrics": upserted_metrics,
@@ -5802,9 +6067,11 @@ async def trigger_store_sync_now(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz veya eksik Yönetici PIN kodu.")
 
     sync_res = await run_in_threadpool(sync_live_store_apis, days_back)
+    invalidate_analytics_summary_cache(mark_reconcile=False, reset_baseline_stamp=True)
     return {
         "status": "ok",
         "synced": sync_res.get("synced", False),
+        "already_running": sync_res.get("already_running", False),
         "sources": sync_res.get("sources", []),
         "apple_connected": sync_res.get("apple_connected", False),
         "google_connected": sync_res.get("google_connected", False),
@@ -5813,7 +6080,7 @@ async def trigger_store_sync_now(
 
 
 @router.get("/export.csv")
-async def export_analytics_csv(
+def export_analytics_csv(
     request: Request,
     pin: Optional[str] = Query(None),
     x_admin_pin: Optional[str] = Header(None),
@@ -5970,7 +6237,7 @@ async def analytics_login_post(
 
 
 @router.get("/dashboard", response_class=HTMLResponse)
-async def analytics_dashboard_page(
+def analytics_dashboard_page(
     request: Request,
     pin: Optional[str] = Query(None),
     period: Optional[str] = Query("all"),
@@ -5979,7 +6246,7 @@ async def analytics_dashboard_page(
     db: Session = Depends(get_db),
 ):
     """
-    Mışıl Baby v4.46.0 — Sıfır Statik Veri, Resmi Apple/Google Mağaza API ve Görsel Kurucu Kokpiti.
+    Mışıl Baby v4.55.1 — Sıfır Statik Veri, Resmi Apple/Google Mağaza API ve Hızlı Görsel Kurucu Kokpiti.
     """
     session_token = request.cookies.get(_ADMIN_SESSION_COOKIE)
     authorized_by_session = _admin_session_token_is_valid(session_token)
@@ -5993,16 +6260,21 @@ async def analytics_dashboard_page(
 
     sync_banner = ""
     if sync == "1":
-        # P0-1: Ağ I/O ve harici API çağrıları FastAPI async event loop'u bloklamaması için threadpool'da çalıştırılır
-        sync_res = await run_in_threadpool(sync_live_store_apis)
-        sources_list = sync_res.get("sources") or []
-        sources_str = ", ".join(html.escape(str(src)) for src in sources_list) if sources_list else "Yapılandırılmış mağaza anahtarı bulunamadı (Yalnızca yerel DB)"
-        synced_at_str = html.escape(str(sync_res.get("synced_at") or OFFICIAL_STORE_BASELINE.get("last_synced_at") or ""))
-        sync_banner = f"""
-        <div class="toast-banner">
-          ✅ <strong>Resmi Mağaza API Senkronizasyonu Tamamlandı:</strong> Aktif kaynaklar: {sources_str} ({synced_at_str}).
-        </div>
-        """
+        # Kokpit sayfasını 30-90 sn beyaz ekranda bekletmek yerine arka planda tekil (single-flight) senkron başlat
+        started_bg = trigger_background_store_sync(days_back=7)
+        last_sync_lbl = html.escape(str(OFFICIAL_STORE_BASELINE.get("last_synced_at") or "Aktif"))
+        if started_bg:
+            sync_banner = f"""
+            <div class="toast-banner">
+              🔄 <strong>Resmi Mağaza API Senkronizasyonu Arka Planda Başlatıldı:</strong> Kokpit anında açıldı; yeni veriler birkaç saniye içinde otomatik yansıyacaktır (Son kayıt: {last_sync_lbl}).
+            </div>
+            """
+        else:
+            sync_banner = f"""
+            <div class="toast-banner">
+              ⏳ <strong>Mağaza API Senkronizasyonu Zaten Çalışıyor:</strong> Devam eden arka plan taraması tamamlandığında veriler otomatik yenilenecektir (Son kayıt: {last_sync_lbl}).
+            </div>
+            """
     elif updated:
         sync_banner = f"""
         <div class="toast-banner">
@@ -6708,7 +6980,10 @@ async def analytics_dashboard_page(
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="referrer" content="no-referrer">
       <title>Mışıl Baby — Kurumsal Büyüme, Abone Defteri & Ürün Analitiği Kokpiti</title>
-      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet">
+      <link rel="preconnect" href="https://fonts.googleapis.com">
+      <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+      <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+      <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet"></noscript>
       <style>
         /* EXECUTIVE KEYNOTE / STRIPE BOARD DECK TEMASI (AIRY DAYLIGHT — VARSAYILAN) */
         :root {{

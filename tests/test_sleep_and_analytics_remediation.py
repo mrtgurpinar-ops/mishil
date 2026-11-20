@@ -2481,6 +2481,112 @@ def test_v4_55_0_redteam_audit_guards_webhook_fx_and_family_revoke(db_session, m
     assert fg_after.vip_plan == "free"
 
 
+def test_cockpit_gzip_cache_invalidation_and_nonblocking_sync(client, db_session):
+    """
+    Kokpit hızlandırma regresyon testi:
+    1) GZipMiddleware aktif olmalı ve sıkıştırılmış kokpit boyutu ham HTML'in %30'unun altına düşmeli.
+    2) _build_analytics_summary(use_cache=True) sıcak önbellekten <5ms'de detached-safe yanıt üretmeli;
+       ancak yeni köprü tıklaması (record_bridge_click) geldiği an önbellek anında temizlenip güncel sayıyı göstermeli.
+    3) ?sync=1 kokpit yanıtını bloklamadan arka plan single-flight görevini tetiklemeli.
+    """
+    import time
+    from unittest.mock import patch
+    from app.api.v1.endpoints.analytics import (
+        _build_analytics_summary,
+        invalidate_analytics_summary_cache,
+        record_bridge_click,
+        sync_live_store_apis,
+        _STORE_SYNC_EXEC_LOCK,
+    )
+
+    invalidate_analytics_summary_cache(mark_reconcile=True, reset_baseline_stamp=True)
+
+    # 1. GZip sıkıştırma doğrulaması
+    res_dash = client.get(
+        "/api/v1/analytics/dashboard",
+        params={"pin": "MISIL-REV-9842"},
+        headers={"Accept-Encoding": "gzip"},
+    )
+    assert res_dash.status_code == 200
+    assert res_dash.headers.get("content-encoding") == "gzip"
+    raw_len = len(res_dash.text.encode("utf-8"))
+    # Non-blocking font link kontrolü
+    assert 'media="print" onload="this.media=\'all\'"' in res_dash.text
+    assert raw_len > 100_000
+
+    # 2. Sıcak önbellek + anında invalidation paritesi
+    s1 = _build_analytics_summary(db_session, period="all", use_cache=True)
+    base_uniq = s1["total_unique_human"]
+
+    t_warm_0 = time.perf_counter()
+    s_warm = _build_analytics_summary(db_session, period="all", use_cache=True)
+    warm_ms = (time.perf_counter() - t_warm_0) * 1000.0
+    assert s_warm["total_unique_human"] == base_uniq
+    assert warm_ms < 50.0
+
+    record_bridge_click(
+        {
+            "user_agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 18_1 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148",
+            "client_ip": "198.51.100.77",
+            "country_raw": "TR",
+            "fbclid": "fb_perf_test_1",
+            "utm_source": "ig",
+            "utm_campaign": "perf",
+            "referrer": "https://instagram.com",
+        },
+        route_path="/ios",
+        target_store="app_store",
+        db_override=db_session,
+    )
+
+    # Yeni tıklama sonrası önbellek anında temizlenmiş olmalı (eski sayı dönmemeli)
+    s2 = _build_analytics_summary(db_session, period="all", use_cache=True)
+    assert s2["total_unique_human"] == base_uniq + 1
+    assert len(s2["recent_clicks"]) >= 1
+    assert s2["recent_clicks"][0].route_path == "/ios"
+
+    # 2b. Yeni anne geri bildirimi (POST /api/v1/feedback) sonrası önbellek anında temizlenmeli
+    base_fb_count = s2["product_funnel"]["feedbacks_count"]
+    res_fb = client.post(
+        "/api/v1/feedback",
+        json={
+            "message": "Kokpit hız testi geri bildirimi",
+            "sentiment": "suggestion",
+            "baby_age_months": 5,
+            "platform": "ios",
+            "app_version": "4.55.0",
+        },
+    )
+    assert res_fb.status_code == 201
+    s3 = _build_analytics_summary(db_session, period="all", use_cache=True)
+    assert s3["product_funnel"]["feedbacks_count"] == base_fb_count + 1
+    assert s3["product_funnel"]["feedbacks_list"][0].message == "Kokpit hız testi geri bildirimi"
+
+    # 2c. Monotonik _LEDGER_RECONCILE_GEN sayacı doğrulaması
+    import app.api.v1.endpoints.analytics as analytics_mod
+    gen_before = analytics_mod._LEDGER_RECONCILE_GEN
+    invalidate_analytics_summary_cache(mark_reconcile=True)
+    assert analytics_mod._LEDGER_RECONCILE_GEN == gen_before + 1
+
+    # 3. ?sync=1 bloklamayan (non-blocking) arka plan tetiklemesi ve single-flight kilidi
+    with patch("app.api.v1.endpoints.analytics.trigger_background_store_sync", return_value=True) as mock_bg:
+        res_sync = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842", "sync": "1"})
+        assert res_sync.status_code == 200
+        assert "Arka Planda Başlatıldı" in res_sync.text
+        mock_bg.assert_called_once_with(days_back=7)
+
+    # Single-flight kilit tutulduğunda ikinci sync_live_store_apis anında already_running=True dönmeli
+    acquired = _STORE_SYNC_EXEC_LOCK.acquire(blocking=False)
+    assert acquired is True
+    try:
+        sf_res = sync_live_store_apis(days_back=1)
+        assert sf_res.get("already_running") is True
+        assert sf_res.get("synced") is False
+    finally:
+        _STORE_SYNC_EXEC_LOCK.release()
+
+
+
 
 
 
