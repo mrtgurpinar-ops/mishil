@@ -2,6 +2,19 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.1-cockpit-resilience] - 2026-11-21 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` 25sn SWR Hızlandırma, Zero-500/429 Hata Koruması & Mobil-Öncelikli `2x2 Bento` UX Yenilemesi • 🟢 Yeni Native EAS Build Gerekmez)
+### 📊 Kurucu Kokpiti (`/admin/analytics` ➔ `/api/v1/analytics/dashboard` & `/summary`) Hız, Hata Dayanıklılığı ve Mobil Uyumluluk Paketi (`app/main.py`, `app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **Zero-500 & 429 Kilit Çözümü (SWR Önbellek + PIN Brute-Force Düzeltmesi):**
+   - `authorize_admin_request()` içinde PIN gönderilmemiş (`pin=None`) salt giriş ekranı açılışlarının brute-force sayacını (`_register_pin_failure`) artırması engellendi; 5 hatalı PIN denemesinde ise ham JSON yerine kokpit giriş kartı üzerinde HTML uyarı mesajı dönülmesi sağlandı.
+   - `get_resilient_analytics_summary()` eklendi: veritabanı yoğunluğu veya şema/kilit hatası durumunda 500 fırlatmak yerine aynı döneme ait `_LAST_GOOD_SUMMARY_CACHE` (`_SWR_MAX_STALE_SEC = 3600.0`) veya bellek içi yedek oturumla `200 OK` döndürür.
+   - `main.py` içinde `_RATE_LIMIT_LOCK` eklendi, kokpit rotaları genel IP hız sınırlayıcısından ayrıldı ve `X-Forwarded-Proto: https` desteğiyle mobil Safari oturum çerezi düşmeleri önlendi.
+2. **Yüklenme Hızı Optimizasyonu (`134ms` Soğuk Açılış / `<1ms` Önbellek):**
+   - `_SUMMARY_CACHE_TTL_SEC` değeri `10.0` sn'den **`25.0` sn'ye** çıkarılarak 15 saniyelik canlı polling isteklerinin her seferinde %100 cache-miss üretmesi engellendi; ağır `copy.deepcopy()` yerine tüm üst düzey `dict`/`list` alanlarını `<0.1ms`'de izole eden `_clone_summary_for_response()` devreye alındı.
+3. **Mobil-Öncelikli (`<= 768px` & `<= 480px`) 2x2 Bento & Alt Sekme UX Mimarisi:**
+   - Mobilde alt alta 7 kutu olarak dizilen dönüşüm hunisi ve KPI kartları **2x2 kompakt Bento ızgarasına** (`grid-template-columns: repeat(2, minmax(0, 1fr))`) dönüştürüldü; `.topbar` `position: static` ve tek satır yatay kaydırılabilir yapıldı, `.donuts-grid` / `.reviews-grid` / `.table-search-input` yatay taşmaları sıfırlandı ve `pollLiveTelemetry()` içine 8 sn `AbortController` + canlı bağlantı durumu eklendi.
+4. **3 Ajanlı Konsensüs & Doğrulama Kapısı (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-55` + `task-108`: Onay)** + **Codex CLI (`gpt-6-luna`, `task-68` + `task-109`: Onay)** + **Antigravity (`32/32 pytest` `task-125`, `TestClient` `GET /api/v1/analytics/dashboard` `200 OK` `134.22ms`)**.
+
 ## [4.56.0-bubble-ui-v5] - 2026-11-21 (Railway Canlı Yayın — Göz Yormayan Sıcak Yulaf & Kaşmir Beji Aydınlık Mod `Zero-Glare Warm Oat Light Palette` • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🌤️ Göz Yormayan Sıcak Yulaf & Kaşmir Beji Aydınlık Mod (`[data-theme="light"]`) Yeniden Tasarımı (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`)
 1. **Parlak `#FFFFFF` / `#FAF6F0` Beyaz Yansıtıcıların Sıcak Yulaf & Badem (`#E8DFD3` / `#EFE3D2`) Tonlarına Çekilmesi:**

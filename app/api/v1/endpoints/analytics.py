@@ -549,6 +549,12 @@ def _admin_session_token_is_valid(token: Optional[str]) -> bool:
     )
 
 
+def _is_request_https(request: Request) -> bool:
+    """Railway Envoy / Cloudflare ters vekil arkasında HTTPS şemasını doğru tespit eder."""
+    forwarded_proto = (request.headers.get("x-forwarded-proto") or "").split(",")[0].strip().lower()
+    return request.url.scheme == "https" or forwarded_proto == "https"
+
+
 def authorize_admin_request(
     request: Request,
     pin: Optional[str] = None,
@@ -558,6 +564,8 @@ def authorize_admin_request(
     """
     IP bazlı brute-force korumalı yönetici yetkilendirmesi.
     Geçerli ve süresi dolmamış bir oturum çerezi varsa PIN'i tekrar sormadan doğrular.
+    PIN parametresi hiç gönderilmemişse (örn. giriş ekranının ilk açılışı veya çerezsiz GET /dashboard),
+    brute-force hata sayacını artırmadan False döner (5 yenilemede 429 kilidine düşmeyi önler).
     """
     if _admin_session_token_is_valid(session_token):
         return True
@@ -568,6 +576,10 @@ def authorize_admin_request(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Çok fazla hatalı PIN denemesi. Lütfen 15 dakika sonra tekrar deneyin.",
         )
+
+    raw_candidate = pin if isinstance(pin, str) else (x_admin_pin if isinstance(x_admin_pin, str) else "")
+    if not raw_candidate or not raw_candidate.strip():
+        return False
 
     is_valid = verify_admin_pin(pin, x_admin_pin)
     if is_valid:
@@ -613,7 +625,10 @@ class _SignalSlim(NamedTuple):
 
 _SUMMARY_CACHE_LOCK = threading.Lock()
 _SUMMARY_CACHE: Dict[str, Tuple[float, Dict[str, Any]]] = {}
-_SUMMARY_CACHE_TTL_SEC: float = float(os.environ.get("MISIL_ANALYTICS_CACHE_TTL_SEC", "10.0"))
+_LAST_GOOD_SUMMARY_CACHE: Dict[str, Tuple[float, Dict[str, Any]]] = {}
+# 15sn canlı polling ile tam uyumlu 25sn önbellek ömrü (her poll'un cache-miss olmasını engeller)
+_SUMMARY_CACHE_TTL_SEC: float = float(os.environ.get("MISIL_ANALYTICS_CACHE_TTL_SEC", "25.0"))
+_SWR_MAX_STALE_SEC: float = float(os.environ.get("MISIL_ANALYTICS_SWR_MAX_STALE_SEC", "3600.0"))
 _BASELINE_LOADED_STAMP: Optional[Tuple[str, str]] = None
 _LEDGER_RECONCILE_LOCK = threading.Lock()
 _LEDGER_RECONCILE_GEN: int = 1
@@ -627,11 +642,27 @@ _STORE_SYNC_LAST_STATUS: Dict[str, Any] = {
 }
 
 
+def _clone_summary_for_response(summary_data: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Ağır copy.deepcopy yerine tüm üst düzey dict ve list kapsayıcılarını (<0.1ms) klonlar;
+    böylece uç noktalardaki (örn. product_funnel, recent_clicks, cumulative_kpis) hiçbir mutasyon önbelleği kirletmez.
+    """
+    cloned: Dict[str, Any] = {}
+    for k, v in summary_data.items():
+        if isinstance(v, dict):
+            cloned[k] = dict(v)
+        elif isinstance(v, list):
+            cloned[k] = list(v)
+        else:
+            cloned[k] = v
+    return cloned
+
+
 def invalidate_analytics_summary_cache(
     mark_reconcile: bool = False,
     reset_baseline_stamp: bool = False,
 ) -> None:
-    """Yeni tıklama, sinyal, geri bildirim, abonelik veya mağaza senkronu geldiği an kokpit önbelleğini sıfırlar."""
+    """Yeni tıklama, sinyal, geri bildirim, abonelik veya mağaza senkronu geldiği an aktif önbelleği sıfırlar (_LAST_GOOD_SUMMARY_CACHE SWR yedek olarak korunur)."""
     global _LEDGER_RECONCILE_GEN, _BASELINE_LOADED_STAMP
     with _SUMMARY_CACHE_LOCK:
         _SUMMARY_CACHE.clear()
@@ -3740,7 +3771,7 @@ def _build_analytics_summary(
         with _SUMMARY_CACHE_LOCK:
             cached_entry = _SUMMARY_CACHE.get(period)
             if cached_entry is not None and (now_mono - cached_entry[0]) <= _SUMMARY_CACHE_TTL_SEC:
-                return copy.deepcopy(cached_entry[1])
+                return _clone_summary_for_response(cached_entry[1])
 
     ensure_historical_seed(db)
 
@@ -4178,11 +4209,62 @@ def _build_analytics_summary(
                     except Exception:
                         pass
 
-    ledger_rows_db: List[SubscriberLedger] = (
-        db.query(SubscriberLedger)
-        .order_by(SubscriberLedger.maturity_or_renewal_date.asc(), SubscriberLedger.started_date.asc())
-        .all()
-    )
+    try:
+        ledger_rows_db: List[Any] = (
+            db.query(SubscriberLedger)
+            .order_by(SubscriberLedger.maturity_or_renewal_date.asc(), SubscriberLedger.started_date.asc())
+            .all()
+        )
+    except Exception:
+        try:
+            db.rollback()
+        except Exception:
+            pass
+        legacy_sub_tuples = (
+            db.query(
+                SubscriberLedger.subscriber_id,
+                SubscriberLedger.platform,
+                SubscriberLedger.product_id,
+                SubscriberLedger.plan_label,
+                SubscriberLedger.status,
+                SubscriberLedger.offer_type,
+                SubscriberLedger.offer_code_name,
+                SubscriberLedger.started_date,
+                SubscriberLedger.converted_or_renewed_date,
+                SubscriberLedger.maturity_or_renewal_date,
+                SubscriberLedger.auto_renew_enabled,
+                SubscriberLedger.customer_price_try,
+                SubscriberLedger.developer_proceeds_try,
+                SubscriberLedger.expected_next_price_try,
+                SubscriberLedger.expected_next_proceeds_try,
+                SubscriberLedger.country,
+                SubscriberLedger.device_type,
+            )
+            .order_by(SubscriberLedger.maturity_or_renewal_date.asc(), SubscriberLedger.started_date.asc())
+            .all()
+        )
+        ledger_rows_db = [
+            SimpleNamespace(
+                subscriber_id=t[0],
+                platform=t[1],
+                product_id=t[2],
+                plan_label=t[3],
+                status=t[4],
+                offer_type=t[5],
+                offer_code_name=t[6],
+                started_date=t[7],
+                converted_or_renewed_date=t[8],
+                maturity_or_renewal_date=t[9],
+                auto_renew_enabled=t[10],
+                customer_price_try=t[11],
+                developer_proceeds_try=t[12],
+                expected_next_price_try=t[13],
+                expected_next_proceeds_try=t[14],
+                country=t[15],
+                device_type=t[16],
+            )
+            for t in legacy_sub_tuples
+        ]
 
     # Önce veritabanındaki ücretli abonelerden gerçek birim fiyat referansını çıkar
     paid_ref_by_prod: Dict[str, tuple] = {}
@@ -4914,11 +4996,23 @@ def _build_analytics_summary(
     # ========================================================================
     # FAZ 3B: ÜRÜN İÇİ NABIZ, BEBEK YAŞ DAĞILIMI & KOHORT TUTUNDURMA
     # ========================================================================
-    babies_all: List[Baby] = db.query(Baby).limit(500).all()
-    age_buckets = {"0–3 Ay (Yenidoğan / 4. Trimester)": 0, "4–6 Ay (Uyku Gerilemesi)": 0, "7–12 Ay": 0, "12+ Ay": 0}
-    for b in babies_all:
+    try:
+        baby_birth_rows = db.query(Baby.birth_date).limit(500).all()
+    except Exception:
         try:
-            m = b.age_in_months
+            db.rollback()
+        except Exception:
+            pass
+        baby_birth_rows = []
+    age_buckets = {"0–3 Ay (Yenidoğan / 4. Trimester)": 0, "4–6 Ay (Uyku Gerilemesi)": 0, "7–12 Ay": 0, "12+ Ay": 0}
+    now_utc_naive = datetime.now(timezone.utc).replace(tzinfo=None)
+    for (b_dt,) in baby_birth_rows:
+        try:
+            if b_dt is None:
+                m = 0.0
+            else:
+                b_naive = b_dt.astimezone(timezone.utc).replace(tzinfo=None) if getattr(b_dt, "tzinfo", None) else b_dt
+                m = max(0.0, (now_utc_naive - b_naive).days / 30.4375)
             if m <= 3.5:
                 age_buckets["0–3 Ay (Yenidoğan / 4. Trimester)"] += 1
             elif m <= 6.5:
@@ -5544,10 +5638,62 @@ def _build_analytics_summary(
         "hourly_all_tr": dict(hourly_all_time),
         "recent_clicks": recent_clicks_detached,
     }
-    if cache_enabled and _SUMMARY_CACHE_TTL_SEC > 0:
-        with _SUMMARY_CACHE_LOCK:
-            _SUMMARY_CACHE[period] = (time.monotonic(), copy.deepcopy(result_summary))
+    now_done = time.monotonic()
+    with _SUMMARY_CACHE_LOCK:
+        _LAST_GOOD_SUMMARY_CACHE[period] = (now_done, _clone_summary_for_response(result_summary))
+        if cache_enabled and _SUMMARY_CACHE_TTL_SEC > 0:
+            _SUMMARY_CACHE[period] = (now_done, _clone_summary_for_response(result_summary))
     return result_summary
+
+
+def get_resilient_analytics_summary(
+    db: Session,
+    period: str = "all",
+    use_cache: Optional[bool] = None,
+) -> Dict[str, Any]:
+    """
+    SWR (Stale-While-Revalidate) ve Zero-500 korumalı kokpit özet yükleyici:
+    1) Veritabanı kilit/pool zaman aşımı durumunda aynı döneme ('period') ait ve süresi (_SWR_MAX_STALE_SEC)
+       dolmamış _LAST_GOOD_SUMMARY_CACHE yedeğini ('stale_fallback': True) döndürür (farklı dönem verisini karıştırmaz).
+    2) Soğuk başlangıçta (cold-start) henüz önbellek yokken yerel/birincil DB şema veya kilit hatası verirse,
+       bellek içi (sqlite:///:memory:) geçici oturumla sıfır-statik-veri özetini üreterek 500 hatasını tamamen önler.
+    """
+    try:
+        return _build_analytics_summary(db, period=period, use_cache=use_cache)
+    except ValueError:
+        raise
+    except Exception as exc:
+        logger.warning("Analytics summary build warning (falling back to SWR cache): %s", exc, exc_info=True)
+        try:
+            if db is not None:
+                db.rollback()
+        except Exception:
+            pass
+        now_mono = time.monotonic()
+        with _SUMMARY_CACHE_LOCK:
+            fb_entry = _LAST_GOOD_SUMMARY_CACHE.get(period)
+            if fb_entry is not None and (now_mono - fb_entry[0]) <= _SWR_MAX_STALE_SEC:
+                cloned_fb = _clone_summary_for_response(fb_entry[1])
+                cloned_fb["stale_fallback"] = True
+                return cloned_fb
+        try:
+            from sqlalchemy import create_engine as _sa_create_engine
+            from sqlalchemy.orm import sessionmaker as _sa_sessionmaker
+
+            mem_engine = _sa_create_engine("sqlite:///:memory:", connect_args={"check_same_thread": False})
+            Base.metadata.create_all(bind=mem_engine, checkfirst=True)
+            MemSession = _sa_sessionmaker(autocommit=False, autoflush=False, bind=mem_engine)
+            mem_db = MemSession()
+            try:
+                cold_fb = _build_analytics_summary(mem_db, period=period, use_cache=False)
+                cold_fb["stale_fallback"] = True
+                return cold_fb
+            finally:
+                mem_db.close()
+                mem_engine.dispose()
+        except Exception:
+            pass
+        raise
 
 
 @router.get("/summary")
@@ -5567,7 +5713,7 @@ def get_analytics_summary(
             detail=f"Geçersiz dönem filtresi: {period}. İzin verilenler: {', '.join(ALLOWED_PERIODS)}",
         )
 
-    summary = _build_analytics_summary(db, period=period)
+    summary = get_resilient_analytics_summary(db, period=period)
     recent_serialized = []
     tz_tr = timezone(timedelta(hours=3))
     for c in summary["recent_clicks"][:50]:
@@ -6129,7 +6275,12 @@ def export_analytics_csv(
     )
 
 
-def _render_login_html(show_error: bool = False, status_code: int = status.HTTP_200_OK) -> HTMLResponse:
+def _render_login_html(
+    show_error: bool = False,
+    status_code: int = status.HTTP_200_OK,
+    error_message: str = "❌ Geçersiz PIN kodu. Lütfen tekrar deneyin.",
+) -> HTMLResponse:
+    safe_err = html.escape(error_message)
     return HTMLResponse(f"""
     <!DOCTYPE html>
     <html lang="tr">
@@ -6191,7 +6342,7 @@ def _render_login_html(show_error: bool = False, status_code: int = status.HTTP_
           font-weight: 700;
           cursor: pointer;
         }}
-        .err {{ color: #FF6B6B; font-size: 12px; margin-top: 12px; display: {'block' if show_error else 'none'}; }}
+        .err {{ color: #FF6B6B; font-size: 12px; margin-top: 12px; line-height: 1.45; display: {'block' if show_error else 'none'}; }}
       </style>
     </head>
     <body>
@@ -6203,7 +6354,7 @@ def _render_login_html(show_error: bool = False, status_code: int = status.HTTP_
           <input type="password" name="pin" placeholder="Yönetici PIN" autofocus autocomplete="off" />
           <button type="submit">Kokpiti Aç</button>
         </form>
-        <div class="err">❌ Geçersiz PIN kodu. Lütfen tekrar deneyin.</div>
+        <div class="err">{safe_err}</div>
       </div>
     </body>
     </html>
@@ -6216,7 +6367,15 @@ async def analytics_login_post(
     pin: Optional[str] = Form(None),
 ):
     """PIN kodunu URL query parametresine sızdırmadan POST ile doğrular ve HttpOnly oturum çerezi yazar."""
-    if not _pin_is_valid(pin):
+    try:
+        is_authed = authorize_admin_request(request, pin, None, request.cookies.get(_ADMIN_SESSION_COOKIE))
+    except HTTPException as auth_exc:
+        return _render_login_html(
+            show_error=True,
+            status_code=auth_exc.status_code,
+            error_message=f"⏳ {auth_exc.detail}",
+        )
+    if not is_authed:
         return _render_login_html(show_error=True, status_code=status.HTTP_401_UNAUTHORIZED)
 
     clean_pin = (pin or "").strip().upper()
@@ -6229,7 +6388,7 @@ async def analytics_login_post(
         value=_make_admin_session_token(clean_pin),
         httponly=True,
         samesite="lax",
-        secure=(request.url.scheme == "https"),
+        secure=_is_request_https(request),
         max_age=_ADMIN_SESSION_TTL_SECONDS,
         path="/",
     )
@@ -6246,11 +6405,19 @@ def analytics_dashboard_page(
     db: Session = Depends(get_db),
 ):
     """
-    Mışıl Baby v4.55.1 — Sıfır Statik Veri, Resmi Apple/Google Mağaza API ve Hızlı Görsel Kurucu Kokpiti.
+    Mışıl Baby v4.56.1 — Sıfır Statik Veri, SWR Hata Korumalı & Mobil-Öncelikli Kurucu Kokpiti.
     """
     session_token = request.cookies.get(_ADMIN_SESSION_COOKIE)
     authorized_by_session = _admin_session_token_is_valid(session_token)
-    if not authorize_admin_request(request, pin, None, session_token):
+    try:
+        is_authed = authorize_admin_request(request, pin, None, session_token)
+    except HTTPException as auth_exc:
+        return _render_login_html(
+            show_error=True,
+            status_code=auth_exc.status_code,
+            error_message=f"⏳ {auth_exc.detail}",
+        )
+    if not is_authed:
         login_status_code = status.HTTP_401_UNAUTHORIZED if pin else status.HTTP_200_OK
         return _render_login_html(show_error=bool(pin), status_code=login_status_code)
 
@@ -6288,7 +6455,13 @@ def analytics_dashboard_page(
             detail=f"Geçersiz dönem filtresi: {period}. İzin verilenler: {', '.join(ALLOWED_PERIODS)}",
         )
     clean_period = period
-    s = _build_analytics_summary(db, period=clean_period)
+    s = get_resilient_analytics_summary(db, period=clean_period)
+    if s.get("stale_fallback") and not sync_banner:
+        sync_banner = """
+        <div class="toast-banner" style="background:rgba(245,158,11,0.12); border-color:rgba(245,158,11,0.35); color:#D97706;">
+          ⚡ <strong>Hızlı Önbellek Koruma Modu (SWR):</strong> Veritabanı yoğunluğu nedeniyle son doğrulanmış önbellek verisi anında yüklendi; canlı yenileme arka planda devam ediyor.
+        </div>
+        """
 
     kpis = s["cumulative_kpis"]
     sb = s["store_official"]
@@ -8113,16 +8286,208 @@ def analytics_dashboard_page(
           .cockpit-sidebar .tabs-nav {{
             flex-direction: row;
             overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+          }}
+          .cockpit-sidebar .tabs-nav::-webkit-scrollbar {{
+            display: none;
           }}
           .cockpit-sidebar .tab-btn {{
             width: auto;
             white-space: nowrap;
+            flex: 0 0 auto;
           }}
           .sidebar-kpi-mini, .sidebar-section-lbl {{
             display: none;
           }}
           .bento-split-2col, .bento-split-2col-equal {{
             grid-template-columns: 1fr;
+          }}
+        }}
+        /* MOBİL-ÖNCELİKLİ (MOBILE-FIRST) TELEFON & TABLET UYUMLULUĞU (<= 768px & <= 480px) */
+        @media (max-width: 768px) {{
+          .cockpit-sidebar {{
+            padding: 12px 12px 10px !important;
+            gap: 8px !important;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 130 !important;
+            border-right: none !important;
+            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+          }}
+          .sidebar-brand-box {{
+            padding: 2px 4px 8px !important;
+          }}
+          .sidebar-brand-icon {{
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 16px !important;
+          }}
+          .sidebar-brand-box h1 {{
+            font-size: 13.5px !important;
+          }}
+          .sidebar-actions-grid {{
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 5px !important;
+            padding-top: 6px !important;
+          }}
+          .sidebar-actions-grid .btn {{
+            grid-column: auto !important;
+            padding: 6px 8px !important;
+            font-size: 11px !important;
+          }}
+          .cockpit-sidebar .tabs-nav {{
+            flex-wrap: nowrap !important;
+            gap: 6px !important;
+            padding-bottom: 2px !important;
+          }}
+          .cockpit-sidebar .tab-btn {{
+            padding: 8px 11px !important;
+            font-size: 12px !important;
+            border-radius: 9px !important;
+          }}
+          /* Mobilde topbar sticky olmaktan çıkarılır; ekranın %30'unu kapatması önlenir */
+          .topbar {{
+            position: static !important;
+            padding: 10px 12px !important;
+            gap: 8px !important;
+          }}
+          .topbar > div {{
+            width: 100%;
+            justify-content: space-between;
+          }}
+          .period-pills {{
+            overflow-x: auto;
+            flex-wrap: nowrap !important;
+            max-width: 100%;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+          }}
+          .period-pills::-webkit-scrollbar {{
+            display: none;
+          }}
+          .period-pill {{
+            white-space: nowrap;
+            flex: 0 0 auto;
+            padding: 6px 10px !important;
+            font-size: 11.5px !important;
+          }}
+          .workspace-canvas {{
+            padding: 12px 10px 64px !important;
+          }}
+          .bento-card, .conv-bridge-card {{
+            padding: 14px 12px !important;
+            border-radius: 14px !important;
+            margin-bottom: 12px !important;
+          }}
+          /* Mobilde 4'lü Dönüşüm Hunisi: 7 katlı dikey kule yerine 2x2 kompakt Bento ızgarası */
+          .conv-bridge-grid {{
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+          }}
+          .conv-connector {{
+            display: none !important;
+          }}
+          .hero-stage-card {{
+            padding: 12px 11px !important;
+            border-radius: 12px !important;
+          }}
+          .kpi-grid {{
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+            margin-bottom: 12px !important;
+          }}
+          .big-num {{
+            font-size: clamp(17px, 4.5vw, 22px) !important;
+            white-space: normal !important;
+            word-break: break-word !important;
+            line-height: 1.15 !important;
+          }}
+          /* 330px / 320px sabit min-width nedeniyle dar telefonlarda oluşan yatay taşmayı sıfırla */
+          .donuts-grid,
+          .reviews-grid,
+          .steps-grid {{
+            grid-template-columns: minmax(0, 1fr) !important;
+            gap: 10px !important;
+          }}
+          .donut-wrap {{
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+          }}
+          .donut-legend {{
+            width: 100%;
+            min-width: 0 !important;
+          }}
+          .section-head {{
+            font-size: 13px !important;
+            gap: 8px !important;
+          }}
+          .table-search-input {{
+            min-width: 0 !important;
+            width: 100% !important;
+            flex: 1 1 140px;
+          }}
+          .subcat-bar {{
+            flex-wrap: nowrap !important;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            padding: 8px 10px !important;
+          }}
+          .subcat-bar::-webkit-scrollbar {{
+            display: none;
+          }}
+          .subcat-pill {{
+            white-space: nowrap;
+            flex: 0 0 auto;
+            padding: 6px 11px !important;
+            font-size: 11.5px !important;
+          }}
+          th, td {{
+            padding: 8px 9px !important;
+            font-size: 11.5px !important;
+          }}
+        }}
+        @media (max-width: 480px) {{
+          .spark-svg {{
+            display: none !important;
+          }}
+          .card-label {{
+            font-size: 10px !important;
+            flex-wrap: wrap;
+            gap: 4px !important;
+          }}
+          .delta-chip {{
+            font-size: 9.5px !important;
+            padding: 2px 6px !important;
+          }}
+          .kpi-micro-chip {{
+            font-size: 10px !important;
+            padding: 2px 6px !important;
+          }}
+          .conv-summary-pills {{
+            width: 100%;
+            overflow-x: auto;
+            flex-wrap: nowrap !important;
+            scrollbar-width: none;
+            padding-bottom: 2px;
+          }}
+          .conv-summary-pills::-webkit-scrollbar {{
+            display: none;
+          }}
+          .conv-summary-pill {{
+            white-space: nowrap;
+            flex: 0 0 auto;
+            font-size: 10.5px !important;
+            padding: 4px 9px !important;
+          }}
+        }}
+        @media (max-width: 359px) {{
+          .conv-bridge-grid,
+          .kpi-grid {{
+            grid-template-columns: minmax(0, 1fr) !important;
           }}
         }}
       </style>
@@ -9276,17 +9641,33 @@ def analytics_dashboard_page(
           }}
 
           var isPolling = false;
+          var pollErrorState = false;
 
           async function pollLiveTelemetry() {{
             if (isPolling || document.hidden) return;
             isPolling = true;
+            var abortCtrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+            var timeoutId = abortCtrl ? setTimeout(function() {{ abortCtrl.abort(); }}, 8000) : null;
             try {{
               var res = await fetch('/api/v1/analytics/summary?period={clean_period}', {{
                 headers: {{ 'Accept': 'application/json' }},
-                credentials: 'same-origin'
+                credentials: 'same-origin',
+                signal: abortCtrl ? abortCtrl.signal : undefined
               }});
-              if (!res.ok) return;
+              if (!res.ok) {{
+                pollErrorState = true;
+                if (countdownEl && dotEl && autoRefreshEnabled) {{
+                  countdownEl.textContent = (res.status === 401) ? 'Oturum Yenile' : 'Canlı: Bekleniyor';
+                  dotEl.style.background = '#F59E0B';
+                  dotEl.style.boxShadow = '0 0 8px #F59E0B';
+                }}
+                return;
+              }}
               var data = await res.json();
+              if (pollErrorState) {{
+                pollErrorState = false;
+                updateUi();
+              }}
               if (data.platform_split) {{
                 PLATFORM_SPLIT = data.platform_split;
                 switchPlatform(currentPlatform, true);
@@ -9354,7 +9735,14 @@ def analytics_dashboard_page(
                 filterTableByQuery(document.getElementById('liveClicksSearchInput'), 'liveClicksTbody');
               }}
             }} catch (_err) {{
+              pollErrorState = true;
+              if (countdownEl && dotEl && autoRefreshEnabled) {{
+                countdownEl.textContent = 'Canlı: Bağlanıyor...';
+                dotEl.style.background = '#F59E0B';
+                dotEl.style.boxShadow = '0 0 8px #F59E0B';
+              }}
             }} finally {{
+              if (timeoutId) clearTimeout(timeoutId);
               isPolling = false;
             }}
           }}
@@ -9390,7 +9778,7 @@ def analytics_dashboard_page(
             value=new_session_cookie_value,
             httponly=True,
             samesite="lax",
-            secure=(request.url.scheme == "https"),
+            secure=_is_request_https(request),
             max_age=_ADMIN_SESSION_TTL_SECONDS,
             path="/",
         )

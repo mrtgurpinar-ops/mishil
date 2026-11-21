@@ -36,14 +36,15 @@ from app.api.v1.endpoints.analytics import (
 setup_logging(debug=settings.DEBUG)
 logger = get_logger("main")
 
-# In-Memory Sliding Window Rate Limiter (IP-based, 120 req / min)
+# In-Memory Sliding Window Rate Limiter (IP-based, 120 req / min, thread-safe)
 RATE_LIMIT_RECORD: dict = {}
+_RATE_LIMIT_LOCK = threading.Lock()
 _RATE_LIMIT_LAST_CLEANUP = 0.0
 _RATE_LIMIT_CLEANUP_INTERVAL = 300  # Cleanup every 5 minutes
 
 
 def _cleanup_rate_limit_record(now: float) -> None:
-    """Remove all stale IP entries older than 60s to prevent memory leak."""
+    """Remove all stale IP entries older than 60s to prevent memory leak (caller holds _RATE_LIMIT_LOCK)."""
     global _RATE_LIMIT_LAST_CLEANUP
     if now - _RATE_LIMIT_LAST_CLEANUP < _RATE_LIMIT_CLEANUP_INTERVAL:
         return
@@ -199,7 +200,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Paths that bypass rate limiting (static, health, compliance, docs)
+# Paths that bypass rate limiting (static, health, compliance, docs, PIN-protected admin cockpit)
 _RATE_LIMIT_BYPASS_PREFIXES = (
     "/health",
     "/privacy",
@@ -215,40 +216,47 @@ _RATE_LIMIT_BYPASS_PREFIXES = (
     "/app-store",
     "/android",
     "/play-store",
+    "/admin/analytics",
+    "/admin/clicks",
+    "/admin/feedbacks",
     "/api/v1/analytics/app-open-signal",
+    "/api/v1/analytics/dashboard",
+    "/api/v1/analytics/summary",
+    "/api/v1/analytics/login",
 )
 
 
 # Rate Limiting & Security Header Middleware
 @app.middleware("http")
 async def security_and_rate_limit_middleware(request: Request, call_next):
-    # 1. Rate Limiting Check (Bypass for static files and health check)
+    # 1. Rate Limiting Check (Bypass for static files, health check, and PIN-protected admin cockpit)
     if not request.url.path.startswith(_RATE_LIMIT_BYPASS_PREFIXES):
         client_ip = request.client.host if request.client else "unknown"
         now = time.time()
 
-        # Periodic full cleanup to prevent memory leak
-        _cleanup_rate_limit_record(now)
+        with _RATE_LIMIT_LOCK:
+            # Periodic full cleanup to prevent memory leak
+            _cleanup_rate_limit_record(now)
 
-        # Clean this IP's history older than 60s
-        history = RATE_LIMIT_RECORD.get(client_ip, [])
-        history = [t for t in history if now - t < 60]
+            # Clean this IP's history older than 60s
+            history = RATE_LIMIT_RECORD.get(client_ip, [])
+            history = [t for t in history if now - t < 60]
 
-        if len(history) >= 120:
-            return JSONResponse(
-                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-                content={
-                    "type": "https://mishil.app/errors/rate-limit-exceeded",
-                    "title": "Too Many Requests",
-                    "status": 429,
-                    "detail": "Çok fazla istek gönderildi. Lütfen 1 dakika sonra tekrar deneyiniz.",
-                    "instance": request.url.path,
-                },
-                headers={"Retry-After": "60"}
-            )
+            if len(history) >= 120:
+                return JSONResponse(
+                    status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                    content={
+                        "type": "https://mishil.app/errors/rate-limit-exceeded",
+                        "title": "Too Many Requests",
+                        "status": 429,
+                        "detail": "Çok fazla istek gönderildi. Lütfen 1 dakika sonra tekrar deneyiniz.",
+                        "instance": request.url.path,
+                    },
+                    headers={"Retry-After": "60"}
+                )
 
-        history.append(now)
-        RATE_LIMIT_RECORD[client_ip] = history
+            history.append(now)
+            RATE_LIMIT_RECORD[client_ip] = history
 
     # 2. Request ID & Timing
     req_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
