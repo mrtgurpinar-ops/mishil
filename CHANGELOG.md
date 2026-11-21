@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.0-bubble-ui-v5] - 2026-11-21 (Railway Canlı Yayın — Göz Yormayan Sıcak Yulaf & Kaşmir Beji Aydınlık Mod `Zero-Glare Warm Oat Light Palette` • 🟢 Yeni Native EAS Build Gerekmez)
+### 🌤️ Göz Yormayan Sıcak Yulaf & Kaşmir Beji Aydınlık Mod (`[data-theme="light"]`) Yeniden Tasarımı (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`)
+1. **Parlak `#FFFFFF` / `#FAF6F0` Beyaz Yansıtıcıların Sıcak Yulaf & Badem (`#E8DFD3` / `#EFE3D2`) Tonlarına Çekilmesi:**
+   - `[data-theme="light"]` dış zemin rengi `--bg-night: #E8DFD3` (`~%85` yumuşak parlaklık), kart yüzeyleri `--card-night: rgba(242, 234, 224, 0.94)` ve `--card-elevated: #F4EDE4` yapılarak yüksek parlaklık kaynaklı göz yorgunluğu giderildi.
+   - 1. Baloncuk (`.mega-bubble-sleep`) sıcak badem (`#EFE3D2 ➔ #E6D7C3`), 2. Baloncuk (`.mega-bubble-care`) sıcak bisküvi & gül kurusu (`#E4D0B9 ➔ #DEC3BD`) ve içindeki 2×2 haplar (`#F3E6D0` / `#F1DEDC`), 3. Baloncuk (`.mega-bubble-health`) ise dinlendirici mat adaçayı & lavanta taşı (`#BCD4C6 ➔ #CBC0DF`) tonlarına geçirildi.
+2. **`Şimdi Uyuyor Başlat` (`.btn-primary`) Kontrast Onarımı (`2.1:1` ➔ `8.4:1` AAA):**
+   - `[data-theme="light"] .btn-primary` üzerindeki parlak beyaz yazı (`#FFFFFF`) kaldırılarak sıcak bal-kehribar (`#EAA05E ➔ #DC8844`) zemin üzerinde **Koyu Espresso (`#23160E`)** yazı rengiyle yüksek okunabilirlik sağlandı.
+3. **Tüm Sekmelerde (`Analiz`, `Sesler`, `Mışıl Dadı`, `Ayarlar`, `Onboarding Adım 1–9`, `.modal-sheet`) Bütüncül Aydınlık Mod Uyumu:**
+   - `#screen-onboarding`, `.onb-combo-card`, `.analytics-organic-card`, `#sounds-timer-card`, `.sound-studio-card`, `.dadi-chat-card`, `.settings-accordion-card` ve `.modal-sheet` yüzeylerindeki tüm `#FFFFFF` kuralları sıcak yulaf (`#F1E8DC` / `#EFE6DA`) paletiyle değiştirildi; `offlineHtml.generated.ts` (`1246 KB`) güncellendi.
+4. **İcra Modu & Doğrulama Kapısı (`AGENTS.md §5.1–§5.2`):**
+   - **İcra Modu:** Tek Ajan (`[Solo-Antigravity]` — Seviye 1 CSS/Tema iyileştirmesi; `11/11 suite / 80 Jest testi` `task-789`, `tsc --noEmit` 0 hata, Playwright 7 ekran Aydınlık Mod görsel doğrulaması `task-788`).
+
 ## [4.56.0-bubble-ui-v4] - 2026-11-21 (Railway Canlı Yayın — Yeni Abone Satın Alma Sonrası Kart Çakışması, 6 Adımlı Spotlight Tanıtım Turu Taşmaları ve 3 Dil `TR/EN/DE` Tam Kapsamlı UI Geçiş & Taşma Onarımı • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🛡️ Yeni Abone (`1. Gün / 3. Gün / 7. Gün`) Kart Çakışması, Spotlight Tanıtım Turu Geometrisi ve 3 Dil (`TR / EN / DE`) UI Geçiş Onarımı (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`)
 1. **Yeni Abonede Ana Ekran (`#view-home`) Kart Çakışması ve Dikey Sıkışma Onarımı:**
