@@ -2,6 +2,17 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.0-bubble-ui-v3] - 2026-11-21 (Railway Canlı Yayın — Ana Sayfa Alt Barsız Tam Ekran `Dockless Fullscreen 3 Mega Bubbles`, Üst Başlık `👵 Dadı` Kısayol Hapı & Alt Görünümlerde `← Ana Ekran` Dönüş Hapı + Yüzen Kapsül Alt Bar • 🟢 Yeni Native EAS Build Gerekmez)
+### 🫧 Ana Sayfa (`#view-home`) Alt Barsız `%100` Tam Ekran (Dockless Fullscreen) Mimarisi, Üst Başlık `👵 Dadı` Kısayolu ve Alt Sekme Navigasyonu (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`)
+1. **Ana Sayfada Alt Menü Barının Kaldırılması & `%100` Tam Ekran 3 Mega Baloncuk (`#view-home`):**
+   - Ana Sayfada (`#view-home.active`) alt menü barı (`.tab-bar`) gizlenerek (`body:not(.spotlight-tour-open):has(#view-home.active) .tab-bar { display: none !important; }`) 3 Büyük Kategori Baloncuğunun (`🌙 UYKU & RİTİM BALONCUĞU`, `🍼 GÜNLÜK BAKIM & ACİL DESTEK BALONCUĞU`, `🌱 SAĞLIK, ATAK & AİLE BALONCUĞU`) cihaz ekran yüksekliğinin tamamına (`padding-bottom: calc(16px + env(safe-area-inset-bottom))`, `gap: 13px`) sıfır kaydırma ve sıfır alt bar kalabalığıyla yerleşmesi sağlandı.
+   - **Üst Başlık `👵 Dadı` Kısayol Hapı (`#home-dadi-pill`):** Ana ekranın sağ üst köşesine (`#home-header-actions`) `👨‍👩‍👧 Aile` hapının yanına **`👵 Dadı`** hap butonu (`onclick="hapticPulse(); switchTab('coach');"`) eklendi (`TR/EN/DE` ve `Dark/Light` tam uyumlu). Böylece alt bar olmadan ana ekrandaki tüm 5 temel modüle tek dokunuşla erişim sağlandı.
+2. **Alt Sekmelerde (`Analiz`, `Mışıl Dadı`, `Sesler`) `← Ana Ekran` Dönüş Hapı & 4 Köşesi Yuvarlatılmış Yüzen Kapsül Alt Bar:**
+   - `#view-analytics`, `#view-coach` ve `#view-sounds` üst başlıklarına tek dokunuşla ana ekrana dönen kehribar **`← Ana Ekran`** (`.subview-home-back-pill`) hap butonu eklendi.
+   - Alt görünümlerde ve 6 adımlı İnteraktif Spotlight Tanıtım Turunda (`body.spotlight-tour-open`) aktif kalan `.tab-bar`, 4 köşesi yuvarlatılmış (`border-radius: 26px`) yüzen kapsül formuna, dolgulu ikonlara ve ortada parlayan `Uyut` dairesine kavuşturuldu; kullanılmayan eski bento CSS sınıfları temizlenerek `app.html` `1,000 KB` performans bütçesi altında tutuldu.
+3. **3 Ajanlı Konsensüs & Doğrulama Kapısı (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-452`: Seçenek A Dockless Fullscreen Home onayı)** + **Codex CLI (`gpt-6-luna`, `task-453`: Seçenek A Dockless Fullscreen Home onayı)** + **Antigravity (`11/11 suite / 80 Jest testi` `task-504`, `tsc --noEmit` 0 hata, `mobile_compliance_checker.py` `7/7 READY_FOR_RELEASE`, `offlineHtml.generated.ts` `1233 KB`)**.
+
 ## [4.56.0-bubble-ui-v2] - 2026-11-21 (Railway Canlı Yayın — Ana Sayfa 1:1 Onaylı Konsept 1 Görsel Eşleşmesi & Uçtan Uca Tüm Ekranlarda `32px Mega-Bubble & Pastel Hap` Tasarım Sistemi • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🫧 Uçtan Uca `32px Mega-Bubble & Pastel Hap` Tasarım Sistemi: Ana Sayfa 1:1 Görsel Eşleşmesi, 8 Adımlı Kayıt (Onboarding), Kişisel Rapor, Paywall, Spotlight Tanıtım Turu ve Tüm Sekmeler (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`)
 1. **Ana Sayfa (`#view-home`) 1:1 Onaylı Konsept 1 Görsel Eşleşmesi (`public/app.html`):**
