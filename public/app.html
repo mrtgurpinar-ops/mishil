@@ -948,15 +948,16 @@
 
     /* =========================================================================
        PROPOSAL 1: 3-TIER MEGA BUBBLE HUBS (3 BÜYÜK KATEGORİ BALONCUĞU MİMARİSİ)
+       1:1 ONAYLI GÖRSEL EŞLEŞMESİ & TÜM UYGULAMA GENELİ BALONCUK TASARIM DİLİ
        ========================================================================= */
     .mega-bubble-hub {
-      border-radius: 30px;
-      padding: 13px 14px;
+      border-radius: 32px;
+      padding: 13px 15px;
       margin-bottom: 10px;
       position: relative;
       overflow: hidden;
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      backdrop-filter: blur(22px) saturate(185%);
+      -webkit-backdrop-filter: blur(22px) saturate(185%);
       transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease, box-shadow 0.25s ease;
     }
 
@@ -965,7 +966,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 8px;
-      margin-bottom: 9px;
+      margin-bottom: 8px;
     }
 
     .mega-bubble-kicker {
@@ -980,15 +981,41 @@
       white-space: nowrap;
     }
 
+    /* ANA EKRAN ÜST BAŞLIK & SEGMENT SADELEŞTİRME (1:1 ONAYLI GÖRSEL EŞLEŞMESİ) */
+    #view-home .app-header {
+      align-items: center !important;
+      margin-bottom: 8px !important;
+      padding-top: 2px !important;
+      padding-bottom: 4px !important;
+    }
+    #view-home #baby-header-subtitle {
+      display: none !important;
+    }
+    #view-home #baby-header-title {
+      font-size: 20px !important;
+      font-weight: 700 !important;
+      margin-top: 0 !important;
+      letter-spacing: -0.3px !important;
+    }
+    /* Varsayılan MışılSpot görünümünde 2. satır sekme çubuğunu gizle (DOM'da kalır) */
+    #view-home:has(#home-seg-sweetspot:not([style*="display: none"])) > .segmented-control {
+      display: none !important;
+    }
+
     /* 1. BALONCUK: UYKU & RİTİM BALONCUĞU (KEHRİBAR & MUM IŞIĞI AURA) */
     .mega-bubble-sleep {
-      background: radial-gradient(circle at 22% 22%, rgba(244, 162, 97, 0.24) 0%, rgba(44, 34, 48, 0.94) 72%) !important;
-      border: 1.5px solid rgba(244, 162, 97, 0.45) !important;
-      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.50), 0 0 24px rgba(244, 162, 97, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+      background: radial-gradient(circle at 22% 22%, rgba(244, 162, 97, 0.26) 0%, rgba(44, 34, 48, 0.95) 72%) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.48) !important;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.52), 0 0 26px rgba(244, 162, 97, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.24) !important;
       text-align: left !important;
     }
     .mega-bubble-sleep .mega-bubble-kicker {
       color: #F8E5D0;
+    }
+    /* Onaylı görseldeki gibi üst sağ durum rozetini ve fazladan 3. satır açıklamasını gizle (DOM'da kalır) */
+    #home-organic-hero:not(.sleeping-hero) #bento-countdown-pill,
+    #home-organic-hero:not(.sleeping-hero) #target-sleep-subtext {
+      display: none !important;
     }
     .mega-bubble-sleep.sleeping-hero {
       background: radial-gradient(circle at 22% 22%, rgba(46, 213, 115, 0.24) 0%, rgba(22, 36, 32, 0.95) 72%) !important;
@@ -999,17 +1026,17 @@
     .sleep-bubble-hero-row {
       display: flex;
       align-items: center;
-      gap: 13px;
+      gap: 14px;
       margin-bottom: 10px;
     }
     .sleep-bubble-hero-row .warm-moon-aura {
       margin: 0 !important;
-      width: 64px;
-      height: 64px;
+      width: 68px;
+      height: 68px;
       flex-shrink: 0;
-      background: radial-gradient(circle at 50% 50%, rgba(244, 162, 97, 0.34) 0%, rgba(224, 122, 95, 0.14) 100%);
-      border: 1.5px solid rgba(244, 162, 97, 0.52);
-      box-shadow: 0 0 28px rgba(244, 162, 97, 0.45);
+      background: radial-gradient(circle at 50% 50%, rgba(244, 162, 97, 0.38) 0%, rgba(224, 122, 95, 0.16) 100%);
+      border: 1.5px solid rgba(244, 162, 97, 0.58);
+      box-shadow: 0 0 32px rgba(244, 162, 97, 0.48);
     }
     .sleep-bubble-time-col {
       flex: 1;
@@ -1017,17 +1044,17 @@
       text-align: left;
     }
     .sleep-bubble-time-col .organic-hero-time {
-      font-size: 36px;
+      font-size: 38px;
       line-height: 1;
-      color: #FCEAD6;
+      color: #FCEAD6 !important;
       letter-spacing: -1px;
     }
     .sleep-bubble-brand-tag {
       font-family: 'Sora', sans-serif;
-      font-size: 12px;
+      font-size: 13px;
       font-weight: 700;
-      color: rgba(250, 245, 238, 0.78);
-      margin-top: 2px;
+      color: rgba(250, 245, 238, 0.85);
+      margin-top: 3px;
     }
     .sleep-bubble-time-col .organic-hero-subtext {
       font-size: 10.5px;
@@ -1037,82 +1064,105 @@
     }
 
     .sleep-bubble-circadian-box {
-      background: rgba(19, 16, 28, 0.48) !important;
-      border: 1px solid rgba(244, 162, 97, 0.24) !important;
-      border-radius: 15px !important;
-      padding: 7px 10px !important;
+      background: transparent !important;
+      border: none !important;
+      border-radius: 16px !important;
+      padding: 0 !important;
       margin-bottom: 9px !important;
       cursor: pointer;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+      box-shadow: none !important;
+    }
+    .sleep-bubble-circadian-box > div:first-child {
+      display: none !important;
+    }
+    #circadian-strip-bar {
+      height: 26px !important;
+      border-radius: 999px !important;
+      background: rgba(26, 22, 38, 0.85) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.35) !important;
+      box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.45), 0 2px 10px rgba(0, 0, 0, 0.25) !important;
     }
     .sleep-bubble-cta-btn {
       width: 100%;
-      min-height: 42px;
-      padding: 10px 14px !important;
+      min-height: 44px;
+      padding: 10px 16px !important;
       margin-bottom: 0 !important;
       border-radius: 999px !important;
       background: linear-gradient(135deg, #F4A868 0%, #E59254 100%) !important;
       color: #1F1510 !important;
       font-family: 'Sora', sans-serif;
-      font-size: 13px !important;
+      font-size: 13.5px !important;
       font-weight: 800 !important;
-      border: 1px solid rgba(255, 235, 210, 0.45) !important;
-      box-shadow: 0 6px 18px rgba(244, 162, 97, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+      border: 1px solid rgba(255, 235, 210, 0.5) !important;
+      box-shadow: 0 6px 18px rgba(244, 162, 97, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.48) !important;
     }
 
     /* 2. BALONCUK: GÜNLÜK BAKIM & ACİL DESTEK BALONCUĞU (SICAK PASTEL KREM & PUDRA) */
     .mega-bubble-care {
-      background: linear-gradient(135deg, rgba(235, 208, 174, 0.94) 0%, rgba(224, 180, 174, 0.94) 100%) !important;
-      border: 1.5px solid rgba(255, 240, 225, 0.65) !important;
-      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.42), 0 0 22px rgba(235, 200, 175, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.75) !important;
+      background: linear-gradient(135deg, rgba(235, 208, 174, 0.95) 0%, rgba(224, 180, 174, 0.95) 100%) !important;
+      border: 1.5px solid rgba(255, 240, 225, 0.72) !important;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.42), 0 0 22px rgba(235, 200, 175, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
     }
     .mega-bubble-care .mega-bubble-kicker {
-      color: #3D281E !important;
+      color: #352118 !important;
     }
     .mega-bubble-care .quick-bento-grid {
-      gap: 8px;
+      gap: 9px;
       margin-bottom: 0;
     }
     .mega-bubble-care .soft-quick-card {
       border-radius: 999px !important;
-      padding: 9px 12px !important;
+      padding: 9px 14px !important;
       min-height: 48px;
-      box-shadow: 0 5px 14px rgba(60, 35, 25, 0.11), inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+      justify-content: flex-start;
+      gap: 10px;
+      box-shadow: 0 5px 14px rgba(60, 35, 25, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.88) !important;
     }
     .mega-bubble-care .card-milk,
     .mega-bubble-care .card-cry {
       background: linear-gradient(145deg, #FDF1D6 0%, #F7E4BE 100%) !important;
-      border: 1px solid rgba(210, 175, 120, 0.55) !important;
-      color: #2D1E17 !important;
+      border: 1px solid rgba(210, 175, 120, 0.58) !important;
+      color: #261812 !important;
     }
     .mega-bubble-care .card-diaper,
     .mega-bubble-care .card-lullaby {
       background: linear-gradient(145deg, #FCE7E6 0%, #F5D2D2 100%) !important;
-      border: 1px solid rgba(210, 155, 155, 0.55) !important;
-      color: #2D1E17 !important;
+      border: 1px solid rgba(210, 155, 155, 0.58) !important;
+      color: #261812 !important;
     }
     .mega-bubble-care .soft-quick-card div[style*="font-weight: 800"] {
-      color: #261812 !important;
-      font-size: 12px !important;
+      color: #241610 !important;
+      font-size: 13px !important;
+      letter-spacing: -0.2px;
     }
+    /* Onaylı görseldeki gibi 2x2 pastel haplarda tek satır temiz başlık göster (alt satır DOM'da kalır) */
     .mega-bubble-care .soft-quick-card div[id^="quick-card-"] {
-      color: #6B4E42 !important;
-      font-weight: 600;
+      display: none !important;
     }
 
     /* 3. BALONCUK: SAĞLIK, ATAK & AİLE BALONCUĞU (ADAÇAYI YEŞİLİ & LAVANTA CAM) */
     .mega-bubble-health {
-      background: linear-gradient(135deg, rgba(64, 108, 92, 0.86) 0%, rgba(88, 68, 114, 0.88) 100%) !important;
-      border: 1.5px solid rgba(155, 215, 185, 0.42) !important;
-      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(135, 195, 165, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+      background: linear-gradient(135deg, rgba(64, 108, 92, 0.88) 0%, rgba(88, 68, 114, 0.90) 100%) !important;
+      border: 1.5px solid rgba(155, 215, 185, 0.46) !important;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(135, 195, 165, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
     }
     .mega-bubble-health .mega-bubble-kicker {
       color: #F4EFEA !important;
     }
+    /* Onaylı görseldeki gibi 3. baloncuğun içindeki fazladan rozet ve alt açıklamaları gizle (DOM'da kalır) */
+    .mega-bubble-health #home-bento-score-badge,
+    .mega-bubble-health #home-today-sleep-total,
+    .mega-bubble-health #home-leap-badge,
+    .mega-bubble-health #home-leap-subtitle,
+    .mega-bubble-health .health-pill-babysteps .progress-bar-wrap,
+    .mega-bubble-health #home-vaccine-badge,
+    .mega-bubble-health #home-vaccine-subtitle {
+      display: none !important;
+    }
     .health-bubble-duo-grid {
       display: grid;
       grid-template-columns: 102px 1fr;
-      gap: 12px;
+      gap: 13px;
       align-items: center;
     }
     .health-score-ring-box {
@@ -1125,8 +1175,8 @@
       align-items: center;
       justify-content: center;
       border-radius: 50%;
-      background: radial-gradient(circle, rgba(28, 48, 42, 0.55) 0%, rgba(28, 48, 42, 0.18) 70%);
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.26);
+      background: radial-gradient(circle, rgba(28, 48, 42, 0.58) 0%, rgba(28, 48, 42, 0.20) 70%);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.28);
       transition: transform 0.2s ease;
     }
     .health-score-ring-box:active {
@@ -1135,38 +1185,57 @@
     .health-pills-stack {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 9px;
       min-width: 0;
     }
     .health-pill-babysteps {
       background: linear-gradient(135deg, #8FD6B2 0%, #6EC097 100%) !important;
-      border: 1px solid rgba(255, 255, 255, 0.48) !important;
+      border: 1px solid rgba(255, 255, 255, 0.52) !important;
       border-radius: 999px !important;
-      padding: 8px 14px !important;
+      padding: 10px 16px !important;
       cursor: pointer;
-      box-shadow: 0 5px 14px rgba(20, 50, 38, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+      box-shadow: 0 5px 14px rgba(20, 50, 38, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
       display: flex;
       flex-direction: column;
+      align-items: center;
       justify-content: center;
-      min-height: 43px;
+      min-height: 45px;
+      text-align: center;
+    }
+    .health-pill-babysteps > div:first-child,
+    .health-pill-vaccine > div:first-child {
+      justify-content: center !important;
+      width: 100%;
+    }
+    .health-pill-babysteps #home-leap-title {
+      font-size: 13.5px !important;
+      font-weight: 800 !important;
+      color: #142C20 !important;
     }
     .health-pill-vaccine {
       background: linear-gradient(135deg, #B685CE 0%, #9B67B5 100%) !important;
-      border: 1px solid rgba(255, 255, 255, 0.42) !important;
+      border: 1px solid rgba(255, 255, 255, 0.46) !important;
       border-radius: 999px !important;
-      padding: 8px 14px !important;
+      padding: 10px 16px !important;
       cursor: pointer;
-      box-shadow: 0 5px 14px rgba(42, 22, 58, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+      box-shadow: 0 5px 14px rgba(42, 22, 58, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
       display: flex;
       flex-direction: column;
+      align-items: center;
       justify-content: center;
-      min-height: 43px;
+      min-height: 45px;
+      text-align: center;
+    }
+    .health-pill-vaccine > div:first-child > span:first-child {
+      font-size: 13.5px !important;
+      font-weight: 800 !important;
+      color: #21112E !important;
     }
 
     /* Light Mode Overrides for 3 Mega Bubbles */
     [data-theme="light"] .mega-bubble-sleep {
-      background: radial-gradient(circle at 22% 22%, rgba(254, 228, 210, 0.95) 0%, rgba(255, 248, 242, 0.98) 75%) !important;
-      border-color: rgba(224, 122, 95, 0.42) !important;
+      background: radial-gradient(circle at 22% 22%, rgba(254, 228, 210, 0.96) 0%, rgba(255, 248, 242, 0.98) 75%) !important;
+      border-color: rgba(224, 122, 95, 0.44) !important;
       box-shadow: 0 12px 30px rgba(140, 90, 60, 0.12), inset 0 1px 0 #FFF !important;
     }
     [data-theme="light"] .mega-bubble-sleep .mega-bubble-kicker,
@@ -1176,18 +1245,14 @@
     [data-theme="light"] .sleep-bubble-brand-tag {
       color: #7A5C4D !important;
     }
-    [data-theme="light"] .sleep-bubble-circadian-box {
-      background: rgba(255, 255, 255, 0.85) !important;
-      border-color: rgba(224, 122, 95, 0.28) !important;
-    }
     [data-theme="light"] .mega-bubble-care {
       background: linear-gradient(135deg, #F7E5CE 0%, #F2D2CD 100%) !important;
-      border-color: rgba(224, 122, 95, 0.32) !important;
+      border-color: rgba(224, 122, 95, 0.34) !important;
       box-shadow: 0 12px 28px rgba(140, 90, 60, 0.10), inset 0 1px 0 #FFF !important;
     }
     [data-theme="light"] .mega-bubble-health {
       background: linear-gradient(135deg, #C9E4D6 0%, #D9CBEB 100%) !important;
-      border-color: rgba(72, 122, 99, 0.35) !important;
+      border-color: rgba(72, 122, 99, 0.36) !important;
       box-shadow: 0 12px 28px rgba(60, 80, 70, 0.12), inset 0 1px 0 #FFF !important;
     }
     [data-theme="light"] .mega-bubble-health .mega-bubble-kicker {
@@ -1201,6 +1266,528 @@
     }
     [data-theme="light"] .health-score-ring-box #home-today-sleep-total {
       color: #C3E9D2 !important;
+    }
+
+    /* =========================================================================
+       TÜM UYGULAMA GENELİ 32PX MEGA-BUBBLE & PASTEL HAP TASARIM SİSTEMİ
+       (Onboarding 1–9, Paywall, Spotlight Turu, Analiz, Mışıl Dadı, Sesler, Ayarlar & Modallar)
+       ========================================================================= */
+
+    /* 1. Evrensel Ana CTA Hap Butonlar (.btn-primary & .btn-secondary) */
+    .btn-primary {
+      border-radius: 999px !important;
+      background: linear-gradient(135deg, #F4A868 0%, #E59254 100%) !important;
+      color: #1F1510 !important;
+      font-weight: 800 !important;
+      border: 1px solid rgba(255, 235, 210, 0.48) !important;
+      box-shadow: 0 8px 22px rgba(244, 162, 97, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+    }
+    .btn-secondary {
+      border-radius: 999px !important;
+      background: rgba(44, 34, 48, 0.85) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.32) !important;
+      color: #FAF5EE !important;
+      font-weight: 700 !important;
+    }
+    [data-theme="light"] .btn-secondary {
+      background: rgba(255, 248, 242, 0.95) !important;
+      border-color: rgba(224, 122, 95, 0.35) !important;
+      color: #2D1E17 !important;
+    }
+
+    /* 2. Onboarding (Adım 1–7), Kişisel Rapor (Adım 8) & Paywall (Adım 9) Baloncukları */
+    #screen-onboarding {
+      background: radial-gradient(circle at 50% 0%, #2B2038 0%, #13101C 72%) !important;
+    }
+    [data-theme="light"] #screen-onboarding {
+      background: radial-gradient(circle at 50% 0%, #FFF6EC 0%, #FAF5EE 75%) !important;
+    }
+    .onb-coparent-hero-banner {
+      background: linear-gradient(135deg, rgba(235, 208, 174, 0.94) 0%, rgba(224, 180, 174, 0.94) 100%) !important;
+      border: 1.5px solid rgba(255, 240, 225, 0.72) !important;
+      border-radius: 26px !important;
+      padding: 12px 15px !important;
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.78) !important;
+    }
+    .onb-coparent-hero-banner div[style*="color: var(--heading-night)"] {
+      color: #261812 !important;
+    }
+    .onb-coparent-hero-banner div[style*="color: var(--accent)"],
+    .onb-coparent-hero-banner > span {
+      color: #5C3220 !important;
+    }
+    .onb-combo-card {
+      background: radial-gradient(circle at 22% 22%, rgba(244, 162, 97, 0.22) 0%, rgba(44, 34, 48, 0.94) 75%) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.42) !important;
+      border-radius: 28px !important;
+      padding: 16px !important;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.20) !important;
+    }
+    [data-theme="light"] .onb-combo-card {
+      background: radial-gradient(circle at 22% 22%, rgba(254, 228, 210, 0.95) 0%, rgba(255, 248, 242, 0.98) 75%) !important;
+      border-color: rgba(224, 122, 95, 0.38) !important;
+      box-shadow: 0 10px 24px rgba(140, 90, 60, 0.10), inset 0 1px 0 #FFF !important;
+    }
+    .onb-select {
+      border-radius: 18px !important;
+      background-color: rgba(24, 19, 34, 0.78) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.35) !important;
+    }
+    [data-theme="light"] .onb-select {
+      background-color: #FFFFFF !important;
+      border-color: rgba(224, 122, 95, 0.35) !important;
+    }
+    .onb-pill-btn {
+      border-radius: 999px !important;
+      background: rgba(44, 34, 48, 0.88) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.28) !important;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+    }
+    .onb-pill-btn.active {
+      background: linear-gradient(145deg, #FDF1D6 0%, #F7E4BE 100%) !important;
+      border-color: rgba(244, 162, 97, 0.85) !important;
+      color: #261812 !important;
+      box-shadow: 0 8px 20px rgba(244, 162, 97, 0.28), inset 0 1px 0 #FFF !important;
+    }
+    [data-theme="light"] .onb-pill-btn {
+      background: rgba(255, 255, 255, 0.92) !important;
+      border-color: rgba(224, 122, 95, 0.28) !important;
+      color: #2D1E17 !important;
+    }
+    .quiz-option {
+      border-radius: 24px !important;
+      background: radial-gradient(circle at 20% 20%, rgba(244, 162, 97, 0.14) 0%, rgba(44, 34, 48, 0.92) 78%) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.28) !important;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+    }
+    .quiz-option.selected {
+      background: radial-gradient(circle at 20% 20%, rgba(244, 162, 97, 0.30) 0%, rgba(54, 40, 58, 0.96) 78%) !important;
+      border-color: var(--accent) !important;
+      box-shadow: 0 10px 24px rgba(244, 162, 97, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+    }
+    [data-theme="light"] .quiz-option {
+      background: #FFFFFF !important;
+      border-color: rgba(224, 122, 95, 0.25) !important;
+      box-shadow: 0 6px 16px rgba(140, 90, 60, 0.07) !important;
+    }
+    [data-theme="light"] .quiz-option.selected {
+      background: linear-gradient(145deg, #FFF6E8 0%, #FDE8D4 100%) !important;
+      border-color: var(--accent) !important;
+    }
+    .onb-check-item {
+      border-radius: 22px !important;
+      background: rgba(44, 34, 48, 0.90) !important;
+      border: 1.5px solid rgba(155, 215, 185, 0.26) !important;
+      padding: 11px 14px !important;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.25) !important;
+    }
+    .onb-check-item.checked {
+      background: linear-gradient(135deg, rgba(64, 108, 92, 0.78) 0%, rgba(88, 68, 114, 0.78) 100%) !important;
+      border-color: rgba(143, 214, 178, 0.65) !important;
+    }
+    [data-theme="light"] .onb-check-item {
+      background: #FFFFFF !important;
+      border-color: rgba(72, 122, 99, 0.22) !important;
+    }
+    [data-theme="light"] .onb-check-item.checked {
+      background: linear-gradient(135deg, #D8EFE3 0%, #E5DAF2 100%) !important;
+      border-color: rgba(72, 122, 99, 0.55) !important;
+    }
+    #onb-vaccines-bulk-bar {
+      border-radius: 999px !important;
+      background: rgba(44, 34, 48, 0.90) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.35) !important;
+      padding: 8px 14px !important;
+    }
+    #onb-vaccines-toggle-all-btn {
+      border-radius: 999px !important;
+    }
+
+    /* Adım 8: Kişisel Rapor Baloncukları */
+    #report-live-sweetspot-banner {
+      background: radial-gradient(circle at 22% 22%, rgba(244, 162, 97, 0.28) 0%, rgba(44, 34, 48, 0.96) 72%) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.55) !important;
+      border-radius: 28px !important;
+      padding: 16px !important;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.24) !important;
+    }
+    #report-locked-roadmap-card {
+      background: linear-gradient(135deg, rgba(64, 108, 92, 0.86) 0%, rgba(88, 68, 114, 0.88) 100%) !important;
+      border: 1.5px solid rgba(155, 215, 185, 0.48) !important;
+      border-radius: 28px !important;
+      padding: 15px !important;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+    }
+    #report-details-drawer {
+      background: rgba(44, 34, 48, 0.88) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.32) !important;
+      border-radius: 24px !important;
+      padding: 11px 15px !important;
+    }
+    [data-theme="light"] #report-live-sweetspot-banner {
+      background: radial-gradient(circle at 22% 22%, rgba(254, 228, 210, 0.96) 0%, rgba(255, 248, 242, 0.98) 75%) !important;
+    }
+    [data-theme="light"] #report-locked-roadmap-card {
+      background: linear-gradient(135deg, #C9E4D6 0%, #D9CBEB 100%) !important;
+    }
+    [data-theme="light"] #report-details-drawer {
+      background: #FFFFFF !important;
+    }
+
+    /* Adım 9: Paywall & #vip-renewal-modal Baloncukları */
+    #quiz-step-9 > div:nth-of-type(2) {
+      background: linear-gradient(135deg, rgba(235, 208, 174, 0.95) 0%, rgba(224, 180, 174, 0.95) 100%) !important;
+      border: 1.5px solid rgba(255, 240, 225, 0.72) !important;
+      border-radius: 28px !important;
+      padding: 14px 16px !important;
+      color: #261812 !important;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+    }
+    #quiz-step-9 > div:nth-of-type(2) strong {
+      color: #1A0E0A !important;
+    }
+    .onboarding-plan-card {
+      border-radius: 26px !important;
+      padding: 13px 16px !important;
+      background: rgba(44, 34, 48, 0.90) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.28) !important;
+      box-shadow: 0 8px 22px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+      transition: all 0.2s ease !important;
+    }
+    .onboarding-plan-card.selected {
+      background: radial-gradient(circle at 22% 22%, rgba(244, 162, 97, 0.30) 0%, rgba(52, 38, 56, 0.96) 75%) !important;
+      border: 2px solid var(--accent) !important;
+      box-shadow: 0 12px 28px rgba(244, 162, 97, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.26) !important;
+    }
+    [data-theme="light"] .onboarding-plan-card {
+      background: #FFFFFF !important;
+      border-color: rgba(224, 122, 95, 0.28) !important;
+    }
+    [data-theme="light"] .onboarding-plan-card.selected {
+      background: linear-gradient(145deg, #FFF6E8 0%, #FDE8D4 100%) !important;
+      border-color: var(--accent) !important;
+    }
+    .onboarding-sticky-cta-wrap {
+      background: linear-gradient(180deg, rgba(19, 16, 28, 0) 0%, rgba(19, 16, 28, 0.96) 22%, rgba(19, 16, 28, 0.99) 100%) !important;
+    }
+    [data-theme="light"] .onboarding-sticky-cta-wrap {
+      background: linear-gradient(180deg, rgba(250, 245, 238, 0) 0%, rgba(250, 245, 238, 0.96) 22%, rgba(250, 245, 238, 0.99) 100%) !important;
+    }
+
+    /* 3. Tanıtım Turu (Spotlight Tour) & Web Guard Baloncukları */
+    #spotlight-tooltip-card {
+      background: radial-gradient(circle at 20% 20%, rgba(244, 162, 97, 0.25) 0%, rgba(40, 30, 46, 0.98) 76%) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.65) !important;
+      border-radius: 30px !important;
+      padding: 15px 17px !important;
+      box-shadow: 0 20px 44px rgba(0, 0, 0, 0.68), inset 0 1px 0 rgba(255, 255, 255, 0.24) !important;
+    }
+    #spotlight-prev-btn,
+    #spotlight-next-btn {
+      border-radius: 999px !important;
+    }
+    #spotlight-location-pill {
+      border-radius: 999px !important;
+      padding: 4px 11px !important;
+    }
+    .guard-card {
+      background: radial-gradient(circle at 22% 22%, rgba(244, 162, 97, 0.24) 0%, rgba(44, 34, 48, 0.96) 75%) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.48) !important;
+      border-radius: 32px !important;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.24) !important;
+    }
+    .guard-feature-item {
+      border-radius: 20px !important;
+      background: rgba(255, 255, 255, 0.05) !important;
+      border: 1px solid rgba(244, 162, 97, 0.24) !important;
+    }
+    .guard-store-btn {
+      border-radius: 999px !important;
+      background: linear-gradient(145deg, #FDF1D6 0%, #F7E4BE 100%) !important;
+      color: #261812 !important;
+      border: 1px solid rgba(210, 175, 120, 0.65) !important;
+    }
+    .guard-store-btn div[style*="text-muted"] {
+      color: #6B4E42 !important;
+    }
+
+    /* 4. Analiz, Mışıl Dadı, Sesler, Ayarlar & Modallar — 32px Mega-Bubble Uyumu */
+    .card {
+      border-radius: 28px !important;
+      background: radial-gradient(circle at 20% 20%, rgba(244, 162, 97, 0.14) 0%, rgba(42, 33, 48, 0.92) 78%) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.28) !important;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.16) !important;
+    }
+    [data-theme="light"] .card {
+      background: radial-gradient(circle at 20% 20%, rgba(254, 228, 210, 0.75) 0%, rgba(255, 250, 244, 0.98) 78%) !important;
+      border-color: rgba(224, 122, 95, 0.28) !important;
+      box-shadow: 0 10px 24px rgba(140, 90, 60, 0.08), inset 0 1px 0 #FFF !important;
+    }
+
+    /* Analiz Sekmesi (#view-analytics) */
+    .analytics-segment-row {
+      background: rgba(42, 33, 48, 0.92) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.32) !important;
+      border-radius: 999px !important;
+      padding: 5px !important;
+    }
+    .analytics-segment-btn {
+      border-radius: 999px !important;
+    }
+    .analytics-organic-card {
+      border-radius: 30px !important;
+      background: linear-gradient(135deg, rgba(64, 108, 92, 0.88) 0%, rgba(88, 68, 114, 0.90) 100%) !important;
+      border: 1.5px solid rgba(155, 215, 185, 0.46) !important;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+    }
+    [data-theme="light"] .analytics-organic-card {
+      background: linear-gradient(135deg, #C9E4D6 0%, #D9CBEB 100%) !important;
+      border-color: rgba(72, 122, 99, 0.36) !important;
+    }
+    .analytics-badge-pill {
+      border-radius: 999px !important;
+      background: rgba(24, 19, 34, 0.38) !important;
+      padding: 8px 10px !important;
+    }
+    [data-theme="light"] .analytics-badge-pill {
+      background: rgba(255, 255, 255, 0.78) !important;
+    }
+    #analytics-daily-rollup-card {
+      background: linear-gradient(135deg, rgba(235, 208, 174, 0.95) 0%, rgba(224, 180, 174, 0.95) 100%) !important;
+      border: 1.5px solid rgba(255, 240, 225, 0.72) !important;
+      border-radius: 30px !important;
+    }
+    #analytics-daily-rollup-card > div:nth-of-type(2) > div:first-child {
+      color: #261812 !important;
+    }
+    #analytics-daily-rollup-card > div:nth-of-type(2) > span {
+      color: #5C3220 !important;
+    }
+    #analytics-daily-rollup-card > div:nth-of-type(3) > div {
+      background: linear-gradient(145deg, #FDF1D6 0%, #F7E4BE 100%) !important;
+      border: 1px solid rgba(210, 175, 120, 0.55) !important;
+      border-radius: 20px !important;
+      padding: 10px 12px !important;
+      box-shadow: 0 4px 12px rgba(60, 35, 25, 0.08), inset 0 1px 0 #FFF !important;
+    }
+    #analytics-daily-rollup-card > div:nth-of-type(3) > div:nth-child(even) {
+      background: linear-gradient(145deg, #FCE7E6 0%, #F5D2D2 100%) !important;
+      border-color: rgba(210, 155, 155, 0.55) !important;
+    }
+    #analytics-daily-rollup-card [id^="rollup-"] {
+      color: #261812 !important;
+    }
+    #analytics-daily-rollup-card div[style*="text-muted"] {
+      color: #5C4033 !important;
+      font-weight: 700 !important;
+    }
+    #vaccine-schedule-card {
+      border-radius: 30px !important;
+      background: linear-gradient(135deg, rgba(64, 108, 92, 0.85) 0%, rgba(88, 68, 114, 0.88) 100%) !important;
+      border: 1.5px solid rgba(155, 215, 185, 0.42) !important;
+    }
+    .leap-item-card {
+      border-radius: 26px !important;
+      background: rgba(42, 33, 48, 0.90) !important;
+      border: 1.5px solid rgba(182, 133, 206, 0.32) !important;
+    }
+    .leap-item-card.active-leap {
+      background: radial-gradient(circle at 22% 22%, rgba(244, 162, 97, 0.25) 0%, rgba(52, 38, 58, 0.96) 75%) !important;
+      border-color: var(--accent) !important;
+    }
+    .timeline-card {
+      border-radius: 22px !important;
+      background: rgba(42, 33, 48, 0.90) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.26) !important;
+    }
+
+    /* Mışıl Dadı Sekmesi (#view-coach) */
+    .dadi-audience-switch,
+    .feed-mode-switch {
+      background: rgba(42, 33, 48, 0.92) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.32) !important;
+      border-radius: 999px !important;
+      padding: 4px !important;
+    }
+    .dadi-aud-btn,
+    .feed-mode-btn {
+      border-radius: 999px !important;
+    }
+    .dadi-aud-btn.active,
+    .feed-mode-btn.active {
+      background: linear-gradient(135deg, #F4A868 0%, #E59254 100%) !important;
+      color: #1F1510 !important;
+      border-color: transparent !important;
+    }
+    #coach-cry-solver-bar {
+      background: linear-gradient(135deg, rgba(235, 208, 174, 0.95) 0%, rgba(224, 180, 174, 0.95) 100%) !important;
+      border: 1.5px solid rgba(255, 240, 225, 0.72) !important;
+      border-radius: 26px !important;
+    }
+    #coach-cry-solver-bar div[style*="color: #FFF"] {
+      color: #261812 !important;
+    }
+    #coach-cry-solver-bar div[style*="color: var(--accent)"] {
+      color: #5C3220 !important;
+      font-weight: 700 !important;
+    }
+    #coach-cry-solver-bar .early-leap-btn {
+      background: #261812 !important;
+      color: #FDF1D6 !important;
+      border-radius: 999px !important;
+      border: none !important;
+      padding: 6px 12px !important;
+    }
+    .dadi-chat-card {
+      background: radial-gradient(circle at 20% 15%, rgba(244, 162, 97, 0.20) 0%, rgba(42, 33, 48, 0.95) 75%) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.38) !important;
+      border-radius: 30px !important;
+    }
+    .chat-bubble-dadi {
+      background: rgba(56, 43, 64, 0.92) !important;
+      border: 1px solid rgba(244, 162, 97, 0.28) !important;
+      border-radius: 22px 22px 22px 6px !important;
+      color: #FAF5EE !important;
+    }
+    [data-theme="light"] .chat-bubble-dadi {
+      background: #FFF6EC !important;
+      border-color: rgba(224, 122, 95, 0.28) !important;
+      color: #2D1E17 !important;
+    }
+    .chat-bubble-user {
+      background: linear-gradient(145deg, #FDF1D6 0%, #F7E4BE 100%) !important;
+      border: 1px solid rgba(210, 175, 120, 0.65) !important;
+      border-radius: 22px 22px 6px 22px !important;
+      color: #261812 !important;
+      font-weight: 600;
+    }
+    .ai-chip {
+      background: linear-gradient(145deg, #FCE7E6 0%, #F5D2D2 100%) !important;
+      border: 1px solid rgba(210, 155, 155, 0.58) !important;
+      border-radius: 999px !important;
+      color: #261812 !important;
+      font-weight: 700 !important;
+      padding: 7px 13px !important;
+    }
+
+    /* Sesler Sekmesi (#view-sounds) */
+    .search-input {
+      border-radius: 999px !important;
+      background: rgba(42, 33, 48, 0.90) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.32) !important;
+    }
+    [data-theme="light"] .search-input {
+      background: #FFFFFF !important;
+      border-color: rgba(224, 122, 95, 0.32) !important;
+      color: #2D1E17 !important;
+    }
+    .cat-chip {
+      border-radius: 999px !important;
+      background: rgba(42, 33, 48, 0.88) !important;
+      border: 1px solid rgba(244, 162, 97, 0.28) !important;
+    }
+    .cat-chip.active {
+      background: linear-gradient(135deg, #F4A868 0%, #E59254 100%) !important;
+      color: #1F1510 !important;
+      border-color: transparent !important;
+    }
+    #sounds-timer-card {
+      background: radial-gradient(circle at 22% 22%, rgba(244, 162, 97, 0.24) 0%, rgba(44, 34, 48, 0.95) 72%) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.45) !important;
+      border-radius: 30px !important;
+    }
+    .timer-pill {
+      border-radius: 999px !important;
+      background: rgba(24, 19, 34, 0.65) !important;
+      border: 1px solid rgba(244, 162, 97, 0.24) !important;
+    }
+    .timer-pill.active {
+      background: linear-gradient(145deg, #FDF1D6 0%, #F7E4BE 100%) !important;
+      color: #261812 !important;
+      border-color: rgba(244, 162, 97, 0.8) !important;
+    }
+    [data-theme="light"] .timer-pill {
+      background: rgba(255, 255, 255, 0.85) !important;
+      color: #2D1E17 !important;
+    }
+    .sound-studio-card {
+      border-radius: 26px !important;
+      background: radial-gradient(circle at 20% 20%, rgba(244, 162, 97, 0.14) 0%, rgba(42, 33, 48, 0.90) 78%) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.26) !important;
+    }
+    .sound-item {
+      border-radius: 24px !important;
+      background: rgba(42, 33, 48, 0.90) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.24) !important;
+    }
+    .sound-item.active {
+      background: radial-gradient(circle at 20% 20%, rgba(244, 162, 97, 0.28) 0%, rgba(52, 38, 56, 0.96) 75%) !important;
+      border-color: var(--accent) !important;
+    }
+
+    /* Ayarlar Sekmesi (#view-settings) & Tüm Alt Modallar (.modal-sheet) */
+    .settings-accordion-card {
+      border-radius: 28px !important;
+      background: radial-gradient(circle at 20% 20%, rgba(244, 162, 97, 0.14) 0%, rgba(42, 33, 48, 0.92) 78%) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.28) !important;
+      box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+    }
+    .settings-accordion-card.open {
+      border-color: rgba(244, 162, 97, 0.52) !important;
+    }
+    [data-theme="light"] .settings-accordion-card {
+      background: #FFFFFF !important;
+      border-color: rgba(224, 122, 95, 0.28) !important;
+    }
+    .role-chip {
+      border-radius: 999px !important;
+      background: rgba(24, 19, 34, 0.65) !important;
+      border: 1px solid rgba(244, 162, 97, 0.28) !important;
+    }
+    .role-chip.active {
+      background: linear-gradient(145deg, #FDF1D6 0%, #F7E4BE 100%) !important;
+      color: #261812 !important;
+      border-color: rgba(244, 162, 97, 0.85) !important;
+    }
+    [data-theme="light"] .role-chip {
+      background: rgba(255, 248, 242, 0.95) !important;
+      color: #2D1E17 !important;
+    }
+    #settings-rate-us-card {
+      background: linear-gradient(135deg, rgba(235, 208, 174, 0.95) 0%, rgba(224, 180, 174, 0.95) 100%) !important;
+      border: 1.5px solid rgba(255, 240, 225, 0.72) !important;
+    }
+    #settings-rate-us-title {
+      color: #261812 !important;
+    }
+    #settings-rate-us-sub,
+    #settings-rate-us-cta {
+      color: #5C3220 !important;
+      font-weight: 700 !important;
+    }
+    #settings-whisper-feedback-card {
+      background: linear-gradient(135deg, rgba(64, 108, 92, 0.86) 0%, rgba(88, 68, 114, 0.88) 100%) !important;
+      border: 1.5px solid rgba(155, 215, 185, 0.45) !important;
+    }
+    .modal-sheet {
+      border-radius: 32px 32px 0 0 !important;
+      background: radial-gradient(circle at 50% 0%, #2C2138 0%, #171321 78%) !important;
+      border-top: 1.5px solid rgba(244, 162, 97, 0.45) !important;
+      box-shadow: 0 -16px 44px rgba(0, 0, 0, 0.65) !important;
+    }
+    [data-theme="light"] .modal-sheet {
+      background: radial-gradient(circle at 50% 0%, #FFF8F0 0%, #FAF5EE 80%) !important;
+      border-top-color: rgba(224, 122, 95, 0.38) !important;
+    }
+    #vip-renewal-modal .modal-sheet > div:nth-of-type(4) {
+      background: linear-gradient(135deg, rgba(235, 208, 174, 0.95) 0%, rgba(224, 180, 174, 0.95) 100%) !important;
+      border: 1.5px solid rgba(255, 240, 225, 0.72) !important;
+      border-radius: 24px !important;
+      padding: 12px 14px !important;
+      color: #261812 !important;
+    }
+    #vip-renewal-modal .modal-sheet > div:nth-of-type(4) strong {
+      color: #1A0E0A !important;
     }
 
     /* Üst Başlık Dairesel Profil/Ayarlar Butonu (Header Circular Profile/Settings Button) */
@@ -4140,11 +4727,11 @@
       <div class="app-header">
         <div>
           <div class="baby-subtitle" id="baby-header-subtitle">—</div>
-          <div class="main-title" id="baby-header-title">Mışıl Spot™ Ritim & Uyku</div>
+          <div class="main-title" id="baby-header-title">Mışıl Baby</div>
         </div>
         <div id="home-header-actions" style="display: flex; gap: 6px; align-items: center;">
           <button type="button" id="home-family-pill" class="home-family-pill" onclick="openFamilyQuickHub()" title="Aile & Eş Senkronizasyonu">
-            <span id="home-family-pill-label">👩 + Eşini Bağla</span>
+            <span id="home-family-pill-label">👨‍👩‍👧 Aile</span>
           </button>
           <button onclick="openNightAmbient()" class="header-profile-btn" title="Gece Beşiği Modu" style="background: rgba(244, 162, 97, 0.15); border-color: rgba(244, 162, 97, 0.35);">
             <span>🌙</span>
@@ -4262,7 +4849,7 @@
 
           <!-- Canlı Uyku Başlat / Bitir Ana Aksiyon Hapı -->
           <button class="btn-primary sleep-bubble-cta-btn" id="btn-toggle-sleep" onclick="toggleLiveSleep()">
-            <span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>
+            <span>Şimdi Uyuyor Başlat</span>
           </button>
 
           <!-- Son Uyku Saatini Düzeltme Satırı (Varsa Baloncuk İçinde Açılır) -->
@@ -4489,6 +5076,9 @@
 
       <!-- SEGMENT 2: TODAY'S SLEEP TIMELINE (DECLUTTERED) -->
       <div id="home-seg-timeline" style="display: none;">
+        <div style="display: flex; justify-content: flex-start; margin-bottom: 10px;">
+          <button type="button" onclick="switchHomeSegment('sweetspot')" style="border-radius: 999px; background: rgba(244, 162, 97, 0.18); border: 1px solid rgba(244, 162, 97, 0.45); color: var(--accent); font-family: 'Sora', sans-serif; font-size: 11.5px; font-weight: 800; padding: 7px 14px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">← Mışıl Spot'a Dön</button>
+        </div>
         <div class="card" style="background: rgba(25, 33, 56, 0.9); border: 1px solid var(--accent);">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <span style="font-size: 11px; color: var(--accent); font-weight: 700; text-transform: uppercase;">Bugünkü Uyku Bütçesi</span>
@@ -12321,7 +12911,7 @@
         lbl.textContent = trEnDe(`👨‍👩‍👧 Aile • ${count}/3`, `👨‍👩‍👧 Family • ${count}/3`, `👨‍👩‍👧 Familie • ${count}/3`);
       } else {
         pill.classList.remove('connected');
-        lbl.textContent = trEnDe('👩 + Eşini Bağla', '👩 + Add Partner', '👩 + Partner');
+        lbl.textContent = trEnDe('👨‍👩‍👧 Aile', '👨‍👩‍👧 Family', '👨‍👩‍👧 Familie');
       }
     }
     const whisperConnected = document.getElementById('mom-whisper-connected-box');
@@ -16645,7 +17235,7 @@
         }
       }
       if (btnSleep) {
-        btnSleep.style.background = 'linear-gradient(135deg, #F3B96E 0%, #E8A855 100%)';
+        btnSleep.style.background = 'linear-gradient(135deg, #F4A868 0%, #E59254 100%)';
         btnSleep.innerHTML = spotLocked
           ? trEnDe(
               '<span>🔒 Sıradaki Uykuyu Aç (VIP)</span>',
@@ -16653,9 +17243,9 @@
               '<span>🔒 Nächsten Schlaf öffnen (VIP)</span>'
             )
           : trEnDe(
-              '<span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>',
-              '<span>🌙 Sleeping Now (Start Live Tracker)</span>',
-              '<span>🌙 Schläft jetzt (Live-Tracker starten)</span>'
+              '<span>Şimdi Uyuyor Başlat</span>',
+              '<span>Start Live Sleep</span>',
+              '<span>Live-Schlaf starten</span>'
             );
       }
     }
@@ -17453,12 +18043,20 @@
         : trEnDe('Islak / Kirli Bez', 'Wet / Dirty Diaper', 'Nasse / Volle Windel');
     }
 
-    // 2. Napper Benchmark: 24 Saatlik Görsel Sirkadiyen Ritim Şeridi (00:00 - 24:00)
+    // 2. Napper Benchmark: 24 Saatlik Görsel Sirkadiyen Ritim Şeridi (00:00 - 24:00) — Onaylı Görsel 1:1 Şerit Tasarımı
     const bar = document.getElementById('circadian-strip-bar');
     const stripSum = document.getElementById('circadian-strip-summary');
     if (!bar) return;
 
-    let html = '';
+    let html = `
+      <div style="position:absolute; top:0; bottom:0; left:0%; width:26%; background:linear-gradient(90deg, #32314A 0%, #3F3C5A 100%); display:flex; align-items:center; justify-content:center; font-size:11px; border-right:1.5px solid rgba(255,255,255,0.18);">🌙</div>
+      <div style="position:absolute; top:0; bottom:0; left:26%; width:48%; background:linear-gradient(90deg, #E8AB6A 0%, #F3BC7E 50%, #E5A05E 100%); display:flex; align-items:center; justify-content:flex-start; padding-left:10px; font-size:11px;">
+        <span>☀️</span>
+        <span style="position:absolute; left:36%; top:3px; bottom:3px; width:14%; background:rgba(70, 50, 40, 0.25); border-radius:4px;"></span>
+        <span style="position:absolute; left:66%; top:3px; bottom:3px; width:14%; background:rgba(70, 50, 40, 0.25); border-radius:4px;"></span>
+      </div>
+      <div style="position:absolute; top:0; bottom:0; left:74%; width:26%; background:linear-gradient(90deg, #3F3C5A 0%, #2D2C44 100%); display:flex; align-items:center; justify-content:center; font-size:11px; border-left:1.5px solid rgba(255,255,255,0.18);">🌙</div>
+    `;
     // Uyku blokları (Yeşil/Adaçayı)
     todaySleeps.forEach(s => {
       const ext = extractSleepStartEnd(s);
@@ -17469,7 +18067,7 @@
       if (eMin < sMin) sMin = 0; // Gece devri bugünün başlangıcından itibaren gösterilir
       const leftPct = Math.max(0, Math.min(98, (sMin / 1440) * 100));
       const widthPct = Math.max(2, Math.min(100 - leftPct, ((eMin - sMin) / 1440) * 100));
-      html += `<div title="${trEnDe('Uyku', 'Sleep', 'Schlaf')}: ${ext.start} - ${ext.end}" style="position:absolute; top:2px; bottom:2px; left:${leftPct.toFixed(1)}%; width:${widthPct.toFixed(1)}%; background:linear-gradient(90deg, #74C69D, #487A63); border-radius:6px; opacity:0.9;"></div>`;
+      html += `<div title="${trEnDe('Uyku', 'Sleep', 'Schlaf')}: ${ext.start} - ${ext.end}" style="position:absolute; top:3px; bottom:3px; left:${leftPct.toFixed(1)}%; width:${widthPct.toFixed(1)}%; background:linear-gradient(90deg, #74C69D, #487A63); border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,0.35); z-index:2;"></div>`;
     });
 
     // Beslenme ve Bez Noktaları (Kehribar / Gül)
@@ -17478,9 +18076,9 @@
       const dt = new Date(ev.timestamp || Date.now());
       const evMin = dt.getHours() * 60 + dt.getMinutes();
       const leftPct = Math.max(1, Math.min(98, (evMin / 1440) * 100));
-      const dotColor = ev.type === 'feeding' ? '#FFE5A3' : '#FBC8D3';
+      const dotColor = ev.type === 'feeding' ? '#FFF6D6' : '#FFD6E0';
       const evLocTitle = typeof resolveLocalizedRoutineCopy === 'function' ? resolveLocalizedRoutineCopy(ev).title : (ev.title || '');
-      html += `<div title="${escapeHtml(evLocTitle)} (${escapeHtml(ev.time || '')})" style="position:absolute; top:5px; width:6px; height:6px; border-radius:50%; left:calc(${leftPct.toFixed(1)}% - 3px); background:${dotColor}; box-shadow:0 0 4px rgba(0,0,0,0.5);"></div>`;
+      html += `<div title="${escapeHtml(evLocTitle)} (${escapeHtml(ev.time || '')})" style="position:absolute; top:9px; width:7px; height:7px; border-radius:50%; left:calc(${leftPct.toFixed(1)}% - 3.5px); background:${dotColor}; border:1px solid rgba(30,20,15,0.65); box-shadow:0 1px 4px rgba(0,0,0,0.45); z-index:3;"></div>`;
     });
 
     // Sıradaki MışılSpot™ Hedef Penceresi (Parıldayan Kehribar Blok — 2. MışılSpot™ VIP kilitli)
@@ -18418,14 +19016,14 @@
       if (beamWrap) beamWrap.classList.remove('active-beam');
       if (shape) shape.setAttribute('fill', '#E8A855');
       if (btn) {
-        btn.style.background = 'linear-gradient(135deg, #F3B96E 0%, #E8A855 100%)';
+        btn.style.background = 'linear-gradient(135deg, #F4A868 0%, #E59254 100%)';
         btn.innerHTML = spotNowLocked
           ? trEnDe(
               '<span>🔒 Sıradaki Uykuyu Aç (VIP)</span>',
               '<span>🔒 Unlock Next Sleep (VIP)</span>',
               '<span>🔒 Nächsten Schlaf öffnen (VIP)</span>'
             )
-          : trEnDe('<span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>', '<span>🌙 Sleeping Now (Start Live Tracker)</span>', '<span>🌙 Schläft jetzt (Live-Tracker starten)</span>');
+          : trEnDe('<span>Şimdi Uyuyor Başlat</span>', '<span>Start Live Sleep</span>', '<span>Live-Schlaf starten</span>');
       }
       if (liveTimer) liveTimer.style.display = 'none';
 
@@ -19397,7 +19995,7 @@
         }
       }
       if (btnSleep && !isSleeping) {
-        btnSleep.style.background = 'linear-gradient(135deg, #F3B96E 0%, #E8A855 100%)';
+        btnSleep.style.background = 'linear-gradient(135deg, #F4A868 0%, #E59254 100%)';
         btnSleep.innerHTML = spotLocked
           ? trEnDe(
               '<span>🔒 Sıradaki Uykuyu Aç (VIP)</span>',
@@ -19405,9 +20003,9 @@
               '<span>🔒 Nächsten Schlaf öffnen (VIP)</span>'
             )
           : trEnDe(
-              '<span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>',
-              '<span>🌙 Sleeping Now (Start Live Tracker)</span>',
-              '<span>🌙 Schläft jetzt (Live-Tracker starten)</span>'
+              '<span>Şimdi Uyuyor Başlat</span>',
+              '<span>Start Live Sleep</span>',
+              '<span>Live-Schlaf starten</span>'
             );
       }
     }

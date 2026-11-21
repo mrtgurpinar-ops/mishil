@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.0-bubble-ui-v2] - 2026-11-21 (Railway Canlı Yayın — Ana Sayfa 1:1 Onaylı Konsept 1 Görsel Eşleşmesi & Uçtan Uca Tüm Ekranlarda `32px Mega-Bubble & Pastel Hap` Tasarım Sistemi • 🟢 Yeni Native EAS Build Gerekmez)
+### 🫧 Uçtan Uca `32px Mega-Bubble & Pastel Hap` Tasarım Sistemi: Ana Sayfa 1:1 Görsel Eşleşmesi, 8 Adımlı Kayıt (Onboarding), Kişisel Rapor, Paywall, Spotlight Tanıtım Turu ve Tüm Sekmeler (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`)
+1. **Ana Sayfa (`#view-home`) 1:1 Onaylı Konsept 1 Görsel Eşleşmesi (`public/app.html`):**
+   - **Tek Satır Sade Üst Başlık:** Üstteki 2 satırlı başlık ve 2. satır `.segmented-control` çubuğu varsayılan MışılSpot görünümünde kaldırılarak onaylanan referans görseldeki gibi tek satır **`Mışıl Baby`** + **`[👨‍👩‍👧 Aile] [🌙] [⚙️]`** yapısına geçirildi (`#home-seg-timeline` görünümüne `← Mışıl Spot'a Dön` hap butonu eklendi).
+   - **1. Baloncuk (`🌙 UYKU & RİTİM BALONCUĞU`):** Sağ üstteki fazladan durum kutusu ve 3. satır metin gizlendi; solda parlayan hilal madalyonu, sağda büyük `11:45` + `MışılSpot™`, altında gece (`🌙` koyu indigo `00–06` & `18–24`) ve gündüz (`☀️` kehribar `06–18` + uyku blokları) segmentli **24h Sirkadiyen Ritim Şeridi** (`24h  06  12  18  24h`) ve tam genişlikli **`Şimdi Uyuyor Başlat`** kehribar hap butonu birebir hizalandı.
+   - **2. Baloncuk (`🍼 GÜNLÜK BAKIM & ACİL DESTEK BALONCUĞU`):** 2×2 pastel hapların (`Beslenme`, `Alt Değişimi`, `Ağlama Rehberi`, `Ninniler`) içindeki alt açıklama satırları gizlenerek onaylı görseldeki tek satır ikon + kalın başlık formuna getirildi.
+   - **3. Baloncuk (`🌱 SAĞLIK, ATAK & AİLE BALONCUĞU`):** Solda sade `Denge Skoru %84` halkası, sağda tek satırlı `BabySteps Atak` (adaçayı yeşili) ve `Aşı Defteri` (lavanta) pastel hap butonları birebir uygulandı.
+2. **8 Adımlı Kayıt (Onboarding), Kişisel Rapor, Paywall, Tanıtım Turu & Tüm Sekmelerin (`Analiz`, `Mışıl Dadı`, `Sesler`, `Ayarlar`) Bütünleştirilmesi:**
+   - Onboarding Adım 1–7 (`.onb-combo-card`, `.onb-coparent-hero-banner`, `.onb-pill-btn`, `.quiz-option`, `.onb-check-item`), Adım 8 Kişisel Rapor (`#report-live-sweetspot-banner`, `#report-locked-roadmap-card`, `#report-details-drawer`), Adım 9 Paywall & `#vip-renewal-modal` (`.onboarding-plan-card`), 6 adımlı İnteraktif Spotlight Tanıtım Turu (`#spotlight-tooltip-card`), Web Guard (`.guard-card`) ve diğer tüm sekmeler (`#view-analytics`, `#view-coach`, `#view-sounds`, `#view-settings`) ile alt modallar (`.modal-sheet`) eski lacivert kutulardan arındırılarak **32px Mega-Bubble & Soft Pastel Hap** tasarım sistemine geçirildi.
+3. **3 Ajanlı Konsensüs & Doğrulama Kapısı (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-245` + `task-262`)** + **Codex CLI (`gpt-6-luna`, `task-246` + `task-263`)** + **Antigravity (`11/11 suite / 80 Jest testi` `task-339`, `tsc --noEmit` 0 hata, `mobile_compliance_checker.py` `7/7 READY_FOR_RELEASE`, `offlineHtml.generated.ts` `1231 KB`, 11 ekran Playwright canlı doğrulaması `task-349`)**.
+
 ## [4.56.0-bubble-ui] - 2026-11-21 (Railway Canlı Yayın — Ana Ekran 3 Büyük Kategori Baloncuğu `3-Tier Mega Bubble Hubs` UX/UI Mimarisi • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🫧 Ana Ekran (`#home-seg-sweetspot`) 3 Büyük Kategori Baloncuğu (`.mega-bubble-sleep`, `.mega-bubble-care`, `.mega-bubble-health`) & Gece 03:00 Ergonomisi (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`)
 1. **10+ Dağınık Karttan 3 Büyük Kategori Baloncuğuna Geçiş (`public/app.html`):**
