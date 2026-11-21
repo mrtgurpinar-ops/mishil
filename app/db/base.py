@@ -9,7 +9,19 @@ db_url = settings.DATABASE_URL
 
 # SQLite requires check_same_thread=False for FastAPI sync + async mixing
 is_sqlite = db_url.startswith("sqlite")
-connect_args = {"check_same_thread": False} if is_sqlite else {}
+is_psycopg_driver = (
+    db_url.startswith("postgresql+psycopg2://")
+    or db_url.startswith("postgresql+psycopg://")
+)
+if is_sqlite:
+    connect_args = {"check_same_thread": False}
+elif is_psycopg_driver:
+    connect_args = {
+        "connect_timeout": 10,
+        "options": "-c statement_timeout=15000 -c lock_timeout=8000",
+    }
+else:
+    connect_args = {}
 pool_kwargs = (
     {}
     if is_sqlite

@@ -91,10 +91,10 @@ const INJECT_APP_META = `
   true;
 `;
 
-// Sayfa bu süre içinde yüklenmezse (Railway cold-start / zayıf şebeke) hata ekranına düş
-const LOAD_TIMEOUT_MS = 25000;
-// Kullanıcı dokunmadan sessizce kaç kez yeniden denensin (cold-start toleransı)
-const MAX_AUTO_RETRY = 3;
+// Sayfa bu süre içinde yüklenmezse (Railway cold-start / zayıf şebeke) hızlıca çevrimdışı yedeğe veya hata ekranına düş
+const LOAD_TIMEOUT_MS = 12000;
+// Kullanıcı dokunmadan sessizce kaç kez yeniden denensin (cold-start toleransı — uzun bekleme yerine hızlı OFFLINE_HTML geçişi)
+const MAX_AUTO_RETRY = 1;
 // Çevrimdışı moddayken uzak sürüme yeniden bağlanma denemesi aralığı
 const RECONNECT_PROBE_MS = 20000;
 // Gömülü çevrimdışı sürüm kullanılabilir mi (EAS'te kaynak yoksa boş kalabilir)

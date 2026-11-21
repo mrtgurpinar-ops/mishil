@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.0-hotfix] - 2026-11-21 (Railway Canlı Yayın + Apple App Store `v4.56.0 / Build 72` Yeniden Gönderimi — Uvicorn Event-Loop Kilitlenmesi & `HTTP 499` Açılış Takılması Onarımı • 🟢 Yeni Native EAS Build Gerekmez)
+### 🛡️ Uvicorn Event-Loop İzolasyonu (`async def` ➔ `def` Worker Threadpool), PostgreSQL Timeout Zırhlaması & Apple App Review `Build 72` Yeniden Gönderimi (`app/api/v1/endpoints/family.py`, `app/api/v1/endpoints/wake_window.py`, `app/db/base.py`, `app/main.py`, `mobile/components/MishilUnifiedWebView.tsx`, `tests/test_family_sync_and_mom_mode.py`)
+1. **Aile Senkronu & Uyanıklık Penceresi Event-Loop İzolasyonu (`family.py`, `wake_window.py`):**
+   - `family.py` içindeki tüm 9 uç nokta (`create_family`, `join_family`, `sync_family_get`, `sync_family_bidirectional`, `set_leap_override`, `send_family_whisper`, `ack_family_whisper`, `night_watch_solidarity_pulse`, `delete_family_membership`) ve `wake_window.py` içindeki `calculate_wake_window` / `calculate_for_baby` uç noktaları `async def` yerine **`def` (Starlette Worker Threadpool)** mimarisine geçirildi; böylece senkron SQLAlchemy sorgularının ve `verify_server_vip_entitlement` içindeki senkron `urllib.request.urlopen` çağrılarının ana Uvicorn event-loop'unu kilitleyerek `/app` üzerinde `HTTP 499` üretmesi tamamen engellendi.
+   - `_notify_relay_best_effort` fonksiyonu ön-serileştirilmiş `bytes` gövdesiyle sınırlı `_RELAY_NOTIFY_POOL` (`ThreadPoolExecutor(max_workers=2)`) + `_RELAY_INFLIGHT_SEM` (`BoundedSemaphore(16)`) üzerinden bloklamayan (non-blocking) hale getirildi; `_JOIN_FAIL_BUCKETS` ise `_JOIN_FAIL_LOCK` ve `2048` kesin FIFO üst sınırıyla korundu.
+2. **PostgreSQL Timeout Zırhlaması, Statik HTML Önbelleği & Hızlı WebView Kurtarma (`base.py`, `main.py`, `MishilUnifiedWebView.tsx`):**
+   - `app/db/base.py` içinde `postgresql+psycopg2://` ve `postgresql+psycopg://` bağlantılarına `connect_timeout=10` ve `options="-c statement_timeout=15000 -c lock_timeout=8000"` eklendi.
+   - `app/main.py` üzerindeki `/app`, `/preview`, `/`, `/privacy`, `/terms` ve yardımcı HTML/statik rotalar senkron `def` yapılarak `_PUBLIC_HTML_CACHE_LOCK` korumalı `(st_mtime_ns, st_size)` bellek önbelleğine bağlandı.
+   - `MishilUnifiedWebView.tsx` içinde `LOAD_TIMEOUT_MS = 12000` (12 sn) ve `MAX_AUTO_RETRY = 1` olarak güncellendi.
+3. **Seviye 3 Gerçek 3-Ajanlı CLI Konsensüsü (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-206`: `CLAUDE_CONSENSUS_VERDICT: PASS`)** + **Codex CLI (`gpt-6-luna`, `task-217` ➔ `task-235` ➔ `task-242` ➔ `task-249` bulguları giderilerek ➔ `task-259`: `CODEX_CONSENSUS_VERDICT: PASS`)** + **Antigravity (`59/59 pytest` `task-263`, `11/11 suite / 80 Jest` `task-263`, `tsc --noEmit` 0 hata, `mobile_compliance_checker.py` `7/7 READY_FOR_RELEASE` `task-263`)**.
+
 ## [4.56.0] - 2026-11-21 (Yerel Hazırlık — `APP_VERSION = 4.56.0 / Build 72` • 🟠 Native EAS Build Gerekli)
 ### 📈 Meta (Facebook) App Events, iOS 14+ SKAdNetwork (`v9wttpbfk9.skadnetwork`, `n38lu8286q.skadnetwork`) & ATT (`expo-tracking-transparency`) SDK Entegrasyonu (`mobile/package.json`, `mobile/app.config.ts`, `mobile/plugins/withMinDeploymentTarget.js`, `mobile/features/analytics/metaAppEvents.ts`, `mobile/components/MishilUnifiedWebView.tsx`, `mobile/tests/metaAppEvents.test.ts`, `core/apple_preflight_validator.py`)
 1. **Resmi Meta SDK (`react-native-fbsdk-next` v13.4.3 / FBSDK v18.0) & iOS 14.5+ ATT (`expo-tracking-transparency` ~6.0.8) Yapılandırması (`mobile/app.config.ts`, `mobile/plugins/withMinDeploymentTarget.js`):**

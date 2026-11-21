@@ -4,6 +4,7 @@ Partner Whisper & Night-Watch Solidarity API Endpoints (v4.52.0).
 """
 import base64
 from collections import deque
+import concurrent.futures
 from datetime import datetime, timedelta, timezone
 import hashlib
 import hmac
@@ -11,6 +12,7 @@ import json
 import os
 import re
 import secrets
+import threading
 import time
 import urllib.request
 from typing import Any, Dict, List, Literal, Optional, Tuple, Union
@@ -50,8 +52,14 @@ ACTIVE_LEDGER_STATUSES = {"paid_active", "offer_code_trial", "intro_free_trial"}
 
 # Brute-force rate limiter for /family/join (max 10 failed attempts / 10 min per IP)
 _JOIN_FAIL_BUCKETS: Dict[str, deque] = {}
+_JOIN_FAIL_LOCK = threading.Lock()
 _JOIN_WINDOW_SEC = 600.0
 _JOIN_MAX_FAILURES = 10
+_RELAY_NOTIFY_POOL = concurrent.futures.ThreadPoolExecutor(
+    max_workers=2,
+    thread_name_prefix="mishil-relay-notify",
+)
+_RELAY_INFLIGHT_SEM = threading.BoundedSemaphore(16)
 
 WHISPER_TEMPLATES_TR = {
     "tea_water": "☕ Bebek uyudu ama kıpırdayamıyorum; sessizce bir su/çay getirir misin?",
@@ -811,22 +819,38 @@ def _notify_relay_best_effort(room_key: str, event_type: str, payload: Dict[str,
     if not relay_base or os.environ.get("PYTEST_CURRENT_TEST"):
         return
     try:
-        body = json.dumps(
+        body_bytes = json.dumps(
             {"room_key": room_key, "event_type": event_type, "payload": payload}
         ).encode("utf-8")
-        req = urllib.request.Request(
-            f"{relay_base}/api/realtime/broadcast",
-            data=body,
-            headers={
-                "Content-Type": "application/json",
-                "X-Mishil-Relay-Secret": get_relay_hmac_secret(),
-            },
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=1.5):
-            pass
+        secret_hdr = get_relay_hmac_secret()
     except Exception:
-        pass
+        return
+
+    if not _RELAY_INFLIGHT_SEM.acquire(blocking=False):
+        return
+
+    def _send_relay(raw_body: bytes, relay_url: str, relay_secret: str) -> None:
+        try:
+            req = urllib.request.Request(
+                f"{relay_url}/api/realtime/broadcast",
+                data=raw_body,
+                headers={
+                    "Content-Type": "application/json",
+                    "X-Mishil-Relay-Secret": relay_secret,
+                },
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=1.5):
+                pass
+        except Exception:
+            pass
+        finally:
+            _RELAY_INFLIGHT_SEM.release()
+
+    try:
+        _RELAY_NOTIFY_POOL.submit(_send_relay, body_bytes, relay_base, secret_hdr)
+    except Exception:
+        _RELAY_INFLIGHT_SEM.release()
 
 
 # ============================================================
@@ -964,16 +988,24 @@ def _check_join_rate_limit(request: Optional[Request], failed: bool = False) -> 
     forwarded = request.headers.get("x-forwarded-for") or ""
     ip = (forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")) or "unknown"
     now = time.monotonic()
-    bucket = _JOIN_FAIL_BUCKETS.setdefault(ip, deque())
-    while bucket and (now - bucket[0]) > _JOIN_WINDOW_SEC:
-        bucket.popleft()
-    if len(bucket) >= _JOIN_MAX_FAILURES:
-        raise HTTPException(
-            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
-            detail="Çok fazla hatalı aile kodu denemesi yapıldı. Lütfen birkaç dakika sonra tekrar deneyin.",
-        )
-    if failed:
-        bucket.append(now)
+    with _JOIN_FAIL_LOCK:
+        if len(_JOIN_FAIL_BUCKETS) >= 2048 and ip not in _JOIN_FAIL_BUCKETS:
+            stale_ips = [k for k, dq in list(_JOIN_FAIL_BUCKETS.items()) if not dq or (now - dq[-1]) > _JOIN_WINDOW_SEC]
+            for s_ip in stale_ips:
+                _JOIN_FAIL_BUCKETS.pop(s_ip, None)
+            while len(_JOIN_FAIL_BUCKETS) >= 2048:
+                oldest_ip = next(iter(_JOIN_FAIL_BUCKETS))
+                _JOIN_FAIL_BUCKETS.pop(oldest_ip, None)
+        bucket = _JOIN_FAIL_BUCKETS.setdefault(ip, deque())
+        while bucket and (now - bucket[0]) > _JOIN_WINDOW_SEC:
+            bucket.popleft()
+        if len(bucket) >= _JOIN_MAX_FAILURES:
+            raise HTTPException(
+                status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+                detail="Çok fazla hatalı aile kodu denemesi yapıldı. Lütfen birkaç dakika sonra tekrar deneyin.",
+            )
+        if failed:
+            bucket.append(now)
 
 
 # ============================================================
@@ -982,7 +1014,7 @@ def _check_join_rate_limit(request: Optional[Request], failed: bool = False) -> 
 
 
 @router.post("/create", summary="Yeni Aile & Eş/Bakıcı Paylaşım Grubu Oluştur veya Güncelle (Maks. 3 Üye)")
-async def create_family(
+def create_family(
     payload: FamilyCreateRequest,
     db: Session = Depends(get_db),
     x_family_member_token: Optional[str] = Header(None, alias="X-Family-Member-Token"),
@@ -1140,7 +1172,7 @@ async def create_family(
 
 
 @router.post("/join", summary="Aile Davet Kodu ile Ortak Bebek Takibine Katıl (Maks. 3 Üye)")
-async def join_family(
+def join_family(
     payload: FamilyJoinRequest,
     request: Request,
     db: Session = Depends(get_db),
@@ -1254,7 +1286,7 @@ async def join_family(
 
 
 @router.get("/sync/{invite_code}", summary="Doğrulanmış Üye İçin Canlı Aile & Bebek Senkronizasyonu")
-async def sync_family_get(
+def sync_family_get(
     invite_code: str,
     device_uid: Optional[str] = Query(None, max_length=128),
     x_family_member_token: Optional[str] = Header(None, alias="X-Family-Member-Token"),
@@ -1286,7 +1318,7 @@ async def sync_family_get(
 
 
 @router.post("/sync", summary="Çift Yönlü İdempotent Rutin, Aşı, Atak ve Canlı Uyku Eşitlemesi")
-async def sync_family_bidirectional(
+def sync_family_bidirectional(
     payload: FamilySyncUpdateRequest,
     x_family_member_token: Optional[str] = Header(None, alias="X-Family-Member-Token"),
     db: Session = Depends(get_db),
@@ -1386,7 +1418,7 @@ async def sync_family_bidirectional(
 
 
 @router.post("/leap-override", summary="Manuel Erken Atak Başlat / Otomatik Takvime Dön")
-async def set_leap_override(
+def set_leap_override(
     payload: LeapOverrideRequest,
     x_family_member_token: Optional[str] = Header(None, alias="X-Family-Member-Token"),
     db: Session = Depends(get_db),
@@ -1434,7 +1466,7 @@ async def set_leap_override(
 
 
 @router.post("/whisper", summary="Eşime Fısılda & Sessiz Nöbet Devri Gönder (Yalnızca Kapalı Aile İçi)")
-async def send_family_whisper(
+def send_family_whisper(
     payload: FamilyWhisperRequest,
     x_family_member_token: Optional[str] = Header(None, alias="X-Family-Member-Token"),
     db: Session = Depends(get_db),
@@ -1510,7 +1542,7 @@ async def send_family_whisper(
 
 
 @router.post("/whisper/ack", summary="Alınan Eş Fısıltısını Okundu İşaretle")
-async def ack_family_whisper(
+def ack_family_whisper(
     payload: FamilyWhisperAckRequest,
     x_family_member_token: Optional[str] = Header(None, alias="X-Family-Member-Token"),
     db: Session = Depends(get_db),
@@ -1543,7 +1575,7 @@ async def ack_family_whisper(
 
 
 @router.post("/night-watch/pulse", summary="Anonim Gece Nöbeti Dayanışma Feneri & Sessiz Kalp Selamı (Sıfır PII / Sıfır Metin)")
-async def night_watch_solidarity_pulse(
+def night_watch_solidarity_pulse(
     payload: NightWatchPulseRequest,
     db: Session = Depends(get_db),
 ):
@@ -1615,7 +1647,7 @@ async def night_watch_solidarity_pulse(
 
 
 @router.delete("/membership", summary="Aileden Ayrıl / Sunucu Verilerini Sil (Apple Guideline 5.1.1v Uyumlu)")
-async def delete_family_membership(
+def delete_family_membership(
     invite_code: str = Query(..., min_length=4, max_length=20),
     device_uid: Optional[str] = Query(None, max_length=128),
     x_family_member_token: Optional[str] = Header(None, alias="X-Family-Member-Token"),

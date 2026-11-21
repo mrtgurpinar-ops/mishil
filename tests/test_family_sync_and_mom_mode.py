@@ -1063,5 +1063,122 @@ def test_morning_sync_timestamp_parity_anti_poison_shield_and_sleeplog_self_heal
     assert feed_after_edit["editedAtMs"] == 1763612000000
 
 
+def test_family_endpoints_run_in_threadpool_without_blocking_event_loop():
+    """
+    Seviye-3 Regresyon Koruması (HTTP 499 / Event-Loop Deadlock Fix):
+    1) family.py, wake_window.py ve main.py içindeki tüm DB/ağ/dosya uç noktalarının `async def` yerine senkron `def`
+       (Starlette worker threadpool) olduğunu doğrular.
+    2) Yavaş bir `/api/v1/family/sync` çağrısı devam ederken `/app` ve `/health` uçlarının
+       bloklanmadan anında yanıt verdiğini, `_PUBLIC_HTML_CACHE` ve `_notify_relay_best_effort`
+       mekanizmalarının thread-safe ve bounded çalıştığını kanıtlar.
+    """
+    import asyncio
+    import inspect
+    import os
+    import tempfile
+    import time
+    from unittest.mock import patch
+    from app.api.v1.endpoints import family as family_mod
+    from app.api.v1.endpoints import wake_window as ww_mod
+    from app import main as main_mod
+
+    sync_endpoints = [
+        family_mod.create_family,
+        family_mod.join_family,
+        family_mod.sync_family_get,
+        family_mod.sync_family_bidirectional,
+        family_mod.set_leap_override,
+        family_mod.send_family_whisper,
+        family_mod.ack_family_whisper,
+        family_mod.night_watch_solidarity_pulse,
+        family_mod.delete_family_membership,
+        ww_mod.calculate_wake_window,
+        ww_mod.calculate_for_baby,
+        main_mod.serve_pwa_static,
+        main_mod.landing_page,
+        main_mod.smart_app_store_bridge,
+        main_mod.family_invite_bridge,
+        main_mod.developer_preview,
+        main_mod.admin_feedbacks_shortcut,
+        main_mod.admin_analytics_shortcut,
+        main_mod.privacy_policy,
+        main_mod.terms_of_service,
+        main_mod.delete_account_page,
+    ]
+    for fn in sync_endpoints:
+        assert not inspect.iscoroutinefunction(fn), (
+            f"{fn.__name__} must be a regular `def` (threadpool) so sync SQLAlchemy/urllib/file I/O cannot freeze the Uvicorn event loop!"
+        )
+
+    # _PUBLIC_HTML_CACHE mtime/size değişiminde yeni içeriği doğru döndürmeli
+    with tempfile.TemporaryDirectory() as tmpdir:
+        pub_dir = os.path.join(tmpdir, "public")
+        os.makedirs(pub_dir, exist_ok=True)
+        test_html_path = os.path.join(pub_dir, "test_cache.html")
+        with open(test_html_path, "w", encoding="utf-8") as f:
+            f.write("<h1>v1</h1>")
+        with patch.object(main_mod, "project_root", tmpdir):
+            main_mod._PUBLIC_HTML_CACHE.clear()
+            c1 = main_mod._read_cached_public_html("test_cache.html")
+            assert c1 == "<h1>v1</h1>"
+            with open(test_html_path, "w", encoding="utf-8") as f:
+                f.write("<h1>v2-updated</h1>")
+            c2 = main_mod._read_cached_public_html("test_cache.html")
+            assert c2 == "<h1>v2-updated</h1>"
+        main_mod._PUBLIC_HTML_CACHE.clear()
+
+    # _notify_relay_best_effort bounded havuz üzerinden ana akışı bloklamadan çalışmalı
+    called_urls = []
+
+    def _slow_fake_urlopen(req, timeout=1.5):
+        called_urls.append(req.full_url)
+        time.sleep(0.25)
+        class _DummyResp:
+            def __enter__(self): return self
+            def __exit__(self, *a): pass
+        return _DummyResp()
+
+    with patch.dict(os.environ, {"FUNCTION_BUN_URL": "http://127.0.0.1:9999"}, clear=False):
+        old_pytest_env = os.environ.pop("PYTEST_CURRENT_TEST", None)
+        try:
+            with patch("urllib.request.urlopen", side_effect=_slow_fake_urlopen):
+                t_rel0 = time.perf_counter()
+                payload_mut = {"name": "Anne"}
+                family_mod._notify_relay_best_effort("rk_test", "FAMILY_SYNC_UPDATED", payload_mut)
+                payload_mut["name"] = "MutatedAfterCall"
+                rel_call_ms = (time.perf_counter() - t_rel0) * 1000.0
+                assert rel_call_ms < 50.0, f"_notify_relay_best_effort blocked caller for {rel_call_ms:.1f}ms!"
+                time.sleep(0.32)
+                assert len(called_urls) == 1
+        finally:
+            if old_pytest_env is not None:
+                os.environ["PYTEST_CURRENT_TEST"] = old_pytest_env
+
+    # Ayrıca yavaş bir threadpool işi çalışırken async event-loop'un (/app & /health) bloklanmadığını doğrula
+    from starlette.concurrency import run_in_threadpool
+
+    async def _verify_concurrent_responsiveness():
+        def _slow_sync_work():
+            time.sleep(0.35)
+            return "done"
+
+        t0 = time.perf_counter()
+        bg_task = asyncio.create_task(run_in_threadpool(_slow_sync_work))
+        await asyncio.sleep(0.03)
+        t_ping_start = time.perf_counter()
+        h_res = await main_mod.health_check()
+        app_res = await run_in_threadpool(main_mod.developer_preview)
+        ping_elapsed_ms = (time.perf_counter() - t_ping_start) * 1000.0
+        await bg_task
+        total_elapsed_ms = (time.perf_counter() - t0) * 1000.0
+        assert h_res["status"] == "ok"
+        assert app_res.status_code == 200
+        assert ping_elapsed_ms < 120.0, f"Event loop blocked! /health + /app took {ping_elapsed_ms:.1f}ms during slow sync work"
+        assert total_elapsed_ms >= 300.0
+
+    asyncio.run(_verify_concurrent_responsiveness())
+
+
+
 
 

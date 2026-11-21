@@ -1,4 +1,5 @@
 from typing import Optional
+import asyncio
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.base import get_db
@@ -12,7 +13,7 @@ router = APIRouter(prefix="/wake-window", tags=["Wake Window & Sleep Budget"])
 
 
 @router.post("/calculate", response_model=WakeWindowResponse)
-async def calculate_wake_window(
+def calculate_wake_window(
     payload: WakeWindowCalculateRequest,
     current_user: User = Depends(get_current_user),
 ):
@@ -23,18 +24,20 @@ async def calculate_wake_window(
     response = WakeWindowService.calculate(payload)
 
     # Trigger push notification scheduling in background abstraction
-    await PushNotificationService.send_wake_window_reminder(
-        user_id=current_user.id,
-        baby_name="Bebeğiniz",
-        sleep_time=response.next_sleep_time,
-        notification_time=response.notification_time,
+    asyncio.run(
+        PushNotificationService.send_wake_window_reminder(
+            user_id=current_user.id,
+            baby_name="Bebeğiniz",
+            sleep_time=response.next_sleep_time,
+            notification_time=response.notification_time,
+        )
     )
 
     return response
 
 
 @router.get("/calculate/baby/{baby_id}", response_model=WakeWindowResponse)
-async def calculate_for_baby(
+def calculate_for_baby(
     baby_id: int,
     previous_nap_duration: Optional[int] = None,
     db: Session = Depends(get_db),

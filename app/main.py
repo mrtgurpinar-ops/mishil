@@ -1,5 +1,6 @@
 import os
 import sys
+import threading
 import time
 import uuid
 import asyncio
@@ -350,7 +351,7 @@ app.include_router(api_router, prefix="/api/v1")
 @app.get("/icon-192.png", include_in_schema=False)
 @app.get("/icon-512.png", include_in_schema=False)
 @app.get("/manifest.json", include_in_schema=False)
-async def serve_pwa_static(request: Request):
+def serve_pwa_static(request: Request):
     """Serve PWA icons and web manifest directly from public/ folder."""
     filename = request.url.path.lstrip("/")
     file_path = os.path.join(project_root, "public", filename)
@@ -362,13 +363,39 @@ async def serve_pwa_static(request: Request):
     return PlainTextResponse("Not Found", status_code=404)
 
 
+_PUBLIC_HTML_CACHE: dict = {}
+_PUBLIC_HTML_CACHE_LOCK = threading.Lock()
+
+
+def _read_cached_public_html(filename: str) -> Optional[str]:
+    """Read static HTML from public/ with thread-safe mtime-based in-memory caching."""
+    file_path = os.path.join(project_root, "public", filename)
+    try:
+        st_before = os.stat(file_path)
+    except OSError:
+        return None
+    with _PUBLIC_HTML_CACHE_LOCK:
+        cached = _PUBLIC_HTML_CACHE.get(filename)
+        if cached and cached[0] == (st_before.st_mtime_ns, st_before.st_size):
+            return cached[1]
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        st_after = os.stat(file_path)
+    except OSError:
+        return None
+    with _PUBLIC_HTML_CACHE_LOCK:
+        if (st_after.st_mtime_ns, st_after.st_size) == (st_before.st_mtime_ns, st_before.st_size):
+            _PUBLIC_HTML_CACHE[filename] = ((st_after.st_mtime_ns, st_after.st_size), content)
+        return content
+
+
 @app.get("/", response_class=HTMLResponse, tags=["Landing"])
-async def landing_page():
+def landing_page():
     """Mışıl Baby Official Landing Page & Store Download Hub."""
-    landing_file = os.path.join(project_root, "public", "index.html")
-    if os.path.exists(landing_file):
-        with open(landing_file, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
+    cached_html = _read_cached_public_html("index.html")
+    if cached_html is not None:
+        return HTMLResponse(content=cached_html)
     return HTMLResponse("""
     <!DOCTYPE html>
     <html lang="tr">
@@ -633,7 +660,7 @@ def generate_interstitial_html(
 @app.get("/app-store", response_model=None, tags=["Landing"])
 @app.get("/android", response_model=None, tags=["Landing"])
 @app.get("/play-store", response_model=None, tags=["Landing"])
-async def smart_app_store_bridge(request: Request, background_tasks: BackgroundTasks):
+def smart_app_store_bridge(request: Request, background_tasks: BackgroundTasks):
     """
     Universal Direct HTTP 302 Store Bridge (AppsFlyer OneLink Architecture):
     - Meta / sosyal inceleme botlarına 200 OK resmi landing sayfası (index.html) sunar (reklam kısıtlarına takılmaz),
@@ -665,10 +692,9 @@ async def smart_app_store_bridge(request: Request, background_tasks: BackgroundT
             route_path=route_path,
             target_store="landing_bot",
         )
-        landing_file = os.path.join(project_root, "public", "index.html")
-        if os.path.exists(landing_file):
-            with open(landing_file, "r", encoding="utf-8") as f:
-                return HTMLResponse(content=f.read(), status_code=status.HTTP_200_OK, headers=no_cache_headers)
+        cached_landing = _read_cached_public_html("index.html")
+        if cached_landing is not None:
+            return HTMLResponse(content=cached_landing, status_code=status.HTTP_200_OK, headers=no_cache_headers)
         return HTMLResponse(
             content="<!DOCTYPE html><html lang='tr'><head><meta charset='UTF-8'><title>Mışıl Baby</title></head><body><h1>Mışıl Baby</h1></body></html>",
             status_code=status.HTTP_200_OK,
@@ -699,7 +725,7 @@ async def smart_app_store_bridge(request: Request, background_tasks: BackgroundT
 
 
 @app.get("/invite/{code}", response_class=HTMLResponse, tags=["Family"])
-async def family_invite_bridge(code: str, request: Request, baby: Optional[str] = None):
+def family_invite_bridge(code: str, request: Request, baby: Optional[str] = None):
     """Smart Family Co-Parenting Invite Landing & Deep-Link Bridge (max 3 members)."""
     import html as _html
     import re as _re
@@ -798,9 +824,8 @@ async def family_invite_bridge(code: str, request: Request, baby: Optional[str] 
 
 @app.get("/app", response_class=HTMLResponse, tags=["Developer"])
 @app.get("/preview", response_class=HTMLResponse, tags=["Developer"])
-async def developer_preview():
+def developer_preview():
     """PIN-Protected Live Developer Preview of Mışıl Baby."""
-    app_file = os.path.join(project_root, "public", "app.html")
     # Telefonların diske eski HTML önbelleği kaydetmesini engelle; her zaman
     # Railway'deki canlı kodu çeksinler.
     headers = {
@@ -808,14 +833,14 @@ async def developer_preview():
         "Pragma": "no-cache",
         "Expires": "0",
     }
-    if os.path.exists(app_file):
-        with open(app_file, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read(), headers=headers)
+    cached_app = _read_cached_public_html("app.html")
+    if cached_app is not None:
+        return HTMLResponse(content=cached_app, headers=headers)
     return HTMLResponse("<h2>Uygulama dosyası bulunamadı.</h2>", status_code=404, headers=headers)
 
 
 @app.get("/admin/feedbacks", response_class=HTMLResponse, tags=["Admin"])
-async def admin_feedbacks_shortcut(request: Request, pin: Optional[str] = None):
+def admin_feedbacks_shortcut(request: Request, pin: Optional[str] = None):
     """Direct shortcut for Admin Feedback Dashboard."""
     pin_param = f"?pin={pin}" if pin else ""
     return RedirectResponse(url=f"/api/v1/feedback/dashboard{pin_param}")
@@ -823,7 +848,7 @@ async def admin_feedbacks_shortcut(request: Request, pin: Optional[str] = None):
 
 @app.get("/admin/analytics", response_class=HTMLResponse, tags=["Admin"])
 @app.get("/admin/clicks", response_class=HTMLResponse, tags=["Admin"])
-async def admin_analytics_shortcut(request: Request, pin: Optional[str] = None):
+def admin_analytics_shortcut(request: Request, pin: Optional[str] = None):
     """Direct shortcut for Live Ad & Store Bridge Analytics Cockpit."""
     pin_param = f"?pin={pin}" if pin else ""
     return RedirectResponse(url=f"/api/v1/analytics/dashboard{pin_param}")
@@ -842,12 +867,11 @@ async def health_check():
 
 
 @app.api_route("/privacy", methods=["GET", "HEAD"], response_class=HTMLResponse, tags=["Compliance"])
-async def privacy_policy():
+def privacy_policy():
     """Privacy Policy for Google Play and Apple App Store compliance."""
-    privacy_file = os.path.join(project_root, "public", "privacy.html")
-    if os.path.exists(privacy_file):
-        with open(privacy_file, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
+    cached_privacy = _read_cached_public_html("privacy.html")
+    if cached_privacy is not None:
+        return HTMLResponse(content=cached_privacy)
     return HTMLResponse("""
     <!DOCTYPE html>
     <html lang="tr">
@@ -858,12 +882,11 @@ async def privacy_policy():
 
 
 @app.api_route("/terms", methods=["GET", "HEAD"], response_class=HTMLResponse, tags=["Compliance"])
-async def terms_of_service():
+def terms_of_service():
     """Terms of Service and Medical Disclaimer for Store Compliance."""
-    terms_file = os.path.join(project_root, "public", "terms.html")
-    if os.path.exists(terms_file):
-        with open(terms_file, "r", encoding="utf-8") as f:
-            return HTMLResponse(content=f.read())
+    cached_terms = _read_cached_public_html("terms.html")
+    if cached_terms is not None:
+        return HTMLResponse(content=cached_terms)
     return HTMLResponse("""
     <!DOCTYPE html>
     <html lang="tr">
@@ -874,7 +897,7 @@ async def terms_of_service():
 
 
 @app.get("/delete-account", response_class=HTMLResponse, tags=["Compliance"])
-async def delete_account_page():
+def delete_account_page():
     """Account Deletion Request Web Page (Apple App Store Requirement)."""
     return HTMLResponse("""
     <!DOCTYPE html>
