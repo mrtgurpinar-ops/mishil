@@ -1250,7 +1250,7 @@ def test_v4_48_0_returning_users_and_paywall_cancellation_cro(client, db_session
     assert "report-next-sweetspot-time" in app_html
     assert "vip-calibration-progress-box" in app_html
     assert "mishil_family_vip_verified" in app_html
-    assert "version: '4.55.0'" in app_html
+    assert "version: '4.56.0'" in app_html
 
 
 def test_s8_ios_rc_anonymous_id_ghost_purge_and_unverified_sync_ignore(client, db_session):

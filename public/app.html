@@ -3873,7 +3873,7 @@
 
       <!-- REVIEWER TEST BYPASS TRIGGER (GOOGLE PLAY ANSWER 15748846) -->
       <div style="text-align: center; margin-top: 8px; margin-bottom: 6px;">
-        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.55.0 (Build 71)</span>
+        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.56.0 (Build 72)</span>
       </div>
     </div>
   </div>
@@ -5260,7 +5260,7 @@
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
     </div>
     <div style="text-align: center; margin-top: 8px;">
-      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.55.0 (Build 71)</span>
+      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.56.0 (Build 72)</span>
     </div>
   </div>
 </div>
@@ -6335,7 +6335,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.55.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.56.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -6589,7 +6589,17 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.55.0', date: '20 Kasım 2026', dateEn: 'November 20, 2026', dateDe: '20. November 2026', latest: true, items: [
+    { v: '4.56.0', date: '21 Kasım 2026', dateEn: 'November 21, 2026', dateDe: '21. November 2026', latest: true, items: [
+      '🛡️ Şeffaf Uygulama Takip Kontrolü (ATT) & Kampanya Ölçümleme: iOS 14.5+ Uygulama Takibi Şeffaflığı (App Tracking Transparency) izin kontrolü ve mağaza kampanya doğrulama altyapısı eklendi; izin tercihinden bağımsız olarak tüm uygulama özellikleri %100 tam kapasiteyle çalışır.',
+      '⚡ İlk Ay ₺49,99 Gösterim & Mağaza Senkron İyileştirmeleri: Uygun yeni aboneler için Aylık VIP ilk ay başlangıç fiyatı gösterimi ve kilit ekranı canlı etkinlik kararlılığı iyileştirildi.'
+    ], itemsEn: [
+      '🛡️ App Tracking Transparency (ATT) & Campaign Attribution: Added iOS 14.5+ App Tracking Transparency permission control and store campaign attribution—all app features work at 100% capacity regardless of your tracking preference.',
+      '⚡ Introductory First-Month Display & Store Sync Refinements: Improved Monthly VIP introductory first-month price display for eligible new members and enhanced lock-screen live activity stability.'
+    ], itemsDe: [
+      '🛡️ App-Tracking-Transparenz (ATT) & Kampagnenmessung: iOS 14.5+ App-Tracking-Transparenz-Steuerung und Store-Kampagnenzuordnung hinzugefügt – alle App-Funktionen arbeiten unabhängig von Ihrer Auswahl zu 100 % uneingeschränkt.',
+      '⚡ Anzeige des 1. Einführungsmonats & Store-Sync-Optimierungen: Verbesserte Preisanzeige im 1. Monat für berechtigte Neukunden sowie stabilere Live-Aktivitäten auf dem Sperrbildschirm.'
+    ]},
+    { v: '4.55.0', date: '20 Kasım 2026', dateEn: 'November 20, 2026', dateDe: '20. November 2026', items: [
       '✨ Yeni Başlangıç Avantajı & Tam VIP Deneyimi: Aylık VIP planda uygun yeni aboneler için İlk Ay ₺49,99 başlangıç avantajı (2. aydan itibaren ₺149,99/ay) ve tüm yıl sabit fiyatlı Yıllık VIP (₺599,99/yıl) ile tüm MışılSpot™, 18 stüdyo ninni, Ağlama Rehberi ve 7/24 Mışıl Dadı özellikleri tek pakette birleştirildi.',
       '🛡️ Şeffaf Uygunluk Gösterimi & Kesintisiz Seans Koruması: Mağaza uygunluk durumuna göre net fiyat gösterimi, tek VIP ile 3 kişiye kadar ortak aile takibi ve devam eden canlı uyku/emzirme kayıtlarının hiçbir veri kaybı olmadan korunması sağlandı.'
     ], itemsEn: [

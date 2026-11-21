@@ -34,6 +34,11 @@ import {
 import { storage, APP_LANG_KEY } from '../lib/storage';
 import { triggerNativeStoreReview, NATIVE_REVIEW_STORAGE_KEY } from '../features/review/storeReviewService';
 import { isSleepDeepLink } from '../app/+native-intent';
+import {
+  initMetaSdkAndActivateApp,
+  logMetaOnboardingCompleted,
+  logMetaSubscriptionPurchase,
+} from '../features/analytics/metaAppEvents';
 
 function getSystemLocale(): string {
   try {
@@ -651,6 +656,14 @@ export default function MishilUnifiedWebView() {
     void syncEntitlementToWebView();
     void sendLockscreenStateSync();
 
+    // Meta App Events & iOS 14.5+ ATT/SKAdNetwork başlatması:
+    // Soğuk açılışta izin çakışması olmaması için WebView yüklendikten 1200ms sonra (AppState === 'active' iken) çalıştır
+    setTimeout(() => {
+      if (AppState.currentState === 'active' && !isPurchaseInProgressRef.current) {
+        void initMetaSdkAndActivateApp();
+      }
+    }, 1200);
+
     // Canlı mağaza fiyatlarını (RevenueCat Offerings) web tarafına dinamik aktar
     // Not: Özel paket kimliklerinde (misil / misilaylik) RevenueCat packageType='CUSTOM' döndürebildiği için hem packageType hem identifier kontrol edilir.
     const findOfferingByPlan = (list: any[], target: 'monthly' | 'yearly') => {
@@ -992,6 +1005,7 @@ export default function MishilUnifiedWebView() {
         case 'ONBOARDING_COMPLETED':
           void AsyncStorage.setItem('@mishil_onboarding_completed', 'true');
           void storage.mergeDeviceQuotas({ onboardedOnce: true });
+          logMetaOnboardingCompleted();
           break;
 
         case 'SYNC_DEVICE_QUOTAS':
@@ -1136,13 +1150,35 @@ export default function MishilUnifiedWebView() {
               const firstEntKey = Object.keys(activeEnts)[0];
               const firstEnt = activeEnts[PRO_ENTITLEMENT_ID] || activeEnts['mışıl_baby_pro'] || (firstEntKey ? activeEnts[firstEntKey] : null);
               const txObj = result.transaction;
+              const resolvedProductId =
+                firstEnt?.productIdentifier ||
+                pkg?.identifier ||
+                (Platform.OS === 'android'
+                  ? (plan === 'yearly' ? 'misil' : 'misilaylik')
+                  : (plan === 'yearly' ? 'misil_annual' : 'misil_monthly'));
+              const resolvedTxId =
+                txObj?.transactionIdentifier ||
+                txObj?.purchaseToken ||
+                (firstEnt?.originalPurchaseDate ? `${resolvedProductId}_${firstEnt.originalPurchaseDate}` : undefined);
+              const fallbackDedupKey = `${cInfo?.originalAppUserId || 'anon'}_${resolvedProductId}_${firstEnt?.expirationDate || firstEnt?.originalPurchaseDate || 'once'}`;
+              void logMetaSubscriptionPurchase({
+                plan,
+                price: pkg?.price,
+                introPrice: pkg?.introPrice,
+                introEligibility: pkg?.introEligibility,
+                periodType: firstEnt?.periodType,
+                currencyCode: pkg?.currencyCode,
+                productId: resolvedProductId,
+                transactionId: resolvedTxId,
+                fallbackDedupKey,
+              });
               const purchaseMeta = JSON.stringify({
                 subscriberId: cInfo?.originalAppUserId || undefined,
                 originalAppUserId: cInfo?.originalAppUserId || undefined,
                 originalTransactionId: txObj?.transactionIdentifier || undefined,
                 purchaseToken: txObj?.purchaseToken || txObj?.transactionIdentifier || undefined,
                 plan,
-                productId: firstEnt?.productIdentifier || pkg?.identifier || (Platform.OS === 'android' ? (plan === 'yearly' ? 'misil' : 'misilaylik') : (plan === 'yearly' ? 'misil_annual' : 'misil_monthly')),
+                productId: resolvedProductId,
                 platform: Platform.OS === 'android' ? 'android' : 'ios',
                 store: firstEnt?.store || (Platform.OS === 'android' ? 'PLAY_STORE' : 'APP_STORE'),
                 periodType: firstEnt?.periodType || 'NORMAL',

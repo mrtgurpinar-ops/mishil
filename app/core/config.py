@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     # General App Config
     APP_NAME: str = "mishil"
     APP_TITLE: str = "Mishil API - Baby Sleep & Routines"
-    APP_VERSION: str = "4.55.0"
+    APP_VERSION: str = "4.56.0"
     ENVIRONMENT: str = "development"
     DEBUG: bool = False  # Default False — production-safe. Set DEBUG=True in .env for local dev.
     PORT: int = 8000

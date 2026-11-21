@@ -1,8 +1,14 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
 // Uygulama sürümü tek yerden — hem iOS buildNumber hem Android versionCode ile hizalı
-const APP_VERSION = '4.55.0';
-const BUILD_NUMBER = 71;
+const APP_VERSION = '4.56.0';
+const BUILD_NUMBER = 72;
+
+// Resmi Meta (Facebook) App Events & iOS 14+ SKAdNetwork kimlikleri
+const META_APP_ID = process.env.EXPO_PUBLIC_META_APP_ID || '1093539003520092';
+const META_CLIENT_TOKEN = process.env.EXPO_PUBLIC_META_CLIENT_TOKEN || '0677cfcf38d59f7d215c61be841091f0';
+const IOS_TRACKING_PERMISSION_TEXT =
+  'Mışıl Baby, size ve bebeğinizin gelişimine daha uygun içerikler sunabilmek ve kampanya performansını ölçebilmek için bu izni kullanır.';
 
 
 const IS_PRODUCTION = process.env.APP_ENV === 'production';
@@ -51,7 +57,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       CFBundleDevelopmentRegion: 'tr',
       CFBundleLocalizations: ['tr', 'en', 'de'],
       NSMicrophoneUsageDescription: 'Mışıl Baby, bebeğinizin ağlama sesindeki akustik özellikleri analiz etmek için mikrofonunuza erişir. Sesler yalnızca yerel analiz amaçlı işlenir ve kaydedilmez.',
+      NSUserTrackingUsageDescription: IOS_TRACKING_PERMISSION_TEXT,
       UIBackgroundModes: ['audio'],
+      SKAdNetworkItems: [
+        { SKAdNetworkIdentifier: 'v9wttpbfk9.skadnetwork' },
+        { SKAdNetworkIdentifier: 'n38lu8286q.skadnetwork' }
+      ],
       // İhracat uyumluluğu: standart HTTPS dışında şifreleme kullanılmıyor →
       // her TestFlight/App Store yüklemesinde çıkan soruyu otomatik geçer
       ITSAppUsesNonExemptEncryption: false
@@ -72,11 +83,33 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       'FOREGROUND_SERVICE',
       'FOREGROUND_SERVICE_MEDIA_PLAYBACK',
       'POST_NOTIFICATIONS',
-      'android.permission.POST_PROMOTED_NOTIFICATIONS'
+      'android.permission.POST_PROMOTED_NOTIFICATIONS',
+      'com.google.android.gms.permission.AD_ID'
     ]
   },
   plugins: [
     'expo-router',
+    [
+      'expo-tracking-transparency',
+      {
+        userTrackingPermission: IOS_TRACKING_PERMISSION_TEXT
+      }
+    ],
+    [
+      'react-native-fbsdk-next',
+      {
+        appID: META_APP_ID,
+        clientToken: META_CLIENT_TOKEN,
+        displayName: 'Mışıl Baby',
+        scheme: `fb${META_APP_ID}`,
+        // Apple Guideline 5.1.2(i) koruması: ATT izni çözümlenene kadar derleme zamanı otomatik başlatma ve toplama kapalıdır;
+        // çalışma zamanında metaAppEvents.ts içinde ATT izni sonrasında güvenli şekilde başlatılır.
+        advertiserIDCollectionEnabled: false,
+        autoLogAppEventsEnabled: false,
+        isAutoInitEnabled: false,
+        iosUserTrackingPermission: IOS_TRACKING_PERMISSION_TEXT
+      }
+    ],
     [
       'expo-build-properties',
       {

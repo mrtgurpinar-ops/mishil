@@ -23,14 +23,16 @@ const withMinDeploymentTarget = (config) => {
       let podfileContent = fs.readFileSync(podfilePath, 'utf8');
 
       const postInstallSnippet = `
-    # --- [withMinDeploymentTarget] Enforce iOS 15.1 & Swift 5.0 on all Pod targets ---
+    # --- [withMinDeploymentTarget] Enforce iOS 15.1 & Swift 5.0 (excluding FBSDK/FBAEM modern Swift pods) ---
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         current_target = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
         if current_target.nil? || current_target.to_f < 15.1
           config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
         end
-        config.build_settings['SWIFT_VERSION'] = '5.0'
+        unless target.name.start_with?('FBSDK') || target.name.start_with?('FBAEM')
+          config.build_settings['SWIFT_VERSION'] = '5.0'
+        end
       end
     end
 `;
