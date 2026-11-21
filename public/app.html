@@ -10374,11 +10374,40 @@
     COP: 3900.00
   };
 
+  const BASE_MONTHLY_PPP_BY_CURRENCY = {
+    TRY: 149.99,
+    CHF: 5.00,
+    EUR: 4.99,
+    USD: 4.99,
+    GBP: 4.99,
+    CAD: 6.99,
+    AUD: 7.99,
+    PLN: 14.99,
+    RON: 14.99,
+    AED: 17.99,
+    SAR: 19.99,
+    INR: 149.00,
+    BRL: 14.90,
+    MXN: 49.00,
+    KZT: 1290.00,
+    AZN: 4.29,
+    UZS: 31900.00,
+    HUF: 1490.00,
+    CZK: 89.00,
+    UAH: 99.00,
+    GEL: 6.99,
+    IDR: 29000.00,
+    PKR: 590.00,
+    PHP: 119.00,
+    EGP: 99.00,
+    COP: 8900.00
+  };
+
   function hasLocalPriorSubscriptionOrTrialTrace() {
     try {
       if (localStorage.getItem('mishil_has_ever_subscribed') === '1') return true;
       if (localStorage.getItem('mishil_vip_sig_v1') === '1') return true;
-      if (localStorage.getItem('mishil_trial_start')) return true;
+      if (localStorage.getItem('mishil_rc_verified') === 'true') return true;
       const m = window.__MISHIL_SUB_META__;
       if (m && (m.originalTransactionId || m.purchaseToken || m.subscriberId)) return true;
     } catch (_hte) {}
@@ -10427,15 +10456,33 @@
     const currSymbol = resolveCurrencySymbolFromStore(storePrices, `${mClean} ${yClean}`);
     const currCode = (storePrices.currencyCode ? String(storePrices.currencyCode).toUpperCase().trim() : '')
       || (currSymbol === '₺' ? 'TRY' : (currSymbol === '€' ? 'EUR' : (currSymbol === '£' ? 'GBP' : (currSymbol === 'CHF ' ? 'CHF' : 'USD'))));
-    const defM = currSymbol === '₺' ? 149.99 : (currSymbol === 'CHF ' ? 5.00 : 4.99);
+    const defM = BASE_MONTHLY_PPP_BY_CURRENCY[currCode] || (currSymbol === '₺' ? 149.99 : (currSymbol === 'CHF ' ? 5.00 : 4.99));
     const defY = currSymbol === '₺' ? 599.99 : (currSymbol === 'CHF ' ? 25.00 : (currSymbol === '€' ? 29.99 : 24.99));
-    const monthlyVal = (typeof storePrices.monthlyPrice === 'number' && storePrices.monthlyPrice > 0)
+    let monthlyVal = (typeof storePrices.monthlyPrice === 'number' && storePrices.monthlyPrice > 0)
       ? storePrices.monthlyPrice
       : (parseNumericPrice(mClean) || defM);
     const yearlyVal = (typeof storePrices.yearlyPrice === 'number' && storePrices.yearlyPrice > 0)
       ? storePrices.yearlyPrice
       : (parseNumericPrice(yClean) || defY);
-    const monthlyStr = mClean || formatLocalizedPriceDisplay(currSymbol, monthlyVal, mClean);
+
+    const introClean = storePrices.introMonthly ? String(storePrices.introMonthly).replace(/\s*\/.*/, '').trim() : '';
+    const hasPaidStoreIntro = hasPositiveStoreIntroOffer(storePrices);
+    const fallbackIntroVal = INTRO_FIRST_MONTH_PPP_BY_CURRENCY[currCode]
+      || (monthlyVal >= 1000 ? Math.max(100, Math.round((monthlyVal * 0.4) / 100) * 100) : Number(Math.max(0.99, monthlyVal * 0.4).toFixed(2)));
+    const introMonthlyVal = (typeof storePrices.introMonthlyPrice === 'number' && storePrices.introMonthlyPrice > 0)
+      ? storePrices.introMonthlyPrice
+      : (parseNumericPrice(introClean) || fallbackIntroVal);
+
+    // Android RevenueCat SDK defaultOption koruması (Build 71): prod.price değeri intro-first-month (49.99) döndüğünde baz aylık fiyatı (149.99) geri yükle
+    let monthlyWasOverwrittenByIntro = false;
+    if (hasPaidStoreIntro && introMonthlyVal > 0 && monthlyVal <= introMonthlyVal) {
+      monthlyVal = defM > introMonthlyVal ? defM : Number((introMonthlyVal * 3).toFixed(2));
+      monthlyWasOverwrittenByIntro = true;
+    }
+
+    const monthlyStr = (!monthlyWasOverwrittenByIntro && mClean)
+      ? mClean
+      : formatLocalizedPriceDisplay(currSymbol, monthlyVal, mClean || introClean);
     const yearlyStr = yClean || formatLocalizedPriceDisplay(currSymbol, yearlyVal, yClean);
     const monthlyEqVal = yearlyVal / 12;
     const dailyEqVal = yearlyVal / 365;
@@ -10446,13 +10493,6 @@
       ? Math.round((1 - (yearlyVal / (monthlyVal * 12))) * 100)
       : 67;
 
-    const introClean = storePrices.introMonthly ? String(storePrices.introMonthly).replace(/\s*\/.*/, '').trim() : '';
-    const hasPaidStoreIntro = hasPositiveStoreIntroOffer(storePrices);
-    const fallbackIntroVal = INTRO_FIRST_MONTH_PPP_BY_CURRENCY[currCode]
-      || (monthlyVal >= 1000 ? Math.max(100, Math.round((monthlyVal * 0.4) / 100) * 100) : Number(Math.max(0.99, monthlyVal * 0.4).toFixed(2)));
-    const introMonthlyVal = (typeof storePrices.introMonthlyPrice === 'number' && storePrices.introMonthlyPrice > 0)
-      ? storePrices.introMonthlyPrice
-      : (parseNumericPrice(introClean) || fallbackIntroVal);
     const introMonthlyStr = (introClean && introMonthlyVal > 0)
       ? introClean
       : formatLocalizedPriceDisplay(currSymbol, introMonthlyVal, mClean);
@@ -16394,29 +16434,24 @@
     const paidVipNow = isPaidOrVerifiedVip();
 
     // 1. Ana Aylık, İlk Ay İndirimli Aylık & Yıllık Fiyatlar (Apple 3.1.2c 3-Durumlu Kesin Ayrım)
+    const showCardIntroPrice = dp.isStoreVerifiedIntro || dp.isConditionalUnknownIntro;
     document.querySelectorAll('.price-monthly-text').forEach(el => {
       el.textContent = dp.monthlyStr;
     });
     document.querySelectorAll('.price-monthly-primary-text').forEach(el => {
-      el.textContent = dp.isStoreVerifiedIntro ? dp.introMonthlyStr : dp.monthlyStr;
+      el.textContent = showCardIntroPrice ? dp.introMonthlyStr : dp.monthlyStr;
     });
     document.querySelectorAll('.price-monthly-unit-text').forEach(el => {
-      el.textContent = dp.isStoreVerifiedIntro
+      el.textContent = showCardIntroPrice
         ? trEnDe('/ilk ay', '/1st mo', '/1. Mon.')
         : trEnDe('/ay', '/mo', '/Monat');
     });
     document.querySelectorAll('.price-monthly-after-text').forEach(el => {
-      if (dp.isStoreVerifiedIntro) {
+      if (showCardIntroPrice) {
         el.innerHTML = trEnDe(
           `2. aydan: <span class="price-monthly-text">${escapeHtml(dp.monthlyStr)}</span>/ay`,
           `From mo 2: <span class="price-monthly-text">${escapeHtml(dp.monthlyStr)}</span>/mo`,
           `Ab 2. Mon.: <span class="price-monthly-text">${escapeHtml(dp.monthlyStr)}</span>/Mon.`
-        );
-      } else if (dp.isConditionalUnknownIntro) {
-        el.textContent = trEnDe(
-          `Uygun hesaplarda ilk ay ${dp.introMonthlyStr}`,
-          `Eligible accounts: ${dp.introMonthlyStr} 1st mo`,
-          `Berechtigte Konten: 1. Mon. ${dp.introMonthlyStr}`
         );
       } else {
         el.textContent = trEnDe('Otomatik yenilenir', 'Auto-renews', 'Automatisch verlängert');

@@ -87,10 +87,10 @@ export const initRevenueCat = async (userId?: string) => {
   try {
     const Purchases = require('react-native-purchases').default;
     const isIOS = Platform.OS === 'ios';
+    // react-native-purchases v9+ iOS'ta varsayılan olarak StoreKit 2 kullanır
     await Purchases.configure({
       apiKey,
       appUserID: userId,
-      ...(isIOS ? { usesStoreKit2IfAvailable: true } : {})
     });
     isConfigured = true;
     isRealKey = true;
@@ -125,21 +125,33 @@ function extractAndroidPaidIntroOption(product: any): {
   option: any | null;
   introPriceString?: string;
   introPrice?: number;
+  recurringPriceString?: string;
+  recurringPrice?: number;
   eligibility: IntroEligibilityState;
 } {
   try {
     const subsOpts: any[] = Array.isArray(product?.subscriptionOptions) ? product.subscriptionOptions : [];
     const basePrice = typeof product?.price === 'number' ? product.price : 0;
+    let basePlanMicros = 0;
+    let basePlanFormatted: string | undefined;
+    for (const opt of subsOpts) {
+      const phases: any[] = Array.isArray(opt?.pricingPhases) ? opt.pricingPhases : [];
+      if (opt?.isBasePlan && phases.length === 1 && typeof phases[0]?.price?.amountMicros === 'number' && phases[0].price.amountMicros > 0) {
+        basePlanMicros = phases[0].price.amountMicros;
+        basePlanFormatted = phases[0].price.formatted || undefined;
+        break;
+      }
+    }
     let sawMissingRecurringPrice = false;
     for (const opt of subsOpts) {
       const phases: any[] = Array.isArray(opt?.pricingPhases) ? opt.pricingPhases : [];
       if (phases.length >= 2) {
         const p0 = phases[0]?.price;
-        const pLast = phases[phases.length - 1]?.price;
+        const pLast = opt?.fullPricePhase?.price || phases[phases.length - 1]?.price;
         const micros0 = typeof p0?.amountMicros === 'number' ? p0.amountMicros : 0;
         const microsLast = typeof pLast?.amountMicros === 'number' && pLast.amountMicros > 0
           ? pLast.amountMicros
-          : (basePrice > 0 ? Math.round(basePrice * 1_000_000) : 0);
+          : (basePlanMicros > 0 ? basePlanMicros : (basePrice > 0 ? Math.round(basePrice * 1_000_000) : 0));
         if (microsLast <= 0) {
           sawMissingRecurringPrice = true;
           continue;
@@ -150,6 +162,8 @@ function extractAndroidPaidIntroOption(product: any): {
             option: opt,
             introPriceString: p0?.formatted || undefined,
             introPrice: Number((micros0 / 1_000_000).toFixed(2)),
+            recurringPriceString: pLast?.formatted || basePlanFormatted || undefined,
+            recurringPrice: Number((microsLast / 1_000_000).toFixed(2)),
             eligibility: 'eligible',
           };
         }
@@ -159,7 +173,12 @@ function extractAndroidPaidIntroOption(product: any): {
       return { option: null, eligibility: 'unknown' };
     }
     if (subsOpts.length > 0) {
-      return { option: null, eligibility: 'ineligible' };
+      return {
+        option: null,
+        recurringPriceString: basePlanFormatted,
+        recurringPrice: basePlanMicros > 0 ? Number((basePlanMicros / 1_000_000).toFixed(2)) : undefined,
+        eligibility: 'ineligible',
+      };
     }
   } catch {}
   return { option: null, eligibility: 'unknown' };
@@ -191,6 +210,9 @@ export const getOfferings = async (): Promise<PackageOffer[]> => {
         let introPrice: number | undefined;
         let introEligibility: IntroEligibilityState = 'unknown';
 
+        let resolvedPrice = typeof prod.price === 'number' ? prod.price : undefined;
+        let resolvedPriceString = prod.priceString || `${prod.currencyCode} ${prod.price}`;
+
         if (Platform.OS === 'ios') {
           const ip = prod.introPrice;
           const ipVal = typeof ip?.price === 'number' ? ip.price : 0;
@@ -211,13 +233,20 @@ export const getOfferings = async (): Promise<PackageOffer[]> => {
           introPriceString = gpIntro.introPriceString;
           introPrice = gpIntro.introPrice;
           introEligibility = gpIntro.eligibility;
+          // Google Play'de prod.price alanı defaultOption (49.99) döndürdüğünde gerçek yinelenen baz fiyatı (149.99) koru
+          if (typeof gpIntro.recurringPrice === 'number' && gpIntro.recurringPrice > 0) {
+            resolvedPrice = gpIntro.recurringPrice;
+          }
+          if (gpIntro.recurringPriceString) {
+            resolvedPriceString = gpIntro.recurringPriceString;
+          }
         }
 
         return {
           identifier: pkg.identifier,
           packageType: pkg.packageType,
-          priceString: prod.priceString || `${prod.currencyCode} ${prod.price}`,
-          price: typeof prod.price === 'number' ? prod.price : undefined,
+          priceString: resolvedPriceString,
+          price: resolvedPrice,
           currencyCode: prod.currencyCode || undefined,
           introPriceString,
           introPrice,

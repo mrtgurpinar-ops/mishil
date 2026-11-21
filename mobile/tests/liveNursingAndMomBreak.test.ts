@@ -208,6 +208,9 @@ describe('Mışıl Baby v4.53.0 — Live Nursing Timer, Inclusivity & Mom Break 
     // Start nursing on Left while VIP active, persist, simulate reload + VIP expiry mid-session
     expect(ctx._api.toggle('left')).toBe(true);
     expect(store.mishil_live_nursing_state).toBeTruthy();
+    const persisted = JSON.parse(store.mishil_live_nursing_state);
+    persisted.leftAccumMs = 90000;
+    store.mishil_live_nursing_state = JSON.stringify(persisted);
     ctx._api.resetRam();
     ctx._api.setVip(false); // Trial expired mid-session!
     ctx._api.restore();
@@ -219,6 +222,8 @@ describe('Mışıl Baby v4.53.0 — Live Nursing Timer, Inclusivity & Mom Break 
     expect(saved).toBeTruthy();
     expect(saved.type).toBe('feeding');
     expect(saved.method).toBe('breast');
+    expect(saved.leftMin).toBe(2);
+    expect(saved.durationMin).toBeGreaterThanOrEqual(2);
     expect(ctx._api.getSleepCalls()).toBe(0); // Dream feed preserved active sleep without toggling!
     expect(store.mishil_last_nursing_side).toBe('right');
     expect(store.mishil_live_nursing_state).toBeUndefined();

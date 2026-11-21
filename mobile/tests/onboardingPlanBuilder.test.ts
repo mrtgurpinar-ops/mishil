@@ -1027,14 +1027,15 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     const currMapStart = scriptCode.indexOf('const CURRENCY_CODE_MAP = {');
     const currMapEnd = scriptCode.indexOf('};', currMapStart) + 2;
     const introMapStart = scriptCode.indexOf('const INTRO_FIRST_MONTH_PPP_BY_CURRENCY = {');
-    const introMapEnd = scriptCode.indexOf('};', introMapStart) + 2;
+    const baseMapStart = scriptCode.indexOf('const BASE_MONTHLY_PPP_BY_CURRENCY = {', introMapStart);
+    const baseMapEnd = scriptCode.indexOf('};', baseMapStart) + 2;
     const pricingSnippet = [
       'var activeLang = "tr";',
       'function isEn() { return activeLang === "en"; }',
       'function isDe() { return activeLang === "de"; }',
       'function trEnDe(tr, en, de) { return activeLang === "de" ? de : (activeLang === "en" ? en : tr); }',
       scriptCode.slice(currMapStart, currMapEnd),
-      scriptCode.slice(introMapStart, introMapEnd),
+      scriptCode.slice(introMapStart, baseMapEnd),
       extractBlock(scriptCode, 'function parseNumericPrice('),
       extractBlock(scriptCode, 'function resolveCurrencySymbolFromStore('),
       extractBlock(scriptCode, 'function hasLocalPriorSubscriptionOrTrialTrace('),
@@ -1043,18 +1044,43 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
       extractBlock(scriptCode, 'function formatLocalizedPriceDisplay('),
       extractBlock(scriptCode, 'function getDynamicPricingState('),
       extractBlock(scriptCode, 'function buildPaywallCtaLabel('),
+      extractBlock(scriptCode, 'function buildPaywallShieldLabel('),
       extractBlock(scriptCode, 'function buildPaywallLegalTimelineLabel('),
       extractBlock(scriptCode, 'function hasActiveInProgressCareSession('),
+      extractBlock(scriptCode, 'window.applyStorePrices = function('),
     ].join('\n');
 
     const store = {};
+    const domNodes = {
+      '.price-monthly-text': [{ textContent: '' }],
+      '.price-monthly-primary-text': [{ textContent: '₺149,99' }],
+      '.price-monthly-unit-text': [{ textContent: '/ay' }],
+      '.price-monthly-after-text': [{ textContent: '', innerHTML: '' }],
+      '.price-monthly-subtext': [{ id: 'onb-sub', textContent: '' }],
+      '.price-yearly-text': [{ textContent: '' }],
+      '.price-yearly-monthly-eq-text': [{ textContent: '' }],
+      '.price-yearly-subtext, #plan-yearly-subtext, #settings-plan-sub-yearly': [{ id: 'plan-yearly-subtext', textContent: '' }],
+      '.price-daily-diaper-subtext': [{ textContent: '' }],
+      '.price-daily-subtext': [{ textContent: '' }],
+      '.price-yearly-discount-badge, #plan-yearly-discount-badge, #settings-plan-badge-yearly': [{ id: 'plan-yearly-discount-badge', textContent: '' }],
+      '.badge-trial-7d-hero': [{ textContent: '' }],
+      '.badge-trial-7d-vip': [{ textContent: '' }],
+      '.badge-trial-7d-flex, .badge-trial-7d': [{ id: 'onb-badge', textContent: '', style: {} }],
+    };
     const vmCtx = {
       window: { __MISHIL_STORE_PRICES__: {}, __MISHIL_SUB_META__: null },
+      document: {
+        querySelectorAll: (sel) => domNodes[sel] || [],
+        getElementById: () => null,
+      },
       localStorage: {
         getItem: (k) => (k in store ? store[k] : null),
         setItem: (k, v) => { store[k] = String(v); },
         removeItem: (k) => { delete store[k]; },
       },
+      isPaidOrVerifiedVip: () => false,
+      escapeHtml: (s) => String(s),
+      isPurchaseInFlight: false,
       isSleeping: false,
       isNursing: false,
       liveNursingState: null,
@@ -1065,7 +1091,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
       JSON,
     };
     vm.runInNewContext(
-      pricingSnippet + '\nthis._p = { dp: getDynamicPricingState, cta: buildPaywallCtaLabel, legal: buildPaywallLegalTimelineLabel, care: hasActiveInProgressCareSession, setLang: (l) => { activeLang = l; } };',
+      pricingSnippet + '\nthis._p = { dp: getDynamicPricingState, apply: window.applyStorePrices, cta: buildPaywallCtaLabel, legal: buildPaywallLegalTimelineLabel, care: hasActiveInProgressCareSession, setLang: (l) => { activeLang = l; } };',
       vmCtx
     );
 
@@ -1108,6 +1134,73 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(dpLocalPrior.introEligibility).toBe('ineligible');
     expect(dpLocalPrior.showIntroOffer).toBe(false);
     delete store.mishil_has_ever_subscribed;
+
+    // State 2c: Old app-only 'mishil_trial_start' (without real store subscription) must NOT falsely block new user eligibility
+    store.mishil_trial_start = '2026-10-01T00:00:00.000Z';
+    const dpTrialRemnant = vmCtx._p.dp({ monthly: '₺149,99', monthlyPrice: 149.99, yearly: '₺599,99', yearlyPrice: 599.99, currencyCode: 'TRY' });
+    expect(dpTrialRemnant.introEligibility).toBe('unknown_new_user');
+    expect(dpTrialRemnant.isConditionalUnknownIntro).toBe(true);
+    delete store.mishil_trial_start;
+
+    // State 1b: Android Build 71 defaultOption price collision (prod.price === 49.99 === introMonthlyPrice) recovers base ₺149,99
+    const dpAndroidCollision = vmCtx._p.dp({
+      monthly: '₺49,99',
+      monthlyPrice: 49.99,
+      yearly: '₺599,99',
+      yearlyPrice: 599.99,
+      currencyCode: 'TRY',
+      introMonthly: '₺49,99',
+      introMonthlyPrice: 49.99,
+      introEligibility: 'eligible',
+    });
+    expect(dpAndroidCollision.isStoreVerifiedIntro).toBe(true);
+    expect(dpAndroidCollision.introMonthlyStr).toBe('₺49,99');
+    expect(dpAndroidCollision.monthlyVal).toBe(149.99);
+    expect(dpAndroidCollision.monthlyStr).toBe('₺149,99');
+
+    // Rendered DOM verification across all 3 eligibility states via applyStorePrices
+    vmCtx._p.apply({
+      monthly: '₺149,99',
+      monthlyPrice: 149.99,
+      yearly: '₺599,99',
+      yearlyPrice: 599.99,
+      currencyCode: 'TRY',
+      introMonthly: '₺49,99',
+      introMonthlyPrice: 49.99,
+      introEligibility: 'eligible',
+    });
+    expect(domNodes['.price-monthly-primary-text'][0].textContent).toBe('₺49,99');
+    expect(domNodes['.price-monthly-unit-text'][0].textContent).toBe('/ilk ay');
+    expect(domNodes['.price-monthly-after-text'][0].innerHTML).toContain('149,99');
+
+    vmCtx._p.apply({
+      monthly: '₺149,99',
+      monthlyPrice: 149.99,
+      yearly: '₺599,99',
+      yearlyPrice: 599.99,
+      currencyCode: 'TRY',
+      introMonthly: '₺49,99',
+      introMonthlyPrice: 49.99,
+      introEligibility: 'unknown',
+    });
+    expect(domNodes['.price-monthly-primary-text'][0].textContent).toBe('₺49,99');
+    expect(domNodes['.price-monthly-unit-text'][0].textContent).toBe('/ilk ay');
+    expect(domNodes['.price-monthly-subtext'][0].textContent).toContain('Uygun yeni hesaplarda ilk ay ₺49,99');
+
+    vmCtx._p.apply({
+      monthly: '₺149,99',
+      monthlyPrice: 149.99,
+      yearly: '₺599,99',
+      yearlyPrice: 599.99,
+      currencyCode: 'TRY',
+      introMonthly: '₺49,99',
+      introMonthlyPrice: 49.99,
+      introEligibility: 'ineligible',
+    });
+    expect(domNodes['.price-monthly-primary-text'][0].textContent).toBe('₺149,99');
+    expect(domNodes['.price-monthly-unit-text'][0].textContent).toBe('/ay');
+    expect(domNodes['.price-monthly-after-text'][0].textContent).toBe('Otomatik yenilenir');
+    expect(domNodes['.price-monthly-subtext'][0].textContent).not.toContain('49,99');
 
     // State 3a: Web preview client with zero prior trace -> 'unknown_new_user' (primary headline stays ₺149,99/ay; conditional 'Uygun' copy shown)
     const dpUnknownNew = vmCtx._p.dp({ monthly: '₺149,99', monthlyPrice: 149.99, yearly: '₺599,99', yearlyPrice: 599.99, currencyCode: 'TRY' });
@@ -1200,7 +1293,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
       expect(iosPaidIntroRes[0].introPrice).toBe(49.99);
       expect(iosPaidIntroRes[0].introPriceString).toBe('₺49,99');
 
-      // 3) Android multi-phase subscriptionOption (Phase 1: 49.99 TRY -> Phase 2: 149.99 TRY)
+      // 3) Android multi-phase subscriptionOption (Phase 1: 49.99 TRY -> Phase 2: 149.99 TRY) even when prod.price is defaultOption (49.99)
       mockPlatformOS = 'android';
       mockOfferingsPayload = {
         current: {
@@ -1211,16 +1304,26 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
               identifier: 'misilaylik:misilaylik',
               title: 'Mışıl Aylık',
               description: 'VIP',
-              priceString: '₺149,99',
-              price: 149.99,
+              priceString: '₺49,99',
+              price: 49.99,
               currencyCode: 'TRY',
-              subscriptionOptions: [{
-                id: 'misilaylik:intro-first-month',
-                pricingPhases: [
-                  { price: { amountMicros: 49990000, formatted: '₺49,99', currencyCode: 'TRY' } },
-                  { price: { amountMicros: 149990000, formatted: '₺149,99', currencyCode: 'TRY' } },
-                ],
-              }],
+              subscriptionOptions: [
+                {
+                  id: 'misilaylik',
+                  isBasePlan: true,
+                  pricingPhases: [
+                    { price: { amountMicros: 149990000, formatted: '₺149,99', currencyCode: 'TRY' } },
+                  ],
+                },
+                {
+                  id: 'misilaylik:intro-first-month',
+                  fullPricePhase: { price: { amountMicros: 149990000, formatted: '₺149,99', currencyCode: 'TRY' } },
+                  pricingPhases: [
+                    { price: { amountMicros: 49990000, formatted: '₺49,99', currencyCode: 'TRY' } },
+                    { price: { amountMicros: 149990000, formatted: '₺149,99', currencyCode: 'TRY' } },
+                  ],
+                },
+              ],
             },
           }],
         },
@@ -1229,6 +1332,8 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
       expect(androidPaidIntroRes[0].introEligibility).toBe('eligible');
       expect(androidPaidIntroRes[0].introPrice).toBe(49.99);
       expect(androidPaidIntroRes[0].introPriceString).toBe('₺49,99');
+      expect(androidPaidIntroRes[0].price).toBe(149.99);
+      expect(androidPaidIntroRes[0].priceString).toBe('₺149,99');
     })();
   });
 });
