@@ -2,6 +2,17 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.0-bubble-ui] - 2026-11-21 (Railway Canlı Yayın — Ana Ekran 3 Büyük Kategori Baloncuğu `3-Tier Mega Bubble Hubs` UX/UI Mimarisi • 🟢 Yeni Native EAS Build Gerekmez)
+### 🫧 Ana Ekran (`#home-seg-sweetspot`) 3 Büyük Kategori Baloncuğu (`.mega-bubble-sleep`, `.mega-bubble-care`, `.mega-bubble-health`) & Gece 03:00 Ergonomisi (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`)
+1. **10+ Dağınık Karttan 3 Büyük Kategori Baloncuğuna Geçiş (`public/app.html`):**
+   - **🌙 1. Baloncuk — `UYKU & RİTİM BALONCUĞU` (`.mega-bubble-sleep`):** Nefes alan kehribar hilal madalyonu (`#home-candle-aura`), `MışılSpot™` hedef uyku saati (`#target-sleep-display`), entegre **`🕒 24 Saatlik Günlük Ritim Şeridi` (`#home-circadian-strip`, `24h — 06 — 12 — 18 — 24h`)**, tam genişlikli **`🌙 Şimdi Uyuyor (Canlı Takip Başlat)`** hap butonu (`#btn-toggle-sleep`) ve koşullu son uyku saatini düzeltme satırı (`#last-sleep-quick-edit-bar`) tek bir `30px` yuvarlatılmış kehribar-cam baloncukta birleştirildi.
+   - **🍼 2. Baloncuk — `GÜNLÜK BAKIM & ACİL DESTEK BALONCUĞU` (`.mega-bubble-care`):** Sıcak pastel krem ve pudra cam yüzey içinde 2×2 dolgun hap butonlar (`border-radius: 999px`, `min-height: 48px`) olarak **`🍼 Beslenme`**, **`🚼 Alt Değişimi`**, **`🎙️ Ağlama Rehberi`** ve **`🎧 Ninniler`** gruplandı (`#home-live-nursing-bar` aktif emzirme sırasında en üstte `above-the-fold` konumunu korur).
+   - **🌱 3. Baloncuk — `SAĞLIK, ATAK & AİLE BALONCUĞU` (`.mega-bubble-health`):** Adaçayı yeşili ve lavanta cam yüzey içinde solda büyük dairesel **`Denge Skoru %85` halkası** (`#home-bento-score-val` + `#home-today-sleep-total`, tıklanınca doğrudan `📊 Analiz` sekmesini açar), sağda ise alt alta 2 dolgun pastel hap olan **`BabySteps Atak`** (`#home-wonder-weeks-card`) ve **`Aşı Defteri`** (`#home-vaccine-card`) ile altında koşullu **`🤝 Eşime Sessiz Nöbet Notu`** (`#mom-break-drawer`) birleştirildi.
+2. **Çift Tema (`Warm Cashmere Dark` & `Soft İskandinav Krem Light`) ve 3 Dil (`TR/EN/DE`) Uyumu:**
+   - Tüm 36 mevcut DOM ID'si ve 6 adımlı İnteraktif Spotlight Turu seçicileri %100 korundu; `TR_TO_EN_EXACT_MAP` ve `TR_TO_DE_EXACT_MAP` sözlüklerine yeni kategori baloncuk başlıkları eklendi; `offlineHtml.generated.ts` (`1204 KB`) güncellendi.
+3. **3 Ajanlı Konsensüs & Doğrulama Kapısı (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-17` UX teşhisi + `task-68` CSS/Navigasyon spesifikasyonu)** + **Codex CLI (`gpt-6-luna`, `task-26` + `task-66` DOM/Fitts analizi + `task-212` uygulama sonrası kod onayı)** + **Antigravity (`11/11 suite / 80 Jest testi` `task-202`, `tsc --noEmit` 0 hata, `node --check` 0 hata, Playwright Dark/Light canlı ekran doğrulaması `task-167`)**.
+
 ## [4.56.0-hotfix] - 2026-11-21 (Railway Canlı Yayın + Apple App Store `v4.56.0 / Build 72` Yeniden Gönderimi — Uvicorn Event-Loop Kilitlenmesi & `HTTP 499` Açılış Takılması Onarımı • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🛡️ Uvicorn Event-Loop İzolasyonu (`async def` ➔ `def` Worker Threadpool), PostgreSQL Timeout Zırhlaması & Apple App Review `Build 72` Yeniden Gönderimi (`app/api/v1/endpoints/family.py`, `app/api/v1/endpoints/wake_window.py`, `app/db/base.py`, `app/main.py`, `mobile/components/MishilUnifiedWebView.tsx`, `tests/test_family_sync_and_mom_mode.py`)
 1. **Aile Senkronu & Uyanıklık Penceresi Event-Loop İzolasyonu (`family.py`, `wake_window.py`):**

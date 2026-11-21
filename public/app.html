@@ -353,7 +353,6 @@
       border-color: rgba(217, 119, 6, 0.3) !important;
       color: #B45309 !important;
     }
-    [data-theme="light"] #home-wonder-weeks-card,
     [data-theme="light"] .vaccine-bento-card,
     [data-theme="light"] .welcome-guide-card,
     [data-theme="light"] [style*="rgba(26, 32, 54"],
@@ -374,10 +373,6 @@
     }
     [data-theme="light"] .welcome-step-item div[style*="var(--text-muted)"] {
       color: #64748B !important;
-    }
-    [data-theme="light"] #home-vaccine-card #home-vaccine-subtitle,
-    [data-theme="light"] #home-leap-subtitle {
-      color: #334155 !important;
     }
 
     /* =========================================================================
@@ -949,6 +944,263 @@
       gap: 8px;
       margin-top: 8px;
       margin-bottom: 8px;
+    }
+
+    /* =========================================================================
+       PROPOSAL 1: 3-TIER MEGA BUBBLE HUBS (3 BÜYÜK KATEGORİ BALONCUĞU MİMARİSİ)
+       ========================================================================= */
+    .mega-bubble-hub {
+      border-radius: 30px;
+      padding: 13px 14px;
+      margin-bottom: 10px;
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .mega-bubble-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 9px;
+    }
+
+    .mega-bubble-kicker {
+      font-family: 'Sora', sans-serif;
+      font-size: 10.5px;
+      font-weight: 800;
+      letter-spacing: 0.45px;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+    }
+
+    /* 1. BALONCUK: UYKU & RİTİM BALONCUĞU (KEHRİBAR & MUM IŞIĞI AURA) */
+    .mega-bubble-sleep {
+      background: radial-gradient(circle at 22% 22%, rgba(244, 162, 97, 0.24) 0%, rgba(44, 34, 48, 0.94) 72%) !important;
+      border: 1.5px solid rgba(244, 162, 97, 0.45) !important;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.50), 0 0 24px rgba(244, 162, 97, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+      text-align: left !important;
+    }
+    .mega-bubble-sleep .mega-bubble-kicker {
+      color: #F8E5D0;
+    }
+    .mega-bubble-sleep.sleeping-hero {
+      background: radial-gradient(circle at 22% 22%, rgba(46, 213, 115, 0.24) 0%, rgba(22, 36, 32, 0.95) 72%) !important;
+      border-color: rgba(46, 213, 115, 0.48) !important;
+      box-shadow: 0 14px 32px rgba(16, 172, 132, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.22) !important;
+    }
+
+    .sleep-bubble-hero-row {
+      display: flex;
+      align-items: center;
+      gap: 13px;
+      margin-bottom: 10px;
+    }
+    .sleep-bubble-hero-row .warm-moon-aura {
+      margin: 0 !important;
+      width: 64px;
+      height: 64px;
+      flex-shrink: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(244, 162, 97, 0.34) 0%, rgba(224, 122, 95, 0.14) 100%);
+      border: 1.5px solid rgba(244, 162, 97, 0.52);
+      box-shadow: 0 0 28px rgba(244, 162, 97, 0.45);
+    }
+    .sleep-bubble-time-col {
+      flex: 1;
+      min-width: 0;
+      text-align: left;
+    }
+    .sleep-bubble-time-col .organic-hero-time {
+      font-size: 36px;
+      line-height: 1;
+      color: #FCEAD6;
+      letter-spacing: -1px;
+    }
+    .sleep-bubble-brand-tag {
+      font-family: 'Sora', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      color: rgba(250, 245, 238, 0.78);
+      margin-top: 2px;
+    }
+    .sleep-bubble-time-col .organic-hero-subtext {
+      font-size: 10.5px;
+      color: #D8CEE8;
+      margin-top: 3px;
+      line-height: 1.25;
+    }
+
+    .sleep-bubble-circadian-box {
+      background: rgba(19, 16, 28, 0.48) !important;
+      border: 1px solid rgba(244, 162, 97, 0.24) !important;
+      border-radius: 15px !important;
+      padding: 7px 10px !important;
+      margin-bottom: 9px !important;
+      cursor: pointer;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06) !important;
+    }
+    .sleep-bubble-cta-btn {
+      width: 100%;
+      min-height: 42px;
+      padding: 10px 14px !important;
+      margin-bottom: 0 !important;
+      border-radius: 999px !important;
+      background: linear-gradient(135deg, #F4A868 0%, #E59254 100%) !important;
+      color: #1F1510 !important;
+      font-family: 'Sora', sans-serif;
+      font-size: 13px !important;
+      font-weight: 800 !important;
+      border: 1px solid rgba(255, 235, 210, 0.45) !important;
+      box-shadow: 0 6px 18px rgba(244, 162, 97, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+    }
+
+    /* 2. BALONCUK: GÜNLÜK BAKIM & ACİL DESTEK BALONCUĞU (SICAK PASTEL KREM & PUDRA) */
+    .mega-bubble-care {
+      background: linear-gradient(135deg, rgba(235, 208, 174, 0.94) 0%, rgba(224, 180, 174, 0.94) 100%) !important;
+      border: 1.5px solid rgba(255, 240, 225, 0.65) !important;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.42), 0 0 22px rgba(235, 200, 175, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.75) !important;
+    }
+    .mega-bubble-care .mega-bubble-kicker {
+      color: #3D281E !important;
+    }
+    .mega-bubble-care .quick-bento-grid {
+      gap: 8px;
+      margin-bottom: 0;
+    }
+    .mega-bubble-care .soft-quick-card {
+      border-radius: 999px !important;
+      padding: 9px 12px !important;
+      min-height: 48px;
+      box-shadow: 0 5px 14px rgba(60, 35, 25, 0.11), inset 0 1px 0 rgba(255, 255, 255, 0.85) !important;
+    }
+    .mega-bubble-care .card-milk,
+    .mega-bubble-care .card-cry {
+      background: linear-gradient(145deg, #FDF1D6 0%, #F7E4BE 100%) !important;
+      border: 1px solid rgba(210, 175, 120, 0.55) !important;
+      color: #2D1E17 !important;
+    }
+    .mega-bubble-care .card-diaper,
+    .mega-bubble-care .card-lullaby {
+      background: linear-gradient(145deg, #FCE7E6 0%, #F5D2D2 100%) !important;
+      border: 1px solid rgba(210, 155, 155, 0.55) !important;
+      color: #2D1E17 !important;
+    }
+    .mega-bubble-care .soft-quick-card div[style*="font-weight: 800"] {
+      color: #261812 !important;
+      font-size: 12px !important;
+    }
+    .mega-bubble-care .soft-quick-card div[id^="quick-card-"] {
+      color: #6B4E42 !important;
+      font-weight: 600;
+    }
+
+    /* 3. BALONCUK: SAĞLIK, ATAK & AİLE BALONCUĞU (ADAÇAYI YEŞİLİ & LAVANTA CAM) */
+    .mega-bubble-health {
+      background: linear-gradient(135deg, rgba(64, 108, 92, 0.86) 0%, rgba(88, 68, 114, 0.88) 100%) !important;
+      border: 1.5px solid rgba(155, 215, 185, 0.42) !important;
+      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45), 0 0 24px rgba(135, 195, 165, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+    }
+    .mega-bubble-health .mega-bubble-kicker {
+      color: #F4EFEA !important;
+    }
+    .health-bubble-duo-grid {
+      display: grid;
+      grid-template-columns: 102px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+    .health-score-ring-box {
+      position: relative;
+      width: 98px;
+      height: 98px;
+      margin: 0 auto;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(28, 48, 42, 0.55) 0%, rgba(28, 48, 42, 0.18) 70%);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.26);
+      transition: transform 0.2s ease;
+    }
+    .health-score-ring-box:active {
+      transform: scale(0.95);
+    }
+    .health-pills-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 0;
+    }
+    .health-pill-babysteps {
+      background: linear-gradient(135deg, #8FD6B2 0%, #6EC097 100%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.48) !important;
+      border-radius: 999px !important;
+      padding: 8px 14px !important;
+      cursor: pointer;
+      box-shadow: 0 5px 14px rgba(20, 50, 38, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.55) !important;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 43px;
+    }
+    .health-pill-vaccine {
+      background: linear-gradient(135deg, #B685CE 0%, #9B67B5 100%) !important;
+      border: 1px solid rgba(255, 255, 255, 0.42) !important;
+      border-radius: 999px !important;
+      padding: 8px 14px !important;
+      cursor: pointer;
+      box-shadow: 0 5px 14px rgba(42, 22, 58, 0.24), inset 0 1px 0 rgba(255, 255, 255, 0.45) !important;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 43px;
+    }
+
+    /* Light Mode Overrides for 3 Mega Bubbles */
+    [data-theme="light"] .mega-bubble-sleep {
+      background: radial-gradient(circle at 22% 22%, rgba(254, 228, 210, 0.95) 0%, rgba(255, 248, 242, 0.98) 75%) !important;
+      border-color: rgba(224, 122, 95, 0.42) !important;
+      box-shadow: 0 12px 30px rgba(140, 90, 60, 0.12), inset 0 1px 0 #FFF !important;
+    }
+    [data-theme="light"] .mega-bubble-sleep .mega-bubble-kicker,
+    [data-theme="light"] .sleep-bubble-time-col .organic-hero-time {
+      color: #2D1E17 !important;
+    }
+    [data-theme="light"] .sleep-bubble-brand-tag {
+      color: #7A5C4D !important;
+    }
+    [data-theme="light"] .sleep-bubble-circadian-box {
+      background: rgba(255, 255, 255, 0.85) !important;
+      border-color: rgba(224, 122, 95, 0.28) !important;
+    }
+    [data-theme="light"] .mega-bubble-care {
+      background: linear-gradient(135deg, #F7E5CE 0%, #F2D2CD 100%) !important;
+      border-color: rgba(224, 122, 95, 0.32) !important;
+      box-shadow: 0 12px 28px rgba(140, 90, 60, 0.10), inset 0 1px 0 #FFF !important;
+    }
+    [data-theme="light"] .mega-bubble-health {
+      background: linear-gradient(135deg, #C9E4D6 0%, #D9CBEB 100%) !important;
+      border-color: rgba(72, 122, 99, 0.35) !important;
+      box-shadow: 0 12px 28px rgba(60, 80, 70, 0.12), inset 0 1px 0 #FFF !important;
+    }
+    [data-theme="light"] .mega-bubble-health .mega-bubble-kicker {
+      color: #1F382C !important;
+    }
+    [data-theme="light"] .health-score-ring-box {
+      background: rgba(24, 52, 42, 0.92) !important;
+    }
+    [data-theme="light"] .health-score-ring-box #home-bento-score-val {
+      color: #FAF5EE !important;
+    }
+    [data-theme="light"] .health-score-ring-box #home-today-sleep-total {
+      color: #C3E9D2 !important;
     }
 
     /* Üst Başlık Dairesel Profil/Ayarlar Butonu (Header Circular Profile/Settings Button) */
@@ -3913,7 +4165,7 @@
         </button>
       </div>
 
-      <!-- SEGMENT 1: MIŞIL SPOT™ & BENTO HERO -->
+      <!-- SEGMENT 1: MIŞIL SPOT™ & 3 BÜYÜK KATEGORİ BALONCUĞU (ÖNERİ 1 — 3-TIER MEGA BUBBLE HUBS) -->
       <div id="home-seg-sweetspot">
         <!-- EŞTEN GELEN SESSİZ FISILTI BİLDİRİMİ (YALNIZCA BEKLEYEN FISILTI VARKEN AÇILIR) -->
         <div id="family-whisper-banner">
@@ -3952,69 +4204,206 @@
           </div>
         </div>
 
-        <!-- PROPOSAL 2B: ORGANIC WARM BENTO (HERO HİLAL DAİMA İLK EKRANDA - ABOVE THE FOLD) -->
-        <!-- 1. PANORAMİK HERO HİLAL BENTO KARTI -->
-        <div class="hero-organic-card" id="home-organic-hero">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <div class="soft-card-label" style="font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 4px; color: var(--accent);">
-              <span>✨</span> <span id="sweetspot-status-badge">Mışıl Spot™ Biyolojik Ritim</span>
+        <!-- ===================================================================
+             🌙 1. BALONCUK: UYKU & RİTİM BALONCUĞU (.mega-bubble-sleep)
+             =================================================================== -->
+        <div class="hero-organic-card mega-bubble-hub mega-bubble-sleep" id="home-organic-hero">
+          <div class="mega-bubble-header">
+            <div class="mega-bubble-kicker">
+              <span>🌙</span>
+              <span>UYKU & RİTİM BALONCUĞU</span>
             </div>
             <div class="soft-countdown-pill" id="bento-countdown-pill" style="margin: 0; padding: 4px 10px; font-size: 10px;">
-              <span>⏳</span> <span>Zamanında Uyut</span>
+              <span>⏳</span> <span id="sweetspot-status-badge">Zamanında Uyut</span>
             </div>
           </div>
 
-          <!-- Yavaşça Nefes Alan Mum Işığı Kehribar Aurası & Hilal -->
-          <div class="warm-moon-aura" id="home-candle-aura" onclick="toggleLiveSleep()" title="Canlı Uyku Başlat / Bitir">
-            <svg viewBox="0 0 24 24" style="width: 38px; height: 38px; stroke: #F4A261; fill: #F4A261; filter: drop-shadow(0 2px 10px rgba(244, 162, 97, 0.65));">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-            </svg>
+          <!-- Sol: Nefes Alan Parlak Hilal Madalyonu | Sağ: 11:45 MışılSpot™ -->
+          <div class="sleep-bubble-hero-row">
+            <div class="warm-moon-aura" id="home-candle-aura" onclick="toggleLiveSleep()" title="Canlı Uyku Başlat / Bitir">
+              <svg viewBox="0 0 24 24" style="width: 38px; height: 38px; stroke: #F4A261; fill: #F4A261; filter: drop-shadow(0 2px 10px rgba(244, 162, 97, 0.65));">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+              </svg>
+            </div>
+            <div class="sleep-bubble-time-col">
+              <div class="organic-hero-time" id="target-sleep-display">11:45</div>
+              <div class="sleep-bubble-brand-tag">MışılSpot™</div>
+              <div class="organic-hero-subtext" id="target-sleep-subtext">Sonraki En İdeal Uyku Vakti (1 saat 15 dk kaldı)</div>
+            </div>
           </div>
 
-          <div class="organic-hero-time" id="target-sleep-display">11:45</div>
-          <div class="organic-hero-subtext" id="target-sleep-subtext">Sonraki En İdeal Uyku Vakti (1 saat 15 dk kaldı)</div>
-          
-          <div id="live-sleep-timer" style="display: none; font-size: 13px; font-weight: 800; color: #2ED573; margin-top: 8px; text-shadow: 0 0 12px rgba(46, 213, 115, 0.4);">
-            💤 Canlı Uyku: 00:00:00</div><div id="live-sleep-edit-start-wrap" style="display: none; margin-top: 8px;" onclick="event.stopPropagation(); openLiveSleepStartEditModal();"><span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 999px; padding: 4px 12px; font-size: 11px; font-weight: 700; color: #FAF5EE; cursor: pointer;"><span>🕓 Başlangıç: <strong id="live-sleep-start-label">--:--</strong></span><span style="color: var(--accent); text-decoration: underline;">Saatini Düzelt ✏️</span></span>
+          <div id="live-sleep-timer" style="display: none; font-size: 13px; font-weight: 800; color: #2ED573; margin-bottom: 8px; text-shadow: 0 0 12px rgba(46, 213, 115, 0.4);">
+            💤 Canlı Uyku: 00:00:00
+          </div>
+          <div id="live-sleep-edit-start-wrap" style="display: none; margin-bottom: 10px;" onclick="event.stopPropagation(); openLiveSleepStartEditModal();">
+            <span style="display: inline-flex; align-items: center; gap: 6px; background: rgba(255, 255, 255, 0.12); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 999px; padding: 4px 12px; font-size: 11px; font-weight: 700; color: #FAF5EE; cursor: pointer;">
+              <span>🕓 Başlangıç: <strong id="live-sleep-start-label">--:--</strong></span>
+              <span style="color: var(--accent); text-decoration: underline;">Saatini Düzelt ✏️</span>
+            </span>
+          </div>
+
+          <!-- Entegre 24 Saatlik Görsel Sirkadiyen Günlük Şerit (Tıklanınca Bugünkü Uykular Çizelgesini Açar) -->
+          <div class="sleep-bubble-circadian-box" id="home-circadian-strip" onclick="switchHomeSegment('timeline')">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+              <span style="font-family: 'Sora'; font-size: 10.5px; font-weight: 700; color: var(--heading-night);">🕒 24 Saatlik Günlük Ritim Şeridi</span>
+              <span id="circadian-strip-summary" style="font-size: 9.5px; font-weight: 700; color: var(--accent);">MışılSpot™ Takvimde ›</span>
+            </div>
+            <div id="circadian-strip-bar" style="position: relative; height: 20px; width: 100%; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; border: 1px solid rgba(244, 162, 97, 0.28);">
+              <!-- Dinamik uyku blokları, beslenme noktaları ve MışılSpot penceresi JS ile çizilir -->
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 9.5px; color: var(--text-muted); margin-top: 5px; font-weight: 700;">
+              <span>24h</span>
+              <span>06</span>
+              <span>12</span>
+              <span>18</span>
+              <span>24h</span>
+            </div>
+          </div>
+
+          <!-- Canlı Uyku Başlat / Bitir Ana Aksiyon Hapı -->
+          <button class="btn-primary sleep-bubble-cta-btn" id="btn-toggle-sleep" onclick="toggleLiveSleep()">
+            <span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>
+          </button>
+
+          <!-- Son Uyku Saatini Düzeltme Satırı (Varsa Baloncuk İçinde Açılır) -->
+          <div id="last-sleep-quick-edit-bar" style="display: none; align-items: center; justify-content: space-between; gap: 8px; background: rgba(244, 162, 97, 0.14); border: 1px dashed rgba(244, 162, 97, 0.45); border-radius: 14px; padding: 8px 11px; margin-top: 10px; margin-bottom: 0;">
+            <div style="font-size: 11px; color: var(--text-night); line-height: 15px;">
+              <span>🌙 Son Uyku: <strong id="last-sleep-quick-summary" style="color: var(--heading-night);">—</strong></span>
+              <div style="font-size: 10px; color: var(--text-muted);" id="last-sleep-quick-sub">Uyuyakaldıysanız veya uyanış saati farklıysa düzeltin</div>
+            </div>
+            <button type="button" id="btn-last-sleep-quick-edit" onclick="editLatestSleepRoutine()" style="background: rgba(244, 162, 97, 0.22); border: 1px solid var(--accent); color: var(--accent); border-radius: 10px; padding: 6px 10px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0;">✏️ Saatleri Düzenle</button>
           </div>
         </div>
 
-        <!-- Canlı Uyku Başlat / Bitir Butonu (Hero Kartın Hemen Altında) -->
-        <button class="btn-primary" id="btn-toggle-sleep" onclick="toggleLiveSleep()" style="margin-bottom: 12px; background: linear-gradient(135deg, var(--accent) 0%, #E07A5F 100%); border-radius: var(--radius-lg); box-shadow: 0 4px 16px rgba(224, 122, 95, 0.3);">
-          <span>🌙 Şimdi Uyuyor (Canlı Takip Başlat)</span>
-        </button>
-
-        <div id="last-sleep-quick-edit-bar" style="display: none; align-items: center; justify-content: space-between; gap: 8px; background: rgba(244, 162, 97, 0.12); border: 1px dashed rgba(244, 162, 97, 0.45); border-radius: 14px; padding: 9px 12px; margin-top: -4px; margin-bottom: 12px;"><div style="font-size: 11px; color: var(--text-night); line-height: 15px;"><span>🌙 Son Uyku: <strong id="last-sleep-quick-summary" style="color: var(--heading-night);">—</strong></span><div style="font-size: 10px; color: var(--text-muted);" id="last-sleep-quick-sub">Uyuyakaldıysanız veya uyanış saati farklıysa düzeltin</div></div><button type="button" id="btn-last-sleep-quick-edit" onclick="editLatestSleepRoutine()" style="background: rgba(244, 162, 97, 0.22); border: 1px solid var(--accent); color: var(--accent); border-radius: 10px; padding: 6px 10px; font-size: 11px; font-weight: 700; cursor: pointer; white-space: nowrap; flex-shrink: 0;">✏️ Saatleri Düzenle</button></div>
-
-        <!-- 🤝 SADE EŞ NÖBET NOTU ŞERİDİ (BEBEK UYURKEN VEYA CANLI EMZİRMEDE VARSAYILAN KAPALI TEK SATIR) -->
-        <div id="mom-break-drawer">
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer;" onclick="toggleMomBreakCollapsed()">
-            <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
-              <span style="font-size: 17px; flex-shrink: 0;" id="mom-break-icon">🤝</span>
-              <div style="min-width: 0;">
-                <div style="font-family: 'Sora'; font-size: 12px; font-weight: 800; color: var(--heading-night);" id="mom-break-title">Eşime Sessiz Nöbet Notu</div>
-                <div style="font-size: 10.5px; color: var(--accent); margin-top: 1px;" id="mom-break-subtitle">Eşiniz uygulamayı açtığında ekranın en üstünde görür</div>
-              </div>
+        <!-- ===================================================================
+             🍼 2. BALONCUK: GÜNLÜK BAKIM & ACİL DESTEK BALONCUĞU (.mega-bubble-care)
+             =================================================================== -->
+        <div class="mega-bubble-hub mega-bubble-care" id="home-bubble-care-hub">
+          <div class="mega-bubble-header" id="home-quick-tools-header" style="margin-bottom: 10px;">
+            <div class="mega-bubble-kicker">
+              <span>🍼</span>
+              <span>GÜNLÜK BAKIM & ACİL DESTEK BALONCUĞU</span>
             </div>
-            <button type="button" id="mom-break-collapse-btn" style="background: rgba(255,255,255,0.07); border: 1px solid var(--border-night); color: var(--accent); border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: 700; cursor: pointer; flex-shrink: 0;">Not Bırak ▾</button>
           </div>
 
-          <div id="mom-break-body" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.12);">
-
-            <div id="mom-whisper-connected-box">
-              <div style="font-size: 10.5px; color: var(--text-muted); line-height: 15px; margin-bottom: 8px;">
-                Eşiniz uygulamayı açtığında ekranın en üstünde görür:
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
-                <button type="button" id="btn-whisper-shift" onclick="sendFamilyWhisperTemplate('next_shift_yours')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--heading-night); border-radius: 9px; padding: 8px 10px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left;">🍼 Sıradaki uyanış nöbeti sende 💛</button>
-                <button type="button" id="btn-whisper-fed-burped" onclick="sendFamilyWhisperTemplate('handoff_fed_burped')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--heading-night); border-radius: 9px; padding: 8px 10px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left;">🤱 Beslendi ve gazı çıkarıldı; sıradaki uyanış sende 💛</button>
-                <button type="button" id="btn-whisper-thanks" onclick="sendFamilyWhisperTemplate('thank_you_love')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--heading-night); border-radius: 9px; padding: 8px 10px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left;">🤍 İyi ki varsın, desteğin çok iyi geldi</button>
-              </div>
-              <div style="display: flex; gap: 6px;">
-                <input type="text" id="mom-whisper-custom-input" class="form-input" placeholder="Eşinize kısa nöbet notu yazın..." maxlength="140" onkeydown="if(event.key==='Enter') sendCustomFamilyWhisper()" style="margin-bottom: 0; padding: 7px 10px; font-size: 11px;" />
-                <button type="button" onclick="sendCustomFamilyWhisper()" style="background: var(--accent); color: #141B2E; border: none; border-radius: 9px; padding: 7px 11px; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;">Gönder 💌</button>
+          <div class="quick-bento-grid">
+            <!-- Beslenme (Sıcak Krem Hap) -->
+            <div class="soft-quick-card card-milk" onclick="openRoutineModalFor('feeding')">
+              <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(61, 40, 30, 0.10); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0;">🍼</div>
+              <div style="min-width: 0;">
+                <div style="font-size: 12.5px; font-weight: 800;">Beslenme</div>
+                <div style="font-size: 10px; opacity: 0.88; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="quick-card-milk-sub">Mama / Emzirme</div>
               </div>
             </div>
+            <!-- Alt Değişimi (Sıcak Pudra Hap) -->
+            <div class="soft-quick-card card-diaper" onclick="openRoutineModalFor('diaper')">
+              <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(61, 40, 30, 0.10); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0;">🚼</div>
+              <div style="min-width: 0;">
+                <div style="font-size: 12.5px; font-weight: 800;">Alt Değişimi</div>
+                <div style="font-size: 10px; opacity: 0.88; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="quick-card-diaper-sub">Islak / Kirli Bez</div>
+              </div>
+            </div>
+            <!-- Ağlama Rehberi (Sıcak Krem Hap) -->
+            <div class="soft-quick-card card-cry" onclick="openCryModal()">
+              <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(61, 40, 30, 0.10); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0;">🎙️</div>
+              <div style="min-width: 0;">
+                <div style="font-size: 12.5px; font-weight: 800;">Ağlama Rehberi</div>
+                <div style="font-size: 10px; opacity: 0.88; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="quick-card-cry-sub">Açlık / Gaz / Uyku</div>
+              </div>
+            </div>
+            <!-- Ninniler / Ses Mikseri (Sıcak Pudra Hap) -->
+            <div class="soft-quick-card card-lullaby" onclick="switchTab('sounds')">
+              <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(61, 40, 30, 0.10); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0;">🎧</div>
+              <div style="min-width: 0;">
+                <div style="font-size: 12.5px; font-weight: 800;">Ninniler</div>
+                <div style="font-size: 10px; opacity: 0.88; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="quick-card-sound-sub">18 Melodi & Sayaç</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===================================================================
+             🌱 3. BALONCUK: SAĞLIK, ATAK & AİLE BALONCUĞU (.mega-bubble-health)
+             =================================================================== -->
+        <div class="mega-bubble-hub mega-bubble-health" id="home-bubble-health-hub">
+          <div class="mega-bubble-header">
+            <div class="mega-bubble-kicker">
+              <span>🌱</span>
+              <span>SAĞLIK, ATAK & AİLE BALONCUĞU</span>
+            </div>
+            <div id="home-bento-score-badge" class="soft-balance-pill state-in-rhythm" onclick="switchTab('analytics')" style="background: rgba(116, 198, 157, 0.22); color: #C3E9D2; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 999px; cursor: pointer; flex-shrink: 0;">🟢 Ritimde</div>
+          </div>
+
+          <!-- Sol: Büyük Dairesel Denge Skoru (%84) Halkası | Sağ: BabySteps Atak + Aşı Defteri Hapları -->
+          <div class="health-bubble-duo-grid">
+            <!-- Sol Halka: Tıklanınca Analiz & Günlük Sekmesine Geçer -->
+            <div class="health-score-ring-box" onclick="switchTab('analytics')" title="Analiz & Günlük Detaylarını Gör">
+              <svg viewBox="0 0 72 72" style="width: 100%; height: 100%; transform: rotate(-90deg);">
+                <circle cx="36" cy="36" r="30" fill="none" stroke="rgba(143, 214, 178, 0.22)" stroke-width="6.5" />
+                <circle id="home-bento-score-fill" cx="36" cy="36" r="30" fill="none" stroke="#8FD6B2" stroke-width="6.5" stroke-dasharray="188" stroke-dashoffset="30" stroke-linecap="round" />
+              </svg>
+              <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 92px;">
+                <div style="font-size: 9.5px; font-weight: 700; color: rgba(250, 245, 238, 0.85); line-height: 1.15;">Denge Skoru</div>
+                <div id="home-bento-score-val" style="font-family: 'Sora'; font-size: 22px; font-weight: 800; color: #FAF5EE; line-height: 1.15; margin-top: 1px;">%84</div>
+                <div id="home-today-sleep-total" style="font-size: 8.5px; font-weight: 700; color: #C3E9D2; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">0dk (0 uyku)</div>
+              </div>
+            </div>
+
+            <!-- Sağ İkili Pastel Hap: BabySteps Atak (Yeşil) & Aşı Defteri (Lavanta) -->
+            <div class="health-pills-stack">
+              <div class="health-pill-babysteps" id="home-wonder-weeks-card" onclick="openLeapsQuickModal()">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                  <span style="font-family: 'Sora'; font-size: 12.5px; font-weight: 800; color: #163024;" id="home-leap-title">BabySteps Atak</span>
+                  <span id="home-leap-badge" style="font-size: 9px; padding: 2px 7px; border-radius: 999px; font-weight: 800; background: rgba(22, 48, 36, 0.14); color: #163024; white-space: nowrap;">Ataklar ➔</span>
+                </div>
+                <div id="home-leap-subtitle" style="font-size: 10px; color: #1F4232; line-height: 13px; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">
+                  Zihinsel sıçrama takvimi...
+                </div>
+                <div class="progress-bar-wrap" style="height: 3px; margin: 4px 0 0; background: rgba(22, 48, 36, 0.16);">
+                  <div class="progress-fill" id="home-leap-progress-bar" style="width: 0%; background: #163024;"></div>
+                </div>
+              </div>
+
+              <div class="health-pill-vaccine" id="home-vaccine-card" onclick="openVaccineQuickModal()">
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                  <span style="font-family: 'Sora'; font-size: 12.5px; font-weight: 800; color: #241332;">Aşı Defteri</span>
+                  <span id="home-vaccine-badge" style="font-size: 9px; padding: 2px 7px; border-radius: 999px; font-weight: 800; background: rgba(36, 19, 50, 0.14); color: #241332; white-space: nowrap;">Takvim ➔</span>
+                </div>
+                <div id="home-vaccine-subtitle" style="font-size: 10px; color: #2E1940; line-height: 13px; margin-top: 2px; display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden;">
+                  Pediatrik aşı takvimi...
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 🤝 SADE EŞ NÖBET NOTU ŞERİDİ (BEBEK UYURKEN VEYA CANLI EMZİRMEDE 3. BALONCUK İÇİNDE AÇILIR) -->
+          <div id="mom-break-drawer" style="margin-top: 12px; margin-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer;" onclick="toggleMomBreakCollapsed()">
+              <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                <span style="font-size: 17px; flex-shrink: 0;" id="mom-break-icon">🤝</span>
+                <div style="min-width: 0;">
+                  <div style="font-family: 'Sora'; font-size: 12px; font-weight: 800; color: var(--heading-night);" id="mom-break-title">Eşime Sessiz Nöbet Notu</div>
+                  <div style="font-size: 10.5px; color: var(--accent); margin-top: 1px;" id="mom-break-subtitle">Eşiniz uygulamayı açtığında ekranın en üstünde görür</div>
+                </div>
+              </div>
+              <button type="button" id="mom-break-collapse-btn" style="background: rgba(255,255,255,0.07); border: 1px solid var(--border-night); color: var(--accent); border-radius: 8px; padding: 4px 8px; font-size: 10px; font-weight: 700; cursor: pointer; flex-shrink: 0;">Not Bırak ▾</button>
+            </div>
+
+            <div id="mom-break-body" style="display: none; margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(255,255,255,0.12);">
+              <div id="mom-whisper-connected-box">
+                <div style="font-size: 10.5px; color: var(--text-muted); line-height: 15px; margin-bottom: 8px;">
+                  Eşiniz uygulamayı açtığında ekranın en üstünde görür:
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px;">
+                  <button type="button" id="btn-whisper-shift" onclick="sendFamilyWhisperTemplate('next_shift_yours')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--heading-night); border-radius: 9px; padding: 8px 10px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left;">🍼 Sıradaki uyanış nöbeti sende 💛</button>
+                  <button type="button" id="btn-whisper-fed-burped" onclick="sendFamilyWhisperTemplate('handoff_fed_burped')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--heading-night); border-radius: 9px; padding: 8px 10px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left;">🤱 Beslendi ve gazı çıkarıldı; sıradaki uyanış sende 💛</button>
+                  <button type="button" id="btn-whisper-thanks" onclick="sendFamilyWhisperTemplate('thank_you_love')" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); color: var(--heading-night); border-radius: 9px; padding: 8px 10px; font-size: 11px; font-weight: 600; cursor: pointer; text-align: left;">🤍 İyi ki varsın, desteğin çok iyi geldi</button>
+                </div>
+                <div style="display: flex; gap: 6px;">
+                  <input type="text" id="mom-whisper-custom-input" class="form-input" placeholder="Eşinize kısa nöbet notu yazın..." maxlength="140" onkeydown="if(event.key==='Enter') sendCustomFamilyWhisper()" style="margin-bottom: 0; padding: 7px 10px; font-size: 11px;" />
+                  <button type="button" onclick="sendCustomFamilyWhisper()" style="background: var(--accent); color: #141B2E; border: none; border-radius: 9px; padding: 7px 11px; font-family: 'Sora'; font-size: 11px; font-weight: 800; cursor: pointer; white-space: nowrap;">Gönder 💌</button>
+                </div>
+              </div>
 
               <div id="mom-whisper-invite-cta" style="display: none; text-align: center; padding: 4px 2px;">
                 <div id="mom-whisper-invite-title" style="font-size: 11.5px; font-weight: 700; color: var(--heading-night); margin-bottom: 4px;">👨‍👩‍👧 Eşiniz henüz bağlı değil (1 / 3 Üye)</div>
@@ -4025,141 +4414,66 @@
                   📲 Eşini Aile Koduyla Bağla (Maks. 3 Üye)
                 </button>
               </div>
+            </div>
           </div>
-        </div>
 
-        <!-- ESKİ TANITIM BANNER DEVRE DIŞI (HARD PAYWALL v4.55.0) -->
-        <div id="home-free-vip-banner" style="display: none !important;"></div>
+          <!-- ESKİ TANITIM BANNER DEVRE DIŞI (HARD PAYWALL v4.55.0) -->
+          <div id="home-free-vip-banner" style="display: none !important;"></div>
 
-        <!-- SATIN ALMA SONRASI MİNİMAL İLK HAFTA UYKU KALİBRASYON ŞERİDİ (KOMPAKT) -->
-        <div id="home-vip-first-night-card" class="card" style="display: none; background: rgba(22, 29, 50, 0.92); border: 1px solid rgba(46, 213, 115, 0.45); border-radius: 14px; padding: 9px 12px; margin-bottom: 12px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px;">
-            <div style="font-family: 'Sora'; font-size: 11.5px; font-weight: 700; color: #2ED573;" id="vip-calibration-card-title">🧬 İlk Hafta Ritim Kalibrasyonu (Gün 1/7)</div>
-            <button type="button" aria-label="Rehberi Kapat" onclick="dismissVipFirstNightCard()" style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted); font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✕</button>
-          </div>
-          <div id="vip-calibration-progress-box">
-            <div style="display: flex; justify-content: space-between; font-size: 9.5px; font-weight: 700; color: var(--text-night); margin-bottom: 4px;">
-              <span style="color: #2ED573;">✓ 1. Gün: İlk MışılSpot™</span>
-              <span id="vip-cal-step3-label" style="color: var(--accent);">⏳ 3. Gün: Gece Haritası</span>
-              <span id="vip-cal-step7-label" style="color: var(--text-muted);">🔒 7. Gün: Ritim Raporu</span>
+          <!-- SATIN ALMA SONRASI MİNİMAL İLK HAFTA UYKU KALİBRASYON ŞERİDİ -->
+          <div id="home-vip-first-night-card" class="card" style="display: none; background: rgba(22, 29, 50, 0.92); border: 1px solid rgba(46, 213, 115, 0.45); border-radius: 14px; padding: 9px 12px; margin-top: 10px; margin-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px;">
+              <div style="font-family: 'Sora'; font-size: 11.5px; font-weight: 700; color: #2ED573;" id="vip-calibration-card-title">🧬 İlk Hafta Ritim Kalibrasyonu (Gün 1/7)</div>
+              <button type="button" aria-label="Rehberi Kapat" onclick="dismissVipFirstNightCard()" style="width: 26px; height: 26px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); color: var(--text-muted); font-size: 11px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✕</button>
             </div>
-            <div class="progress-bar-wrap" style="height: 5px; background: rgba(255,255,255,0.08);">
-              <div class="progress-fill" id="vip-calibration-bar-fill" style="width: 18%; background: linear-gradient(90deg, #2ED573, var(--accent));"></div>
+            <div id="vip-calibration-progress-box">
+              <div style="display: flex; justify-content: space-between; font-size: 9.5px; font-weight: 700; color: var(--text-night); margin-bottom: 4px;">
+                <span style="color: #2ED573;">✓ 1. Gün: İlk MışılSpot™</span>
+                <span id="vip-cal-step3-label" style="color: var(--accent);">⏳ 3. Gün: Gece Haritası</span>
+                <span id="vip-cal-step7-label" style="color: var(--text-muted);">🔒 7. Gün: Ritim Raporu</span>
+              </div>
+              <div class="progress-bar-wrap" style="height: 5px; background: rgba(255,255,255,0.08);">
+                <div class="progress-fill" id="vip-calibration-bar-fill" style="width: 18%; background: linear-gradient(90deg, #2ED573, var(--accent));"></div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <!-- İLK KULLANICI KARŞILAMA VE HIZLI KEŞİF REHBERİ (SADECE DİĞER BANNERLAR KAPALIYKEN GÖRÜNÜR - ÇİFT KART YIĞILMASI ÖNLENDİ) -->
-        <div class="welcome-guide-card" id="home-welcome-guide" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
-            <div>
-              <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: var(--heading-night);">✨ Mışıl Baby'ye Hoş Geldiniz!</div>
-              <div style="font-size: 11px; color: var(--accent); margin-top: 1px;">Bebeğiniz için 3 kolay adımda hızlı başlangıç:</div>
+          <!-- İLK KULLANICI KARŞILAMA VE HIZLI KEŞİF REHBERİ -->
+          <div class="welcome-guide-card" id="home-welcome-guide" style="display: none; margin-top: 10px; margin-bottom: 0;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; margin-bottom: 8px;">
+              <div>
+                <div style="font-family: 'Sora'; font-size: 13px; font-weight: 700; color: var(--heading-night);">✨ Mışıl Baby'ye Hoş Geldiniz!</div>
+                <div style="font-size: 11px; color: var(--accent); margin-top: 1px;">Bebeğiniz için 3 kolay adımda hızlı başlangıç:</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
+                <button type="button" onclick="startSpotlightTour(true)" style="height: 32px; padding: 0 10px; border-radius: 16px; background: rgba(244,162,97,0.18); border: 1px solid var(--accent); color: var(--accent); font-size: 10.5px; font-weight: 800; cursor: pointer; white-space: nowrap;">🎓 Canlı Tur</button>
+                <button type="button" aria-label="Hoş Geldin Rehberini Kapat" onclick="dismissWelcomeGuide()" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); color: var(--text-muted); font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✕</button>
+              </div>
             </div>
-            <div style="display: flex; align-items: center; gap: 6px; flex-shrink: 0;">
-              <button type="button" onclick="startSpotlightTour(true)" style="height: 32px; padding: 0 10px; border-radius: 16px; background: rgba(244,162,97,0.18); border: 1px solid var(--accent); color: var(--accent); font-size: 10.5px; font-weight: 800; cursor: pointer; white-space: nowrap;">🎓 Canlı Tur</button>
-              <button type="button" aria-label="Hoş Geldin Rehberini Kapat" onclick="dismissWelcomeGuide()" style="width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.14); color: var(--text-muted); font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">✕</button>
+            <div class="welcome-step-item" onclick="toggleLiveSleep()">
+              <span style="font-size: 18px;">🌙</span>
+              <div style="flex: 1;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--heading-night);">1. Adım: Canlı Uyku Başlat</div>
+                <div style="font-size: 10px; color: var(--text-muted);">Bebeğiniz uykuya daldığında tek tıkla sayacı başlatın.</div>
+              </div>
+              <span style="font-size: 11px; color: var(--accent);">Başlat ›</span>
             </div>
-          </div>
-          <div class="welcome-step-item" onclick="toggleLiveSleep()">
-            <span style="font-size: 18px;">🌙</span>
-            <div style="flex: 1;">
-              <div style="font-size: 12px; font-weight: 600; color: var(--heading-night);">1. Adım: Canlı Uyku Başlat</div>
-              <div style="font-size: 10px; color: var(--text-muted);">Bebeğiniz uykuya daldığında tek tıkla sayacı başlatın.</div>
+            <div class="welcome-step-item" onclick="openVaccineQuickModal()">
+              <span style="font-size: 18px;">💉</span>
+              <div style="flex: 1;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--heading-night);">2. Adım: Aşı Takvimini İncele</div>
+                <div style="font-size: 10px; color: var(--text-muted);">Doğum tarihine göre hazırlanmış aşı defterinizi görün.</div>
+              </div>
+              <span style="font-size: 11px; color: #2ED573;">Gör ›</span>
             </div>
-            <span style="font-size: 11px; color: var(--accent);">Başlat ›</span>
-          </div>
-          <div class="welcome-step-item" onclick="openVaccineQuickModal()">
-            <span style="font-size: 18px;">💉</span>
-            <div style="flex: 1;">
-              <div style="font-size: 12px; font-weight: 600; color: var(--heading-night);">2. Adım: Aşı Takvimini İncele</div>
-              <div style="font-size: 10px; color: var(--text-muted);">Doğum tarihine göre hazırlanmış aşı defterinizi görün.</div>
+            <div class="welcome-step-item" onclick="shareFamilyInviteLink()">
+              <span style="font-size: 18px;">👨‍👩‍👧</span>
+              <div style="flex: 1;">
+                <div style="font-size: 12px; font-weight: 600; color: var(--heading-night);">3. Adım: Eşini / Bakıcını Aile Kodunla Bağla</div>
+                <div style="font-size: 10px; color: var(--text-muted);">WhatsApp'tan tek dokunuşla ortak bebek takibini paylaşın.</div>
+              </div>
+              <span style="font-size: 11px; color: var(--accent);">Paylaş ›</span>
             </div>
-            <span style="font-size: 11px; color: #2ED573;">Gör ›</span>
-          </div>
-          <div class="welcome-step-item" onclick="shareFamilyInviteLink()">
-            <span style="font-size: 18px;">👨‍👩‍👧</span>
-            <div style="flex: 1;">
-              <div style="font-size: 12px; font-weight: 600; color: var(--heading-night);">3. Adım: Eşini / Bakıcını Aile Kodunla Bağla</div>
-              <div style="font-size: 10px; color: var(--text-muted);">WhatsApp'tan tek dokunuşla ortak bebek takibini paylaşın.</div>
-            </div>
-            <span style="font-size: 11px; color: var(--accent);">Paylaş ›</span>
-          </div>
-        </div>
-
-        <!-- TEK NET BAKIM & YARDIMCI KARTLAR (SON KAYIT SAATLERİ DOĞRUDAN KART ÜSTÜNDE • TEKRAR YOK) -->
-        <div class="section-title" id="home-quick-tools-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-          <span>Hızlı Bakım & Araçlar</span>
-        </div>
-        
-        <div class="quick-bento-grid">
-          <!-- Beslenme (Bal/Vanilya) -->
-          <div class="soft-quick-card card-milk" onclick="openRoutineModalFor('feeding')">
-            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">🍼</div>
-            <div>
-              <div style="font-size: 12px; font-weight: 800;">Beslenme</div>
-              <div style="font-size: 10px; opacity: 0.88;" id="quick-card-milk-sub">Mama / Emzirme</div>
-            </div>
-          </div>
-          <!-- Alt Değişimi (Blush Gül) -->
-          <div class="soft-quick-card card-diaper" onclick="openRoutineModalFor('diaper')">
-            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">🚼</div>
-            <div>
-              <div style="font-size: 12px; font-weight: 800;">Alt Değişimi</div>
-              <div style="font-size: 10px; opacity: 0.88;" id="quick-card-diaper-sub">Islak / Kirli Bez</div>
-            </div>
-          </div>
-          <!-- Ağlama Analizi (Lavanta) -->
-          <div class="soft-quick-card card-cry" onclick="openCryModal()">
-            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">🎙️</div>
-            <div>
-              <div style="font-size: 12px; font-weight: 800;">Ağlama Rehberi</div>
-              <div style="font-size: 10px; opacity: 0.88;" id="quick-card-cry-sub">Açlık / Gaz / Uyku</div>
-            </div>
-          </div>
-          <!-- Ses Mikseri (Şeftali) -->
-          <div class="soft-quick-card card-lullaby" onclick="switchTab('sounds')">
-            <div style="width: 36px; height: 36px; border-radius: 10px; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">🎧</div>
-            <div>
-              <div style="font-size: 12px; font-weight: 800;">Ses Mikseri</div>
-              <div style="font-size: 10px; opacity: 0.88;" id="quick-card-sound-sub">18 Melodi & Sayaç</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- 2. TEK KOMPAKT DENGE & BUGÜNKÜ UYKU ÖZET KARTI (MÜKERRER BAKIM LİSTESİ KALDIRILDI) -->
-        <div class="bento-card-sage" onclick="switchTab('analytics')" style="flex-direction: row; justify-content: space-between; align-items: center; padding: 11px 14px; margin-bottom: 10px; gap: 10px;">
-          <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
-            <div class="soft-score-dial" style="position: relative; width: 46px; height: 46px; flex-shrink: 0; margin: 0;">
-              <svg viewBox="0 0 72 72" style="width: 100%; height: 100%; transform: rotate(-90deg);">
-                <circle cx="36" cy="36" r="30" fill="none" stroke="rgba(116, 198, 157, 0.18)" stroke-width="7" />
-                <circle id="home-bento-score-fill" cx="36" cy="36" r="30" fill="none" stroke="var(--sage)" stroke-width="7" stroke-dasharray="188" stroke-dashoffset="30" stroke-linecap="round" />
-              </svg>
-              <div id="home-bento-score-val" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Sora'; font-size: 13px; font-weight: 800; color: var(--sage);">%84</div>
-            </div>
-            <div style="min-width: 0; text-align: left;">
-              <div style="font-size: 10.5px; font-weight: 800; color: var(--sage); letter-spacing: 0.3px; text-transform: uppercase;">Denge & Ritim</div>
-              <div style="font-size: 11px; color: var(--text-night); margin-top: 2px;"><span>🌙 Bugün Uyku: </span><strong id="home-today-sleep-total" style="color: var(--heading-night);">0dk (0 uyku)</strong></div>
-            </div>
-          </div>
-          <div id="home-bento-score-badge" class="soft-balance-pill state-in-rhythm" style="background: rgba(116, 198, 157, 0.2); color: var(--sage); font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 8px; flex-shrink: 0;">🟢 Ritimde</div>
-        </div>
-
-        <!-- NAPPER BENCHMARK: 24 SAATLİK GÖRSEL SİRKADİYEN GÜNLÜK ŞERİT -->
-        <div class="card" id="home-circadian-strip" onclick="switchHomeSegment('timeline')" style="padding: 10px 12px; margin-bottom: 10px; cursor: pointer; background: var(--card-night); border: 1px solid var(--border-night); border-radius: var(--radius-lg);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-            <span style="font-family: 'Sora'; font-size: 11px; font-weight: 700; color: var(--heading-night);">🕒 24 Saatlik Günlük Ritim Şeridi</span>
-            <span id="circadian-strip-summary" style="font-size: 10px; font-weight: 700; color: var(--accent);">MışılSpot™ Takvimde ›</span>
-          </div>
-          <div id="circadian-strip-bar" style="position: relative; height: 18px; width: 100%; background: rgba(255,255,255,0.06); border-radius: 9px; overflow: hidden; border: 1px solid var(--border-night);">
-            <!-- Dinamik uyku blokları, beslenme noktaları ve MışılSpot penceresi JS ile çizilir -->
-          </div>
-          <div style="display: flex; justify-content: space-between; font-size: 9px; color: var(--text-muted); margin-top: 4px; font-weight: 600;">
-            <span>00:00</span>
-            <span>06:00</span>
-            <span>12:00</span>
-            <span>18:00</span>
-            <span>24:00</span>
           </div>
         </div>
 
@@ -4169,42 +4483,6 @@
             <svg class="moon-svg" viewBox="0 0 100 100">
               <path id="moon-shape" d="M50 10 A40 40 0 1 0 90 50 A30 30 0 1 1 50 10 Z" fill="#F4A261"/>
             </svg>
-          </div>
-        </div>
-
-        <!-- İkili Bento Kartı: Wonder Weeks & Aşı Takvimi -->
-        <div class="insight-bento-row">
-          <!-- Gelişim Sıçraması & BabySteps™ Bento Kartı (Ana Sayfa) -->
-          <div class="card" id="home-wonder-weeks-card" style="margin-top: 0; margin-bottom: 0; cursor: pointer; border: 1px solid var(--border-night); background: var(--card-night); border-radius: var(--radius-lg); padding: 12px 14px;" onclick="openLeapsQuickModal()">
-            <div class="spotlight-glow"></div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <div style="display: flex; align-items: center; gap: 4px;">
-                <span style="font-size: 13px;">🌱</span>
-                <span style="font-family: 'Sora'; font-size: 11px; font-weight: 700; color: var(--heading-night);" id="home-leap-title">BabySteps™</span>
-              </div>
-              <span id="home-leap-badge" style="font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 700; background: rgba(165, 105, 189, 0.18); color: var(--lavender-text);">Ataklar ➔</span>
-            </div>
-            <div id="home-leap-subtitle" style="font-size: 10px; color: var(--text-night); line-height: 14px; margin-bottom: 6px;">
-              Zihinsel sıçrama takvimi...
-            </div>
-            <div class="progress-bar-wrap" style="height: 4px;">
-              <div class="progress-fill" id="home-leap-progress-bar" style="width: 0%; background: #A569BD;"></div>
-            </div>
-          </div>
-
-          <!-- Bebek Aşı Takvimi Hızlı Bento Kartı (Ana Sayfa) -->
-          <div class="card vaccine-bento-card" id="home-vaccine-card" style="margin-top: 0; margin-bottom: 0; cursor: pointer; border: 1px solid var(--border-night); background: var(--card-night); border-radius: var(--radius-lg); padding: 12px 14px;" onclick="openVaccineQuickModal()">
-            <div class="spotlight-glow"></div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-              <div style="display: flex; align-items: center; gap: 4px;">
-                <span style="font-size: 14px;">💉</span>
-                <span style="font-family: 'Sora'; font-size: 11px; font-weight: 700; color: var(--heading-night);">Aşı Defteri</span>
-              </div>
-              <span id="home-vaccine-badge" style="font-size: 9px; padding: 2px 6px; border-radius: 6px; font-weight: 700; background: rgba(46, 213, 115, 0.18); color: var(--sage-text);">Takvim ➔</span>
-            </div>
-            <div id="home-vaccine-subtitle" style="font-size: 10px; color: var(--text-night); line-height: 14px;">
-              Pediatrik aşı takvimi...
-            </div>
           </div>
         </div>
       </div>
@@ -14962,11 +15240,11 @@
         `⚠️ <strong>${escapeHtml(getVaccineName(nextVaccine))}</strong> is due! (${dueCount} vaccine(s) pending)`,
         `⚠️ <strong>${escapeHtml(getVaccineName(nextVaccine))}</strong> ist fällig! (${dueCount} Impfung(en) offen)`
       );
-      subtitleEl.style.color = '#FF4757';
+      subtitleEl.style.color = '#3A1228';
       if (badgeEl) {
         badgeEl.textContent = trEnDe('Vakti Geldi 🔔', 'Due Now 🔔', 'Jetzt fällig 🔔');
-        badgeEl.style.background = 'rgba(255,71,87,0.2)';
-        badgeEl.style.color = '#FF4757';
+        badgeEl.style.background = 'rgba(84, 16, 48, 0.18)';
+        badgeEl.style.color = '#3A1228';
       }
     } else if (nextVaccine) {
       const diffMs = nextVaccine.date.getTime() - now.getTime();
@@ -14977,11 +15255,11 @@
         `💉 Next: <strong>${escapeHtml(getVaccineName(nextVaccine))}</strong> • ${dateStr} (${diffDays} days left)`,
         `💉 Nächste: <strong>${escapeHtml(getVaccineName(nextVaccine))}</strong> • ${dateStr} (noch ${diffDays} Tage)`
       );
-      subtitleEl.style.color = 'var(--text-night)';
+      subtitleEl.style.color = '#2A163B';
       if (badgeEl) {
         badgeEl.textContent = trEnDe('Aşı Defteri ➔', 'Vaccines ➔', 'Impfpass ➔');
-        badgeEl.style.background = 'rgba(46, 213, 115, 0.2)';
-        badgeEl.style.color = '#2ED573';
+        badgeEl.style.background = 'rgba(36, 19, 50, 0.16)';
+        badgeEl.style.color = '#241332';
       }
     } else {
       subtitleEl.innerHTML = trEnDe(
@@ -14989,7 +15267,7 @@
         `🎉 Great job! All of your baby's vaccines are up to date.`,
         `🎉 Wunderbar! Alle Impfungen Ihres Babys sind aktuell.`
       );
-      subtitleEl.style.color = '#2ED573';
+      subtitleEl.style.color = '#1B3A2A';
       if (badgeEl) {
         badgeEl.textContent = trEnDe('Tamamlandı ✅', 'Completed ✅', 'Vollständig ✅');
         badgeEl.style.background = 'rgba(46, 213, 115, 0.2)';
@@ -16851,17 +17129,17 @@
     const homeSubtitle = document.getElementById('home-leap-subtitle');
     const homeBar = document.getElementById('home-leap-progress-bar');
     if (homeCard) {
-      if (homeTitle) homeTitle.textContent = trEnDe(`${name} • ${currentWeek}. Hafta Gelişimi`, `${name} • Week ${currentWeek} Development`, `${name} • Woche ${currentWeek} Entwicklung`);
+      if (homeTitle) homeTitle.textContent = trEnDe('BabySteps Atak', 'BabySteps Leaps', 'BabySteps Sprünge');
       const isStorm = (currentWeek === calc.activeLeap.stormWeek || currentWeek === calc.activeLeap.stormWeek - 1);
       if (homeBadge) {
         if (isStorm) {
           homeBadge.innerHTML = trEnDe('⚡ Fırtına Zirvesi', '⚡ Storm Peak', '⚡ Unruhige Phase');
-          homeBadge.style.background = 'rgba(255, 71, 87, 0.25)';
-          homeBadge.style.color = '#FF6B81';
+          homeBadge.style.background = 'rgba(138, 28, 38, 0.22)';
+          homeBadge.style.color = '#6B1018';
         } else {
           homeBadge.innerHTML = trEnDe('☀️ Güneşli Dönem', '☀️ Sunny Phase', '☀️ Sonnige Phase');
-          homeBadge.style.background = 'rgba(46, 213, 115, 0.2)';
-          homeBadge.style.color = '#2ED573';
+          homeBadge.style.background = 'rgba(22, 48, 36, 0.16)';
+          homeBadge.style.color = '#123022';
         }
       }
       if (homeSubtitle) {
@@ -21075,6 +21353,12 @@
     "☕ Gece Eşlikçisini & Loş Feneri Gör (Ana Ekran) ➔": "☕ Open Night Companion & Warm Glow (Home) ➔",
     "Veya Geçmiş Emzirme Süresi (dk)": "Or Manual Past Duration (min)",
     "Hızlı Bakım & Araçlar": "Quick Care & Tools",
+    "UYKU & RİTİM BALONCUĞU": "SLEEP & RHYTHM BUBBLE",
+    "GÜNLÜK BAKIM & ACİL DESTEK BALONCUĞU": "DAILY CARE & QUICK SUPPORT BUBBLE",
+    "SAĞLIK, ATAK & AİLE BALONCUĞU": "HEALTH, LEAPS & FAMILY BUBBLE",
+    "Denge Skoru": "Balance Score",
+    "BabySteps Atak": "BabySteps Leaps",
+    "Ninniler": "Lullabies",
     "🌙 Bugün Uyku:": "🌙 Today Sleep:",
     "Eşime Sessiz Nöbet Notu": "Silent Partner Shift Note",
     "Eşiniz uygulamayı açtığında ekranın en üstünde görür": "Shown at the top of your partner's app when opened",
@@ -21900,6 +22184,12 @@
     "☕ Gece Eşlikçisini & Loş Feneri Gör (Ana Ekran) ➔": "☕ Nachtbegleiter & Sanftes Licht öffnen (Start) ➔",
     "Veya Geçmiş Emzirme Süresi (dk)": "Oder manuelle Stilldauer (Min.)",
     "Hızlı Bakım & Araçlar": "Schnellpflege & Hilfen",
+    "UYKU & RİTİM BALONCUĞU": "SCHLAF- & RHYTHMUS-BLASE",
+    "GÜNLÜK BAKIM & ACİL DESTEK BALONCUĞU": "PFLEGE- & SOFORTHILFE-BLASE",
+    "SAĞLIK, ATAK & AİLE BALONCUĞU": "GESUNDHEITS-, SPRUNG- & FAMILIEN-BLASE",
+    "Denge Skoru": "Balance-Wert",
+    "BabySteps Atak": "BabySteps Sprünge",
+    "Ninniler": "Wiegenlieder",
     "🌙 Bugün Uyku:": "🌙 Heute Schlaf:",
     "Eşime Sessiz Nöbet Notu": "Stille Schicht-Notiz an Partner",
     "Eşiniz uygulamayı açtığında ekranın en üstünde görür": "Erscheint beim Öffnen ganz oben bei Ihrem Partner",
