@@ -2,6 +2,19 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.0-bubble-ui-v4] - 2026-11-21 (Railway Canlı Yayın — Yeni Abone Satın Alma Sonrası Kart Çakışması, 6 Adımlı Spotlight Tanıtım Turu Taşmaları ve 3 Dil `TR/EN/DE` Tam Kapsamlı UI Geçiş & Taşma Onarımı • 🟢 Yeni Native EAS Build Gerekmez)
+### 🛡️ Yeni Abone (`1. Gün / 3. Gün / 7. Gün`) Kart Çakışması, Spotlight Tanıtım Turu Geometrisi ve 3 Dil (`TR / EN / DE`) UI Geçiş Onarımı (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`)
+1. **Yeni Abonede Ana Ekran (`#view-home`) Kart Çakışması ve Dikey Sıkışma Onarımı:**
+   - Satın alma sonrasında 3. Baloncuğun içinde açılan `#home-vip-first-night-card` (`1. Gün: İlk MışılSpot™ / 3. Gün: Gece Haritası / 7. Gün: Ritim Raporu`), `#home-welcome-guide` ve 1. Baloncuk içindeki `#last-sleep-quick-edit-bar` alt kartlarının 3 Büyük Baloncuğu sıkıştırıp kırpması (`overflow: hidden`) giderildi; `.mega-bubble-hub` `overflow: visible` yapıldı ve kompakt ekranlar (`@media (max-height: 720px)`) ile koşullu üst şeritler (`#home-live-nursing-bar`, `#family-whisper-banner`, `#mom-break-drawer`, `body.spotlight-tour-open`) için esnek yükseklik koruması eklendi.
+2. **6 Adımlı İnteraktif Spotlight Tanıtım Turu (`#spotlight-tour-overlay`) Taşma ve Çakışma Onarımı:**
+   - Adım 1'de `#home-header-actions` genişlediği için (`[👵 Dadı] [👨‍👩‍👧 Aile] [🌙] [⚙️]`) ekranın solundan dışarı taşan (`left: -66px` TR / `-132px` DE) `#spotlight-header-pill` rozeti ekran sınırları içine (`left >= 8px`) kilitlendi ve ana spot çerçevesiyle çakıştığında otomatik gizlenmesi sağlandı.
+   - Kompakt ekranlarda (`375x667`) Adım 1, 4, 5 ve 6'da `#spotlight-tooltip-card` açıklama kartının `#spotlight-cutout` spot çerçevesinin üzerine binmesini önlemek için dinamik `needsCompactScroll` kaydırması ve spot çerçevesi yükseklik sınırlaması (`updateSpotlightGeometry`) eklendi.
+3. **3 Dil (`TR / EN / DE`) Eksiksiz Çeviri ve Sıfır Yatay Taşma:**
+   - `TR_TO_EN_EXACT_MAP` ve `TR_TO_DE_EXACT_MAP` sözlüklerine `"Şimdi Uyuyor Başlat"` (`"Start Live Sleep"` / `"Live-Schlaf starten"`), `"← Mışıl Spot'a Dön"` (`"← Back to Mışıl Spot"` / `"← Zurück zu Mışıl Spot"`) ve `"Analiz & Günlük Detaylarını Gör"` eklendi; `loadBabyProfile()` içinde bebek profili yokken de `#btn-toggle-sleep` dil senkronu sağlandı.
+   - 2. Baloncuk (`.mega-bubble-care .soft-quick-card`) ve Analiz sekmesi 3'lü segment çubuğu (`.analytics-segment-btn`) ölçülendirilerek Türkçe (`Ağlama Rehberi`) ve Almanca (`Windelwechsel`, `Wein-Ratgeber`, `💉 Gesundheit & Sprünge`) metinlerin kesilmeden (`...` olmadan) ve sıfır yatay taşmayla (`scrollWidth === clientWidth`) görünmesi sağlandı.
+4. **İcra Modu & Doğrulama Kapısı (`AGENTS.md §5.1–§5.2`):**
+   - **İcra Modu:** Tek Ajan (`[Solo-Antigravity]` — Seviye 1 UI/CSS/i18n onarımı; `11/11 suite / 80 Jest testi` `task-676`, `tsc --noEmit` 0 hata, Playwright `375x667` + `393x852` × `TR/EN/DE` tüm 9 Onboarding adımı, 5 ana sekme ve 6 Spotlight adımı 0 taşma / 0 çakışma / 0 çevrilmemiş metin `task-675` & `task-690`).
+
 ## [4.56.0-bubble-ui-v3] - 2026-11-21 (Railway Canlı Yayın — Ana Sayfa Alt Barsız Tam Ekran `Dockless Fullscreen 3 Mega Bubbles`, Üst Başlık `👵 Dadı` Kısayol Hapı & Alt Görünümlerde `← Ana Ekran` Dönüş Hapı + Yüzen Kapsül Alt Bar • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🫧 Ana Sayfa (`#view-home`) Alt Barsız `%100` Tam Ekran (Dockless Fullscreen) Mimarisi, Üst Başlık `👵 Dadı` Kısayolu ve Alt Sekme Navigasyonu (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`)
 1. **Ana Sayfada Alt Menü Barının Kaldırılması & `%100` Tam Ekran 3 Mega Baloncuk (`#view-home`):**

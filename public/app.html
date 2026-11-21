@@ -811,7 +811,7 @@
       padding: 13px 15px;
       margin-bottom: 10px;
       position: relative;
-      overflow: hidden;
+      overflow: visible;
       backdrop-filter: blur(22px) saturate(185%);
       -webkit-backdrop-filter: blur(22px) saturate(185%);
       transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.25s ease, box-shadow 0.25s ease;
@@ -863,11 +863,26 @@
     body:not(.spotlight-tour-open):has(#view-home.active) .tab-bar {
       display: none !important;
     }
+    /* Yeni abonede 3 Büyük Baloncuk içinde eski alt kartların (1./3./7. Gün, Hoş Geldin, Son Uyku Düzenle) çakışma/taşma yaratmasını engelle */
+    #view-home #home-vip-first-night-card,
+    #view-home #home-welcome-guide,
+    #view-home #last-sleep-quick-edit-bar {
+      display: none !important;
+    }
     .screen-container:has(#view-home.active #home-seg-sweetspot:not([style*="display: none"])) {
       display: flex !important;
       flex-direction: column !important;
       height: 100% !important;
-      padding-bottom: calc(16px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px))) !important;
+      padding-bottom: calc(14px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px))) !important;
+    }
+    /* Tanıtım turu açıkken veya üstte canlı emzirme / eş fısıltısı / nöbet çekmecesi aktifken dikey sıkışmayı önle */
+    body.spotlight-tour-open .screen-container:has(#view-home.active #home-seg-sweetspot:not([style*="display: none"])),
+    .screen-container:has(#view-home.active #home-live-nursing-bar[style*="display: block"]),
+    .screen-container:has(#view-home.active #family-whisper-banner[style*="display: flex"]),
+    .screen-container:has(#view-home.active #mom-break-drawer[style*="display: block"]) {
+      height: auto !important;
+      min-height: 100% !important;
+      overflow-y: auto !important;
     }
     body.spotlight-tour-open .screen-container:has(#view-home.active #home-seg-sweetspot:not([style*="display: none"])) {
       padding-bottom: calc(96px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px))) !important;
@@ -883,7 +898,7 @@
       display: flex !important;
       flex-direction: column !important;
       justify-content: space-between !important;
-      gap: 13px !important;
+      gap: 11px !important;
       min-height: 0;
     }
     #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-hub {
@@ -892,13 +907,16 @@
       flex-direction: column !important;
       justify-content: space-between !important;
     }
+    body.spotlight-tour-open #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-hub {
+      flex: 0 0 auto !important;
+    }
     #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-sleep {
-      flex: 1.28 1 auto !important;
-      padding: 17px 18px !important;
+      flex: 1.22 1 auto !important;
+      padding: 15px 16px !important;
     }
     #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-care {
-      flex: 1.05 1 auto !important;
-      padding: 16px 17px !important;
+      flex: 1.02 1 auto !important;
+      padding: 14px 15px !important;
     }
     #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-care .quick-bento-grid {
       flex: 1 1 auto !important;
@@ -906,22 +924,70 @@
     }
     #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-care .soft-quick-card {
       height: 100% !important;
-      min-height: 54px !important;
+      min-height: 50px !important;
     }
     #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-health {
-      flex: 1.05 1 auto !important;
-      padding: 16px 17px !important;
+      flex: 1.02 1 auto !important;
+      padding: 14px 15px !important;
     }
     #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-health .health-bubble-duo-grid {
       flex: 1 1 auto !important;
     }
     #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-health .health-score-ring-box {
-      width: 112px !important;
-      height: 112px !important;
+      width: 104px !important;
+      height: 104px !important;
     }
     #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-health .health-pill-babysteps,
     #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-health .health-pill-vaccine {
-      min-height: 52px !important;
+      min-height: 48px !important;
+    }
+    /* Kompakt ekranlarda (iPhone SE / 667px) 3 baloncuğun sıkışmadan tam ekrana kusursuz sığması */
+    @media (max-height: 720px) {
+      #view-home .app-header {
+        margin-bottom: 6px !important;
+      }
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) {
+        gap: 8px !important;
+      }
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-sleep,
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-care,
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-health {
+        padding: 11px 14px !important;
+        border-radius: 26px !important;
+      }
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-header {
+        margin-bottom: 6px !important;
+      }
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .sleep-bubble-hero-row {
+        margin-bottom: 7px !important;
+      }
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .sleep-bubble-hero-row .warm-moon-aura {
+        width: 56px !important;
+        height: 56px !important;
+      }
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .sleep-bubble-time-col .organic-hero-time {
+        font-size: 32px !important;
+      }
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .sleep-bubble-circadian-box {
+        margin-bottom: 6px !important;
+      }
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .sleep-bubble-cta-btn {
+        min-height: 40px !important;
+        padding: 8px 14px !important;
+      }
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-care .soft-quick-card {
+        min-height: 44px !important;
+        padding: 7px 10px !important;
+      }
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-health .health-score-ring-box {
+        width: 92px !important;
+        height: 92px !important;
+      }
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-health .health-pill-babysteps,
+      #view-home.active #home-seg-sweetspot:not([style*="display: none"]) .mega-bubble-health .health-pill-vaccine {
+        min-height: 42px !important;
+        padding: 8px 12px !important;
+      }
     }
     .subview-home-back-pill {
       display: inline-flex;
@@ -1061,11 +1127,18 @@
     }
     .mega-bubble-care .soft-quick-card {
       border-radius: 999px !important;
-      padding: 9px 14px !important;
+      padding: 8px 10px !important;
       min-height: 48px;
+      min-width: 0;
+      overflow: hidden;
       justify-content: flex-start;
-      gap: 10px;
+      gap: 7px !important;
       box-shadow: 0 5px 14px rgba(60, 35, 25, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.88) !important;
+    }
+    .mega-bubble-care .soft-quick-card > div:first-child {
+      width: 28px !important;
+      height: 28px !important;
+      font-size: 15px !important;
     }
     .mega-bubble-care .card-milk,
     .mega-bubble-care .card-cry {
@@ -1081,8 +1154,10 @@
     }
     .mega-bubble-care .soft-quick-card div[style*="font-weight: 800"] {
       color: #241610 !important;
-      font-size: 13px !important;
-      letter-spacing: -0.2px;
+      font-size: 11.5px !important;
+      line-height: 1.2 !important;
+      letter-spacing: -0.25px !important;
+      white-space: nowrap;
     }
     /* Onaylı görseldeki gibi 2x2 pastel haplarda tek satır temiz başlık göster (alt satır DOM'da kalır) */
     .mega-bubble-care .soft-quick-card div[id^="quick-card-"] {
@@ -1427,9 +1502,19 @@
     #spotlight-tooltip-card {
       background: radial-gradient(circle at 20% 20%, rgba(244, 162, 97, 0.25) 0%, rgba(40, 30, 46, 0.98) 76%) !important;
       border: 1.5px solid rgba(244, 162, 97, 0.65) !important;
-      border-radius: 30px !important;
-      padding: 15px 17px !important;
+      border-radius: 26px !important;
+      padding: 12px 14px !important;
       box-shadow: 0 20px 44px rgba(0, 0, 0, 0.68), inset 0 1px 0 rgba(255, 255, 255, 0.24) !important;
+    }
+    #spotlight-step-title {
+      font-size: 14px !important;
+      line-height: 1.25 !important;
+      margin-bottom: 4px !important;
+    }
+    #spotlight-step-desc {
+      font-size: 11.5px !important;
+      line-height: 15.5px !important;
+      margin-bottom: 9px !important;
     }
     #spotlight-prev-btn,
     #spotlight-next-btn {
@@ -1437,7 +1522,9 @@
     }
     #spotlight-location-pill {
       border-radius: 999px !important;
-      padding: 4px 11px !important;
+      padding: 3px 10px !important;
+      font-size: 10px !important;
+      margin-bottom: 5px !important;
     }
     .guard-card {
       background: radial-gradient(circle at 22% 22%, rgba(244, 162, 97, 0.24) 0%, rgba(44, 34, 48, 0.96) 75%) !important;
@@ -1478,10 +1565,17 @@
       background: rgba(42, 33, 48, 0.92) !important;
       border: 1.5px solid rgba(244, 162, 97, 0.32) !important;
       border-radius: 999px !important;
-      padding: 5px !important;
+      padding: 4px !important;
+      gap: 4px !important;
     }
     .analytics-segment-btn {
       border-radius: 999px !important;
+      min-width: 0 !important;
+      font-size: 10.5px !important;
+      padding: 7px 6px !important;
+      white-space: nowrap !important;
+      overflow: hidden !important;
+      text-overflow: ellipsis !important;
     }
     .analytics-organic-card {
       border-radius: 30px !important;
@@ -15907,11 +16001,11 @@
           includeSelector: '#view-home .segmented-control',
           headerSelector: '#home-header-actions',
           noScroll: true,
-          navPath: '📍 Unten: 🏠 Mışıl Spot  •  Oben: Mışıl Spot / Heutige Schläfchen',
+          navPath: '📍 Startseite: 🌙 1. Schlaf- & Rhythmus-Blase  •  Oben rechts: 👵 Nanny | 👨‍👩‍👧 Familie | 🌙 | ⚙️',
           dockHint: '📍 Hier sind Sie: Mışıl Spot ▼',
-          headerHint: '🌙 Nachtmodus & ⚙️ Einstellungen ➔',
-          title: '🌙 1. MışılSpot™ Goldenes Schlaffenster',
-          desc: `Sie befinden sich im Start-Tab „Mışıl Spot“. Wechseln Sie oben zwischen dem Schlaf-Countdown für ${babyName} und „Heutige Schläfchen“ oder tippen Sie oben rechts auf 🌙 und ⚙️.`
+          headerHint: '👵 Nanny, 👨‍👩‍👧 Familie, 🌙 & ⚙️ ➔',
+          title: '🌙 1. MışılSpot™ Schlaf- & Rhythmus-Blase',
+          desc: `In der oberen Blase sehen Sie den Live-Countdown für ${babyName}, den 24h-Rhythmusstreifen (antippen für Tagesverlauf) sowie oben rechts 👵 Nanny, 👨‍👩‍👧 Familie, 🌙 Nachtwiege & ⚙️.`
         },
         {
           tab: 'home',
@@ -15919,10 +16013,10 @@
           selector: '.quick-bento-grid',
           includeSelector: '#home-quick-tools-header',
           anchorTop: 20,
-          navPath: '📍 Unten: 🏠 Mışıl Spot  •  Unterer Startbereich',
+          navPath: '📍 Startseite Mitte: 🍼 2. Pflege- & Soforthilfe-Blase',
           dockHint: '📍 Unten: Mışıl Spot ▼',
           title: '🍼 2. Einhand-Pflege & Schnellprotokoll',
-          desc: `Direkt darunter im Tab „Mışıl Spot“ erreichen Sie Stillen/Fläschchen, Windel, 5-Sek.-Wein-Ratgeber und „+ Detail“ nachts bequem mit einem Daumen.`
+          desc: `In der mittleren Blase erreichen Sie Mahlzeit, Windelwechsel, 5-Sek.-Wein-Ratgeber und Wiegenlieder nachts bequem mit einem Daumen.`
         },
         {
           tab: 'home',
@@ -15978,11 +16072,11 @@
           includeSelector: '#view-home .segmented-control',
           headerSelector: '#home-header-actions',
           noScroll: true,
-          navPath: '📍 Bottom Bar: 🏠 Mışıl Spot  •  Top Switch: Mışıl Spot / Today\'s Naps',
+          navPath: '📍 Home: 🌙 1. Sleep & Rhythm Bubble  •  Top Right: 👵 Nanny | 👨‍👩‍👧 Family | 🌙 | ⚙️',
           dockHint: '📍 You Are Here: Mışıl Spot ▼',
-          headerHint: '🌙 Night Crib & ⚙️ Settings ➔',
-          title: '🌙 1. MışılSpot™ Golden Sleep Window',
-          desc: `You are on the "Mışıl Spot" home tab. Use the two top pills to switch between ${babyName}'s live sleep countdown and "Today's Naps", or tap 🌙 and ⚙️ at the top right for Night Crib and Settings.`
+          headerHint: '👵 Nanny, 👨‍👩‍👧 Family, 🌙 & ⚙️ ➔',
+          title: '🌙 1. MışılSpot™ Sleep & Rhythm Bubble',
+          desc: `The top bubble shows ${babyName}'s next sleep window, the 24h rhythm strip (tap for today's naps), and top-right shortcuts for 👵 Nanny, 👨‍👩‍👧 Family, 🌙 Night Crib & ⚙️.`
         },
         {
           tab: 'home',
@@ -15990,10 +16084,10 @@
           selector: '.quick-bento-grid',
           includeSelector: '#home-quick-tools-header',
           anchorTop: 20,
-          navPath: '📍 Bottom Bar: 🏠 Mışıl Spot  •  Lower Home Screen',
+          navPath: '📍 Home Middle: 🍼 2. Daily Care & Quick Support Bubble',
           dockHint: '📍 Bottom Tab: Mışıl Spot ▼',
           title: '🍼 2. One-Hand Quick Care & Routine Log',
-          desc: `Right below on the "Mışıl Spot" home tab, tap Feeding, Diaper, 5-sec Cry Guide, or "+ Add Detailed" with one thumb at 3:00 AM.`
+          desc: `In the middle bubble, tap Feeding, Diaper Change, 5-sec Cry Guide, or Lullabies with one thumb at 3:00 AM.`
         },
         {
           tab: 'home',
@@ -16048,11 +16142,11 @@
         includeSelector: '#view-home .segmented-control',
         headerSelector: '#home-header-actions',
         noScroll: true,
-        navPath: '📍 Alt Menü: 🏠 Mışıl Spot  •  Üst Sekme: Mışıl Spot / Bugünkü Uykular',
+        navPath: '📍 Ana Ekran: 🌙 1. Uyku & Ritim Baloncuğu  •  Sağ Üst: 👵 Dadı | 👨‍👩‍👧 Aile | 🌙 | ⚙️',
         dockHint: '📍 Buradasınız: Mışıl Spot ▼',
-        headerHint: '🌙 Gece Beşiği & ⚙️ Ayarlar ➔',
-        title: '🌙 1. MışılSpot™ Altın Uyku Saati',
-        desc: `Alt menüdeki "Mışıl Spot" ana ekranındasınız. Üstteki iki sekmeden ${babyName}'in ideal uyku geri sayımı ile "Bugünkü Uykular" arasında geçin; sağ üstteki 🌙 ve ⚙️ ikonlarından Gece Beşiği ile Ayarlar'ı açın.`
+        headerHint: '👵 Dadı, 👨‍👩‍👧 Aile, 🌙 & ⚙️ ➔',
+        title: '🌙 1. MışılSpot™ Uyku & Ritim Baloncuğu',
+        desc: `En üstteki 1. baloncuktan ${babyName}'in sıradaki uyku vaktini ve 24s ritim şeridini takip edin; sağ üstteki 👵 Dadı, 👨‍👩‍👧 Aile, 🌙 Gece Beşiği ve ⚙️ Ayarlar'a tek dokunuşla ulaşın.`
       },
       {
         tab: 'home',
@@ -16060,10 +16154,10 @@
         selector: '.quick-bento-grid',
         includeSelector: '#home-quick-tools-header',
         anchorTop: 20,
-        navPath: '📍 Alt Menü: 🏠 Mışıl Spot  •  Ana Ekranın Alt Bölümü',
+        navPath: '📍 Ana Ekran Ortası: 🍼 2. Günlük Bakım & Acil Destek Baloncuğu',
         dockHint: '📍 Alt Menü: Mışıl Spot ▼',
         title: '🍼 2. Tek Elle Hızlı Bakım & Rutin Araçları',
-        desc: `Yine "Mışıl Spot" sekmesinin hemen altında; Beslenme, Alt Değişimi, 5 sn Ağlama Rehberi ve "+ Detaylı Ekle" butonlarına gece 03:00'te tek başparmakla ulaşın.`
+        desc: `Ortadaki 2. baloncukta; Beslenme, Alt Değişimi, 5 sn Ağlama Rehberi ve Ninniler butonlarına gece 03:00'te tek başparmakla ulaşın.`
       },
       {
         tab: 'home',
@@ -16250,11 +16344,22 @@
       if (hdrPill && stepMeta.headerHint) {
         hdrPill.textContent = stepMeta.headerHint;
         hdrPill.style.display = 'block';
+        const pillW = hdrPill.offsetWidth || 168;
         const pillH = hdrPill.offsetHeight || 22;
-        const pillTop = Math.max(6, Math.round(hy + (hh - pillH) / 2));
-        hdrPill.style.top = `${pillTop}px`;
-        hdrPill.style.right = `${Math.max(8, Math.round(window.innerWidth - hx + 7))}px`;
-        hdrPill.style.left = 'auto';
+        const desiredLeftOfRing = hx - pillW - 7;
+        if (desiredLeftOfRing >= 8) {
+          const pillTop = Math.max(6, Math.round(hy + (hh - pillH) / 2));
+          hdrPill.style.top = `${pillTop}px`;
+          hdrPill.style.left = `${Math.round(desiredLeftOfRing)}px`;
+          hdrPill.style.right = 'auto';
+        } else if (hy + hh + pillH + 6 <= top) {
+          const clampedLeft = Math.max(8, Math.min(window.innerWidth - pillW - 8, Math.round(hx + hw - pillW)));
+          hdrPill.style.top = `${Math.round(hy + hh + 4)}px`;
+          hdrPill.style.left = `${clampedLeft}px`;
+          hdrPill.style.right = 'auto';
+        } else {
+          hdrPill.style.display = 'none';
+        }
       } else if (hdrPill) {
         hdrPill.style.display = 'none';
       }
@@ -16315,10 +16420,24 @@
     if (spaceBelow >= cardHeight || spaceBelow >= spaceAbove) {
       card.style.bottom = 'auto';
       const desiredTop = Math.max(12, Math.min(safeBottomY - cardHeight, top + height + 10));
+      if (top + height + 8 > desiredTop) {
+        height = Math.max(44, Math.round(desiredTop - top - 8));
+        cutout.style.height = `${height}px`;
+        setSvgMaskRectAttrs(document.getElementById('spotlight-mask-main'), left, top, width, height, cutoutRadius);
+      }
       card.style.top = `${Math.round(desiredTop)}px`;
     } else {
       card.style.top = 'auto';
       const desiredBottom = Math.max(16, Math.min(vh - cardHeight - 12, vh - top + 10));
+      const cardBottomY = vh - desiredBottom;
+      if (top < cardBottomY + 8) {
+        const newTop = Math.min(safeBottomY - 48, Math.round(cardBottomY + 8));
+        height = Math.max(44, (top + height) - newTop);
+        top = newTop;
+        cutout.style.top = `${top}px`;
+        cutout.style.height = `${height}px`;
+        setSvgMaskRectAttrs(document.getElementById('spotlight-mask-main'), left, top, width, height, cutoutRadius);
+      }
       card.style.bottom = `${Math.round(desiredBottom)}px`;
     }
   }
@@ -16431,22 +16550,28 @@
     if (!target || !cutout || !card) return;
 
     const scrollContainer = document.getElementById('main-app-screen') || document.querySelector('.screen-container');
-    if (scrollContainer && step.noScroll) {
-      scrollContainer.scrollTop = 0;
-    } else if (scrollContainer && !step.isDockTarget && !step.noScroll) {
+    if (scrollContainer && !step.isDockTarget) {
+      if (step.noScroll) {
+        scrollContainer.scrollTop = 0;
+      }
       const cRect = scrollContainer.getBoundingClientRect();
       const tRect = resolveSpotlightTargetUnionRect(target, step) || target.getBoundingClientRect();
       const tabBar = document.querySelector('.tab-bar');
       const tabTop = tabBar ? tabBar.getBoundingClientRect().top : window.innerHeight;
       const usableHeight = Math.max(240, Math.min(cRect.height, tabTop - cRect.top));
-      const estCardH = Math.max(150, card.offsetHeight || 195);
-      const targetAnchorFromTop = typeof step.anchorTop === 'number'
-        ? step.anchorTop
-        : (spotlightStepIndex === 0
-            ? 14
-            : Math.max(16, Math.min(76, Math.round((usableHeight - tRect.height - estCardH - 24) / 2))));
-      const nextScrollTop = Math.max(0, scrollContainer.scrollTop + (tRect.top - cRect.top) - targetAnchorFromTop);
-      scrollContainer.scrollTop = nextScrollTop;
+      const estCardH = Math.max(150, card.offsetHeight || 180);
+      const needsCompactScroll = step.noScroll && (tRect.bottom + estCardH + 34 > tabTop);
+      if (!step.noScroll || needsCompactScroll) {
+        const targetAnchorFromTop = needsCompactScroll
+          ? 10
+          : (typeof step.anchorTop === 'number'
+              ? step.anchorTop
+              : (spotlightStepIndex === 0
+                  ? 14
+                  : Math.max(12, Math.min(64, Math.round((usableHeight - tRect.height - estCardH - 24) / 2)))));
+        const nextScrollTop = Math.max(0, scrollContainer.scrollTop + (tRect.top - cRect.top) - targetAnchorFromTop);
+        scrollContainer.scrollTop = nextScrollTop;
+      }
     }
 
     updateSpotlightGeometry(target, cutout, card, step);
@@ -16688,7 +16813,8 @@
         const pct = Math.min(100, Math.max(18, Math.round((dayNum / 7) * 100)));
         barFill.style.width = `${pct}%`;
       }
-      vipCard.style.display = 'block';
+      // 3 Büyük Baloncuk Ana Ekranında çakışma/taşma olmaması için #home-vip-first-night-card gizli tutulur
+      vipCard.style.display = 'none';
     } else {
       vipCard.style.display = 'none';
     }
@@ -19945,14 +20071,22 @@
       chatMention.textContent = baby ? baby.name : getDefaultBabyName();
     }
 
+    const btnSleep = document.getElementById('btn-toggle-sleep');
     if (!baby) {
       if (disp) disp.textContent = '—';
       if (sub) sub.textContent = trEnDe('Bebek profili ekleyin — MışılSpot buna göre hesaplanır', 'Add baby profile — MışılSpot calculates accordingly', 'Babyprofil anlegen – MışılSpot berechnet danach');
       if (badge) badge.textContent = trEnDe('Profil bekleniyor', 'Profile pending', 'Profil ausstehend');
+      if (btnSleep && !isSleeping) {
+        btnSleep.style.background = 'linear-gradient(135deg, #F4A868 0%, #E59254 100%)';
+        btnSleep.innerHTML = trEnDe(
+          '<span>Şimdi Uyuyor Başlat</span>',
+          '<span>Start Live Sleep</span>',
+          '<span>Live-Schlaf starten</span>'
+        );
+      }
     } else {
       const calc = calculateMışılSpot(baby.bdate);
       const spotLocked = isMishilSpotLocked();
-      const btnSleep = document.getElementById('btn-toggle-sleep');
       if (disp && !isSleeping) {
         if (spotLocked) {
           disp.textContent = `${maskSpotTimeStr(calc.sweetSpotTime)} 🔒`;
@@ -21981,7 +22115,10 @@
     "🏠 Ana Ekrana Dön (Sayaç Üstte Devam Eder) ➔": "🏠 Back to Home (Timer Continues at Top) ➔",
     "👵 Dadı": "👵 Nanny",
     "7/24 Mışıl Dadı": "24/7 Mışıl Nanny",
-    "← Ana Ekran": "← Home"
+    "← Ana Ekran": "← Home",
+    "Şimdi Uyuyor Başlat": "Start Live Sleep",
+    "← Mışıl Spot'a Dön": "← Back to Mışıl Spot",
+    "Analiz & Günlük Detaylarını Gör": "View Analytics & Logbook Details"
   };
 
   const TR_TO_DE_EXACT_MAP = {
@@ -22815,7 +22952,10 @@
     "🏠 Ana Ekrana Dön (Sayaç Üstte Devam Eder) ➔": "🏠 Zur Startseite (Uhr läuft oben weiter) ➔",
     "👵 Dadı": "👵 Nanny",
     "7/24 Mışıl Dadı": "24/7 Mışıl Nanny",
-    "← Ana Ekran": "← Start"
+    "← Ana Ekran": "← Start",
+    "Şimdi Uyuyor Başlat": "Live-Schlaf starten",
+    "← Mışıl Spot'a Dön": "← Zurück zu Mışıl Spot",
+    "Analiz & Günlük Detaylarını Gör": "Analyse- & Tagebuchdetails ansehen"
   };
 
   const REVERSE_TO_TR_EXACT_MAP = {};
