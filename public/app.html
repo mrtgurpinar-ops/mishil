@@ -3172,65 +3172,124 @@
       display: flex;
       flex-direction: column;
       flex: 1 1 auto;
-      height: calc(100vh - 210px);
-      max-height: 600px;
-      min-height: 380px;
+      min-height: 0;
     }
 
-    @media (max-width: 600px) {
-      .dadi-container {
-        height: calc(100dvh - 210px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
-        max-height: none;
-        min-height: 240px;
-      }
+    .dadi-chat-card {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      padding: 12px 14px;
+      background: rgba(22, 30, 52, 0.85);
+      min-height: 0;
+      margin-bottom: 0;
     }
 
     /* Klavye ve Tam Ekran Mışıl Dadı Odak Modu */
     .screen-container.coach-mode-active {
       overflow-y: hidden !important;
-      padding-bottom: 0 !important;
+      padding-bottom: calc(92px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px))) !important;
       height: 100% !important;
       display: flex !important;
       flex-direction: column !important;
     }
 
+    body:not(.keyboard-open):has(#global-floating-mini-player[style*="display: flex"]) .screen-container.coach-mode-active {
+      padding-bottom: calc(146px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px))) !important;
+    }
+
+    body.keyboard-open #main-app-screen.screen-container.coach-mode-active {
+      height: var(--vv-height, 100dvh) !important;
+      padding-bottom: calc(10px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px))) !important;
+    }
+
     .screen-container.coach-mode-active #view-coach {
       flex: 1 1 auto;
-      display: flex;
+      display: flex !important;
       flex-direction: column;
       height: 100%;
       min-height: 0;
       overflow: hidden;
     }
 
+    .screen-container.coach-mode-active #view-coach .app-header {
+      margin-bottom: 6px;
+      padding-top: 2px;
+      padding-bottom: 4px;
+      flex-shrink: 0;
+    }
+
+    .screen-container.coach-mode-active #view-coach .dadi-audience-switch {
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
+
+    .screen-container.coach-mode-active #view-coach #coach-cry-solver-bar,
+    .screen-container.coach-mode-active #view-coach #coach-mom-breathe-bar {
+      margin-bottom: 8px !important;
+      padding: 9px 14px !important;
+      flex-shrink: 0;
+    }
+
     .screen-container.coach-mode-active .dadi-container {
       flex: 1 1 auto;
-      height: 100% !important;
-      max-height: none !important;
-      min-height: 0 !important;
+      min-height: 0;
       display: flex;
       flex-direction: column;
     }
 
     .screen-container.coach-mode-active .dadi-chat-card {
       flex: 1 1 auto;
-      height: 100%;
       min-height: 0;
       display: flex;
       flex-direction: column;
       padding: 12px 14px;
       margin-bottom: 0;
-      padding-bottom: calc(92px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px)));
     }
 
     /* Mobilde klavye açıldığında çakışmayı önleme kuralları */
     body.keyboard-open .tab-bar,
-    body.keyboard-open .dock-fab-btn {
+    body.keyboard-open .dock-fab-btn,
+    body.keyboard-open #global-floating-mini-player {
       display: none !important;
     }
 
-    body.keyboard-open .screen-container.coach-mode-active .dadi-chat-card {
-      padding-bottom: 10px !important;
+    body.keyboard-open .screen-container.coach-mode-active #view-coach #coach-cry-solver-bar,
+    body.keyboard-open .screen-container.coach-mode-active #view-coach #coach-mom-breathe-bar {
+      display: none !important;
+    }
+
+    /* Kompakt ekranlarda (iPhone SE / <=720px) Mışıl Dadı konuşma balonuna maksimum alan aç */
+    @media (max-height: 720px) {
+      .screen-container.coach-mode-active #view-coach .app-header {
+        margin-bottom: 4px;
+      }
+      .screen-container.coach-mode-active #view-coach .app-header .baby-subtitle {
+        font-size: 10.5px;
+      }
+      .screen-container.coach-mode-active #view-coach .app-header .main-title {
+        font-size: 19px;
+      }
+      .screen-container.coach-mode-active #view-coach .dadi-audience-switch {
+        margin-bottom: 6px;
+      }
+      .screen-container.coach-mode-active #view-coach .dadi-aud-btn {
+        min-height: 32px;
+        font-size: 11px;
+      }
+      .screen-container.coach-mode-active #view-coach #coach-cry-solver-bar,
+      .screen-container.coach-mode-active #view-coach #coach-mom-breathe-bar {
+        padding: 7px 12px !important;
+        margin-bottom: 6px !important;
+      }
+      .screen-container.coach-mode-active .dadi-chat-card {
+        padding: 10px 12px;
+      }
+      .screen-container.coach-mode-active #chat-user-input {
+        min-height: 38px !important;
+        padding: 7px 11px !important;
+        font-size: 14px;
+      }
     }
 
     /* İlk Kullanıcı Karşılama ve Keşif Kartı */
@@ -3277,16 +3336,6 @@
     .vaccine-bento-card:active {
       transform: scale(0.98);
       border-color: #2ED573;
-    }
-
-    .dadi-chat-card {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      padding: 14px;
-      background: rgba(22, 30, 52, 0.85);
-      min-height: 0;
-      margin-bottom: 0;
     }
 
     .dadi-messages-box {
@@ -5622,18 +5671,18 @@
           </div>
 
           <!-- Quick Suggestion Chips -->
-          <div id="chat-dadi-chips-row" style="display: flex; gap: 6px; overflow-x: auto; padding: 6px 0; margin-top: 4px;" class="no-scrollbar">
+          <div id="chat-dadi-chips-row" style="display: flex; gap: 6px; overflow-x: auto; padding: 4px 0; margin-top: 4px; flex-shrink: 0;" class="no-scrollbar">
             <div class="ai-chip" onclick="askAiPrompt('🌙 Bebeğim 30 dk sonra ağlayarak uyandı, ne yapmalıyım?')">🌙 30 Dk Sonra Uyandı</div>
             <div class="ai-chip" onclick="askAiPrompt('🍼 Gece beslenmesini nasıl kademeli azaltırım?')">🍼 Gece Beslenmesi</div>
             <div class="ai-chip" onclick="askAiPrompt('⚠️ 4. ay uyku regresyonu nedir ve ne kadar sürer?')">⚠️ 4. Ay Regresyonu</div>
           </div>
 
           <!-- Chat Input Form -->
-          <form onsubmit="handleSendAiMessage(event)" style="display: flex; gap: 6px; margin-top: 8px;">
-            <input type="text" class="form-input" id="chat-user-input" placeholder="Mışıl Dadı'ya sorunuzu yazın..." style="margin-bottom: 0;" />
-            <button type="submit" id="chat-send-btn" class="sound-play-btn" style="background: var(--accent); color: #141B2E; border: none; flex-shrink: 0;">➔</button>
+          <form onsubmit="handleSendAiMessage(event)" style="display: flex; align-items: center; gap: 6px; margin-top: 6px; flex-shrink: 0;">
+            <input type="text" class="form-input" id="chat-user-input" placeholder="Mışıl Dadı'ya sorunuzu yazın..." style="margin-bottom: 0; flex: 1; min-width: 0; min-height: 42px; padding: 9px 12px;" />
+            <button type="submit" id="chat-send-btn" class="sound-play-btn" style="background: var(--accent); color: #141B2E; border: none; flex-shrink: 0; width: 42px; height: 42px;">➔</button>
           </form>
-          <div id="dadi-mom-safety-note" style="display: none; font-size: 9.5px; color: var(--text-muted); margin-top: 6px; line-height: 13.5px; text-align: center;">
+          <div id="dadi-mom-safety-note" style="display: none; font-size: 9.5px; color: var(--text-muted); margin-top: 5px; line-height: 13px; text-align: center; flex-shrink: 0;">
             🩺 Yargısız duygusal destek amaçlıdır; tıbbi/psikiyatrik tanı yerine geçmez (Acil destek: 112 / 182).
           </div>
         </div>
@@ -23431,12 +23480,13 @@
     }
 
     if (window.visualViewport) {
-      window.visualViewport.addEventListener('resize', () => {
+      const syncVisualViewportHeight = () => {
+        const currentHeight = window.visualViewport.height;
+        const windowHeight = window.innerHeight;
+        document.documentElement.style.setProperty('--vv-height', `${Math.round(currentHeight)}px`);
         const coachView = document.getElementById('view-coach');
         if (!coachView || !coachView.classList.contains('active')) return;
 
-        const currentHeight = window.visualViewport.height;
-        const windowHeight = window.innerHeight;
         const isKeyboard = (windowHeight - currentHeight) > 120;
 
         if (isKeyboard) {
@@ -23449,7 +23499,9 @@
           if (tabBar) tabBar.style.display = 'flex';
           if (fabBtn) fabBtn.style.display = 'flex';
         }
-      });
+      };
+      window.visualViewport.addEventListener('resize', syncVisualViewportHeight);
+      syncVisualViewportHeight();
     }
   }
 

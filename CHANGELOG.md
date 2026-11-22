@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.6-dadi-chat-viewport-and-mini-player-fit] - 2026-11-22 (Railway Canlı Yayın — Mışıl Dadı `#view-coach` Konuşma Alanı Flexbox, Yüzen Dock `.tab-bar`, Mini-Player `#global-floating-mini-player` & Mobil Klavye `visualViewport` Tam Ekran Uyumluluğu • 🟢 Yeni Native EAS Build Gerekmez)
+### 👵💬 Mışıl Dadı (`#view-coach`) Konuşma Alanı Ekrana Sığmama Onarımı (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`)
+1. **Ölü / Mükerrer CSS Temizliği ve Kanonik Flexbox Zinciri:**
+   - `.dadi-container` üzerindeki sabit `calc(100vh - 210px)` / `max-height: 600px` kuralları ve ikinci `.dadi-chat-card` tanımı silinerek tek bir kanonik flexbox zincirinde (`flex: 1 1 auto; min-height: 0;`) birleştirildi.
+   - `.screen-container.coach-mode-active` alt boşluğu `calc(92px + var(--device-safe-bottom, env(safe-area-inset-bottom, 0px))) !important` yapılarak konuşma kartının alt çerçevesinin yüzen `.tab-bar` altına taşmak yerine hemen üstünde temiz bir sınırla bitmesi sağlandı.
+2. **Yüzen Mini-Player (`#global-floating-mini-player`) & Mobil Klavye (`body.keyboard-open`) Uyumluluğu:**
+   - Arka planda ses çalarken `body:not(.keyboard-open):has(#global-floating-mini-player[style*="display: flex"]) .screen-container.coach-mode-active` kuralıyla alt boşluk otomatik olarak `146px + safe-bottom` değerine çıkarıldı; mini-player'ın mesaj yazma alanı ve hazır soru çiplerinin üstüne binmesi önlendi.
+   - Klavye açıldığında (`body.keyboard-open`) mini-player, ağlama çubuğu ve nefes çubuğu saf CSS ile gizlendi; `--vv-height` (`window.visualViewport.height`) üzerinden konuşma alanının klavye üstüne tam oturması sağlandı.
+3. **Input Formu & Kompakt Ekran (`@media (max-height: 720px)`) Uyumluluğu ve 2'li Konsensüs (`AGENTS.md §5.1–§5.2`):**
+   - `#chat-user-input` (`flex: 1; min-width: 0; min-height: 42px;`) ve `#chat-send-btn` (`width: 42px; height: 42px; flex-shrink: 0;`) yatay/dikey taşmaya karşı sabitlendi; `<=720px` (iPhone SE dahil) ekranlarda başlık ve üst çubuklar kompaktlaştırılarak mesaj kutusuna maksimum alan açıldı; `offlineHtml.generated.ts` (`1249 KB`) güncellendi.
+   - **Claude Code CLI (`task-77` kök neden analizi + `task-101` plan incelemesi `APPROVE WITH REFINEMENTS` + `task-124` `:has()` özgüllük çakışması tespiti + `task-143` son doğrulama: `CLAUDE_DIFF_VERDICT: PASS`)** + **Codex CLI (`gpt-6-luna` / `gpt-5.5`: 27 Kasım'a kadar haftalık kullanım limitinde — `AGENTS.md §1.4` 2'li Konsensüs)** + **Antigravity (`node --check` JS Syntax OK, `tsc --noEmit` 0 hata, `11/11 suite / 80 Jest` `task-133`)**.
+
 ## [4.56.5-cockpit-android-consolidation-and-clean-ui] - 2026-11-22 (Railway Canlı Yayın — Kurucu Kokpiti Android & iOS Mağaza Gösterimi/Sayfa Ziyareti/Oturum/Ülke Konsolidasyonu, Sahte `%100` Android CVR & `%37.8` Simpson Paradoksu Onarımı ve Arayüzdeki Mühendislik Jargonunun Temizlenmesi • 🟢 Yeni Native EAS Build Gerekmez)
 ### 📊🤖 Kurucu Kokpiti (`/admin/analytics`) Android Konsolidasyonu, Dönüşüm Oranı (CVR) Matematiği & Yönetici Arayüz Sadeleştirmesi (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **iOS + Android Mağaza Gösterimi, Sayfa Ziyareti ve Oturumların Konsolidasyonu:**
