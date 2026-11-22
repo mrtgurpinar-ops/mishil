@@ -8,8 +8,8 @@ Bu doküman, Apple App Store Connect'te **Mışıl Baby (iOS)** için gerekli t�
 
 | Alan Adı | Değer |
 | :--- | :--- |
-| **Uygulama Adı (App Name):** | `Mışıl Baby: Bebek Uyku & Ses` *(30 Karakter Sınırı)* |
-| **Alt Başlık (Subtitle):** | `AI Ağlama Analizi & Beyaz Gürültü` *(30 Karakter Sınırı)* |
+| **Uygulama Adı (App Name):** | `Mışıl Baby: Ebeveyn Asistanı` *(28 / 30 Karakter Sınırı)* |
+| **Alt Başlık (Subtitle):** | `Bebek Uyku, Beyaz Gürültü, Ses` *(30 / 30 Karakter Sınırı)* |
 | **Birincil Kategori:** | `Tıp & Sağlık` (Medical / Health & Fitness) veya `Yaşam Tarzı` (Lifestyle) |
 | **İkincil Kategori:** | `Müzik` (Music & Audio) |
 | **Bundle ID:** | `com.levitas.misilbaby` |
@@ -77,8 +77,8 @@ Kullanım Koşulları (Apple Standart EULA): https://www.apple.com/legal/interne
 
 | Field | Value |
 | :--- | :--- |
-| **App Name:** | `Mışıl Baby: Sleep & Sounds` *(26 / 30 Chars)* |
-| **Subtitle:** | `AI Cry Analyzer & White Noise` *(29 / 30 Chars)* |
+| **App Name:** | `Mışıl Baby: Parenting & Sleep` *(29 / 30 Chars)* |
+| **Subtitle:** | `Baby Tracker, Sounds & AI Cry` *(29 / 30 Chars)* |
 | **Primary Category:** | `Health & Fitness` / `Medical` |
 | **Secondary Category:** | `Lifestyle` |
 
@@ -131,8 +131,8 @@ Terms of Use (Standard Apple EULA): https://www.apple.com/legal/internet-service
 
 | Feld | Wert |
 | :--- | :--- |
-| **App-Name:** | `Mışıl Baby: Schlaf & Klänge` *(27 / 30 Zeichen)* |
-| **Untertitel:** | `KI-Schreianalyse & Einschlafen` *(30 / 30 Zeichen)* |
+| **App-Name:** | `Mışıl Baby: Eltern-Assistent` *(28 / 30 Zeichen)* |
+| **Untertitel:** | `Babyschlaf, Klänge & Schreie` *(28 / 30 Zeichen)* |
 | **Primäre Kategorie:** | `Gesundheit und Fitness` / `Medizin` |
 | **Sekundäre Kategorie:** | `Lifestyle` |
 

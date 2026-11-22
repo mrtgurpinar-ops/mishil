@@ -2,6 +2,20 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.10-asc-rejection-remediation-and-30-sounds-store-sync] - 2026-11-22 (Canlı App Store Connect Senkronu & Yerel Depo — `Mışıl Baby: Ebeveyn Asistanı` 3 Dil Başlık/Alt Başlık, 30 Stüdyo Sesi Mağaza & Abonelik Açıklamaları, 15 Yeni `1284x2778` Vitrin Görseli + 2 `1290x2796` IAP Review Paywall Görseli & `apple_preflight_validator.py` Doğrulaması • 🟢 Yeni Native EAS Build Gerekmez)
+### 🍏 App Store Connect `v4.56.0 (Build 72)` Ret Analizi, 3 Dil (`TR / EN-US / DE-DE`) Mağaza Vitrin Yenilemesi & Yetim Dil/Abonelik Senkronizasyonu (`scripts/generate_v456_multilang_store_assets.py`, `scripts/sync_asc_v456_full.py`, `scripts/capture_iap_screenshots.py`, `APP_STORE_LISTING.md`, `STORE_LISTING.md`, `public/preview_bio.html`, `mobile/test-qr.html`, `scripts/generate_store_mockups.py`)
+1. **Ebeveyn Aracı Konumlandırması & 3 Dil Uygulama Adı / Alt Başlık Güncellemesi (Apple Guideline 1.3 & 2.3.7):**
+   - `AppInfoLocalizations` üzerinde 3 dilde uygulama adı ve alt başlık (`<= 30 karakter`) güncellendi:
+     - **🇹🇷 Türkçe (`tr`):** `Mışıl Baby: Ebeveyn Asistanı` (`28/30`) — Alt Başlık: `Bebek Uyku, Beyaz Gürültü, Ses` (`30/30`)
+     - **🇺🇸 İngilizce (`en-US`):** `Mışıl Baby: Parenting & Sleep` (`29/30`) — Alt Başlık: `Baby Tracker, Sounds & AI Cry` (`29/30`)
+     - **🇩🇪 Almanca (`de-DE`):** `Mışıl Baby: Eltern-Assistent` (`28/30`) — Alt Başlık: `Babyschlaf, Klänge & Schreie` (`28/30`)
+2. **Submit Edilmeyen Yetim Abonelik Çevirileri (`PREPARE_FOR_SUBMISSION`) & Mağaza Açıklamalarında `"18"` ➔ `"30"` Stüdyo Sesi Senkronu (Guideline 2.1b & 2.3.1):**
+   - `misil_monthly` (`#6809228860`) ve `misil_annual` (`#6809228257`) altındaki `tr`, `en-US`, `de-DE` toplam 6 `PREPARE_FOR_SUBMISSION` abonelik yerelleştirmesi ve `v4.56.0` `appStoreVersionLocalizations` (`description`, `promotionalText`, `whatsNew`) 30 stüdyo sesi, 3-Baloncuklu (Mega-Bubble) ana ekran ve EULA/Gizlilik linkleriyle güncellendi; `preview_bio.html`, `test-qr.html`, `generate_store_mockups.py` ve `give_instagram_code.py` içindeki kalan `"18 ses"` kalıntıları `"30"` olarak temizlendi.
+   - `appStoreReviewDetails` içerisine hem StoreKit Sandbox hem de `v4.56.0 (Build 72)` sürüm etiketine 5 kez dokunarak `MISIL-REV-9842` PIN koduyla kartsız tam VIP inceleme erişimi yönergesi eklendi; `8e730abc...` gönderimindeki sürüm öğesi `READY_FOR_REVIEW` durumuna geçirildi.
+3. **3 Dilde 15 Yeni 6.5" Vitrin Görseli (`1284x2778`) & 2 IAP Review Paywall Görseli (`1290x2796`) Üretimi ve Canlı Yüklemesi (Guideline 1.4.1 & 2.3.3):**
+   - Eski görsellerdeki bulanık İngilizce 3. ekran, dil değiştirme toast çakışması, Dynamic Island başlık ezilmesi, `"18 Stüdyo Master Parça"` yazısı ve `"3 Saniyede Teşhis Edin"` tıbbi teşhis ifadesi tamamen giderilerek güncel `32px Mega-Bubble` + `30 Stüdyo Sesi` arayüzünden üretilen 15 vitrin görseli ve Adım 9 Paywall (`İlk Ay ₺49,99 ➔ ₺149,99/ay` & `Yıllık ₺599,99/yıl`) IAP Review görselleri App Store Connect'e yüklendi (`UPLOAD_COMPLETE`).
+   - **Claude Code CLI (`task-102` kök neden konsensüs teşhisi + `task-257` Seviye 2 karşı ajan bulguları ➔ 6 bulgunun tamamı kapatıldı)** + **Antigravity (`apple_preflight_validator.py` `READY_FOR_SUBMISSION / Exit 0`)**.
+
 ## [4.56.9-cockpit-6-stage-funnel] - 2026-11-22 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` 2 Katmanlı `3+3` 6 Aşamalı Dönüşüm Hunisi: `1. Gösterim ➔ 2. Ziyaret & Tık ➔ 3. Kurulum ➔ 4. Başlayan VIP ➔ 5. İptaller (Churn) ➔ 6. Net Abone` • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🎯📊 Kurucu Kokpiti (`/admin/analytics`) 2 Katmanlı (3+3) 6 Aşamalı Dönüşüm Hunisi (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **Piksel Matematiği & 2 Katmanlı (3 Edinim + 3 Abonelik/Churn) Huni Mimarisi:**

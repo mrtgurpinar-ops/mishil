@@ -8,7 +8,7 @@ Bu doküman, Google Play Console'da **"Ana Mağaza Girişi" (Main Store Listing)
 
 | Alan Adı | Değer |
 | :--- | :--- |
-| **Uygulama Adı (App Name):** | `Mışıl Baby: Bebek Uyku & Ses` *(30 Karakter)* |
+| **Uygulama Adı (App Name):** | `Mışıl Baby: Ebeveyn Asistanı` *(28 Karakter)* |
 | **Varsayılan Dil:** | Türkçe (tr-TR) |
 | **Uygulama Türü:** | Uygulama (App) |
 | **Ücretsiz / Ücretli:** | Ücretsiz İndirme (Uygulama İçi VIP Abonelik Gerektirir) |
@@ -89,7 +89,7 @@ Kullanım Koşulları: https://mishil-production.up.railway.app/terms?lang=tr
 
 ### 📌 App Name (`en-US` - Max 30 Characters):
 ```text
-Mışıl Baby: Sleep & Sounds
+Mışıl Baby: Parenting & Sleep
 ```
 
 ### 📌 Short Description (`en-US` - Max 80 Characters, Zero Superlatives):
@@ -147,7 +147,7 @@ Terms of Use: https://mishil-production.up.railway.app/terms?lang=en
 
 ### 📌 App-Name (`de-DE` - Max. 30 Zeichen, Keine Superlative):
 ```text
-Mışıl Baby: Schlaf & Klänge
+Mışıl Baby: Eltern-Assistent
 ```
 
 ### 📌 Kurzbeschreibung (`de-DE` - Max. 80 Zeichen, Keine Superlative):
