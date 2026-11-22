@@ -2,6 +2,20 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.5-cockpit-android-consolidation-and-clean-ui] - 2026-11-22 (Railway Canlı Yayın — Kurucu Kokpiti Android & iOS Mağaza Gösterimi/Sayfa Ziyareti/Oturum/Ülke Konsolidasyonu, Sahte `%100` Android CVR & `%37.8` Simpson Paradoksu Onarımı ve Arayüzdeki Mühendislik Jargonunun Temizlenmesi • 🟢 Yeni Native EAS Build Gerekmez)
+### 📊🤖 Kurucu Kokpiti (`/admin/analytics`) Android Konsolidasyonu, Dönüşüm Oranı (CVR) Matematiği & Yönetici Arayüz Sadeleştirmesi (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **iOS + Android Mağaza Gösterimi, Sayfa Ziyareti ve Oturumların Konsolidasyonu:**
+   - `StoreDailyMetric(platform="android")`, `StoreSyncState` ve `CampaignConfig` (`google_play_organic`, `meta_app_installs_android`) üzerinden gelen Android gösterimleri (`google_play_impressions`), mağaza sayfası ziyaretleri (`google_play_page_views`) ve oturumları (`android_official_sessions`) iOS verileriyle birleştirilerek `total_cumulative_impressions`, `total_cumulative_store_page_views`, `total_tracked_sessions` ve `active_sessions` içerisinde konsolide edildi.
+2. **Android Sekmesi (`platform_split["android"]`) Sayısal KPI Kartları & Sahte `%100.0` CVR Onarımı:**
+   - Android sekmesinde `.big-num` sayısal KPI kartlarında `"Meta APP_INSTALLS"` veya `"Doğrudan Play"` gibi metinlerin çıkması kaldırıldı; her zaman gerçek sayısal değer (`{google_play_impressions:,}` ve `{android_touchpoints:,}`) gösterilmesi sağlandı.
+   - Android kurulum sayısının (`222`) kendisine bölünerek sahte **`%100.0` CVR** üretmesi tamamen kaldırıldı; Android kurulum kaynakları **Google Play Organik + Meta Reklamları + Instagram Profil Bağlantısı** olarak konsolide edildi.
+3. **Kümülatif (`🌐 Tümü`) Sekmesinde `%37.8` Simpson Paradoksu Onarımı & Ülke Kurulumları Konsolidasyonu:**
+   - Google Play sayfa ziyareti `0` iken toplam (`iOS + Android`) kurulumların yalnızca iOS sayfa ziyaretine bölünmesiyle oluşan yanıltıcı `%37.8` CVR düzeltildi (`matched_downloads_for_vis` ile `%17.0`).
+   - Sekme 1'deki **Ülke Dağılımı** donut grafiği ve **Ülke Kurulumları** tablosu yalnızca `181 iOS` kurulumu yerine Sekme 2 ile birebir uyumlu şekilde **iOS + Android toplam `403 Kurulum`** verisini gösterecek şekilde konsolide edildi.
+4. **Görünür Arayüzden Mühendislik Kodlarının Temizlenmesi & 2'li Konsensüs (`AGENTS.md §5.1–§5.2`):**
+   - Görünür kartlardan `App ID: 1093539003520092`, `META APP_INSTALLS`, `🤖 APP_INSTALLS Aktif`, `iOS 14+ ATT/SKAdNetwork`, `ATT Cihaz`, `Build 72 SDK`, `(/download)`, `Apple r14 API`, `Opt-in r8`, `T-1`, `RC V2 T-0` ve ham `<code>daily_active</code>` etiketleri kaldırılarak yönetici dostu Türkçe iş diline dönüştürüldü.
+   - **Claude Code CLI (`task-676`: 4/4 madde matematiksel ve statik doğrulama: Onay)** + **Codex CLI (`gpt-6-luna`: 27 Kasım'a kadar haftalık kullanım limitinde — `AGENTS.md §1.4` 2'li Konsensüs)** + **Antigravity (`67/67 pytest` `task-667`, `TestClient` `200 OK`)**.
+
 ## [4.56.4-cockpit-bridge-reset-and-meta-sdk] - 2026-11-22 (Railway Canlı Yayın — Eski `20.154` Köprü Tıklamasının Sıfırlanması, Sıfır Statik Veri Fallback Temizliği, Tek Aktif Köprü `Instagram Bio (/download)` ve Doğrudan Meta `APP_INSTALLS` Android Aktif / iOS 14+ SDK `Build 72` Bekleme Mimarisi • 🟢 Yeni Native EAS Build Gerekmez)
 ### 📲🎯 Kurucu Kokpiti (`/admin/analytics`) Köprü Sıfırlaması, Sıfır Statik Veri & Doğrudan Meta `APP_INSTALLS` / iOS 14+ SDK Kampanya Ölçümleme Paketi (`app/api/v1/endpoints/analytics.py`, `app/db/models.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **Eski `20.154` Köprü Tıklamasının (`19.101` Tekil Tık) Tek Seferlik İdempotent Temizliği & Sıfır Statik Fallback (`ensure_historical_seed`):**

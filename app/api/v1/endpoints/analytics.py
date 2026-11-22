@@ -4258,13 +4258,20 @@ def _build_analytics_summary(
         }
 
     db_ios_imp = 0
+    db_ios_imp_uniq = 0
     db_ios_pv = 0
+    db_ios_pv_uniq = 0
     db_ios_dl = 0
     db_ios_dl_search = 0
     db_ios_dl_ref = 0
     db_ios_dl_browse = 0
     db_ios_sess = 0
+    db_android_imp = 0
+    db_android_imp_uniq = 0
+    db_android_pv = 0
+    db_android_pv_uniq = 0
     db_android_dl = 0
+    db_android_sess = 0
     for m_row in daily_db_rows:
         d_k = m_row.metric_date
         if d_k not in daily_series_merged:
@@ -4277,13 +4284,19 @@ def _build_analytics_summary(
             }
         row_dl = int(getattr(m_row, "downloads_total", None) or getattr(m_row, "first_time_downloads", 0) or 0)
         row_sess = int(getattr(m_row, "active_sessions", 0) or 0)
+        row_imp = int(m_row.impressions or 0)
+        row_imp_u = int(getattr(m_row, "impressions_unique", 0) or 0)
+        row_pv = int(m_row.page_views or 0)
+        row_pv_u = int(getattr(m_row, "page_views_unique", 0) or 0)
         if m_row.platform == "ios":
-            daily_series_merged[d_k]["impressions"] = max(daily_series_merged[d_k]["impressions"], int(m_row.impressions or 0))
-            daily_series_merged[d_k]["page_views"] = max(daily_series_merged[d_k]["page_views"], int(m_row.page_views or 0))
+            daily_series_merged[d_k]["impressions"] = max(daily_series_merged[d_k]["impressions"], row_imp)
+            daily_series_merged[d_k]["page_views"] = max(daily_series_merged[d_k]["page_views"], row_pv)
             daily_series_merged[d_k]["ios_downloads"] = max(daily_series_merged[d_k]["ios_downloads"], row_dl)
             daily_series_merged[d_k]["sessions"] = max(daily_series_merged[d_k]["sessions"], row_sess)
-            db_ios_imp += int(m_row.impressions or 0)
-            db_ios_pv += int(m_row.page_views or 0)
+            db_ios_imp += row_imp
+            db_ios_imp_uniq += row_imp_u
+            db_ios_pv += row_pv
+            db_ios_pv_uniq += row_pv_u
             db_ios_dl += row_dl
             db_ios_dl_search += int(getattr(m_row, "downloads_search", 0) or 0)
             db_ios_dl_ref += int(getattr(m_row, "downloads_referrer", 0) or 0)
@@ -4291,7 +4304,18 @@ def _build_analytics_summary(
             db_ios_sess += row_sess
         elif m_row.platform == "android":
             daily_series_merged[d_k]["android_downloads"] = max(daily_series_merged[d_k]["android_downloads"], row_dl)
+            if row_imp > 0:
+                daily_series_merged[d_k]["impressions"] = daily_series_merged[d_k]["impressions"] + row_imp
+            if row_pv > 0:
+                daily_series_merged[d_k]["page_views"] = daily_series_merged[d_k]["page_views"] + row_pv
+            if row_sess > 0:
+                daily_series_merged[d_k]["sessions"] = daily_series_merged[d_k]["sessions"] + row_sess
+            db_android_imp += row_imp
+            db_android_imp_uniq += row_imp_u
+            db_android_pv += row_pv
+            db_android_pv_uniq += row_pv_u
             db_android_dl += row_dl
+            db_android_sess += row_sess
 
     sb["daily_store_series"] = daily_series_merged
     # SSOT Kuralı: StoreDailyMetric (DB) birincil otoritedir; yalnızca tablo boşsa son resmi snapshot (sb) kullanılır.
@@ -4304,19 +4328,25 @@ def _build_analytics_summary(
     official_ios_dl = db_ios_dl if db_ios_dl > 0 else int(sb.get("apple_downloads_total", 0) or 0)
     apple_downloads = official_ios_dl if official_ios_dl > 0 else ios_signal_opens
     apple_official_sessions = db_ios_sess if db_ios_sess > 0 else int(sb.get("apple_sessions_total", 0) or 0)
+    android_official_sessions = db_android_sess if db_android_sess > 0 else int(sb.get("google_play_sessions_total", 0) or 0)
     live_telemetry_sessions = len(first_opens) + len(daily_actives)
-    apple_sessions = apple_official_sessions if apple_official_sessions > 0 else live_telemetry_sessions
+    apple_sessions = (apple_official_sessions + android_official_sessions) if (apple_official_sessions + android_official_sessions) > 0 else live_telemetry_sessions
     official_android_dl = db_android_dl if db_android_dl > 0 else int(sb.get("google_play_downloads_baseline", 0) or 0)
     google_play_downloads = max(official_android_dl, android_signal_opens)
+    google_play_impressions_base = db_android_imp if db_android_imp > 0 else int(sb.get("google_play_impressions_total", 0) or 0)
+    google_play_page_views_base = db_android_pv if db_android_pv > 0 else int(sb.get("google_play_page_views_total", 0) or 0)
 
     sb["apple_impressions_total"] = apple_impressions
     sb["apple_page_views_total"] = apple_page_views
     sb["apple_downloads_total"] = apple_downloads
     sb["apple_sessions_total"] = apple_official_sessions
     sb["google_play_downloads_baseline"] = google_play_downloads
+    sb["google_play_impressions_total"] = google_play_impressions_base
+    sb["google_play_page_views_total"] = google_play_page_views_base
 
-    total_cumulative_impressions = apple_impressions
-    total_cumulative_visits_and_clicks = apple_page_views + len(unique_human)
+    total_cumulative_impressions = apple_impressions + google_play_impressions_base
+    total_cumulative_store_page_views = apple_page_views + google_play_page_views_base
+    total_cumulative_visits_and_clicks = total_cumulative_store_page_views + len(unique_human)
     total_cumulative_downloads = apple_downloads + google_play_downloads
 
     # P0-4 & T2: Dinamik Tarihsel & Çift Katmanlı Canlı Zaman Serisi
@@ -5128,6 +5158,7 @@ def _build_analytics_summary(
     asa_cfg = cfg_map.get("apple_search_ads")
     meta_cfg = cfg_map.get("meta_ads_ios")
     meta_and_cfg = cfg_map.get("meta_app_installs_android") or cfg_map.get("meta_ads")
+    gp_org_cfg = cfg_map.get("google_play_organic")
     ig_cfg = cfg_map.get("instagram_bio")
 
     asa_spend_usd = round(float(asa_cfg.spend_usd if asa_cfg else 0.0), 2)
@@ -5150,6 +5181,11 @@ def _build_analytics_summary(
         if s.os_family == "android"
         and (s.matched_channel and ("instagram" in s.matched_channel.lower() or "download" in s.matched_channel.lower()))
     ])
+    matched_android_meta_bridge_installs = len([
+        s for s in first_opens
+        if s.os_family == "android"
+        and (s.matched_channel and ("meta" in s.matched_channel.lower() or "ios" in s.matched_channel.lower()))
+    ])
     direct_android_play_or_meta_installs = max(0, google_play_downloads - matched_android_bio_installs)
     ios_att_sdk_devices_cnt = len({
         s.device_uid or f"idx_{idx}"
@@ -5159,10 +5195,20 @@ def _build_analytics_summary(
     ios_att_sdk_is_live = ios_att_sdk_devices_cnt > 0
     ios_att_sdk_status_key = "live" if ios_att_sdk_is_live else "waiting_for_review"
     ios_att_sdk_status_badge = (
-        f"🟢 iOS 14+ ATT/SKAdNetwork Canlı ({ios_att_sdk_devices_cnt} Cihaz)"
+        f"🟢 iOS Reklam Ölçümleme Aktif ({ios_att_sdk_devices_cnt} Cihaz)"
         if ios_att_sdk_is_live
-        else "⏳ iOS 14+ SDK (v4.56.0 Build 72) Yayını Bekleniyor"
+        else "⏳ iOS v4.56.0 Mağaza Onayı Bekleniyor"
     )
+
+    gp_cfg_imp = int(gp_org_cfg.reported_impressions if gp_org_cfg else 0) + int(meta_and_cfg.reported_impressions if meta_and_cfg else 0)
+    gp_cfg_pv = int(gp_org_cfg.reported_clicks if gp_org_cfg else 0) + int(meta_and_cfg.reported_clicks if meta_and_cfg else 0)
+    google_play_impressions = max(google_play_impressions_base, gp_cfg_imp)
+    google_play_page_views = max(google_play_page_views_base, gp_cfg_pv)
+    sb["google_play_impressions_total"] = google_play_impressions
+    sb["google_play_page_views_total"] = google_play_page_views
+    total_cumulative_impressions = apple_impressions + google_play_impressions
+    total_cumulative_store_page_views = apple_page_views + google_play_page_views
+    total_cumulative_visits_and_clicks = total_cumulative_store_page_views + len(unique_human)
 
     r3_search = max(
         int(sb.get("apple_downloads_search", 0) or 0),
@@ -5210,27 +5256,27 @@ def _build_analytics_summary(
     aso_attribution_matrix = [
         {
             "channel": "🔍 App Store Arama (Search)",
-            "source_badge": "Apple API + Kampanya DB",
+            "source_badge": "App Store Resmi Veri",
             "impressions": f"{imp_search_val:,}",
             "page_views_or_clicks": f"Toplam {apple_page_views} Sayfa ({sb.get('apple_page_views_unique', 0) or apple_page_views} Cihaz) • {apple_taps} Dokunma",
             "downloads": r3_search,
             "cvr_pct": round((r3_search / imp_search_val) * 100, 2) if imp_search_val > 0 else 0.0,
             "cvr_basis": "Görüntülenme ➔ İndirme",
-            "vip_attributed": f"{paid_subs_cnt} Ücretli + {intro_trial_cnt} Aktif 7G Deneme",
+            "vip_attributed": f"{paid_subs_cnt} Ücretli + {intro_trial_cnt} Aktif Deneme",
         },
         {
-            "channel": "📲 Sosyal Yönlendirme & Meta Kampanyaları",
-            "source_badge": "Instagram Bio (/download) + Meta SDK",
+            "channel": "📲 Sosyal Yönlendirme & Meta Reklamları",
+            "source_badge": "Instagram Profil & Meta Reklam",
             "impressions": "-",
-            "page_views_or_clicks": f"{len(ig_unique)} Bio Köprü Tıkı • {ios_att_sdk_status_badge}",
+            "page_views_or_clicks": f"{len(ig_unique)} Profil Tıkı • {ios_att_sdk_status_badge}",
             "downloads": r3_ref,
             "cvr_pct": min(100.0, round((r3_ref / len(unique_human)) * 100, 1)) if len(unique_human) > 0 else 0.0,
-            "cvr_basis": "Köprü / Sosyal ➔ iOS İndirme",
+            "cvr_basis": "Sosyal Tık ➔ iOS İndirme",
             "vip_attributed": f"{matched_meta_installs + matched_ig_installs} Doğrulanmış Cihaz Eşleşmesi",
         },
         {
-            "channel": "🎟️ Promosyon Kodu (Offer Codes)",
-            "source_badge": "Apple SUBSCRIBER (1_3) API",
+            "channel": "🎟️ Promosyon Kodu (VIP Kodları)",
+            "source_badge": "App Store Abone Verisi",
             "impressions": "-",
             "page_views_or_clicks": f"{offer_code_cnt} Tekil Kod Kullanımı",
             "downloads": offer_code_cnt,
@@ -5239,34 +5285,42 @@ def _build_analytics_summary(
             "vip_attributed": f"{offer_code_cnt} Aktif Kod Abonesi",
         },
         {
-            "channel": "📅 Doğrudan / Sınıflandırılmamış iOS Kurulumları",
-            "source_badge": "Apple Sales Report API",
+            "channel": "📅 Doğrudan / Diğer iOS Kurulumları",
+            "source_badge": "App Store Satış Raporu",
             "impressions": "-",
             "page_views_or_clicks": "-",
             "downloads": recent_ios_dl,
             "cvr_pct": None,
-            "cvr_basis": "Doğrudan Sales API",
-            "vip_attributed": f"{unmatched_organic_opens} Eşleşmemiş İlk Açılış Sinyali",
+            "cvr_basis": "Doğrudan Mağaza Kurulumu",
+            "vip_attributed": f"{unmatched_organic_opens} Organik İlk Açılış",
         },
         {
             "channel": "✨ App Store Keşfet (Browse / Organik)",
-            "source_badge": "Apple API + Bio Köprü (/download)",
+            "source_badge": "App Store & Profil Köprüsü",
             "impressions": f"{imp_browse_val:,}",
             "page_views_or_clicks": f"{len(ig_unique)} Bio Köprü Tıkı + Keşfet Vitrin",
             "downloads": r3_browse,
             "cvr_pct": round((r3_browse / imp_browse_val) * 100, 1) if imp_browse_val > 0 else 0.0,
             "cvr_basis": "Görüntülenme ➔ İndirme",
-            "vip_attributed": f"{matched_ig_installs} Bio Sinyal Eşleşmesi",
+            "vip_attributed": f"{matched_ig_installs} Profil Eşleşmesi",
         },
         {
-            "channel": "🤖 Google Play & Meta APP_INSTALLS (Android)",
-            "source_badge": "Meta App ID + Google Play API",
-            "impressions": f"{int(meta_and_cfg.reported_impressions):,}" if (meta_and_cfg and meta_and_cfg.reported_impressions > 0) else "Meta Ads + Play",
-            "page_views_or_clicks": f"Doğrudan APP_INSTALLS Aktif • {len(ig_android)} Bio (/download) Tıkı",
+            "channel": "🤖 Google Play (Organik Arama + Meta Reklam + Bio)",
+            "source_badge": "Google Play + Meta Reklam",
+            "impressions": f"{google_play_impressions:,}" if google_play_impressions > 0 else "Play Konsol + Meta",
+            "page_views_or_clicks": (
+                f"{google_play_page_views:,} Mağaza Ziyareti + {len(ig_android)} Profil Tıkı"
+                if google_play_page_views > 0
+                else f"Play Mağaza + Meta Reklam • {len(ig_android)} Profil Tıkı"
+            ),
             "downloads": google_play_downloads,
-            "cvr_pct": min(100.0, round((matched_android_bio_installs / len(ig_android)) * 100, 1)) if len(ig_android) > 0 else None,
-            "cvr_basis": "Doğrudan Meta APP_INSTALLS + Google Play",
-            "vip_attributed": f"{direct_android_play_or_meta_installs} Doğrudan + {matched_android_bio_installs} Bio ({android_signal_opens} İlk Açılış)",
+            "cvr_pct": (
+                min(100.0, round((google_play_downloads / (google_play_page_views + len(ig_android))) * 100, 1))
+                if google_play_page_views > 0
+                else (min(100.0, round((matched_android_bio_installs / len(ig_android)) * 100, 1)) if len(ig_android) > 0 else None)
+            ),
+            "cvr_basis": "Google Play Organik + Meta Reklam + Bio",
+            "vip_attributed": f"{direct_android_play_or_meta_installs} Play/Meta + {matched_android_bio_installs} Profil ({android_signal_opens} Cihaz)",
         },
     ]
 
@@ -5344,8 +5398,9 @@ def _build_analytics_summary(
 
     product_retention = {
         "apple_official_sessions": apple_official_sessions,
+        "android_official_sessions": android_official_sessions,
         "live_telemetry_sessions": live_telemetry_sessions,
-        "total_tracked_sessions": max(apple_official_sessions, live_telemetry_sessions),
+        "total_tracked_sessions": max(apple_official_sessions + android_official_sessions, live_telemetry_sessions),
         "optin_active_devices": max(optin_ios_total_dev, distinct_signal_devices, db_babies_count),
         "optin_ios_total_devices": optin_ios_total_dev,
         "returning_optin_ios_devices": returning_optin_ios_dev,
@@ -5383,31 +5438,62 @@ def _build_analytics_summary(
     ios_bridge_uniq = len([c for c in unique_human if c.os_family == "ios"])
     desktop_bridge_uniq = len([c for c in unique_human if c.os_family not in ("ios", "android")])
     ios_touchpoints = apple_page_views + ios_bridge_uniq
-    android_touchpoints = android_bridge_uniq
+    android_touchpoints = google_play_page_views + android_bridge_uniq
 
     # P1: Simpson Paradoksu & 24s Gecikme Ayrımı — Mağaza Sayfası CVR vs Sosyal Köprü CVR vs Kesinleşen Günler CVR
     apple_page_views_uniq = int(sb.get("apple_page_views_unique", 0) or apple_page_views)
+    google_play_page_views_uniq = db_android_pv_uniq if db_android_pv_uniq > 0 else google_play_page_views
+    total_impressions_unique = (db_ios_imp_uniq if db_ios_imp_uniq > 0 else int(sb.get("apple_impressions_unique", 0) or 0)) + (
+        db_android_imp_uniq if db_android_imp_uniq > 0 else google_play_impressions
+    )
+    total_store_page_views_unique = apple_page_views_uniq + google_play_page_views_uniq
     store_imp_to_pv_pct = (
-        min(100.0, round((apple_page_views / max(1, apple_impressions)) * 100, 1))
-        if apple_page_views > 0 and apple_impressions > 0
+        min(100.0, round((total_cumulative_store_page_views / max(1, total_cumulative_impressions)) * 100, 1))
+        if total_cumulative_store_page_views > 0 and total_cumulative_impressions > 0
         else (
             min(100.0, round((total_cumulative_visits_and_clicks / max(1, total_cumulative_impressions)) * 100, 1))
             if total_cumulative_impressions > 0
             else 0.0
         )
     )
+    ios_store_imp_to_pv_pct = (
+        min(100.0, round((apple_page_views / max(1, apple_impressions)) * 100, 1))
+        if apple_page_views > 0 and apple_impressions > 0
+        else 0.0
+    )
+    android_store_imp_to_pv_pct = (
+        min(100.0, round((google_play_page_views / max(1, google_play_impressions)) * 100, 1))
+        if google_play_page_views > 0 and google_play_impressions > 0
+        else (100.0 if android_bridge_uniq > 0 and google_play_impressions == 0 else 0.0)
+    )
+    store_matched_downloads = apple_downloads + (google_play_downloads if google_play_page_views > 0 else 0)
     store_page_cvr_pct = (
+        min(100.0, round((store_matched_downloads / max(1, total_cumulative_store_page_views)) * 100, 1))
+        if total_cumulative_store_page_views > 0
+        else 0.0
+    )
+    ios_store_page_cvr_pct = (
         min(100.0, round((apple_downloads / max(1, apple_page_views)) * 100, 1))
         if apple_page_views > 0
         else 0.0
     )
+    android_store_page_cvr_pct = (
+        min(100.0, round((google_play_downloads / max(1, google_play_page_views)) * 100, 1))
+        if google_play_page_views > 0
+        else 0.0
+    )
     store_unique_cvr_pct = (
+        min(100.0, round((store_matched_downloads / max(1, total_store_page_views_unique)) * 100, 1))
+        if total_cumulative_store_page_views > 0 and total_store_page_views_unique > 0
+        else 0.0
+    )
+    ios_store_unique_cvr_pct = (
         min(100.0, round((apple_downloads / max(1, apple_page_views_uniq)) * 100, 1))
         if apple_page_views > 0 and apple_page_views_uniq > 0
         else 0.0
     )
     ios_bridge_dl = min(ios_bridge_uniq, r3_ref) if ios_bridge_uniq > 0 else 0
-    and_bridge_dl = min(android_bridge_uniq, google_play_downloads) if android_bridge_uniq > 0 else 0
+    and_bridge_dl = min(android_bridge_uniq, matched_android_bio_installs if matched_android_bio_installs > 0 else google_play_downloads) if android_bridge_uniq > 0 else 0
     ios_bridge_cvr_pct = (
         round((ios_bridge_dl / max(1, ios_bridge_uniq)) * 100, 1)
         if ios_bridge_uniq > 0
@@ -5422,6 +5508,12 @@ def _build_analytics_summary(
     all_bridge_cvr_pct = (
         round((all_bridge_installs / max(1, len(unique_human))) * 100, 1)
         if len(unique_human) > 0
+        else 0.0
+    )
+    matched_downloads_for_vis = apple_downloads + (google_play_downloads if google_play_page_views > 0 else and_bridge_dl)
+    all_vis_to_dl_cvr_pct = (
+        min(100.0, round((matched_downloads_for_vis / max(1, total_cumulative_visits_and_clicks)) * 100, 1))
+        if total_cumulative_visits_and_clicks > 0
         else 0.0
     )
 
@@ -5483,20 +5575,14 @@ def _build_analytics_summary(
         else 0
     )
 
-    android_reported_imp = int(meta_and_cfg.reported_impressions if meta_and_cfg else 0)
-    android_reported_clicks = int(meta_and_cfg.reported_clicks if meta_and_cfg else 0)
-    android_effective_imp = android_reported_imp if android_reported_imp > 0 else max(google_play_downloads, android_bridge_uniq)
-    android_effective_touch = (
-        android_reported_clicks + android_bridge_uniq
-        if (android_reported_clicks + android_bridge_uniq) > 0
-        else google_play_downloads
+    android_imp_display = f"{google_play_impressions:,}"
+    android_touch_display = f"{android_touchpoints:,}"
+    android_cvr_safe = (
+        min(100.0, round((google_play_downloads / android_touchpoints) * 100, 1))
+        if google_play_page_views > 0 and android_touchpoints > 0
+        else (android_bridge_cvr_pct if android_bridge_uniq > 0 else 0.0)
     )
-    android_imp_display = (
-        f"{android_reported_imp:,}"
-        if android_reported_imp > 0
-        else (f"{android_bridge_uniq} Bio Tık" if android_bridge_uniq > 0 else "Meta APP_INSTALLS")
-    )
-    android_cvr_safe = min(100.0, round((google_play_downloads / max(1, android_effective_touch)) * 100, 1))
+    android_store_or_bridge_cvr = android_store_page_cvr_pct if google_play_page_views > 0 else android_bridge_cvr_pct
 
     platform_split = {
         "all": {
@@ -5504,26 +5590,30 @@ def _build_analytics_summary(
             "label": "🌐 Kümülatif (Toplam — Apple + Google Play)",
             "impressions": total_cumulative_impressions,
             "impressions_display": f"{total_cumulative_impressions:,}",
-            "impressions_sub": f"🍏 {apple_impressions:,} App Store API • 🤖 Android Meta APP_INSTALLS Aktif ({len(ig_android)} Bio Tık)",
+            "impressions_sub": (
+                f"🍏 {apple_impressions:,} App Store • 🤖 {google_play_impressions:,} Google Play + Meta Reklam"
+                if google_play_impressions > 0
+                else f"🍏 {apple_impressions:,} App Store • 🤖 Google Play Organik & Meta Reklam ({len(ig_android)} Profil Tıkı)"
+            ),
             "touchpoints": total_cumulative_visits_and_clicks,
             "touchpoints_display": f"{total_cumulative_visits_and_clicks:,}",
-            "touchpoints_sub": f"🍏 {ios_touchpoints} iOS ({apple_page_views} Mağaza + {ios_bridge_uniq} Bio Tık) • 🤖 {android_touchpoints} Android Bio Tık{desktop_sub_suffix}",
+            "touchpoints_sub": f"🍏 {ios_touchpoints} iOS ({apple_page_views} Mağaza + {ios_bridge_uniq} Profil) • 🤖 {android_touchpoints} Android ({google_play_page_views} Mağaza + {android_bridge_uniq} Profil){desktop_sub_suffix}",
             "downloads": total_cumulative_downloads,
             "downloads_display": f"{total_cumulative_downloads}",
             "downloads_sub": f"🍏 {apple_downloads} iOS (%{round((apple_downloads / max(1, total_cumulative_downloads)) * 100)}) • 🤖 {google_play_downloads} Android (%{round((google_play_downloads / max(1, total_cumulative_downloads)) * 100)})",
             "vis_of_imp_pct": store_imp_to_pv_pct,
             "imp_breakdown_label": f"Mağaza: %{store_imp_to_pv_pct} + {len(unique_human):,} Bio Köprü",
-            "cvr_pct": min(100.0, round((total_cumulative_downloads / max(1, total_cumulative_visits_and_clicks)) * 100, 1)),
+            "cvr_pct": all_vis_to_dl_cvr_pct,
             "store_cvr_pct": store_page_cvr_pct,
             "store_unique_cvr_pct": store_unique_cvr_pct,
             "bridge_cvr_pct": all_bridge_cvr_pct,
             "settled_cvr_pct": settled_cvr_pct,
             "desktop_bridge_clicks": desktop_bridge_uniq,
             "cvr_breakdown_label": f"Mağaza: %{store_page_cvr_pct} • Bio Köprü: %{all_bridge_cvr_pct}",
-            "dl_of_imp_pct": round((total_cumulative_downloads / max(1, total_cumulative_impressions)) * 100, 2),
+            "dl_of_imp_pct": round((total_cumulative_downloads / max(1, total_cumulative_impressions)) * 100, 2) if total_cumulative_impressions > 0 else 0.0,
             "vip_of_dl_pct": round((active_vip_total / max(1, total_cumulative_downloads)) * 100, 1),
             "vip_of_vis_pct": round((active_vip_total / max(1, total_cumulative_visits_and_clicks)) * 100, 2),
-            "vip_of_imp_pct": round((active_vip_total / max(1, total_cumulative_impressions)) * 100, 2),
+            "vip_of_imp_pct": round((active_vip_total / max(1, total_cumulative_impressions)) * 100, 2) if total_cumulative_impressions > 0 else 0.0,
             "vip_count": active_vip_total,
             "total_vip_count": all_total_rec,
             "cancelled_vip_count": cancelled_cnt,
@@ -5536,8 +5626,8 @@ def _build_analytics_summary(
             "mrr_gross_try": financial_ledger["projected_total_mrr_gross_try"],
             "realized_net_try": financial_ledger["realized_net_proceeds_try"],
             "reviews_count": len(all_reviews),
-            "meta_chips_1": [f"{int(sb.get('apple_impressions_unique', 0) or 0):,} Tekil Cihaz", f"%{imp_search_pct_calc} Arama"],
-            "meta_chips_2": [f"{apple_page_views} Mağaza", f"{len(ig_unique):,} Bio (/download)"],
+            "meta_chips_1": [f"{total_impressions_unique:,} Tekil Cihaz", f"%{imp_search_pct_calc} Arama"],
+            "meta_chips_2": [f"{total_cumulative_store_page_views} Mağaza", f"{len(ig_unique):,} Instagram Profil"],
             "meta_chips_3": [f"🍏 {apple_downloads} iOS", f"🤖 {google_play_downloads} Android"],
             "meta_chips_4": [
                 f"💳 {financial_ledger['paid_subs_count']} Ücretli",
@@ -5552,24 +5642,24 @@ def _build_analytics_summary(
             "impressions_display": f"{apple_impressions:,}",
             "impressions_sub": f"{int(sb.get('apple_impressions_unique', 0) or 0):,} tekil iPhone • {imp_search_val:,} Arama + {imp_browse_val} Keşfet • {ios_att_sdk_status_badge}",
             "touchpoints": ios_touchpoints,
-            "touchpoints_display": f"{ios_touchpoints}",
-            "touchpoints_sub": f"{apple_page_views} App Store Sayfası + {len(ig_ios)} Instagram Bio (/download) iOS Tıkı",
+            "touchpoints_display": f"{ios_touchpoints:,}",
+            "touchpoints_sub": f"{apple_page_views} App Store Sayfası + {len(ig_ios)} Instagram Profil iOS Tıkı",
             "downloads": apple_downloads,
             "downloads_display": f"{apple_downloads}",
-            "downloads_sub": f"{r3_search} Arama • {r3_ref} Sosyal Referans • {recent_ios_dl} Doğrudan Sales API",
-            "vis_of_imp_pct": store_imp_to_pv_pct,
-            "imp_breakdown_label": f"Mağaza: %{store_imp_to_pv_pct} + {len(ig_ios):,} Bio Köprü",
-            "cvr_pct": min(100.0, round((apple_downloads / max(1, ios_touchpoints)) * 100, 1)),
-            "store_cvr_pct": store_page_cvr_pct,
-            "store_unique_cvr_pct": store_unique_cvr_pct,
+            "downloads_sub": f"{r3_search} Arama • {r3_ref} Sosyal Referans • {recent_ios_dl} Doğrudan Mağaza",
+            "vis_of_imp_pct": ios_store_imp_to_pv_pct,
+            "imp_breakdown_label": f"Mağaza: %{ios_store_imp_to_pv_pct} + {len(ig_ios):,} Bio Köprü",
+            "cvr_pct": min(100.0, round((apple_downloads / max(1, ios_touchpoints)) * 100, 1)) if ios_touchpoints > 0 else 0.0,
+            "store_cvr_pct": ios_store_page_cvr_pct,
+            "store_unique_cvr_pct": ios_store_unique_cvr_pct,
             "bridge_cvr_pct": ios_bridge_cvr_pct,
-            "settled_cvr_pct": min(100.0, round((apple_downloads / max(1, ios_touchpoints)) * 100, 1)),
+            "settled_cvr_pct": min(100.0, round((apple_downloads / max(1, ios_touchpoints)) * 100, 1)) if ios_touchpoints > 0 else 0.0,
             "desktop_bridge_clicks": 0,
-            "cvr_breakdown_label": f"Mağaza: %{store_page_cvr_pct} (Cihaz: %{store_unique_cvr_pct}) • Bio Köprü: %{ios_bridge_cvr_pct}",
-            "dl_of_imp_pct": round((apple_downloads / max(1, apple_impressions)) * 100, 2),
+            "cvr_breakdown_label": f"Mağaza: %{ios_store_page_cvr_pct} (Cihaz: %{ios_store_unique_cvr_pct}) • Bio Köprü: %{ios_bridge_cvr_pct}",
+            "dl_of_imp_pct": round((apple_downloads / max(1, apple_impressions)) * 100, 2) if apple_impressions > 0 else 0.0,
             "vip_of_dl_pct": round((ios_active_cnt / max(1, apple_downloads)) * 100, 1),
-            "vip_of_vis_pct": round((ios_active_cnt / max(1, ios_touchpoints)) * 100, 2),
-            "vip_of_imp_pct": round((ios_active_cnt / max(1, apple_impressions)) * 100, 2),
+            "vip_of_vis_pct": round((ios_active_cnt / max(1, ios_touchpoints)) * 100, 2) if ios_touchpoints > 0 else 0.0,
+            "vip_of_imp_pct": round((ios_active_cnt / max(1, apple_impressions)) * 100, 2) if apple_impressions > 0 else 0.0,
             "vip_count": ios_active_cnt,
             "total_vip_count": ios_total_rec,
             "cancelled_vip_count": ios_cancelled_cnt,
@@ -5579,36 +5669,44 @@ def _build_analytics_summary(
             "mrr_gross_try": ios_mrr_gross,
             "realized_net_try": ios_realized_net,
             "reviews_count": ios_reviews_cnt,
-            "meta_chips_1": [f"{int(sb.get('apple_impressions_unique', 0) or 0):,} Tekil iPhone", "⏳ Build 72 SDK" if not ios_att_sdk_is_live else f"🟢 {ios_att_sdk_devices_cnt} ATT Cihaz"],
-            "meta_chips_2": [f"{apple_page_views} Mağaza", f"{len(ig_ios):,} Bio (/download)"],
-            "meta_chips_3": [f"🔍 {r3_search} Arama", f"📲 {r3_ref} Sosyal", f"📅 {recent_ios_dl} Sales"],
+            "meta_chips_1": [f"{int(sb.get('apple_impressions_unique', 0) or 0):,} Tekil iPhone", "⏳ v4.56.0 Onayda" if not ios_att_sdk_is_live else f"🟢 {ios_att_sdk_devices_cnt} iOS Cihaz"],
+            "meta_chips_2": [f"{apple_page_views} Mağaza", f"{len(ig_ios):,} Instagram Profil"],
+            "meta_chips_3": [f"🔍 {r3_search} Arama", f"📲 {r3_ref} Sosyal", f"📅 {recent_ios_dl} Doğrudan"],
             "meta_chips_4": [f"💳 {ios_paid_cnt} Ücretli", f"⏳ {ios_trial_cnt} Deneme", f"🎟️ {ios_code_cnt} Kod"],
         },
         "android": {
             "key": "android",
             "label": "🤖 Google Play Store (Android)",
-            "impressions": android_effective_imp,
+            "impressions": google_play_impressions,
             "impressions_display": android_imp_display,
-            "impressions_sub": f"🟢 Doğrudan Meta APP_INSTALLS Aktif (App ID: {META_APP_ID_OFFICIAL}) + {len(ig_android)} Instagram Bio (/download) Tıkı",
+            "impressions_sub": (
+                f"🤖 {google_play_impressions:,} Google Play & Meta Gösterimi • {len(ig_android)} Instagram Profil Tıkı"
+                if google_play_impressions > 0
+                else f"🤖 Google Play Organik & Meta Reklam Kampanyası Aktif • {len(ig_android)} Instagram Profil Tıkı"
+            ),
             "touchpoints": android_touchpoints,
-            "touchpoints_display": f"{len(ig_android)} Bio Tık" if len(ig_android) > 0 else "Doğrudan Play",
-            "touchpoints_sub": f"Doğrudan Meta APP_INSTALLS ➔ Google Play ({direct_android_play_or_meta_installs} Doğrudan Kurulum) + {len(ig_android)} Instagram Bio (/download) Tıkı",
+            "touchpoints_display": android_touch_display,
+            "touchpoints_sub": (
+                f"{google_play_page_views:,} Google Play Sayfa Ziyareti + {len(ig_android)} Instagram Profil Tıkı ({direct_android_play_or_meta_installs} Play/Meta Kurulum)"
+                if google_play_page_views > 0
+                else f"Google Play Organik + Meta Reklam ({direct_android_play_or_meta_installs} Doğrudan Kurulum) + {len(ig_android)} Instagram Profil Tıkı"
+            ),
             "downloads": google_play_downloads,
             "downloads_display": f"{google_play_downloads}",
-            "downloads_sub": f"{google_play_downloads} Doğrulanmış Android Kurulum ({direct_android_play_or_meta_installs} Doğrudan Play/Meta + {matched_android_bio_installs} Bio Köprü)",
-            "vis_of_imp_pct": 100.0 if android_bridge_uniq > 0 else 0.0,
-            "imp_breakdown_label": "Doğrudan Meta APP_INSTALLS + Bio (/download)",
+            "downloads_sub": f"{google_play_downloads} Android Kurulum ({direct_android_play_or_meta_installs} Google Play Organik & Meta + {matched_android_bio_installs} Instagram Profil)",
+            "vis_of_imp_pct": android_store_imp_to_pv_pct,
+            "imp_breakdown_label": f"Mağaza: %{android_store_imp_to_pv_pct} + {len(ig_android):,} Bio Köprü",
             "cvr_pct": android_cvr_safe,
-            "store_cvr_pct": android_bridge_cvr_pct,
-            "store_unique_cvr_pct": android_bridge_cvr_pct,
+            "store_cvr_pct": android_store_or_bridge_cvr,
+            "store_unique_cvr_pct": android_store_or_bridge_cvr,
             "bridge_cvr_pct": android_bridge_cvr_pct,
             "settled_cvr_pct": android_cvr_safe,
             "desktop_bridge_clicks": 0,
-            "cvr_breakdown_label": f"Meta APP_INSTALLS Aktif • Bio Köprü: %{android_bridge_cvr_pct} • Native Intent Aktif",
-            "dl_of_imp_pct": min(100.0, round((google_play_downloads / max(1, android_effective_imp)) * 100, 2)),
+            "cvr_breakdown_label": f"Mağaza: %{android_store_page_cvr_pct} • Bio Köprü: %{android_bridge_cvr_pct} • Native Intent Aktif",
+            "dl_of_imp_pct": min(100.0, round((google_play_downloads / google_play_impressions) * 100, 2)) if google_play_impressions > 0 else 0.0,
             "vip_of_dl_pct": round((and_active_cnt / max(1, google_play_downloads)) * 100, 1),
-            "vip_of_vis_pct": round((and_active_cnt / max(1, android_effective_touch)) * 100, 2),
-            "vip_of_imp_pct": round((and_active_cnt / max(1, android_effective_imp)) * 100, 2),
+            "vip_of_vis_pct": round((and_active_cnt / android_touchpoints) * 100, 2) if android_touchpoints > 0 else 0.0,
+            "vip_of_imp_pct": round((and_active_cnt / google_play_impressions) * 100, 2) if google_play_impressions > 0 else 0.0,
             "vip_count": and_active_cnt,
             "total_vip_count": and_total_rec,
             "cancelled_vip_count": and_cancelled_cnt,
@@ -5618,9 +5716,9 @@ def _build_analytics_summary(
             "mrr_gross_try": and_mrr_gross,
             "realized_net_try": and_realized_net,
             "reviews_count": android_reviews_cnt,
-            "meta_chips_1": ["🟢 Meta APP_INSTALLS", "Play Organik"],
-            "meta_chips_2": [f"🎯 {direct_android_play_or_meta_installs} Doğrudan", f"📲 {len(ig_android):,} Bio (/download)"],
-            "meta_chips_3": [f"🤖 {google_play_downloads} Play Kurulum", f"⚡ {android_signal_opens} İlk Açılış"],
+            "meta_chips_1": ["🤖 Google Play Organik", "🎯 Meta Reklam Aktif"],
+            "meta_chips_2": [f"🏪 {google_play_page_views} Mağaza", f"📲 {len(ig_android):,} Instagram Profil"],
+            "meta_chips_3": [f"🏪 {direct_android_play_or_meta_installs} Play & Meta", f"📲 {matched_android_bio_installs} Profil"],
             "meta_chips_4": [f"💳 {and_paid_cnt} Ücretli", f"⏳ {and_trial_cnt} Deneme", f"📦 {len(gp_catalog)} Paket"],
         },
     }
@@ -5628,38 +5726,38 @@ def _build_analytics_summary(
     source_freshness = [
         {
             "id": "bridge_telemetry",
-            "label": "Instagram Bio (/download) Tekil Köprü & Telemetri DB",
+            "label": "Instagram Profil Bağlantısı & Uygulama Telemetrisi",
             "status": "realtime",
             "badge": f"⚡ Gerçek Zamanlı ({today_str})",
-            "detail": f"Aktif Bio Köprü: {len(ig_unique)} Tık (🍏 {len(ig_ios)} iOS • 🤖 {len(ig_android)} Android{desktop_sub_suffix}) • Eski Köprü Verileri Temizlendi",
+            "detail": f"Aktif Instagram Profil Köprüsü: {len(ig_unique)} Tık (🍏 {len(ig_ios)} iOS • 🤖 {len(ig_android)} Android{desktop_sub_suffix}) • Eski Köprü Verileri Temizlendi",
         },
         {
             "id": "meta_app_events_sdk",
-            "label": f"🎯 Meta APP_INSTALLS & iOS 14+ SDK (App ID: {META_APP_ID_OFFICIAL})",
+            "label": "🎯 Meta Uygulama Reklamları & Ölçümleme",
             "status": "realtime" if ios_att_sdk_is_live else "synced",
-            "badge": f"🤖 Android APP_INSTALLS Aktif • {ios_att_sdk_status_badge}",
-            "detail": f"Android Doğrudan Play: {direct_android_play_or_meta_installs} Kurulum • iOS 14.5+ ATT/SKAdNetwork (v4.56.0 Build 72): {ios_att_sdk_devices_cnt} Cihaz",
+            "badge": f"🤖 Android Reklamları Aktif • {ios_att_sdk_status_badge}",
+            "detail": f"Android Google Play + Meta: {direct_android_play_or_meta_installs} Kurulum • iOS Yeni Sürüm (v4.56.0): {ios_att_sdk_devices_cnt} Cihaz",
         },
         {
             "id": "apple_sales_tsv",
-            "label": "🍏 Apple Sales & Trends API",
+            "label": "🍏 Apple App Store Satış & Analitik",
             "status": "lagged_24h",
             "badge": f"🍏 {apple_downloads} iOS Kurulum ({latest_store_metric_date or 'Aktif'})",
-            "detail": f"{apple_impressions:,} Gösterim • {apple_page_views} Sayfa • {ios_reviews_cnt} Yorum",
+            "detail": f"{apple_impressions:,} Gösterim • {apple_page_views} Sayfa Ziyareti • {ios_reviews_cnt} Yorum",
         },
         {
             "id": "apple_sub_ledger",
-            "label": "🍏 Apple SUBSCRIBER + EVENT API",
+            "label": "🍏 Apple Abonelik & Tahsilat Defteri",
             "status": "reconciling" if reconciling_7d_cnt > 0 else "synced",
             "badge": f"📒 {ios_active_cnt} Aktif / {ios_total_rec} Kayıt ({ios_cancelled_cnt} İptal)",
             "detail": f"Tahsil: {ios_realized_net:.2f} ₺ • Beklenen Havuz: +{plat_fin['ios']['pipeline_net']:.2f} ₺ Net",
         },
         {
             "id": "google_play_sync",
-            "label": "🤖 Google Play Developer API",
+            "label": "🤖 Google Play Mağaza & Abonelik",
             "status": "synced",
             "badge": f"🤖 {google_play_downloads} Android Kurulum • {and_active_cnt} Aktif VIP",
-            "detail": f"{len(gp_catalog)} Aktif Paket • {direct_android_play_or_meta_installs} Doğrudan + {matched_android_bio_installs} Bio • {android_reviews_cnt} Yorum",
+            "detail": f"{len(gp_catalog)} Aktif Paket • {direct_android_play_or_meta_installs} Play/Meta + {matched_android_bio_installs} Profil • {android_reviews_cnt} Yorum",
         },
     ]
 
@@ -5803,10 +5901,14 @@ def _build_analytics_summary(
         },
         "cumulative_kpis": {
             "impressions_total": total_cumulative_impressions,
-            "impressions_unique": int(sb.get("apple_impressions_unique", 0) or 0),
+            "impressions_unique": total_impressions_unique,
+            "ios_impressions": apple_impressions,
+            "android_impressions": google_play_impressions,
             "visits_and_clicks_total": total_cumulative_visits_and_clicks,
-            "store_page_views": apple_page_views,
-            "store_page_views_unique": apple_page_views_uniq,
+            "store_page_views": total_cumulative_store_page_views,
+            "ios_store_page_views": apple_page_views,
+            "android_store_page_views": google_play_page_views,
+            "store_page_views_unique": total_store_page_views_unique,
             "bridge_unique_clicks": len(unique_human),
             "desktop_bridge_clicks": desktop_bridge_uniq,
             "store_taps": apple_taps,
@@ -6858,21 +6960,35 @@ def analytics_dashboard_page(
 
     donut_install_sources = _build_svg_donut(
         [
-            {"label": "🔍 App Store Arama (API)", "count": r3_search_dl, "color": "#E8A855"},
-            {"label": "📲 Sosyal Yönlendirme (API)", "count": r3_ref_dl, "color": "#60A5FA"},
-            {"label": "📅 Doğrudan / Diğer iOS (API)", "count": r3_unattributed_recent_ios, "color": "#A855F7"},
-            {"label": "✨ App Store Keşfet (API)", "count": r3_browse_dl, "color": "#34D399"},
-            {"label": "🤖 Google Play (Android)", "count": kpis["android_downloads"], "color": "#4ADE80"},
+            {"label": "🔍 App Store Arama", "count": r3_search_dl, "color": "#E8A855"},
+            {"label": "📲 Sosyal & Meta Reklam (iOS)", "count": r3_ref_dl, "color": "#60A5FA"},
+            {"label": "📅 Doğrudan / Diğer iOS", "count": r3_unattributed_recent_ios, "color": "#A855F7"},
+            {"label": "✨ App Store Keşfet", "count": r3_browse_dl, "color": "#34D399"},
+            {"label": "🤖 Google Play (Organik + Meta + Bio)", "count": kpis["android_downloads"], "color": "#4ADE80"},
         ],
         center_val=str(kpis["downloads_total"]),
-        center_lbl="İNDİRME",
+        center_lbl="KURULUM",
     )
 
-    countries_list = sb.get("apple_downloads_by_country") or []
+    consolidated_countries = fl.get("country_revenue_breakdown") or []
+    countries_list = (
+        [
+            {
+                "code": c.get("code", "TR"),
+                "name": c.get("name", "Türkiye"),
+                "flag": c.get("flag", "🌍"),
+                "count": int(c.get("downloads", 0) or 0),
+            }
+            for c in consolidated_countries
+            if int(c.get("downloads", 0) or 0) > 0
+        ]
+        if consolidated_countries
+        else (sb.get("apple_downloads_by_country") or [])
+    )
     tr_dl = next((int(c.get("count", 0)) for c in countries_list if c.get("code") == "TR"), 0)
     de_dl = next((int(c.get("count", 0)) for c in countries_list if c.get("code") == "DE"), 0)
     us_dl = next((int(c.get("count", 0)) for c in countries_list if c.get("code") == "US"), 0)
-    other_country_dl = max(0, kpis["ios_downloads"] - tr_dl - de_dl - us_dl)
+    other_country_dl = max(0, kpis["downloads_total"] - tr_dl - de_dl - us_dl)
 
     donut_countries = _build_svg_donut(
         [
@@ -6882,7 +6998,7 @@ def analytics_dashboard_page(
             {"label": "🌍 Diğer Ülkeler", "count": other_country_dl, "color": "#A855F7"},
         ],
         center_val=f"{len(countries_list)} Ülke",
-        center_lbl=f"{kpis['ios_downloads']} iOS",
+        center_lbl=f"{kpis['downloads_total']} Kurulum",
     )
 
     top_h1 = s["golden_hours"][0]["hour"] if s["golden_hours"] else "00:00"
@@ -7117,7 +7233,7 @@ def analytics_dashboard_page(
     f_vip = kpis["vip_activations"]
 
     vis_of_imp_pct = s.get("platform_split", {}).get("all", {}).get("vis_of_imp_pct", 0.0)
-    dl_of_vis_pct = round((f_dl / f_vis) * 100, 1) if f_vis > 0 else 0
+    dl_of_vis_pct = s.get("platform_split", {}).get("all", {}).get("cvr_pct", round((f_dl / f_vis) * 100, 1) if f_vis > 0 else 0)
     dl_of_imp_pct = round((f_dl / f_imp) * 100, 2) if f_imp > 0 else 0
     vip_of_dl_pct = round((f_vip / f_dl) * 100, 1) if f_dl > 0 else 0
     vip_of_vis_pct = round((f_vip / f_vis) * 100, 2) if f_vis > 0 else 0
@@ -7252,12 +7368,12 @@ def analytics_dashboard_page(
     country_rows_html = ""
     for c_item in countries_list:
         c_cnt = int(c_item.get("count", 0) or 0)
-        c_pct = round((c_cnt / kpis["ios_downloads"]) * 100, 1) if kpis["ios_downloads"] > 0 else 0.0
+        c_pct = round((c_cnt / f_dl) * 100, 1) if f_dl > 0 else 0.0
         safe_flag = html.escape(str(c_item.get("flag", "🌍")))
         country_rows_html += f"""
         <tr>
           <td>{safe_flag} <strong>{html.escape(str(c_item.get('name', '')))}</strong> ({html.escape(str(c_item.get('code', '')))})</td>
-          <td style="font-weight:800; color:#059669; font-variant-numeric:tabular-nums;">{c_cnt} İndirme</td>
+          <td style="font-weight:800; color:#059669; font-variant-numeric:tabular-nums;">{c_cnt} Kurulum</td>
           <td style="color:var(--text-muted); font-variant-numeric:tabular-nums;">%{c_pct}</td>
         </tr>
         """
@@ -7470,10 +7586,10 @@ def analytics_dashboard_page(
               <div>
                 <span>⚖️ Mağaza Mutabakatı</span>
                 <div class="sr-only">
-                  Aktif Dönem: <strong>{sr_win_lbl}</strong> • Apple Connect Trends varsayılan olarak <strong>Son 7 Gün (T-1: {sr_7d_start} ➔ {sr_anchor})</strong> penceresini gösterirken, burada hem <strong>Son 7 Gün</strong> hem <strong>Tüm Zamanlar Kümülatif</strong> tahsilatı yan yana görebilirsiniz.
+                  Aktif Dönem: <strong>{sr_win_lbl}</strong> • Apple Connect Trends varsayılan olarak <strong>Son 7 Gün ({sr_7d_start} ➔ {sr_anchor})</strong> penceresini gösterirken, burada hem <strong>Son 7 Gün</strong> hem <strong>Tüm Zamanlar Kümülatif</strong> tahsilatı yan yana görebilirsiniz.
                 </div>
               </div>
-              <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">T-1: {sr_anchor} • RC V2 T-0</span>
+              <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">Son Rapor: {sr_anchor} • Canlı Senkron</span>
             </div>
             <div class="table-wrap">
               <table>
@@ -7488,7 +7604,7 @@ def analytics_dashboard_page(
                 </thead>
                 <tbody>
                   <tr style="{'background:rgba(16,185,129,0.06);' if clean_period == 'today' else ''}">
-                    <td><strong>📅 Bugün (T-0 Canlı Köprü)</strong> <span style="font-size:11px; color:var(--text-muted);">(Apple TSV Yarın Gelir)</span></td>
+                    <td><strong>📅 Bugün (Canlı Tahsilat)</strong> <span style="font-size:11px; color:var(--text-muted);">(Günlük Resmi Rapor Yarın Gelir)</span></td>
                     <td style="font-variant-numeric:tabular-nums;"><strong>{sr_today.get('ios_gross_try', 0.0):.2f} ₺</strong> Brüt / <strong style="color:#059669;">{sr_today.get('ios_net_try', 0.0):.2f} ₺</strong> Net</td>
                     <td style="font-variant-numeric:tabular-nums; color:var(--text-secondary);">${sr_today.get('ios_gross_usd', 0.0):.2f} Sales / <strong>${sr_today.get('ios_net_usd', 0.0):.2f}</strong> Proceeds</td>
                     <td style="font-variant-numeric:tabular-nums;">{sr_today.get('android_gross_try', 0.0):.2f} ₺ Brüt / {sr_today.get('android_net_try', 0.0):.2f} ₺ Net</td>
@@ -9083,23 +9199,23 @@ def analytics_dashboard_page(
                 <tr>
                   <td><strong>1. Mağaza Gösterimi</strong></td>
                   <td style="font-weight:800; color:#D97706;">{f_imp:,} Gösterim</td>
-                  <td style="font-weight:700; color:#059669;">{f_imp:,} ({kpis['impressions_unique']:,} Cihaz)</td>
-                  <td style="color:var(--text-secondary);">Play Organik + {ps_and.get('touchpoints', 0)} Köprü</td>
-                  <td><span class="badge" style="background:rgba(217,119,6,0.14); color:#D97706;">Apple r14 API (%{imp_search_pct} Arama)</span></td>
+                  <td style="font-weight:700; color:#059669;">{kpis.get('ios_impressions', f_imp):,} ({int(sb.get('apple_impressions_unique', 0) or 0):,} Cihaz)</td>
+                  <td style="font-weight:700; color:#2563EB;">{kpis.get('android_impressions', 0):,} Gösterim (Google Play + Meta)</td>
+                  <td><span class="badge" style="background:rgba(217,119,6,0.14); color:#D97706;">App Store & Google Play (%{imp_search_pct} Arama)</span></td>
                 </tr>
                 <tr>
                   <td><strong>2. İnceleme & Sosyal Tık</strong></td>
                   <td style="font-weight:800; color:#2563EB;">{f_vis:,} Etkileşim</td>
-                  <td style="font-weight:700; color:#059669;">{ps_ios.get('touchpoints', 0)} ({kpis['store_page_views']} Sayfa + {ps_ios.get('touchpoints', 0) - kpis['store_page_views']} Tık)</td>
-                  <td style="font-weight:700; color:#2563EB;">{ps_and.get('touchpoints', 0)} Android Köprü Tıkı</td>
-                  <td><span class="badge badge-meta">Sosyal Tıkların %{round((ps_and.get('touchpoints', 0) / max(1, kpis['bridge_unique_clicks'])) * 100)}'i Android</span></td>
+                  <td style="font-weight:700; color:#059669;">{ps_ios.get('touchpoints', 0)} ({kpis.get('ios_store_page_views', kpis['store_page_views'])} Mağaza + {ps_ios.get('touchpoints', 0) - kpis.get('ios_store_page_views', kpis['store_page_views'])} Profil)</td>
+                  <td style="font-weight:700; color:#2563EB;">{ps_and.get('touchpoints', 0)} ({kpis.get('android_store_page_views', 0)} Mağaza + {ig['android_clicks']} Profil)</td>
+                  <td><span class="badge badge-meta">Mağaza Sayfası + Instagram Profil Bağlantısı</span></td>
                 </tr>
                 <tr>
                   <td><strong>3. Gerçek Kurulum (İndirme)</strong></td>
                   <td style="font-weight:800; color:#059669; font-size:14px;">{f_dl} Kurulum</td>
                   <td style="font-weight:800; color:#059669;">{kpis['ios_downloads']} iOS (%{dl_ios_pct})</td>
                   <td style="font-weight:800; color:#2563EB;">{kpis['android_downloads']} Android (%{100 - dl_ios_pct})</td>
-                  <td><span class="badge badge-gp">🍏 %{ps_ios.get('cvr_pct', 0)} Genel (Mağaza %{ps_ios.get('store_cvr_pct', 0)}) vs 🤖 %{ps_and.get('cvr_pct', 0)} Köprü CVR</span></td>
+                  <td><span class="badge badge-gp">🍏 %{ps_ios.get('cvr_pct', 0)} Genel (Mağaza %{ps_ios.get('store_cvr_pct', 0)}) vs 🤖 %{ps_and.get('cvr_pct', 0)} Android CVR</span></td>
                 </tr>
                 <tr>
                   <td><strong>4. Canlı Abonelik Paketleri</strong></td>
@@ -9166,24 +9282,24 @@ def analytics_dashboard_page(
 
             <div class="bento-card">
               <div class="section-head">
-                <span id="socialBridgeHeadSpan">📲 Tekil Köprü (/download) & Meta APP_INSTALLS ({ig['unique_clicks']} Bio Tık)</span>
-                <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">Eski Köprü Sıfırlandı</span>
+                <span id="socialBridgeHeadSpan">📲 Sosyal & Reklam Kanalları ({ig['unique_clicks']} Profil Tıkı)</span>
+                <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">Canlı Ölçüm</span>
               </div>
               <div class="steps-grid">
                 <div class="step-box">
-                  <div class="step-num" style="color:#7C3AED;">1. TEK AKTİF KÖPRÜ: INSTAGRAM BIO (/download)</div>
+                  <div class="step-num" style="color:#7C3AED;">1. INSTAGRAM PROFİL BAĞLANTISI</div>
                   <div class="step-val" id="igUniqueClicksVal">{ig['unique_clicks']} Kişi</div>
-                  <div class="step-sub">Eski köprü verileri sıfırlandı; yalnızca aktif <strong>Instagram Bio (/download)</strong> bağlantısından gelen gerçek tekil tıklamalar (<strong>{ig['ios_clicks']} iPhone</strong> + <strong>{ig['android_clicks']} Android</strong>) ölçülür.</div>
-                  <span class="step-rate" id="igSplitRate">🍏 {ig['ios_clicks']} iOS • 🤖 {ig['android_clicks']} And</span>
+                  <div class="step-sub">Instagram profilimizdeki yönlendirme bağlantısından gelen gerçek tekil ziyaretçiler (<strong>{ig['ios_clicks']} iPhone</strong> + <strong>{ig['android_clicks']} Android</strong>).</div>
+                  <span class="step-rate" id="igSplitRate">🍏 {ig['ios_clicks']} iOS • 🤖 {ig['android_clicks']} Android</span>
                 </div>
                 <div class="step-box">
-                  <div class="step-num" style="color:#2563EB;">2. DOĞRUDAN META APP_INSTALLS & iOS 14+ SDK</div>
-                  <div class="step-val" id="metaDirectSdkVal">🤖 APP_INSTALLS Aktif</div>
+                  <div class="step-num" style="color:#2563EB;">2. META UYGULAMA REKLAMLARI & MAĞAZA</div>
+                  <div class="step-val" id="metaDirectSdkVal">🤖 Android Reklamları Aktif</div>
                   <div class="step-sub">
-                    <strong>🤖 Android:</strong> Köprüsüz doğrudan Google Play <code>APP_INSTALLS</code> reklamı aktif (<strong>{s.get('meta_app_installs_sdk', {}).get('android_direct_installs', kpis['android_downloads'])} doğrudan kurulum</strong>) •
-                    <strong>🍏 iOS:</strong> <span id="iosAttSdkStatusText">{html.escape(str(s.get('meta_app_installs_sdk', {}).get('ios_sdk_status_badge', '⏳ iOS 14+ SDK (v4.56.0 Build 72) Yayını Bekleniyor')))}</span>.
+                    <strong>🤖 Android:</strong> Google Play organik aramalar ve doğrudan Meta uygulama tanıtım reklamları aktif (<strong>{s.get('meta_app_installs_sdk', {}).get('android_direct_installs', kpis['android_downloads'])} kurulum</strong>) •
+                    <strong>🍏 iOS:</strong> <span id="iosAttSdkStatusText">{html.escape(str(s.get('meta_app_installs_sdk', {}).get('ios_sdk_status_badge', '⏳ iOS v4.56.0 Mağaza Onayı Bekleniyor')))}</span>.
                   </div>
-                  <span class="step-rate" id="metaSplitRate">App ID: {META_APP_ID_OFFICIAL} • 🍏 {s.get('meta_app_installs_sdk', {}).get('ios_sdk_live_devices', 0)} ATT Cihaz</span>
+                  <span class="step-rate" id="metaSplitRate">🤖 {s.get('meta_app_installs_sdk', {}).get('android_direct_installs', kpis['android_downloads'])} Play/Meta Kurulum • 🍏 {s.get('meta_app_installs_sdk', {}).get('ios_sdk_live_devices', 0)} iOS Cihaz</span>
                   <span class="sr-only" id="metaUniqueClicksVal">{meta['unique_clicks']} Kişi</span>
                 </div>
               </div>
@@ -9270,7 +9386,7 @@ def analytics_dashboard_page(
               <div class="big-num" style="color:#059669;">{card1_big_html}</div>
               <div class="kpi-micro-meta">
                 <span class="kpi-micro-chip">Brüt: {fl['realized_gross_try']:.2f} ₺</span>
-                <span class="kpi-micro-chip">7G T-1: {sr_7d.get('net_try', 0.0):.2f} ₺ Net</span>
+                <span class="kpi-micro-chip">Son 7 Gün: {sr_7d.get('net_try', 0.0):.2f} ₺ Net</span>
               </div>
               <div class="card-desc">
                 {card1_desc_html}
@@ -9409,11 +9525,11 @@ def analytics_dashboard_page(
               <div class="big-num" style="color:#2563EB;">{pr['total_tracked_sessions']}</div>
               <div class="kpi-micro-meta">
                 <span class="kpi-micro-chip">⚡ {pr.get('live_telemetry_sessions', 0)} Canlı</span>
-                <span class="kpi-micro-chip">🍏 {pr['apple_official_sessions']} Opt-in r8</span>
+                <span class="kpi-micro-chip">🍏 {pr['apple_official_sessions']} Mağaza Onaylı</span>
                 <span class="kpi-micro-chip">⏱️ {pr['avg_session_duration_sec']} sn</span>
               </div>
               <div class="card-desc">
-                Canlı uygulama telemetrisi: <strong>{pr.get('live_telemetry_sessions', 0)} oturum</strong> • Apple r8 Opt-in: <strong>{pr['apple_official_sessions']} oturum</strong> ({pr['returning_sessions_total']} tekrar) • Ortalama süre: <strong>{pr['avg_session_duration_sec']} sn</strong>.
+                Canlı uygulama oturumu: <strong>{pr.get('live_telemetry_sessions', 0)} oturum</strong> • Resmi mağaza verisi: <strong>{pr['apple_official_sessions'] + pr.get('android_official_sessions', 0)} oturum</strong> ({pr['returning_sessions_total']} tekrar) • Ortalama süre: <strong>{pr['avg_session_duration_sec']} sn</strong>.
               </div>
             </div>
 
@@ -9421,11 +9537,11 @@ def analytics_dashboard_page(
               <div class="card-label">🔄 GERİ DÖNEN CİHAZLAR</div>
               <div class="big-num" style="color:#059669;">{pr['verified_returning_devices_floor']}–{pr['verified_returning_devices_ceiling']}</div>
               <div class="kpi-micro-meta">
-                <span class="kpi-micro-chip">Opt-in: %{pr['optin_ios_return_rate_pct']}</span>
+                <span class="kpi-micro-chip">Geri Dönüş: %{pr['optin_ios_return_rate_pct']}</span>
                 <span class="kpi-micro-chip">~{pr['estimated_total_returning_users']} Ebeveyn</span>
               </div>
               <div class="card-desc">
-                Apple Opt-in: <strong>{pr['returning_optin_ios_devices']}/{pr['optin_ios_total_devices']} iPhone (%{pr['optin_ios_return_rate_pct']})</strong> • 3+ Oturum Sadık: <strong>{pr['loyal_optin_ios_devices']}</strong> • Opt-in Düzeltmeli Tahmin: <strong>~{pr['estimated_total_returning_users']} Ebeveyn</strong>.
+                Tekrar Giren iPhone: <strong>{pr['returning_optin_ios_devices']}/{pr['optin_ios_total_devices']} Cihaz (%{pr['optin_ios_return_rate_pct']})</strong> • 3+ Oturum Sadık: <strong>{pr['loyal_optin_ios_devices']}</strong> • Toplam Tahmini Sadık: <strong>~{pr['estimated_total_returning_users']} Ebeveyn</strong>.
               </div>
             </div>
 
@@ -9470,19 +9586,19 @@ def analytics_dashboard_page(
                 <div class="step-box">
                   <div class="step-num" style="color:#2563EB;">2. AKTİF EBEVEYN</div>
                   <div class="step-val">~{pr['estimated_total_returning_users']} Ebeveyn</div>
-                  <div class="step-sub">Uygulama içi <code>daily_active</code>: <strong>{pr['daily_active_signals_count']} sinyal</strong> (Kesin taban: <strong>{pr['verified_returning_devices_floor']}–{pr['verified_returning_devices_ceiling']} cihaz</strong>; {f_dl} kurulumda opt-in düzeltmeli ~{pr['estimated_total_returning_users']} aktif ebeveyn).</div>
-                  <span class="step-rate">{pr['daily_active_signals_count']} Günlük Sinyal</span>
+                  <div class="step-sub">Günlük aktif kullanım: <strong>{pr['daily_active_signals_count']} oturum</strong> (Doğrulanmış taban: <strong>{pr['verified_returning_devices_floor']}–{pr['verified_returning_devices_ceiling']} cihaz</strong>; {f_dl} kurulumda tahmini ~{pr['estimated_total_returning_users']} aktif ebeveyn).</div>
+                  <span class="step-rate">{pr['daily_active_signals_count']} Günlük Aktif</span>
                 </div>
                 <div class="step-box">
-                  <div class="step-num" style="color:#7C3AED;">3. PAYWALL ➔ CTA</div>
+                  <div class="step-num" style="color:#7C3AED;">3. PAYWALL ➔ SATIN ALMA ADIMI</div>
                   <div class="step-val">{pf['paywall_funnel']['paywall_viewed']} ➔ {pf['paywall_funnel']['paywall_cta_clicked']}</div>
-                  <div class="step-sub">İlk Açılış: <strong>{pf['first_open_signals']}</strong> • Bebek Profili: <strong>{pr['babies_count']}</strong> • Paywall Atlama (Skip): <strong>{pf['paywall_funnel']['paywall_skipped']}</strong> • 60sn Ses Bitişi: <strong>{pf['paywall_funnel']['sound_preview_60s_ended']}</strong>.</div>
+                  <div class="step-sub">İlk Açılış: <strong>{pf['first_open_signals']}</strong> • Bebek Profili: <strong>{pr['babies_count']}</strong> • Paywall Atlama: <strong>{pf['paywall_funnel']['paywall_skipped']}</strong> • 60sn Ses Önizleme Bitişi: <strong>{pf['paywall_funnel']['sound_preview_60s_ended']}</strong>.</div>
                   <span class="step-rate">{pf['first_open_signals']} İlk Açılış</span>
                 </div>
                 <div class="step-box">
                   <div class="step-num" style="color:#DC2626;">4. ÖDEME İPTALİ</div>
                   <div class="step-val">{pf['paywall_funnel']['purchase_cancelled']} (%{pf['paywall_funnel']['cancel_rate_pct']})</div>
-                  <div class="step-sub">🍏 iOS: <strong>{pf['paywall_funnel']['ios']['purchase_cancelled']}/{pf['paywall_funnel']['ios']['paywall_cta_clicked']}</strong> • 🤖 Android: <strong>{pf['paywall_funnel']['android']['purchase_cancelled']}/{pf['paywall_funnel']['android']['paywall_cta_clicked']}</strong> • Kurtarma: <strong>{pf['paywall_funnel']['paywall_cancel_recovery_shown']}</strong> (Aylık Esnek VIP Varsayılan).</div>
+                  <div class="step-sub">🍏 iOS: <strong>{pf['paywall_funnel']['ios']['purchase_cancelled']}/{pf['paywall_funnel']['ios']['paywall_cta_clicked']}</strong> • 🤖 Android: <strong>{pf['paywall_funnel']['android']['purchase_cancelled']}/{pf['paywall_funnel']['android']['paywall_cta_clicked']}</strong> • Kurtarma Teklifi: <strong>{pf['paywall_funnel']['paywall_cancel_recovery_shown']}</strong>.</div>
                   <span class="step-rate">🍏 {pf['paywall_funnel']['ios']['purchase_cancelled']} • 🤖 {pf['paywall_funnel']['android']['purchase_cancelled']}</span>
                 </div>
               </div>
@@ -9496,14 +9612,14 @@ def analytics_dashboard_page(
                 <div class="step-box">
                   <div class="step-num" style="color:#059669;">UYKU & SES</div>
                   <div class="step-val">{pr['sleep_logs_count']} Kayıt</div>
-                  <div class="step-sub">Bulut senkronizasyonlu uyku seansı ve <code>sleep_sound_play</code> canlı sinyal kancası aktif.</div>
+                  <div class="step-sub">Bulut senkronizasyonlu uyku seansı ve ses oynatma takibi aktif.</div>
                   <span class="step-rate">Bulut Senkron Aktif</span>
                 </div>
                 <div class="step-box">
                   <div class="step-num" style="color:#2563EB;">AĞLAMA ANALİZİ</div>
                   <div class="step-val">{pr['cry_events_count']} Analiz</div>
-                  <div class="step-sub">Yapay zeka ağlama tespiti ve <code>cry_analysis</code> telemetri sayacı aktif.</div>
-                  <span class="step-rate">AI Telemetri Aktif</span>
+                  <div class="step-sub">Yapay zeka destekli bebek ağlama analizi aktif.</div>
+                  <span class="step-rate">AI Analiz Aktif</span>
                 </div>
                 <div class="step-box">
                   <div class="step-num" style="color:#D97706;">RUTİN & DADI AI</div>
@@ -9512,9 +9628,9 @@ def analytics_dashboard_page(
                   <span class="step-rate">{pr['routine_logs_count']} Rutin • {pr['dadi_chats_count']} Sohbet</span>
                 </div>
                 <div class="step-box">
-                  <div class="step-num" style="color:#7C3AED;">VIP SİNYALİ</div>
-                  <div class="step-val">{pf['vip_started_signals']} Sinyal</div>
-                  <div class="step-sub">Uygulama içi <code>vip_started</code> sinyali ve <code>first_open</code> ({pf['first_open_signals']}) telemetrisi aktif.</div>
+                  <div class="step-num" style="color:#7C3AED;">VIP AKTİVASYON</div>
+                  <div class="step-val">{pf['vip_started_signals']} Aktivasyon</div>
+                  <div class="step-sub">Uygulama içi VIP başlangıç ve ilk açılış ({pf['first_open_signals']}) takibi aktif.</div>
                   <span class="step-rate">{pf['first_open_signals']} İlk Açılış</span>
                 </div>
               </div>
@@ -10069,7 +10185,7 @@ def analytics_dashboard_page(
               }}
               var sbHead = document.getElementById('socialBridgeHeadSpan');
               if (sbHead && data.instagram_bio && data.instagram_bio.unique_clicks !== undefined) {{
-                sbHead.textContent = '📲 Tekil Köprü (/download) & Meta APP_INSTALLS (' + data.instagram_bio.unique_clicks + ' Bio Tık)';
+                sbHead.textContent = '📲 Sosyal & Reklam Kanalları (' + data.instagram_bio.unique_clicks + ' Profil Tıkı)';
               }}
               if (data.meta_ads) {{
                 var mVal = document.getElementById('metaUniqueClicksVal');
@@ -10078,14 +10194,14 @@ def analytics_dashboard_page(
               if (data.meta_app_installs_sdk) {{
                 var mRate = document.getElementById('metaSplitRate');
                 var iosSdkTxt = document.getElementById('iosAttSdkStatusText');
-                if (mRate) mRate.textContent = 'App ID: ' + (data.meta_app_installs_sdk.meta_app_id || '1093539003520092') + ' • 🍏 ' + (data.meta_app_installs_sdk.ios_sdk_live_devices || 0) + ' ATT Cihaz';
+                if (mRate) mRate.textContent = '🤖 ' + (data.meta_app_installs_sdk.android_direct_installs || 0) + ' Play/Meta Kurulum • 🍏 ' + (data.meta_app_installs_sdk.ios_sdk_live_devices || 0) + ' iOS Cihaz';
                 if (iosSdkTxt && data.meta_app_installs_sdk.ios_sdk_status_badge) iosSdkTxt.textContent = data.meta_app_installs_sdk.ios_sdk_status_badge;
               }}
               if (data.instagram_bio) {{
                 var igVal = document.getElementById('igUniqueClicksVal');
                 var igRate = document.getElementById('igSplitRate');
                 if (igVal && data.instagram_bio.unique_clicks !== undefined) igVal.textContent = data.instagram_bio.unique_clicks + ' Kişi';
-                if (igRate) igRate.textContent = '🍏 ' + (data.instagram_bio.ios_clicks || 0) + ' iOS • 🤖 ' + (data.instagram_bio.android_clicks || 0) + ' And';
+                if (igRate) igRate.textContent = '🍏 ' + (data.instagram_bio.ios_clicks || 0) + ' iOS • 🤖 ' + (data.instagram_bio.android_clicks || 0) + ' Android';
               }}
               var tbody = document.getElementById('liveClicksTbody');
               if (tbody && Array.isArray(data.recent_clicks)) {{

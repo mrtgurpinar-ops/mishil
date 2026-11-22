@@ -433,4 +433,103 @@ def test_historical_bridge_clicks_purged_once_and_meta_app_installs_sdk_state(db
     assert sdk_live["ios_sdk_live_devices"] == 1
 
 
+def test_android_store_metrics_consolidation_no_fake_100_cvr_and_clean_executive_ui(client, db_session):
+    """
+    1) Android StoreDailyMetric (impressions, page_views, downloads, active_sessions) verilerinin
+       kümülatif KPI'lara (impressions_total, store_page_views, visits_and_clicks_total, active_sessions)
+       ve platform_split['android'] içerisine konsolide edildiğini doğrular.
+    2) Android gösterim veya sayfa ziyareti 0 olduğunda:
+       - Büyük sayı (big-num) alanında asla 'Meta APP_INSTALLS' veya 'Doğrudan Play' metni çıkmadığını ('0' sayısal),
+       - Android kurulumlarının kendisine bölünerek sahte %100.0 CVR üretilmediğini (%0.0),
+       - Kümülatif (Tümü) sekmesinde iOS+Android toplam indirmelerinin yalnızca iOS sayfa ziyaretine bölünerek
+         Simpson paradoksu (%37.8) üretmediğini doğrular.
+    3) Sekme 1 Ülke Kurulumları tablosunun ve Donut grafiğinin yalnızca iOS değil, iOS + Android toplam kurulumlarını
+       konsolide gösterdiğini ve arayüzde 'App ID: 1093539003520092', 'META APP_INSTALLS', 'Opt-in r8' gibi
+       kaba mühendislik kodlarının yer almadığını doğrular.
+    """
+    from app.db.models import BridgeClick, CampaignConfig, StoreDailyMetric
+    from app.api.v1.endpoints.analytics import (
+        get_resilient_analytics_summary,
+        invalidate_analytics_summary_cache,
+    )
+
+    db_session.query(BridgeClick).delete()
+    db_session.query(CampaignConfig).delete()
+    db_session.query(StoreDailyMetric).delete()
+    db_session.commit()
+
+    # Senaryo A: Android mağaza gösterimi/sayfa ziyareti henüz 0 iken (181 iOS + 222 Android = 403 Kurulum)
+    db_session.add_all([
+        StoreDailyMetric(
+            metric_date="2026-11-20",
+            platform="ios",
+            impressions=6448,
+            impressions_unique=5211,
+            page_views=1062,
+            page_views_unique=839,
+            downloads_total=181,
+            active_sessions=420,
+        ),
+        StoreDailyMetric(
+            metric_date="2026-11-20",
+            platform="android",
+            impressions=0,
+            impressions_unique=0,
+            page_views=0,
+            page_views_unique=0,
+            downloads_total=222,
+            active_sessions=0,
+        ),
+    ])
+    db_session.commit()
+
+    invalidate_analytics_summary_cache(mark_reconcile=False)
+    s_zero_and = get_resilient_analytics_summary(db_session, period="all", use_cache=False)
+    ps_all_a = s_zero_and["platform_split"]["all"]
+    ps_and_a = s_zero_and["platform_split"]["android"]
+
+    # Büyük sayı alanları metin değil temiz rakam olmalı ve sahte %100 CVR veya %37.8 Simpson paradoksu olmamalı
+    assert ps_and_a["impressions_display"] == "0"
+    assert ps_and_a["touchpoints_display"] == "0"
+    assert ps_and_a["cvr_pct"] == 0.0
+    assert ps_all_a["store_cvr_pct"] == 17.0
+    assert ps_all_a["cvr_pct"] == 17.0
+
+    # Senaryo B: Android StoreDailyMetric gösterim (3,552) ve sayfa ziyareti (938) + oturum (180) geldiğinde tam konsolidasyon
+    and_row = db_session.query(StoreDailyMetric).filter_by(platform="android", metric_date="2026-11-20").one()
+    and_row.impressions = 3552
+    and_row.impressions_unique = 2800
+    and_row.page_views = 938
+    and_row.page_views_unique = 760
+    and_row.active_sessions = 180
+    db_session.commit()
+
+    invalidate_analytics_summary_cache(mark_reconcile=False)
+    s_cons = get_resilient_analytics_summary(db_session, period="all", use_cache=False)
+    kpis_b = s_cons["cumulative_kpis"]
+    ps_all_b = s_cons["platform_split"]["all"]
+    ps_and_b = s_cons["platform_split"]["android"]
+
+    assert kpis_b["impressions_total"] == 6448 + 3552
+    assert kpis_b["store_page_views"] == 1062 + 938
+    assert kpis_b["visits_and_clicks_total"] == 2000
+    assert kpis_b["downloads_total"] == 403
+    assert kpis_b["active_sessions"] == 420 + 180
+    assert ps_and_b["impressions_display"] == "3,552"
+    assert ps_and_b["touchpoints_display"] == "938"
+    assert ps_and_b["cvr_pct"] == round((222 / 938) * 100, 1)
+    assert ps_all_b["store_cvr_pct"] == round((403 / 2000) * 100, 1)
+
+    dash_res = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"})
+    assert dash_res.status_code == 200
+    html_txt = dash_res.text
+
+    # Ülke kurulumları konsolide toplam kurulumu (403 Kurulum) göstermeli, teknik kodlar görünür UI'dan kalkmış olmalı
+    assert "403 Kurulum" in html_txt
+    assert "App ID: 1093539003520092" not in html_txt
+    assert "🤖 APP_INSTALLS Aktif" not in html_txt
+    assert "Opt-in r8" not in html_txt
+
+
+
 
