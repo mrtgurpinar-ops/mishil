@@ -114,10 +114,10 @@ ALLOWED_CAMPAIGN_CHANNELS: Dict[str, str] = {
     "google_play_organic": "Google Play (Android)",
 }
 
-# v4.56.4 Köprü Sıfırlama Kesiti: 2026-11-22 07:38 UTC öncesindeki eski /ios ve /download
-# köprü tıklamaları (20.153 satır) tek seferlik temizlenerek yalnızca aktif Instagram Bio (/download)
+# v4.56.5 Köprü Sıfırlama Kesiti: 2026-11-22 07:38 UTC öncesindeki tüm eski (/ios, /download, /android, /app-store)
+# köprü tıklamaları tek seferlik temizlenerek yalnızca aktif Instagram Bio (/download)
 # köprüsünün 0'dan gerçek tıklamaları ölçmesi sağlanır.
-BRIDGE_RESET_V4564_STATE_KEY = "bridge_reset_v4564_done"
+BRIDGE_RESET_V4564_STATE_KEY = "bridge_reset_v4565_all_routes_done"
 BRIDGE_RESET_V4564_CUTOFF_UTC = datetime(2026, 11, 22, 7, 38, 0, tzinfo=timezone.utc)
 META_APP_ID_OFFICIAL = "1093539003520092"
 
@@ -3412,7 +3412,6 @@ def ensure_historical_seed(db: Session) -> None:
                             purged_bridge_cnt = (
                                 db.query(BridgeClick)
                                 .filter(
-                                    BridgeClick.route_path.in_(["/ios", "/download"]),
                                     BridgeClick.created_at < cutoff_param,
                                 )
                                 .delete(synchronize_session=False)
@@ -4689,14 +4688,14 @@ def _build_analytics_summary(
                     upcoming_7d_gross += next_gross
                     upcoming_7d_net += next_net
                     lifecycle_stage = "upcoming_trial"
-                    elapsed_days = 4
+                    elapsed_days = 0
                     try:
                         if r.started_date and len(r.started_date) == 10:
                             st_d = datetime.strptime(r.started_date, "%Y-%m-%d").date()
-                            elapsed_days = max(1, min(6, (now_tr.date() - st_d).days))
+                            elapsed_days = max(0, min(6, (now_tr.date() - st_d).days))
                     except Exception:
-                        elapsed_days = 4
-                    trial_progress_pct = max(15, min(90, round((elapsed_days / 7.0) * 100)))
+                        elapsed_days = 0
+                    trial_progress_pct = max(0, min(90, round((elapsed_days / 7.0) * 100)))
                     lifecycle_badge = f"⏳ Deneme ({elapsed_days}/7 Gün)"
 
                 if m_dt not in renewal_by_date:
@@ -5387,7 +5386,7 @@ def _build_analytics_summary(
     android_touchpoints = android_bridge_uniq
 
     # P1: Simpson Paradoksu & 24s Gecikme Ayrımı — Mağaza Sayfası CVR vs Sosyal Köprü CVR vs Kesinleşen Günler CVR
-    apple_page_views_uniq = max(1, int(sb.get("apple_page_views_unique", 0) or apple_page_views))
+    apple_page_views_uniq = int(sb.get("apple_page_views_unique", 0) or apple_page_views)
     store_imp_to_pv_pct = (
         min(100.0, round((apple_page_views / max(1, apple_impressions)) * 100, 1))
         if apple_page_views > 0 and apple_impressions > 0
@@ -5403,8 +5402,8 @@ def _build_analytics_summary(
         else 0.0
     )
     store_unique_cvr_pct = (
-        min(100.0, round((apple_downloads / apple_page_views_uniq) * 100, 1))
-        if apple_page_views > 0
+        min(100.0, round((apple_downloads / max(1, apple_page_views_uniq)) * 100, 1))
+        if apple_page_views > 0 and apple_page_views_uniq > 0
         else 0.0
     )
     ios_bridge_dl = min(ios_bridge_uniq, r3_ref) if ios_bridge_uniq > 0 else 0
@@ -5481,7 +5480,7 @@ def _build_analytics_summary(
     imp_search_pct_calc = (
         round((imp_search_val / max(1, imp_search_val + imp_browse_val)) * 100)
         if (imp_search_val + imp_browse_val) > 0
-        else 89
+        else 0
     )
 
     android_reported_imp = int(meta_and_cfg.reported_impressions if meta_and_cfg else 0)
@@ -7133,13 +7132,13 @@ def analytics_dashboard_page(
     imp_search = int(sb.get("apple_impressions_search", 0) or 0)
     imp_browse = int(sb.get("apple_impressions_browse", 0) or 0)
 
-    imp_search_pct = round((imp_search / max(1, imp_search + imp_browse)) * 100) if (imp_search + imp_browse) > 0 else 89
-    vis_store_pct = round((kpis["store_page_views"] / max(1, f_vis)) * 100) if f_vis > 0 else 28
-    dl_ios_pct = round((kpis["ios_downloads"] / max(1, f_dl)) * 100) if f_dl > 0 else 86
+    imp_search_pct = round((imp_search / max(1, imp_search + imp_browse)) * 100) if (imp_search + imp_browse) > 0 else 0
+    vis_store_pct = round((kpis["store_page_views"] / max(1, f_vis)) * 100) if f_vis > 0 else 0
+    dl_ios_pct = round((kpis["ios_downloads"] / max(1, f_dl)) * 100) if f_dl > 0 else 0
     vip_denom = max(1, paid_conv + active_trials + offer_code_subs)
-    vip_paid_pct = round((paid_conv / vip_denom) * 100) if f_vip > 0 else 15
-    vip_trial_pct = round((active_trials / vip_denom) * 100) if f_vip > 0 else 50
-    vip_code_pct = max(0, 100 - vip_paid_pct - vip_trial_pct) if f_vip > 0 else 35
+    vip_paid_pct = round((paid_conv / vip_denom) * 100) if f_vip > 0 else 0
+    vip_trial_pct = round((active_trials / vip_denom) * 100) if f_vip > 0 else 0
+    vip_code_pct = max(0, 100 - vip_paid_pct - vip_trial_pct) if f_vip > 0 else 0
 
     renewal_calendar_html = ""
     for rc in fl["renewal_forecast_calendar"]:
@@ -7510,7 +7509,7 @@ def analytics_dashboard_page(
                     <td><span class="badge badge-gp">{sr_7d.get('paid_count', 0)} Ücretli Tahsilat • +{sr_7d.get('new_trials_count', 0)} Aktif Deneme</span></td>
                   </tr>
                   <tr style="{'background:rgba(16,185,129,0.08);' if clean_period == 'all' else ''}">
-                    <td><strong>♾️ Tüm Zamanlar (Kümülatif — 27 Ekim + 04 Kasım Tahsilatları Dahil)</strong></td>
+                    <td><strong>♾️ Tüm Zamanlar (Kümülatif — Tüm Doğrulanmış Mağaza Tahsilatları)</strong></td>
                     <td style="font-variant-numeric:tabular-nums;"><strong>{sr_all.get('ios_gross_try', 0.0):.2f} ₺</strong> Brüt / <strong style="color:#059669;">{sr_all.get('ios_net_try', 0.0):.2f} ₺</strong> Net</td>
                     <td style="font-variant-numeric:tabular-nums; color:#059669; font-weight:700;">${sr_all.get('ios_gross_usd', 0.0):.2f} Sales / ${sr_all.get('ios_net_usd', 0.0):.2f} Proceeds</td>
                     <td style="font-variant-numeric:tabular-nums;">{sr_all.get('android_gross_try', 0.0):.2f} ₺ Brüt / {sr_all.get('android_net_try', 0.0):.2f} ₺ Net</td>

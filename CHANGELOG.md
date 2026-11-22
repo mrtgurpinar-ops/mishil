@@ -2,10 +2,10 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
-## [4.56.4-cockpit-bridge-reset-and-meta-sdk] - 2026-11-22 (Railway Canlı Yayın — Eski `20.153` Köprü Tıklamasının Sıfırlanması, Tek Aktif Köprü `Instagram Bio (/download)` ve Doğrudan Meta `APP_INSTALLS` Android Aktif / iOS 14+ SDK `Build 72` Bekleme Mimarisi • 🟢 Yeni Native EAS Build Gerekmez)
-### 📲🎯 Kurucu Kokpiti (`/admin/analytics`) Köprü Sıfırlaması & Doğrudan Meta `APP_INSTALLS` / iOS 14+ SDK Kampanya Ölçümleme Paketi (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
-1. **Eski `20.153` Köprü Tıklamasının (`19.100` Tekil Tık) Tek Seferlik İdempotent Temizliği (`ensure_historical_seed`):**
-   - `BRIDGE_RESET_V4564_STATE_KEY = "bridge_reset_v4564_done"` ve `BRIDGE_RESET_V4564_CUTOFF_UTC = 2026-11-22 07:38:00 UTC` kesitiyle, eski reklam/test döneminden kalan `20.153` ham (`/ios` + eski `/download`) köprü tıklaması tek seferlik temizlendi (PostgreSQL `TIMESTAMPTZ` ve SQLite uyumlu).
+## [4.56.4-cockpit-bridge-reset-and-meta-sdk] - 2026-11-22 (Railway Canlı Yayın — Eski `20.154` Köprü Tıklamasının Sıfırlanması, Sıfır Statik Veri Fallback Temizliği, Tek Aktif Köprü `Instagram Bio (/download)` ve Doğrudan Meta `APP_INSTALLS` Android Aktif / iOS 14+ SDK `Build 72` Bekleme Mimarisi • 🟢 Yeni Native EAS Build Gerekmez)
+### 📲🎯 Kurucu Kokpiti (`/admin/analytics`) Köprü Sıfırlaması, Sıfır Statik Veri & Doğrudan Meta `APP_INSTALLS` / iOS 14+ SDK Kampanya Ölçümleme Paketi (`app/api/v1/endpoints/analytics.py`, `app/db/models.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **Eski `20.154` Köprü Tıklamasının (`19.101` Tekil Tık) Tek Seferlik İdempotent Temizliği & Sıfır Statik Fallback (`ensure_historical_seed`):**
+   - `BRIDGE_RESET_V4564_STATE_KEY = "bridge_reset_v4565_all_routes_done"` ve `BRIDGE_RESET_V4564_CUTOFF_UTC = 2026-11-22 07:38:00 UTC` kesitiyle, eski reklam/test döneminden kalan tüm (`/ios`, `/download`, `/android`) köprü tıklamaları tek seferlik temizlendi; `else 89/28/86/15/50/35` sabit yüzde yedekleri, `store_page_views_unique: 1` tabanı, `elapsed_days = 4` ve sabit `"27 Ekim + 04 Kasım"` metinleri kaldırılarak %100 sıfır statik veri sağlandı.
    - Sıfırlama anından itibaren tek aktif web köprüsü olan **Instagram Bio (`/download`)** tıklamalarının `0` tabanından gerçek rakamlarla ölçülmesi sağlandı.
 2. **Tek Aktif Köprü (`Instagram Bio /download`) & Doğrudan Meta `APP_INSTALLS` / iOS 14+ SDK Kartı:**
    - Sekme 1'deki kart **`📲 Tekil Köprü (/download) & Meta APP_INSTALLS`** olarak yenilendi:

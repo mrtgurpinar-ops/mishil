@@ -325,7 +325,7 @@ def test_historical_bridge_clicks_purged_once_and_meta_app_installs_sdk_state(db
     db_session.query(AppInstallSignal).delete()
     db_session.commit()
 
-    # Eski dönemden (Ekim/Kasım başı) kalma /ios ve /download tıklamaları + yeni dönem /download tıklaması
+    # Eski dönemden (Ekim/Kasım başı) kalma /ios, /download ve /android tıklamaları + yeni dönem /download tıklaması
     old_ts = datetime(2026, 11, 10, 12, 0, 0)
     new_ts = datetime(2026, 11, 22, 9, 0, 0)
     db_session.add_all([
@@ -356,6 +356,19 @@ def test_historical_bridge_clicks_purged_once_and_meta_app_installs_sdk_state(db
             created_at=old_ts,
         ),
         BridgeClick(
+            route_path="/android",
+            channel="google_play_direct",
+            os_family="desktop",
+            device_detail="Windows (Masaüstü)",
+            app_webview="Chrome Mobile",
+            target_store="app_store",
+            is_bot=False,
+            is_unique=True,
+            country="TR",
+            ip_masked="204.52.101.xxx#e82f",
+            created_at=old_ts,
+        ),
+        BridgeClick(
             route_path="/download",
             channel="instagram_bio",
             os_family="ios",
@@ -371,7 +384,7 @@ def test_historical_bridge_clicks_purged_once_and_meta_app_installs_sdk_state(db
     ])
     db_session.commit()
 
-    # Göç çalıştığında eski 2 tıklama silinmeli, yeni /download tıklaması kalmalı
+    # Göç çalıştığında eski 3 tıklama (/ios, /download, /android) silinmeli, yeni /download tıklaması kalmalı
     os.environ["MISIL_FORCE_BRIDGE_RESET_IN_TEST"] = "1"
     try:
         ensure_historical_seed(db_session)
@@ -384,7 +397,7 @@ def test_historical_bridge_clicks_purged_once_and_meta_app_installs_sdk_state(db
 
     marker = db_session.query(StoreSyncState).filter(StoreSyncState.state_key == BRIDGE_RESET_V4564_STATE_KEY).first()
     assert marker is not None
-    assert marker.snapshot_json.get("purged_bridge_clicks") == 2
+    assert marker.snapshot_json.get("purged_bridge_clicks") == 3
 
     invalidate_analytics_summary_cache(mark_reconcile=False)
     summary_before_sdk = get_resilient_analytics_summary(db_session, period="all", use_cache=False)

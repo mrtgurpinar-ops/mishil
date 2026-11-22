@@ -399,8 +399,8 @@ class CampaignConfig(Base):
     reported_impressions = Column(Integer, default=0, nullable=False)
     reported_clicks = Column(Integer, default=0, nullable=False)
     reported_installs = Column(Integer, default=0, nullable=False)
-    store_rating = Column(Float, default=5.0, nullable=False)
-    store_reviews_count = Column(Integer, default=5, nullable=False)
+    store_rating = Column(Float, default=0.0, nullable=False)
+    store_reviews_count = Column(Integer, default=0, nullable=False)
     notes = Column(String(255), nullable=True)
     updated_at = Column(
         DateTime(timezone=True),
