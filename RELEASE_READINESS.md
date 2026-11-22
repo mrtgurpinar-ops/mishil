@@ -34,7 +34,7 @@
 | :-- | :-- |
 | WebView açılış dayanıklılığı (render-crash kurtarma, retry, watchdog, `androidLayerType: software`) | ✅ kodda & canlıda |
 | Wonder Weeks (10 Zihinsel Sıçrama) & Mışıl Spot™ Sirkadiyen Sayaç | ✅ kodda & mağazada |
-| 18 Stüdyo Master Parça & Akustik Crossfade Mikser (CBR 192k) | ✅ kodda & pakette |
+| 30 Stüdyo Master Parça & Akustik Crossfade Mikser (CBR 192k) | ✅ kodda & pakette |
 | Klinik Akustik Ağlama Analizi (13-Bant MFCC Spektrogram) | ✅ kodda |
 | Şefkatli Mışıl Dadı AI Koçu & Biyometrik Rollup | ✅ kodda |
 | Android `minSdk 26` / `targetSdk 36` / 16KB Bellek (Build 63) | ✅ Build 63 AAB üretildi, yerel arşive indirildi & Google Play Production'a API ile yüklendi |

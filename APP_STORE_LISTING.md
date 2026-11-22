@@ -26,7 +26,7 @@ ağlama analizi,pışpış,fön,süpürge,rahim,gece lambası,aşı takvimi,atak
 
 ## 3. Promosyon Metni (`tr` - 170 Karakter):
 ```text
-Huzurlu geceler için yapay zekâ destekli ağlama analizi, 18+ stüdyo uyku sesi, MışılSpot uyku pencereleri, aşı takvimi ve 7/24 Mışıl Dadı uyku koçu.
+Huzurlu geceler için yapay zekâ destekli ağlama analizi, 30 stüdyo uyku sesi, MışılSpot uyku pencereleri, aşı takvimi ve 7/24 Mışıl Dadı uyku koçu.
 ```
 
 ---
@@ -42,7 +42,7 @@ Mışıl Baby içerisindeki tüm uyku, ses, yapay zekâ ve ortak aile takibi öz
 • MışılSpot Biyolojik Uyku Penceresi ve Canlı Sayaç: Doğum tarihine ve prematüre düzeltmesine göre yaşına uygun uyanıklık ve uyku saatleri, kilit ekranı canlı takip desteği.
 • Yapay Zekâ Destekli Ağlama Analizi: Ağlama sesindeki frekans ve ritim örüntülerini inceleyerek açlık, gaz/kolik, uyku ihtiyacı veya rahatsızlık ipuçlarını değerlendirir.
 • Mışıl Dadı 7/24 AI Uyku ve Bakım Koçu: Bebeğinizin yaşı ve günlük kayıtlarına göre kişiselleştirilmiş uyku rutini rehberliği sunar.
-• 18+ Stüdyo Ses Kütüphanesi ve Akıllı Zamanlayıcı: Anne karnı, kalp atışı, fön, süpürge, pışpış, 432 Hz ninniler, ekran kapalıyken arka planda çalma ve sesi yumuşakça kısarak kapanma.
+• 30 Stüdyo Ses Kütüphanesi ve Akıllı Zamanlayıcı: Anne karnı, sözsüz anne mırıltısı, kalp atışı, fön, süpürge, çamaşır makinesi, pışpış, Clair de Lune keçe piyano, Kelt arpı, kalimba, 432 Hz ninniler, ekran kapalıyken arka planda çalma ve sesi yumuşakça kısarak kapanma.
 • Ortak Aile Senkronizasyonu (Maks. 3 Üye): Tek bir VIP aboneliği ile anne, baba ve bakıcı aynı bebeğin kayıtlarını 6 haneli Aile Kodu üzerinden ek ücret ödemeden canlı takip eder.
 • Dijital Aşı Takvimi, Günlük Rutin Kaydı ve BabySteps Gelişim Sıçramaları: Uyku, beslenme, alt değişimi grafikleri, çocukluk çağı aşı takibi ve 10 zihinsel gelişim sıçraması takvimi.
 
@@ -89,7 +89,7 @@ newborn,soother,shusher,colic,lullaby,womb,wake window,tracker,nap,vaccine,pink 
 
 ### 6.3 Promotional Text (`en-US` - Max 170 Characters)
 ```text
-Calm nights for parents and babies: AI cry cue analysis, 18+ studio sleep sounds, MışılSpot wake windows, global vaccine tracker, and 24/7 AI sleep coach.
+Calm nights for parents and babies: AI cry cue analysis, 30 studio sleep sounds, MışılSpot wake windows, global vaccine tracker, and 24/7 AI sleep coach.
 ```
 
 ### 6.4 Full Description (`en-US` - Guideline 3.1.2 & 1.3 Compliant)
@@ -103,7 +103,7 @@ All sleep prediction, studio audio, AI coaching, and shared family tracking feat
 • MışılSpot Wake Window Predictor & Live Tracker: Age-appropriate wake and nap windows (including premature birth adjustment) with lock-screen live tracking.
 • AI Cry Cue Analysis: Evaluates acoustic frequency and rhythm patterns in your baby's cry to highlight hunger, gas/colic, sleepiness, or discomfort cues.
 • Mışıl Nanny 24/7 AI Sleep & Care Coach: Personalized pediatric sleep guidance powered by your baby's age and daily routine logs.
-• 18+ Studio Acoustic Library & Smart Sleep Timer: Womb resonance, heartbeat, hair dryer, shusher, fan, 432 Hz lullabies, continuous background playback, and smooth audio fade-out.
+• 30 Studio Acoustic Library & Smart Sleep Timer: Womb resonance, maternal humming, heartbeat, hair dryer, vacuum, washing machine, shusher, Clair de Lune felt piano, Celtic harp, kalimba, 432 Hz lullabies, continuous background playback, and smooth audio fade-out.
 • Shared Family Sync (Up to 3 Caregivers): With 1 active VIP subscription, Mom, Dad, and caregiver track the same baby live via a 6-character Family Code at no extra cost.
 • Immunization Logbook, Routine Analytics & BabySteps Leaps: Sleep/feeding/diaper logs, global childhood vaccine schedules, and all 10 mental developmental leaps.
 
@@ -143,7 +143,7 @@ babyschlaf,einschlafhilfe,weißes rauschen,wachfenster,kolik,wiegenlied,impfpass
 
 ### 7.3 Werbetext (`de-DE` - Max. 170 Zeichen)
 ```text
-Ruhige Nächte für Eltern und Babys: KI-gestützte Schreianalyse, 18+ Einschlafklänge, MışılSpot-Wachfenster, STIKO-/BAG-Impfkalender und 24/7 KI-Schlafcoach.
+Ruhige Nächte für Eltern und Babys: KI-gestützte Schreianalyse, 30 Einschlafklänge, MışılSpot-Wachfenster, STIKO-/BAG-Impfkalender und 24/7 KI-Schlafcoach.
 ```
 
 ### 7.4 Vollständige Beschreibung (`de-DE` - Guideline 3.1.2 & 1.3 Konform, DSGVO / CH-DSG)
@@ -159,7 +159,7 @@ Sämtliche Schlaf-, Klang-, KI- und Familien-Funktionen von Mışıl Baby setzen
 • MışılSpot™ Wachfenster & Live-Tracker: Altersgerechte Wach- und Einschlafzeiten auf Basis des Geburtsdatums (inkl. Frühchen-Korrektur) mit Sperrbildschirm-Anzeige.
 • KI-gestützte Schreianalyse: Wertet akustische Frequenz- und Rhythmusmuster aus, um Hinweise auf Hunger, Bauchweh/Kolik, Müdigkeit oder Nähebedürfnis einzuordnen.
 • Mışıl Nanny™ 24/7 KI-Schlaf- & Elterncoach: Individuelle Orientierung rund um Schlafrhythmus und Abendroutine.
-• 18+ Studio-Klangbibliothek & Einschlaftimer: Mutterleibsklänge, Herzschlag, Föhn, Sch-Sch-Rhythmus, 432-Hz-Wiegenlieder sowie sanftes Ausblenden im Hintergrund.
+• 30 Studio-Klangbibliothek & Einschlaftimer: Mutterleibsklänge, Mamas Summen, Herzschlag, Föhn, Staubsauger, Waschmaschine, Sch-Sch-Rhythmus, Clair de Lune Filzklavier, Keltische Harfe, Kalimba, 432-Hz-Wiegenlieder sowie sanftes Ausblenden im Hintergrund.
 • Gemeinsamer Familien-Sync (bis zu 3 Personen): Mit 1 aktiven VIP-Abo begleiten Mama, Papa und Betreuung dasselbe Baby live per 6-stelligem Familiencode ohne Mehrkosten.
 • Digitaler Impfpass, Tagesprotokoll & BabySteps™: Schlaf-, Still- und Windelverlauf, Kinderimpfungen (STIKO 2+1, Schweizer BAG u. a.) sowie alle 10 mentalen Entwicklungssprünge.
 

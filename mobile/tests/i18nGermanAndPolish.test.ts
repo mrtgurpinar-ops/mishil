@@ -277,4 +277,28 @@ describe('Mışıl Baby v4.50.0 — German (DE / DACH) & Multilingual Polish Sui
     expect(sanitized).not.toContain('<script>');
     expect(sanitized).not.toContain('<img');
   });
+
+  it('7. v4.57.0 30 Studio Master Sounds library parity across TR, EN, and DE', () => {
+    const tracksMatch = scriptCode.match(/const SOUND_TRACKS = (\[[\s\S]*?\n  \]);/);
+    const deMetaMatch = scriptCode.match(/const SOUND_TRACKS_DE_META = (\{[\s\S]*?\});/);
+    expect(tracksMatch).not.toBeNull();
+    expect(deMetaMatch).not.toBeNull();
+    const ctx = { AUDIO_BASE: '' };
+    vm.runInNewContext(`this.tracks = ${tracksMatch[1]};\nthis.deMeta = ${deMetaMatch[1]};`, ctx);
+    expect(ctx.tracks.length).toBe(30);
+    expect(Object.keys(ctx.deMeta).length).toBe(30);
+
+    const catCounts = { lullaby: 0, womb: 0, noise: 0, nature: 0 };
+    for (const t of ctx.tracks) {
+      expect(t.id).toBeTruthy();
+      expect(t.title).toBeTruthy();
+      expect(t.titleEn).toBeTruthy();
+      expect(ctx.deMeta[t.id]).toBeDefined();
+      expect(ctx.deMeta[t.id].titleDe).toBeTruthy();
+      expect(ctx.deMeta[t.id].descDe).toBeTruthy();
+      expect(ctx.deMeta[t.id].badgeDe).toBeTruthy();
+      catCounts[t.cat] = (catCounts[t.cat] || 0) + 1;
+    }
+    expect(catCounts).toEqual({ lullaby: 8, womb: 7, noise: 8, nature: 7 });
+  });
 });

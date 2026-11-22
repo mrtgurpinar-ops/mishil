@@ -152,3 +152,21 @@ def test_coach_and_legal_endpoints_trilingual(monkeypatch):
     assert "ärztliche diagnose" in body_de["confidence_note"].lower()
     assert body_de["recommended_action"] != body_en["recommended_action"]
     assert body_de["recommended_action"] != body_tr["recommended_action"]
+
+
+def test_30_studio_sounds_catalog_and_mp3_integrity():
+    from app.api.v1.endpoints.sounds import SOUNDS_CATALOG
+    sounds_dir = os.path.join(MISHIL_ROOT, "mobile", "web-preview", "sounds")
+    assert len(SOUNDS_CATALOG) == 30
+    ids = [s.id for s in SOUNDS_CATALOG]
+    assert len(set(ids)) == 30
+
+    for item in SOUNDS_CATALOG:
+        mp3_path = os.path.join(sounds_dir, f"{item.id}.mp3")
+        assert os.path.exists(mp3_path), f"Missing MP3 file: {mp3_path}"
+        assert os.path.getsize(mp3_path) > 500_000, f"Sound file too small: {item.id}"
+        with open(mp3_path, "rb") as bf:
+            magic = bf.read(4)
+        # Must NEVER be Ogg Vorbis ('OggS') disguised as .mp3 (iOS AVPlayer compatibility)
+        assert magic != b"OggS", f"Ogg container disguised as MP3: {item.id}"
+        assert magic[:3] == b"ID3" or (magic[0] == 0xFF and (magic[1] & 0xE0) == 0xE0), f"Invalid MP3 header: {item.id}"

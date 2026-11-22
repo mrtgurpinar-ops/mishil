@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>Mışıl Baby — Mışıl Dadı, MışılSpot & 18 Akustik Ses</title>
+  <title>Mışıl Baby — Mışıl Dadı, MışılSpot & 30 Akustik Ses</title>
 
   <!-- FAVICON & PWA ICONS -->
   <link rel="icon" type="image/x-icon" href="/favicon.ico">
@@ -676,6 +676,11 @@
       grid-template-columns: 1fr 1fr;
       gap: 10px;
       margin-top: 10px;
+      padding-bottom: 12px;
+    }
+
+    body:not(.keyboard-open):has(#global-floating-mini-player[style*="display: flex"]) #sounds-list-container {
+      padding-bottom: 64px;
     }
 
     .sound-studio-card {
@@ -686,7 +691,9 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      min-height: 120px;
+      min-height: 124px;
+      min-width: 0;
+      overflow: hidden;
       cursor: pointer;
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
@@ -4837,7 +4844,7 @@
             <strong id="report-locked-bedtime" style="font-family: 'Sora'; color: var(--accent); letter-spacing: 0.4px;">🔒 19:••</strong>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border-radius: 9px; padding: 6px 9px;">
-            <span id="report-locked-rx-label" style="color: var(--text-night);">🎧 Kilit Ekranı 18 Stüdyo Sesi & Gece Rehberi</span>
+            <span id="report-locked-rx-label" style="color: var(--text-night);">🎧 Kilit Ekranı 30 Stüdyo Sesi & Gece Rehberi</span>
             <strong style="font-family: 'Sora'; color: #2ED573; font-size: 10px;">🔒 VIP</strong>
           </div>
           <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border-radius: 9px; padding: 6px 9px;">
@@ -4901,7 +4908,7 @@
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
           <span>🎧</span>
-          <span>Kilit ekranında kesintisiz <strong>18 stüdyo ninni & pışpış</strong></span>
+          <span>Kilit ekranında kesintisiz <strong>30 stüdyo ninni & pışpış</strong></span>
         </div>
         <div style="display: flex; align-items: center; gap: 8px;">
           <span>🔔</span>
@@ -5167,7 +5174,7 @@
               <div style="width: 34px; height: 34px; border-radius: 50%; background: rgba(61, 40, 30, 0.10); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0;">🎧</div>
               <div style="min-width: 0;">
                 <div style="font-size: 12.5px; font-weight: 800;">Ninniler</div>
-                <div style="font-size: 10px; opacity: 0.88; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="quick-card-sound-sub">18 Melodi & Sayaç</div>
+                <div style="font-size: 10px; opacity: 0.88; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" id="quick-card-sound-sub">30 Melodi & Sayaç</div>
               </div>
             </div>
           </div>
@@ -5689,11 +5696,11 @@
       </div>
     </div>
 
-    <!-- 4. SOUNDS TAB (18 TRACKS & CATEGORICAL SEARCH) -->
+    <!-- 4. SOUNDS TAB (30 TRACKS & CATEGORICAL SEARCH) -->
     <div id="view-sounds" class="tab-view">
       <div class="app-header">
         <div>
-          <div class="baby-subtitle">18 Stüdyo Master Parça</div>
+          <div class="baby-subtitle">30 Stüdyo Master Parça</div>
           <div class="main-title">Sakinleştirici Sesler</div>
         </div>
         <div style="display: flex; align-items: center; gap: 6px;">
@@ -5712,7 +5719,7 @@
 
       <!-- Category Filter Chips -->
       <div class="cat-chips-row no-scrollbar">
-        <div class="cat-chip active" onclick="filterSoundCategory('all', this)">Tümü (18)</div>
+        <div class="cat-chip active" onclick="filterSoundCategory('all', this)">Tümü (30)</div>
         <div class="cat-chip" onclick="filterSoundCategory('lullaby', this)">🎹 Ninniler</div>
         <div class="cat-chip" onclick="filterSoundCategory('womb', this)">🤰 Anne Karnı</div>
         <div class="cat-chip" onclick="filterSoundCategory('noise', this)">💨 Gürültü & Pışpış</div>
@@ -5747,7 +5754,7 @@
         </div>
       </div>
 
-      <!-- 18 Tracks List Container -->
+      <!-- 30 Tracks List Container -->
       <div id="sounds-list-container">
         <!-- Rendered dynamically by JavaScript -->
       </div>
@@ -6341,7 +6348,7 @@
     <!-- 4 SADE DEĞER SATIRI -->
     <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(232,168,85,0.28); border-radius: 11px; padding: 9px 11px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #FFF;">
       <div>🌙 Gün boyu otomatik <strong>MışılSpot™</strong> & gece yatış saati</div>
-      <div>🎧 Kilit ekranında kesintisiz <strong>18 stüdyo ninni & pışpış</strong></div>
+      <div>🎧 Kilit ekranında kesintisiz <strong>30 stüdyo ninni & pışpış</strong></div>
       <div>🔔 Uykudan 15 dk önce uyarı, <strong>Ağlama Rehberi & 7/24 Dadı</strong></div>
       <div>👨‍👩‍👧 Tek VIP ile <strong>3 kişiye kadar</strong> ortak canlı bebek takibi</div>
     </div>
@@ -6745,7 +6752,7 @@
       <div>🌙 <strong>MışılSpot™ Saatleri:</strong> Günün tüm ideal uyku pencereleri</div>
       <div>🎙️ <strong>Akıllı Ağlama Rehberi:</strong> 5 saniyede açlık, gaz ve uyku tespiti</div>
       <div>🤖 <strong>Mışıl Dadı™ 7/24:</strong> Gece yarısı anında kişisel danışmanlık</div>
-      <div>🎧 <strong>18 Stüdyo Sesi:</strong> Kilitli ekranda kesintisiz uyku sesleri</div>
+      <div>🎧 <strong>30 Stüdyo Sesi:</strong> Kilitli ekranda kesintisiz uyku sesleri</div>
     </div>
     <button class="btn-primary" onclick="closeSubscriptionRetentionModal()">✨ VIP Özelliklerimi Kullanmaya Devam Et</button>
     <div style="text-align: center; margin-top: 10px;">
@@ -6779,7 +6786,7 @@
       Mobil Uygulamaya Özel Deneyim
     </div>
     <div class="guard-desc">
-      Kişiselleştirilmiş MışılSpot™ sirkadiyen uyku takibi, 18 stüdyo ninnisi ve yapay zekâ ağlama analizi yalnızca <strong>iOS ve Android</strong> uygulamalarımızda kullanılabilir.
+      Kişiselleştirilmiş MışılSpot™ sirkadiyen uyku takibi, 30 stüdyo ninnisi ve yapay zekâ ağlama analizi yalnızca <strong>iOS ve Android</strong> uygulamalarımızda kullanılabilir.
     </div>
 
     <div class="guard-features">
@@ -6793,7 +6800,7 @@
       </div>
       <div class="guard-feature-item">
         <span style="font-size: 16px;">🎵</span>
-        <span><strong>Kilitli Ekranda Müzik:</strong> 18 stüdyo sesi arka planda kesintisiz çalar</span>
+        <span><strong>Kilitli Ekranda Müzik:</strong> 30 stüdyo sesi arka planda kesintisiz çalar</span>
       </div>
     </div>
 
@@ -7729,7 +7736,17 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.56.0', date: '21 Kasım 2026', dateEn: 'November 21, 2026', dateDe: '21. November 2026', latest: true, items: [
+    { v: '4.56.7', date: '22 Kasım 2026', dateEn: 'November 22, 2026', dateDe: '22. November 2026', latest: true, items: [
+      '🎧 30 Stüdyo Master Uyku Sesi & +12 Yeni Akustik Parça: Clair de Lune 60 BPM keçe piyano, Kelt uyku arpı, organik kalimba, sözsüz anne mırıltısı, 72 BPM rahim içi arter uğultusu, gece araba yolculuğu, saf beyaz gürültü, elektrik süpürgesi, çamaşır makinesi, uzak gök gürültülü yağmur, yaprak hışırtısı ve sıcak şömine sesleriyle kütüphane 30 parçaya genişletildi.',
+      '🛡️ iOS & Android Kusursuz Döngü (Crossfade) Mastering: Brahms ve Ay Işığı ninnileri dahil tüm 30 stüdyo parçası 44.1 kHz Stereo, 192 kbps CBR ve başa sararken tıkırtı önleyici yumuşak kosinüs geçişiyle yeniden master edildi.'
+    ], itemsEn: [
+      '🎧 30 Studio Master Sleep Sounds & +12 New Acoustic Tracks: Expanded the soothing library to 30 tracks with Clair de Lune 60 BPM felt piano, Celtic sleep harp, organic kalimba, maternal humming, 72 BPM intrauterine arterial whoosh, night highway car ride, pure white noise, colic vacuum, rhythmic washing machine, distant thunder rain, wind through leaves, and warm campfire.',
+      '🛡️ iOS & Android Seamless Loop (Crossfade) Mastering: Re-mastered all 30 studio tracks—including Brahms and Moonlight lullabies—to 44.1 kHz Stereo, 192 kbps CBR with click-free cosine loop crossfades.'
+    ], itemsDe: [
+      '🎧 30 Studio-Master-Einschlafklänge & +12 Neue Akustik-Titel: Die Klangbibliothek wurde auf 30 Titel erweitert – mit Clair de Lune 60 BPM Filzklavier, Keltischer Schlafharfe, organischer Kalimba, Mamas Summen, 72 BPM Mutterleib-Arterienrauschen, nächtlicher Autofahrt, reinem Weißem Rauschen, Kolik-Staubsauger, Waschmaschine, fernem Gewitterregen, Blätterrascheln und Kaminfeuer.',
+      '🛡️ Nahtloses iOS- & Android-Loop-Mastering (Crossfade): Alle 30 Studio-Klänge inklusive Brahms- und Mondschein-Wiegenlied wurden auf 44,1 kHz Stereo (192 kbps CBR) mit sanftem Kosinus-Loop-Übergang neu gemastert.'
+    ]},
+    { v: '4.56.0', date: '21 Kasım 2026', dateEn: 'November 21, 2026', dateDe: '21. November 2026', items: [
       '🛡️ Şeffaf Uygulama Takip Kontrolü (ATT) & Kampanya Ölçümleme: iOS 14.5+ Uygulama Takibi Şeffaflığı (App Tracking Transparency) izin kontrolü ve mağaza kampanya doğrulama altyapısı eklendi; izin tercihinden bağımsız olarak tüm uygulama özellikleri %100 tam kapasiteyle çalışır.',
       '⚡ İlk Ay ₺49,99 Gösterim & Mağaza Senkron İyileştirmeleri: Uygun yeni aboneler için Aylık VIP ilk ay başlangıç fiyatı gösterimi ve kilit ekranı canlı etkinlik kararlılığı iyileştirildi.'
     ], itemsEn: [
@@ -7978,39 +7995,51 @@
   }
 
   // =========================================================================
-  // 1. 18 STUDIO SOUNDS DATA & AUDIO ENGINE
+  // 1. 30 STUDIO SOUNDS DATA & AUDIO ENGINE
   // =========================================================================
   const AUDIO_BASE = (window.location.protocol === 'file:') ? 'https://mishil-production.up.railway.app' : '';
 
   const SOUND_TRACKS = [
-    // 1. Ninniler & Melodiler
+    // 1. Ninniler & Melodiler (8)
     { id: 'brahms_lullaby', title: '🎹 Brahms Uyku Ninnisi', titleEn: '🎹 Brahms Sleep Lullaby', desc: 'Klasik mekanik müzik kutusu canlı stüdyo kaydı', descEn: 'Classic mechanical music box live studio recording', cat: 'lullaby', badge: 'NİNNİ', badgeEn: 'LULLABY', file: `${AUDIO_BASE}/sounds/brahms_lullaby.mp3` },
     { id: 'moonlight_lullaby', title: '🌙 Ayışığı Piyano Melodisi', titleEn: '🌙 Moonlight Piano Melody', desc: 'Akustik piyano ve narin oda tınıları', descEn: 'Acoustic piano and delicate nursery harmonics', cat: 'lullaby', badge: 'PİYANO', badgeEn: 'PIANO', file: `${AUDIO_BASE}/sounds/moonlight_lullaby.mp3` },
-    { id: 'mozart_432hz', title: '🎼 Mozart Zeka Gelişim Ninnisi', titleEn: '🎼 Mozart 432Hz Brain Lullaby', desc: '432Hz meditatif kase ve çan harmonikleri', descEn: '432Hz meditative bowl and chime harmonics', cat: 'lullaby', badge: '432 HZ', badgeEn: '432 HZ', file: `${AUDIO_BASE}/sounds/mozart_432hz.mp3` },
+    { id: 'mozart_432hz', title: '🎼 Mozart Zeka Gelişim Ninnisi', titleEn: '🎼 Mozart 432Hz Brain Lullaby', desc: '432Hz doğal akortlu celesta ve sıcak oda harmonikleri', descEn: '432Hz natural-tuned celesta and warm nursery harmonics', cat: 'lullaby', badge: '432 HZ', badgeEn: '432 HZ', file: `${AUDIO_BASE}/sounds/mozart_432hz.mp3` },
     { id: 'music_box_celesta', title: '🔔 Müzik Kutusu Rüzgar Çanları', titleEn: '🔔 Music Box & Wind Chimes', desc: 'Gerçek stüdyo rüzgar çanları ve celesta', descEn: 'Authentic studio wind chimes and celesta', cat: 'lullaby', badge: 'ÇANLAR', badgeEn: 'CHIMES', file: `${AUDIO_BASE}/sounds/music_box_celesta.mp3` },
-    { id: 'velvet_guitar', title: '🎸 Kadife Gece Gitarı', titleEn: '🎸 Velvet Night Acoustic Guitar', desc: 'Vintage plak ve yumuşak akustik arpej', descEn: 'Warm vintage vinyl and soft acoustic arpeggios', cat: 'lullaby', badge: 'AKUSTİK', badgeEn: 'ACOUSTIC', file: `${AUDIO_BASE}/sounds/velvet_guitar.mp3` },
+    { id: 'velvet_guitar', title: '🎸 Kadife Gece Gitarı', titleEn: '🎸 Velvet Night Acoustic Guitar', desc: 'Sıcak akustik klasik gitar arpejleri', descEn: 'Warm nylon-string acoustic guitar arpeggios', cat: 'lullaby', badge: 'AKUSTİK', badgeEn: 'ACOUSTIC', file: `${AUDIO_BASE}/sounds/velvet_guitar.mp3` },
+    { id: 'clair_de_lune_piano', title: '🌙 Clair de Lune Gece Piyanosu', titleEn: '🌙 Clair de Lune Night Piano', desc: 'Debussy esintili 60 BPM yumuşak keçe piyano ninnisi', descEn: 'Debussy-inspired 60 BPM soft felt piano lullaby', cat: 'lullaby', badge: 'PİYANO', badgeEn: 'FELT PIANO', file: `${AUDIO_BASE}/sounds/clair_de_lune_piano.mp3` },
+    { id: 'harp_lullaby', title: '🪕 Melek Arpı & Ninni', titleEn: '🪕 Angelic Sleep Harp', desc: 'Huzur veren pentatonik Kelt uyku arpı arpejleri', descEn: 'Soothing pentatonic Celtic sleep harp arpeggios', cat: 'lullaby', badge: 'ARP', badgeEn: 'HARP', file: `${AUDIO_BASE}/sounds/harp_lullaby.mp3` },
+    { id: 'warm_kalimba', title: '🪵 Ahşap Kalimba Uyku Melodisi', titleEn: '🪵 Warm Wooden Kalimba Lullaby', desc: 'Organik ahşap rezonanslı sıcak başparmak piyanosu', descEn: 'Organic wood-resonant warm thumb piano melody', cat: 'lullaby', badge: 'KALİMBA', badgeEn: 'KALIMBA', file: `${AUDIO_BASE}/sounds/warm_kalimba.mp3` },
 
-    // 2. Anne Karnı & Nabız
+    // 2. Anne Karnı & Nabız (7)
     { id: 'deep_heartbeat', title: '💓 Tok Anne Kalp Atışı', titleEn: '💓 Deep Maternal Heartbeat', desc: 'Triküspit gerçek stetoskop kalp sesi (Lub-Dub)', descEn: 'Authentic stethoscope maternal heartbeat (Lub-Dub)', cat: 'womb', badge: 'STETOSKOP', badgeEn: 'HEARTBEAT', file: `${AUDIO_BASE}/sounds/deep_heartbeat.mp3` },
     { id: 'womb_amniotic', title: '🤰 Amniyotik Sıvı & Anne Karnı', titleEn: '🤰 Womb & Amniotic Fluid', desc: 'Gerçek hidrofon su altı anne karnı yankısı', descEn: 'Real underwater hydrophone womb resonance', cat: 'womb', badge: 'ANNE KARNI', badgeEn: 'WOMB', file: `${AUDIO_BASE}/sounds/womb_amniotic.mp3` },
-    { id: 'placenta_flow', title: '🩸 Plasenta & Ritmik Baloncuk', titleEn: '🩸 Placental Flow & Pulse', desc: 'Akışkan organik ritmik uterus sesi', descEn: 'Organic rhythmic uterine blood flow sound', cat: 'womb', badge: 'UTERUS', badgeEn: 'UTERINE', file: `${AUDIO_BASE}/sounds/placenta_flow.mp3` },
+    { id: 'placenta_flow', title: '🩸 Plasenta & Ritmik Akış', titleEn: '🩸 Placental Flow & Pulse', desc: 'Akışkan organik ritmik uterus kan akışı sesi', descEn: 'Organic rhythmic uterine blood flow sound', cat: 'womb', badge: 'UTERUS', badgeEn: 'UTERINE', file: `${AUDIO_BASE}/sounds/placenta_flow.mp3` },
     { id: 'calm_breath', title: '🫁 Anne Göğsü & Sakin Ritim', titleEn: '🫁 Mother\'s Chest & Calm Breath', desc: 'Derin ve güven verici organik nefes ritmi', descEn: 'Deep reassuring organic breathing rhythm', cat: 'womb', badge: 'NEFES', badgeEn: 'BREATH', file: `${AUDIO_BASE}/sounds/calm_breath.mp3` },
+    { id: 'maternal_humming', title: '🤱 Anne Mırıltısı & Göğüs Rezonansı', titleEn: '🤱 Maternal Lullaby Hum', desc: 'Sözsüz, sıcak anne ninni mırıldanması ve göğüs titreşimi', descEn: 'Wordless warm maternal humming and chest resonance', cat: 'womb', badge: 'ANNE SESİ', badgeEn: 'MATERNAL HUM', file: `${AUDIO_BASE}/sounds/maternal_humming.mp3` },
+    { id: 'umbilical_whoosh', title: '🌊 Rahim İçi Arter Uğultusu', titleEn: '🌊 72 BPM Intrauterine Whoosh', desc: 'NICU standartlarında 72 BPM rahim içi arter uğultusu', descEn: 'NICU-standard 72 BPM intrauterine arterial whoosh', cat: 'womb', badge: '72 BPM RAHİM', badgeEn: '72 BPM NICU', file: `${AUDIO_BASE}/sounds/umbilical_whoosh.mp3` },
+    { id: 'car_ride_womb', title: '🚗 Gece Otoban & Anne Karnı Salınımı', titleEn: '🚗 Night Highway Car Ride Hum', desc: 'Kolik bebekleri yatıştıran sabit devirli gece araba kabin uğultusu', descEn: 'Steady night highway cabin hum for colic relief', cat: 'womb', badge: 'ARABA YOLU', badgeEn: 'CAR RIDE', file: `${AUDIO_BASE}/sounds/car_ride_womb.mp3` },
 
-    // 3. Gürültü & Pışpış
+    // 3. Gürültü & Pışpış (8)
     { id: 'shush_5s', title: '🤫 5S Dr. Karp Doğal Pışpış', titleEn: '🤫 Dr. Karp 5S Natural Shush', desc: 'Gerçek insan nefesli pışpış stüdyo kaydı', descEn: 'Authentic human vocal shushing studio loop', cat: 'noise', badge: 'DR. KARP 5S', badgeEn: 'DR. KARP 5S', file: `${AUDIO_BASE}/sounds/shush_5s.mp3` },
-    { id: 'pink_432hz', title: '🌸 432Hz Derin Uyku Pembe Gürültü', titleEn: '🌸 432Hz Deep Sleep Pink Noise', desc: 'Gerçek analog pembe gürültü kaydı', descEn: 'Warm analog pink noise for deep REM sleep', cat: 'noise', badge: 'PEMBE GÜRÜLTÜ', badgeEn: 'PINK NOISE', file: `${AUDIO_BASE}/sounds/pink_432hz.mp3` },
-    { id: 'brown_noise_colic', title: '🪵 Kadife Kahverengi Gürültü', titleEn: '🪵 Velvet Colic Brown Noise', desc: 'Gerçek analog kahverengi kolik kalkanı', descEn: 'Low-frequency analog brown noise colic shield', cat: 'noise', badge: 'KAHVERENGİ', badgeEn: 'BROWN NOISE', file: `${AUDIO_BASE}/sounds/brown_noise_colic.mp3` },
-    { id: 'hairdryer_calm', title: '💨 İpeksi Fön Makinesi Sesi', titleEn: '💨 Silky Hairdryer Hum', desc: 'Gerçek kurutucu ve sıcak hava uğultusu', descEn: 'Soothing warm airflow and dryer hum', cat: 'noise', badge: 'BEYAZ GÜRÜLTÜ', badgeEn: 'WHITE NOISE', file: `${AUDIO_BASE}/sounds/hairdryer_calm.mp3` },
-    { id: 'fan_drone', title: '🌀 Oda Vantilatörü & Ritmik Dron', titleEn: '🌀 Nursery Fan & Soft Drone', desc: 'Gerçek vantilatör motor zemin dönüş sesi', descEn: 'Steady box fan acoustic masking drone', cat: 'noise', badge: 'DRON', badgeEn: 'FAN DRONE', file: `${AUDIO_BASE}/sounds/fan_drone.mp3` },
+    { id: 'pink_432hz', title: '🌸 432Hz Derin Uyku Pembe Gürültü', titleEn: '🌸 432Hz Deep Sleep Pink Noise', desc: 'Uyku döngülerini birleştiren sıcak 432Hz pembe gürültü', descEn: 'Warm 432Hz pink noise for bridging REM sleep cycles', cat: 'noise', badge: 'PEMBE GÜRÜLTÜ', badgeEn: 'PINK NOISE', file: `${AUDIO_BASE}/sounds/pink_432hz.mp3` },
+    { id: 'brown_noise_colic', title: '🪵 Kadife Kahverengi Gürültü', titleEn: '🪵 Velvet Colic Brown Noise', desc: 'Düşük frekanslı (-6dB/oktav) kahverengi kolik kalkanı', descEn: 'Low-frequency (-6dB/octave) brown noise colic shield', cat: 'noise', badge: 'KAHVERENGİ', badgeEn: 'BROWN NOISE', file: `${AUDIO_BASE}/sounds/brown_noise_colic.mp3` },
+    { id: 'hairdryer_calm', title: '💨 İpeksi Fön Makinesi Sesi', titleEn: '💨 Silky Hairdryer Hum', desc: 'Gerçek kurutucu ve sıcak hava uğultusu', descEn: 'Soothing warm airflow and dryer hum', cat: 'noise', badge: 'FÖN MAKİNESİ', badgeEn: 'HAIRDRYER', file: `${AUDIO_BASE}/sounds/hairdryer_calm.mp3` },
+    { id: 'fan_drone', title: '🌀 Oda Vantilatörü & Ritmik Dron', titleEn: '🌀 Nursery Fan & Soft Drone', desc: 'Gerçek vantilatör motor zemin dönüş sesi', descEn: 'Steady box fan acoustic masking drone', cat: 'noise', badge: 'VANTİLATÖR', badgeEn: 'FAN DRONE', file: `${AUDIO_BASE}/sounds/fan_drone.mp3` },
+    { id: 'pure_white_noise', title: '⚪ Klasik Saf Beyaz Gürültü', titleEn: '⚪ Pure Broadband White Noise', desc: 'Ev ve dış ortam seslerini maskeleyen bebek dostu beyaz gürültü', descEn: 'Baby-safe broadband white noise for masking household sounds', cat: 'noise', badge: 'BEYAZ GÜRÜLTÜ', badgeEn: 'WHITE NOISE', file: `${AUDIO_BASE}/sounds/pure_white_noise.mp3` },
+    { id: 'vacuum_colic', title: '🧹 Kolik Elektrik Süpürgesi', titleEn: '🧹 Colic Vacuum Cleaner Drone', desc: 'Akşam kolik krizlerini yatıştıran sabit sıcak motor uğultusu', descEn: 'Steady warm vacuum turbine drone for evening colic relief', cat: 'noise', badge: 'KOLİK SÜPÜRGE', badgeEn: 'COLIC VACUUM', file: `${AUDIO_BASE}/sounds/vacuum_colic.mp3` },
+    { id: 'washing_machine', title: '🫧 Ritmik Çamaşır Makinesi', titleEn: '🫧 Rhythmic Washing Machine', desc: 'Ritmik su çalkalanması ve sakinleştirici tambur dönüşü', descEn: 'Rhythmic water sloshing and soothing drum rotation', cat: 'noise', badge: 'RİTMİK TAMBUR', badgeEn: 'WASHER SPIN', file: `${AUDIO_BASE}/sounds/washing_machine.mp3` },
 
-    // 4. Doğa Sesleri
-    { id: 'forest_stream', title: '🌧️ Orman Su Şırıltısı & Kuşlar', titleEn: '🌧️ Forest Stream & Soft Birds', desc: 'Gerçek dağ deresi ve narin kuş cıvıltıları', descEn: 'Gentle mountain brook and distant birdsong', cat: 'nature', badge: 'DOĞA', badgeEn: 'NATURE', file: `${AUDIO_BASE}/sounds/forest_stream.mp3` },
+    // 4. Doğa Sesleri (7)
+    { id: 'forest_stream', title: '🌧️ Orman Su Şırıltısı & Kuşlar', titleEn: '🌧️ Forest Stream & Soft Birds', desc: 'Gerçek dağ deresi ve narin kuş cıvıltıları', descEn: 'Gentle mountain brook and distant birdsong', cat: 'nature', badge: 'ORMAN DERESİ', badgeEn: 'STREAM', file: `${AUDIO_BASE}/sounds/forest_stream.mp3` },
     { id: 'soft_rain', title: '🌧️ Yumuşak Gece Yağmuru', titleEn: '🌧️ Gentle Night Rain', desc: 'Pencereye çarpan gerçek yağmur damlaları', descEn: 'Soft raindrops pattering on a quiet window', cat: 'nature', badge: 'YAĞMUR', badgeEn: 'RAIN', file: `${AUDIO_BASE}/sounds/soft_rain.mp3` },
     { id: 'ocean_calm', title: '🌊 Gece Okyanus Dalgaları', titleEn: '🌊 Calm Night Ocean Waves', desc: 'Kumsala vuran gerçek okyanus dalgaları', descEn: 'Rhythmic ocean waves rolling onto shore', cat: 'nature', badge: 'OKYANUS', badgeEn: 'OCEAN', file: `${AUDIO_BASE}/sounds/ocean_calm.mp3` },
-    { id: 'night_crickets', title: '🦗 Yaz Gecesi Cırcır Böcekleri', titleEn: '🦗 Summer Night Crickets', desc: 'Açık hava yaz gecesi gerçek cırcır böcekleri', descEn: 'Peaceful summer evening cricket chorus', cat: 'nature', badge: 'DOĞA', badgeEn: 'NATURE', file: `${AUDIO_BASE}/sounds/night_crickets.mp3` }
+    { id: 'night_crickets', title: '🦗 Yaz Gecesi Cırcır Böcekleri', titleEn: '🦗 Summer Night Crickets', desc: 'Açık hava yaz gecesi gerçek cırcır böcekleri', descEn: 'Peaceful summer evening cricket chorus', cat: 'nature', badge: 'YAZ GECESİ', badgeEn: 'NIGHT NATURE', file: `${AUDIO_BASE}/sounds/night_crickets.mp3` },
+    { id: 'distant_thunder_rain', title: '⛈️ Uzak Gök Gürültülü Gece Yağmuru', titleEn: '⛈️ Distant Rolling Thunder & Rain', desc: 'Ani ses içermeyen, derinden yuvarlanan gök gürültüsü ve yağmur', descEn: 'Non-startling deep rolling distant thunder and steady rain', cat: 'nature', badge: 'GÖK GÜRÜLTÜSÜ', badgeEn: 'SOFT THUNDER', file: `${AUDIO_BASE}/sounds/distant_thunder_rain.mp3` },
+    { id: 'wind_leaves', title: '🍃 Yaprak Hışırtısı & Meltem', titleEn: '🍃 Gentle Breeze in Forest Leaves', desc: 'Ağaç yaprakları arasında esen doğal pembe spektrumlu meltem', descEn: 'Natural pink-spectrum breeze rustling through forest leaves', cat: 'nature', badge: 'MELTEM', badgeEn: 'BREEZE', file: `${AUDIO_BASE}/sounds/wind_leaves.mp3` },
+    { id: 'campfire_warmth', title: '🔥 Sıcak Şömine & Gece Ateşi', titleEn: '🔥 Warm Fireplace & Night Hearth', desc: 'Gece beslenmelerine eşlik eden yumuşak odun ateşi ve kor sıcaklığı', descEn: 'Gentle hearth glow and soft ember warmth for night feedings', cat: 'nature', badge: 'ŞÖMİNE', badgeEn: 'FIREPLACE', file: `${AUDIO_BASE}/sounds/campfire_warmth.mp3` }
   ];
 
-  const SOUND_TRACKS_DE_META = {"brahms_lullaby":{"titleDe":"🎹 Brahms Wiegenlied","descDe":"Klassische mechanische Spieluhr in Studioqualität","badgeDe":"WIEGENLIED"},"moonlight_lullaby":{"titleDe":"🌙 Mondschein-Klaviermelodie","descDe":"Sanftes Akustik-Piano und warme Raumklänge","badgeDe":"PIANO"},"mozart_432hz":{"titleDe":"🎼 Mozart 432Hz Schlafmelodie","descDe":"Meditative 432Hz-Klangschalen & sanfte Obertöne","badgeDe":"432 HZ"},"music_box_celesta":{"titleDe":"🔔 Spieluhr & Windspiele","descDe":"Echte Studio-Windspiele und zarte Celesta","badgeDe":"KLANGSPIEL"},"velvet_guitar":{"titleDe":"🎸 Samtige Nachtgitarre","descDe":"Warme Akustik-Arpeggien für ruhiges Einschlafen","badgeDe":"AKUSTIK"},"deep_heartbeat":{"titleDe":"💓 Tiefer Herzschlag der Mutter","descDe":"Echter Stethoskop-Herzton (Lub-Dub) wie im Mutterleib","badgeDe":"HERZSCHLAG"},"womb_amniotic":{"titleDe":"🤰 Fruchtwasser & Mutterleib","descDe":"Geborgene Unterwasser-Resonanz wie vor der Geburt","badgeDe":"MUTTERLEIB"},"placenta_flow":{"titleDe":"🩸 Sanftes Pulsieren im Mutterleib","descDe":"Rhythmisch fließender organischer Uterus-Klang","badgeDe":"UTERUS"},"calm_breath":{"titleDe":"🫁 Mamas Brust & Ruhiger Atem","descDe":"Tiefer, beruhigender Atemrhythmus für Nähe & Sicherheit","badgeDe":"ATEM"},"shush_5s":{"titleDe":"🤫 Dr. Karp 5S Natürliches Sch-Sch","descDe":"Rhythmisches menschliches „Sch-Sch“ nach der 5S-Methode","badgeDe":"DR. KARP 5S"},"pink_432hz":{"titleDe":"🌸 432Hz Tiefschlaf Rosa Rauschen","descDe":"Warmes analoges Rosa Rauschen zur Verbindung von Schlafzyklen","badgeDe":"ROSA RAUSCHEN"},"brown_noise_colic":{"titleDe":"🪵 Samtiges Braunes Rauschen (Kolik)","descDe":"Tieffrequentes Braunes Rauschen bei Abendunruhe & Bauchweh","badgeDe":"BRAUNES RAUSCHEN"},"hairdryer_calm":{"titleDe":"💨 Sanftes Föhn-Summen","descDe":"Gleichmäßiger warmer Luftstrom zum schnellen Beruhigen","badgeDe":"WEISSES RAUSCHEN"},"fan_drone":{"titleDe":"🌀 Leiser Raumventilator","descDe":"Konstanter akustischer Klangteppich gegen Alltagsgeräusche","badgeDe":"VENTILATOR"},"forest_stream":{"titleDe":"🌧️ Waldbach & Sanfte Vögel","descDe":"Plätschernder Gebirgsbach in ruhiger Naturkulisse","badgeDe":"NATUR"},"soft_rain":{"titleDe":"🌧️ Sanfter Nachtregen","descDe":"Beruhigende Regentropfen am abgedunkelten Fenster","badgeDe":"REGEN"},"ocean_calm":{"titleDe":"🌊 Ruhige Meereswellen bei Nacht","descDe":"Gleichmäßig ans Ufer rollende Ozeanwellen","badgeDe":"OZEAN"},"night_crickets":{"titleDe":"🦗 Sommernacht & Grillenzirpen","descDe":"Friedliche Sommerabend-Atmosphäre unter freiem Himmel","badgeDe":"NATUR"}};
+  const SOUND_TRACKS_DE_META = {"brahms_lullaby":{"titleDe":"🎹 Brahms Wiegenlied","descDe":"Klassische mechanische Spieluhr in Studioqualität","badgeDe":"WIEGENLIED"},"moonlight_lullaby":{"titleDe":"🌙 Mondschein-Klaviermelodie","descDe":"Sanftes Akustik-Piano und warme Raumklänge","badgeDe":"PIANO"},"mozart_432hz":{"titleDe":"🎼 Mozart 432Hz Schlafmelodie","descDe":"432Hz-gestimmte Celesta und warme Raumharmonien","badgeDe":"432 HZ"},"music_box_celesta":{"titleDe":"🔔 Spieluhr & Windspiele","descDe":"Echte Studio-Windspiele und zarte Celesta","badgeDe":"KLANGSPIEL"},"velvet_guitar":{"titleDe":"🎸 Samtige Nachtgitarre","descDe":"Warme Akustik-Arpeggien für ruhiges Einschlafen","badgeDe":"AKUSTIK"},"clair_de_lune_piano":{"titleDe":"🌙 Clair de Lune Nachtklavier","descDe":"Debussy-inspirierte 60-BPM-Filzklaviermelodie","badgeDe":"FILZPIANO"},"harp_lullaby":{"titleDe":"🪕 Sanfte Keltische Schlafharfe","descDe":"Beruhigende pentatonische Harfen-Arpeggien","badgeDe":"HARFE"},"warm_kalimba":{"titleDe":"🪵 Warme Holz-Kalimba-Melodie","descDe":"Organisch schwingendes Daumenklavier zum Einschlafen","badgeDe":"KALIMBA"},"deep_heartbeat":{"titleDe":"💓 Tiefer Herzschlag der Mutter","descDe":"Echter Stethoskop-Herzton (Lub-Dub) wie im Mutterleib","badgeDe":"HERZSCHLAG"},"womb_amniotic":{"titleDe":"🤰 Fruchtwasser & Mutterleib","descDe":"Geborgene Unterwasser-Resonanz wie vor der Geburt","badgeDe":"MUTTERLEIB"},"placenta_flow":{"titleDe":"🩸 Sanftes Pulsieren im Mutterleib","descDe":"Rhythmisch fließender organischer Uterus-Klang","badgeDe":"UTERUS"},"calm_breath":{"titleDe":"🫁 Mamas Brust & Ruhiger Atem","descDe":"Tiefer, beruhigender Atemrhythmus für Nähe & Sicherheit","badgeDe":"ATEM"},"maternal_humming":{"titleDe":"🤱 Mamas Summen & Brustresonanz","descDe":"Wortloses, warmes Summen der Mutter mit tiefer Brustresonanz","badgeDe":"MAMAS SUMMEN"},"umbilical_whoosh":{"titleDe":"🌊 72 BPM Mutterleib-Arterienrauschen","descDe":"Rhythmisches 72-BPM-Uterusrauschen nach NICU-Vorbild","badgeDe":"72 BPM NICU"},"car_ride_womb":{"titleDe":"🚗 Nächtliche Autofahrt & Wiegen","descDe":"Gleichmäßiges Autobahn-Summen bei Koliken & Abendunruhe","badgeDe":"AUTOFAHRT"},"shush_5s":{"titleDe":"🤫 Dr. Karp 5S Natürliches Sch-Sch","descDe":"Rhythmisches menschliches „Sch-Sch“ nach der 5S-Methode","badgeDe":"DR. KARP 5S"},"pink_432hz":{"titleDe":"🌸 432Hz Tiefschlaf Rosa Rauschen","descDe":"Warmes 432Hz Rosa Rauschen zur Verbindung von Schlafzyklen","badgeDe":"ROSA RAUSCHEN"},"brown_noise_colic":{"titleDe":"🪵 Samtiges Braunes Rauschen (Kolik)","descDe":"Tieffrequentes (-6dB/Oktave) Braunes Rauschen bei Bauchweh","badgeDe":"BRAUNES RAUSCHEN"},"hairdryer_calm":{"titleDe":"💨 Sanftes Föhn-Summen","descDe":"Gleichmäßiger warmer Luftstrom zum schnellen Beruhigen","badgeDe":"FÖHN"},"fan_drone":{"titleDe":"🌀 Leiser Raumventilator","descDe":"Konstanter akustischer Klangteppich gegen Alltagsgeräusche","badgeDe":"VENTILATOR"},"pure_white_noise":{"titleDe":"⚪ Klassisches Reines Weißes Rauschen","descDe":"Babygerecht abgerundetes Weißes Rauschen gegen Umgebungsgeräusche","badgeDe":"WEISSES RAUSCHEN"},"vacuum_colic":{"titleDe":"🧹 Kolik-Staubsauger-Summen","descDe":"Konstantes, warmes Turbinensummen bei abendlichen Schreiattacken","badgeDe":"STAUBSAUGER"},"washing_machine":{"titleDe":"🫧 Rhythmische Waschmaschine","descDe":"Beruhigendes Wasserplätschern und sanfte Trommeldrehung","badgeDe":"WASCHMASCHINE"},"forest_stream":{"titleDe":"🌧️ Waldbach & Sanfte Vögel","descDe":"Plätschernder Gebirgsbach in ruhiger Naturkulisse","badgeDe":"WALDBACH"},"soft_rain":{"titleDe":"🌧️ Sanfter Nachtregen","descDe":"Beruhigende Regentropfen am abgedunkelten Fenster","badgeDe":"REGEN"},"ocean_calm":{"titleDe":"🌊 Ruhige Meereswellen bei Nacht","descDe":"Gleichmäßig ans Ufer rollende Ozeanwellen","badgeDe":"OZEAN"},"night_crickets":{"titleDe":"🦗 Sommernacht & Grillenzirpen","descDe":"Friedliche Sommerabend-Atmosphäre unter freiem Himmel","badgeDe":"SOMMERNACHT"},"distant_thunder_rain":{"titleDe":"⛈️ Sanfter Nachtregen & Ferner Donner","descDe":"Tiefer, sanft rollender Donner in der Ferne ohne Schreckimpulse","badgeDe":"FERNER DONNER"},"wind_leaves":{"titleDe":"🍃 Blätterrascheln & Sanfte Brise","descDe":"Natürliches Rosa-Spektrum-Windrauschen in Baumkronen","badgeDe":"BRISE"},"campfire_warmth":{"titleDe":"🔥 Warmes Kaminfeuer bei Nacht","descDe":"Sanftes Holzfeuer-Glimmen für entspannte nächtliche Stillpausen","badgeDe":"KAMINFEUER"}};
   SOUND_TRACKS.forEach(t => {
     const deMeta = SOUND_TRACKS_DE_META[t.id];
     if (deMeta) {
@@ -8102,13 +8131,13 @@
         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px;">
           <span style="font-size: 20px;">${catIcon}</span>
         </div>
-        <div style="flex: 1;">
-          <div style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: #FFF; line-height: 1.25; margin-bottom: 3px;">${dispTitle}</div>
-          <div style="font-size: 10px; color: var(--text-muted); line-height: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">${isDown ? trEnDe('Kullanılamıyor', 'Unavailable', 'Nicht verfügbar') : dispDesc}</div>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-family: 'Sora'; font-size: 12px; font-weight: 700; color: #FFF; line-height: 1.25; margin-bottom: 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 30px;">${dispTitle}</div>
+          <div style="font-size: 10px; color: var(--text-muted); line-height: 13px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; min-height: 26px;">${isDown ? trEnDe('Kullanılamıyor', 'Unavailable', 'Nicht verfügbar') : dispDesc}</div>
         </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px;">
-          <span style="font-size: 9px; font-weight: 700; color: var(--accent);">${isDown ? trEnDe('KULLANILAMIYOR', 'UNAVAILABLE', 'NICHT VERFÜGBAR') : dispBadge}</span>
-          <button class="sound-play-btn" style="width: 32px; height: 32px; font-size: 11px;">${isDown ? '⚠️' : (isPlaying ? '❚❚' : '▶')}</button>
+        <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-top: 8px; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px; min-width: 0;">
+          <span style="font-size: 9px; font-weight: 700; color: var(--accent); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 1;">${isDown ? trEnDe('KULLANILAMIYOR', 'UNAVAILABLE', 'NICHT VERFÜGBAR') : dispBadge}</span>
+          <button class="sound-play-btn" style="width: 32px; height: 32px; font-size: 11px; flex-shrink: 0;">${isDown ? '⚠️' : (isPlaying ? '❚❚' : '▶')}</button>
         </div>
       `;
       container.appendChild(item);
@@ -8355,7 +8384,7 @@
       if (miniStatus) miniStatus.textContent = trEnDe('Duraklatıldı', 'Paused', 'Pausiert');
       if (miniBtn) miniBtn.textContent = '▶';
       if (miniWaves) miniWaves.style.display = 'none';
-      if (quickSoundSub) quickSoundSub.textContent = trEnDe('18 Melodi & Sayaç', '18 Sounds & Timer', '18 Klänge & Timer');
+      if (quickSoundSub) quickSoundSub.textContent = trEnDe('30 Melodi & Sayaç', '30 Sounds & Timer', '30 Klänge & Timer');
     }
   }
 
@@ -11689,9 +11718,9 @@
         ? trEnDe(`${savedCustomName} İçin Kesintisiz Gece Planını Açın`, `Unlock ${savedCustomName}'s Unbroken Night Plan`, `Ruhigen Nachtplan für ${savedCustomName} öffnen`)
         : trEnDe('Bu Gece Kesintisiz Uyku Haritanızı Açın', 'Unlock Your Unbroken Night Sleep Map', 'Ihren ruhigen Nachtschlaf-Plan freischalten');
       sText = trEnDe(
-        'Gece bölünmelerini azaltan MışılSpot™ saatleri, 18 ninni ve 7/24 Dadı anında açılır.',
-        'MışılSpot™ windows, 18 lock-screen sounds & 24/7 Nanny unlock instantly to reduce night wakings.',
-        'MışılSpot™-Zeiten, 18 Klänge & 24/7 Nanny sofort frei – für deutlich ruhigere Nächte.'
+        'Gece bölünmelerini azaltan MışılSpot™ saatleri, 30 ninni ve 7/24 Dadı anında açılır.',
+        'MışılSpot™ windows, 30 lock-screen sounds & 24/7 Nanny unlock instantly to reduce night wakings.',
+        'MışılSpot™-Zeiten, 30 Klänge & 24/7 Nanny sofort frei – für deutlich ruhigere Nächte.'
       );
     } else if (ch === 'hard_settle') {
       tText = hasCustomName
@@ -11779,9 +11808,9 @@
       '🌿 Ausgeglichener Rhythmus & Schutzmodus'
     );
     let extraText = trEnDe(
-      '✓ MışılSpot™ ve 18 stüdyo sesiyle kesintisiz sirkadiyen düzen',
-      '✓ Continuous circadian harmony with MışılSpot™ & 18 studio sounds',
-      '✓ Sanfte zirkadiane Harmonie mit MışılSpot™ & 18 Studio-Klängen'
+      '✓ MışılSpot™ ve 30 stüdyo sesiyle kesintisiz sirkadiyen düzen',
+      '✓ Continuous circadian harmony with MışılSpot™ & 30 studio sounds',
+      '✓ Sanfte zirkadiane Harmonie mit MışılSpot™ & 30 Studio-Klängen'
     );
 
     // 1. Uykuya Direnç Dinamik Hedefi
@@ -11893,9 +11922,9 @@
       );
     } else {
       extraText = trEnDe(
-        '✓ MışılSpot™ ve 18 stüdyo sesiyle sıfır dirençli uyku geçişi',
-        '✓ Zero-resistance bedtime transitions with MışılSpot™ & 18 studio sounds',
-        '✓ Sanfte Einschlafbegleitung mit MışılSpot™ & 18 Studio-Klängen'
+        '✓ MışılSpot™ ve 30 stüdyo sesiyle sıfır dirençli uyku geçişi',
+        '✓ Zero-resistance bedtime transitions with MışılSpot™ & 30 studio sounds',
+        '✓ Sanfte Einschlafbegleitung mit MışılSpot™ & 30 Studio-Klängen'
       );
     }
 
@@ -12079,11 +12108,11 @@
           if (ch === 'hard_settle') {
             lockedRxEl.textContent = trEnDe('🎧 Dr. Karp 5S Pışpış & Ağlama Rehberi', '🎧 Dr. Karp 5S Shush & Cry Guide', '🎧 Dr. Karp 5S Sch-Sch & Wein-Ratgeber');
           } else if (ch === 'short_naps') {
-            lockedRxEl.textContent = trEnDe('🎧 432Hz Uyku Uzatıcı & 18 Stüdyo Sesi', '🎧 432Hz Nap Extender & 18 Studio Sounds', '🎧 432Hz Schlafverlängerer & 18 Studio-Klänge');
+            lockedRxEl.textContent = trEnDe('🎧 432Hz Uyku Uzatıcı & 30 Stüdyo Sesi', '🎧 432Hz Nap Extender & 30 Studio Sounds', '🎧 432Hz Schlafverlängerer & 30 Studio-Klänge');
           } else if (ch === 'night_wakes') {
-            lockedRxEl.textContent = trEnDe('🤖 Gece 03:00 Mışıl Dadı & 18 Kilit Ekranı Sesi', '🤖 3:00 AM Mışıl Nanny & 18 Lock-Screen Sounds', '🤖 03:00-Uhr Mışıl Nanny & 18 Hintergrund-Klänge');
+            lockedRxEl.textContent = trEnDe('🤖 Gece 03:00 Mışıl Dadı & 30 Kilit Ekranı Sesi', '🤖 3:00 AM Mışıl Nanny & 30 Lock-Screen Sounds', '🤖 03:00-Uhr Mışıl Nanny & 30 Hintergrund-Klänge');
           } else {
-            lockedRxEl.textContent = trEnDe('🎧 Kilit Ekranı 18 Stüdyo Sesi & Gece Rehberi', '🎧 18 Lock-Screen Sounds & Night Guide', '🎧 18 Hintergrund-Klänge & Nachtbegleiter');
+            lockedRxEl.textContent = trEnDe('🎧 Kilit Ekranı 30 Stüdyo Sesi & Gece Rehberi', '🎧 30 Lock-Screen Sounds & Night Guide', '🎧 30 Hintergrund-Klänge & Nachtbegleiter');
           }
         }
         if (insSleepEl) insSleepEl.innerHTML = insights.sleepInsight;
@@ -16227,7 +16256,7 @@
           navPath: '📍 Unten: 🎵 Klänge  •  Oben rechts: ⚙️ Einstellungen & Familiencode',
           dockHint: '👆 Unten tippen: Klänge ▼',
           headerHint: '⚙️ Profil & Familiencode ➔',
-          title: '🎵 6. 18 Studio-Klänge, Sleep-Timer & Einstellungen',
+          title: '🎵 6. 30 Studio-Klänge, Sleep-Timer & Einstellungen',
           desc: `Tippen Sie unten rechts auf „Klänge“ für Wiegenlieder und weißes Rauschen auf dem Sperrbildschirm. Für Partner-Familiencode und Babyprofil tippen Sie jederzeit oben rechts auf ⚙️.`
         }
       ];
@@ -16298,7 +16327,7 @@
           navPath: '📍 Bottom Bar: 🎵 Sounds  •  Top Right: ⚙️ Settings & Family Code',
           dockHint: '👆 Tap Tab: Sounds ▼',
           headerHint: '⚙️ Profile & Family Code ➔',
-          title: '🎵 6. 18 Studio Sounds, Sleep Timer & Settings',
+          title: '🎵 6. 30 Studio Sounds, Sleep Timer & Settings',
           desc: `Tap "Sounds" at the bottom right to play lullabies and white noise on your Lock Screen with Fade-Out timers. For Partner Family Code and baby profile, tap ⚙️ at the top right anytime.`
         }
       ];
@@ -16368,7 +16397,7 @@
         navPath: '📍 Alt Menü: 🎵 Sesler  •  Sağ Üst: ⚙️ Ayarlar & Aile Kodu',
         dockHint: '👆 Buraya Tıklayın: Sesler ▼',
         headerHint: '⚙️ Profil & Aile Kodu ➔',
-        title: '🎵 6. 18 Stüdyo Ses, Zamanlayıcı & Ayarlar',
+        title: '🎵 6. 30 Stüdyo Ses, Zamanlayıcı & Ayarlar',
         desc: `En sağ alttaki "Sesler" sekmesinden ninnileri ve beyaz gürültüyü kilit ekranında çalın. Eş davet kodu (Aile Paylaşımı) ve bebek profili için her ekranın sağ üstündeki ⚙️ ikonuna dokunun.`
       }
     ];
@@ -17017,11 +17046,11 @@
     const contextMapDe = {
       hard_paywall_lock: {
         title: `👑 Mışıl Baby VIP für ${babyName} aktivieren`,
-        sub: 'Schalten Sie alle täglichen MışılSpot™-Schlaffenster, 18 Sperrbildschirm-Klänge, den Wein-Ratgeber und 24/7 Mışıl Nanny sofort frei.'
+        sub: 'Schalten Sie alle täglichen MışılSpot™-Schlaffenster, 30 Sperrbildschirm-Klänge, den Wein-Ratgeber und 24/7 Mışıl Nanny sofort frei.'
       },
       sound_preview_ended: {
         title: `🌙 „${previewTrackName}“ für ${babyName} nahtlos abspielen`,
-        sub: 'Mit Mışıl VIP spielen alle 18 Studio-Klänge unterbrechungsfrei auch bei gesperrtem Bildschirm.'
+        sub: 'Mit Mışıl VIP spielen alle 30 Studio-Klänge unterbrechungsfrei auch bei gesperrtem Bildschirm.'
       },
       cry_analysis: {
         title: `🎙️ Wein-Ratgeber für ${babyName} freischalten`,
@@ -17051,12 +17080,12 @@
         sub: `Gemeinsames Live-Tagesprotokoll für ${babyName} mit bis zu 3 Familienmitgliedern.`
       },
       vip_sound: {
-        title: `🎧 Alle 18 Studio-Wiegenlieder & Kolik-Klänge freischalten`,
+        title: `🎧 Alle 30 Studio-Wiegenlieder & Kolik-Klänge freischalten`,
         sub: 'Dr. Karp 5S Sch-Sch, Herzschlag, Meeresrauschen und alle beruhigenden Klänge ohne Unterbrechung.'
       },
       home_banner: {
         title: `👑 Mışıl Baby VIP für ${babyName} starten`,
-        sub: 'Unbegrenzte MışılSpot™-Zeiten, Wein-Ratgeber, 24/7 Mışıl Nanny & 18 Studio-Klänge sofort freischalten.'
+        sub: 'Unbegrenzte MışılSpot™-Zeiten, Wein-Ratgeber, 24/7 Mışıl Nanny & 30 Studio-Klänge sofort freischalten.'
       },
       restart_quiz: {
         title: `🔄 Schlafanalyse & aktuellen Plan für ${babyName} aktualisieren`,
@@ -17067,7 +17096,7 @@
     const contextMap = isDe() ? contextMapDe : (isEn() ? {
       hard_paywall_lock: {
         title: `👑 Activate Mışıl Baby VIP for ${babyName}`,
-        sub: 'Unlock all daily MışılSpot™ sleep windows, 18 lock-screen studio sounds, Cry Guide, and 24/7 Mışıl Nanny instantly.'
+        sub: 'Unlock all daily MışılSpot™ sleep windows, 30 lock-screen studio sounds, Cry Guide, and 24/7 Mışıl Nanny instantly.'
       },
       sound_preview_ended: {
         title: `🌙 Play "${previewTrackName}" Seamlessly for ${babyName}`,
@@ -17101,12 +17130,12 @@
         sub: `Live shared sleep, feeding, and diaper tracking for ${babyName} across up to 3 caregivers.`
       },
       vip_sound: {
-        title: `🎧 Unlock All 18 Studio Lullaby & Colic Sounds`,
+        title: `🎧 Unlock All 30 Studio Lullaby & Colic Sounds`,
         sub: 'Dr. Karp 5S Shush, Heartbeat, Ocean Waves, and all colic-soothing tracks on your lock screen.'
       },
       home_banner: {
         title: `👑 Start Mışıl Baby VIP for ${babyName}`,
-        sub: 'Unlock unlimited MışılSpot™ windows, Cry Guide, 24/7 Mışıl Nanny, and 18 studio sounds.'
+        sub: 'Unlock unlimited MışılSpot™ windows, Cry Guide, 24/7 Mışıl Nanny, and 30 studio sounds.'
       },
       restart_quiz: {
         title: `🔄 Refresh ${babyName}'s Sleep Assessment & Daily Plan`,
@@ -17115,11 +17144,11 @@
     } : {
       hard_paywall_lock: {
         title: `👑 ${babyName} İçin Mışıl Baby VIP Üyeliğinizi Başlatın`,
-        sub: 'Günün tüm MışılSpot™ uyku saatleri, kilit ekranı 18 stüdyo sesi, Ağlama Rehberi ve 7/24 Mışıl Dadı anında açılır.'
+        sub: 'Günün tüm MışılSpot™ uyku saatleri, kilit ekranı 30 stüdyo sesi, Ağlama Rehberi ve 7/24 Mışıl Dadı anında açılır.'
       },
       sound_preview_ended: {
         title: `🌙 ${babyName} İçin "${previewTrackName}" Sesini Kesintisiz Çalın`,
-        sub: 'Kilitli ekranda kesintisiz uyku sesleri ve tüm 18 stüdyo parçası Mışıl VIP ile anında açılır.'
+        sub: 'Kilitli ekranda kesintisiz uyku sesleri ve tüm 30 stüdyo parçası Mışıl VIP ile anında açılır.'
       },
       cry_analysis: {
         title: `🎙️ ${babyName} İçin Ağlama Rehberini Açın`,
@@ -17149,12 +17178,12 @@
         sub: `${babyName}'in tüm uyku, beslenme ve bez kayıtlarını 3 aile üyesine kadar canlı takip edin.`
       },
       vip_sound: {
-        title: `🎧 18 Stüdyo Ninni & Kolik Sesinin Tamamını Açın`,
+        title: `🎧 30 Stüdyo Ninni & Kolik Sesinin Tamamını Açın`,
         sub: 'Dr. Karp 5S Pışpış, Kalp Atışı, Okyanus ve tüm kolik sakinleştirici sesler kilit ekranında kesintisiz çalar.'
       },
       home_banner: {
         title: `👑 ${babyName} İçin Mışıl Baby VIP Başlatın`,
-        sub: 'Sınırsız MışılSpot™ saatleri, Ağlama Rehberi, 7/24 Mışıl Dadı ve 18 stüdyo sesini hemen açın.'
+        sub: 'Sınırsız MışılSpot™ saatleri, Ağlama Rehberi, 7/24 Mışıl Dadı ve 30 stüdyo sesini hemen açın.'
       },
       restart_quiz: {
         title: `🔄 ${babyName} İçin Yeni Uyku Analizi & Güncel Planı Açın`,
@@ -17164,13 +17193,13 @@
 
     const chosen = (effectiveFeature && contextMap[effectiveFeature]) ? contextMap[effectiveFeature] : (isDe() ? {
       title: `👑 Mışıl Baby VIP für ${babyName} freischalten`,
-      sub: 'Unbegrenzte MışılSpot™-Zeiten, Wein-Ratgeber, 24/7 Mışıl Nanny und 18 Studio-Klänge sofort nutzen.'
+      sub: 'Unbegrenzte MışılSpot™-Zeiten, Wein-Ratgeber, 24/7 Mışıl Nanny und 30 Studio-Klänge sofort nutzen.'
     } : (isEn() ? {
       title: `👑 Unlock Mışıl Baby VIP for ${babyName}`,
-      sub: 'Instant access to unlimited MışılSpot™ windows, Cry Guide, 24/7 Mışıl Nanny, and 18 studio sounds.'
+      sub: 'Instant access to unlimited MışılSpot™ windows, Cry Guide, 24/7 Mışıl Nanny, and 30 studio sounds.'
     } : {
       title: `👑 ${babyName} İçin Tüm VIP Özellikleri Açın`,
-      sub: 'Sınırsız MışılSpot™ saatleri, Ağlama Rehberi, 7/24 Mışıl Dadı ve 18 stüdyo sesi anında açılır.'
+      sub: 'Sınırsız MışılSpot™ saatleri, Ağlama Rehberi, 7/24 Mışıl Dadı ve 30 stüdyo sesi anında açılır.'
     }));
 
     if (titleEl) titleEl.textContent = chosen.title;
@@ -17405,9 +17434,9 @@
       }
       if (infoEl) {
         infoEl.innerHTML = trEnDe(
-          '👑 <strong style="color:var(--success);">Mışıl VIP Üyeliğiniz Aktif:</strong> Tüm uyku saatleri, ağlama rehberi, Mışıl Dadı™ ve 18 stüdyo sesi hesabınızda açıktır.',
-          '👑 <strong style="color:var(--success);">Your Mışıl VIP Membership is Active:</strong> All sleep windows, cry guide, Mışıl Nanny™ and 18 studio sounds are unlocked.',
-          '👑 <strong style="color:var(--success);">Ihre Mışıl-VIP-Mitgliedschaft ist aktiv:</strong> Alle Schlaffenster, Wein-Ratgeber, Mışıl Nanny™ und 18 Studio-Klänge sind freigeschaltet.'
+          '👑 <strong style="color:var(--success);">Mışıl VIP Üyeliğiniz Aktif:</strong> Tüm uyku saatleri, ağlama rehberi, Mışıl Dadı™ ve 30 stüdyo sesi hesabınızda açıktır.',
+          '👑 <strong style="color:var(--success);">Your Mışıl VIP Membership is Active:</strong> All sleep windows, cry guide, Mışıl Nanny™ and 30 studio sounds are unlocked.',
+          '👑 <strong style="color:var(--success);">Ihre Mışıl-VIP-Mitgliedschaft ist aktiv:</strong> Alle Schlaffenster, Wein-Ratgeber, Mışıl Nanny™ und 30 Studio-Klänge sind freigeschaltet.'
         );
       }
       if (plan === 'yearly' || plan === 'family_vip') {
@@ -21490,7 +21519,7 @@
     "Aşırı yorgunluk (kortizol) döngüsü var, acil çözüm lazım": "Caught in an overtiredness (cortisol) loop, need immediate relief",
     "Analizi Tamamla & Planı Gör ➔": "Complete Analysis & View Plan ➔",
     "Kişisel Uyku Planınız Hazır": "Your Personal Sleep Plan Is Ready",
-    "MışılSpot™ uyku saatleri, Ağlama Rehberi, Mışıl Dadı™ ve 18 ses açılır.": "MışılSpot™ sleep windows, Cry Guide, Mışıl Nanny™, and 18 studio sounds unlock.",
+    "MışılSpot™ uyku saatleri, Ağlama Rehberi, Mışıl Dadı™ ve 30 ses açılır.": "MışılSpot™ sleep windows, Cry Guide, Mışıl Nanny™, and 30 studio sounds unlock.",
     "App Store / Google Play ayarlarından aboneliğinizi dilediğiniz an yönetebilirsiniz.": "Manage your subscription anytime in App Store / Google Play settings.",
     "Yıllık VIP Plan": "Annual VIP Plan",
     "Aylık VIP Plan": "Monthly VIP Plan",
@@ -21538,7 +21567,7 @@
     "🕒 24 Saatlik Günlük Ritim Şeridi": "🕒 24-Hour Daily Rhythm Strip",
     "🎙️ Ağlama Rehberi": "🎙️ Cry Guide",
     "5 sn Sesli İpucu": "5s Acoustic Cue",
-    "🎵 18 Uyku Sesi": "🎵 18 Sleep Sounds",
+    "🎵 30 Uyku Sesi": "🎵 30 Sleep Sounds",
     "Ninni & 432Hz Pışpış": "Lullabies & 432Hz Shush",
     "🍼 Emzirme / Mama": "🍼 Nursing / Bottle",
     "Hızlı Beslenme Ekle": "Quick Feeding Log",
@@ -21593,7 +21622,7 @@
     "Saatini Düzelt ✏️": "Edit Time ✏️",
     "✏️ Saatleri Düzenle": "✏️ Edit Times",
     "Uyuyakaldıysanız veya uyanış saati farklıysa düzeltin": "Adjust if you fell asleep or wake time differed",
-    "Sınırsız MışılSpot™ saatleri, Ağlama Rehberi, Mışıl Dadı ve 18 sesi hemen açın": "Unlock unlimited MışılSpot™ windows, Cry Guide, Mışıl Nanny & 18 sounds now",
+    "Sınırsız MışılSpot™ saatleri, Ağlama Rehberi, Mışıl Dadı ve 30 sesi hemen açın": "Unlock unlimited MışılSpot™ windows, Cry Guide, Mışıl Nanny & 30 sounds now",
     "Başlat ➔": "Start ➔",
     "🎉 VIP Aktif! Bu Gece İçin 3 Adımlı Huzur Planınız": "🎉 VIP Active! Your 3-Step Peaceful Night Plan",
     "🎓 Canlı Tur": "🎓 Live Tour",
@@ -21626,7 +21655,7 @@
     "Ağlama Rehberi": "Cry Guide",
     "Açlık / Gaz / Uyku": "Hunger / Gas / Sleep",
     "Ses Mikseri": "Sound Mixer",
-    "18 Melodi & Sayaç": "18 Melodies & Timer",
+    "30 Melodi & Sayaç": "30 Melodies & Timer",
     "Denge & Ritim": "Balance & Rhythm",
     "Bakım Özeti": "Care Summary",
     "+Kayıt": "+Log",
@@ -21681,9 +21710,9 @@
     "🌙 30 Dk Sonra Uyandı": "🌙 Woke Up After 30 Min",
     "🍼 Gece Beslenmesi": "🍼 Night Weaning",
     "⚠️ 4. Ay Regresyonu": "⚠️ 4-Month Regression",
-    "18 Stüdyo Master Parça": "18 Studio Master Tracks",
+    "30 Stüdyo Master Parça": "30 Studio Master Tracks",
     "Sakinleştirici Sesler": "Soothing Sounds",
-    "Tümü (18)": "All (18)",
+    "Tümü (30)": "All (30)",
     "🎹 Ninniler": "🎹 Lullabies",
     "🤰 Anne Karnı": "🤰 Womb",
     "💨 Gürültü & Pışpış": "💨 White Noise & Shush",
@@ -21875,7 +21904,7 @@
     "Açlık, gaz ve uyku ipucu tespiti": "Hunger, gas & sleep cue detection",
     "🤖 Mışıl Dadı™ 7/24": "🤖 Mışıl Nanny™ 24/7",
     "Gece 03:00'te anında kişisel yanıt": "Instant personal guidance at 3:00 AM",
-    "🎧 18 Stüdyo Sesi": "🎧 18 Studio Sounds",
+    "🎧 30 Stüdyo Sesi": "🎧 30 Studio Sounds",
     "Kilitli ekranda anne karnı & pışpış": "Womb & shush sounds on lock screen",
     "/yıl faturalanır": "/yr billed annually",
     "🩺 Tıbbi Feragatname:": "🩺 Medical Disclaimer:",
@@ -21969,7 +21998,7 @@
     "Açlık, Gaz & Uyku İpucu": "Hunger, Gas & Sleep Cues",
     "Mışıl Dadı™": "Mışıl Nanny™",
     "7/24 Dijital Gece Dadınız": "Your 24/7 Digital Night Nanny",
-    "18 Stüdyo Sesi": "18 Studio Sounds",
+    "30 Stüdyo Sesi": "30 Studio Sounds",
     "45/60 dk Sayaç & Gece Modu": "45/60m Timer & Night Crib Mode",
     "Aboneliğiniz dönem sonunda otomatik yenilenir. Abonelik tercihlerinizi mağaza hesap ayarlarınızdan yönetebilirsiniz.": "Your subscription renews automatically at the end of the period. You can manage your subscription preferences in your store account settings.",
     "Reklam & Köprü Analitik Kokpiti (/ios & /download)": "Ad & Attribution Analytics Cockpit (/ios & /download)",
@@ -22052,7 +22081,7 @@
     "5 saniyede açlık, gaz ve uyku tespiti": "Hunger, gas & sleep detection in 5s",
     "Mışıl Dadı™ 7/24:": "Mışıl Nanny™ 24/7:",
     "Gece yarısı anında kişisel danışmanlık": "Instant personal coaching at midnight",
-    "18 Stüdyo Sesi:": "18 Studio Sounds:",
+    "30 Stüdyo Sesi:": "30 Studio Sounds:",
     "Kilitli ekranda kesintisiz uyku sesleri": "Uninterrupted lock-screen sleep sounds",
     "✨ VIP Özelliklerimi Kullanmaya Devam Et": "✨ Keep Using My VIP Features",
     "Mağaza Abonelik Ayarlarına Git ↗": "Go to Store Subscription Settings ↗",
@@ -22060,14 +22089,14 @@
     "Bu işlem bebeğinize ait tüm uyku günlüklerini ve profil verilerini kalıcı olarak silecektir. (Apple Guideline 5.1.1).": "This action will permanently delete all sleep logs and profile data for your baby. (Apple Guideline 5.1.1).",
     "🗑️ Kalıcı Olarak Sil": "🗑️ Delete Permanently",
     "Mobil Uygulamaya Özel Deneyim": "Mobile App Exclusive Experience",
-    "Kişiselleştirilmiş MışılSpot™ sirkadiyen uyku takibi, 18 stüdyo ninnisi ve yapay zekâ ağlama analizi yalnızca": "Personalized MışılSpot™ circadian sleep tracking, 18 studio lullabies, and AI cry analysis are available exclusively on our",
+    "Kişiselleştirilmiş MışılSpot™ sirkadiyen uyku takibi, 30 stüdyo ninnisi ve yapay zekâ ağlama analizi yalnızca": "Personalized MışılSpot™ circadian sleep tracking, 30 studio lullabies, and AI cry analysis are available exclusively on our",
     "iOS ve Android": "iOS and Android",
     "uygulamalarımızda kullanılabilir.": "mobile apps.",
     "MışılSpot™:": "MışılSpot™:",
     "Bebeğinizin bir sonraki uyku vaktini milimetrik hesaplar": "Calculates your baby's next sleep window with pinpoint precision",
     "5 saniyede açlık, gaz ve uyku ipucu tespiti": "Detects hunger, gas, and sleep cues in 5 seconds",
     "Kilitli Ekranda Müzik:": "Lock-Screen Audio:",
-    "18 stüdyo sesi arka planda kesintisiz çalar": "18 studio sounds play seamlessly in the background",
+    "30 stüdyo sesi arka planda kesintisiz çalar": "30 studio sounds play seamlessly in the background",
     "İndirin": "Download on",
     "© 2026 Levitas Enterprise • Tüm Hakları Saklıdır": "© 2026 Levitas Enterprise • All Rights Reserved",
     "Yönetici Önizleme Girişi": "Admin Preview Login",
@@ -22096,7 +22125,7 @@
     "👑 TAM VIP PLAN": "👑 FULL VIP PLAN",
     "☀️ Sonraki Uyku Penceresi": "☀️ Next Nap Window",
     "🌙 Bu Gece İdeal Yatış Saati": "🌙 Tonight's Ideal Bedtime",
-    "🎧 Kilit Ekranı 18 Stüdyo Sesi & Gece Rehberi": "🎧 Lock-Screen 18 Studio Sounds & Night Guide",
+    "🎧 Kilit Ekranı 30 Stüdyo Sesi & Gece Rehberi": "🎧 Lock-Screen 30 Studio Sounds & Night Guide",
     "🔒 VIP": "🔒 VIP",
     "📋 Tüm Analiz Detaylarını Gör": "📋 View Full Analysis Details",
     "Aç ▾": "Open ▾",
@@ -22112,7 +22141,7 @@
     "& gece yatış saati": "& tonight's bedtime",
     "Kilit ekranında kesintisiz": "Uninterrupted lock-screen",
     "🎧 Kilit ekranında kesintisiz": "🎧 Uninterrupted lock-screen",
-    "18 stüdyo ninni & pışpış": "18 studio lullabies & shush",
+    "30 stüdyo ninni & pışpış": "30 studio lullabies & shush",
     "Uykudan 15 dk önce uyarı,": "15-min wind-down alerts,",
     "🔔 Uykudan 15 dk önce uyarı,": "🔔 15-min wind-down alerts,",
     "Ağlama Rehberi & 7/24 Dadı": "Cry Guide & 24/7 Nanny",
@@ -22327,7 +22356,7 @@
     "Aşırı yorgunluk (kortizol) döngüsü var, acil çözüm lazım": "Übermüdungsspirale (Cortisol), wir brauchen schnelle Entlastung",
     "Analizi Tamamla & Planı Gör ➔": "Analyse abschließen & Plan ansehen ➔",
     "Kişisel Uyku Planınız Hazır": "Ihr persönlicher Schlafplan ist bereit",
-    "MışılSpot™ uyku saatleri, Ağlama Rehberi, Mışıl Dadı™ ve 18 ses açılır.": "MışılSpot™-Schlaffenster, Wein-Ratgeber, Mışıl Nanny™ & 18 Klänge sofort frei.",
+    "MışılSpot™ uyku saatleri, Ağlama Rehberi, Mışıl Dadı™ ve 30 ses açılır.": "MışılSpot™-Schlaffenster, Wein-Ratgeber, Mışıl Nanny™ & 30 Klänge sofort frei.",
     "App Store / Google Play ayarlarından aboneliğinizi dilediğiniz an yönetebilirsiniz.": "Jederzeit in den App Store- / Google Play-Einstellungen kündbar oder verwaltbar.",
     "Yıllık VIP Plan": "Jährliches VIP-Abo",
     "Aylık VIP Plan": "Monatliches VIP-Abo",
@@ -22375,7 +22404,7 @@
     "🕒 24 Saatlik Günlük Ritim Şeridi": "🕒 24-Stunden-Tagesrhythmus",
     "🎙️ Ağlama Rehberi": "🎙️ Wein-Ratgeber",
     "5 sn Sesli İpucu": "5-Sek.-Klanganalyse",
-    "🎵 18 Uyku Sesi": "🎵 18 Schlafklänge",
+    "🎵 30 Uyku Sesi": "🎵 30 Schlafklänge",
     "Ninni & 432Hz Pışpış": "Wiegenlieder & 432Hz Sch-Sch",
     "🍼 Emzirme / Mama": "🍼 Stillen / Fläschchen",
     "Hızlı Beslenme Ekle": "Mahlzeit erfassen",
@@ -22431,7 +22460,7 @@
     "Saatini Düzelt ✏️": "Zeit anpassen ✏️",
     "✏️ Saatleri Düzenle": "✏️ Zeiten bearbeiten",
     "Uyuyakaldıysanız veya uyanış saati farklıysa düzeltin": "Anpassen, falls Sie eingeschlafen sind oder die Aufwachzeit abweicht",
-    "Sınırsız MışılSpot™ saatleri, Ağlama Rehberi, Mışıl Dadı ve 18 sesi hemen açın": "Unbegrenzte MışılSpot™-Zeiten, Wein-Ratgeber, Mışıl Nanny & 18 Klänge freischalten",
+    "Sınırsız MışılSpot™ saatleri, Ağlama Rehberi, Mışıl Dadı ve 30 sesi hemen açın": "Unbegrenzte MışılSpot™-Zeiten, Wein-Ratgeber, Mışıl Nanny & 30 Klänge freischalten",
     "Başlat ➔": "Starten ➔",
     "🎉 VIP Aktif! Bu Gece İçin 3 Adımlı Huzur Planınız": "🎉 VIP aktiv! Ihr 3-Schritte-Plan für eine ruhige Nacht",
     "🎓 Canlı Tur": "🎓 Live-Tour",
@@ -22464,7 +22493,7 @@
     "Ağlama Rehberi": "Wein-Ratgeber",
     "Açlık / Gaz / Uyku": "Hunger / Bauchweh / Schlaf",
     "Ses Mikseri": "Klangwelt",
-    "18 Melodi & Sayaç": "18 Klänge & Timer",
+    "30 Melodi & Sayaç": "30 Klänge & Timer",
     "Denge & Ritim": "Balance & Rhythmus",
     "Bakım Özeti": "Pflege-Übersicht",
     "+Kayıt": "+Log",
@@ -22519,9 +22548,9 @@
     "🌙 30 Dk Sonra Uyandı": "🌙 Nach 30 Min. wach",
     "🍼 Gece Beslenmesi": "🍼 Nächtliches Abstillen",
     "⚠️ 4. Ay Regresyonu": "⚠️ 4-Monats-Regression",
-    "18 Stüdyo Master Parça": "18 Studio-Master-Klänge",
+    "30 Stüdyo Master Parça": "30 Studio-Master-Klänge",
     "Sakinleştirici Sesler": "Beruhigende Schlafklänge",
-    "Tümü (18)": "Alle (18)",
+    "Tümü (30)": "Alle (30)",
     "🎹 Ninniler": "🎹 Wiegenlieder",
     "🤰 Anne Karnı": "🤰 Mutterleib",
     "💨 Gürültü & Pışpış": "💨 Rauschen & Sch-Sch",
@@ -22714,7 +22743,7 @@
     "Açlık, gaz ve uyku ipucu tespiti": "Hunger-, Bauchweh- & Müdigkeitssignale",
     "🤖 Mışıl Dadı™ 7/24": "🤖 Mışıl Nanny™ 24/7",
     "Gece 03:00'te anında kişisel yanıt": "Sofortige persönliche Hilfe um 03:00 Uhr nachts",
-    "🎧 18 Stüdyo Sesi": "🎧 18 Studio-Klänge",
+    "🎧 30 Stüdyo Sesi": "🎧 30 Studio-Klänge",
     "Kilitli ekranda anne karnı & pışpış": "Mutterleib & Sch-Sch bei gesperrtem Display",
     "/yıl faturalanır": "/Jahr (jährliche Abrechnung)",
     "🩺 Tıbbi Feragatname:": "🩺 Medizinischer Hinweis:",
@@ -22816,7 +22845,7 @@
     "Açlık, Gaz & Uyku İpucu": "Hunger-, Bauchweh- & Schlafsignale",
     "Mışıl Dadı™": "Mışıl Nanny™",
     "7/24 Dijital Gece Dadınız": "Ihr digitaler 24/7-Nachtcoach",
-    "18 Stüdyo Sesi": "18 Studio-Klänge",
+    "30 Stüdyo Sesi": "30 Studio-Klänge",
     "45/60 dk Sayaç & Gece Modu": "45/60-Min.-Timer & Nachtmodus",
     "Aboneliğiniz dönem sonunda otomatik yenilenir. Abonelik tercihlerinizi mağaza hesap ayarlarınızdan yönetebilirsiniz.": "Das Abonnement verlängert sich am Ende der Laufzeit automatisch und kann jederzeit in den Store-Kontoeinstellungen verwaltet werden.",
     "Reklam & Köprü Analitik Kokpiti (/ios & /download)": "Kampagnen- & Attributions-Cockpit (/ios & /download)",
@@ -22899,7 +22928,7 @@
     "5 saniyede açlık, gaz ve uyku tespiti": "Hunger-, Bauchweh- & Schlafsignale in 5 Sek.",
     "Mışıl Dadı™ 7/24:": "Mışıl Nanny™ 24/7:",
     "Gece yarısı anında kişisel danışmanlık": "Sofortige persönliche Begleitung auch um Mitternacht",
-    "18 Stüdyo Sesi:": "18 Studio-Klänge:",
+    "30 Stüdyo Sesi:": "30 Studio-Klänge:",
     "Kilitli ekranda kesintisiz uyku sesleri": "Nahtlose Schlafklänge bei gesperrtem Bildschirm",
     "✨ VIP Özelliklerimi Kullanmaya Devam Et": "✨ Meine VIP-Funktionen weiter nutzen",
     "Mağaza Abonelik Ayarlarına Git ↗": "Zu den Store-Abo-Einstellungen ↗",
@@ -22907,14 +22936,14 @@
     "Bu işlem bebeğinize ait tüm uyku günlüklerini ve profil verilerini kalıcı olarak silecektir. (Apple Guideline 5.1.1).": "Dadurch werden alle Schlafprotokolle und Profildaten Ihres Babys unwiderruflich gelöscht (Apple Guideline 5.1.1 / DSGVO).",
     "🗑️ Kalıcı Olarak Sil": "🗑️ Endgültig löschen",
     "Mobil Uygulamaya Özel Deneyim": "Exklusiv in unserer mobilen App",
-    "Kişiselleştirilmiş MışılSpot™ sirkadiyen uyku takibi, 18 stüdyo ninnisi ve yapay zekâ ağlama analizi yalnızca": "Personalisiertes MışılSpot™-Schlaftracking, 18 Studio-Wiegenlieder und die KI-Weinanalyse sind exklusiv in unseren",
+    "Kişiselleştirilmiş MışılSpot™ sirkadiyen uyku takibi, 30 stüdyo ninnisi ve yapay zekâ ağlama analizi yalnızca": "Personalisiertes MışılSpot™-Schlaftracking, 30 Studio-Wiegenlieder und die KI-Weinanalyse sind exklusiv in unseren",
     "iOS ve Android": "iOS- und Android-",
     "uygulamalarımızda kullanılabilir.": "Apps verfügbar.",
     "MışılSpot™:": "MışılSpot™:",
     "Bebeğinizin bir sonraki uyku vaktini milimetrik hesaplar": "Berechnet das nächste ideale Schlaffenster Ihres Babys minutengenau",
     "5 saniyede açlık, gaz ve uyku ipucu tespiti": "Erkennt Hunger-, Bauchweh- und Müdigkeitssignale in 5 Sekunden",
     "Kilitli Ekranda Müzik:": "Hintergrund-Audio:",
-    "18 stüdyo sesi arka planda kesintisiz çalar": "18 Studio-Klänge spielen nahtlos bei gesperrtem Bildschirm",
+    "30 stüdyo sesi arka planda kesintisiz çalar": "30 Studio-Klänge spielen nahtlos bei gesperrtem Bildschirm",
     "İndirin": "Laden im",
     "© 2026 Levitas Enterprise • Tüm Hakları Saklıdır": "© 2026 Levitas Enterprise • Alle Rechte vorbehalten",
     "Yönetici Önizleme Girişi": "Admin-Vorschau-Anmeldung",
@@ -22933,7 +22962,7 @@
     "👑 TAM VIP PLAN": "👑 VOLLER VIP-PLAN",
     "☀️ Sonraki Uyku Penceresi": "☀️ Nächstes Schlaffenster",
     "🌙 Bu Gece İdeal Yatış Saati": "🌙 Ideale Bettzeit heute Abend",
-    "🎧 Kilit Ekranı 18 Stüdyo Sesi & Gece Rehberi": "🎧 18 Studio-Klänge im Sperrbildschirm & Nacht-Guide",
+    "🎧 Kilit Ekranı 30 Stüdyo Sesi & Gece Rehberi": "🎧 30 Studio-Klänge im Sperrbildschirm & Nacht-Guide",
     "🔒 VIP": "🔒 VIP",
     "📋 Tüm Analiz Detaylarını Gör": "📋 Alle Analysedetails ansehen",
     "Aç ▾": "Öffnen ▾",
@@ -22949,7 +22978,7 @@
     "& gece yatış saati": "& ideale Abendbettzeit",
     "Kilit ekranında kesintisiz": "Nahtlos bei Sperrbildschirm:",
     "🎧 Kilit ekranında kesintisiz": "🎧 Nahtlos bei Sperrbildschirm:",
-    "18 stüdyo ninni & pışpış": "18 Studio-Wiegenlieder & Sch-Sch",
+    "30 stüdyo ninni & pışpış": "30 Studio-Wiegenlieder & Sch-Sch",
     "Uykudan 15 dk önce uyarı,": "15-Min.-Vorabhinweis,",
     "🔔 Uykudan 15 dk önce uyarı,": "🔔 15-Min.-Vorabhinweis,",
     "Ağlama Rehberi & 7/24 Dadı": "Wein-Ratgeber & 24/7 Nanny",

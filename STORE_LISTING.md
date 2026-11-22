@@ -19,7 +19,7 @@ Bu doküman, Google Play Console'da **"Ana Mağaza Girişi" (Main Store Listing)
 
 ### 📌 Kısa Açıklama (`tr-TR` - Maksimum 80 Karakter):
 ```text
-AI ağlama analizi, MışılSpot uyku takibi, 18+ beyaz gürültü ve bebek gelişimi.
+AI ağlama analizi, MışılSpot uyku takibi, 30 beyaz gürültü ve bebek gelişimi.
 ```
 
 ---
@@ -41,13 +41,13 @@ Bebeğinizin ağlama sesindeki frekans ve ritim örüntülerini değerlendirerek
 👵 3. MIŞIL DADI™ 7/24 AI PEDİATRİK UYKU KOÇU
 Gece yarısı aklınıza takılan sorularda bebeğinizin yaşını ve günlük rutin kayıtlarını dikkate alan şefkatli yapay zekâ rehberiniz yanınızda. Uyku gerilemeleri, gece uyanmaları ve akşam rutini konularında kişiselleştirilmiş öneriler alın.
 
-🎧 4. 18+ STÜDYO KALİTESİNDE UYKU SESİ, NİNNİ & AKUSTİK MİKSER
+🎧 4. 30 STÜDYO KALİTESİNDE UYKU SESİ, NİNNİ & AKUSTİK MİKSER
 Anne karnındaki tanıdık huzuru hatırlatan kesintisiz (loop) ve yumuşak geçişli stüdyo sesleri:
-• Anne Karnı (Amniyotik Rezonans) & Kalp Atışı Sesleri
-• Pembe, Beyaz ve Kahverengi Gürültü
-• Fön Makinesi, Elektrik Süpürgesi, Vantilatör, Pışpış (Shusher), Araba Yolculuğu
-• Yağmur, Okyanus Dalgaları, Orman Esintisi, Dağ Deresi
-• 432 Hz Sakinleştirici Ninniler & Müzik Kutusu Melodileri
+• Anne Karnı (Amniyotik Rezonans), Sözsüz Anne Mırıltısı, 72 BPM Rahim İçi Arter Uğultusu & Kalp Atışı Sesleri
+• Pembe, Saf Beyaz ve Kahverengi Gürültü
+• Fön Makinesi, Elektrik Süpürgesi, Çamaşır Makinesi, Vantilatör, Pışpış (Shusher), Gece Araba Yolculuğu
+• Yağmur, Uzak Gök Gürültülü Yağmur, Okyanus Dalgaları, Yaprak Hışırtısı, Dağ Deresi & Şömine Ateşi
+• Clair de Lune Keçe Piyano, Kelt Uyku Arpı, Ahşap Kalimba, 432 Hz Ninniler & Müzik Kutusu Melodileri
 • Ekran kapalıyken arka planda kesintisiz çalma ve otomatik ses kısarak kapanma zamanlayıcısı
 
 🕯️ 5. GECE BEŞİĞİ MODU (LOŞ KEHRİBAR GECE LAMBASI)
@@ -61,7 +61,7 @@ Gece emzirmeleri ve alt değişimlerinde bebeğinizin uykusunu açmayan, mavi ı
 Beslenme (anne sütü, mama, ek gıda), alt değişimi ve uyku sürelerini tek dokunuşla kaydedin; haftalık uyku grafikleri ve 6 haneli Aile Kodu ile en fazla 3 aile üyesine kadar bebeğinizin ritmini ortak izleyin.
 
 💳 ABONELİK BİLGİLENDİRMESİ:
-• Mışıl Baby abonelik tabanlı bir uygulamadır; kişisel uyku planı, MışılSpot™ pencereleri, 18+ stüdyo sesi ve Mışıl Dadı™ özelliklerine erişim için aktif bir aylık veya yıllık Mışıl VIP aboneliği (veya aktif bir Aile Kodu daveti) gereklidir.
+• Mışıl Baby abonelik tabanlı bir uygulamadır; kişisel uyku planı, MışılSpot™ pencereleri, 30 stüdyo sesi ve Mışıl Dadı™ özelliklerine erişim için aktif bir aylık veya yıllık Mışıl VIP aboneliği (veya aktif bir Aile Kodu daveti) gereklidir.
 • Abonelikler Google Play hesabınız üzerinden yönetilir ve dilediğiniz zaman Google Play Abonelikler bölümünden iptal edilebilir.
 
 🔒 GİZLİLİK VE TIBBİ FERAGATNAME:
@@ -94,7 +94,7 @@ Mışıl Baby: Sleep & Sounds
 
 ### 📌 Short Description (`en-US` - Max 80 Characters, Zero Superlatives):
 ```text
-AI baby cry cue analyzer, 18+ white noise sounds & MışılSpot sleep tracker.
+AI baby cry cue analyzer, 30 white noise sounds & MışılSpot sleep tracker.
 ```
 
 ### 📌 Full Description (`en-US` - Max 4000 Characters, Policy Compliant):
@@ -111,13 +111,13 @@ Evaluates frequency and rhythm patterns in your baby's cry to highlight helpful 
 👵 2. MIŞIL NANNY™ 24/7 AI SLEEP & CARE COACH
 Receive gentle, personalized sleep and bedtime routine guidance tailored to your baby's age (including premature adjustment) and daily routine logs.
 
-🎧 3. 18+ SOOTHING WHITE NOISE & MULTI-SOUND MIXER
+🎧 3. 30 SOOTHING WHITE NOISE & MULTI-SOUND MIXER
 Studio-recorded sounds crafted to recreate the comforting resonance of the womb:
 • White Noise, Pink Noise, Brown Noise
-• Womb Resonance & Maternal Heartbeat
-• Hair Dryer, Vacuum Cleaner, Fan, Rhythmic Shusher
-• Gentle Rain, Ocean Waves, Forest Breeze, Mountain Stream
-• 432 Hz Calming Lullabies & Music Box Melodies
+• Womb Resonance, Maternal Humming, 72 BPM Arterial Whoosh & Heartbeat
+• Hair Dryer, Vacuum Cleaner, Washing Machine, Fan, Rhythmic Shusher & Night Car Ride
+• Gentle Rain, Distant Thunder Rain, Ocean Waves, Rustling Leaves, Mountain Stream & Warm Campfire
+• Clair de Lune Felt Piano, Celtic Sleep Harp, Organic Kalimba, 432 Hz Lullabies & Music Box Melodies
 • Multi-track sound mixer with independent volume controls
 
 🌙 4. SMART WARM NIGHTLIGHT & SLEEP TIMER
@@ -127,7 +127,7 @@ Eye-friendly, dimmable warm screen light for night feedings and diaper changes, 
 Age-tailored wake windows, quick sleep/feeding/diaper logging, BabySteps™ 10 developmental leap tracking, shared live sync across up to 3 caregivers via Family Code, and immunization schedules across major national guidelines (CDC, NHS, STIKO, WHO, and more).
 
 💳 SUBSCRIPTION INFORMATION:
-• Mışıl Baby is a subscription-based app; an active monthly or annual Mışıl VIP subscription (or an active Family Code invite) is required to access your personal sleep plan, MışılSpot™ windows, 18+ studio sounds, and Mışıl Nanny™.
+• Mışıl Baby is a subscription-based app; an active monthly or annual Mışıl VIP subscription (or an active Family Code invite) is required to access your personal sleep plan, MışılSpot™ windows, 30 studio sounds, and Mışıl Nanny™.
 • Subscriptions are managed through your Google Play account and can be canceled anytime in Google Play Subscriptions.
 
 🔒 PRIVACY & MEDICAL DISCLAIMER:
@@ -166,13 +166,13 @@ Verstehen Sie die täglichen Signale Ihres Babys entspannter, gestalten Sie eine
 👶 1. KI-GESTÜTZTE SCHREIANALYSE
 Wertet Frequenz- und Rhythmusmuster im Weinen Ihres Babys aus und gibt Orientierung zu möglichen Bedürfnissen (Hunger, Bauchweh/Kolik, Müdigkeit, Unwohlsein oder Nähebedürfnis) – datenschutzfreundlich ohne dauerhafte Speicherung von Sprachaufnahmen.
 
-🎧 2. 18+ EINSCHLAFKLÄNGE & MEHRSPUR-MIXER
+🎧 2. 30 EINSCHLAFKLÄNGE & MEHRSPUR-MIXER
 Studio-Klänge, die an die vertraute Geborgenheit im Mutterleib erinnern:
 • Weißes, Rosa und Braunes Rauschen
-• Mutterleibsklänge & Herzschlag
-• Föhn, Staubsauger, Ventilator & rhythmisches Sch-Sch
-• Sanfter Regen, Meereswellen, Waldbach
-• Beruhigende 432-Hz-Wiegenlieder & Spieluhrmelodien
+• Mutterleibsklänge, Mamas Summen, 72-BPM-Arterienrauschen & Herzschlag
+• Föhn, Staubsauger, Waschmaschine, Ventilator, rhythmisches Sch-Sch & nächtliche Autofahrt
+• Sanfter Regen, ferner Gewitterregen, Meereswellen, Blätterrascheln, Waldbach & Kaminfeuer
+• Clair de Lune Filzklavier, Keltische Schlafharfe, Kalimba, 432-Hz-Wiegenlieder & Spieluhrmelodien
 • Individueller Klang-Mixer mit separater Lautstärkeregelung
 
 🌙 3. SANFTES NACHTLICHT
@@ -185,7 +185,7 @@ Unterbrechungsfreie Wiedergabe bei gesperrtem Bildschirm inklusive sanftem Ausbl
 Altersgerechte Wachfenster (inkl. Frühchen-Korrektur), Dokumentation von Schlaf, Mahlzeiten und Windeln mit bis zu 3 Personen per Familiencode, Begleitung der 10 BabySteps™-Entwicklungssprünge sowie Impfkalender-Erinnerungen für Deutschland, Österreich und die Schweiz.
 
 💳 ABONNEMENT-HINWEIS:
-• Mışıl Baby ist eine abonnementbasierte App; für den Zugriff auf Ihren persönlichen Schlafplan, MışılSpot™-Wachfenster, 18+ Studio-Klänge und Mışıl Nanny™ ist ein aktives Monats- oder Jahres-VIP-Abonnement (oder ein aktiver Familiencode) erforderlich.
+• Mışıl Baby ist eine abonnementbasierte App; für den Zugriff auf Ihren persönlichen Schlafplan, MışılSpot™-Wachfenster, 30 Studio-Klänge und Mışıl Nanny™ ist ein aktives Monats- oder Jahres-VIP-Abonnement (oder ein aktiver Familiencode) erforderlich.
 • Abonnements werden über Ihr Google-Play-Konto abgerechnet und können jederzeit in den Google-Play-Abonnementeinstellungen verwaltet oder gekündigt werden.
 
 🔒 DATENSCHUTZ & MEDIZINISCHER HINWEIS:

@@ -365,114 +365,114 @@ class CryAnalysisService:
                 CryType.HUNGRY: (
                     "Biete in Ruhe eine Mahlzeit an oder prüfe die Anlegeposition. Kontrolliere den Abstand zur letzten Mahlzeit.",
                     SoundType.HEARTBEAT_CALM,
-                    "/sounds/heartbeat_calm.mp3"
+                    "/sounds/deep_heartbeat.mp3"
                 ),
                 CryType.TIRED: (
                     "Das Wachfenster ist wahrscheinlich erreicht. Dunkle das Zimmer ab, zieh den Schlafsack an und starte Rosa Rauschen oder Sch-Sch.",
                     SoundType.PINK_NOISE_432HZ,
-                    "/sounds/pink_noise_432hz.mp3"
+                    "/sounds/pink_432hz.mp3"
                 ),
                 CryType.PAIN_COLIC: (
                     "Halte dein Baby aufrecht, bewege sanft die Beinchen im Fahrrad-Rhythmus oder massiere den Bauch im Uhrzeigersinn.",
                     SoundType.WOMB_SOUNDS,
-                    "/sounds/womb_sounds.mp3"
+                    "/sounds/womb_amniotic.mp3"
                 ),
                 CryType.DISCOMFORT: (
                     "Prüfe die Windel, kontrolliere die Raumtemperatur (ideal 18–20°C) und den Nacken auf Überwärmung.",
                     SoundType.RAIN_GENTLE,
-                    "/sounds/rain_gentle.mp3"
+                    "/sounds/soft_rain.mp3"
                 ),
                 CryType.BURPING_NEEDED: (
                     "Nimm dein Baby aufrecht an die Schulter und klopfe oder streiche sanft den Rücken von unten nach oben aus.",
                     SoundType.SHUSHING_RHYTHMIC,
-                    "/sounds/shushing_rhythmic.mp3"
+                    "/sounds/shush_5s.mp3"
                 ),
                 CryType.OVERSTIMULATED: (
                     "Reduziere sofort äußere Reize: Licht dimmen, Geräusche senken und dein Baby in einem ruhigen Raum nah am Körper halten.",
                     SoundType.PINK_NOISE_432HZ,
-                    "/sounds/pink_noise_432hz.mp3"
+                    "/sounds/pink_432hz.mp3"
                 ),
             }
             default_action = (
                 "Halte dein Baby nah bei dir (Haut-zu-Haut) und beruhige es mit ruhiger, gleichmäßiger Stimme.",
                 SoundType.PINK_NOISE_432HZ,
-                "https://cdn.mishil.app/sounds/pink_noise_432hz.mp3"
+                "/sounds/pink_432hz.mp3"
             )
         elif lang_norm == "en":
             actions: Dict[CryType, Tuple[str, SoundType, str]] = {
                 CryType.HUNGRY: (
                     "Offer a calm feed or check latch position. Review the time since your baby's last feeding.",
                     SoundType.HEARTBEAT_CALM,
-                    "/sounds/heartbeat_calm.mp3"
+                    "/sounds/deep_heartbeat.mp3"
                 ),
                 CryType.TIRED: (
                     "The wake window is likely complete. Dim the room, put on the sleep sack, and start Pink Noise or Shushing.",
                     SoundType.PINK_NOISE_432HZ,
-                    "/sounds/pink_noise_432hz.mp3"
+                    "/sounds/pink_432hz.mp3"
                 ),
                 CryType.PAIN_COLIC: (
                     "Hold your baby upright, gently bicycle their legs, or apply a warm clockwise tummy massage.",
                     SoundType.WOMB_SOUNDS,
-                    "/sounds/womb_sounds.mp3"
+                    "/sounds/womb_amniotic.mp3"
                 ),
                 CryType.DISCOMFORT: (
                     "Check the diaper, verify room temperature (ideal 20–22°C / 68–72°F), and ensure clothing isn't overheating.",
                     SoundType.RAIN_GENTLE,
-                    "/sounds/rain_gentle.mp3"
+                    "/sounds/soft_rain.mp3"
                 ),
                 CryType.BURPING_NEEDED: (
                     "Hold your baby upright against your shoulder and gently pat or rub their back from lower to upper spine.",
                     SoundType.SHUSHING_RHYTHMIC,
-                    "/sounds/shushing_rhythmic.mp3"
+                    "/sounds/shush_5s.mp3"
                 ),
                 CryType.OVERSTIMULATED: (
                     "Reduce sensory input immediately: dim lights, lower noise, and hold your baby skin-to-skin in a quiet room.",
                     SoundType.PINK_NOISE_432HZ,
-                    "/sounds/pink_noise_432hz.mp3"
+                    "/sounds/pink_432hz.mp3"
                 ),
             }
             default_action = (
                 "Hold your baby close for skin-to-skin comfort and soothe with a calm, steady voice.",
                 SoundType.PINK_NOISE_432HZ,
-                "https://cdn.mishil.app/sounds/pink_noise_432hz.mp3"
+                "/sounds/pink_432hz.mp3"
             )
         else:
             actions = {
                 CryType.HUNGRY: (
                     "Bebeğinizi beslemeyi veya emzirme pozisyonunu kontrol etmeyi deneyin. Son beslenme saatini gözden geçirin.",
                     SoundType.HEARTBEAT_CALM,
-                    "/sounds/heartbeat_calm.mp3"
+                    "/sounds/deep_heartbeat.mp3"
                 ),
                 CryType.TIRED: (
                     "Uyanıklık penceresi dolmuş olabilir. Odayı karartın, uyku tulumunu giydirin ve pışpışlama sesi başlatın.",
                     SoundType.PINK_NOISE_432HZ,
-                    "/sounds/pink_noise_432hz.mp3"
+                    "/sounds/pink_432hz.mp3"
                 ),
                 CryType.PAIN_COLIC: (
                     "Bebeğinizi dik pozisyona getirin, bacaklarına bisiklet hareketi yaptırın veya ılık havlu ile hafif karın masajı uygulayın.",
                     SoundType.WOMB_SOUNDS,
-                    "/sounds/womb_sounds.mp3"
+                    "/sounds/womb_amniotic.mp3"
                 ),
                 CryType.DISCOMFORT: (
                     "Bebeğinizin bezini kontrol edin, oda sıcaklığını (ideal 21-22°C) ve kıyafetlerin terletip terletmediğini gözden geçirin.",
                     SoundType.RAIN_GENTLE,
-                    "/sounds/rain_gentle.mp3"
+                    "/sounds/soft_rain.mp3"
                 ),
                 CryType.BURPING_NEEDED: (
                     "Bebeğinizi omzunuza alarak sırtını aşağıdan yukarıya dairesel hareketlerle hafifçe sıvazlayın.",
                     SoundType.SHUSHING_RHYTHMIC,
-                    "/sounds/shushing_rhythmic.mp3"
+                    "/sounds/shush_5s.mp3"
                 ),
                 CryType.OVERSTIMULATED: (
                     "Ortam uyaranlarını azaltın: ışıkları kısın, sesi kapatın, ziyaretçilerden uzaklaşın. Bebeğinizi sakin bir odada ten tene tutun.",
                     SoundType.PINK_NOISE_432HZ,
-                    "/sounds/pink_noise_432hz.mp3"
+                    "/sounds/pink_432hz.mp3"
                 ),
             }
             default_action = (
                 "Bebeğinizi kucağınıza alarak ten tene temas kurun ve sakin bir ses tonuyla rahatlatın.",
                 SoundType.PINK_NOISE_432HZ,
-                "https://cdn.mishil.app/sounds/pink_noise_432hz.mp3"
+                "/sounds/pink_432hz.mp3"
             )
         return actions.get(dominant_cause, default_action)
 

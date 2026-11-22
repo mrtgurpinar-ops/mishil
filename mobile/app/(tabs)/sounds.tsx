@@ -16,7 +16,7 @@ import { triggerHaptic } from '../../lib/haptics';
 const BASE_AUDIO_URL = 'https://mishil-production.up.railway.app/sounds';
 
 const SOUNDS_DATA: SoundTrack[] = [
-  // 1. Ninniler (Lullabies)
+  // 1. Ninniler (Lullabies - 8)
   {
     id: 'brahms_lullaby',
     title: 'Brahms Uyku Ninnisi',
@@ -47,8 +47,26 @@ const SOUNDS_DATA: SoundTrack[] = [
     category: 'Ninniler',
     streamUrl: `${BASE_AUDIO_URL}/velvet_guitar.mp3`,
   },
+  {
+    id: 'clair_de_lune_piano',
+    title: 'Clair de Lune Gece Piyanosu',
+    category: 'Ninniler',
+    streamUrl: `${BASE_AUDIO_URL}/clair_de_lune_piano.mp3`,
+  },
+  {
+    id: 'harp_lullaby',
+    title: 'Melek Arpı & Ninni',
+    category: 'Ninniler',
+    streamUrl: `${BASE_AUDIO_URL}/harp_lullaby.mp3`,
+  },
+  {
+    id: 'warm_kalimba',
+    title: 'Ahşap Kalimba Uyku Melodisi',
+    category: 'Ninniler',
+    streamUrl: `${BASE_AUDIO_URL}/warm_kalimba.mp3`,
+  },
 
-  // 2. Anne Karnı (Womb)
+  // 2. Anne Karnı (Womb - 7)
   {
     id: 'deep_heartbeat',
     title: 'Tok Anne Kalp Atışı (Lub-Dub)',
@@ -73,8 +91,26 @@ const SOUNDS_DATA: SoundTrack[] = [
     category: 'Anne Karnı',
     streamUrl: `${BASE_AUDIO_URL}/calm_breath.mp3`,
   },
+  {
+    id: 'maternal_humming',
+    title: 'Anne Mırıltısı & Göğüs Rezonansı',
+    category: 'Anne Karnı',
+    streamUrl: `${BASE_AUDIO_URL}/maternal_humming.mp3`,
+  },
+  {
+    id: 'umbilical_whoosh',
+    title: 'Rahim İçi Arter Uğultusu (72 BPM)',
+    category: 'Anne Karnı',
+    streamUrl: `${BASE_AUDIO_URL}/umbilical_whoosh.mp3`,
+  },
+  {
+    id: 'car_ride_womb',
+    title: 'Gece Otoban & Anne Karnı Salınımı',
+    category: 'Anne Karnı',
+    streamUrl: `${BASE_AUDIO_URL}/car_ride_womb.mp3`,
+  },
 
-  // 3. Pışpış & Frekanslar (Shush & Noise)
+  // 3. Pışpış & Frekanslar (Shush & Noise - 8)
   {
     id: 'shush_5s',
     title: '5S Dr. Karp Doğal Pışpış',
@@ -105,8 +141,26 @@ const SOUNDS_DATA: SoundTrack[] = [
     category: 'Pışpış & Gürültü',
     streamUrl: `${BASE_AUDIO_URL}/fan_drone.mp3`,
   },
+  {
+    id: 'pure_white_noise',
+    title: 'Klasik Saf Beyaz Gürültü',
+    category: 'Pışpış & Gürültü',
+    streamUrl: `${BASE_AUDIO_URL}/pure_white_noise.mp3`,
+  },
+  {
+    id: 'vacuum_colic',
+    title: 'Kolik Elektrik Süpürgesi',
+    category: 'Pışpış & Gürültü',
+    streamUrl: `${BASE_AUDIO_URL}/vacuum_colic.mp3`,
+  },
+  {
+    id: 'washing_machine',
+    title: 'Ritmik Çamaşır Makinesi',
+    category: 'Pışpış & Gürültü',
+    streamUrl: `${BASE_AUDIO_URL}/washing_machine.mp3`,
+  },
 
-  // 4. Doğa Sesleri (Nature)
+  // 4. Doğa Sesleri (Nature - 7)
   {
     id: 'forest_stream',
     title: 'Orman Deresi & Kuşlar',
@@ -131,6 +185,24 @@ const SOUNDS_DATA: SoundTrack[] = [
     category: 'Doğa Sesleri',
     streamUrl: `${BASE_AUDIO_URL}/night_crickets.mp3`,
   },
+  {
+    id: 'distant_thunder_rain',
+    title: 'Uzak Gök Gürültülü Gece Yağmuru',
+    category: 'Doğa Sesleri',
+    streamUrl: `${BASE_AUDIO_URL}/distant_thunder_rain.mp3`,
+  },
+  {
+    id: 'wind_leaves',
+    title: 'Yaprak Hışırtısı & Meltem',
+    category: 'Doğa Sesleri',
+    streamUrl: `${BASE_AUDIO_URL}/wind_leaves.mp3`,
+  },
+  {
+    id: 'campfire_warmth',
+    title: 'Sıcak Şömine & Gece Ateşi',
+    category: 'Doğa Sesleri',
+    streamUrl: `${BASE_AUDIO_URL}/campfire_warmth.mp3`,
+  },
 ];
 
 const CATEGORIES = ['Tümü', 'Ninniler', 'Anne Karnı', 'Pışpış & Gürültü', 'Doğa Sesleri'];
@@ -154,7 +226,7 @@ export default function SoundsScreen() {
           Sakinleştirici Sesler
         </Text>
         <Text style={[styles.subtitle, { color: theme.colors.textMuted }]}>
-          Bebeğinizi derin uykuya hazırlayan bilimsel 18 stüdyo frekansı ve ortam sesi (Arka planda kesintisiz çalar).
+          Bebeğinizi derin uykuya hazırlayan bilimsel 30 stüdyo frekansı ve ortam sesi (Arka planda kesintisiz çalar).
         </Text>
 
         {/* Kategori Filtreleri */}
@@ -236,11 +308,11 @@ export default function SoundsScreen() {
                     <Text style={{ fontSize: 20 }}>
                       {item.id.includes('pink')
                         ? '🌸'
-                        : item.id.includes('womb')
+                        : item.id.includes('womb') || item.id.includes('heartbeat') || item.id.includes('maternal') || item.id.includes('umbilical')
                         ? '❤️'
-                        : item.id.includes('shushing')
+                        : item.id.includes('shush')
                         ? '🤫'
-                        : item.id.includes('rain')
+                        : item.id.includes('rain') || item.id.includes('thunder')
                         ? '🌧️'
                         : '🎵'}
                     </Text>
