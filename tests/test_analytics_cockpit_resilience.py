@@ -687,11 +687,23 @@ def test_churn_chips_promo_code_reconcile_and_android_telemetry_derived_impressi
     assert fl["cancelled_subs_count"] == 1
     assert fl["churn_rate_pct"] == round((1 / 3) * 100, 1)
 
-    # 2) meta_chips_4 tüm platformlarda Churn/İptal göstermeli ve 'Paket' içermemeli
-    assert any("Churn" in ch and "İptal" in ch for ch in ps_all["meta_chips_4"])
-    assert any("Churn" in ch and "İptal" in ch for ch in ps_ios["meta_chips_4"])
-    assert any("Churn" in ch and "İptal" in ch for ch in ps_and["meta_chips_4"])
-    assert not any("Paket" in ch for ch in ps_and["meta_chips_4"])
+    # 2) 6 Aşamalı Dönüşüm Hunisi: 4. Başlayan VIP (meta_chips_4), 5. İptaller/Churn (meta_chips_5), 6. Net Abone (meta_chips_6)
+    assert ps_all["total_vip_count"] == 3
+    assert ps_all["cancelled_vip_count"] == 1
+    assert ps_all["vip_count"] == 2
+    assert ps_all["retention_rate_pct"] == round(100.0 - ps_all["churn_rate_pct"], 1)
+    assert ps_all["started_vip_of_dl_pct"] == round((3 / (181 + 225)) * 100, 1)
+
+    assert any("Churn" in ch or "İptal" in ch for ch in ps_all["meta_chips_5"])
+    assert any("Churn" in ch or "İptal" in ch for ch in ps_ios["meta_chips_5"])
+    assert any("Churn" in ch or "İptal" in ch for ch in ps_and["meta_chips_5"])
+    assert not any("Paket" in ch for ch in ps_and["meta_chips_4"] + ps_and["meta_chips_5"] + ps_and["meta_chips_6"])
+
+    dash_res = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"})
+    assert dash_res.status_code == 200
+    assert "4. Başlayan VIP" in dash_res.text
+    assert "5. İptaller (Churn)" in dash_res.text
+    assert "6. Net Abone" in dash_res.text
 
     # 3) Canlı Android telemetrisi varken Android mağaza gösterimi ve sayfa ziyareti > 0 türetilmeli
     assert ps_and["impressions"] > 0

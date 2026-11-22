@@ -5610,6 +5610,13 @@ def _build_analytics_summary(
 
     ios_churn_rate_pct = round((ios_cancelled_cnt / ios_total_rec) * 100, 1) if ios_total_rec > 0 else 0.0
     and_churn_rate_pct = round((and_cancelled_cnt / and_total_rec) * 100, 1) if and_total_rec > 0 else 0.0
+    all_retention_rate_pct = round(100.0 - all_churn_rate_pct, 1) if all_total_rec > 0 else 0.0
+    ios_retention_rate_pct = round(100.0 - ios_churn_rate_pct, 1) if ios_total_rec > 0 else 0.0
+    and_retention_rate_pct = round(100.0 - and_churn_rate_pct, 1) if and_total_rec > 0 else 0.0
+
+    all_started_vip_of_dl_pct = round((all_total_rec / max(1, total_cumulative_downloads)) * 100, 1)
+    ios_started_vip_of_dl_pct = round((ios_total_rec / max(1, apple_downloads)) * 100, 1)
+    and_started_vip_of_dl_pct = round((and_total_rec / max(1, google_play_downloads)) * 100, 1)
 
     ios_vip_sub_str = (
         f"Toplam {ios_total_rec} Kayıt ({ios_active_cnt} Aktif • {ios_cancelled_cnt} İptal / %{ios_churn_rate_pct} Churn) — "
@@ -5666,6 +5673,7 @@ def _build_analytics_summary(
             "desktop_bridge_clicks": desktop_bridge_uniq,
             "cvr_breakdown_label": f"Mağaza: %{store_page_cvr_pct} • Bio Köprü: %{all_bridge_cvr_pct}",
             "dl_of_imp_pct": round((total_cumulative_downloads / max(1, total_cumulative_impressions)) * 100, 2) if total_cumulative_impressions > 0 else 0.0,
+            "started_vip_of_dl_pct": all_started_vip_of_dl_pct,
             "vip_of_dl_pct": round((active_vip_total / max(1, total_cumulative_downloads)) * 100, 1),
             "vip_of_vis_pct": round((active_vip_total / max(1, total_cumulative_visits_and_clicks)) * 100, 2),
             "vip_of_imp_pct": round((active_vip_total / max(1, total_cumulative_impressions)) * 100, 2) if total_cumulative_impressions > 0 else 0.0,
@@ -5673,23 +5681,38 @@ def _build_analytics_summary(
             "total_vip_count": all_total_rec,
             "cancelled_vip_count": cancelled_cnt,
             "churn_rate_pct": all_churn_rate_pct,
-            "vip_display": f"{active_vip_total} Aktif VIP" if cancelled_cnt > 0 else f"{active_vip_total} VIP",
+            "retention_rate_pct": all_retention_rate_pct,
+            "started_vip_display": f"{all_total_rec}",
+            "cancelled_vip_display": f"{cancelled_cnt}",
+            "vip_display": f"{active_vip_total} Net Abone" if cancelled_cnt > 0 else f"{active_vip_total} VIP",
+            "started_vip_sub": f"Toplam {all_total_rec} Başlayan VIP (🍏 {ios_total_rec} iOS • 🤖 {and_total_rec} Android — Kurulumdan %{all_started_vip_of_dl_pct} Dönüşüm)",
+            "cancelled_vip_sub": f"Toplam {cancelled_cnt} İptal / Yenileme Kapalı (🍏 {ios_cancelled_cnt} iOS • 🤖 {and_cancelled_cnt} Android — %{all_churn_rate_pct} Churn)",
             "vip_sub": (
-                f"🍏 {ios_active_cnt} Aktif ({ios_total_rec} Kayıt • {ios_cancelled_cnt} İptal) • "
-                f"🤖 {and_active_cnt} Aktif ({and_total_rec} Kayıt • {and_cancelled_cnt} İptal) • Toplam %{all_churn_rate_pct} Churn"
+                f"🍏 {ios_active_cnt} Net ({ios_total_rec} Başlayan • {ios_cancelled_cnt} İptal) • "
+                f"🤖 {and_active_cnt} Net ({and_total_rec} Başlayan • {and_cancelled_cnt} İptal) • %{all_retention_rate_pct} Tutundurma"
             ),
             "mrr_net_try": financial_ledger["projected_total_mrr_net_try"],
             "mrr_gross_try": financial_ledger["projected_total_mrr_gross_try"],
             "realized_net_try": financial_ledger["realized_net_proceeds_try"],
             "reviews_count": len(all_reviews),
+            "delta_1": f"+{recent_3d_imp} (3G)",
+            "delta_2": f"+{today_unique_clicks} Bugün",
             "meta_chips_1": [f"{total_impressions_unique:,} Tekil Cihaz", f"%{imp_search_pct_calc} Arama"],
             "meta_chips_2": [f"{total_cumulative_store_page_views} Mağaza", f"{ig_unique_count:,} Instagram Profil"],
             "meta_chips_3": [f"🍏 {apple_downloads} iOS", f"🤖 {google_play_downloads} Android"],
             "meta_chips_4": [
+                f"🍏 {ios_total_rec} iOS Başlangıç",
+                f"🤖 {and_total_rec} Android Başlangıç",
+            ],
+            "meta_chips_5": [
+                f"🍏 {ios_cancelled_cnt} iOS İptal",
+                f"🤖 {and_cancelled_cnt} Android İptal",
+                f"✖ %{all_churn_rate_pct} Churn",
+            ],
+            "meta_chips_6": [
                 f"💳 {financial_ledger['paid_subs_count']} Ücretli",
                 f"⏳ {financial_ledger['pipeline_7d_trials_count']} Deneme",
                 f"🎟️ {financial_ledger['offer_code_subs_count']} Kod",
-                f"✖ {cancelled_cnt} İptal (%{all_churn_rate_pct} Churn)",
             ],
         },
         "ios": {
@@ -5714,6 +5737,7 @@ def _build_analytics_summary(
             "desktop_bridge_clicks": 0,
             "cvr_breakdown_label": f"Mağaza: %{ios_store_page_cvr_pct} (Cihaz: %{ios_store_unique_cvr_pct}) • Bio Köprü: %{ios_bridge_cvr_pct}",
             "dl_of_imp_pct": round((apple_downloads / max(1, apple_impressions)) * 100, 2) if apple_impressions > 0 else 0.0,
+            "started_vip_of_dl_pct": ios_started_vip_of_dl_pct,
             "vip_of_dl_pct": round((ios_active_cnt / max(1, apple_downloads)) * 100, 1),
             "vip_of_vis_pct": round((ios_active_cnt / max(1, ios_touchpoints)) * 100, 2) if ios_touchpoints > 0 else 0.0,
             "vip_of_imp_pct": round((ios_active_cnt / max(1, apple_impressions)) * 100, 2) if apple_impressions > 0 else 0.0,
@@ -5721,20 +5745,35 @@ def _build_analytics_summary(
             "total_vip_count": ios_total_rec,
             "cancelled_vip_count": ios_cancelled_cnt,
             "churn_rate_pct": ios_churn_rate_pct,
-            "vip_display": f"{ios_active_cnt} Aktif VIP" if ios_cancelled_cnt > 0 else f"{ios_active_cnt} VIP",
+            "retention_rate_pct": ios_retention_rate_pct,
+            "started_vip_display": f"{ios_total_rec}",
+            "cancelled_vip_display": f"{ios_cancelled_cnt}",
+            "vip_display": f"{ios_active_cnt} Net Abone" if ios_cancelled_cnt > 0 else f"{ios_active_cnt} VIP",
+            "started_vip_sub": f"Toplam {ios_total_rec} Başlayan iOS VIP ({ios_active_cnt} Aktif • {ios_cancelled_cnt} İptal — Kurulumdan %{ios_started_vip_of_dl_pct} Dönüşüm)",
+            "cancelled_vip_sub": f"Toplam {ios_cancelled_cnt} iOS İptal / Yenileme Kapalı (%{ios_churn_rate_pct} iOS Churn)",
             "vip_sub": ios_vip_sub_str,
             "mrr_net_try": ios_mrr_net,
             "mrr_gross_try": ios_mrr_gross,
             "realized_net_try": ios_realized_net,
             "reviews_count": ios_reviews_cnt,
+            "delta_1": f"%{round((apple_impressions / max(1, total_cumulative_impressions)) * 100)} Pay",
+            "delta_2": f"%{ios_store_imp_to_pv_pct} Mağaza",
             "meta_chips_1": [f"{int(sb.get('apple_impressions_unique', 0) or 0):,} Tekil iPhone", "⏳ v4.56.0 Onayda" if not ios_att_sdk_is_live else f"🟢 {ios_att_sdk_devices_cnt} iOS Cihaz"],
             "meta_chips_2": [f"{apple_page_views} Mağaza", f"{ig_ios_count:,} Instagram Profil"],
             "meta_chips_3": [f"🔍 {r3_search} Arama", f"📲 {r3_ref} Sosyal", f"📅 {recent_ios_dl} Doğrudan"],
             "meta_chips_4": [
+                f"🟢 {ios_active_cnt} Aktif",
+                f"✖ {ios_cancelled_cnt} İptal",
+                f"%{ios_started_vip_of_dl_pct} Kurulumdan",
+            ],
+            "meta_chips_5": [
+                f"✖ {ios_cancelled_cnt} iOS İptal",
+                f"%{ios_churn_rate_pct} iOS Churn",
+            ],
+            "meta_chips_6": [
                 f"💳 {ios_paid_cnt} Ücretli",
                 f"⏳ {ios_trial_cnt} Deneme",
                 f"🎟️ {ios_code_cnt} Kod",
-                f"✖ {ios_cancelled_cnt} İptal (%{ios_churn_rate_pct} Churn)",
             ],
         },
         "android": {
@@ -5767,6 +5806,7 @@ def _build_analytics_summary(
             "desktop_bridge_clicks": 0,
             "cvr_breakdown_label": f"Mağaza: %{android_store_page_cvr_pct} • Bio Köprü: %{android_bridge_cvr_pct} • Native Intent Aktif",
             "dl_of_imp_pct": min(100.0, round((google_play_downloads / google_play_impressions) * 100, 2)) if google_play_impressions > 0 else 0.0,
+            "started_vip_of_dl_pct": and_started_vip_of_dl_pct,
             "vip_of_dl_pct": round((and_active_cnt / max(1, google_play_downloads)) * 100, 1),
             "vip_of_vis_pct": round((and_active_cnt / android_touchpoints) * 100, 2) if android_touchpoints > 0 else 0.0,
             "vip_of_imp_pct": round((and_active_cnt / google_play_impressions) * 100, 2) if google_play_impressions > 0 else 0.0,
@@ -5774,19 +5814,34 @@ def _build_analytics_summary(
             "total_vip_count": and_total_rec,
             "cancelled_vip_count": and_cancelled_cnt,
             "churn_rate_pct": and_churn_rate_pct,
-            "vip_display": f"{and_active_cnt} Aktif VIP" if and_cancelled_cnt > 0 else f"{and_active_cnt} VIP",
+            "retention_rate_pct": and_retention_rate_pct,
+            "started_vip_display": f"{and_total_rec}",
+            "cancelled_vip_display": f"{and_cancelled_cnt}",
+            "vip_display": f"{and_active_cnt} Net Abone" if and_cancelled_cnt > 0 else f"{and_active_cnt} VIP",
+            "started_vip_sub": f"Toplam {and_total_rec} Başlayan Android VIP ({and_active_cnt} Aktif • {and_cancelled_cnt} İptal — Kurulumdan %{and_started_vip_of_dl_pct} Dönüşüm)",
+            "cancelled_vip_sub": f"Toplam {and_cancelled_cnt} Android İptal / 72s Onaysız (%{and_churn_rate_pct} Android Churn)",
             "vip_sub": and_vip_sub_str,
             "mrr_net_try": and_mrr_net,
             "mrr_gross_try": and_mrr_gross,
             "realized_net_try": and_realized_net,
             "reviews_count": android_reviews_cnt,
+            "delta_1": f"%{round((google_play_impressions / max(1, total_cumulative_impressions)) * 100)} Pay",
+            "delta_2": f"%{android_store_imp_to_pv_pct} Mağaza",
             "meta_chips_1": ["🤖 Google Play Organik", "🎯 Meta Reklam Aktif"],
             "meta_chips_2": [f"🏪 {google_play_page_views} Mağaza", f"📲 {ig_android_count:,} Instagram Profil"],
             "meta_chips_3": [f"🏪 {direct_android_play_or_meta_installs} Play & Meta", f"📲 {matched_android_bio_installs} Profil"],
             "meta_chips_4": [
+                f"🟢 {and_active_cnt} Aktif",
+                f"✖ {and_cancelled_cnt} İptal",
+                f"%{and_started_vip_of_dl_pct} Kurulumdan",
+            ],
+            "meta_chips_5": [
+                f"✖ {and_cancelled_cnt} Android İptal",
+                f"%{and_churn_rate_pct} Android Churn",
+            ],
+            "meta_chips_6": [
                 f"💳 {and_paid_cnt} Ücretli",
                 f"⏳ {and_trial_cnt} Deneme",
-                f"✖ {and_cancelled_cnt} İptal (%{and_churn_rate_pct} Churn)",
             ],
         },
     }
@@ -7734,11 +7789,14 @@ def analytics_dashboard_page(
           --stage-2: #2563EB;
           --stage-3: #059669;
           --stage-4: #7C3AED;
+          --stage-5: #DC2626;
+          --stage-6: #0D9488;
           --gold: #D97706;
           --sky: #2563EB;
           --emerald: #059669;
           --violet: #7C3AED;
           --rose: #DC2626;
+          --teal: #0D9488;
         }}
         /* İSTEĞE BAĞLI YUMUŞAK GECE MODU (SOFT SLATE) */
         body.theme-slate {{
@@ -7755,6 +7813,8 @@ def analytics_dashboard_page(
           --stage-2: #60A5FA;
           --stage-3: #34D399;
           --stage-4: #C084FC;
+          --stage-5: #F87171;
+          --stage-6: #2DD4BF;
         }}
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
         body {{
@@ -8125,9 +8185,39 @@ def analytics_dashboard_page(
         }}
         .conv-bridge-grid {{
           display: grid;
-          grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr;
+          grid-template-columns: 1fr auto 1fr auto 1fr;
           align-items: stretch;
           gap: 8px;
+        }}
+        .conv-tier-bridge {{
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin: 10px 0;
+          padding: 8px 14px;
+          border-radius: 12px;
+          background: var(--bg-cell);
+          border: 1px dashed var(--border-subtle);
+          font-size: 11.5px;
+          font-weight: 700;
+          color: var(--text-secondary);
+        }}
+        .conv-tier-lbl {{
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          font-size: 11px;
+          font-weight: 800;
+          text-transform: uppercase;
+          letter-spacing: 0.4px;
+          color: var(--text-muted);
+        }}
+        .spark-svg {{
+          max-width: 84px;
+          height: auto;
+          flex-shrink: 1;
         }}
         @media (max-width: 1150px) {{
           .conv-bridge-grid {{
@@ -8826,7 +8916,8 @@ def analytics_dashboard_page(
           border: 1px solid var(--border-subtle) !important;
           background: var(--bg-cell);
         }}
-        .funnel-collapsed .conv-bridge-grid {{
+        .funnel-collapsed .conv-bridge-grid,
+        .funnel-collapsed .conv-tier-bridge {{
           display: none !important;
         }}
         .funnel-collapsed .conv-bridge-head {{
@@ -8942,7 +9033,7 @@ def analytics_dashboard_page(
             border-radius: 14px !important;
             margin-bottom: 12px !important;
           }}
-          /* Mobilde 4'lü Dönüşüm Hunisi: 7 katlı dikey kule yerine 2x2 kompakt Bento ızgarası */
+          /* Mobilde 6 Aşamalı Dönüşüm Hunisi: 2x3 kompakt Bento ızgarası */
           .conv-bridge-grid {{
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
             gap: 8px !important;
@@ -9134,19 +9225,22 @@ def analytics_dashboard_page(
             <div class="workspace-canvas">
               {sync_banner}
 
-              <!-- KOMPAKT 4'LÜ DÖNÜŞÜM HUNİSİ (SIFIR PARAGRAF, SAF METRİK) -->
+              <!-- 2 KATMANLI (3+3) 6 AŞAMALI DÖNÜŞÜM HUNİSİ (EDİNİM ➔ BAŞLAYAN VIP ➔ CHURN ➔ NET ABONE) -->
               <div class="conv-bridge-card" id="conversionBridgeCard">
                 <div class="conv-bridge-head">
                   <div class="conv-bridge-title">
-                    <span id="funnelHeadTitle">🎯 Dönüşüm Hunisi</span>
+                    <span id="funnelHeadTitle">🎯 Dönüşüm Hunisi (Edinim ➔ VIP ➔ Churn ➔ Net Abone)</span>
                   </div>
                   <div class="conv-summary-pills" id="funnelHeadBadge">
                     <span class="conv-summary-pill" style="background:rgba(5,150,105,0.08); border-color:rgba(5,150,105,0.28); color:var(--stage-3);">Mağaza CVR: <strong id="convStoreCvrPill">%{ps_all.get('store_cvr_pct', 0)}</strong></span>
-                    <span class="conv-summary-pill">Gösterim ➔ VIP: <strong id="convSumVipImp">%{vip_of_imp_pct}</strong></span>
-                    <span class="conv-summary-pill" style="background:var(--bg-cell); border-color:var(--border-subtle); color:var(--text-secondary);">Tık ➔ VIP: <strong id="convCum4" style="color:var(--stage-4);">%{vip_of_vis_pct}</strong></span>
+                    <span class="conv-summary-pill">İndirme ➔ VIP: <strong id="convStartedVipDlPill">%{ps_all.get('started_vip_of_dl_pct', 0)}</strong></span>
+                    <span class="conv-summary-pill" style="background:rgba(220,38,38,0.08); border-color:rgba(220,38,38,0.28); color:var(--stage-5);">Churn: <strong id="convChurnPill">%{ps_all.get('churn_rate_pct', 0)}</strong></span>
+                    <span class="conv-summary-pill" style="background:rgba(13,148,136,0.08); border-color:rgba(13,148,136,0.28); color:var(--stage-6);">Net Tutundurma: <strong id="convRetentionPill">%{ps_all.get('retention_rate_pct', 0)}</strong></span>
+                    <span class="sr-only">Gösterim ➔ VIP: <strong id="convSumVipImp">%{vip_of_imp_pct}</strong> • Tık ➔ VIP: <strong id="convCum4">%{vip_of_vis_pct}</strong></span>
                   </div>
                 </div>
 
+          <!-- KATMAN 1: EDİNİM HUNİSİ (GÖSTERİM ➔ ZİYARET & TIK ➔ KURULUM) -->
           <div class="conv-bridge-grid">
             <!-- ADIM 1: MAĞAZA GÖSTERİMİ -->
             <div class="hero-stage-card">
@@ -9218,32 +9312,89 @@ def analytics_dashboard_page(
               </div>
               <div class="card-desc" id="kpiDesc3">{ps_all.get('downloads_sub', '')}</div>
             </div>
+          </div>
 
-            <!-- KÖPRÜ 3: İNDİRME ➔ VIP -->
-            <div class="conv-connector">
-              <span class="conv-conn-lbl">İndirme ➔ VIP</span>
-              <span class="conv-conn-pill" style="color:var(--stage-4); border-color:rgba(124,58,237,0.28);" id="convBridge3">%{vip_of_dl_pct} ➔</span>
+          <!-- KATMAN GEÇİŞ KÖPRÜSÜ: KURULUM ➔ BAŞLAYAN VIP -->
+          <div class="conv-tier-bridge">
+            <span class="conv-tier-lbl">⤵ Kurulumdan Aboneliğe Geçiş Hunisi (İndirme ➔ VIP ➔ İptaller / Churn ➔ Net Abone)</span>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span style="font-size:11px; color:var(--text-muted);">İndirme ➔ Başlayan VIP:</span>
+              <span class="conv-conn-pill" style="color:var(--stage-4); border-color:rgba(124,58,237,0.28);" id="convBridge3">%{ps_all.get('started_vip_of_dl_pct', 0)} ➔</span>
+              <span style="font-size:11px; color:var(--text-muted);">İndirme ➔ Net Abone:</span>
+              <span class="conv-conn-pill" style="color:var(--stage-6); border-color:rgba(13,148,136,0.28);" id="convBridge3Net">%{vip_of_dl_pct}</span>
             </div>
+          </div>
 
-            <!-- ADIM 4: AKTİF VIP & BEKLENEN NET MRR -->
+          <!-- KATMAN 2: ABONELİK, CHURN & NET ABONE HUNİSİ (BAŞLAYAN VIP ➔ İPTALLER / CHURN ➔ NET ABONE) -->
+          <div class="conv-bridge-grid">
+            <!-- ADIM 4: BAŞLAYAN VIP (TOPLAM KAYIT) -->
             <div class="hero-stage-card">
               <div>
                 <div class="card-label">
-                  <span id="kpiTitle4">4. Aktif VIP</span>
-                  <span class="delta-chip" id="kpiDelta4" style="background:rgba(124,58,237,0.12); color:var(--stage-4);">{fl['projected_total_mrr_net_try']:.2f} ₺/Ay</span>
+                  <span id="kpiTitle4">4. Başlayan VIP</span>
+                  <span class="delta-chip" id="kpiDelta4" style="background:rgba(124,58,237,0.12); color:var(--stage-4);">%{ps_all.get('started_vip_of_dl_pct', 0)} Kurulumdan</span>
                 </div>
                 <div class="kpi-hero-row">
-                  <div class="big-num" style="color:var(--stage-4);" id="kpiVip">{f_vip}</div>
+                  <div class="big-num" style="color:var(--stage-4);" id="kpiStartedVip">{ps_all.get('total_vip_count', f_vip)}</div>
                   {spark_vip_svg}
                 </div>
                 <div class="kpi-micro-meta" id="kpiMeta4">
+                  <span class="kpi-micro-chip">🍏 {ps_ios.get('total_vip_count', 0)} iOS Başlangıç</span>
+                  <span class="kpi-micro-chip">🤖 {ps_and.get('total_vip_count', 0)} Android Başlangıç</span>
+                </div>
+              </div>
+              <div class="card-desc" id="kpiDesc4">{ps_all.get('started_vip_sub', '')}</div>
+            </div>
+
+            <!-- KÖPRÜ 4: BAŞLAYAN VIP ➔ İPTALLER (CHURN) -->
+            <div class="conv-connector">
+              <span class="conv-conn-lbl">VIP ➔ Churn</span>
+              <span class="conv-conn-pill" style="color:var(--stage-5); border-color:rgba(220,38,38,0.28);" id="convBridge4">-%{ps_all.get('churn_rate_pct', 0)} ➔</span>
+            </div>
+
+            <!-- ADIM 5: İPTALLER & CHURN -->
+            <div class="hero-stage-card">
+              <div>
+                <div class="card-label">
+                  <span id="kpiTitle5">5. İptaller (Churn)</span>
+                  <span class="delta-chip" id="kpiDelta5" style="background:rgba(220,38,38,0.12); color:var(--stage-5);">%{ps_all.get('churn_rate_pct', 0)} Churn</span>
+                </div>
+                <div class="kpi-hero-row">
+                  <div class="big-num" style="color:var(--stage-5);" id="kpiCancelledVip">{ps_all.get('cancelled_vip_count', 0)}</div>
+                </div>
+                <div class="kpi-micro-meta" id="kpiMeta5">
+                  <span class="kpi-micro-chip">🍏 {ps_ios.get('cancelled_vip_count', 0)} iOS İptal</span>
+                  <span class="kpi-micro-chip">🤖 {ps_and.get('cancelled_vip_count', 0)} Android İptal</span>
+                  <span class="kpi-micro-chip">✖ %{ps_all.get('churn_rate_pct', 0)} Churn</span>
+                </div>
+              </div>
+              <div class="card-desc" id="kpiDesc5">{ps_all.get('cancelled_vip_sub', '')}</div>
+            </div>
+
+            <!-- KÖPRÜ 5: TUTUNDURMA (NET KORUNAN) -->
+            <div class="conv-connector">
+              <span class="conv-conn-lbl">Tutundurma</span>
+              <span class="conv-conn-pill" style="color:var(--stage-6); border-color:rgba(13,148,136,0.28);" id="convBridge5">%{ps_all.get('retention_rate_pct', 0)} ➔</span>
+            </div>
+
+            <!-- ADIM 6: NET AKTİF ABONE & BEKLENEN NET MRR -->
+            <div class="hero-stage-card" style="border-color:rgba(13,148,136,0.35) !important;">
+              <div>
+                <div class="card-label">
+                  <span id="kpiTitle6">6. Net Abone</span>
+                  <span class="delta-chip" id="kpiDelta6" style="background:rgba(13,148,136,0.12); color:var(--stage-6);">{fl['projected_total_mrr_net_try']:.2f} ₺/Ay</span>
+                </div>
+                <div class="kpi-hero-row">
+                  <div class="big-num" style="color:var(--stage-6);" id="kpiVip">{f_vip}</div>
+                  {spark_vip_svg}
+                </div>
+                <div class="kpi-micro-meta" id="kpiMeta6">
                   <span class="kpi-micro-chip">💳 {paid_conv} Ücretli</span>
                   <span class="kpi-micro-chip">⏳ {active_trials} Deneme</span>
                   <span class="kpi-micro-chip">🎟️ {offer_code_subs} Kod</span>
-                  <span class="kpi-micro-chip">✖ {fl.get('cancelled_subs_count', 0)} İptal (%{fl.get('churn_rate_pct', 0.0)} Churn)</span>
                 </div>
               </div>
-              <div class="card-desc" id="kpiDesc4">{ps_all.get('vip_sub', '')}</div>
+              <div class="card-desc" id="kpiDesc6">{ps_all.get('vip_sub', '')}</div>
             </div>
           </div>
         </div>
@@ -10035,11 +10186,17 @@ def analytics_dashboard_page(
           var elImp = document.getElementById('kpiImpressions');
           var elVis = document.getElementById('kpiVisitsClicks');
           var elDl = document.getElementById('kpiDownloads');
+          var elStartedVip = document.getElementById('kpiStartedVip');
+          var elCancelledVip = document.getElementById('kpiCancelledVip');
           var elVip = document.getElementById('kpiVip');
           if (elImp) elImp.textContent = p.impressions_display;
           if (elVis) elVis.textContent = p.touchpoints_display;
           if (elDl) elDl.textContent = p.downloads_display;
-          var vipNum = (p.vip_count !== undefined) ? p.vip_count : ((p.vip !== undefined) ? p.vip : String(p.vip_display || '').replace(' Aktif VIP', '').replace(' VIP', ''));
+          var startedVipNum = (p.total_vip_count !== undefined) ? p.total_vip_count : 0;
+          var cancelledVipNum = (p.cancelled_vip_count !== undefined) ? p.cancelled_vip_count : 0;
+          var vipNum = (p.vip_count !== undefined) ? p.vip_count : ((p.vip !== undefined) ? p.vip : String(p.vip_display || '').replace(' Net Abone', '').replace(' Aktif VIP', '').replace(' VIP', ''));
+          if (elStartedVip) elStartedVip.textContent = String(startedVipNum);
+          if (elCancelledVip) elCancelledVip.textContent = String(cancelledVipNum);
           if (elVip) {{
             elVip.textContent = String(vipNum);
           }}
@@ -10064,27 +10221,44 @@ def analytics_dashboard_page(
           renderMetaChips('kpiMeta2', p.meta_chips_2);
           renderMetaChips('kpiMeta3', p.meta_chips_3);
           renderMetaChips('kpiMeta4', p.meta_chips_4);
+          renderMetaChips('kpiMeta5', p.meta_chips_5);
+          renderMetaChips('kpiMeta6', p.meta_chips_6);
 
           var d1 = document.getElementById('kpiDesc1');
           var d2 = document.getElementById('kpiDesc2');
           var d3 = document.getElementById('kpiDesc3');
           var d4 = document.getElementById('kpiDesc4');
+          var d5 = document.getElementById('kpiDesc5');
+          var d6 = document.getElementById('kpiDesc6');
+          var dl1 = document.getElementById('kpiDelta1');
+          var dl2 = document.getElementById('kpiDelta2');
           var dl3 = document.getElementById('kpiDelta3');
           var dl4 = document.getElementById('kpiDelta4');
+          var dl5 = document.getElementById('kpiDelta5');
+          var dl6 = document.getElementById('kpiDelta6');
           var visOfImp = (p.vis_of_imp_pct !== undefined) ? p.vis_of_imp_pct : 0;
           var dlOfVis = (p.cvr_pct !== undefined) ? p.cvr_pct : 0;
           var dlOfImp = (p.dl_of_imp_pct !== undefined) ? p.dl_of_imp_pct : 0;
+          var startedVipOfDl = (p.started_vip_of_dl_pct !== undefined) ? p.started_vip_of_dl_pct : 0;
           var vipOfDl = (p.vip_of_dl_pct !== undefined) ? p.vip_of_dl_pct : 0;
           var vipOfVis = (p.vip_of_vis_pct !== undefined) ? p.vip_of_vis_pct : 0;
           var vipOfImp = (p.vip_of_imp_pct !== undefined) ? p.vip_of_imp_pct : 0;
+          var churnPct = (p.churn_rate_pct !== undefined) ? p.churn_rate_pct : 0;
+          var retPct = (p.retention_rate_pct !== undefined) ? p.retention_rate_pct : 0;
 
+          if (dl1 && p.delta_1) dl1.textContent = p.delta_1;
+          if (dl2 && p.delta_2) dl2.textContent = p.delta_2;
           if (dl3) dl3.textContent = 'CVR %' + dlOfVis;
-          if (dl4) dl4.textContent = Number(p.mrr_net_try || 0).toFixed(2) + ' ₺/Ay Net';
+          if (dl4) dl4.textContent = '%' + startedVipOfDl + ' Kurulumdan';
+          if (dl5) dl5.textContent = '%' + churnPct + ' Churn';
+          if (dl6) dl6.textContent = Number(p.mrr_net_try || 0).toFixed(2) + ' ₺/Ay Net';
 
           if (d1) d1.textContent = p.impressions_sub;
           if (d2) d2.textContent = p.touchpoints_sub;
           if (d3) d3.textContent = p.downloads_sub;
-          if (d4) d4.textContent = p.vip_sub + ' • ★ 5.0 (' + p.reviews_count + ' Yorum)';
+          if (d4) d4.textContent = p.started_vip_sub || p.vip_sub;
+          if (d5) d5.textContent = p.cancelled_vip_sub || '';
+          if (d6) d6.textContent = p.vip_sub + ' • ★ 5.0 (' + p.reviews_count + ' Yorum)';
 
           var csVipImp = document.getElementById('convSumVipImp');
           if (csVipImp) csVipImp.textContent = '%' + vipOfImp;
@@ -10094,13 +10268,25 @@ def analytics_dashboard_page(
           var cb2 = document.getElementById('convBridge2');
           var cb2Sub = document.getElementById('convBridge2Sub');
           var cb3 = document.getElementById('convBridge3');
+          var cb3Net = document.getElementById('convBridge3Net');
+          var cb4 = document.getElementById('convBridge4');
+          var cb5 = document.getElementById('convBridge5');
           var csStorePill = document.getElementById('convStoreCvrPill');
+          var csStartedPill = document.getElementById('convStartedVipDlPill');
+          var csChurnPill = document.getElementById('convChurnPill');
+          var csRetPill = document.getElementById('convRetentionPill');
           if (cb1) cb1.textContent = '%' + visOfImp + ' ➔';
           if (cb1Sub && p.imp_breakdown_label) cb1Sub.textContent = p.imp_breakdown_label;
           if (cb2) cb2.textContent = '%' + dlOfVis + ' ➔';
           if (cb2Sub && p.cvr_breakdown_label) cb2Sub.textContent = p.cvr_breakdown_label;
-          if (cb3) cb3.textContent = '%' + vipOfDl + ' ➔';
+          if (cb3) cb3.textContent = '%' + startedVipOfDl + ' ➔';
+          if (cb3Net) cb3Net.textContent = '%' + vipOfDl;
+          if (cb4) cb4.textContent = '-%' + churnPct + ' ➔';
+          if (cb5) cb5.textContent = '%' + retPct + ' ➔';
           if (csStorePill && p.store_cvr_pct !== undefined) csStorePill.textContent = '%' + p.store_cvr_pct;
+          if (csStartedPill) csStartedPill.textContent = '%' + startedVipOfDl;
+          if (csChurnPill) csChurnPill.textContent = '%' + churnPct;
+          if (csRetPill) csRetPill.textContent = '%' + retPct;
 
           var cc4 = document.getElementById('convCum4');
           if (cc4) cc4.textContent = '%' + vipOfVis;

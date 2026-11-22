@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.9-cockpit-6-stage-funnel] - 2026-11-22 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` 2 Katmanlı `3+3` 6 Aşamalı Dönüşüm Hunisi: `1. Gösterim ➔ 2. Ziyaret & Tık ➔ 3. Kurulum ➔ 4. Başlayan VIP ➔ 5. İptaller (Churn) ➔ 6. Net Abone` • 🟢 Yeni Native EAS Build Gerekmez)
+### 🎯📊 Kurucu Kokpiti (`/admin/analytics`) 2 Katmanlı (3+3) 6 Aşamalı Dönüşüm Hunisi (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **Piksel Matematiği & 2 Katmanlı (3 Edinim + 3 Abonelik/Churn) Huni Mimarisi:**
+   - 6 kart + 5 bağlayıcı okun (11 grid kolonu) tek yatay satırda `1440px`/`1280px` laptop ekranlarında kart başına `83px–110px` alana sıkışıp büyük sayıları ve sparkline SVG'lerini kesmesini önlemek amacıyla huni, kart başına `~305px` ferah genişlik sunan **2 Katmanlı (3+3) Bağlı Huni** mimarisine dönüştürüldü:
+     - **Üst Katman (Edinim Hunisi):** `1. Gösterim` ➔ `(%{vis_of_imp_pct})` ➔ `2. Ziyaret & Tık` ➔ `(%{dl_of_vis_pct})` ➔ `3. Kurulum`
+     - **Katman Geçiş Köprüsü (`.conv-tier-bridge`):** `⤵ İndirme ➔ Başlayan VIP: %{started_vip_of_dl_pct}` (`convBridge3`) ve `İndirme ➔ Net Abone: %{vip_of_dl_pct}` (`convBridge3Net`)
+     - **Alt Katman (Abonelik, Churn & Net Tutundurma Hunisi):** `4. Başlayan VIP` (`total_vip_count`) ➔ `(-%{churn_rate_pct} Churn)` (`convBridge4`) ➔ `5. İptaller (Churn)` (`cancelled_vip_count`) ➔ `(%{retention_rate_pct} Tutundurma)` (`convBridge5`) ➔ `6. Net Abone` (`vip_count` & Beklenen Net MRR)
+2. **Renk Semantiği (`--stage-5`, `--stage-6`) ve Tam Platform (`all`, `ios`, `android`) Senkronizasyonu:**
+   - `--stage-5: #DC2626` (koyu modda `#F87171` — Churn Rose Kırmızısı) ve `--stage-6: #0D9488` (koyu modda `#2DD4BF` — Net Abone Teal/Turkuaz) tanımlanarak `3. Kurulum` (`--stage-3: #059669`) ile görsel çakışma önlendi.
+   - `platform_split["all" | "ios" | "android"]` içerisine `started_vip_of_dl_pct`, `retention_rate_pct`, `delta_1`, `delta_2`, `meta_chips_4` (Başlayan VIP), `meta_chips_5` (İptaller / Churn), `meta_chips_6` (Net Abone: Ücretli / Deneme / Kod) eklendi; `switchPlatform()` içinde 6 kart, 6 delta rozeti (`kpiDelta1..6`), 6 mikro-chip kutusu (`kpiMeta1..6`) ve 5 köprü (`convBridge1..5`) tam senkronize edildi.
+   - **Claude Code CLI (`task-263` mimari analiz + `task-272` kapsamlı UI/UX & piksel bütçesi denetimi + `task-311`/`task-329` uygulama sonrası diff denetimi: `CLAUDE_REVIEW_VERDICT: PASS`)** + **Antigravity (`69/69 pytest` `task-328`)**.
+
 ## [4.56.8-cockpit-churn-and-android-telemetry-impressions] - 2026-11-22 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` İptal & `%Churn` Rozetleri, `DamlaEge2026` Kodlu Kayıt Onarımı ve Android Mağaza Gösterimi / Sayfa Ziyareti + Organik Bio Trafik Restorasyonu • 🟢 Yeni Native EAS Build Gerekmez)
 ### 📊🤖 Kurucu Kokpiti (`/admin/analytics`) İptal & Churn Görünürlüğü, Promosyon Kodu Mutabakatı ve Android Gösterim/Ziyaret Konsolidasyonu (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **4. Aktif VIP Kartında (`meta_chips_4`) İptallerin ve `%Churn` Oranının Gösterilmesi & `"📦 2 Paket"` Kaldırımı:**
