@@ -1,4 +1,9 @@
-# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.55.0 Railway Canlıda • Mağaza İlk Ay ₺49,99 Aktif • Build 71 EAS Derlemesinde)
+# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.56.12 Railway Canlıda • Apple Build 72 İncelemede • Google Play 3 Dil Ebeveyn Asistanı Canlıda)
+
+> **🔔📌 `Build 73` Native Derleme Kuyruğu Hatırlatıcısı (Apple `Build 72` Onayı Sonrası İlk Native Build'de Çıkılacaklar — 2026-11-22):**
+> - **10'lu Yaşa/Güne/Duruma Duyarlı Akıllı Bildirim Rotasyon Motoru (`mobile/features/notifications/careNotificationEngine.ts`, `mobile/components/MishilUnifiedWebView.tsx`, `mobile/features/webview/offlineHtml.generated.ts`):**
+>   - `v4.56.12` (`afb190e`) ile git deposuna (`origin/main`) ve WebView (`app.html`) ayarlarına eklendi.
+>   - Native TypeScript (`expo-notifications` OS takvim planlayıcısı) katmanında çalıştığı için, Apple `v4.56.0 (Build 72)` incelemesi tamamlandıktan sonra alınacak **`Build 73` (iOS + Android)** native EAS derlemesiyle telefonların işletim sistemi bildirim kuyruğuna (`ROUTINE_SLEEP_VARIANTS` 10'lu rotasyon + `isLiveSleepingToday` + `completedVaccineMonths` + `routineFrequency`) gömülecektir.
 
 > **🚀💎 `v4.55.0` (`Build 71`) Sıfır Freemium (Hard Paywall) & İlk Ay `₺49,99` Ücretli Başlangıç Paketi (2026-11-20 — Railway Canlıda + Mağaza Aktif + Build 71 EAS Kuyruğunda):**
 > - **Model Geçişi:** Freemium (`FREE_SOUND_PREVIEW_TOTAL_MS = 0`, `SOFT_VIP_DURATION_MS = 0`, `#onboarding-skip-wrap` kapatıldı) ve 7 Gün Ücretsiz Deneme (`Bugün ₺0`) `TR / EN / DE` 3 dilde ve 174 ülkede tamamen emekli edildi.
