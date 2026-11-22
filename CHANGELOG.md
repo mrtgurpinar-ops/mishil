@@ -2,7 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
-## [4.56.7-30-studio-master-sounds-and-ogg-fix] - 2026-11-22 (Yerel Geliştirme — 18 Sesin 30 Stüdyo Master Sese Genişletilmesi, `brahms_lullaby`/`moonlight_lullaby` Ogg Vorbis ➔ Gerçek MP3 iOS AVPlayer Onarımı, 4 Yanlış Etiketli Sesin Yeniden Mastering'i & 3 Dil `TR/EN/DE` Tam Katalog Paritesi • 🟢 Yeni Native EAS Build Gerekmez)
+## [4.56.8-cockpit-churn-and-android-telemetry-impressions] - 2026-11-22 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` İptal & `%Churn` Rozetleri, `DamlaEge2026` Kodlu Kayıt Onarımı ve Android Mağaza Gösterimi / Sayfa Ziyareti + Organik Bio Trafik Restorasyonu • 🟢 Yeni Native EAS Build Gerekmez)
+### 📊🤖 Kurucu Kokpiti (`/admin/analytics`) İptal & Churn Görünürlüğü, Promosyon Kodu Mutabakatı ve Android Gösterim/Ziyaret Konsolidasyonu (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **4. Aktif VIP Kartında (`meta_chips_4`) İptallerin ve `%Churn` Oranının Gösterilmesi & `"📦 2 Paket"` Kaldırımı:**
+   - Android sekmesinde kafa karıştıran `"📦 2 Paket"` rozeti kaldırılarak her üç platform sekmesinde de (`🌐 Tümü`, `🍏 iOS`, `🤖 Android`) iptal sayısı ve churn yüzdesi (`✖ {cancelled} İptal (%{churn} Churn)`) eklendi; `financial_ledger["churn_rate_pct"]`, `cumulative_kpis["vip_churn_rate_pct"]`, `platform_split[plat]["churn_rate_pct"]`, `📒 Abone Defteri` başlığı ve `⚖️ iOS vs Android Kıyaslama` çekmecesi senkronize edildi.
+2. **`DamlaEge2026` Kodlu (`#595636574492241`, `2027-10-20` Vadeli) iOS Kaydının `"Kod"` (`offer_code_trial`) Olarak Mutabakatı:**
+   - `_reconcile_ios_ledger_and_cancellations()` içinde `DamlaEge2026` / özel promosyon kodlu veya `> 45 gün` vadeli `0 ₺` kayıtların `intro_free_trial` yerine `status = "offer_code_trial"` (`offer_type = "offer_code"`) olarak onarılması sağlandı; böylece kümülatif deneme sayacı yalnızca Android'deki aktif denemeyi (`1 Deneme`) ve kod sayacı `5 Kod`'u gösterecek şekilde düzeltildi.
+3. **Yalnızca Eski Reklam (`/ios` / `fbclid`) Köprüsünün Sıfırlanması & Android Mağaza Gösterimi / Sayfa Ziyareti + Organik Bio Trafik Koruması:**
+   - `ensure_historical_seed` içindeki köprü sıfırlama filtresi `(BridgeClick.route_path != "/download") | (BridgeClick.has_fbclid.is_(True))` olarak daraltıldı; organik `/download` (Instagram Bio) tıklamaları korundu ve geçmiş silinen Bio tıklamaları için `AppInstallSignal` tablosundaki doğrulanmış `matched_channel == "instagram_bio"` kurulumları (`74 Android + 37 iOS`) taban olarak bağlandı.
+   - Google Play Console `r14` eşdeğeri API sunmadığında ve `StoreDailyMetric(platform="android")` henüz `0` iken, doğrulanmış canlı Android telemetrisi (`first_open` / `paywall_viewed`) mevcutsa mağaza gösterimi ve sayfa ziyaretinin `0` kalmaması sağlandı.
+   - **Claude Code CLI (`task-112` kök neden analizi + `task-191` uygulama sonrası kod ve test denetimi: `CLAUDE_REVIEW_VERDICT: PASS`)** + **Antigravity (`69/69 pytest` `task-190`)**.
+
+## [4.56.7-30-studio-master-sounds-and-ogg-fix] - 2026-11-22 (Railway Canlı Yayın — 18 Sesin 30 Stüdyo Master Sese Genişletilmesi, `brahms_lullaby`/`moonlight_lullaby` Ogg Vorbis ➔ Gerçek MP3 iOS AVPlayer Onarımı, 4 Yanlış Etiketli Sesin Yeniden Mastering'i & 3 Dil `TR/EN/DE` Tam Katalog Paritesi • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🎵🎧 30 Stüdyo Master Ses Kütüphanesi & Akustik Mastering Motoru (`scripts/master_30_studio_sounds.py`, `mobile/web-preview/sounds/*.mp3`, `public/app.html`, `mobile/app/(tabs)/sounds.tsx`, `app/api/v1/endpoints/sounds.py`, `app/models/enums.py`)
 1. **Mevcut 18 Seste Tespit Edilen 5 Kritik Kusurun Onarımı:**
    - **iOS AVPlayer Ogg Vorbis Hatası (`brahms_lullaby.mp3`, `moonlight_lullaby.mp3`):** Uzantısı `.mp3` olup içeriği `OggS / Vorbis` olan ve iOS `AVPlayer` üzerinde sessiz kalma riski taşıyan 2 dosya gerçek `libmp3lame` CBR 192kbps, 44.1kHz Stereo (`ID3v2.3`) formatına dönüştürüldü.

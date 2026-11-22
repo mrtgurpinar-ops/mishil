@@ -351,8 +351,24 @@ def test_historical_bridge_clicks_purged_once_and_meta_app_installs_sdk_state(db
             target_store="google_play",
             is_bot=False,
             is_unique=True,
+            has_fbclid=False,
             country="TR",
             ip_masked="1.2.4.xxx#2222",
+            created_at=old_ts,
+        ),
+        BridgeClick(
+            route_path="/download",
+            channel="meta_ads",
+            os_family="android",
+            device_detail="Android Phone",
+            app_webview="Facebook App",
+            target_store="google_play",
+            is_bot=False,
+            is_unique=True,
+            has_fbclid=True,
+            fbclid="IwAR_old_ad_click",
+            country="TR",
+            ip_masked="1.2.9.xxx#9999",
             created_at=old_ts,
         ),
         BridgeClick(
@@ -384,16 +400,16 @@ def test_historical_bridge_clicks_purged_once_and_meta_app_installs_sdk_state(db
     ])
     db_session.commit()
 
-    # Göç çalıştığında eski 3 tıklama (/ios, /download, /android) silinmeli, yeni /download tıklaması kalmalı
+    # Göç çalıştığında eski reklam/diğer 3 tıklama (/ios, fbclid'li /download, /android) silinmeli;
+    # organik /download (has_fbclid=False) tıklamaları korunmalı (1 eski organik + 1 yeni organik = 2)
     os.environ["MISIL_FORCE_BRIDGE_RESET_IN_TEST"] = "1"
     try:
         ensure_historical_seed(db_session)
     finally:
         os.environ.pop("MISIL_FORCE_BRIDGE_RESET_IN_TEST", None)
     remaining_clicks = db_session.query(BridgeClick).all()
-    assert len(remaining_clicks) == 1
-    assert remaining_clicks[0].route_path == "/download"
-    assert remaining_clicks[0].ip_masked == "5.6.7.xxx#3333"
+    assert len(remaining_clicks) == 2
+    assert all(rc.route_path == "/download" and not rc.has_fbclid for rc in remaining_clicks)
 
     marker = db_session.query(StoreSyncState).filter(StoreSyncState.state_key == BRIDGE_RESET_V4564_STATE_KEY).first()
     assert marker is not None
@@ -401,8 +417,8 @@ def test_historical_bridge_clicks_purged_once_and_meta_app_installs_sdk_state(db
 
     invalidate_analytics_summary_cache(mark_reconcile=False)
     summary_before_sdk = get_resilient_analytics_summary(db_session, period="all", use_cache=False)
-    assert summary_before_sdk["total_unique_human"] == 1
-    assert summary_before_sdk["instagram_bio"]["unique_clicks"] == 1
+    assert summary_before_sdk["total_unique_human"] == 2
+    assert summary_before_sdk["instagram_bio"]["unique_clicks"] == 2
     assert summary_before_sdk["instagram_bio"]["is_sole_active_bridge"] is True
     assert summary_before_sdk["meta_ads"]["unique_clicks"] == 0
 
@@ -529,6 +545,159 @@ def test_android_store_metrics_consolidation_no_fake_100_cvr_and_clean_executive
     assert "App ID: 1093539003520092" not in html_txt
     assert "🤖 APP_INSTALLS Aktif" not in html_txt
     assert "Opt-in r8" not in html_txt
+
+
+def test_churn_chips_promo_code_reconcile_and_android_telemetry_derived_impressions(client, db_session):
+    """
+    1) 4. Aktif VIP kartındaki meta_chips_4 rozetlerinde '2 Paket' yerine tüm platformlarda (all, ios, android)
+       iptal sayısı ve churn yüzdesinin ('✖ X İptal (%Y Churn)') yer aldığını doğrular.
+    2) DamlaEge2026 kodlu (2027-10-20 vadeli) olup intro_free_trial kalmış iOS #595636574492241 kaydının
+       _reconcile_ios_ledger_and_cancellations ile 'offer_code_trial' olarak onarıldığını doğrular.
+    3) Doğrulanmış Android telemetrisi (first_open + instagram_bio eşleşmesi + paywall_viewed) mevcutken
+       StoreDailyMetric(android) gösterimi 0 olsa dahi Android mağaza gösterimi, mağaza ziyareti ve Bio
+       profil trafiğinin 0 kalmadığını doğrular.
+    """
+    from datetime import datetime, timezone
+    from app.db.models import AppInstallSignal, BridgeClick, StoreDailyMetric, SubscriberLedger
+    from app.api.v1.endpoints.analytics import (
+        get_resilient_analytics_summary,
+        invalidate_analytics_summary_cache,
+    )
+
+    db_session.query(BridgeClick).delete()
+    db_session.query(AppInstallSignal).delete()
+    db_session.query(StoreDailyMetric).delete()
+    db_session.query(SubscriberLedger).delete()
+    db_session.commit()
+
+    db_session.add_all([
+        StoreDailyMetric(
+            metric_date="2026-11-20",
+            platform="ios",
+            impressions=10928,
+            impressions_unique=7685,
+            page_views=1062,
+            page_views_unique=829,
+            downloads_total=181,
+            active_sessions=90,
+        ),
+        StoreDailyMetric(
+            metric_date="2026-11-20",
+            platform="android",
+            impressions=0,
+            impressions_unique=0,
+            page_views=0,
+            page_views_unique=0,
+            downloads_total=225,
+            active_sessions=0,
+        ),
+    ])
+
+    now_ts = datetime(2026, 11, 22, 10, 0, 0, tzinfo=timezone.utc)
+    db_session.add_all([
+        AppInstallSignal(
+            device_uid="and_bio_1",
+            event_type="first_open",
+            os_family="android",
+            platform="android_native",
+            app_version="4.55.0",
+            country="TR",
+            matched_channel="instagram_bio",
+            match_confidence="high",
+            created_at=now_ts,
+        ),
+        AppInstallSignal(
+            device_uid="and_pw_1",
+            event_type="paywall_viewed",
+            os_family="android",
+            platform="android_native",
+            app_version="4.55.0",
+            country="TR",
+            matched_channel="organic_or_asa",
+            match_confidence="unmatched",
+            created_at=now_ts,
+        ),
+        SubscriberLedger(
+            subscriber_id="595636574492241",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Yıllık VIP",
+            status="intro_free_trial",
+            offer_type="intro_7d_trial",
+            offer_code_name="DamlaEge2026",
+            started_date="2026-10-20",
+            maturity_or_renewal_date="2027-10-20",
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=599.99,
+            expected_next_proceeds_try=332.50,
+            country="TR",
+            device_type="iPhone",
+        ),
+        SubscriberLedger(
+            subscriber_id="GPA.3393-7847-2790-81158",
+            platform="android",
+            product_id="misilaylik",
+            plan_label="Mışıl Baby Aylık VIP",
+            status="intro_free_trial",
+            offer_type="intro_7d_trial",
+            offer_code_name="Deneme / Promosyon (Google Play)",
+            started_date="2026-11-19",
+            maturity_or_renewal_date="2026-11-26",
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=149.99,
+            expected_next_proceeds_try=109.04,
+            country="TR",
+            device_type="Android",
+        ),
+        SubscriberLedger(
+            subscriber_id="GPA.3300-4310-2609-37553",
+            platform="android",
+            product_id="misilaylik",
+            plan_label="Mışıl Baby Aylık VIP",
+            status="cancelled",
+            offer_type="intro_7d_trial",
+            offer_code_name="İptal / 72s Onaysız (Google Play)",
+            started_date="2026-11-18",
+            maturity_or_renewal_date="2026-11-25",
+            auto_renew_enabled=False,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=0.0,
+            expected_next_proceeds_try=0.0,
+            country="TR",
+            device_type="Android",
+        ),
+    ])
+    db_session.commit()
+
+    invalidate_analytics_summary_cache(mark_reconcile=True)
+    summary = get_resilient_analytics_summary(db_session, period="all", use_cache=False)
+    fl = summary["financial_ledger"]
+    ps_all = summary["platform_split"]["all"]
+    ps_ios = summary["platform_split"]["ios"]
+    ps_and = summary["platform_split"]["android"]
+
+    # 1) DamlaEge2026 kaydı offer_code_trial'a onarılmış olmalı; yalnız 1 aktif deneme (Android) kalmalı
+    assert fl["offer_code_subs_count"] == 1
+    assert fl["pipeline_7d_trials_count"] == 1
+    assert fl["cancelled_subs_count"] == 1
+    assert fl["churn_rate_pct"] == round((1 / 3) * 100, 1)
+
+    # 2) meta_chips_4 tüm platformlarda Churn/İptal göstermeli ve 'Paket' içermemeli
+    assert any("Churn" in ch and "İptal" in ch for ch in ps_all["meta_chips_4"])
+    assert any("Churn" in ch and "İptal" in ch for ch in ps_ios["meta_chips_4"])
+    assert any("Churn" in ch and "İptal" in ch for ch in ps_and["meta_chips_4"])
+    assert not any("Paket" in ch for ch in ps_and["meta_chips_4"])
+
+    # 3) Canlı Android telemetrisi varken Android mağaza gösterimi ve sayfa ziyareti > 0 türetilmeli
+    assert ps_and["impressions"] > 0
+    assert ps_and["touchpoints"] > 0
+    assert summary["instagram_bio"]["android_clicks"] >= 1
+
 
 
 
