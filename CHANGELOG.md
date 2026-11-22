@@ -2,6 +2,19 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.3-cockpit-subscription-reconcile] - 2026-11-22 (Railway Canlı Yayın — Kurucu Kokpiti Abonelik, `Reactivate with Downgrade` `RC_T0_*` Tekilleştirmesi, `will_not_renew` Deneme/Ücretli Mutabakatı ve Ülke MRR Paritesi Onarımı • 🟢 Yeni Native EAS Build Gerekmez)
+### 📊 Kurucu Kokpiti (`/admin/analytics`) Abonelik & Gelir Mutabakat Motoru Onarımı (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **`Reactivate with Downgrade` 2 Aşamalı 1-e-1 `RC_T0_*` Köprü Tekilleştirmesi (`_reconcile_ios_ledger_and_cancellations` & `sync_revenuecat_v2_production_bridge`):**
+   - Geçmişte yıllık deneme başlatıp iptal ettikten sonra başka bir gün aylık pakete geçen (`Reactivate with Downgrade`) Apple abonelerinde (`started_date != converted_or_renewed_date`), geçici `RC_T0_*` köprü satırının resmi Apple `SUBSCRIBER` satırıyla 2 aşamalı 1-e-1 eşleşmeyle (`started_date` ve ardından `converted_or_renewed_date` / `maturity_or_renewal_date`) tekilleştirilmesi sağlandı; silinen `RC_T0_*` satırındaki `rc_app_user_id` ve `auto_renew_enabled=False` (`will_not_renew`) durumu resmi Apple satırına devredilerek çifte tahsilat sayımı (`+149.99 ₺ Brüt / +83.12 ₺ Net` sapması) giderildi.
+2. **Ücretli ve 7G Deneme (`trialing`) iOS Abonelerinde `will_not_renew` & Reconcile Adım 3 Koruması:**
+   - `sync_revenuecat_v2_production_bridge()` içinde hem ücretli (`paid_active`) hem de 7G deneme (`trialing`) aşamasındaki iOS abonelerinin RevenueCat V2 `will_not_renew` / `unsubscribe_detected` sinyalleri yakalanarak `{subscriber_id}:will_not_renew` yaşam döngüsü olayıyla kalıcılaştırıldı.
+   - `_reconcile_ios_ledger_and_cancellations()` Adım 3'te, Apple `SUBSCRIPTION (1_3)` raporunun 7 günlük deneme vadesi dolana kadar aktif saymaya devam ettiği `will_not_renew` denemeleri `effective_trials_target` hedefinden düşüldü ve `restorable` havuzundan kesin olarak dışlandı.
+3. **`/subscriber-sync` Tarih Ezmesi ve Ülke MRR Paritesi Onarımı:**
+   - `/api/v1/analytics/subscriber-sync` uç noktasında mevcut `converted_or_renewed_date` değerinin `today_str` ile ezilmesi ve resmi Apple satırı varken mükerrer `RC_T0_*` üretilmesi engellendi.
+   - `country_revenue_breakdown` içinde vadesi 1 yıl sonra (Ekim 2027) dolacak `offer_code_trial` (`DamlaEge2026 ➔ Aylık VIP`) geçişlerinin güncel aylık MRR'ye eklenmesi kaldırılarak ülke tablosu MRR toplamı ile üst KPI kartındaki `projected_total_mrr_net_try` kuruşu kuruşuna eşitlendi.
+4. **Konsensüs & Doğrulama Kapısı (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-100` kök neden & kenar durumu denetimi + `task-143` uygulama sonrası doğrulama: Onay)** + **Codex CLI (`gpt-6-luna`, `task-110`: Kota sınırına takıldı — `AGENTS.md §1.4` Fallback)** + **Antigravity (`33/33 pytest` `task-135`, `TestClient` `GET /api/v1/analytics/dashboard` `200 OK`)**.
+
 ## [4.56.2-ai-quota-pool] - 2026-11-22 (Yerel Geliştirme — Mışıl Dadı & Ağlama Analizi Çoklu Gemini API Key Havuzu, CGNAT/Ev Wi-Fi Kota İzolasyonu ve Proxy IP Darboğazı Onarımı • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🤖 Mışıl Dadı & Ağlama Analizi AI Kota, Kapasite ve Key Havuzu Paketi (`app/services/ai_sleep_coach.py`, `app/services/cry_analysis.py`, `app/api/v1/endpoints/coach.py`, `app/api/v1/endpoints/cry_analysis.py`, `app/main.py`, `tests/test_cry_analysis.py`)
 1. **Bellek İçi Çoklu Gemini API Anahtar Havuzu & Sıfır Disk I/O (`_get_gemini_api_key_pool`):**

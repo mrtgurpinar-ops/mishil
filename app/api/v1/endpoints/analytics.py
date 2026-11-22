@@ -1149,6 +1149,7 @@ def sync_revenuecat_v2_production_bridge(
     t0_bridge_upserts = 0
     pending_crossgrades: List[Dict[str, Any]] = []
     ios_paid_will_not_renew: List[Dict[str, Any]] = []
+    ios_trial_will_not_renew: List[Dict[str, Any]] = []
 
     for cid in candidate_cids:
         c_subs = subs_by_cid.get(cid) or []
@@ -1189,15 +1190,31 @@ def sync_revenuecat_v2_production_bridge(
                         "product_id": prod_id,
                         "country": v_sub["country"],
                     })
+                elif rc_status in ("trialing", "active") and ar_status in ("will_not_renew", "unsubscribe_detected") and float(v_sub.get("gross_usd") or 0.0) <= 0:
+                    ios_trial_will_not_renew.append({
+                        "customer_id": cid,
+                        "store_subscription_identifier": store_sub_id,
+                        "started_date": st_date,
+                        "ends_at_date": exp_date,
+                        "product_id": prod_id,
+                        "country": v_sub["country"],
+                    })
                 # Apple 1 günlük gecikme (T-0) köprüsü: Sadece latest_apple_report_date'den yeni olanları köprüle
                 if latest_apple_report_date and st_date > latest_apple_report_date and store_sub_id:
                     bridge_sid = f"RC_T0_{store_sub_id}"[:128]
+                    official_match_clauses = [
+                        SubscriberLedger.started_date == st_date,
+                        SubscriberLedger.converted_or_renewed_date == st_date,
+                    ]
+                    if exp_date:
+                        official_match_clauses.append(SubscriberLedger.maturity_or_renewal_date == exp_date)
+                    from sqlalchemy import or_ as sa_or
                     official_cnt = (
                         db.query(SubscriberLedger)
                         .filter(
                             SubscriberLedger.platform == "ios",
                             SubscriberLedger.product_id == prod_id,
-                            SubscriberLedger.started_date == st_date,
+                            sa_or(*official_match_clauses),
                             ~SubscriberLedger.subscriber_id.like("RC_T0_%"),
                         )
                         .count()
@@ -1396,28 +1413,50 @@ def sync_revenuecat_v2_production_bridge(
             .order_by(SubscriberLedger.started_date.asc(), SubscriberLedger.subscriber_id.asc())
             .all()
         )
+        # Resmi Apple satırlarını (~RC_T0_%) geçici köprü satırlarından önce eşleştir
+        paid_ios_rows.sort(
+            key=lambda r: (
+                1 if str(r.subscriber_id or "").startswith("RC_T0_") else 0,
+                r.started_date or "",
+                r.subscriber_id or "",
+            )
+        )
         matched_wnr_ids = set()
         for wnr in ios_paid_will_not_renew:
+            wnr_cid = str(wnr.get("customer_id") or "")[:128]
             wnr_st = wnr.get("started_date") or ""
+            wnr_conv = wnr.get("converted_date") or wnr_st
+            wnr_end = wnr.get("ends_at_date") or ""
             wnr_pid = wnr.get("product_id") or ""
             wnr_cc = wnr.get("country") or "TR"
             target_paid = next(
                 (
                     r for r in paid_ios_rows
                     if r.subscriber_id not in matched_wnr_ids
-                    and (r.started_date == wnr_st or not wnr_st)
-                    and ((r.country or "TR").upper() == wnr_cc)
+                    and (
+                        (wnr_cid and r.rc_app_user_id == wnr_cid)
+                        or (
+                            (
+                                r.started_date == wnr_st
+                                or r.converted_or_renewed_date == wnr_st
+                                or r.converted_or_renewed_date == wnr_conv
+                                or (wnr_end and r.maturity_or_renewal_date == wnr_end)
+                                or not wnr_st
+                            )
+                            and ((r.country or "TR").upper() == wnr_cc)
+                        )
+                    )
                 ),
                 None,
             )
             if target_paid:
                 matched_wnr_ids.add(target_paid.subscriber_id)
-                target_paid.rc_app_user_id = str(wnr["customer_id"])[:128]
+                target_paid.rc_app_user_id = wnr_cid or target_paid.rc_app_user_id
                 if wnr_pid in ("misil_monthly", "misil_annual") and target_paid.product_id != wnr_pid:
                     target_paid.product_id = wnr_pid
                     target_paid.plan_label = "Yıllık VIP" if _is_annual_product(wnr_pid) else "Aylık Esnek VIP"
-                if wnr.get("ends_at_date"):
-                    target_paid.maturity_or_renewal_date = wnr["ends_at_date"]
+                if wnr_end:
+                    target_paid.maturity_or_renewal_date = wnr_end
                 target_paid.auto_renew_enabled = False
                 target_paid.expected_next_price_try = 0.0
                 target_paid.expected_next_proceeds_try = 0.0
@@ -1433,13 +1472,87 @@ def sync_revenuecat_v2_production_bridge(
                 if dup_wnr is None:
                     db.add(
                         SubscriptionLifecycleEvent(
-                            event_date=wnr.get("converted_date") or wnr_st or datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                            event_date=wnr_conv or wnr_st or datetime.now(timezone.utc).strftime("%Y-%m-%d"),
                             platform="ios",
                             event_type=wnr_ev_key,
                             product_id=target_paid.product_id,
                             plan_label=target_paid.plan_label,
                             country=target_paid.country or "TR",
                             device_type=target_paid.device_type or "iPhone",
+                            quantity=1,
+                        )
+                    )
+
+    # iOS 7G deneme (trialing) aşamasında olup RevenueCat V2'de oto-yenilemesini kapatmış (will_not_renew) aboneleri işaretle
+    if ios_trial_will_not_renew:
+        trial_ios_rows: List[SubscriberLedger] = (
+            db.query(SubscriberLedger)
+            .filter(
+                SubscriberLedger.platform == "ios",
+                SubscriberLedger.status.in_(["intro_free_trial", "cancelled"]),
+                SubscriberLedger.offer_type == "intro_7d_trial",
+            )
+            .order_by(SubscriberLedger.started_date.asc(), SubscriberLedger.subscriber_id.asc())
+            .all()
+        )
+        trial_ios_rows.sort(
+            key=lambda r: (
+                1 if str(r.subscriber_id or "").startswith("RC_T0_") else 0,
+                0 if r.status == "intro_free_trial" else 1,
+                r.started_date or "",
+                r.subscriber_id or "",
+            )
+        )
+        matched_t_wnr_ids = set()
+        for t_wnr in ios_trial_will_not_renew:
+            t_cid = str(t_wnr.get("customer_id") or "")[:128]
+            t_st = t_wnr.get("started_date") or ""
+            t_end = t_wnr.get("ends_at_date") or ""
+            t_pid = t_wnr.get("product_id") or ""
+            t_cc = t_wnr.get("country") or "TR"
+            target_trial = next(
+                (
+                    r for r in trial_ios_rows
+                    if r.subscriber_id not in matched_t_wnr_ids
+                    and (
+                        (t_cid and r.rc_app_user_id == t_cid)
+                        or (
+                            (r.started_date == t_st or (t_end and r.maturity_or_renewal_date == t_end))
+                            and (not t_pid or r.product_id == t_pid)
+                            and ((r.country or "TR").upper() == t_cc)
+                        )
+                    )
+                ),
+                None,
+            )
+            if target_trial:
+                matched_t_wnr_ids.add(target_trial.subscriber_id)
+                target_trial.rc_app_user_id = t_cid or target_trial.rc_app_user_id
+                if t_end:
+                    target_trial.maturity_or_renewal_date = t_end
+                target_trial.status = "cancelled"
+                target_trial.auto_renew_enabled = False
+                target_trial.expected_next_price_try = 0.0
+                target_trial.expected_next_proceeds_try = 0.0
+                t_wnr_ev_key = f"{target_trial.subscriber_id}:will_not_renew"[:128]
+                dup_t_wnr = (
+                    db.query(SubscriptionLifecycleEvent.id)
+                    .filter(
+                        SubscriptionLifecycleEvent.platform == "ios",
+                        SubscriptionLifecycleEvent.event_type == t_wnr_ev_key,
+                    )
+                    .first()
+                )
+                if dup_t_wnr is None:
+                    db.add(
+                        SubscriptionLifecycleEvent(
+                            event_date=t_st or datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                            platform="ios",
+                            event_type=t_wnr_ev_key,
+                            product_id=target_trial.product_id,
+                            plan_label=target_trial.plan_label,
+                            country=target_trial.country or "TR",
+                            device_type=target_trial.device_type or "iPhone",
                             quantity=1,
                         )
                     )
@@ -1558,22 +1671,86 @@ def _reconcile_ios_ledger_and_cancellations(
     if not ios_rows:
         return changed
 
-    # 0b) Apple TSV (SUBSCRIBER 1_3) resmi kaydı ulaştığında, o gün için açılmış geçici RC_T0_* köprü kaydını sayısal kohort (Counter) ile tekilleştir
-    official_cohort_counts: Counter = Counter()
-    for r in ios_rows:
-        if not str(r.subscriber_id or "").startswith("RC_T0_"):
-            official_cohort_counts[(r.product_id or "misil_monthly", r.started_date or "")] += 1
+    # 0b) Apple TSV (SUBSCRIBER 1_3) resmi kaydı ulaştığında, o gün için açılmış geçici RC_T0_* köprü kaydını
+    # 2 aşamalı 1-e-1 eşleşmeyle (1: aynı started_date, 2: Reactivate/Downgrade converted_or_renewed_date / vade) tekilleştir
+    official_ios_rows = [r for r in ios_rows if not str(r.subscriber_id or "").startswith("RC_T0_")]
+    bridge_ios_rows = [r for r in ios_rows if str(r.subscriber_id or "").startswith("RC_T0_")]
+    consumed_official_sids = set()
+    bridge_dups: List[Tuple[SubscriberLedger, SubscriberLedger]] = []
+    unmatched_bridges: List[SubscriberLedger] = []
 
-    bridge_dups: List[SubscriberLedger] = []
-    for r in ios_rows:
-        if str(r.subscriber_id or "").startswith("RC_T0_"):
-            c_key = (r.product_id or "misil_monthly", r.started_date or "")
-            if official_cohort_counts[c_key] > 0:
-                official_cohort_counts[c_key] -= 1
-                bridge_dups.append(r)
+    for br in bridge_ios_rows:
+        br_pid = br.product_id or "misil_monthly"
+        br_st = br.started_date or ""
+        exact_off = next(
+            (
+                off_r for off_r in official_ios_rows
+                if off_r.subscriber_id not in consumed_official_sids
+                and (off_r.product_id or "misil_monthly") == br_pid
+                and (off_r.started_date or "") == br_st
+            ),
+            None,
+        )
+        if exact_off is not None:
+            consumed_official_sids.add(exact_off.subscriber_id)
+            bridge_dups.append((br, exact_off))
+        else:
+            unmatched_bridges.append(br)
+
+    for br in unmatched_bridges:
+        br_pid = br.product_id or "misil_monthly"
+        br_st = br.started_date or ""
+        br_conv = br.converted_or_renewed_date or ""
+        br_mat = br.maturity_or_renewal_date or ""
+        reactivated_off = next(
+            (
+                off_r for off_r in official_ios_rows
+                if off_r.subscriber_id not in consumed_official_sids
+                and (off_r.product_id or "misil_monthly") == br_pid
+                and (
+                    (br_st and off_r.converted_or_renewed_date == br_st)
+                    or (br_conv and off_r.converted_or_renewed_date == br_conv)
+                    or (br_mat and off_r.maturity_or_renewal_date == br_mat and off_r.status == "paid_active")
+                )
+            ),
+            None,
+        )
+        if reactivated_off is not None:
+            consumed_official_sids.add(reactivated_off.subscriber_id)
+            bridge_dups.append((br, reactivated_off))
 
     if bridge_dups:
-        for bd in bridge_dups:
+        for bd, target_off in bridge_dups:
+            if bd.rc_app_user_id and not target_off.rc_app_user_id:
+                target_off.rc_app_user_id = bd.rc_app_user_id
+            if not bd.auto_renew_enabled:
+                target_off.auto_renew_enabled = False
+                target_off.expected_next_price_try = 0.0
+                target_off.expected_next_proceeds_try = 0.0
+                if target_off.status != "paid_active":
+                    target_off.status = "cancelled"
+                off_wnr_key = f"{target_off.subscriber_id}:will_not_renew"[:128]
+                dup_off_wnr = (
+                    db.query(SubscriptionLifecycleEvent.id)
+                    .filter(
+                        SubscriptionLifecycleEvent.platform == "ios",
+                        SubscriptionLifecycleEvent.event_type == off_wnr_key,
+                    )
+                    .first()
+                )
+                if dup_off_wnr is None:
+                    db.add(
+                        SubscriptionLifecycleEvent(
+                            event_date=target_off.converted_or_renewed_date or target_off.started_date or datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+                            platform="ios",
+                            event_type=off_wnr_key,
+                            product_id=target_off.product_id,
+                            plan_label=target_off.plan_label,
+                            country=target_off.country or "TR",
+                            device_type=target_off.device_type or "iPhone",
+                            quantity=1,
+                        )
+                    )
             db.delete(bd)
             ios_rows.remove(bd)
         db.flush()
@@ -1633,6 +1810,14 @@ def _reconcile_ios_ledger_and_cancellations(
                     changed = True
 
         if r.offer_type == "intro_1m_discounted":
+            continue
+        if r.status == "intro_free_trial" and r.subscriber_id in will_not_renew_sids:
+            if r.auto_renew_enabled or r.status != "cancelled" or (r.expected_next_price_try or 0.0) > 0:
+                r.status = "cancelled"
+                r.auto_renew_enabled = False
+                r.expected_next_price_try = 0.0
+                r.expected_next_proceeds_try = 0.0
+                changed = True
             continue
         is_ann = _is_annual_product(r.product_id)
         of_name_low = (r.offer_code_name or "").strip().lower()
@@ -1736,12 +1921,28 @@ def _reconcile_ios_ledger_and_cancellations(
             r for r in ios_rows
             if r.status == "intro_free_trial" and r.auto_renew_enabled
         ]
-        deficit = int(active_trials_target) - len(active_trials)
+        # Apple SUBSCRIPTION (1_3) raporu, 7 günlük deneme süresi henüz dolmamış ancak RevenueCat V2'de
+        # oto-yenilemesini kapatmış (will_not_renew) aboneleri vade sonuna kadar aktif deneme sayar;
+        # bu abonelerin hedef sayıdan düşülmesi ve yanlışlıkla tekrar 'intro_free_trial' olarak geri yüklenmemesi gerekir.
+        unexpired_wnr_trials_cnt = sum(
+            1 for r in ios_rows
+            if r.subscriber_id in will_not_renew_sids
+            and (r.customer_price_try or 0.0) <= 0
+            and r.offer_type == "intro_7d_trial"
+            and (not r.maturity_or_renewal_date or len(r.maturity_or_renewal_date) != 10 or r.maturity_or_renewal_date >= today_str)
+        )
+        effective_trials_target = max(0, int(active_trials_target) - unexpired_wnr_trials_cnt)
+        deficit = effective_trials_target - len(active_trials)
         if deficit > 0 and merged_cancels:
-            # Daha önce DEV_IOS_* şişmesi nedeniyle yanlışlıkla iptal edilmiş (Cancel olayı bulunmayan) gerçek Apple denemelerini geri yükle
+            # Daha önce DEV_IOS_* şişmesi nedeniyle yanlışlıkla iptal edilmiş (Cancel veya will_not_renew olayı bulunmayan) gerçek Apple denemelerini geri yükle
             cancelled_by_cohort: Dict[tuple, List[SubscriberLedger]] = {}
             for r in ios_rows:
-                if r.status == "cancelled" and (r.customer_price_try or 0.0) <= 0 and r.offer_type == "intro_7d_trial":
+                if (
+                    r.status == "cancelled"
+                    and (r.customer_price_try or 0.0) <= 0
+                    and r.offer_type == "intro_7d_trial"
+                    and r.subscriber_id not in will_not_renew_sids
+                ):
                     ck = ((r.product_id or "misil_monthly"), (r.started_date or ""), (r.country or "TR").upper())
                     cancelled_by_cohort.setdefault(ck, []).append(r)
             restorable: List[SubscriberLedger] = []
@@ -4757,9 +4958,6 @@ def _build_analytics_summary(
         elif lr.status == "offer_code_trial":
             ca["offer_code_subs_count"] += 1
             ca["active_vip_count"] += 1
-            if exp_g > 0 and lr.auto_renew_enabled:
-                ca["expected_mrr_gross_try"] = round(ca["expected_mrr_gross_try"] + exp_g, 2)
-                ca["expected_mrr_net_try"] = round(ca["expected_mrr_net_try"] + exp_n, 2)
         elif lr.status == "cancelled" or not lr.auto_renew_enabled:
             ca["cancelled_subs_count"] += 1
 
@@ -5859,6 +6057,7 @@ def sync_client_subscriber_ledger(
         request, None, request.headers.get("x-admin-pin"), request.cookies.get(_ADMIN_SESSION_COOKIE)
     )
     verified_rc_v2 = False
+    rc_conv_dt_str: Optional[str] = None
     if (
         not is_admin_authed
         and not verified_gp_token
@@ -5876,6 +6075,10 @@ def sync_client_subscriber_ledger(
             auto_renew = bool(rc_v2["auto_renew_enabled"])
             if rc_v2.get("starts_at_date"):
                 start_dt_str = rc_v2["starts_at_date"]
+            if rc_v2.get("current_period_starts_at_date"):
+                rc_conv_dt_str = rc_v2["current_period_starts_at_date"]
+            elif rc_v2.get("starts_at_date"):
+                rc_conv_dt_str = rc_v2["starts_at_date"]
             if rc_v2.get("ends_at_date"):
                 mat_dt_str = rc_v2["ends_at_date"]
             if rc_v2["rc_status"] in ("expired", "unsubscribed") or (float(rc_v2.get("gross_usd") or 0.0) <= 0 and not auto_renew):
@@ -5885,6 +6088,34 @@ def sync_client_subscriber_ledger(
             else:
                 st_val = "intro_free_trial"
             offer_code_nm = "RevenueCat T-0 Canlı Köprü" if plat == "ios" else "7 Günlük Deneme (Google Play)"
+            if plat == "ios":
+                from sqlalchemy import or_ as sa_or
+                raw_rc_lookup = (payload.subscriber_id or "").strip()[:128]
+                off_match_clauses = [
+                    SubscriberLedger.started_date == start_dt_str,
+                    SubscriberLedger.converted_or_renewed_date == start_dt_str,
+                ]
+                if rc_conv_dt_str:
+                    off_match_clauses.append(SubscriberLedger.converted_or_renewed_date == rc_conv_dt_str)
+                if mat_dt_str:
+                    off_match_clauses.append(SubscriberLedger.maturity_or_renewal_date == mat_dt_str)
+                existing_official_ios = (
+                    db.query(SubscriberLedger)
+                    .filter(
+                        SubscriberLedger.platform == "ios",
+                        ~SubscriberLedger.subscriber_id.like("RC_T0_%"),
+                        sa_or(
+                            SubscriberLedger.rc_app_user_id == raw_rc_lookup,
+                            (SubscriberLedger.product_id == prod_id) & sa_or(*off_match_clauses),
+                        ),
+                    )
+                    .order_by(SubscriberLedger.started_date.asc(), SubscriberLedger.subscriber_id.asc())
+                    .first()
+                )
+                if existing_official_ios is not None:
+                    clean_sid = existing_official_ios.subscriber_id
+                    start_dt_str = existing_official_ios.started_date or start_dt_str
+                    offer_code_nm = existing_official_ios.offer_code_name or offer_code_nm
 
     # Kimliksiz/doğrulanmamış istemci çağrılarının sahte tahsilat (paid_active) yazmasını, DEV_* hayalet satırı üretmesini veya resmi Apple satırlarını ezmesini engelle
     if not is_admin_authed and not verified_gp_token and not verified_rc_v2:
@@ -5989,7 +6220,12 @@ def sync_client_subscriber_ledger(
         if c_gross > 0:
             existing.customer_price_try = c_gross
             existing.developer_proceeds_try = c_net
-            existing.converted_or_renewed_date = payload.converted_or_renewed_date or today_str
+            existing.converted_or_renewed_date = (
+                payload.converted_or_renewed_date
+                or rc_conv_dt_str
+                or existing.converted_or_renewed_date
+                or today_str
+            )
         existing.expected_next_price_try = exp_gross
         existing.expected_next_proceeds_try = exp_net
         existing.country = cntry_clean
@@ -6007,7 +6243,7 @@ def sync_client_subscriber_ledger(
                 offer_type=of_type[:64],
                 offer_code_name=offer_code_nm,
                 started_date=start_dt_str,
-                converted_or_renewed_date=(payload.converted_or_renewed_date or start_dt_str) if st_val == "paid_active" else None,
+                converted_or_renewed_date=(payload.converted_or_renewed_date or rc_conv_dt_str or start_dt_str) if st_val == "paid_active" else None,
                 maturity_or_renewal_date=mat_dt_str,
                 auto_renew_enabled=auto_renew,
                 customer_price_try=c_gross,
@@ -6018,6 +6254,31 @@ def sync_client_subscriber_ledger(
                 device_type=dev_clean,
             )
         )
+
+    if plat == "ios" and not auto_renew and (verified_rc_v2 or is_admin_authed):
+        wnr_sync_key = f"{clean_sid}:will_not_renew"[:128]
+        dup_wnr_sync = (
+            db.query(SubscriptionLifecycleEvent.id)
+            .filter(
+                SubscriptionLifecycleEvent.platform == "ios",
+                SubscriptionLifecycleEvent.event_type == wnr_sync_key,
+            )
+            .first()
+        )
+        if dup_wnr_sync is None:
+            db.add(
+                SubscriptionLifecycleEvent(
+                    event_date=rc_conv_dt_str or start_dt_str or today_str,
+                    platform="ios",
+                    event_type=wnr_sync_key,
+                    product_id=prod_id,
+                    plan_label=plan_lbl,
+                    offer_code_name=offer_code_nm,
+                    country=cntry_clean,
+                    device_type=dev_clean,
+                    quantity=1,
+                )
+            )
 
     ev_key = f"{clean_sid}:{st_val}"
     dup_ev = (
