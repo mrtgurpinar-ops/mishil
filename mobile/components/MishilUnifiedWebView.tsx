@@ -734,6 +734,8 @@ export default function MishilUnifiedWebView() {
               babyBdate: pObj.babyBdate,
               lang: pObj.lang || appLangRef.current,
               vaccineCountry: pObj.vaccineCountry || notifSettings.vaccineCountry,
+              isLiveSleepingToday: Boolean(pObj.isLiveSleepingToday),
+              completedVaccineMonths: Array.isArray(pObj.completedVaccineMonths) ? pObj.completedVaccineMonths : undefined,
             },
             notifSettings
           );
@@ -868,6 +870,8 @@ export default function MishilUnifiedWebView() {
               babyBdate: pObj.babyBdate,
               lang: pObj.lang || appLangRef.current,
               vaccineCountry: pObj.vaccineCountry || notifSettings.vaccineCountry,
+              isLiveSleepingToday: Boolean(pObj.isLiveSleepingToday),
+              completedVaccineMonths: Array.isArray(pObj.completedVaccineMonths) ? pObj.completedVaccineMonths : undefined,
             },
             notifSettings
           );
@@ -931,6 +935,8 @@ export default function MishilUnifiedWebView() {
                 babyBdate: pObj?.babyBdate,
                 lang: nextLang,
                 vaccineCountry: pObj?.vaccineCountry || notifSettings.vaccineCountry,
+                isLiveSleepingToday: Boolean(pObj?.isLiveSleepingToday),
+                completedVaccineMonths: Array.isArray(pObj?.completedVaccineMonths) ? pObj.completedVaccineMonths : undefined,
               },
               notifSettings
             );
@@ -960,6 +966,8 @@ export default function MishilUnifiedWebView() {
                     babyBdate: msg.payload.babyBdate,
                     lang: payloadLang,
                     vaccineCountry: msg.payload.vaccineCountry,
+                    isLiveSleepingToday: Boolean(msg.payload.isLiveSleepingToday),
+                    completedVaccineMonths: Array.isArray(msg.payload.completedVaccineMonths) ? msg.payload.completedVaccineMonths : undefined,
                   });
                 } else {
                   void cancelAllCareNotifications();
@@ -987,6 +995,10 @@ export default function MishilUnifiedWebView() {
                     babyBdate: pObj?.babyBdate,
                     lang: nextLang,
                     vaccineCountry: msg.payload.vaccineCountry || pObj?.vaccineCountry || updatedSettings.vaccineCountry,
+                    isLiveSleepingToday: Boolean(msg.payload.isLiveSleepingToday ?? pObj?.isLiveSleepingToday),
+                    completedVaccineMonths: Array.isArray(msg.payload.completedVaccineMonths)
+                      ? msg.payload.completedVaccineMonths
+                      : (Array.isArray(pObj?.completedVaccineMonths) ? pObj.completedVaccineMonths : undefined),
                   },
                   updatedSettings
                 );

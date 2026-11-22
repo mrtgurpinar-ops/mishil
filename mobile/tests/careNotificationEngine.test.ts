@@ -201,4 +201,68 @@ describe('CareNotificationEngine Unit Tests', () => {
     // Yurt dışında yaşayan Türkçe kullanıcıda "aile sağlığı merkezi" yerine "çocuk doktorunuzdan veya kliniğinizden" yazmalı
     expect(gbVac3m?.body).toContain('çocuk doktorunuzdan veya kliniğinizden');
   });
+
+  it('should rotate evening ROUTINE_SLEEP notifications with zero consecutive duplicates and adapt to baby age bracket', () => {
+    // 1) Yenidoğan (45 günlük -> newborn_0_3m)
+    const newbornPlan = buildCareNotificationPlan(
+      { babyName: 'Mert', babyBdate: '2026-09-08', lang: 'tr' },
+      DEFAULT_NOTIFICATION_SETTINGS,
+      mockReferenceDate,
+      14
+    );
+    const routineNewborn = newbornPlan.filter((i) => i.type === 'ROUTINE_SLEEP');
+    expect(routineNewborn.length).toBeGreaterThan(5);
+    expect(routineNewborn[0].ageBracket).toBe('newborn_0_3m');
+
+    // Ardışık hiçbir gün birebir aynı başlık ve gövde olmamalı
+    for (let idx = 1; idx < routineNewborn.length; idx++) {
+      expect(routineNewborn[idx].title).not.toBe(routineNewborn[idx - 1].title);
+      expect(routineNewborn[idx].body).not.toBe(routineNewborn[idx - 1].body);
+    }
+
+    // 14 gün içinde en az 5 farklı bildirim başlığı kullanılmalı (bildirim yorgunluğu engeli)
+    const uniqueTitles = new Set(routineNewborn.map((i) => i.title));
+    expect(uniqueTitles.size).toBeGreaterThanOrEqual(5);
+
+    // Yenidoğana özel "Anne Karnı Huzuru" (v03_newborn_4th_trimester_womb) varyantı yer almalı
+    expect(routineNewborn.some((i) => i.title.includes('Anne Karnı Huzuru'))).toBe(true);
+
+    // 2) 10 Aylık Bebek (toddler_9m_plus) -> Yenidoğan anne karnı varyantı yerine Kelt Arpı / Keçe Piyano gelmeli
+    const olderPlan = buildCareNotificationPlan(
+      { babyName: 'Zeynep', babyBdate: '2025-12-15', lang: 'tr' },
+      DEFAULT_NOTIFICATION_SETTINGS,
+      mockReferenceDate,
+      14
+    );
+    const routineOlder = olderPlan.filter((i) => i.type === 'ROUTINE_SLEEP');
+    expect(routineOlder[0].ageBracket).toBe('toddler_9m_plus');
+    expect(routineOlder.some((i) => i.title.includes('Anne Karnı Huzuru'))).toBe(false);
+    expect(routineOlder.some((i) => i.title.includes('Kelt Uyku Arpı') || i.title.includes('Keçe Piyano'))).toBe(true);
+  });
+
+  it('should suppress today evening notification when baby is already live sleeping (isLiveSleepingToday) and skip completed vaccine months', () => {
+    const birthDate = new Date(mockReferenceDate);
+    birthDate.setDate(birthDate.getDate() - 57); // 2. ay aşısına 3 gün var
+    const bdateStr = birthDate.toISOString().split('T')[0];
+
+    const planWithSuppression = buildCareNotificationPlan(
+      {
+        babyName: 'Kaan',
+        babyBdate: bdateStr,
+        lang: 'tr',
+        isLiveSleepingToday: true,
+        completedVaccineMonths: [2],
+      },
+      { ...DEFAULT_NOTIFICATION_SETTINGS, routineFrequency: 'smart_4d' },
+      mockReferenceDate,
+      14
+    );
+
+    // 1) Bugün (2026-10-23) bebek zaten canlı uykuda olduğu için bugünkü akşam bildirimi atlanmış olmalı
+    expect(planWithSuppression.some((i) => i.id === 'routine-sleep-2026-10-23')).toBe(false);
+    // 2) 2. ay aşısı tamamlandı olarak işaretlendiği için 2. ay aşı hatırlatması atlanmış olmalı
+    expect(planWithSuppression.some((i) => i.type === 'VACCINE' && i.id.includes('2m'))).toBe(false);
+    // 3) smart_4d modunda 14 günde maksimum 10 bildirim planlanmalı (her 3. gün dinlenme)
+    expect(planWithSuppression.length).toBeLessThanOrEqual(10);
+  });
 });

@@ -4,6 +4,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { AppLang } from '../../lib/storage';
 
 export type CareLang = AppLang;
+export type RoutineFrequencyMode = 'daily' | 'smart_4d';
+export type BabyAgeBracket = 'newborn_0_3m' | 'infant_4_8m' | 'toddler_9m_plus';
+
 export const GENERIC_BABY_NAMES = new Set([
   'Bebeğim',
   'Bebeğiniz',
@@ -28,6 +31,7 @@ export interface NotificationSettings {
   routineSleepEnabled: boolean;
   leapWeeksEnabled: boolean;
   routineTime: string; // e.g. "20:30"
+  routineFrequency?: RoutineFrequencyMode; // 'daily' (her akşam) veya 'smart_4d' (haftada 4 gün)
   lang?: CareLang;
   vaccineCountry?: string; // ISO-3166-1 alpha-2 (e.g. 'TR', 'DE', 'GB', 'US', 'CH', 'AZ', 'KZ')
 }
@@ -37,6 +41,8 @@ export interface BabyProfileData {
   babyBdate?: string; // YYYY-MM-DD
   lang?: CareLang | string;
   vaccineCountry?: string;
+  isLiveSleepingToday?: boolean; // O akşam zaten Canlı Uyku Sayacı çalışıyorsa "Uyudu mu?" bildirimini susturur
+  completedVaccineMonths?: number[]; // Aşı defterinde "Tamamlandı" işaretlenen ayların bildirimini susturur
 }
 
 export interface VaccineMilestoneItem {
@@ -54,6 +60,16 @@ export interface CareNotificationPlanItem {
   body: string;
   type: 'VACCINE' | 'LEAP' | 'ROUTINE_SLEEP';
   priority: number; // 1: VACCINE, 2: LEAP, 3: ROUTINE_SLEEP
+  variantIndex?: number;
+  ageBracket?: BabyAgeBracket;
+}
+
+export interface RoutineNotificationVariant {
+  id: string;
+  ageBrackets: BabyAgeBracket[]; // Hangi yaş gruplarına uygun
+  weekendOnly?: boolean;
+  title: Record<CareLang, (babyName: string) => string>;
+  body: Record<CareLang, (babyName: string) => string>;
 }
 
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
@@ -61,10 +77,171 @@ export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSettings = {
   routineSleepEnabled: true,
   leapWeeksEnabled: true,
   routineTime: '20:30',
+  routineFrequency: 'daily',
   lang: 'tr',
 };
 
 export const STORAGE_KEY_NOTIFICATION_SETTINGS = '@mishil_notification_settings';
+
+/**
+ * Bebeğin doğum tarihine göre yaş dilimini ('newborn_0_3m' | 'infant_4_8m' | 'toddler_9m_plus') hesaplar.
+ */
+export function resolveBabyAgeBracket(birthDate: Date | null, targetDate: Date): BabyAgeBracket {
+  if (!birthDate) return 'infant_4_8m';
+  const ageDays = Math.max(0, Math.floor((targetDate.getTime() - birthDate.getTime()) / (24 * 60 * 60 * 1000)));
+  if (ageDays <= 105) return 'newborn_0_3m'; // 0 - 3.5 ay (4. Trimester)
+  if (ageDays <= 255) return 'infant_4_8m';  // 3.5 - 8.5 ay (Sirkadiyen Ritim & Uyku Gerilemesi)
+  return 'toddler_9m_plus';                  // 9+ ay (Derin Uyku & Rutin İstikrarı)
+}
+
+/**
+ * Bildirim Yorgunluğunu (Notification Fatigue) Önleyen 10'lu Zengin & Yaşa/Güne Duyarlı Akşam Bildirim Havuzu.
+ * - Ardışık hiçbir gün aynı başlık/gövde gönderilmez.
+ * - Yenidoğan (0-3 ay), Sirkadiyen Bebek (4-8 ay) ve Büyük Bebek (9+ ay) için pediatrik olarak farklı ses ve ipuçları sunar.
+ */
+export const ROUTINE_SLEEP_VARIANTS: RoutineNotificationVariant[] = [
+  {
+    id: 'v01_peaceful_checkin',
+    ageBrackets: ['newborn_0_3m', 'infant_4_8m', 'toddler_9m_plus'],
+    title: {
+      tr: (b) => `🌙 ${b} mışıl mışıl uyudu mu?`,
+      en: (b) => `🌙 Is ${b} sleeping peacefully?`,
+      de: (b) => `🌙 Schläft ${b} schon friedlich?`,
+    },
+    body: {
+      tr: () => `Uykuya dalmakta zorlanıyorsa, pışpışlama ve anne karnı seslerini tek dokunuşla başlatabilirsiniz.`,
+      en: () => `If settling is tough tonight, you can start womb and rhythmic shushing sounds with a single tap.`,
+      de: () => `Falls das Einschlafen heute Abend schwerfällt, kannst du Mutterleibs- und Sch-Sch-Klänge mit einem Tippen starten.`,
+    },
+  },
+  {
+    id: 'v02_misilspot_cortisol_guard',
+    ageBrackets: ['newborn_0_3m', 'infant_4_8m', 'toddler_9m_plus'],
+    title: {
+      tr: (b) => `✨ ${b} için MışılSpot™ Akşam Penceresi`,
+      en: (b) => `✨ MışılSpot™ Evening Window for ${b}`,
+      de: (b) => `✨ MışılSpot™ Abendfenster für ${b}`,
+    },
+    body: {
+      tr: () => `Aşırı yorgunluk (kortizol artışı) başlamadan 15 dk önce odayı loşlaştırmak gece uyanmalarını belirgin azaltır.`,
+      en: () => `Dimming the room 15 minutes before overtiredness kicks in helps prevent extra night wakings.`,
+      de: () => `Das Zimmer 15 Min. vor Übermüdung abzudunkeln hilft, nächtliches Aufwachen deutlich zu reduzieren.`,
+    },
+  },
+  {
+    id: 'v03_newborn_4th_trimester_womb',
+    ageBrackets: ['newborn_0_3m'],
+    title: {
+      tr: (b) => `🤰 ${b} için Anne Karnı Huzuru`,
+      en: (b) => `🤰 Womb Comfort for ${b}`,
+      de: (b) => `🤰 Geborgenheit wie im Mutterleib für ${b}`,
+    },
+    body: {
+      tr: () => `İlk aylarda akşam huzursuzluğu çok doğaldır. 72 BPM Kalp Atışı ve Anne Mırıltısı ile tanıdık güven hissini açabilirsiniz.`,
+      en: () => `Evening cluster fussiness is normal in the first months. Try 72 BPM Heartbeat & Maternal Humming for familiar comfort.`,
+      de: () => `Abendliche Unruhe ist in den ersten Monaten ganz normal. 72-BPM-Herzschlag und Mamas Summen schenken vertraute Ruhe.`,
+    },
+  },
+  {
+    id: 'v04_amber_nightlight_feeding',
+    ageBrackets: ['newborn_0_3m', 'infant_4_8m'],
+    title: {
+      tr: (b) => `🕯️ ${b} ile Gece Emzirmesi & Kehribar Işık`,
+      en: (b) => `🕯️ Night Feeding & Warm Amber Light for ${b}`,
+      de: (b) => `🕯️ Nächtliches Stillen & Bernsteinfarbenes Licht für ${b}`,
+    },
+    body: {
+      tr: () => `Gece emzirmesi veya alt değişiminde mavi ışık yerine Mışıl'ın loş kehribar gece lambasını açarak melatonin salgısını koruyun.`,
+      en: () => `During night feeds or diaper changes, use Mışıl's warm amber nightlight instead of bright room lights to protect melatonin.`,
+      de: () => `Nutze beim nächtlichen Stillen oder Wickeln das warme Bernstein-Nachtlicht statt grellem Licht, um Melatonin zu schützen.`,
+    },
+  },
+  {
+    id: 'v05_felt_piano_pink_noise_mixer',
+    ageBrackets: ['infant_4_8m', 'toddler_9m_plus'],
+    title: {
+      tr: (b) => `🎹 ${b} için Keçe Piyano & Pembe Gürültü`,
+      en: (b) => `🎹 Felt Piano & Pink Noise Mix for ${b}`,
+      de: (b) => `🎹 Filzklavier & Rosa Rauschen für ${b}`,
+    },
+    body: {
+      tr: () => `Bu akşam akustik mikserde Clair de Lune Keçe Piyano ile hafif Yağmur sesini karıştırarak derin uyku geçişini destekleyin.`,
+      en: () => `Tonight, try blending Clair de Lune Felt Piano with gentle Rain in the sound mixer to support deeper sleep cycles.`,
+      de: () => `Kombiniere heute Abend Clair de Lune Filzklavier mit sanftem Regen im Mixer für einen ruhigen Übergang in den Tiefschlaf.`,
+    },
+  },
+  {
+    id: 'v06_parent_compassion_night_watch',
+    ageBrackets: ['newborn_0_3m', 'infant_4_8m', 'toddler_9m_plus'],
+    title: {
+      tr: (b) => `💛 Bugün ${b} ile Harika Bir İş Çıkardınız`,
+      en: (b) => `💛 You Did a Wonderful Job with ${b} Today`,
+      de: (b) => `💛 Du hast heute Großartiges mit ${b} geleistet`,
+    },
+    body: {
+      tr: () => `Gece nöbetinde yalnız değilsiniz; yorulduğunuzda Canlı Uyku ekranından eşinize tek dokunuşla nöbet/su fısıltısı gönderebilirsiniz.`,
+      en: () => `You're not alone on night duty—send a one-tap partner whisper for water or a shift handoff right from the Live Sleep screen.`,
+      de: () => `Du bist nachts nicht allein: Sende deinem Partner direkt aus dem Live-Schlaf-Bildschirm mit einem Tippen eine Flüster-Nachricht.`,
+    },
+  },
+  {
+    id: 'v07_sleep_timer_quick_log',
+    ageBrackets: ['newborn_0_3m', 'infant_4_8m', 'toddler_9m_plus'],
+    title: {
+      tr: (b) => `⏱️ ${b} Uykuya Geçtiyse Sayacı Başlatın`,
+      en: (b) => `⏱️ Start the Live Timer When ${b} Drifts Off`,
+      de: (b) => `⏱️ Starte den Live-Timer, sobald ${b} einschläft`,
+    },
+    body: {
+      tr: () => `Gece uykusunu tek dokunuşla kaydetmek yarın sabahki ilk MışılSpot™ uyku penceresini dakikası dakikasına hesaplar.`,
+      en: () => `Logging bedtime with one tap lets MışılSpot™ calculate tomorrow morning's first nap window down to the minute.`,
+      de: () => `Wenn du den Nachtschlaf mit einem Tippen startest, berechnet MışılSpot™ morgen früh das erste Wachfenster minutengenau.`,
+    },
+  },
+  {
+    id: 'v08_celtic_harp_432hz_deep_sleep',
+    ageBrackets: ['infant_4_8m', 'toddler_9m_plus'],
+    title: {
+      tr: (b) => `🎶 ${b} için 432 Hz Kelt Uyku Arpı`,
+      en: (b) => `🎶 432 Hz Celtic Sleep Harp for ${b}`,
+      de: (b) => `🎶 432-Hz Keltische Schlafharfe für ${b}`,
+    },
+    body: {
+      tr: () => `Kilit ekranında kesintisiz çalan Kelt Uyku Arpı ve Ahşap Kalimba, evdeki ani sesleri maskeleyerek uykuyu korur.`,
+      en: () => `Lock-screen Celtic Sleep Harp and Organic Kalimba softly mask household noises so your baby stays asleep longer.`,
+      de: () => `Keltische Schlafharfe und Kalimba bei gesperrtem Bildschirm blenden Alltagsgeräusche sanft aus und schützen den Schlaf.`,
+    },
+  },
+  {
+    id: 'v09_nanny_coach_night_question',
+    ageBrackets: ['newborn_0_3m', 'infant_4_8m', 'toddler_9m_plus'],
+    title: {
+      tr: (b) => `👵 ${b} Bu Akşam Sık mı Uyanıyor?`,
+      en: (b) => `👵 Is ${b} Waking Frequently Tonight?`,
+      de: (b) => `👵 Wacht ${b} heute Abend öfter auf?`,
+    },
+    body: {
+      tr: () => `Oda sıcaklığı (20–22°C) veya uyku gerilemesi aklınıza takıldıysa 7/24 Mışıl Dadı™'ya bebeğinizin ayına özel danışabilirsiniz.`,
+      en: () => `Wondering about room temperature (20–22°C) or a sleep regression? Ask 24/7 Mışıl Nanny™ for age-tailored guidance.`,
+      de: () => `Fragen zur Raumtemperatur (20–22°C) oder Schlafregression? Frag Mışıl Nanny™ rund um die Uhr nach altersgerechten Tipps.`,
+    },
+  },
+  {
+    id: 'v10_weekend_family_rhythm',
+    ageBrackets: ['newborn_0_3m', 'infant_4_8m', 'toddler_9m_plus'],
+    weekendOnly: true,
+    title: {
+      tr: (b) => `🏡 ${b} ile Huzurlu Bir Hafta Sonu Akşamı`,
+      en: (b) => `🏡 A Calm Weekend Evening with ${b}`,
+      de: (b) => `🏡 Ein ruhiger Wochenendabend mit ${b}`,
+    },
+    body: {
+      tr: () => `Hafta sonu temposunda bile akşam uyku saatini ±30 dk koruyarak Pazartesi uyku düzenini zahmetsizce güvenceye alın.`,
+      en: () => `Keeping bedtime within ±30 minutes on weekends protects your baby's circadian rhythm for an easy Monday morning.`,
+      de: () => `Wenn die Einschlafzeit am Wochenende innerhalb von ±30 Min. bleibt, startet ihr entspannt in die neue Woche.`,
+    },
+  },
+];
 
 // T.C. Sağlık Bakanlığı Çocukluk Dönemi Aşı Takvimi Kilometre Taşları (Varsayılan / TR)
 export const VACCINE_MILESTONES: VaccineMilestoneItem[] = [
@@ -168,8 +345,52 @@ export const LEAP_WEEKS = [
 ];
 
 /**
- * 14 Günlük Kayan Pencere (Sliding Window) ve Çakışma Önleyici (Deduplication) ile
- * bildirim planı üretir. Saf matematiksel fonksiyondur, kolayca test edilebilir.
+ * Verilen gün, yaş grubu ve dil için deterministik ve ardışık tekrarsız akşam bildirimi varyantını seçer.
+ * Not: dayOffset === 0 (veya ilk planlanan akşam) geriye dönük birim test uyumluluğu ve ilk karşılama
+ * netliği için v01_peaceful_checkin ("🌙 {babyName} mışıl mışıl uyudu mu?") ile başlar, sonraki her gün
+ * yaşa ve hafta sonuna uygun farklı bir rehberlik varyantına döner.
+ */
+export function selectRoutineSleepVariant(
+  targetDay: Date,
+  dayOffset: number,
+  ageBracket: BabyAgeBracket,
+  lastVariantId: string | null
+): { variant: RoutineNotificationVariant; variantIndex: number } {
+  const isWeekend = targetDay.getDay() === 0 || targetDay.getDay() === 6;
+  const eligible = ROUTINE_SLEEP_VARIANTS.filter(
+    (v) => v.ageBrackets.includes(ageBracket) && (!v.weekendOnly || isWeekend)
+  );
+  const pool = eligible.length > 0 ? eligible : ROUTINE_SLEEP_VARIANTS;
+
+  if (dayOffset === 0 && lastVariantId === null) {
+    const first = pool[0];
+    return { variant: first, variantIndex: ROUTINE_SLEEP_VARIANTS.indexOf(first) };
+  }
+
+  // Hafta sonuysa ve dün hafta sonu varyantı gönderilmediyse hafta sonu özel varyantını önceliklendir
+  if (isWeekend) {
+    const wkVar = pool.find((v) => v.weekendOnly && v.id !== lastVariantId);
+    if (wkVar) {
+      return { variant: wkVar, variantIndex: ROUTINE_SLEEP_VARIANTS.indexOf(wkVar) };
+    }
+  }
+
+  const nonWeekendPool = pool.filter((v) => !v.weekendOnly);
+  const activePool = nonWeekendPool.length > 0 ? nonWeekendPool : pool;
+  let candidateIdx = dayOffset % activePool.length;
+  let candidate = activePool[candidateIdx];
+  if (candidate.id === lastVariantId && activePool.length > 1) {
+    candidateIdx = (candidateIdx + 1) % activePool.length;
+    candidate = activePool[candidateIdx];
+  }
+  return { variant: candidate, variantIndex: ROUTINE_SLEEP_VARIANTS.indexOf(candidate) };
+}
+
+/**
+ * 14 Günlük Kayan Pencere (Sliding Window), Çakışma Önleyici (Deduplication),
+ * Canlı Uyku Farkındalığı (`isLiveSleepingToday`), Tamamlanmış Aşı Filtresi (`completedVaccineMonths`)
+ * ve Yaşa/Güne Duyarlı 10'lu Rotasyon ile bildirim planı üretir.
+ * Saf matematiksel fonksiyondur, kolayca test edilebilir.
  */
 export function buildCareNotificationPlan(
   baby: BabyProfileData,
@@ -182,6 +403,9 @@ export function buildCareNotificationPlan(
   const defaultBabyName = lang === 'de' ? 'Dein Baby' : (lang === 'en' ? 'Your Baby' : 'Bebeğiniz');
   const rawName = baby.babyName && baby.babyName.trim();
   const babyName = rawName && !GENERIC_BABY_NAMES.has(rawName) ? rawName : defaultBabyName;
+  const completedMonthsSet = new Set<number>(
+    Array.isArray(baby.completedVaccineMonths) ? baby.completedVaccineMonths : []
+  );
 
   // Doğum tarihi kontrolü
   let birthDate: Date | null = null;
@@ -206,6 +430,8 @@ export function buildCareNotificationPlan(
     return `${year}-${month}-${day}`;
   };
 
+  const refDateKey = formatDateKey(referenceDate);
+
   // 1. AŞI BİLDİRİMLERİ (Öncelik: 1 - En Yüksek)
   if (settings.vaccineEnabled && birthDate) {
     const defaultCountryByLang = lang === 'de' ? 'DE' : 'TR';
@@ -213,6 +439,11 @@ export function buildCareNotificationPlan(
     const isTrClinic = rawCountry === 'TR' || rawCountry === 'CY';
     const activeMilestones = getVaccineMilestonesForCountry(rawCountry);
     for (const v of activeMilestones) {
+      // Ebeveyn bu ayın aşısını aşı defterinde "Tamamlandı" işaretlediyse gereksiz bildirim gönderme
+      if (completedMonthsSet.has(v.month)) {
+        continue;
+      }
+
       const milestoneDate = new Date(birthDate.getTime() + v.day * 24 * 60 * 60 * 1000);
 
       // 3 Gün Önce Hatırlatıcı (Sabah 10:30)
@@ -308,7 +539,7 @@ export function buildCareNotificationPlan(
     }
   }
 
-  // 3. AKŞAM RUTİN / "UYUDU MU?" BİLDİRİMİ (Öncelik: 3)
+  // 3. AKŞAM RUTİN & YAŞA/GÜNE DUYARLI ROTASYONLU REHBERLİK BİLDİRİMİ (Öncelik: 3)
   if (settings.routineSleepEnabled) {
     const rawTime = String(settings.routineTime || '20:30').trim();
     const timeMatch = /^(\d{1,2}):(\d{2})$/.exec(rawTime);
@@ -323,6 +554,10 @@ export function buildCareNotificationPlan(
       parsedMinute <= 59;
     const routineHour = isValidTime ? parsedHour : 20;
     const routineMinute = isValidTime ? parsedMinute : 30;
+    const freqMode: RoutineFrequencyMode = settings.routineFrequency === 'smart_4d' ? 'smart_4d' : 'daily';
+
+    let lastVariantId: string | null = null;
+    let routineScheduledCounter = 0;
 
     for (let dayOffset = 0; dayOffset < windowDays; dayOffset++) {
       const targetDay = new Date(referenceDate);
@@ -333,25 +568,38 @@ export function buildCareNotificationPlan(
       if (targetDay <= referenceDate) continue;
 
       const key = formatDateKey(targetDay);
-      // O günde aşı ya da atak bildirimi yoksa rutin kontrol bildirimi yerleşir
+
+      // Canlı Uyku Farkındalığı: Bebek bu akşam zaten Canlı Uyku sayacındaysa bu akşamın "Uyudu mu?" bildirimini atla
+      if (baby.isLiveSleepingToday && key === refDateKey) {
+        continue;
+      }
+
+      // Akıllı Tempo ('smart_4d'): Haftada ~4 gün (her 3. günü dinlenme günü bırakır: dayOffset % 3 === 2 atlanır)
+      if (freqMode === 'smart_4d' && dayOffset % 3 === 2) {
+        continue;
+      }
+
+      // O günde aşı ya da atak bildirimi yoksa yaşa/güne özel rotasyonlu bildirim yerleşir
       if (!dayPlanMap.has(key)) {
+        const ageBracket = resolveBabyAgeBracket(birthDate, targetDay);
+        const { variant, variantIndex } = selectRoutineSleepVariant(
+          targetDay,
+          routineScheduledCounter,
+          ageBracket,
+          lastVariantId
+        );
+        lastVariantId = variant.id;
+        routineScheduledCounter++;
+
         dayPlanMap.set(key, {
           id: `routine-sleep-${key}`,
           date: targetDay,
-          title:
-            lang === 'de'
-              ? `🌙 Schläft ${babyName} schon friedlich?`
-              : lang === 'en'
-                ? `🌙 Is ${babyName} sleeping peacefully?`
-                : `🌙 ${babyName} mışıl mışıl uyudu mu?`,
-          body:
-            lang === 'de'
-              ? `Falls das Einschlafen heute Abend schwerfällt, kannst du Mutterleibs- und Sch-Sch-Klänge mit einem Tippen starten.`
-              : lang === 'en'
-                ? `If settling is tough tonight, you can start womb and rhythmic shushing sounds with a single tap.`
-                : `Uykuya dalmakta zorlanıyorsa, pışpışlama ve anne karnı seslerini tek dokunuşla başlatabilirsiniz.`,
+          title: variant.title[lang](babyName),
+          body: variant.body[lang](babyName),
           type: 'ROUTINE_SLEEP',
           priority: 3,
+          variantIndex,
+          ageBracket,
         });
       }
     }
@@ -448,6 +696,7 @@ export async function syncCareNotifications(
               isMishilCareNotification: true,
               careType: item.type,
               careId: item.id,
+              variantIndex: item.variantIndex,
             },
           },
           trigger: {

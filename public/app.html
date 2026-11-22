@@ -5910,12 +5910,27 @@
             <input type="checkbox" id="notif-toggle-leap" onchange="updateCareNotificationSettings()" checked style="transform: scale(1.2); accent-color: #E8A855;" />
           </div>
 
-          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0 6px;">
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.06);">
             <div>
               <div style="font-size: 13px; font-weight: 600; color: #FFF;">⏰ Akşam Kontrol Saati</div>
               <div style="font-size: 11px; color: var(--text-muted);">Rutin kontrol bildiriminin geleceği saat</div>
             </div>
             <input type="time" id="notif-time-routine" onchange="updateCareNotificationSettings()" value="20:30" class="form-input" style="width: 100px; padding: 6px; text-align: center; border-radius: 8px;" />
+          </div>
+
+          <div style="display: flex; justify-content: space-between; align-items: center; padding: 10px 0 6px;">
+            <div>
+              <div style="font-size: 13px; font-weight: 600; color: #FFF;">🔄 Bildirim Sıklığı & Rotasyon</div>
+              <div style="font-size: 11px; color: var(--text-muted);">Yaşa ve güne özel 10 farklı akşam rehberliği (tekrarsız)</div>
+            </div>
+            <select id="notif-freq-routine" onchange="updateCareNotificationSettings()" class="form-input" style="width: 135px; padding: 6px 8px; font-size: 11.5px; border-radius: 8px;">
+              <option value="daily">Her Akşam</option>
+              <option value="smart_4d">Akıllı (4 Gün/Hf)</option>
+            </select>
+          </div>
+
+          <div id="notif-smart-rotation-preview" style="margin-top: 8px; padding: 9px 11px; border-radius: 10px; background: rgba(232, 168, 85, 0.09); border: 1px dashed rgba(232, 168, 85, 0.32); font-size: 11px; line-height: 1.45; color: var(--text-night);">
+            ✨ <strong>Akıllı Rotasyon Aktif:</strong> Bebeğinizin ayına özel her akşam farklı bir uyku, ses ve ebeveyn şefkat ipucu gönderilir; canlı uyku sayacı açıkken veya tamamlanmış aşılarda gereksiz bildirim gönderilmez.
           </div>
         </div>
       </div>
@@ -15798,6 +15813,22 @@
     }
     localStorage.setItem('mishil_completed_vaccines', JSON.stringify(completed));
     renderVaccineSchedule();
+    if (window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+      try {
+        const bObj = getBaby();
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'SAVE_PROFILE',
+          payload: {
+            babyName: bObj ? bObj.name : '',
+            babyBdate: bObj ? bObj.bdate : '',
+            lang: getAppLang(),
+            vaccineCountry: getVaccineCountryCode(),
+            isLiveSleepingToday: isBabyCurrentlyLiveSleeping(),
+            completedVaccineMonths: getCompletedVaccineMonthsList(),
+          }
+        }));
+      } catch (e) {}
+    }
     if (typeof pushFamilySyncDebounced === 'function') pushFamilySyncDebounced();
     showToast(checked
       ? trEnDe('✅ Aşı tamamlandı olarak kaydedildi', '✅ Vaccine marked as completed', '✅ Impfung als erledigt gespeichert')
@@ -20468,7 +20499,14 @@
       try {
         window.ReactNativeWebView.postMessage(JSON.stringify({
           type: 'SAVE_PROFILE',
-          payload: { babyName: nm, babyBdate: bd, lang: getAppLang(), vaccineCountry: getVaccineCountryCode() }
+          payload: {
+            babyName: nm,
+            babyBdate: bd,
+            lang: getAppLang(),
+            vaccineCountry: getVaccineCountryCode(),
+            isLiveSleepingToday: isBabyCurrentlyLiveSleeping(),
+            completedVaccineMonths: getCompletedVaccineMonthsList(),
+          }
         }));
       } catch (err) {}
     }
@@ -20485,6 +20523,40 @@
   // =========================================================================
   // AKILLI YEREL BİLDİRİM & BAKIM RADARI YÖNETİMİ
   // =========================================================================
+  function getCompletedVaccineMonthsList() {
+    try {
+      const completed = typeof getCompletedVaccines === 'function' ? getCompletedVaccines() : {};
+      const activeSched = typeof getActiveVaccineSchedule === 'function' ? getActiveVaccineSchedule() : [];
+      if (!activeSched || !activeSched.length) return [];
+      const byMonth = {};
+      for (let i = 0; i < activeSched.length; i++) {
+        const v = activeSched[i];
+        if (!v || typeof v.month !== 'number') continue;
+        if (!byMonth[v.month]) byMonth[v.month] = { total: 0, done: 0 };
+        byMonth[v.month].total++;
+        if (completed && completed[v.id]) byMonth[v.month].done++;
+      }
+      const doneMonths = [];
+      const mKeys = Object.keys(byMonth);
+      for (let j = 0; j < mKeys.length; j++) {
+        const mNum = parseInt(mKeys[j], 10);
+        const st = byMonth[mNum];
+        if (st && st.total > 0 && st.done >= st.total) doneMonths.push(mNum);
+      }
+      return doneMonths;
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function isBabyCurrentlyLiveSleeping() {
+    try {
+      return Boolean(localStorage.getItem('mishil_live_sleep_start'));
+    } catch (e) {
+      return false;
+    }
+  }
+
   function applyNotificationSettings(settings) {
     if (!settings) return;
     try {
@@ -20492,11 +20564,13 @@
       const rToggle = document.getElementById('notif-toggle-routine');
       const lToggle = document.getElementById('notif-toggle-leap');
       const tInput = document.getElementById('notif-time-routine');
+      const fSelect = document.getElementById('notif-freq-routine');
 
       if (vToggle && typeof settings.vaccineEnabled === 'boolean') vToggle.checked = settings.vaccineEnabled;
       if (rToggle && typeof settings.routineSleepEnabled === 'boolean') rToggle.checked = settings.routineSleepEnabled;
       if (lToggle && typeof settings.leapWeeksEnabled === 'boolean') lToggle.checked = settings.leapWeeksEnabled;
       if (tInput && settings.routineTime) tInput.value = settings.routineTime;
+      if (fSelect && settings.routineFrequency) fSelect.value = settings.routineFrequency;
 
       updateNotificationSummaryBadge(settings);
     } catch (e) {
@@ -20523,13 +20597,17 @@
     const rToggle = document.getElementById('notif-toggle-routine');
     const lToggle = document.getElementById('notif-toggle-leap');
     const tInput = document.getElementById('notif-time-routine');
+    const fSelect = document.getElementById('notif-freq-routine');
 
     const settings = {
       vaccineEnabled: vToggle ? vToggle.checked : true,
       routineSleepEnabled: rToggle ? rToggle.checked : true,
       leapWeeksEnabled: lToggle ? lToggle.checked : true,
       routineTime: (tInput && tInput.value) || '20:30',
+      routineFrequency: (fSelect && fSelect.value) || 'daily',
       vaccineCountry: getVaccineCountryCode(),
+      isLiveSleepingToday: isBabyCurrentlyLiveSleeping(),
+      completedVaccineMonths: getCompletedVaccineMonthsList(),
     };
 
     localStorage.setItem('mishil_notification_settings', JSON.stringify(settings));

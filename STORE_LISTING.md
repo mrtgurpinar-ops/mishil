@@ -152,7 +152,7 @@ Mışıl Baby: Eltern-Assistent
 
 ### 📌 Kurzbeschreibung (`de-DE` - Max. 80 Zeichen, Keine Superlative):
 ```text
-KI-Schreianalyse, Einschlafhilfe, Wachfenster, Impfpass & sanftes Rauschen.
+KI-Schreianalyse, 30 Einschlafklänge, Wachfenster, Impfpass & Babyschlaf.
 ```
 
 ### 📌 Vollständige Beschreibung (`de-DE` - Max. 4000 Zeichen, Richtlinienkonform):
