@@ -2,6 +2,16 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.13-cockpit-ios-meta-ads-active-symmetry] - 2026-11-22 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` iOS Meta Uygulama Reklamları (`APP_INSTALLS`) Aktivasyonu & Çift Platform Reklam Simetrisi • 🟢 Yeni Native EAS Build Gerekmez)
+### 🍏🎯 Kurucu Kokpiti (`/admin/analytics`) iOS + Android Aktif Reklam Simetrisi (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **Kampanya Aktifliği ile Cihaz SDK Sayacının Ayrıştırılması (`meta_app_installs_sdk`):**
+   - `ios_direct_app_installs_active: True`, `ios_direct_installs` ve `ios_bio_matched_installs` alanları Android ile birebir simetrik olarak eklendi; `ios_att_sdk_status_badge` içindeki `"⏳ iOS v4.56.0 Mağaza Onayı Bekleniyor"` dalı kaldırılarak her durumda aktif (`"🟢 iOS Reklamları Aktif ({direct_ios_store_or_meta_installs} App Store & Meta Kurulum)"` / `"🟢 iOS Reklamları & SDK Aktif ({ios_att_sdk_devices_cnt} Cihaz)"`) gösterilmesi sağlandı.
+2. **Kümülatif & iOS Platform Split (`platform_split`):**
+   - `platform_split["all"]["impressions_sub"]` hem `🍏 App Store + Meta Reklam` hem `🤖 Google Play + Meta Reklam` gösterecek şekilde güncellendi; `platform_split["ios"]["meta_chips_1"]` içindeki `"⏳ v4.56.0 Onayda"` rozeti `"🎯 Meta Reklam Aktif"` olarak sabitlendi ve `downloads_sub` `"Sosyal & Meta Reklam"` olarak netleştirildi.
+3. **Sekme 1 (`2. META UYGULAMA REKLAMLARI & MAĞAZA`), `source_freshness` ve 15sn Canlı JS Polling:**
+   - `#metaDirectSdkVal` başlığı `"🍏 iOS + 🤖 Android Reklamları Aktif"`, `#metaSplitRate` rozeti ve `meta_app_events_sdk` veri tazeliği satırı (`status: "realtime"`) hem iOS hem Android aktif reklam kurulumlarını birlikte gösterecek şekilde güncellendi.
+   - **Claude Code CLI (`task-31` 10 maddelik kök neden ve satır bazlı konsensüs analizi + `task-54` uygulama sonrası diff denetimi: `Karar: ONAY ✅`)** + **Antigravity (`69/69 pytest PASS` `task-53`)**.
+
 ## [4.56.12-google-play-3lang-sync-and-smart-notification-rotation] - 2026-11-22 (Yerel Depo — Google Play Developer API `v3` 3 Dil (`tr-TR`, `en-US`, `de-DE`) `Ebeveyn Asistanı` & `30 Stüdyo Sesi` Mağaza/Görsel Senkron Motoru + 10'lu Yaşa/Güne/Duruma Duyarlı Akıllı Bildirim Rotasyon Motoru • 🟢 WebView Ayarları & Google Play Scripti Anında Hazır / Native OS Takvimi Sonraki Derlemede)
 ### 🤖🔔 Google Play 3 Dil Mağaza Senkron Motoru & Bildirim Yorgunluğunu Önleyen 10'lu Akıllı Rotasyon (`scripts/publish_google_play.py`, `STORE_LISTING.md`, `mobile/features/notifications/careNotificationEngine.ts`, `mobile/components/MishilUnifiedWebView.tsx`, `mobile/tests/careNotificationEngine.test.ts`, `public/app.html`)
 1. **Google Play Developer API (`androidpublisher v3`) 3 Dil (`tr-TR`, `en-US`, `de-DE`) Otomatik Senkron Motoru (`scripts/publish_google_play.py`, `STORE_LISTING.md`):**

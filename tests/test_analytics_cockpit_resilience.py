@@ -424,8 +424,12 @@ def test_historical_bridge_clicks_purged_once_and_meta_app_installs_sdk_state(db
 
     sdk_info = summary_before_sdk["meta_app_installs_sdk"]
     assert sdk_info["android_direct_app_installs_active"] is True
+    assert sdk_info["ios_direct_app_installs_active"] is True
+    assert "Bekleniyor" not in sdk_info["ios_sdk_status_badge"]
+    assert "🟢 iOS Reklamları" in sdk_info["ios_sdk_status_badge"]
     assert sdk_info["ios_sdk_status"] == "waiting_for_review"
     assert sdk_info["ios_sdk_live_devices"] == 0
+    assert "🎯 Meta Reklam Aktif" in summary_before_sdk["platform_split"]["ios"]["meta_chips_1"]
 
     # iOS 4.56.0 (Build 72) cihazından ilk sinyal geldiğinde durum otomatik 'live' olmalı
     db_session.add(
@@ -445,8 +449,10 @@ def test_historical_bridge_clicks_purged_once_and_meta_app_installs_sdk_state(db
     invalidate_analytics_summary_cache(mark_reconcile=False)
     summary_after_sdk = get_resilient_analytics_summary(db_session, period="all", use_cache=False)
     sdk_live = summary_after_sdk["meta_app_installs_sdk"]
+    assert sdk_live["ios_direct_app_installs_active"] is True
     assert sdk_live["ios_sdk_status"] == "live"
     assert sdk_live["ios_sdk_live_devices"] == 1
+    assert "🟢 iOS Reklamları & SDK Aktif (1 Cihaz)" == sdk_live["ios_sdk_status_badge"]
 
 
 def test_android_store_metrics_consolidation_no_fake_100_cvr_and_clean_executive_ui(client, db_session):
@@ -542,6 +548,9 @@ def test_android_store_metrics_consolidation_no_fake_100_cvr_and_clean_executive
 
     # Ülke kurulumları konsolide toplam kurulumu (403 Kurulum) göstermeli, teknik kodlar görünür UI'dan kalkmış olmalı
     assert "403 Kurulum" in html_txt
+    assert "🍏 iOS + 🤖 Android Reklamları Aktif" in html_txt
+    assert "⏳ iOS v4.56.0 Mağaza Onayı Bekleniyor" not in html_txt
+    assert "⏳ v4.56.0 Onayda" not in html_txt
     assert "App ID: 1093539003520092" not in html_txt
     assert "🤖 APP_INSTALLS Aktif" not in html_txt
     assert "Opt-in r8" not in html_txt

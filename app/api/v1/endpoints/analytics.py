@@ -5490,6 +5490,7 @@ def _build_analytics_summary(
         and (s.matched_channel and ("meta" in s.matched_channel.lower() or "ios" in s.matched_channel.lower()))
     ])
     direct_android_play_or_meta_installs = max(0, google_play_downloads - matched_android_bio_installs)
+    direct_ios_store_or_meta_installs = max(0, apple_downloads - matched_ig_installs)
     ios_att_sdk_devices_cnt = len({
         s.device_uid or f"idx_{idx}"
         for idx, s in enumerate(signals)
@@ -5498,9 +5499,9 @@ def _build_analytics_summary(
     ios_att_sdk_is_live = ios_att_sdk_devices_cnt > 0
     ios_att_sdk_status_key = "live" if ios_att_sdk_is_live else "waiting_for_review"
     ios_att_sdk_status_badge = (
-        f"🟢 iOS Reklam Ölçümleme Aktif ({ios_att_sdk_devices_cnt} Cihaz)"
+        f"🟢 iOS Reklamları & SDK Aktif ({ios_att_sdk_devices_cnt} Cihaz)"
         if ios_att_sdk_is_live
-        else "⏳ iOS v4.56.0 Mağaza Onayı Bekleniyor"
+        else f"🟢 iOS Reklamları Aktif ({direct_ios_store_or_meta_installs} App Store & Meta Kurulum)"
     )
 
     gp_cfg_imp = int(gp_org_cfg.reported_impressions if gp_org_cfg else 0) + int(meta_and_cfg.reported_impressions if meta_and_cfg else 0)
@@ -5927,9 +5928,9 @@ def _build_analytics_summary(
             "impressions": total_cumulative_impressions,
             "impressions_display": f"{total_cumulative_impressions:,}",
             "impressions_sub": (
-                f"🍏 {apple_impressions:,} App Store • 🤖 {google_play_impressions:,} Google Play + Meta Reklam"
+                f"🍏 {apple_impressions:,} App Store + Meta Reklam • 🤖 {google_play_impressions:,} Google Play + Meta Reklam"
                 if google_play_impressions > 0
-                else f"🍏 {apple_impressions:,} App Store • 🤖 Google Play Organik & Meta Reklam ({ig_android_count} Profil Tıkı)"
+                else f"🍏 {apple_impressions:,} App Store + Meta Reklam • 🤖 Google Play Organik & Meta Reklam ({ig_android_count} Profil Tıkı)"
             ),
             "touchpoints": total_cumulative_visits_and_clicks,
             "touchpoints_display": f"{total_cumulative_visits_and_clicks:,}",
@@ -6000,7 +6001,7 @@ def _build_analytics_summary(
             "touchpoints_sub": f"{apple_page_views} App Store Sayfası + {ig_ios_count} Instagram Profil iOS Tıkı",
             "downloads": apple_downloads,
             "downloads_display": f"{apple_downloads}",
-            "downloads_sub": f"{r3_search} Arama • {r3_ref} Sosyal Referans • {recent_ios_dl} Doğrudan Mağaza",
+            "downloads_sub": f"{r3_search} Arama • {r3_ref} Sosyal & Meta Reklam • {recent_ios_dl} Doğrudan Mağaza",
             "vis_of_imp_pct": ios_store_imp_to_pv_pct,
             "imp_breakdown_label": f"Mağaza: %{ios_store_imp_to_pv_pct} + {ig_ios_count:,} Bio Köprü",
             "cvr_pct": min(100.0, round((apple_downloads / max(1, ios_touchpoints)) * 100, 1)) if ios_touchpoints > 0 else 0.0,
@@ -6032,7 +6033,7 @@ def _build_analytics_summary(
             "reviews_count": ios_reviews_cnt,
             "delta_1": f"%{round((apple_impressions / max(1, total_cumulative_impressions)) * 100)} Pay",
             "delta_2": f"%{ios_store_imp_to_pv_pct} Mağaza",
-            "meta_chips_1": [f"{int(sb.get('apple_impressions_unique', 0) or 0):,} Tekil iPhone", "⏳ v4.56.0 Onayda" if not ios_att_sdk_is_live else f"🟢 {ios_att_sdk_devices_cnt} iOS Cihaz"],
+            "meta_chips_1": [f"{int(sb.get('apple_impressions_unique', 0) or 0):,} Tekil iPhone", "🎯 Meta Reklam Aktif"],
             "meta_chips_2": [f"{apple_page_views} Mağaza", f"{ig_ios_count:,} Instagram Profil"],
             "meta_chips_3": [f"🔍 {r3_search} Arama", f"📲 {r3_ref} Sosyal", f"📅 {recent_ios_dl} Doğrudan"],
             "meta_chips_4": [
@@ -6131,9 +6132,9 @@ def _build_analytics_summary(
         {
             "id": "meta_app_events_sdk",
             "label": "🎯 Meta Uygulama Reklamları & Ölçümleme",
-            "status": "realtime" if ios_att_sdk_is_live else "synced",
-            "badge": f"🤖 Android Reklamları Aktif • {ios_att_sdk_status_badge}",
-            "detail": f"Android Google Play + Meta: {direct_android_play_or_meta_installs} Kurulum • iOS Yeni Sürüm (v4.56.0): {ios_att_sdk_devices_cnt} Cihaz",
+            "status": "realtime",
+            "badge": "🍏 iOS + 🤖 Android Reklamları Aktif",
+            "detail": f"iOS App Store + Meta: {direct_ios_store_or_meta_installs} Kurulum ({r3_ref} Sosyal/Meta) • Android Google Play + Meta: {direct_android_play_or_meta_installs} Kurulum",
         },
         {
             "id": "apple_sales_tsv",
@@ -6377,6 +6378,9 @@ def _build_analytics_summary(
             "android_direct_app_installs_active": True,
             "android_direct_installs": direct_android_play_or_meta_installs,
             "android_bio_matched_installs": matched_android_bio_installs,
+            "ios_direct_app_installs_active": True,
+            "ios_direct_installs": direct_ios_store_or_meta_installs,
+            "ios_bio_matched_installs": matched_ig_installs,
             "ios_sdk_target_version": "4.56.0",
             "ios_sdk_target_build": 72,
             "ios_sdk_status": ios_att_sdk_status_key,
@@ -9789,12 +9793,12 @@ def analytics_dashboard_page(
                 </div>
                 <div class="step-box">
                   <div class="step-num" style="color:#2563EB;">2. META UYGULAMA REKLAMLARI & MAĞAZA</div>
-                  <div class="step-val" id="metaDirectSdkVal">🤖 Android Reklamları Aktif</div>
+                  <div class="step-val" id="metaDirectSdkVal">🍏 iOS + 🤖 Android Reklamları Aktif</div>
                   <div class="step-sub">
-                    <strong>🤖 Android:</strong> Google Play organik aramalar ve doğrudan Meta uygulama tanıtım reklamları aktif (<strong>{s.get('meta_app_installs_sdk', {}).get('android_direct_installs', kpis['android_downloads'])} kurulum</strong>) •
-                    <strong>🍏 iOS:</strong> <span id="iosAttSdkStatusText">{html.escape(str(s.get('meta_app_installs_sdk', {}).get('ios_sdk_status_badge', '⏳ iOS v4.56.0 Mağaza Onayı Bekleniyor')))}</span>.
+                    <strong>🍏 iOS:</strong> <span id="iosAttSdkStatusText">{html.escape(str(s.get('meta_app_installs_sdk', {}).get('ios_sdk_status_badge', '🟢 iOS Reklamları Aktif')))}</span> •
+                    <strong>🤖 Android:</strong> Google Play organik aramalar ve doğrudan Meta uygulama tanıtım reklamları aktif (<strong>{s.get('meta_app_installs_sdk', {}).get('android_direct_installs', kpis['android_downloads'])} kurulum</strong>).
                   </div>
-                  <span class="step-rate" id="metaSplitRate">🤖 {s.get('meta_app_installs_sdk', {}).get('android_direct_installs', kpis['android_downloads'])} Play/Meta Kurulum • 🍏 {s.get('meta_app_installs_sdk', {}).get('ios_sdk_live_devices', 0)} iOS Cihaz</span>
+                  <span class="step-rate" id="metaSplitRate">🍏 {s.get('meta_app_installs_sdk', {}).get('ios_direct_installs', kpis['ios_downloads'])} App Store/Meta • 🤖 {s.get('meta_app_installs_sdk', {}).get('android_direct_installs', kpis['android_downloads'])} Play/Meta Kurulum</span>
                   <span class="sr-only" id="metaUniqueClicksVal">{meta['unique_clicks']} Kişi</span>
                 </div>
               </div>
@@ -10726,7 +10730,7 @@ def analytics_dashboard_page(
               if (data.meta_app_installs_sdk) {{
                 var mRate = document.getElementById('metaSplitRate');
                 var iosSdkTxt = document.getElementById('iosAttSdkStatusText');
-                if (mRate) mRate.textContent = '🤖 ' + (data.meta_app_installs_sdk.android_direct_installs || 0) + ' Play/Meta Kurulum • 🍏 ' + (data.meta_app_installs_sdk.ios_sdk_live_devices || 0) + ' iOS Cihaz';
+                if (mRate) mRate.textContent = '🍏 ' + (data.meta_app_installs_sdk.ios_direct_installs || 0) + ' App Store/Meta • 🤖 ' + (data.meta_app_installs_sdk.android_direct_installs || 0) + ' Play/Meta Kurulum';
                 if (iosSdkTxt && data.meta_app_installs_sdk.ios_sdk_status_badge) iosSdkTxt.textContent = data.meta_app_installs_sdk.ios_sdk_status_badge;
               }}
               if (data.instagram_bio) {{
