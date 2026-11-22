@@ -158,7 +158,12 @@ class SubscriptionService:
             price_in_try = round(price_usd_raw * fx_rates["USD"], 2)
         else:
             price_in_try = round(price_in_purchased_currency, 2)
-        takehome_pct = float(event_data.get("takehome_percentage") or (0.727 if "PLAY" in store_raw else 0.55417))
+        try:
+            from app.api.v1.endpoints.analytics import get_dynamic_proceeds_ratio
+            default_takehome = get_dynamic_proceeds_ratio("android" if "PLAY" in store_raw else "ios")
+        except Exception:
+            default_takehome = 0.727 if "PLAY" in store_raw else 0.55417
+        takehome_pct = float(event_data.get("takehome_percentage") or default_takehome)
         if takehome_pct > 1.0:
             takehome_pct = takehome_pct / 100.0
 
@@ -223,10 +228,15 @@ class SubscriptionService:
             ):
                 exp_gross = price_in_try
             elif price_in_try > 0:
-                exp_gross = round(price_in_try * 2.5, 2)
+                exp_gross = 149.99 if currency_code == "TRY" else round(price_in_try * 3.0, 2)
             else:
                 exp_gross = 599.99 if is_annual_prod else 149.99
-            exp_net = round(exp_gross * (0.727 if platform_str == "android" else 0.55417), 2)
+            try:
+                from app.api.v1.endpoints.analytics import get_dynamic_proceeds_ratio
+                plat_ratio = get_dynamic_proceeds_ratio(platform_str)
+            except Exception:
+                plat_ratio = 0.727 if platform_str == "android" else 0.55417
+            exp_net = round(exp_gross * (takehome_pct if 0.45 <= takehome_pct <= 0.90 else plat_ratio), 2)
 
             cancel_reason = str(event_data.get("cancel_reason") or "").upper()
             is_refund = event_type == "CANCELLATION" and (

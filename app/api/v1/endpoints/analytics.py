@@ -218,6 +218,88 @@ DEFAULT_PLAN_PRICING_TRY: Dict[str, tuple] = {
     "misil": (599.99, 436.19),
 }
 
+# İlk Ay İndirimli (Introductory Pay-As-You-Go / Up-Front) Katalog Referansı (49.99 TRY Brüt)
+INTRO_1M_DISCOUNTED_GROSS_TRY: float = 49.99
+
+# Mağaza TSV / Orders API gerçek gözlemlerinden dinamik güncellenen net hakediş çarpanı
+# (%30 standart Apple komisyonunda 0.55417 -> %15 Small Business Program onaylandığında ~0.6729;
+#  Google Play %15 abonelik kademesinde 0.727).
+_DYNAMIC_PROCEEDS_RATIOS: Dict[str, float] = {
+    "ios": 0.55417,
+    "android": 0.727,
+}
+_PROCEEDS_RATIO_LOCK = threading.RLock()
+
+
+def get_dynamic_proceeds_ratio(platform: Optional[str] = "ios") -> float:
+    """Platform bazlı en güncel gerçek net hakediş çarpanını döndürür (thread-safe)."""
+    plat = "android" if (platform or "ios").strip().lower() == "android" else "ios"
+    with _PROCEEDS_RATIO_LOCK:
+        return float(_DYNAMIC_PROCEEDS_RATIOS.get(plat, 0.727 if plat == "android" else 0.55417))
+
+
+def observe_proceeds_ratio(platform: Optional[str], gross_try: float, net_try: float) -> float:
+    """
+    Apple SUBSCRIBER TSV ('Developer Proceeds' / 'Customer Price') veya Google Play Orders API
+    ('developerRevenueInBuyerCurrency' / 'total') üzerinden gelen gerçek tahsilat oranını gözlemler.
+    Apple Small Business Program (%15 komisyon) veya Google Play %15 kademesi devreye girdiğinde
+    sabit kod değişikliğine gerek kalmadan ileriye dönük MRR ve deneme tahmin oranını otomatik günceller.
+    """
+    plat = "android" if (platform or "ios").strip().lower() == "android" else "ios"
+    with _PROCEEDS_RATIO_LOCK:
+        if gross_try > 10.0 and net_try > 0.0:
+            ratio = round(float(net_try) / float(gross_try), 5)
+            if 0.45 <= ratio <= 0.90:
+                _DYNAMIC_PROCEEDS_RATIOS[plat] = ratio
+        return float(_DYNAMIC_PROCEEDS_RATIOS.get(plat, 0.727 if plat == "android" else 0.55417))
+
+
+def _extract_single_period_standard_ref(
+    product_id: Optional[str],
+    customer_price_try: float,
+    developer_proceeds_try: float,
+    expected_next_price_try: float = 0.0,
+    expected_next_proceeds_try: float = 0.0,
+    offer_type: Optional[str] = None,
+    platform: Optional[str] = "ios",
+) -> Optional[tuple]:
+    """
+    Kümülatif (2+ ay yenilenmiş: 299.98 TL vb.) veya ilk ay indirimli (49.99 TL) abone satırlarının
+    standart aylık/yıllık birim fiyat referansını (149.99 TL / 599.99 TL) bozmasını engeller.
+    """
+    plat = "android" if (platform or "ios").strip().lower() == "android" else "ios"
+    is_ann = _is_annual_product(product_id)
+    std_cat_gross = 599.99 if is_ann else 149.99
+
+    if customer_price_try > 0 and developer_proceeds_try > 0:
+        observe_proceeds_ratio(plat, customer_price_try, developer_proceeds_try)
+
+    ratio = get_dynamic_proceeds_ratio(plat)
+
+    # 1) Önce expected_next_price_try tek dönemlik standart fiyata yakınsa onu baz al
+    if expected_next_price_try > 0 and abs(expected_next_price_try - std_cat_gross) <= 15.0:
+        e_net = (
+            expected_next_proceeds_try
+            if expected_next_proceeds_try > 0 and abs((expected_next_proceeds_try / expected_next_price_try) - ratio) <= 0.05
+            else round(expected_next_price_try * ratio, 2)
+        )
+        return (round(float(expected_next_price_try), 2), round(float(e_net), 2))
+
+    # 2) customer_price_try tek dönemlik standart fiyata yakınsa (kümülatif 2x veya 49.99 intro değilse)
+    if (
+        offer_type != "intro_1m_discounted"
+        and customer_price_try > 0
+        and abs(customer_price_try - std_cat_gross) <= 15.0
+    ):
+        c_net = (
+            developer_proceeds_try
+            if developer_proceeds_try > 0 and abs((developer_proceeds_try / customer_price_try) - ratio) <= 0.05
+            else round(customer_price_try * ratio, 2)
+        )
+        return (round(float(customer_price_try), 2), round(float(c_net), 2))
+
+    return None
+
 
 def _is_annual_product(product_id: Optional[str]) -> bool:
     """Hem iOS (misil_annual / 6809228257) hem Android (misil / misil:misil) yıllık paketlerini tanır."""
@@ -237,21 +319,41 @@ def _resolve_expected_trial_pricing(
 ) -> tuple:
     """
     Deneme (intro_free_trial) abonelerinin vade sonunda beklenen brüt/net TRY tutarını
-    önce veritabanındaki gerçek ücretli işlem referansından, henüz yoksa resmi katalog
-    tarifesinden çözer (0.00 TL pipeline ve eski 799.99 TL katalog sapmasını önler).
+    önce veritabanındaki gerçek tek-dönemlik ücretli işlem referansından, henüz yoksa resmi katalog
+    tarifesinden ve dinamik net hakediş oranından (%15 Small Business / %30 standart) çözer.
     """
-    plat = (platform or "ios").strip().lower()
-    net_ratio = 0.727 if plat == "android" else 0.55417
+    plat = "android" if (platform or "ios").strip().lower() == "android" else "ios"
+    net_ratio = get_dynamic_proceeds_ratio(plat)
     is_ann = _is_annual_product(product_id)
-    if paid_ref_gross > 0 and not (is_ann and round(float(paid_ref_gross), 2) == 799.99):
-        net_val = paid_ref_net if paid_ref_net > 0 else round(paid_ref_gross * net_ratio, 2)
+    std_cat_gross = 599.99 if is_ann else 149.99
+    # Kümülatif (örn. 299.98 TL), eski 799.99 TL veya 49.99 TL ilk ay indirimli tutarların standart yenileme referansı olmasını engelle
+    if (
+        paid_ref_gross > 0
+        and not (is_ann and round(float(paid_ref_gross), 2) == 799.99)
+        and (is_ann or paid_ref_gross >= 100.0)
+        and paid_ref_gross <= (std_cat_gross * 1.35)
+    ):
+        if paid_ref_net > 0:
+            observe_proceeds_ratio(plat, paid_ref_gross, paid_ref_net)
+            net_ratio = get_dynamic_proceeds_ratio(plat)
+        net_val = (
+            paid_ref_net
+            if paid_ref_net > 0 and abs((paid_ref_net / paid_ref_gross) - net_ratio) <= 0.05
+            else round(paid_ref_gross * net_ratio, 2)
+        )
         return (round(float(paid_ref_gross), 2), round(float(net_val), 2))
     pid = (product_id or "").strip().lower()
     if pid in DEFAULT_PLAN_PRICING_TRY:
-        return DEFAULT_PLAN_PRICING_TRY[pid]
-    if plat == "android":
-        return DEFAULT_PLAN_PRICING_TRY["misil" if is_ann else "misilaylik"]
-    return DEFAULT_PLAN_PRICING_TRY["misil_annual" if is_ann else "misil_monthly"]
+        base_g, base_n = DEFAULT_PLAN_PRICING_TRY[pid]
+    elif plat == "android":
+        base_g, base_n = DEFAULT_PLAN_PRICING_TRY["misil" if is_ann else "misilaylik"]
+    else:
+        base_g, base_n = DEFAULT_PLAN_PRICING_TRY["misil_annual" if is_ann else "misil_monthly"]
+    # Dinamik oran değişmişse (örn. Apple %15 Small Business devreye girdiğinde 0.55417 -> 0.6729) yeni net oranı uygula
+    default_static_ratio = 0.727 if plat == "android" else 0.55417
+    if abs(net_ratio - default_static_ratio) > 0.005:
+        return (base_g, round(base_g * net_ratio, 2))
+    return (base_g, base_n)
 
 # Bellek içi çalışma zamanı önbelleği için kısa süreli kilit (Ağ G/Ç işlemleri bu kilit dışında yapılır)
 _BASELINE_LOCK = threading.RLock()
@@ -881,12 +983,17 @@ def _parse_money_obj_try(money_obj: Any, default_ccy: str = "TRY") -> float:
         return 0.0
 
 
-def _fetch_google_play_order(order_id: str, access_token: Optional[str] = None) -> Optional[Dict[str, Any]]:
+def _fetch_google_play_order(
+    order_id: str,
+    access_token: Optional[str] = None,
+    keep_renewal_suffix: bool = True,
+) -> Optional[Dict[str, Any]]:
     """
-    Google Play Developer API orders.get uç noktasından tekil GPA.* sipariş detayını çeker.
-    testPurchase alanı olan test siparişlerini, iadeleri (REFUNDED) ve gerçek tutarları doğrular.
+    Google Play Developer API orders.get uç noktasından tekil GPA.* (veya yenileme GPA.xxxx..0, ..1) sipariş detayını çeker.
+    testPurchase alanı olan test siparişlerini, iadeleri (REFUNDED) ve gerçek dönem tutarlarını doğrular.
     """
-    clean_oid = str(order_id or "").strip().split("..")[0]
+    raw_oid = str(order_id or "").strip()
+    clean_oid = raw_oid if keep_renewal_suffix else raw_oid.split("..")[0]
     if not clean_oid.startswith("GPA."):
         return None
     tok = access_token or _get_google_play_access_token()
@@ -903,6 +1010,8 @@ def _fetch_google_play_order(order_id: str, access_token: Optional[str] = None) 
                 return json.loads(ord_resp.read().decode("utf-8"))
     except Exception as exc:
         logger.debug("Google Play orders.get info (%s): %s", clean_oid, exc)
+    if keep_renewal_suffix and ".." in clean_oid:
+        return _fetch_google_play_order(clean_oid.split("..")[0], tok, keep_renewal_suffix=False)
     return None
 
 
@@ -1253,10 +1362,47 @@ def sync_revenuecat_v2_production_bridge(
                     )
                     existing_b = db.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == bridge_sid).first()
                     if existing_b is not None or official_cnt <= bridge_cnt:
-                        is_paid = float(v_sub.get("gross_usd") or 0.0) > 0
+                        raw_gross_usd = float(v_sub.get("gross_usd") or 0.0)
+                        raw_proc_usd = float(v_sub.get("proceeds_usd") or 0.0)
+                        is_paid = raw_gross_usd > 0
                         std_g, std_n = _resolve_expected_trial_pricing(prod_id, 0.0, 0.0, "ios")
-                        c_gross = std_g if is_paid else 0.0
-                        c_net = std_n if is_paid else 0.0
+                        ios_ratio = get_dynamic_proceeds_ratio("ios")
+                        is_intro_t0 = False
+                        if is_paid:
+                            est_try_from_usd = round(raw_gross_usd * APPLE_TRENDS_USD_TRY_RATE, 2)
+                            is_ann_ios = _is_annual_product(prod_id)
+                            if (
+                                not is_ann_ios
+                                and str(v_sub.get("country") or "TR").upper() == "TR"
+                                and 20.0 <= est_try_from_usd <= 95.0
+                            ):
+                                # 49.99 TL İlk Ay İndirimli Paket (Introductory Pay-As-You-Go)
+                                is_intro_t0 = True
+                                c_gross = INTRO_1M_DISCOUNTED_GROSS_TRY
+                                c_net = round(INTRO_1M_DISCOUNTED_GROSS_TRY * ios_ratio, 2)
+                            elif str(v_sub.get("country") or "TR").upper() != "TR" and est_try_from_usd > 0:
+                                c_gross = est_try_from_usd
+                                c_net = (
+                                    round(raw_proc_usd * APPLE_TRENDS_USD_TRY_RATE, 2)
+                                    if raw_proc_usd > 0
+                                    else round(c_gross * ios_ratio, 2)
+                                )
+                            else:
+                                c_gross = std_g
+                                c_net = std_n
+                        else:
+                            c_gross = 0.0
+                            c_net = 0.0
+                        t0_offer_type = (
+                            ("intro_1m_discounted" if is_intro_t0 else "standard_paid")
+                            if is_paid
+                            else "intro_7d_trial"
+                        )
+                        t0_offer_lbl = (
+                            "İlk Ay İndirimli Başlangıç (T-0 Canlı Köprü)"
+                            if is_intro_t0
+                            else "RevenueCat T-0 Canlı Köprü"
+                        )
                         st_val = (
                             "cancelled"
                             if rc_status in ("expired", "unsubscribed") or (not is_paid and not v_sub["auto_renew_enabled"])
@@ -1267,7 +1413,8 @@ def sync_revenuecat_v2_production_bridge(
                             existing_b.product_id = prod_id
                             existing_b.plan_label = "Yıllık VIP" if _is_annual_product(prod_id) else "Aylık Esnek VIP"
                             existing_b.status = st_val
-                            existing_b.offer_type = "standard_paid" if is_paid else "intro_7d_trial"
+                            existing_b.offer_type = t0_offer_type
+                            existing_b.offer_code_name = t0_offer_lbl
                             existing_b.auto_renew_enabled = v_sub["auto_renew_enabled"]
                             existing_b.maturity_or_renewal_date = exp_date or st_date
                             if is_paid:
@@ -1287,8 +1434,8 @@ def sync_revenuecat_v2_production_bridge(
                                     product_id=prod_id,
                                     plan_label="Yıllık VIP" if _is_annual_product(prod_id) else "Aylık Esnek VIP",
                                     status=st_val,
-                                    offer_type="standard_paid" if is_paid else "intro_7d_trial",
-                                    offer_code_name="RevenueCat T-0 Canlı Köprü",
+                                    offer_type=t0_offer_type,
+                                    offer_code_name=t0_offer_lbl,
                                     started_date=st_date,
                                     converted_or_renewed_date=conv_date if is_paid else None,
                                     maturity_or_renewal_date=exp_date or st_date,
@@ -1304,7 +1451,8 @@ def sync_revenuecat_v2_production_bridge(
                             t0_bridge_upserts += 1
             elif plat == "android":
                 base_order_id = store_sub_id.split("..")[0] if store_sub_id.startswith("GPA.") else (store_sub_id or cid)[:128]
-                gp_order = _fetch_google_play_order(base_order_id, gp_access_token) if base_order_id.startswith("GPA.") else None
+                latest_gp_order_id = store_sub_id if store_sub_id.startswith("GPA.") else base_order_id
+                gp_order = _fetch_google_play_order(latest_gp_order_id, gp_access_token) if base_order_id.startswith("GPA.") else None
                 if isinstance(gp_order, dict) and "testPurchase" in gp_order:
                     android_test_filtered += 1
                     continue
@@ -1322,6 +1470,8 @@ def sync_revenuecat_v2_production_bridge(
                         gp_country = b_region
                     gp_gross_try = _parse_money_obj_try(gp_order.get("total"), "TRY")
                     gp_net_try = _parse_money_obj_try(gp_order.get("developerRevenueInBuyerCurrency"), "TRY")
+                    if gp_gross_try > 0 and gp_net_try > 0:
+                        observe_proceeds_ratio("android", gp_gross_try, gp_net_try)
                     gp_items = gp_order.get("lineItems") or []
                     if gp_items and isinstance(gp_items[0], dict):
                         li0 = gp_items[0]
@@ -1340,11 +1490,12 @@ def sync_revenuecat_v2_production_bridge(
                 is_refunded_or_canceled_gp = gp_state in ("REFUNDED", "CANCELED")
                 is_paid = (gp_gross_try > 0 or float(v_sub.get("gross_usd") or 0.0) > 0) and gp_state != "REFUNDED"
                 std_g, std_n = _resolve_expected_trial_pricing(prod_id, 0.0, 0.0, "android")
+                and_ratio = get_dynamic_proceeds_ratio("android")
                 c_gross = gp_gross_try if gp_gross_try > 0 and not is_refunded_or_canceled_gp else (std_g if is_paid else 0.0)
                 c_net = (
                     gp_net_try
                     if gp_net_try > 0 and not is_refunded_or_canceled_gp
-                    else (round(c_gross * 0.727, 2) if c_gross > 0 else (std_n if is_paid else 0.0))
+                    else (round(c_gross * and_ratio, 2) if c_gross > 0 else (std_n if is_paid else 0.0))
                 )
                 auto_renew_and = bool(v_sub["auto_renew_enabled"]) and not is_refunded_or_canceled_gp and rc_status not in ("expired", "unsubscribed")
                 if rc_status in ("expired", "unsubscribed") or is_refunded_or_canceled_gp or (not is_paid and not auto_renew_and):
@@ -1360,7 +1511,7 @@ def sync_revenuecat_v2_production_bridge(
                 is_intro_gp = bool(
                     not _is_annual_product(prod_id)
                     and is_paid
-                    and (gp_offer_phase in ("INTRODUCTORY", "SINGLE_PAYMENT", "RECURRING") or (0.0 < c_gross < 100.0 and gp_country == "TR"))
+                    and (gp_offer_phase in ("INTRODUCTORY", "SINGLE_PAYMENT") or (0.0 < c_gross < 100.0 and gp_country == "TR"))
                 )
                 if gp_state == "REFUNDED" and not is_paid:
                     and_offer_lbl = "İptal / 72s Onaysız (Google Play)"
@@ -1379,6 +1530,8 @@ def sync_revenuecat_v2_production_bridge(
                 )
                 existing_and = db.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == base_order_id).first()
                 if existing_and:
+                    prev_and_conv = (existing_and.converted_or_renewed_date or "").strip()
+                    new_and_conv = (conv_date or existing_and.converted_or_renewed_date or st_date or "").strip()
                     existing_and.rc_app_user_id = cid[:128]
                     existing_and.platform = "android"
                     existing_and.product_id = prod_id
@@ -1387,13 +1540,44 @@ def sync_revenuecat_v2_production_bridge(
                     existing_and.offer_type = and_of_type
                     existing_and.offer_code_name = and_offer_lbl[:95]
                     existing_and.auto_renew_enabled = auto_renew_and
-                    if st_date:
+                    if st_date and not existing_and.started_date:
                         existing_and.started_date = st_date
                     existing_and.maturity_or_renewal_date = exp_date or existing_and.maturity_or_renewal_date or st_date
                     if is_paid:
-                        existing_and.customer_price_try = c_gross
-                        existing_and.developer_proceeds_try = c_net
-                        existing_and.converted_or_renewed_date = conv_date or existing_and.converted_or_renewed_date or st_date
+                        is_renewal_order = (".." in store_sub_id and not store_sub_id.endswith("..0")) or (
+                            bool(prev_and_conv and new_and_conv and new_and_conv > prev_and_conv and (existing_and.customer_price_try or 0.0) > 0)
+                        )
+                        order_ev_key = f"{base_order_id[:52]}:gp_paid:{latest_gp_order_id[-44:]}:{new_and_conv[:10]}"[:128]
+                        already_logged_order = (
+                            db.query(SubscriptionLifecycleEvent.id)
+                            .filter(
+                                SubscriptionLifecycleEvent.platform == "android",
+                                SubscriptionLifecycleEvent.event_type == order_ev_key,
+                            )
+                            .first()
+                            is not None
+                        )
+                        if is_renewal_order and prev_and_conv and new_and_conv > prev_and_conv and not already_logged_order:
+                            existing_and.customer_price_try = round(float(existing_and.customer_price_try or 0.0) + c_gross, 2)
+                            existing_and.developer_proceeds_try = round(float(existing_and.developer_proceeds_try or 0.0) + c_net, 2)
+                            db.add(
+                                SubscriptionLifecycleEvent(
+                                    event_date=new_and_conv[:10],
+                                    platform="android",
+                                    event_type=order_ev_key,
+                                    product_id=prod_id,
+                                    plan_label=and_plan_lbl,
+                                    offer_code_name=f"{c_gross:.2f}:{c_net:.2f}",
+                                    country=gp_country,
+                                    device_type="Android",
+                                    quantity=1,
+                                )
+                            )
+                        else:
+                            # Tek dönem veya aynı dönem tekrar taraması: mevcut kümülatif LTV'yi asla daha düşük tek-ay tutarına ezme
+                            existing_and.customer_price_try = max(float(existing_and.customer_price_try or 0.0), c_gross)
+                            existing_and.developer_proceeds_try = max(float(existing_and.developer_proceeds_try or 0.0), c_net)
+                        existing_and.converted_or_renewed_date = new_and_conv or st_date
                     elif gp_state == "REFUNDED":
                         existing_and.customer_price_try = 0.0
                         existing_and.developer_proceeds_try = 0.0
@@ -2317,24 +2501,44 @@ def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
                                         p_ccy = (rd.get("Proceeds Currency") or c_ccy).strip().upper()
                                         c_price_try = _convert_to_try(raw_c_price, c_ccy)
                                         d_proc_try = _convert_to_try(raw_d_proc, p_ccy)
+                                        if c_price_try > 0 and d_proc_try > 0 and not (rd.get("Refund") or "").strip().lower() == "yes":
+                                            observe_proceeds_ratio("ios", c_price_try, d_proc_try)
                                         cntry = (rd.get("Country") or "TR").strip().upper()
                                         dev = (rd.get("Device") or "iPhone").strip()
                                         refund_flag = (rd.get("Refund") or "").strip().lower() == "yes"
                                         is_annual = "Yillik" in sub_name or "6809228257" in (rd.get("Subscription Apple ID") or "")
                                         prod_id = "misil_annual" if is_annual else "misil_monthly"
                                         plan_lbl = "Yıllık VIP" if is_annual else "Aylık Esnek VIP"
-                                        paid_ref = (
+                                        paid_ref_rows = (
                                             db_sync.query(SubscriberLedger)
                                             .filter(
                                                 SubscriberLedger.product_id == prod_id,
                                                 SubscriberLedger.customer_price_try > 0,
                                             )
-                                            .first()
+                                            .all()
                                         )
-                                        ref_gross = float(paid_ref.customer_price_try) if paid_ref else 0.0
-                                        ref_net = float(paid_ref.developer_proceeds_try) if paid_ref else 0.0
+                                        ref_gross, ref_net = 0.0, 0.0
+                                        for pr_row in paid_ref_rows:
+                                            std_pair = _extract_single_period_standard_ref(
+                                                prod_id,
+                                                float(pr_row.customer_price_try or 0.0),
+                                                float(pr_row.developer_proceeds_try or 0.0),
+                                                float(pr_row.expected_next_price_try or 0.0),
+                                                float(pr_row.expected_next_proceeds_try or 0.0),
+                                                pr_row.offer_type,
+                                                "ios",
+                                            )
+                                            if std_pair:
+                                                ref_gross, ref_net = std_pair
+                                                break
                                         std_price_try, std_proc_try = _resolve_expected_trial_pricing(
                                             prod_id, ref_gross, ref_net, "ios"
+                                        )
+                                        is_discounted_intro_paid = bool(
+                                            not is_annual
+                                            and c_price_try > 0
+                                            and cntry == "TR"
+                                            and 20.0 <= c_price_try < 100.0
                                         )
 
                                         is_intro_offer = (
@@ -2391,13 +2595,13 @@ def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
                                                 existing_sub.product_id = prod_id
                                                 existing_sub.plan_label = plan_lbl
                                                 existing_sub.status = "paid_active"
-                                                existing_sub.offer_type = "standard_paid"
+                                                existing_sub.offer_type = "intro_1m_discounted" if is_discounted_intro_paid else "standard_paid"
                                                 existing_sub.auto_renew_enabled = True
                                                 existing_sub.converted_or_renewed_date = ev_date
                                                 existing_sub.customer_price_try = round((existing_sub.customer_price_try or 0.0) + c_price_try, 2)
                                                 existing_sub.developer_proceeds_try = round((existing_sub.developer_proceeds_try or 0.0) + d_proc_try, 2)
-                                                existing_sub.expected_next_price_try = c_price_try
-                                                existing_sub.expected_next_proceeds_try = d_proc_try
+                                                existing_sub.expected_next_price_try = std_price_try if is_discounted_intro_paid else c_price_try
+                                                existing_sub.expected_next_proceeds_try = std_proc_try if is_discounted_intro_paid else d_proc_try
                                                 try:
                                                     dt_conv = datetime.strptime(ev_date, "%Y-%m-%d")
                                                     existing_sub.maturity_or_renewal_date = (dt_conv + timedelta(days=365 if is_annual else 30)).strftime("%Y-%m-%d")
@@ -2423,9 +2627,21 @@ def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
                                             except Exception:
                                                 mat_date = ev_date
                                             st_val = "paid_active" if c_price_try > 0 else ("offer_code_trial" if is_offer_code else "intro_free_trial")
-                                            of_type = "standard_paid" if c_price_try > 0 else ("offer_code" if is_offer_code else "intro_7d_trial")
+                                            of_type = (
+                                                ("intro_1m_discounted" if is_discounted_intro_paid else "standard_paid")
+                                                if c_price_try > 0
+                                                else ("offer_code" if is_offer_code else "intro_7d_trial")
+                                            )
                                             ccy_suffix = f" ({c_ccy})" if c_ccy != "TRY" else ""
-                                            of_lbl = (offer_name if is_offer_code else ("Standart Ücretli" if c_price_try > 0 else "7 Günlük Deneme")) + ccy_suffix
+                                            of_lbl = (
+                                                offer_name
+                                                if is_offer_code
+                                                else (
+                                                    "İlk Ay İndirimli Başlangıç"
+                                                    if is_discounted_intro_paid
+                                                    else ("Standart Ücretli" if c_price_try > 0 else "7 Günlük Deneme")
+                                                )
+                                            ) + ccy_suffix
                                             db_sync.add(
                                                 SubscriberLedger(
                                                     subscriber_id=sid,
@@ -2441,8 +2657,16 @@ def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
                                                     auto_renew_enabled=not refund_flag,
                                                     customer_price_try=c_price_try if not refund_flag else 0.0,
                                                     developer_proceeds_try=d_proc_try if not refund_flag else 0.0,
-                                                    expected_next_price_try=c_price_try if c_price_try > 0 else (0.0 if is_offer_code else std_price_try),
-                                                    expected_next_proceeds_try=d_proc_try if d_proc_try > 0 else (0.0 if is_offer_code else std_proc_try),
+                                                    expected_next_price_try=(
+                                                        (std_price_try if is_discounted_intro_paid else c_price_try)
+                                                        if c_price_try > 0
+                                                        else (0.0 if is_offer_code else std_price_try)
+                                                    ),
+                                                    expected_next_proceeds_try=(
+                                                        (std_proc_try if is_discounted_intro_paid else d_proc_try)
+                                                        if d_proc_try > 0
+                                                        else (0.0 if is_offer_code else std_proc_try)
+                                                    ),
                                                     country=cntry,
                                                     device_type=dev,
                                                 )
@@ -4580,16 +4804,24 @@ def _build_analytics_summary(
             for t in legacy_sub_tuples
         ]
 
-    # Önce veritabanındaki ücretli abonelerden gerçek birim fiyat referansını çıkar
+    # Önce veritabanındaki ücretli abonelerden gerçek tek-dönemlik standart birim fiyat referansını çıkar
+    # (Kümülatif 2+ aylık yenilemeler veya 49.99 TL ilk ay indirimli satırlar standart birim fiyatı ezmez;
+    #  gerçek TSV / Google Play tahsilat oranından dinamik %15 Small Business / %30 standart oranı gözlemlenir).
     paid_ref_by_prod: Dict[str, tuple] = {}
     for r_ref in ledger_rows_db:
         if (r_ref.customer_price_try or 0.0) > 0 and r_ref.product_id:
             ref_plat = (r_ref.platform or "ios").lower()
-            ref_ratio = 0.727 if ref_plat == "android" else 0.55417
-            paid_ref_by_prod[r_ref.product_id] = (
-                float(r_ref.customer_price_try),
-                float(r_ref.developer_proceeds_try or round(float(r_ref.customer_price_try) * ref_ratio, 2)),
+            std_pair = _extract_single_period_standard_ref(
+                r_ref.product_id,
+                float(r_ref.customer_price_try or 0.0),
+                float(r_ref.developer_proceeds_try or 0.0),
+                float(r_ref.expected_next_price_try or 0.0),
+                float(r_ref.expected_next_proceeds_try or 0.0),
+                r_ref.offer_type,
+                ref_plat,
             )
+            if std_pair:
+                paid_ref_by_prod[r_ref.product_id] = std_pair
 
     subscriber_ledger_list = []
     realized_gross_try = 0.0
@@ -4634,7 +4866,7 @@ def _build_analytics_summary(
 
     for r in ledger_rows_db:
         r_plat = "android" if (r.platform or "ios").lower() == "android" else "ios"
-        net_ratio = 0.727 if r_plat == "android" else 0.55417
+        net_ratio = get_dynamic_proceeds_ratio(r_plat)
         pf_bucket = plat_fin[r_plat]
 
         r_gross = float(r.customer_price_try or 0.0)
@@ -4683,8 +4915,24 @@ def _build_analytics_summary(
                 lifecycle_badge = "💳 Ücretli Aktif" if r.auto_renew_enabled else "💳 Ücretli Aktif (Yenileme Kapalı)"
             trial_progress_pct = 100
             if r.auto_renew_enabled:
-                rec_gross = float(r.expected_next_price_try or r.customer_price_try or resolved_gross)
-                rec_net = float(r.expected_next_proceeds_try or r.developer_proceeds_try or resolved_net)
+                if r.offer_type == "intro_1m_discounted":
+                    rec_gross = float(
+                        r.expected_next_price_try
+                        if (r.expected_next_price_try or 0.0) >= 100.0
+                        else resolved_gross
+                    )
+                    rec_net = float(
+                        r.expected_next_proceeds_try
+                        if (r.expected_next_proceeds_try or 0.0) >= 50.0
+                        else resolved_net
+                    )
+                else:
+                    rec_gross = float(r.expected_next_price_try or resolved_gross or r.customer_price_try)
+                    rec_net = float(r.expected_next_proceeds_try or resolved_net or r.developer_proceeds_try)
+                    # Kümülatif (2+ ay) customer_price_try MRR hesabına sızmışsa tek dönemlik standart fiyata sınırla
+                    if not _is_annual_product(r.product_id) and rec_gross > (resolved_gross * 1.35):
+                        rec_gross = resolved_gross
+                        rec_net = resolved_net
                 if _is_annual_product(r.product_id):
                     m_g = rec_gross / 12.0
                     m_n = rec_net / 12.0
@@ -4906,6 +5154,32 @@ def _build_analytics_summary(
             return start_b <= d_clean <= today_str
         return True
 
+    def _resolve_single_window_tx_amount(lr_obj: Any, win_key: str, l_pl: str) -> tuple:
+        """
+        Tüm Zamanlar ('all') penceresinde abonenin kümülatif LTV tahsilatını döndürür.
+        Dönemsel pencerelerde ('today', 'yesterday', '7d') ise abone 2. veya 3. kez yenilenmişse
+        kümülatif toplamı (örn. 299.98 TL) tek güne çift saymak yerine o dönemin tekil tahsilat tutarını döndürür.
+        """
+        cum_g = float(lr_obj.customer_price_try or 0.0)
+        cum_n = float(lr_obj.developer_proceeds_try or 0.0)
+        if cum_g <= 0:
+            return (0.0, 0.0)
+        if win_key == "all":
+            return (cum_g, cum_n)
+        ref_pair_w = paid_ref_by_prod.get(lr_obj.product_id or ("misilaylik" if l_pl == "android" else "misil_monthly"), (0.0, 0.0))
+        std_w_g, std_w_n = _resolve_expected_trial_pricing(lr_obj.product_id, ref_pair_w[0], ref_pair_w[1], l_pl)
+        # Kümülatif tutar tek dönemlik standart fiyatın 1.35 katını aşmışsa (2+ dönem yenileme)
+        if cum_g > (std_w_g * 1.35):
+            exp_g = float(lr_obj.expected_next_price_try or 0.0)
+            exp_n = float(lr_obj.expected_next_proceeds_try or 0.0)
+            if 0 < exp_g <= (std_w_g * 1.35):
+                return (
+                    round(exp_g, 2),
+                    round(exp_n if exp_n > 0 else (exp_g * get_dynamic_proceeds_ratio(l_pl)), 2),
+                )
+            return (round(std_w_g, 2), round(std_w_n, 2))
+        return (cum_g, cum_n)
+
     def _calc_window_revenue(win_key: str) -> Dict[str, Any]:
         g_try = 0.0
         n_try = 0.0
@@ -4920,11 +5194,11 @@ def _build_analytics_summary(
         tx_items: List[str] = []
         for lr in ledger_rows_db:
             l_pl = "android" if (lr.platform or "ios").lower() == "android" else "ios"
-            c_p = float(lr.customer_price_try or 0.0)
-            d_p = float(lr.developer_proceeds_try or 0.0)
+            c_p_raw = float(lr.customer_price_try or 0.0)
             tx_d = (lr.converted_or_renewed_date or lr.started_date or "").strip()[:10]
             st_d = (lr.started_date or "").strip()[:10]
-            if c_p > 0 and _in_period_window(tx_d, l_pl, win_key):
+            if c_p_raw > 0 and _in_period_window(tx_d, l_pl, win_key):
+                c_p, d_p = _resolve_single_window_tx_amount(lr, win_key, l_pl)
                 g_try = round(g_try + c_p, 2)
                 n_try = round(n_try + d_p, 2)
                 p_cnt += 1
@@ -6499,7 +6773,7 @@ def sync_client_subscriber_ledger(
         0.0 if verified_rc_v2 else payload.developer_proceeds_try,
         plat,
     )
-    net_ratio = 0.727 if plat == "android" else 0.55417
+    net_ratio = get_dynamic_proceeds_ratio(plat)
     if verified_rc_v2:
         c_gross = std_gross if st_val == "paid_active" else 0.0
         c_net = std_net if st_val == "paid_active" else 0.0

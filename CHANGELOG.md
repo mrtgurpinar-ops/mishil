@@ -2,6 +2,20 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.11-cockpit-net-revenue-renewal-and-sbp15-engine] - 2026-11-22 (Yerel Depo — Kurucu Kokpiti Net Gelir, 2. Ay Yenileme (Renewal) Çift Sayım Koruması, `49.99 ₺` İlk Ay İndirimli Paket T-0 Köprüsü, Android `GPA..N` Yenileme Biriktirme ve Apple/Google `%15 Small Business` Dinamik Net Oran Motoru • 🟢 Yeni Native EAS Build Gerekmez)
+### 💰📊 Kurucu Kokpiti (`/admin/analytics`) Net Gelir, Yenileme & `%15 Small Business` Dinamik Hakediş Motoru (`app/api/v1/endpoints/analytics.py`, `app/services/subscription.py`)
+1. **`paid_ref_by_prod` Tek-Dönemlik Standart Birim Fiyat Koruması (`_extract_single_period_standard_ref`):**
+   - Kümülatif 2+ aylık yenilenmiş satırların (`299.98 ₺`) veya `49.99 ₺` ilk ay indirimli (`intro_1m_discounted`) satırların standart aylık/yıllık birim fiyat referansını (`149.99 ₺` / `599.99 ₺`) ezmesi önlendi.
+2. **`_calc_window_revenue` (`Bugün / Dün / Son 7 Gün`) Dönemsel Çift Sayım Koruması (`_resolve_single_window_tx_amount`):**
+   - `Tüm Zamanlar (all)` penceresinde kümülatif LTV toplamı korunurken; `Bugün`, `Dün` ve `Son 7 Gün` pencerelerinde 2. veya 3. kez yenilenen abonelerin geçmiş aylarla birleşmiş kümülatif tutarının tek güne çift sayılması engellenerek sadece o döneme ait tekil tahsilat tutarı yansıtıldı.
+3. **iOS `RC_T0_*` Canlı Köprüsünde `49.99 ₺` İlk Ay İndirimli Paket ve Döviz (`gross_usd` / `proceeds_usd`) Tespiti:**
+   - Apple TSV raporu gelmeden önceki T-0 gününde RevenueCat V2 üzerinden gelen `49.99 ₺` ilk ay indirimli alımların `149.99 ₺` yerine gerçek `49.99 ₺` brüt (`intro_1m_discounted`) ve gelecek ay `149.99 ₺` beklenen yenileme olarak kaydedilmesi sağlandı.
+4. **Android `GPA.xxxx..N` Yenilemelerinde Kümülatif Gelir Koruması:**
+   - `_fetch_google_play_order` içinde `..0`, `..1` yenileme son ekleri korunarak en güncel dönem siparişinin sorgulanması ve `SubscriptionLifecycleEvent` idempotency anahtarıyla yeni dönem tahsilatının kümülatif LTV'yi sıfırlamadan üzerine eklenmesi sağlandı.
+5. **Apple Small Business Program (`%15`) & Google Play (`%15`) Dinamik Net Hakediş Oranı (`observe_proceeds_ratio` / `get_dynamic_proceeds_ratio`):**
+   - `_PROCEEDS_RATIO_LOCK` (`RLock`) korumalı dinamik oran çözümleyici ile Apple TSV (`Developer Proceeds / Customer Price`) ve Google Play (`developerRevenueInBuyerCurrency / total`) gerçek kesinti oranı canlı gözlemlenerek, `%15` komisyon indirimi devreye girdiği anda ileriye dönük MRR ve deneme vade tahminlerinin (`83.12 ₺` ➔ `~100.93 ₺`) otomatik güncellenmesi sağlandı.
+   - **Claude Code CLI (`task-369` & `task-379` mimari konsensüs + `task-422` diff denetimi: `ONAY`)** + **Antigravity (`69/69 pytest` `task-427`)**.
+
 ## [4.56.10-asc-rejection-remediation-and-30-sounds-store-sync] - 2026-11-22 (Canlı App Store Connect Senkronu & Yerel Depo — `Mışıl Baby: Ebeveyn Asistanı` 3 Dil Başlık/Alt Başlık, 30 Stüdyo Sesi Mağaza & Abonelik Açıklamaları, 15 Yeni `1284x2778` Vitrin Görseli + 2 `1290x2796` IAP Review Paywall Görseli & `apple_preflight_validator.py` Doğrulaması • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🍏 App Store Connect `v4.56.0 (Build 72)` Ret Analizi, 3 Dil (`TR / EN-US / DE-DE`) Mağaza Vitrin Yenilemesi & Yetim Dil/Abonelik Senkronizasyonu (`scripts/generate_v456_multilang_store_assets.py`, `scripts/sync_asc_v456_full.py`, `scripts/capture_iap_screenshots.py`, `APP_STORE_LISTING.md`, `STORE_LISTING.md`, `public/preview_bio.html`, `mobile/test-qr.html`, `scripts/generate_store_mockups.py`)
 1. **Ebeveyn Aracı Konumlandırması & 3 Dil Uygulama Adı / Alt Başlık Güncellemesi (Apple Guideline 1.3 & 2.3.7):**
