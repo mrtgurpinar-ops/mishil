@@ -13,20 +13,58 @@ from .auth import get_current_user, get_optional_current_user
 router = APIRouter(prefix="/cry-analysis", tags=["Cry Audio Analysis"])
 
 _CRY_IP_BUCKETS: Dict[str, deque] = {}
+_CRY_IP_AGGREGATE_BUCKETS: Dict[str, deque] = {}
 _CRY_WINDOW_SEC = 600.0
-_CRY_MAX_REQ_PER_WINDOW = 20
+_CRY_MAX_REQ_PER_WINDOW = 30
+_CRY_MAX_REQ_PER_IP_AGGREGATE = 90
 
 
-def _enforce_cry_abuse_rate_limit(request: Optional[Request], lang: str = "tr") -> None:
+def _extract_cry_client_ip(request: Optional[Request]) -> str:
+    """Use last hop of X-Forwarded-For consistently with coach.py to prevent client XFF spoofing behind Railway proxy."""
+    if request is None:
+        return "unknown"
+    forwarded = (request.headers.get("x-forwarded-for") or "").strip()
+    if forwarded:
+        hops = [h.strip() for h in forwarded.split(",") if h.strip()]
+        if hops:
+            return hops[-1]
+    return (request.client.host if request.client else "unknown") or "unknown"
+
+
+def _build_cry_rate_limit_key(request: Optional[Request], scope_hint: str = "") -> str:
+    client_ip = _extract_cry_client_ip(request)
+    if request is None:
+        return client_ip
+    dev_uid = (request.headers.get("x-device-uid") or "").strip()[:64]
+    if dev_uid:
+        return f"{client_ip}|dev:{dev_uid}"
+    clean_hint = (scope_hint or "").strip().lower()[:40]
+    if clean_hint:
+        return f"{client_ip}|ctx:{clean_hint}"
+    return client_ip
+
+
+def _enforce_cry_abuse_rate_limit(request: Optional[Request], lang: str = "tr", scope_hint: str = "") -> None:
     if os.environ.get("PYTEST_CURRENT_TEST") or request is None:
         return
-    forwarded = request.headers.get("x-forwarded-for") or ""
-    client_ip = (forwarded.split(",")[0].strip() if forwarded else (request.client.host if request.client else "unknown")) or "unknown"
+    client_ip = _extract_cry_client_ip(request)
+    bucket_key = _build_cry_rate_limit_key(request, scope_hint=scope_hint)
     now = time.monotonic()
-    bucket = _CRY_IP_BUCKETS.setdefault(client_ip, deque())
+    if len(_CRY_IP_BUCKETS) > 2048:
+        stale_keys = [k for k, dq in list(_CRY_IP_BUCKETS.items()) if not dq or (now - dq[-1]) > _CRY_WINDOW_SEC]
+        for s_k in stale_keys:
+            _CRY_IP_BUCKETS.pop(s_k, None)
+    if len(_CRY_IP_AGGREGATE_BUCKETS) > 2048:
+        stale_agg = [k for k, dq in list(_CRY_IP_AGGREGATE_BUCKETS.items()) if not dq or (now - dq[-1]) > _CRY_WINDOW_SEC]
+        for s_a in stale_agg:
+            _CRY_IP_AGGREGATE_BUCKETS.pop(s_a, None)
+    agg_bucket = _CRY_IP_AGGREGATE_BUCKETS.setdefault(client_ip, deque())
+    while agg_bucket and (now - agg_bucket[0]) > _CRY_WINDOW_SEC:
+        agg_bucket.popleft()
+    bucket = _CRY_IP_BUCKETS.setdefault(bucket_key, deque())
     while bucket and (now - bucket[0]) > _CRY_WINDOW_SEC:
         bucket.popleft()
-    if len(bucket) >= _CRY_MAX_REQ_PER_WINDOW:
+    if len(bucket) >= _CRY_MAX_REQ_PER_WINDOW or len(agg_bucket) >= _CRY_MAX_REQ_PER_IP_AGGREGATE:
         lang_clean = (lang or "tr").strip().lower()
         detail_msg = (
             "Anfragelimit für die Schrei-Audioanalyse erreicht. Bitte warte ein paar Minuten."
@@ -39,6 +77,7 @@ def _enforce_cry_abuse_rate_limit(request: Optional[Request], lang: str = "tr") 
         )
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=detail_msg)
     bucket.append(now)
+    agg_bucket.append(now)
 
 
 @router.post("/analyze", response_model=CryAnalysisResponse)
@@ -55,7 +94,7 @@ async def analyze_cry_audio(
     and output a heuristic probability distribution across causes (Hungry, Tired, Pain/Colic, Discomfort).
     """
     lang_clean = (lang or "tr").strip().lower()
-    _enforce_cry_abuse_rate_limit(request, lang_clean)
+    _enforce_cry_abuse_rate_limit(request, lang_clean, scope_hint=str(baby_id or ""))
     # Verify baby ownership if both baby_id and current_user are provided
     if baby_id and current_user:
         baby = db.query(Baby).filter(Baby.id == baby_id, Baby.user_id == current_user.id).first()

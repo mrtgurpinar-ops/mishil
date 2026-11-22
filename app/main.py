@@ -227,11 +227,21 @@ _RATE_LIMIT_BYPASS_PREFIXES = (
 
 
 # Rate Limiting & Security Header Middleware
+def _extract_real_client_ip(request: Request) -> str:
+    """Extract true client IP behind Railway reverse proxy (last hop of X-Forwarded-For) so all users don't share one proxy IP bucket."""
+    forwarded = (request.headers.get("x-forwarded-for") or "").strip()
+    if forwarded:
+        hops = [h.strip() for h in forwarded.split(",") if h.strip()]
+        if hops:
+            return hops[-1]
+    return (request.client.host if request.client else "unknown") or "unknown"
+
+
 @app.middleware("http")
 async def security_and_rate_limit_middleware(request: Request, call_next):
     # 1. Rate Limiting Check (Bypass for static files, health check, and PIN-protected admin cockpit)
     if not request.url.path.startswith(_RATE_LIMIT_BYPASS_PREFIXES):
-        client_ip = request.client.host if request.client else "unknown"
+        client_ip = _extract_real_client_ip(request)
         now = time.time()
 
         with _RATE_LIMIT_LOCK:
@@ -242,7 +252,7 @@ async def security_and_rate_limit_middleware(request: Request, call_next):
             history = RATE_LIMIT_RECORD.get(client_ip, [])
             history = [t for t in history if now - t < 60]
 
-            if len(history) >= 120:
+            if len(history) >= 240:
                 return JSONResponse(
                     status_code=status.HTTP_429_TOO_MANY_REQUESTS,
                     content={

@@ -23,7 +23,12 @@ from app.core.config import settings
 from app.core.logging import get_logger
 from app.models.enums import CryType, SoundType
 from app.models.schemas import CryAnalysisResponse, CryCauseProbability
-from app.services.ai_sleep_coach import _find_gemini_api_key, normalize_lang
+from app.services.ai_sleep_coach import (
+    _find_gemini_api_key,
+    _get_ordered_gemini_keys_for_request,
+    normalize_lang,
+    record_ai_tier_metric,
+)
 
 logger = get_logger("cry_analysis")
 
@@ -473,10 +478,13 @@ class CryAnalysisService:
 
     @classmethod
     def _analyze_with_gemini_multimodal(cls, audio_bytes: bytes, filename: str, lang: str = "tr") -> Optional[Dict[str, Any]]:
-        """Tier 1 & Tier 2: Neural Multimodal Direct Audio Listening Engine via Gemini 3.6 / 3.5 Flash."""
+        """Tier 1 & Tier 2: Neural Multimodal Direct Audio Listening Engine via Gemini 3.6 / 3.5 Flash with Key Pool Failover."""
         lang_norm = normalize_lang(lang)
-        api_key = _find_gemini_api_key()
-        if not api_key:
+        api_keys = _get_ordered_gemini_keys_for_request()
+        if not api_keys:
+            single_key = _find_gemini_api_key()
+            api_keys = [single_key] if single_key else []
+        if not api_keys:
             return None
 
         # Determine MIME type accurately
@@ -543,34 +551,35 @@ class CryAnalysisService:
                 "Sadece geçerli ve temiz JSON döndür."
             )
 
-        for candidate_model in ["gemini-3.6-flash", "gemini-3.5-flash"]:
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate_model}:generateContent?key={api_key}"
-            payload = {
-                "contents": [{
-                    "role": "user",
-                    "parts": [
-                        {"inlineData": {"mimeType": mime, "data": audio_b64}},
-                        {"text": prompt}
-                    ]
-                }],
-                "generationConfig": {
-                    "responseMimeType": "application/json",
-                    "temperature": 0.20
+        for api_key in api_keys:
+            for candidate_model in ["gemini-3.6-flash", "gemini-3.5-flash"]:
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate_model}:generateContent?key={api_key}"
+                payload = {
+                    "contents": [{
+                        "role": "user",
+                        "parts": [
+                            {"inlineData": {"mimeType": mime, "data": audio_b64}},
+                            {"text": prompt}
+                        ]
+                    }],
+                    "generationConfig": {
+                        "responseMimeType": "application/json",
+                        "temperature": 0.20
+                    }
                 }
-            }
 
-            try:
-                data_bytes = json.dumps(payload).encode("utf-8")
-                req = urllib.request.Request(url, data=data_bytes, headers={"Content-Type": "application/json"}, method="POST")
-                with urllib.request.urlopen(req, timeout=14) as resp:
-                    res = json.loads(resp.read().decode("utf-8"))
-                    text = res.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                    if text:
-                        parsed = json.loads(text)
-                        parsed["tier_used"] = f"Tier 1 (Google Gemini {candidate_model} Multimodal Audio)"
-                        return parsed
-            except Exception as e:
-                logger.warning(f"Multimodal Audio analysis error with {candidate_model}: {e}")
+                try:
+                    data_bytes = json.dumps(payload).encode("utf-8")
+                    req = urllib.request.Request(url, data=data_bytes, headers={"Content-Type": "application/json"}, method="POST")
+                    with urllib.request.urlopen(req, timeout=14) as resp:
+                        res = json.loads(resp.read().decode("utf-8"))
+                        text = res.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                        if text:
+                            parsed = json.loads(text)
+                            parsed["tier_used"] = f"Tier 1 (Google Gemini {candidate_model} Multimodal Audio)"
+                            return parsed
+                except Exception as e:
+                    logger.warning(f"Multimodal Audio analysis error with {candidate_model}: {e}")
 
         return None
 
@@ -629,6 +638,7 @@ class CryAnalysisService:
                     )
                 )
                 
+                record_ai_tier_metric("cry_tier1_gemini")
                 return CryAnalysisResponse(
                     audio_duration_seconds=duration,
                     possible_causes=causes_parsed,
@@ -646,6 +656,7 @@ class CryAnalysisService:
                 logger.warning(f"Error parsing Gemini multimodal output, falling back to DSP: {e}")
 
         # 2. Tier 3: Librosa FFT / MFCC Acoustic DSP Extraction
+        record_ai_tier_metric("cry_tier3_dsp")
         _, duration, features = cls.extract_features(audio_bytes)
         possible_causes = cls.evaluate_probabilities(features, lang_norm)
         dominant_cause = possible_causes[0].cause if possible_causes else CryType.TIRED

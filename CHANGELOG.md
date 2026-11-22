@@ -2,6 +2,17 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.2-ai-quota-pool] - 2026-11-22 (Yerel Geliştirme — Mışıl Dadı & Ağlama Analizi Çoklu Gemini API Key Havuzu, CGNAT/Ev Wi-Fi Kota İzolasyonu ve Proxy IP Darboğazı Onarımı • 🟢 Yeni Native EAS Build Gerekmez)
+### 🤖 Mışıl Dadı & Ağlama Analizi AI Kota, Kapasite ve Key Havuzu Paketi (`app/services/ai_sleep_coach.py`, `app/services/cry_analysis.py`, `app/api/v1/endpoints/coach.py`, `app/api/v1/endpoints/cry_analysis.py`, `app/main.py`, `tests/test_cry_analysis.py`)
+1. **Bellek İçi Çoklu Gemini API Anahtar Havuzu & Sıfır Disk I/O (`_get_gemini_api_key_pool`):**
+   - `_find_gemini_api_key()` içindeki `not direct_key.startswith("AQ.")` koşulu nedeniyle her soruda 4 farklı `.env` dosyasının diskten taranması sorunu giderildi; tüm geçerli anahtarlar (`GEMINI_API_KEYS`, `GEMINI_API_KEY`, `GOOGLE_API_KEY`) başlangıçta tek seferde belleğe (`_GEMINI_KEY_POOL_CACHE`) alınarak kilitli Round-Robin yük dağılımı ve otomatik anahtar/model failover (`gemini-3.6-flash` ➔ `gemini-3.8-flash` ➔ `gemini-3.5-flash`) devreye alındı.
+   - Gerçek zamanlı `AI_TIER_METRICS` sayacı (`dadi_tier1_gemini`, `dadi_tier4_heuristic`, `dadi_safety_guardrail`, `cry_tier1_gemini`, `cry_tier3_dsp`) eklendi.
+2. **Railway Proxy IP Darboğazı & CGNAT / Ev Wi-Fi Kota İzolasyonu:**
+   - `app/main.py` global hız sınırlayıcısının `X-Forwarded-For` okumayıp tüm kullanıcıları tek Railway proxy IP'si altında dakikada 120 istekte sınırlama riski `_extract_real_client_ip()` ile giderildi ve limit **240 istek/dk** seviyesine çıkarıldı.
+   - `coach.py` ve `cry_analysis.py` içinde kota kovaları `client_ip + x-device-uid / scope_hint` olarak ayrıştırıldı (aynı Wi-Fi'daki anne ve babanın birbirinin kotasını tüketmesi önlendi), sahte `x-device-uid` döngüsüne karşı IP başına üst tavan (`120 Dadı / 90 Ağlama Analizi / 10 dk`) eklendi; cihaz başına 10 dakikalık limitler Mışıl Dadı için `25` ➔ **`45 soru`**, Ağlama Analizi için `20` ➔ **`30 analiz`** olarak artırıldı.
+3. **3 Ajanlı Konsensüs & Doğrulama Kapısı (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-59`: Mimari Denetim)** + **Codex CLI (`gpt-6-luna`, `task-70` & `task-109`: Edge-Case Denetimi)** + **Antigravity (`64/64 pytest` %100 Yeşil)**.
+
 ## [4.56.1-cockpit-resilience] - 2026-11-21 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` 25sn SWR Hızlandırma, Zero-500/429 Hata Koruması & Mobil-Öncelikli `2x2 Bento` UX Yenilemesi • 🟢 Yeni Native EAS Build Gerekmez)
 ### 📊 Kurucu Kokpiti (`/admin/analytics` ➔ `/api/v1/analytics/dashboard` & `/summary`) Hız, Hata Dayanıklılığı ve Mobil Uyumluluk Paketi (`app/main.py`, `app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **Zero-500 & 429 Kilit Çözümü (SWR Önbellek + PIN Brute-Force Düzeltmesi):**

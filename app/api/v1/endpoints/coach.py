@@ -16,8 +16,10 @@ logger = get_logger("coach_endpoint")
 router = APIRouter()
 
 _COACH_IP_BUCKETS: Dict[str, deque] = {}
+_COACH_IP_AGGREGATE_BUCKETS: Dict[str, deque] = {}
 _COACH_WINDOW_SEC = 600.0
-_COACH_MAX_REQ_PER_WINDOW = 25
+_COACH_MAX_REQ_PER_WINDOW = 45
+_COACH_MAX_REQ_PER_IP_AGGREGATE = 120
 
 
 def _extract_coach_client_ip(request: Optional[Request]) -> str:
@@ -31,29 +33,57 @@ def _extract_coach_client_ip(request: Optional[Request]) -> str:
     return (request.client.host if request.client else "unknown") or "unknown"
 
 
-def _enforce_coach_abuse_rate_limit(request: Optional[Request], lang_norm: str = "tr") -> None:
+def _build_coach_rate_limit_key(request: Optional[Request], scope_hint: str = "") -> str:
     """
-    S7 Güvenli Kota Koruma: Gerçek VIP aboneleri webhook gecikmesi yüzünden 402/403 ile mağdur etmeden,
-    yalnızca otomatik bot/script tabanlı LLM kota sömürüsünü IP bazlı kayan pencere ile sınırlar.
+    Combine proxy-safe client IP with optional device/family context so parents on the same home Wi-Fi
+    or mobile CGNAT carrier IP do not exhaust each other's Mışıl Dadı question bucket.
+    """
+    client_ip = _extract_coach_client_ip(request)
+    if request is None:
+        return client_ip
+    dev_uid = (request.headers.get("x-device-uid") or "").strip()[:64]
+    if dev_uid:
+        return f"{client_ip}|dev:{dev_uid}"
+    clean_hint = (scope_hint or "").strip().lower()[:40]
+    if clean_hint:
+        return f"{client_ip}|ctx:{clean_hint}"
+    return client_ip
+
+
+def _enforce_coach_abuse_rate_limit(request: Optional[Request], lang_norm: str = "tr", scope_hint: str = "") -> None:
+    """
+    S7 Güvenli Kota Koruma: Gerçek VIP aboneleri webhook gecikmesi veya ortak ev Wi-Fi / CGNAT IP paylaşımı
+    yüzünden mağdur etmeden, yalnızca otomatik bot/script tabanlı LLM kota sömürüsünü kayan pencere ile sınırlar.
+    Ayrıca rastgele x-device-uid döngüsüyle kota aşımını önlemek için IP başına toplam tavan (_COACH_MAX_REQ_PER_IP_AGGREGATE) uygular.
     """
     if os.environ.get("PYTEST_CURRENT_TEST") or request is None:
         return
     client_ip = _extract_coach_client_ip(request)
+    bucket_key = _build_coach_rate_limit_key(request, scope_hint=scope_hint)
     now = time.monotonic()
     if len(_COACH_IP_BUCKETS) > 2048:
         stale_ips = [k for k, dq in list(_COACH_IP_BUCKETS.items()) if not dq or (now - dq[-1]) > _COACH_WINDOW_SEC]
         for s_ip in stale_ips:
             _COACH_IP_BUCKETS.pop(s_ip, None)
-    bucket = _COACH_IP_BUCKETS.get(client_ip)
+    if len(_COACH_IP_AGGREGATE_BUCKETS) > 2048:
+        stale_agg = [k for k, dq in list(_COACH_IP_AGGREGATE_BUCKETS.items()) if not dq or (now - dq[-1]) > _COACH_WINDOW_SEC]
+        for s_agg in stale_agg:
+            _COACH_IP_AGGREGATE_BUCKETS.pop(s_agg, None)
+
+    agg_bucket = _COACH_IP_AGGREGATE_BUCKETS.setdefault(client_ip, deque())
+    while agg_bucket and (now - agg_bucket[0]) > _COACH_WINDOW_SEC:
+        agg_bucket.popleft()
+
+    bucket = _COACH_IP_BUCKETS.get(bucket_key)
     if bucket is not None:
         while bucket and (now - bucket[0]) > _COACH_WINDOW_SEC:
             bucket.popleft()
         if not bucket:
-            _COACH_IP_BUCKETS.pop(client_ip, None)
+            _COACH_IP_BUCKETS.pop(bucket_key, None)
             bucket = None
     if bucket is None:
-        bucket = _COACH_IP_BUCKETS.setdefault(client_ip, deque())
-    if len(bucket) >= _COACH_MAX_REQ_PER_WINDOW:
+        bucket = _COACH_IP_BUCKETS.setdefault(bucket_key, deque())
+    if len(bucket) >= _COACH_MAX_REQ_PER_WINDOW or len(agg_bucket) >= _COACH_MAX_REQ_PER_IP_AGGREGATE:
         detail_msg = (
             "Anfragelimit erreicht. Bitte warte ein paar Minuten, bevor du weitere Fragen sendest."
             if lang_norm == "de"
@@ -65,6 +95,7 @@ def _enforce_coach_abuse_rate_limit(request: Optional[Request], lang_norm: str =
         )
         raise HTTPException(status_code=status.HTTP_429_TOO_MANY_REQUESTS, detail=detail_msg)
     bucket.append(now)
+    agg_bucket.append(now)
 
 
 class ChatMessage(BaseModel):
@@ -154,7 +185,8 @@ async def chat_with_coach(payload: CoachChatRequest, request: Request):
     """
     lang_norm = normalize_lang(payload.lang)
     audience_norm = normalize_audience(payload.audience)
-    _enforce_coach_abuse_rate_limit(request, lang_norm)
+    scope_hint = f"{payload.baby_name or ''}:{payload.user_role or ''}"
+    _enforce_coach_abuse_rate_limit(request, lang_norm, scope_hint=scope_hint)
     default_baby_name = _resolve_default_baby_name(payload.baby_name, lang_norm)
     safe_history = _sanitize_chat_history(payload.chat_history)
     try:
@@ -197,7 +229,8 @@ async def stream_coach_response(payload: CoachChatRequest, request: Request):
     """
     lang_norm = normalize_lang(payload.lang)
     audience_norm = normalize_audience(payload.audience)
-    _enforce_coach_abuse_rate_limit(request, lang_norm)
+    scope_hint = f"{payload.baby_name or ''}:{payload.user_role or ''}"
+    _enforce_coach_abuse_rate_limit(request, lang_norm, scope_hint=scope_hint)
     default_baby_name = _resolve_default_baby_name(payload.baby_name, lang_norm)
     safe_history = _sanitize_chat_history(payload.chat_history)
     try:

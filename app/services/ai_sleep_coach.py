@@ -10,12 +10,38 @@ Zero-Downtime Cascading Architecture:
 import os
 import json
 import logging
+import threading
 import urllib.request
 import urllib.parse
 from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 logger = logging.getLogger("mishil_dadi_ai")
+
+_GEMINI_KEY_POOL_CACHE: Optional[List[str]] = None
+_GEMINI_KEY_POOL_LOCK = threading.Lock()
+_GEMINI_KEY_RR_INDEX: int = 0
+
+AI_TIER_METRICS: Dict[str, int] = {
+    "dadi_tier1_gemini": 0,
+    "dadi_tier4_heuristic": 0,
+    "dadi_safety_guardrail": 0,
+    "cry_tier1_gemini": 0,
+    "cry_tier3_dsp": 0,
+}
+_AI_METRICS_LOCK = threading.Lock()
+
+
+def record_ai_tier_metric(metric_key: str) -> None:
+    """Thread-safe counter for tracking real-time AI Tier vs Fallback distribution."""
+    with _AI_METRICS_LOCK:
+        AI_TIER_METRICS[metric_key] = AI_TIER_METRICS.get(metric_key, 0) + 1
+
+
+def get_ai_tier_metrics_snapshot() -> Dict[str, int]:
+    """Return a copy of current in-memory AI tier telemetry counters."""
+    with _AI_METRICS_LOCK:
+        return dict(AI_TIER_METRICS)
 
 SYSTEM_PROMPT = """Sen 'Mışıl Dadı'sın. Mışıl Baby uygulamasında anne, baba ve dadılara 7/24 hizmet veren, şefkatli ancak SON DERECE NET, ÖZ VE HAP BİLGİ VEREN bir Bebek Uyku ve Gelişim Rehberisin (AI Ebeveyn Asistanı).
 
@@ -155,36 +181,80 @@ def normalize_lang(lang: Optional[str]) -> str:
     return "en"
 
 
+def _extract_valid_keys_from_raw(raw_val: Optional[str]) -> List[str]:
+    if not raw_val:
+        return []
+    found: List[str] = []
+    for part in raw_val.split(","):
+        cleaned = part.strip().strip('"').strip("'")
+        if len(cleaned) > 20 and cleaned not in found:
+            found.append(cleaned)
+    return found
+
+
+def _get_gemini_api_key_pool(force_refresh: bool = False) -> List[str]:
+    """
+    Build and cache in-memory pool of all valid Gemini API keys from environment variables
+    (GEMINI_API_KEYS, GEMINI_API_KEY, GOOGLE_API_KEY) and fallback .env files without per-request disk I/O.
+    """
+    global _GEMINI_KEY_POOL_CACHE
+    with _GEMINI_KEY_POOL_LOCK:
+        if _GEMINI_KEY_POOL_CACHE is not None and not force_refresh:
+            return list(_GEMINI_KEY_POOL_CACHE)
+
+        keys: List[str] = []
+        for env_name in ("GEMINI_API_KEYS", "GEMINI_API_KEY", "GOOGLE_API_KEY"):
+            for k in _extract_valid_keys_from_raw(os.getenv(env_name)):
+                if k not in keys:
+                    keys.append(k)
+
+        curr_dir = os.path.dirname(os.path.abspath(__file__))
+        mishil_dir = os.path.dirname(os.path.dirname(curr_dir))
+        root_dir = os.path.dirname(os.path.dirname(mishil_dir))
+
+        possible_envs = [
+            os.path.join(mishil_dir, ".env"),
+            os.path.join(root_dir, ".env"),
+            os.path.join(root_dir, "tools", "api_baglantilari", "claude-api", ".env"),
+            os.path.join(root_dir, "projects", "x_otomasyon", ".env"),
+        ]
+
+        for p in possible_envs:
+            if os.path.exists(p):
+                try:
+                    with open(p, "r", encoding="utf-8") as f:
+                        for line in f:
+                            line = line.strip()
+                            if line.startswith(("GEMINI_API_KEYS=", "GEMINI_API_KEY=", "GOOGLE_API_KEY=")):
+                                val = line.split("=", 1)[1].strip()
+                                for k in _extract_valid_keys_from_raw(val):
+                                    if k not in keys:
+                                        keys.append(k)
+                except Exception:
+                    pass
+
+        _GEMINI_KEY_POOL_CACHE = keys
+        return list(keys)
+
+
+def _get_ordered_gemini_keys_for_request() -> List[str]:
+    """Return all cached Gemini API keys rotated in thread-safe Round-Robin order for load distribution & failover."""
+    global _GEMINI_KEY_RR_INDEX
+    pool = _get_gemini_api_key_pool()
+    if not pool:
+        return []
+    if len(pool) == 1:
+        return pool
+    with _GEMINI_KEY_POOL_LOCK:
+        start_idx = _GEMINI_KEY_RR_INDEX % len(pool)
+        _GEMINI_KEY_RR_INDEX = (_GEMINI_KEY_RR_INDEX + 1) % len(pool)
+    return pool[start_idx:] + pool[:start_idx]
+
+
 def _find_gemini_api_key() -> Optional[str]:
-    """Scan all possible .env paths across antigravity workspace to find valid API key."""
-    direct_key = os.getenv("GEMINI_API_KEY")
-    if direct_key and not direct_key.startswith("AQ.") and len(direct_key) > 20:
-        return direct_key
-
-    curr_dir = os.path.dirname(os.path.abspath(__file__))
-    mishil_dir = os.path.dirname(os.path.dirname(curr_dir))
-    root_dir = os.path.dirname(os.path.dirname(mishil_dir))
-
-    possible_envs = [
-        os.path.join(root_dir, "tools", "api_baglantilari", "claude-api", ".env"),
-        os.path.join(mishil_dir, ".env"),
-        os.path.join(root_dir, ".env"),
-        os.path.join(root_dir, "projects", "x_otomasyon", ".env")
-    ]
-
-    for p in possible_envs:
-        if os.path.exists(p):
-            try:
-                with open(p, "r", encoding="utf-8") as f:
-                    for line in f:
-                        line = line.strip()
-                        if line.startswith("GEMINI_API_KEY="):
-                            val = line.split("=", 1)[1].strip().strip('"').strip("'")
-                            if val:
-                                return val
-            except Exception:
-                pass
-    return direct_key
+    """Return the primary rotated Gemini API key from the cached in-memory pool (zero disk I/O after boot)."""
+    ordered = _get_ordered_gemini_keys_for_request()
+    return ordered[0] if ordered else None
 
 
 def _is_text_incomplete(text: str) -> bool:
@@ -906,6 +976,7 @@ def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history:
     # Deterministic crisis/safety guardrail always takes top priority without LLM latency
     crisis_reply = _check_maternal_crisis_guardrail(message, lang_norm, user_role)
     if crisis_reply:
+        record_ai_tier_metric("dadi_safety_guardrail")
         return {
             "reply": crisis_reply,
             "tier_used": "Safety Guardrail (Immediate Crisis Support)",
@@ -915,25 +986,30 @@ def ask_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_history:
             "timestamp": datetime.now().isoformat(),
         }
 
-    api_key = _find_gemini_api_key()
+    api_keys = _get_ordered_gemini_keys_for_request()
 
     reply = None
     tier_used = None
 
-    if api_key and not os.environ.get("PYTEST_CURRENT_TEST"):
-        # Tier 1: Gemini 3.6 Flash
-        reply = _call_gemini_model("gemini-3.6-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup, lang_norm, audience_norm)
-        if reply:
-            tier_used = "Tier 1 (Google Gemini 3.6 Flash API)"
+    if api_keys and not os.environ.get("PYTEST_CURRENT_TEST"):
+        for api_key in api_keys:
+            # Tier 1: Gemini 3.6 Flash
+            reply = _call_gemini_model("gemini-3.6-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup, lang_norm, audience_norm)
+            if reply:
+                tier_used = "Tier 1 (Google Gemini 3.6 Flash API)"
+                break
 
-        # Tier 2: Gemini 3.5 Flash
-        if not reply:
+            # Tier 2: Gemini 3.5 Flash
             reply = _call_gemini_model("gemini-3.5-flash", api_key, baby_name, birth_date, message, chat_history, user_role, manual_leap, routine_rollup, lang_norm, audience_norm)
             if reply:
                 tier_used = "Tier 2 (Google Gemini 3.5 Flash API)"
+                break
 
-    # Tier 4: Offline Companion / Clinical Sirkadiyen Engine
-    if not reply:
+    if reply:
+        record_ai_tier_metric("dadi_tier1_gemini")
+    else:
+        record_ai_tier_metric("dadi_tier4_heuristic")
+        # Tier 4: Offline Companion / Clinical Sirkadiyen Engine
         if audience_norm == "mom":
             reply = _tier4_mom_companion_heuristic(baby_name, message, user_role, chat_history, lang_norm)
             tier_used = "Tier 4 (Maternal Companion Engine)"
@@ -962,14 +1038,15 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
 
     crisis_reply = _check_maternal_crisis_guardrail(message, lang_norm, user_role)
     if crisis_reply:
+        record_ai_tier_metric("dadi_safety_guardrail")
         yield f"data: {json.dumps({'text': crisis_reply, 'tier': 'Safety Guardrail (Immediate Crisis Support)'})}\n\n"
         yield f"data: {json.dumps({'done': True})}\n\n"
         return
 
-    api_key = _find_gemini_api_key()
+    api_keys = _get_ordered_gemini_keys_for_request()
     streamed_success = False
 
-    if api_key and not os.environ.get("PYTEST_CURRENT_TEST"):
+    if api_keys and not os.environ.get("PYTEST_CURRENT_TEST"):
         sys_prompt, ask_prefix, continuation_prompt = _build_system_and_ask_prompt(
             baby_name=baby_name,
             birth_date=birth_date,
@@ -981,10 +1058,13 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
             audience_norm=audience_norm,
         )
 
-        for candidate_model in ["gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash"]:
+        for api_key in api_keys:
             if streamed_success:
                 break
-            url = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate_model}:streamGenerateContent?key={api_key}&alt=sse"
+            for candidate_model in ["gemini-3.6-flash", "gemini-3.8-flash", "gemini-3.5-flash"]:
+                if streamed_success:
+                    break
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/{candidate_model}:streamGenerateContent?key={api_key}&alt=sse"
 
             contents = []
             for h in (chat_history or [])[-8:]:
@@ -1066,12 +1146,14 @@ def stream_mishil_dadi(baby_name: str, birth_date: str, message: str, chat_histo
                 # Minimum viable response length gate: only mark success if at least 25 words received
                 if len(accumulated_text.split()) >= 25:
                     streamed_success = True
+                    record_ai_tier_metric("dadi_tier1_gemini")
 
             except Exception as err:
                 logger.warning(f"Live Gemini SSE streaming error with {candidate_model}: {err}")
 
     # Fallback to local progressive heuristic streaming if live API didn't stream
     if not streamed_success:
+        record_ai_tier_metric("dadi_tier4_heuristic")
         if audience_norm == "mom":
             full_text = _tier4_mom_companion_heuristic(baby_name, message, user_role, chat_history, lang_norm)
             tier_label = "Tier 4 (Maternal Companion Streaming)"
