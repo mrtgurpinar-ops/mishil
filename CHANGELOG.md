@@ -2,6 +2,21 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.4-cockpit-bridge-reset-and-meta-sdk] - 2026-11-22 (Railway Canlı Yayın — Eski `20.153` Köprü Tıklamasının Sıfırlanması, Tek Aktif Köprü `Instagram Bio (/download)` ve Doğrudan Meta `APP_INSTALLS` Android Aktif / iOS 14+ SDK `Build 72` Bekleme Mimarisi • 🟢 Yeni Native EAS Build Gerekmez)
+### 📲🎯 Kurucu Kokpiti (`/admin/analytics`) Köprü Sıfırlaması & Doğrudan Meta `APP_INSTALLS` / iOS 14+ SDK Kampanya Ölçümleme Paketi (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **Eski `20.153` Köprü Tıklamasının (`19.100` Tekil Tık) Tek Seferlik İdempotent Temizliği (`ensure_historical_seed`):**
+   - `BRIDGE_RESET_V4564_STATE_KEY = "bridge_reset_v4564_done"` ve `BRIDGE_RESET_V4564_CUTOFF_UTC = 2026-11-22 07:38:00 UTC` kesitiyle, eski reklam/test döneminden kalan `20.153` ham (`/ios` + eski `/download`) köprü tıklaması tek seferlik temizlendi (PostgreSQL `TIMESTAMPTZ` ve SQLite uyumlu).
+   - Sıfırlama anından itibaren tek aktif web köprüsü olan **Instagram Bio (`/download`)** tıklamalarının `0` tabanından gerçek rakamlarla ölçülmesi sağlandı.
+2. **Tek Aktif Köprü (`Instagram Bio /download`) & Doğrudan Meta `APP_INSTALLS` / iOS 14+ SDK Kartı:**
+   - Sekme 1'deki kart **`📲 Tekil Köprü (/download) & Meta APP_INSTALLS`** olarak yenilendi:
+     - **Kutu 1 (`1. TEK AKTİF KÖPRÜ: INSTAGRAM BIO /download`):** Sıfırlama sonrası yalnızca Instagram Bio bağlantısından gelen gerçek tekil iPhone ve Android tıklamalarını izler.
+     - **Kutu 2 (`2. DOĞRUDAN META APP_INSTALLS & iOS 14+ SDK`):**
+       - **🤖 Android:** `🟢 Doğrudan APP_INSTALLS Aktif` (`Meta App ID: 1093539003520092` — web köprüsüz doğrudan Google Play kurulumları: `direct_android_play_or_meta_installs` vs `matched_android_bio_installs`).
+       - **🍏 iOS:** `_parse_semver_tuple(app_version) >= (4, 56, 0)` kontrolüyle `Build 72` yayına girene kadar `⏳ iOS 14+ SDK (v4.56.0 Build 72) Yayını Bekleniyor`, ilk `4.56.0` iOS cihaz sinyali geldiği anda otomatik olarak `🟢 iOS 14+ ATT/SKAdNetwork Canlı` durumuna geçer.
+   - `platform_split["android"]`, `aso_attribution_matrix` ve `source_freshness` (`meta_app_events_sdk`) doğrudan Meta `APP_INSTALLS` + tekil `/download` Bio köprüsü mimarisine hizalandı.
+3. **Konsensüs & Doğrulama Kapısı (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-401` mimari tasarım + `task-485` uygulama sonrası denetim: `CLAUDE_VERDICT: PASS`)** + **Codex CLI (`gpt-6-luna`, `task-420`: 27 Kasım'a kadar haftalık kota sınırında — `AGENTS.md §1.4` 2'li Konsensüs)** + **Antigravity (`66/66 pytest` `task-480`, `TestClient` `GET /api/v1/analytics/dashboard` `200 OK`)**.
+
 ## [4.56.3-cockpit-subscription-reconcile] - 2026-11-22 (Railway Canlı Yayın — Kurucu Kokpiti Abonelik, `Reactivate with Downgrade` `RC_T0_*` Tekilleştirmesi, `will_not_renew` Deneme/Ücretli Mutabakatı ve Ülke MRR Paritesi Onarımı • 🟢 Yeni Native EAS Build Gerekmez)
 ### 📊 Kurucu Kokpiti (`/admin/analytics`) Abonelik & Gelir Mutabakat Motoru Onarımı (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **`Reactivate with Downgrade` 2 Aşamalı 1-e-1 `RC_T0_*` Köprü Tekilleştirmesi (`_reconcile_ios_ledger_and_cancellations` & `sync_revenuecat_v2_production_bridge`):**

@@ -299,3 +299,125 @@ def test_reactivate_downgrade_rc_t0_dedup_and_trial_will_not_renew_reconcile(cli
     assert tr_row["expected_mrr_net_try"] == fl["projected_total_mrr_net_try"]
 
 
+def test_historical_bridge_clicks_purged_once_and_meta_app_installs_sdk_state(db_session):
+    """
+    v4.56.4:
+    1) 2026-11-22 07:38 UTC öncesindeki eski /ios ve /download köprü tıklamaları ensure_historical_seed
+       tarafından tek seferlik temizlenmeli (StoreSyncState bridge_reset_v4564_done işaretçisiyle).
+    2) Sıfırlamadan sonra gelen yeni Instagram Bio (/download) tıklamaları korunmalı ve tek aktif köprü
+       olarak raporlanmalı.
+    3) Android doğrudan Meta APP_INSTALLS aktif görünmeli; iOS 14+ ATT/SKAdNetwork ise 4.56.0 (Build 72)
+       cihaz sinyali gelene kadar 'waiting_for_review', sinyal gelince 'live' durumuna geçmeli.
+    """
+    import os
+    from datetime import datetime, timezone
+    from app.db.models import BridgeClick, AppInstallSignal, StoreSyncState
+    from app.api.v1.endpoints.analytics import (
+        BRIDGE_RESET_V4564_STATE_KEY,
+        ensure_historical_seed,
+        get_resilient_analytics_summary,
+        invalidate_analytics_summary_cache,
+    )
+
+    # Eğer önceki ensure_historical_seed çağrısından marker oluşmuşsa silerek ilk göç anını simüle et
+    db_session.query(StoreSyncState).filter(StoreSyncState.state_key == BRIDGE_RESET_V4564_STATE_KEY).delete()
+    db_session.query(BridgeClick).delete()
+    db_session.query(AppInstallSignal).delete()
+    db_session.commit()
+
+    # Eski dönemden (Ekim/Kasım başı) kalma /ios ve /download tıklamaları + yeni dönem /download tıklaması
+    old_ts = datetime(2026, 11, 10, 12, 0, 0)
+    new_ts = datetime(2026, 11, 22, 9, 0, 0)
+    db_session.add_all([
+        BridgeClick(
+            route_path="/ios",
+            channel="meta_ads",
+            os_family="ios",
+            device_detail="iPhone",
+            app_webview="Instagram App",
+            target_store="app_store",
+            is_bot=False,
+            is_unique=True,
+            country="TR",
+            ip_masked="1.2.3.xxx#1111",
+            created_at=old_ts,
+        ),
+        BridgeClick(
+            route_path="/download",
+            channel="instagram_bio",
+            os_family="android",
+            device_detail="Android Phone",
+            app_webview="Instagram App",
+            target_store="google_play",
+            is_bot=False,
+            is_unique=True,
+            country="TR",
+            ip_masked="1.2.4.xxx#2222",
+            created_at=old_ts,
+        ),
+        BridgeClick(
+            route_path="/download",
+            channel="instagram_bio",
+            os_family="ios",
+            device_detail="iPhone",
+            app_webview="Instagram App",
+            target_store="app_store",
+            is_bot=False,
+            is_unique=True,
+            country="TR",
+            ip_masked="5.6.7.xxx#3333",
+            created_at=new_ts,
+        ),
+    ])
+    db_session.commit()
+
+    # Göç çalıştığında eski 2 tıklama silinmeli, yeni /download tıklaması kalmalı
+    os.environ["MISIL_FORCE_BRIDGE_RESET_IN_TEST"] = "1"
+    try:
+        ensure_historical_seed(db_session)
+    finally:
+        os.environ.pop("MISIL_FORCE_BRIDGE_RESET_IN_TEST", None)
+    remaining_clicks = db_session.query(BridgeClick).all()
+    assert len(remaining_clicks) == 1
+    assert remaining_clicks[0].route_path == "/download"
+    assert remaining_clicks[0].ip_masked == "5.6.7.xxx#3333"
+
+    marker = db_session.query(StoreSyncState).filter(StoreSyncState.state_key == BRIDGE_RESET_V4564_STATE_KEY).first()
+    assert marker is not None
+    assert marker.snapshot_json.get("purged_bridge_clicks") == 2
+
+    invalidate_analytics_summary_cache(mark_reconcile=False)
+    summary_before_sdk = get_resilient_analytics_summary(db_session, period="all", use_cache=False)
+    assert summary_before_sdk["total_unique_human"] == 1
+    assert summary_before_sdk["instagram_bio"]["unique_clicks"] == 1
+    assert summary_before_sdk["instagram_bio"]["is_sole_active_bridge"] is True
+    assert summary_before_sdk["meta_ads"]["unique_clicks"] == 0
+
+    sdk_info = summary_before_sdk["meta_app_installs_sdk"]
+    assert sdk_info["android_direct_app_installs_active"] is True
+    assert sdk_info["ios_sdk_status"] == "waiting_for_review"
+    assert sdk_info["ios_sdk_live_devices"] == 0
+
+    # iOS 4.56.0 (Build 72) cihazından ilk sinyal geldiğinde durum otomatik 'live' olmalı
+    db_session.add(
+        AppInstallSignal(
+            device_uid="ios_build72_dev1",
+            event_type="first_open",
+            os_family="ios",
+            platform="ios_native",
+            app_version="4.56.0",
+            country="TR",
+            matched_channel="organic_or_asa",
+            match_confidence="unmatched",
+            created_at=new_ts,
+        )
+    )
+    db_session.commit()
+    invalidate_analytics_summary_cache(mark_reconcile=False)
+    summary_after_sdk = get_resilient_analytics_summary(db_session, period="all", use_cache=False)
+    sdk_live = summary_after_sdk["meta_app_installs_sdk"]
+    assert sdk_live["ios_sdk_status"] == "live"
+    assert sdk_live["ios_sdk_live_devices"] == 1
+
+
+
