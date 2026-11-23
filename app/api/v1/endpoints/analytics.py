@@ -7423,6 +7423,15 @@ def _render_login_html(
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <meta name="referrer" content="no-referrer">
       <title>Mışıl Kurucu Kokpiti Girişi</title>
+      <link rel="icon" type="image/x-icon" href="/favicon.ico">
+      <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+      <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+      <link rel="manifest" href="/manifest.json">
+      <meta name="theme-color" content="#13101C">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+      <meta name="apple-mobile-web-app-title" content="Mışıl Kokpit">
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@600;700&display=swap" rel="stylesheet">
       <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
@@ -7450,7 +7459,16 @@ def _render_login_html(
           text-align: center;
           box-shadow: 0 20px 44px rgba(10, 8, 16, 0.55);
         }}
-        .moon {{ font-size: 42px; margin-bottom: 12px; }}
+        .login-brand-logo {{
+          width: 68px;
+          height: 68px;
+          border-radius: 20px;
+          margin: 0 auto 14px;
+          display: block;
+          object-fit: cover;
+          border: 1.5px solid rgba(244, 162, 97, 0.55);
+          box-shadow: 0 8px 24px rgba(244, 162, 97, 0.25);
+        }}
         h2 {{ font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #FAF5EE; }}
         p {{ color: #8F86A2; font-size: 13px; line-height: 1.5; margin-bottom: 24px; }}
         input {{
@@ -7485,7 +7503,7 @@ def _render_login_html(
     </head>
     <body>
       <div class="card">
-        <div class="moon">🌙</div>
+        <img src="/icon-192.png" alt="Mışıl Baby Logo" class="login-brand-logo" />
         <h2>Mışıl Kurucu Kokpiti</h2>
         <p>Kümülatif büyüme, App Store & Google Play resmi verileri ve görsel analiz panelini açmak için PIN giriniz.</p>
         <form method="POST" action="/api/v1/analytics/login">
@@ -8302,9 +8320,18 @@ def analytics_dashboard_page(
     <html lang="tr">
     <head>
       <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
       <meta name="referrer" content="no-referrer">
       <title>Mışıl Baby — Kurumsal Büyüme, Abone Defteri & Ürün Analitiği Kokpiti</title>
+      <link rel="icon" type="image/x-icon" href="/favicon.ico">
+      <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+      <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+      <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+      <link rel="manifest" href="/manifest.json">
+      <meta name="theme-color" content="#13101C">
+      <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+      <meta name="apple-mobile-web-app-title" content="Mışıl Kokpit">
       <link rel="preconnect" href="https://fonts.googleapis.com">
       <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
@@ -8313,7 +8340,7 @@ def analytics_dashboard_page(
         /* MIŞIL BABY KURUMSAL MARKA TEMASI: ☀️ GÜNDÜZ (SICAK YULAF & KAŞMİR BEJİ — VARSAYILAN) */
         :root {{
           --bg-canvas: #EDE5DA;
-          --bg-card: #F7F2EB;
+          --bg-card: rgba(247, 242, 235, 0.94);
           --bg-cell: #EFE7DC;
           --border-subtle: rgba(150, 122, 98, 0.24);
           --ring-track: rgba(150, 122, 98, 0.22);
@@ -8334,6 +8361,12 @@ def analytics_dashboard_page(
           --stage-4-rgb: 91, 33, 182;
           --stage-5-rgb: 201, 59, 75;
           --stage-6-rgb: 45, 106, 79;
+          --soft-peach-card: linear-gradient(145deg, rgba(242, 226, 216, 0.96) 0%, rgba(234, 212, 198, 0.90) 100%);
+          --soft-sky-card: linear-gradient(145deg, rgba(220, 234, 244, 0.96) 0%, rgba(204, 223, 238, 0.90) 100%);
+          --soft-sage-card: linear-gradient(145deg, rgba(220, 234, 224, 0.96) 0%, rgba(202, 222, 209, 0.90) 100%);
+          --soft-lavender-card: linear-gradient(145deg, rgba(230, 222, 242, 0.96) 0%, rgba(215, 204, 234, 0.90) 100%);
+          --soft-blush-card: linear-gradient(145deg, rgba(242, 220, 225, 0.96) 0%, rgba(234, 204, 211, 0.90) 100%);
+          --soft-emerald-card: linear-gradient(145deg, rgba(214, 236, 223, 0.98) 0%, rgba(192, 224, 206, 0.92) 100%);
           --gold: #C86446;
           --sky: #3B6E8C;
           --emerald: #24523A;
@@ -8344,7 +8377,7 @@ def analytics_dashboard_page(
         /* 🌙 MIŞIL BABY GECE MODU: SICAK KAŞMİR VE MUM IŞIĞI (MELATONİN WARM DARK MODE) */
         body.theme-slate {{
           --bg-canvas: #13101C;
-          --bg-card: #211C2C;
+          --bg-card: rgba(33, 28, 44, 0.90);
           --bg-cell: #1A1524;
           --border-subtle: rgba(245, 230, 215, 0.13);
           --ring-track: rgba(245, 230, 215, 0.10);
@@ -8365,6 +8398,12 @@ def analytics_dashboard_page(
           --stage-4-rgb: 165, 105, 189;
           --stage-5-rgb: 255, 107, 107;
           --stage-6-rgb: 82, 183, 136;
+          --soft-peach-card: linear-gradient(145deg, rgba(62, 38, 32, 0.92) 0%, rgba(42, 26, 22, 0.88) 100%);
+          --soft-sky-card: linear-gradient(145deg, rgba(28, 44, 58, 0.92) 0%, rgba(20, 32, 44, 0.88) 100%);
+          --soft-sage-card: linear-gradient(145deg, rgba(32, 52, 42, 0.92) 0%, rgba(22, 36, 29, 0.88) 100%);
+          --soft-lavender-card: linear-gradient(145deg, rgba(46, 36, 66, 0.92) 0%, rgba(33, 26, 48, 0.88) 100%);
+          --soft-blush-card: linear-gradient(145deg, rgba(56, 32, 40, 0.92) 0%, rgba(40, 22, 28, 0.88) 100%);
+          --soft-emerald-card: linear-gradient(145deg, rgba(28, 56, 45, 0.94) 0%, rgba(20, 40, 32, 0.90) 100%);
         }}
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
         body {{
@@ -9239,8 +9278,8 @@ def analytics_dashboard_page(
           border-bottom: 1px solid rgba(245, 230, 215, 0.12);
         }}
         .sidebar-brand-icon {{
-          width: 38px;
-          height: 38px;
+          width: 40px;
+          height: 40px;
           border-radius: 12px;
           background: linear-gradient(135deg, #F4A261 0%, #C86446 100%);
           color: #13101C;
@@ -9249,7 +9288,52 @@ def analytics_dashboard_page(
           justify-content: center;
           font-size: 19px;
           flex-shrink: 0;
+          overflow: hidden;
+          border: 1.5px solid rgba(244, 162, 97, 0.55);
           box-shadow: 0 4px 14px rgba(244, 162, 97, 0.35);
+        }}
+        .sidebar-brand-logo-img {{
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }}
+        .mobile-brand-mrr-pill {{
+          display: none;
+          align-items: center;
+          gap: 5px;
+          padding: 4px 9px;
+          border-radius: 99px;
+          background: rgba(244, 162, 97, 0.16);
+          border: 1px solid rgba(244, 162, 97, 0.38);
+          color: #F4A261;
+          font-size: 11px;
+          font-weight: 800;
+          font-variant-numeric: tabular-nums;
+          white-space: nowrap;
+        }}
+        .mobile-header-quick-actions {{
+          display: none;
+          align-items: center;
+          gap: 6px;
+        }}
+        .mobile-icon-btn {{
+          width: 32px;
+          height: 32px;
+          border-radius: 9px;
+          border: 1px solid rgba(245, 230, 215, 0.18);
+          background: rgba(44, 38, 58, 0.78);
+          color: #FAF5EE;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          font-size: 14px;
+          cursor: pointer;
+          text-decoration: none;
+          padding: 0;
+        }}
+        .cockpit-mobile-bottom-dock {{
+          display: none;
         }}
         .sidebar-brand-box h1 {{
           font-family: 'Sora', sans-serif;
@@ -9477,10 +9561,17 @@ def analytics_dashboard_page(
         }}
         .hero-stage-card {{
           padding: 16px 18px;
-          border-radius: 14px;
+          border-radius: 16px;
           border: 1px solid var(--border-subtle) !important;
           background: var(--bg-cell);
+          backdrop-filter: blur(12px);
         }}
+        .hero-stage-card.stage-card-1 {{ background: var(--soft-peach-card) !important; border-color: rgba(var(--stage-1-rgb), 0.32) !important; }}
+        .hero-stage-card.stage-card-2 {{ background: var(--soft-sky-card) !important; border-color: rgba(var(--stage-2-rgb), 0.32) !important; }}
+        .hero-stage-card.stage-card-3 {{ background: var(--soft-sage-card) !important; border-color: rgba(var(--stage-3-rgb), 0.32) !important; }}
+        .hero-stage-card.stage-card-4 {{ background: var(--soft-lavender-card) !important; border-color: rgba(var(--stage-4-rgb), 0.32) !important; }}
+        .hero-stage-card.stage-card-5 {{ background: var(--soft-blush-card) !important; border-color: rgba(var(--stage-5-rgb), 0.32) !important; }}
+        .hero-stage-card.stage-card-6 {{ background: var(--soft-emerald-card) !important; border-color: rgba(var(--stage-6-rgb), 0.42) !important; }}
         .funnel-collapsed .conv-bridge-grid,
         .funnel-collapsed .conv-tier-bridge {{
           display: none !important;
@@ -9524,50 +9615,96 @@ def analytics_dashboard_page(
         /* MOBİL-ÖNCELİKLİ (MOBILE-FIRST) TELEFON & TABLET UYUMLULUĞU (<= 768px & <= 480px) */
         @media (max-width: 768px) {{
           .cockpit-sidebar {{
-            padding: 12px 12px 10px !important;
-            gap: 8px !important;
+            padding: 8px 12px !important;
+            gap: 0 !important;
             position: sticky !important;
             top: 0 !important;
             z-index: 130 !important;
             border-right: none !important;
-            border-bottom: 1px solid rgba(148, 163, 184, 0.2);
+            border-bottom: 1px solid rgba(244, 162, 97, 0.24);
+            min-height: 54px;
+            justify-content: center;
+          }}
+          /* Mobilde üstteki devasa 4 katmanlı yığılmayı kaldır: sekmeler alt dock'a, aksiyonlar sağ ikonlara taşınır */
+          .cockpit-sidebar .tabs-nav,
+          .cockpit-sidebar .sidebar-actions-grid,
+          .cockpit-sidebar .sidebar-section-lbl,
+          .cockpit-sidebar .sidebar-kpi-mini,
+          .sidebar-live-row {{
+            display: none !important;
           }}
           .sidebar-brand-box {{
-            padding: 2px 4px 8px !important;
+            padding: 0 !important;
+            border-bottom: none !important;
+            justify-content: space-between;
+            width: 100%;
           }}
           .sidebar-brand-icon {{
-            width: 32px !important;
-            height: 32px !important;
-            font-size: 16px !important;
+            width: 34px !important;
+            height: 34px !important;
+            border-radius: 10px !important;
           }}
           .sidebar-brand-box h1 {{
             font-size: 13.5px !important;
           }}
-          .sidebar-actions-grid {{
-            grid-template-columns: repeat(3, 1fr) !important;
-            gap: 5px !important;
-            padding-top: 6px !important;
+          .sidebar-brand-box p {{
+            display: none !important;
           }}
-          .sidebar-actions-grid .btn {{
-            grid-column: auto !important;
-            padding: 6px 8px !important;
-            font-size: 11px !important;
+          .mobile-brand-mrr-pill {{
+            display: inline-flex !important;
           }}
-          .cockpit-sidebar .tabs-nav {{
-            flex-wrap: nowrap !important;
-            gap: 6px !important;
-            padding-bottom: 2px !important;
+          .mobile-header-quick-actions {{
+            display: inline-flex !important;
           }}
-          .cockpit-sidebar .tab-btn {{
-            padding: 8px 11px !important;
-            font-size: 12px !important;
-            border-radius: 9px !important;
+          /* Mobilde sabit başparmak dostu alt navigasyon dock'u (app.html tasarım standardı) */
+          .cockpit-mobile-bottom-dock {{
+            display: grid !important;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 4px;
+            position: fixed;
+            left: 10px;
+            right: 10px;
+            bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+            z-index: 140;
+            padding: 6px;
+            border-radius: 20px;
+            background: rgba(19, 16, 28, 0.94);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(244, 162, 97, 0.32);
+            box-shadow: 0 14px 34px rgba(10, 8, 16, 0.55);
+          }}
+          .mobile-dock-btn {{
+            border: none;
+            background: transparent;
+            color: #C4BACF;
+            padding: 7px 2px;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s ease;
+          }}
+          .mobile-dock-btn .dock-ico {{
+            font-size: 15px;
+            line-height: 1.1;
+          }}
+          .mobile-dock-btn.active {{
+            background: linear-gradient(135deg, #F4A261 0%, #C86446 100%);
+            color: #13101C;
+            font-weight: 800;
+            box-shadow: 0 4px 12px rgba(244, 162, 97, 0.30);
           }}
           /* Mobilde topbar sticky olmaktan çıkarılır; ekranın %30'unu kapatması önlenir */
           .topbar {{
             position: static !important;
-            padding: 10px 12px !important;
-            gap: 8px !important;
+            padding: 8px 10px !important;
+            gap: 6px !important;
           }}
           .topbar > div {{
             width: 100%;
@@ -9591,11 +9728,11 @@ def analytics_dashboard_page(
             font-size: 11.5px !important;
           }}
           .workspace-canvas {{
-            padding: 12px 10px 64px !important;
+            padding: 10px 10px calc(86px + env(safe-area-inset-bottom, 0px)) !important;
           }}
           .bento-card, .conv-bridge-card {{
             padding: 14px 12px !important;
-            border-radius: 14px !important;
+            border-radius: 16px !important;
             margin-bottom: 12px !important;
           }}
           /* Mobilde 6 Aşamalı Dönüşüm Hunisi: 2x3 kompakt Bento ızgarası */
@@ -9608,7 +9745,24 @@ def analytics_dashboard_page(
           }}
           .hero-stage-card {{
             padding: 12px 11px !important;
-            border-radius: 12px !important;
+            border-radius: 14px !important;
+          }}
+          /* Mobilde 2x2 kartların boyunu patlatan uzun açıklamaları 2 satırda sınırla, dokununca aç */
+          .card-desc,
+          .step-sub {{
+            display: -webkit-box !important;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            font-size: 11px !important;
+            line-height: 1.35 !important;
+            cursor: pointer;
+          }}
+          .card-desc.desc-expanded,
+          .step-sub.desc-expanded {{
+            display: block !important;
+            -webkit-line-clamp: unset;
+            overflow: visible;
           }}
           .kpi-grid {{
             grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
@@ -9713,18 +9867,27 @@ def analytics_dashboard_page(
       <button type="button" class="pres-exit-fab" onclick="togglePresentationMode()">📽️ Sunum Modundan Çık (ESC)</button>
       <div class="container">
         <div class="cockpit-shell">
-          <!-- SOL SABİT 100VH KOYU KOMUTA RAYI (STRIPE / LINEAR / RAYCAST STANDARDI) -->
+          <!-- SOL SABİT 100VH KOYU KOMUTA RAYI (MIŞIL BABY KURUMSAL KOMUTA MERKEZİ) -->
           <aside class="cockpit-sidebar hide-in-pres">
             <div style="display:flex; flex-direction:column; gap:12px;">
               <div class="sidebar-brand-box">
-                <div class="sidebar-brand-icon">🌙</div>
-                <div>
-                  <h1>Mışıl Baby<span class="sr-only"> — Kurumsal Büyüme</span></h1>
-                  <p>Yönetici Kokpiti</p>
+                <div style="display:flex; align-items:center; gap:10px; min-width:0;">
+                  <div class="sidebar-brand-icon">
+                    <img src="/icon-192.png" alt="Mışıl Baby Logo" class="sidebar-brand-logo-img" />
+                  </div>
+                  <div style="min-width:0;">
+                    <h1>Mışıl Baby<span class="sr-only"> — Kurumsal Büyüme</span></h1>
+                    <p>Kurucu Kokpiti</p>
+                  </div>
+                </div>
+                <div class="mobile-header-quick-actions">
+                  <span class="mobile-brand-mrr-pill" id="mobileHeaderMrrBadge" title="Aktif VIP & Beklenen Net MRR">👑 {f_vip} VIP • {fl['projected_total_mrr_net_try']:.0f} ₺</span>
+                  <button type="button" class="mobile-icon-btn" onclick="toggleTheme()" title="Gündüz / Gece Teması">🌓</button>
+                  <a href="/api/v1/analytics/export.csv" class="mobile-icon-btn" title="CSV İndir">📥</a>
                 </div>
               </div>
 
-              <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 4px;">
+              <div class="sidebar-live-row" style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 4px;">
                 <div class="live-pill" onclick="toggleAutoRefresh()" id="liveToggleBtn" style="width:100%; justify-content:center; background:rgba(116,198,157,0.14); border-color:rgba(116,198,157,0.38); color:#74C69D;" title="15 saniyede bir canlı yenileme">
                   <span class="pulse-dot" id="liveDot"></span>
                   <span id="liveCountdown">Canlı: 15s</span>
@@ -9808,7 +9971,7 @@ def analytics_dashboard_page(
           <!-- KATMAN 1: EDİNİM HUNİSİ (GÖSTERİM ➔ ZİYARET & TIK ➔ KURULUM) -->
           <div class="conv-bridge-grid">
             <!-- ADIM 1: MAĞAZA GÖSTERİMİ -->
-            <div class="hero-stage-card">
+            <div class="hero-stage-card stage-card-1">
               <div>
                 <div class="card-label">
                   <span id="kpiTitle1">1. Gösterim</span>
@@ -9834,7 +9997,7 @@ def analytics_dashboard_page(
             </div>
 
             <!-- ADIM 2: İNCELEME & SOSYAL TIK -->
-            <div class="hero-stage-card">
+            <div class="hero-stage-card stage-card-2">
               <div>
                 <div class="card-label">
                   <span id="kpiTitle2">2. Ziyaret & Tık</span>
@@ -9860,7 +10023,7 @@ def analytics_dashboard_page(
             </div>
 
             <!-- ADIM 3: TOPLAM İNDİRME -->
-            <div class="hero-stage-card">
+            <div class="hero-stage-card stage-card-3">
               <div>
                 <div class="card-label">
                   <span id="kpiTitle3">3. Kurulum</span>
@@ -9893,7 +10056,7 @@ def analytics_dashboard_page(
           <!-- KATMAN 2: ABONELİK, CHURN & NET ABONE HUNİSİ (BAŞLAYAN VIP ➔ İPTALLER / CHURN ➔ NET ABONE) -->
           <div class="conv-bridge-grid">
             <!-- ADIM 4: BAŞLAYAN VIP (TOPLAM KAYIT) -->
-            <div class="hero-stage-card">
+            <div class="hero-stage-card stage-card-4">
               <div>
                 <div class="card-label">
                   <span id="kpiTitle4">4. Başlayan VIP</span>
@@ -9918,7 +10081,7 @@ def analytics_dashboard_page(
             </div>
 
             <!-- ADIM 5: İPTALLER & CHURN -->
-            <div class="hero-stage-card">
+            <div class="hero-stage-card stage-card-5">
               <div>
                 <div class="card-label">
                   <span id="kpiTitle5">5. İptaller (Churn)</span>
@@ -9943,7 +10106,7 @@ def analytics_dashboard_page(
             </div>
 
             <!-- ADIM 6: NET AKTİF ABONE & BEKLENEN NET MRR -->
-            <div class="hero-stage-card" style="border-color:rgba(var(--stage-6-rgb),0.38) !important;">
+            <div class="hero-stage-card stage-card-6" style="border-color:rgba(var(--stage-6-rgb),0.38) !important;">
               <div>
                 <div class="card-label">
                   <span id="kpiTitle6">6. Net Abone</span>
@@ -10555,11 +10718,41 @@ def analytics_dashboard_page(
             </div>
           </main>
         </div>
+        <!-- MOBİL SABİT ALT NAVİGASYON DOCK BARI (app.html MİMARİ PARİTESİ) -->
+        <nav class="cockpit-mobile-bottom-dock hide-in-pres" id="cockpitMobileBottomDock" aria-label="Mobil Modül Navigasyonu">
+          <button type="button" class="mobile-dock-btn active" id="mobDockBtn_tab1" onclick="switchTab('tab1')">
+            <span class="dock-ico">📊</span>
+            <span>Büyüme</span>
+          </button>
+          <button type="button" class="mobile-dock-btn" id="mobDockBtn_tab2" onclick="switchTab('tab2')">
+            <span class="dock-ico">💰</span>
+            <span>Gelir</span>
+          </button>
+          <button type="button" class="mobile-dock-btn" id="mobDockBtn_tab3" onclick="switchTab('tab3')">
+            <span class="dock-ico">🍼</span>
+            <span>Ürün</span>
+          </button>
+          <button type="button" class="mobile-dock-btn" id="mobDockBtn_tab4" onclick="switchTab('tab4')">
+            <span class="dock-ico">⭐</span>
+            <span>Trafik</span>
+          </button>
+          <button type="button" class="mobile-dock-btn" id="mobDockBtn_tab5" onclick="switchTab('tab5')">
+            <span class="dock-ico">🏛️</span>
+            <span>Mimari</span>
+          </button>
+        </nav>
       </div>
 
       <script>
         var PLATFORM_SPLIT = {ps_json_str};
         var currentPlatform = 'all';
+
+        document.addEventListener('click', function(ev) {{
+          var t = ev.target && ev.target.closest ? ev.target.closest('.card-desc, .step-sub') : null;
+          if (t) {{
+            t.classList.toggle('desc-expanded');
+          }}
+        }});
 
         function toggleHeroFunnel() {{
           var card = document.getElementById('conversionBridgeCard');
@@ -10668,17 +10861,23 @@ def analytics_dashboard_page(
         function switchTab(tabId) {{
           var panes = document.querySelectorAll('.tab-pane');
           var btns = document.querySelectorAll('.tab-btn');
+          var mobBtns = document.querySelectorAll('.mobile-dock-btn');
           for (var i = 0; i < panes.length; i++) {{
             panes[i].classList.remove('active');
           }}
           for (var j = 0; j < btns.length; j++) {{
             btns[j].classList.remove('active');
           }}
+          for (var k = 0; k < mobBtns.length; k++) {{
+            mobBtns[k].classList.remove('active');
+          }}
           var targetPane = document.getElementById('tabPane_' + tabId);
           var targetBtn = document.getElementById('tabBtn_' + tabId);
+          var targetMobBtn = document.getElementById('mobDockBtn_' + tabId);
           if (targetPane && targetBtn) {{
             targetPane.classList.add('active');
             targetBtn.classList.add('active');
+            if (targetMobBtn) targetMobBtn.classList.add('active');
             localStorage.setItem('mishil_dash_active_tab', tabId);
           }}
         }}
@@ -10769,9 +10968,11 @@ def analytics_dashboard_page(
           var sDl = document.getElementById('sideKpiDl');
           var sVip = document.getElementById('sideKpiVip');
           var sMrr = document.getElementById('sideKpiMrr');
+          var mobMrr = document.getElementById('mobileHeaderMrrBadge');
           if (sDl) sDl.textContent = p.downloads_display;
           if (sVip) sVip.textContent = String(vipNum);
           if (sMrr) sMrr.textContent = Number(p.mrr_net_try || 0).toFixed(2) + ' ₺';
+          if (mobMrr) mobMrr.textContent = '👑 ' + String(vipNum) + ' VIP • ' + Number(p.mrr_net_try || 0).toFixed(0) + ' ₺';
 
           function renderMetaChips(containerId, chipsArr) {{
             var cEl = document.getElementById(containerId);

@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.16-cockpit-logo-mobile-dock-pastel-ux] - 2026-11-23 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` Gerçek Kurumsal Logo `/icon-192.png` + Favicon/PWA Entegrasyonu, Mobil Sabit Alt Navigasyon Barı `#cockpitMobileBottomDock`, Mobil Canlı Net MRR/VIP Rozeti `#mobileHeaderMrrBadge`, 2 Satır `line-clamp` + Dokunarak Genişletme ve 6'lı Pastel Kart Dokuları `--soft-*-card` • 🟢 Yeni Native EAS Build Gerekmez)
+### 🌙📱 Kurucu Kokpiti (`/admin/analytics`) Tam Kapsamlı Kurumsal Logo, Mobil App Shell & Pastel Doku Revizyonu (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **Gerçek Kurumsal Logo (`/icon-192.png`), Favicon ve PWA İkon Entegrasyonu:**
+   - PIN giriş ekranında (`_render_login_html`) ve Kokpit sol/üst marka başlığında (`.sidebar-brand-icon`) yer alan ucuz `🌙` emojisi kaldırılarak `public/icon-192.png` gerçek Mışıl Baby kurumsal logosu (`<img>`) yerleştirildi; her iki `<head>` bloğuna `/favicon.ico`, `/favicon-32x32.png`, `/favicon-16x16.png`, `/apple-touch-icon.png` ve `/manifest.json` bağlandı.
+2. **Mobil-Öncelikli App Shell (`<= 768px`) — 54px İnce Üst Bar & Sabit Alt Navigasyon Barı (`#cockpitMobileBottomDock`):**
+   - Mobilde ekranın üst ~280px'ini kaplayan 4 katmanlı yığın (`sidebar` + `live-row` + yatay kaydırmalı `tabs-nav` + `actions-grid` + `topbar`) kaldırıldı; mobilde üst bar `54px` tek satıra (Logo + Başlık + Canlı `#mobileHeaderMrrBadge` Net MRR/VIP rozeti + Tema/CSV ikon butonları) indirildi ve ekranın altına `public/app.html` ile aynı ergonomide sabit, glassmorphism efektli **5 Sekmeli Alt Navigasyon Barı (`#cockpitMobileBottomDock`: `📊 Büyüme`, `💰 Gelir`, `🍼 Ürün`, `⭐ Trafik`, `🏛️ Mimari`)** eklendi (`switchTab` ve `switchPlatform` ile tam senkron).
+3. **Mobil `2x2 Bento` Kart Yüksekliği Koruması (`-webkit-line-clamp: 2` + Tıkla-Aç `.desc-expanded`):**
+   - `.card-desc` ve `.step-sub` açıklamalarının mobilde 6-8 satıra uzayarak kart boylarını patlatması `-webkit-line-clamp: 2` ile dengelendi; üzerine dokunulduğunda `.desc-expanded` sınıfıyla tam metnin açılıp kapanması sağlandı.
+4. **Mışıl Baby İmzası 6'lı Pastel Kart Dokuları (`--soft-peach/sky/sage/lavender/blush/emerald-card`):**
+   - `public/app.html` tasarım dilinin imzası olan çift temalı (Gündüz + Gece) pastel kart gradyanları 6 aşamalı dönüşüm hunisi kartlarına (`.stage-card-1` .. `.stage-card-6`) entegre edildi.
+   - **Claude Code CLI (`task-304` 7 eksikli tam kapsamlı konsensüs eleştirisi + `task-336` uygulama sonrası Seviye 2 karşı ajan denetimi: `KARAR: ONAY ✅`)** + **Antigravity (`70/70 pytest PASS` `task-335`)**.
+
 ## [4.56.15-cockpit-corporate-brand-design] - 2026-11-23 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` Mışıl Baby Kurumsal Renk & Tasarım Dili Revizyonu: Sıcak Yulaf & Kaşmir Beji Gündüz Modu, Sıcak Kaşmir & Mum Işığı Gece Modu ve `.card-desc/.step-sub` Görünürlük Onarımı • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🎨🌙 Kurucu Kokpiti (`/admin/analytics`) Mışıl Baby Kurumsal Renk & Tasarım Dili Revizyonu (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **☀️ Gündüz Modu ("Sıcak Yulaf & Kaşmir Beji" — `:root`) & 🌙 Gece Modu ("Sıcak Kaşmir ve Mum Işığı" — `body.theme-slate`):**

@@ -927,6 +927,24 @@ def test_period_filter_updates_funnel_ledger_and_tabs(client, db_session):
     assert "--stage-1-rgb:" in res_all.text
     assert "rgba(var(--stage-1-rgb)," in res_all.text
     assert "rgba(var(--stage-6-rgb)," in res_all.text
+    # v4.56.16: Gerçek Kurumsal Logo (/icon-192.png), Favicon/PWA, Mobil Alt Navigasyon Barı (cockpitMobileBottomDock),
+    # Mobil Net MRR/VIP Rozeti (mobileHeaderMrrBadge), 2 satır line-clamp ve 6'lı Pastel Kart Dokuları (--soft-*-card)
+    assert "/icon-192.png" in res_all.text
+    assert "/apple-touch-icon.png" in res_all.text
+    assert "/favicon.ico" in res_all.text
+    assert "cockpitMobileBottomDock" in res_all.text
+    assert "mobileHeaderMrrBadge" in res_all.text
+    assert "--soft-peach-card:" in res_all.text
+    assert "--soft-emerald-card:" in res_all.text
+    assert "stage-card-1" in res_all.text
+    assert "stage-card-6" in res_all.text
+    assert "-webkit-line-clamp: 2" in res_all.text
+    # PIN giriş ekranında da gerçek logo ve favicon yer almalı
+    res_login = client.get("/api/v1/analytics/dashboard")
+    assert res_login.status_code == 200
+    assert "/icon-192.png" in res_login.text
+    assert "/apple-touch-icon.png" in res_login.text
+
 
 
 
