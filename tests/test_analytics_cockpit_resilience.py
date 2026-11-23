@@ -903,7 +903,7 @@ def test_period_filter_updates_funnel_ledger_and_tabs(client, db_session):
     assert s_all["product_funnel"]["paywall_funnel"]["paywall_viewed"] == 3
     assert s_today["product_funnel"]["paywall_funnel"]["paywall_viewed"] == 1
 
-    # 4) Dashboard HTML çıktısı da period parametresine göre güncellenmeli
+    # 4) Dashboard HTML çıktısı da period parametresine göre güncellenmeli ve Mışıl Baby kurumsal marka tokenlarını barındırmalı
     res_all = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842", "period": "all"})
     res_today = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842", "period": "today"})
     assert res_all.status_code == 200
@@ -913,6 +913,20 @@ def test_period_filter_updates_funnel_ledger_and_tabs(client, db_session):
     assert "#111111" not in res_today.text
     assert "#222222" in res_today.text
     assert "Bugün (TSİ)" in res_today.text
+    # Mışıl Baby kurumsal renk ve tasarım tokenları (Sıcak Kaşmir #13101C, Kehribar #F4A261, Pişmiş Toprak #C86446, Adaçayı #74C69D)
+    assert "#13101C" in res_all.text
+    assert "#F4A261" in res_all.text
+    assert "#C86446" in res_all.text
+    assert "#74C69D" in res_all.text
+    assert "#2C201A" in res_all.text
+    # .card-desc ve .step-sub açıklamaları .sr-only ile gizlenmemiş olmalı, jenerik Tailwind rgba kalıntıları temizlenmiş olmalı ve --stage-N-rgb dinamik tema değişkenleri kullanılmalı
+    assert ".sr-only,\n        .card-desc" not in res_all.text
+    assert "rgba(79, 70, 229" not in res_all.text
+    assert "rgba(220,38,38" not in res_all.text
+    assert "rgba(13,148,136" not in res_all.text
+    assert "--stage-1-rgb:" in res_all.text
+    assert "rgba(var(--stage-1-rgb)," in res_all.text
+    assert "rgba(var(--stage-6-rgb)," in res_all.text
 
 
 

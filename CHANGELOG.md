@@ -2,6 +2,16 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.15-cockpit-corporate-brand-design] - 2026-11-23 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` Mışıl Baby Kurumsal Renk & Tasarım Dili Revizyonu: Sıcak Yulaf & Kaşmir Beji Gündüz Modu, Sıcak Kaşmir & Mum Işığı Gece Modu ve `.card-desc/.step-sub` Görünürlük Onarımı • 🟢 Yeni Native EAS Build Gerekmez)
+### 🎨🌙 Kurucu Kokpiti (`/admin/analytics`) Mışıl Baby Kurumsal Renk & Tasarım Dili Revizyonu (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **☀️ Gündüz Modu ("Sıcak Yulaf & Kaşmir Beji" — `:root`) & 🌙 Gece Modu ("Sıcak Kaşmir ve Mum Işığı" — `body.theme-slate`):**
+   - `public/app.html` kurumsal kimliğiyle birebir uyumlu olarak Gündüz modunda `#EDE5DA` arka plan, `#F7F2EB` krem kartlar, `#EFE7DC` yulaf hücreler, `#2C201A` derin espresso metin, `#C86446` pişmiş toprak kehribar, `#24523A` adaçayı yeşili ve `#5B21B6` lavanta; Gece modunda `#13101C` gece kaşmiri, `#211C2C` kartlar, `#FAF5EE` sıcak krem metin, `#F4A261` kehribar, `#74C69D` adaçayı ve `#A569BD` lavanta tokenları devreye alındı.
+2. **Sol Sabit Komuta Rayı (`.cockpit-sidebar`), PIN Giriş Ekranı, Donut/Sparkline/Bar Grafikler ve Rozetler:**
+   - Soğuk `#090D16` / `#10B981` / `#2563EB` renkleri kaldırılarak Mışıl gece kaşmiri (`#13101C ➔ #1D1829`), kehribar marka ikonu (`#F4A261 ➔ #C86446`), kehribar aktif sekme barı ve kurumsal grafik paleti uygulandı.
+3. **`.card-desc` ve `.step-sub` Açıklama Görünürlüğü Onarımı:**
+   - `.sr-only` seçici grubundan `.card-desc` ve `.step-sub` çıkarılarak tüm KPI ve huni adım açıklamalarının kartlarda görünür olması sağlandı.
+   - **Claude Code CLI (`task-195` tasarım analizi + `task-223` 1. tur bulguları kapatıldı + `task-245` 2. tur doğrulama: `Denetim Sonucu: ONAY ✅`)** + **Antigravity (`70/70 pytest PASS` `task-244`)**.
+
 ## [4.56.14-cockpit-period-filter-engine] - 2026-11-23 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` Dönem Seçici (`Tüm Zamanlar / Bugün / Dün / Son 7 Gün`) Dinamik Veri Filtreleme, `NameError: sr` Onarımı ve Dönemsel 6 Aşamalı Huni / Abone Defteri / Ürün Telemetrisi Senkronizasyonu • 🟢 Yeni Native EAS Build Gerekmez)
 ### 📅📊 Kurucu Kokpiti (`/admin/analytics`) Dönem Seçici (`all`, `today`, `yesterday`, `7d`) Dinamik Filtreleme Mimarisi (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **Gizli `NameError: name 'sr' is not defined` (Satır 6458) SWR Düşüş Hatasının Onarımı:**

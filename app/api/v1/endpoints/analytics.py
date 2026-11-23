@@ -7427,8 +7427,11 @@ def _render_login_html(
       <style>
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
         body {{
-          background: #07090E radial-gradient(circle at 50% 20%, #151D33 0%, #07090E 75%);
-          color: #FFF;
+          background: radial-gradient(circle at 18% 10%, rgba(244, 162, 97, 0.18) 0%, transparent 45%),
+                      radial-gradient(circle at 82% 22%, rgba(116, 198, 157, 0.15) 0%, transparent 42%),
+                      radial-gradient(circle at 50% 60%, rgba(165, 105, 189, 0.12) 0%, transparent 50%),
+                      #13101C;
+          color: #FAF5EE;
           font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
           min-height: 100vh;
           display: flex;
@@ -7437,26 +7440,26 @@ def _render_login_html(
           padding: 20px;
         }}
         .card {{
-          background: rgba(18, 23, 38, 0.88);
-          border: 1px solid rgba(255, 255, 255, 0.1);
-          backdrop-filter: blur(16px);
-          border-radius: 22px;
+          background: rgba(33, 28, 44, 0.90);
+          border: 1px solid rgba(244, 162, 97, 0.35);
+          backdrop-filter: blur(18px);
+          border-radius: 26px;
           padding: 36px 28px;
           width: 100%;
           max-width: 390px;
           text-align: center;
-          box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+          box-shadow: 0 20px 44px rgba(10, 8, 16, 0.55);
         }}
         .moon {{ font-size: 42px; margin-bottom: 12px; }}
-        h2 {{ font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #FFF; }}
-        p {{ color: #8E99B0; font-size: 13px; line-height: 1.5; margin-bottom: 24px; }}
+        h2 {{ font-family: 'Sora', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 8px; color: #FAF5EE; }}
+        p {{ color: #8F86A2; font-size: 13px; line-height: 1.5; margin-bottom: 24px; }}
         input {{
           width: 100%;
           padding: 14px 16px;
-          border-radius: 12px;
-          border: 1px solid rgba(232, 168, 85, 0.3);
-          background: rgba(0, 0, 0, 0.4);
-          color: #FFF;
+          border-radius: 14px;
+          border: 1px solid rgba(244, 162, 97, 0.42);
+          background: rgba(25, 20, 35, 0.65);
+          color: #FAF5EE;
           font-size: 16px;
           font-weight: 600;
           text-align: center;
@@ -7464,17 +7467,18 @@ def _render_login_html(
           margin-bottom: 16px;
           outline: none;
         }}
-        input:focus {{ border-color: #E8A855; }}
+        input:focus {{ border-color: #F4A261; box-shadow: 0 0 0 3px rgba(244, 162, 97, 0.22); }}
         button {{
           width: 100%;
           padding: 14px;
-          border-radius: 12px;
+          border-radius: 14px;
           border: none;
-          background: linear-gradient(135deg, #E8A855 0%, #D48828 100%);
-          color: #07090E;
+          background: linear-gradient(135deg, #F4A261 0%, #C86446 100%);
+          color: #13101C;
           font-size: 15px;
-          font-weight: 700;
+          font-weight: 800;
           cursor: pointer;
+          box-shadow: 0 6px 18px rgba(244, 162, 97, 0.28);
         }}
         .err {{ color: #FF6B6B; font-size: 12px; margin-top: 12px; line-height: 1.45; display: {'block' if show_error else 'none'}; }}
       </style>
@@ -7616,11 +7620,11 @@ def analytics_dashboard_page(
 
     donut_install_sources = _build_svg_donut(
         [
-            {"label": "🔍 App Store Arama", "count": r3_search_dl, "color": "#E8A855"},
-            {"label": "📲 Sosyal & Meta Reklam (iOS)", "count": r3_ref_dl, "color": "#60A5FA"},
-            {"label": "📅 Doğrudan / Diğer iOS", "count": r3_unattributed_recent_ios, "color": "#A855F7"},
-            {"label": "✨ App Store Keşfet", "count": r3_browse_dl, "color": "#34D399"},
-            {"label": "🤖 Google Play (Organik + Meta + Bio)", "count": kpis["android_downloads"], "color": "#4ADE80"},
+            {"label": "🔍 App Store Arama", "count": r3_search_dl, "color": "#F4A261"},
+            {"label": "📲 Sosyal & Meta Reklam (iOS)", "count": r3_ref_dl, "color": "#68A6C8"},
+            {"label": "📅 Doğrudan / Diğer iOS", "count": r3_unattributed_recent_ios, "color": "#A569BD"},
+            {"label": "✨ App Store Keşfet", "count": r3_browse_dl, "color": "#74C69D"},
+            {"label": "🤖 Google Play (Organik + Meta + Bio)", "count": kpis["android_downloads"], "color": "#3D6E57"},
         ],
         center_val=str(kpis["downloads_total"]),
         center_lbl="KURULUM",
@@ -7648,10 +7652,10 @@ def analytics_dashboard_page(
 
     donut_countries = _build_svg_donut(
         [
-            {"label": "🇹🇷 Türkiye", "count": tr_dl, "color": "#34D399"},
-            {"label": "🇩🇪 Almanya", "count": de_dl, "color": "#E8A855"},
-            {"label": "🇺🇸 ABD", "count": us_dl, "color": "#60A5FA"},
-            {"label": "🌍 Diğer Ülkeler", "count": other_country_dl, "color": "#A855F7"},
+            {"label": "🇹🇷 Türkiye", "count": tr_dl, "color": "#74C69D"},
+            {"label": "🇩🇪 Almanya", "count": de_dl, "color": "#F4A261"},
+            {"label": "🇺🇸 ABD", "count": us_dl, "color": "#68A6C8"},
+            {"label": "🌍 Diğer Ülkeler", "count": other_country_dl, "color": "#A569BD"},
         ],
         center_val=f"{len(countries_list)} Ülke",
         center_lbl=f"{kpis['downloads_total']} Kurulum",
@@ -7662,8 +7666,8 @@ def analytics_dashboard_page(
 
     donut_night_day = _build_svg_donut(
         [
-            {"label": "🌙 Gece (21:00–04:00)", "count": nvd["night_clicks"], "color": "#A855F7"},
-            {"label": "☀️ Gündüz (05:00–20:00)", "count": nvd["day_clicks"], "color": "#E8A855"},
+            {"label": "🌙 Gece (21:00–04:00)", "count": nvd["night_clicks"], "color": "#A569BD"},
+            {"label": "☀️ Gündüz (05:00–20:00)", "count": nvd["day_clicks"], "color": "#F4A261"},
         ],
         center_val=f"%{nvd['night_pct']}",
         center_lbl="GECE NÖBETİ",
@@ -7679,15 +7683,15 @@ def analytics_dashboard_page(
     max_daily_dl = max(1, max((d["daily_downloads"] for d in t_days), default=1))
     max_daily_clicks = max(1, max((d["daily_visits_clicks"] for d in t_days), default=1))
 
-    spark_imp_svg = _build_svg_sparkline([d.get("daily_impressions", 0) for d in t_days if not d.get("is_r14_pending")], "#E8A855", "spImp")
-    spark_vis_svg = _build_svg_sparkline([d.get("daily_visits_clicks", 0) for d in t_days], "#60A5FA", "spVis")
-    spark_dl_svg = _build_svg_sparkline([d.get("daily_downloads", 0) for d in t_days if not d.get("is_store_pending")], "#34D399", "spDl")
-    spark_vip_svg = _build_svg_sparkline([d.get("cum_downloads", 0) for d in t_days], "#C084FC", "spVip")
+    spark_imp_svg = _build_svg_sparkline([d.get("daily_impressions", 0) for d in t_days if not d.get("is_r14_pending")], "#F4A261", "spImp")
+    spark_vis_svg = _build_svg_sparkline([d.get("daily_visits_clicks", 0) for d in t_days], "#68A6C8", "spVis")
+    spark_dl_svg = _build_svg_sparkline([d.get("daily_downloads", 0) for d in t_days if not d.get("is_store_pending")], "#74C69D", "spDl")
+    spark_vip_svg = _build_svg_sparkline([d.get("cum_downloads", 0) for d in t_days], "#A569BD", "spVip")
 
     sync_sources_rows_html = ""
     for fs in s.get("source_freshness", []):
-        st_badge_col = "#059669" if fs["status"] == "realtime" else ("#2563EB" if fs["status"] == "reconciling" else "#D97706")
-        st_badge_bg = "rgba(16,185,129,0.14)" if fs["status"] == "realtime" else ("rgba(37,99,235,0.14)" if fs["status"] == "reconciling" else "rgba(217,119,6,0.14)")
+        st_badge_col = "var(--stage-3)" if fs["status"] == "realtime" else ("var(--stage-2)" if fs["status"] == "reconciling" else "var(--stage-1)")
+        st_badge_bg = "rgba(61,110,87,0.16)" if fs["status"] == "realtime" else ("rgba(59,110,140,0.16)" if fs["status"] == "reconciling" else "rgba(200,100,70,0.16)")
         sync_sources_rows_html += f"""
         <tr>
           <td><strong>{html.escape(str(fs['label']))}</strong></td>
@@ -7701,8 +7705,8 @@ def analytics_dashboard_page(
     for gm in s.get("data_governance_matrix", []):
         lat_str = str(gm.get("latency_class", ""))
         is_t0 = "T-0" in lat_str
-        lat_bg = "rgba(16,185,129,0.14)" if is_t0 else "rgba(37,99,235,0.14)"
-        lat_col = "#059669" if is_t0 else "#2563EB"
+        lat_bg = "rgba(61,110,87,0.16)" if is_t0 else "rgba(59,110,140,0.16)"
+        lat_col = "var(--stage-3)" if is_t0 else "var(--stage-2)"
         gov_rows_html += f"""
         <tr>
           <td>
@@ -7719,7 +7723,7 @@ def analytics_dashboard_page(
         """
 
     arch_cards_html = ""
-    arch_colors = ["#10B981", "#3B82F6", "#8B5CF6", "#F59E0B"]
+    arch_colors = ["var(--stage-3)", "var(--stage-2)", "var(--stage-4)", "var(--stage-1)"]
     for idx_ap, ap in enumerate(s.get("architecture_principles", [])):
         ac_col = arch_colors[idx_ap % len(arch_colors)]
         arch_cards_html += f"""
@@ -7749,19 +7753,19 @@ def analytics_dashboard_page(
         and_share_pct = max(0, 100 - ios_share_pct)
 
         bar_style_cum = (
-            f"height:{dl_h}%; background:rgba(16,185,129,0.20); border:1.5px dashed #059669;"
+            f"height:{dl_h}%; background:rgba(116,198,157,0.22); border:1.5px dashed #3D6E57;"
             if is_pending and cum_android_val == 0
             else (
-                f"height:{dl_h}%; background:linear-gradient(180deg, #3B82F6 0%, #3B82F6 {and_share_pct}%, #10B981 {and_share_pct}%, #059669 100%);"
+                f"height:{dl_h}%; background:linear-gradient(180deg, #68A6C8 0%, #68A6C8 {and_share_pct}%, #74C69D {and_share_pct}%, #3D6E57 100%);"
                 if cum_android_val > 0
-                else f"height:{dl_h}%; background:linear-gradient(180deg, #10B981 0%, #059669 100%);"
+                else f"height:{dl_h}%; background:linear-gradient(180deg, #74C69D 0%, #3D6E57 100%);"
             )
         )
         top_val_cum = f"{d['cum_downloads']}*" if is_pending else str(d["cum_downloads"])
 
         cum_bars_html += f"""
         <div class="t-col {'t-today' if is_today else ''} {'t-pending' if is_pending else ''}" title="{html.escape(cum_tip)}">
-          <div class="t-top-val" style="color:{'#D97706' if is_pending else '#059669'};">{top_val_cum}</div>
+          <div class="t-top-val" style="color:{'#C86446' if is_pending else '#3D6E57'};">{top_val_cum}</div>
           <div class="t-bars-pair">
             <div class="t-bar" style="{bar_style_cum}"></div>
           </div>
@@ -7771,13 +7775,13 @@ def analytics_dashboard_page(
 
         ios_h = max(10, round((cum_ios_val / max_cum_ios) * 100)) if cum_ios_val > 0 else 5
         ios_bar_style = (
-            f"height:{ios_h}%; background:rgba(16,185,129,0.20); border:1.5px dashed #059669;"
+            f"height:{ios_h}%; background:rgba(116,198,157,0.22); border:1.5px dashed #3D6E57;"
             if is_pending
-            else f"height:{ios_h}%; background:linear-gradient(180deg, #10B981 0%, #059669 100%);"
+            else f"height:{ios_h}%; background:linear-gradient(180deg, #74C69D 0%, #3D6E57 100%);"
         )
         cum_ios_bars_html += f"""
         <div class="t-col {'t-today' if is_today else ''} {'t-pending' if is_pending else ''}" title="{html.escape(d['label'])}: 🍏 Apple iOS Kümülatif {cum_ios_val} Kurulum{html.escape(pending_note)}">
-          <div class="t-top-val" style="color:{'#D97706' if is_pending else '#059669'};">{cum_ios_val}{'*' if is_pending else ''}</div>
+          <div class="t-top-val" style="color:{'#C86446' if is_pending else '#3D6E57'};">{cum_ios_val}{'*' if is_pending else ''}</div>
           <div class="t-bars-pair">
             <div class="t-bar" style="{ios_bar_style}"></div>
           </div>
@@ -7787,13 +7791,13 @@ def analytics_dashboard_page(
 
         and_h = max(12, round((cum_android_val / max_cum_and) * 100)) if cum_android_val > 0 else 6
         and_bar_style = (
-            f"height:{and_h}%; background:linear-gradient(180deg, #60A5FA 0%, #2563EB 100%);"
+            f"height:{and_h}%; background:linear-gradient(180deg, #68A6C8 0%, #3B6E8C 100%);"
             if cum_android_val > 0
-            else "height:6%; background:rgba(148,163,184,0.25);"
+            else "height:6%; background:rgba(150,122,98,0.25);"
         )
         cum_android_bars_html += f"""
         <div class="t-col {'t-today' if is_today else ''}" title="{html.escape(d['label'])}: 🤖 Google Play Android Kümülatif {cum_android_val} Kurulum">
-          <div class="t-top-val" style="color:{'#2563EB' if cum_android_val > 0 else '#94A3B8'};">{cum_android_val}</div>
+          <div class="t-top-val" style="color:{'#3B6E8C' if cum_android_val > 0 else '#8F86A2'};">{cum_android_val}</div>
           <div class="t-bars-pair">
             <div class="t-bar" style="{and_bar_style}"></div>
           </div>
@@ -7804,13 +7808,13 @@ def analytics_dashboard_page(
         if is_pending and d["daily_downloads"] == 0 and d["daily_visits_clicks"] > 0:
             sig_h = max(18, round((d["daily_visits_clicks"] / max_daily_clicks) * 75))
             d_dl_str = f"⏳{d['daily_visits_clicks']} Tık"
-            bar_style_daily = f"height:{sig_h}%; background:rgba(37,99,235,0.20); border:1.5px dashed #2563EB;"
-            top_color_daily = "#2563EB"
+            bar_style_daily = f"height:{sig_h}%; background:rgba(104,166,200,0.22); border:1.5px dashed #3B6E8C;"
+            top_color_daily = "#3B6E8C"
         else:
             d_dl_h = max(12, round((d["daily_downloads"] / max_daily_dl) * 100)) if d["daily_downloads"] > 0 else 6
             d_dl_str = f"+{d['daily_downloads']}" if d["daily_downloads"] > 0 else "0"
-            bar_style_daily = f"height:{d_dl_h}%; background:linear-gradient(180deg, #F59E0B 0%, #D97706 100%);"
-            top_color_daily = "#D97706"
+            bar_style_daily = f"height:{d_dl_h}%; background:linear-gradient(180deg, #F4A261 0%, #C86446 100%);"
+            top_color_daily = "#C86446"
         d_touch_tip = f" (🍏 +{d.get('daily_ios_downloads', 0)} iOS • 🤖 +{d.get('daily_android_downloads', 0)} Android) • +{d['daily_visits_clicks']} Sayfa/Sosyal Tık"
 
         daily_bars_html += f"""
@@ -8306,57 +8310,80 @@ def analytics_dashboard_page(
       <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
       <noscript><link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Sora:wght@600;700;800&family=JetBrains+Mono:wght@500;600;700;800&display=swap" rel="stylesheet"></noscript>
       <style>
-        /* EXECUTIVE KEYNOTE / STRIPE BOARD DECK TEMASI (AIRY DAYLIGHT — VARSAYILAN) */
+        /* MIŞIL BABY KURUMSAL MARKA TEMASI: ☀️ GÜNDÜZ (SICAK YULAF & KAŞMİR BEJİ — VARSAYILAN) */
         :root {{
-          --bg-canvas: #F4F6FB;
-          --bg-card: #FFFFFF;
-          --bg-cell: #F8FAFC;
-          --border-subtle: #E2E8F0;
-          --ring-track: #E2E8F0;
-          --text-primary: #0F172A;
-          --text-secondary: #334155;
-          --text-muted: #64748B;
-          --card-shadow: 0 6px 24px -4px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03);
-          --stage-1: #D97706;
-          --stage-2: #2563EB;
-          --stage-3: #059669;
-          --stage-4: #7C3AED;
-          --stage-5: #DC2626;
-          --stage-6: #0D9488;
-          --gold: #D97706;
-          --sky: #2563EB;
-          --emerald: #059669;
-          --violet: #7C3AED;
-          --rose: #DC2626;
-          --teal: #0D9488;
+          --bg-canvas: #EDE5DA;
+          --bg-card: #F7F2EB;
+          --bg-cell: #EFE7DC;
+          --border-subtle: rgba(150, 122, 98, 0.24);
+          --ring-track: rgba(150, 122, 98, 0.22);
+          --text-primary: #2C201A;
+          --text-secondary: #4A382E;
+          --text-muted: #655347;
+          --brand-indigo: #C86446;
+          --card-shadow: 0 10px 26px -6px rgba(100, 76, 56, 0.12), 0 2px 8px -2px rgba(100, 76, 56, 0.06);
+          --stage-1: #C86446;
+          --stage-2: #3B6E8C;
+          --stage-3: #24523A;
+          --stage-4: #5B21B6;
+          --stage-5: #C93B4B;
+          --stage-6: #2D6A4F;
+          --stage-1-rgb: 200, 100, 70;
+          --stage-2-rgb: 59, 110, 140;
+          --stage-3-rgb: 36, 82, 58;
+          --stage-4-rgb: 91, 33, 182;
+          --stage-5-rgb: 201, 59, 75;
+          --stage-6-rgb: 45, 106, 79;
+          --gold: #C86446;
+          --sky: #3B6E8C;
+          --emerald: #24523A;
+          --violet: #5B21B6;
+          --rose: #C93B4B;
+          --teal: #2D6A4F;
         }}
-        /* İSTEĞE BAĞLI YUMUŞAK GECE MODU (SOFT SLATE) */
+        /* 🌙 MIŞIL BABY GECE MODU: SICAK KAŞMİR VE MUM IŞIĞI (MELATONİN WARM DARK MODE) */
         body.theme-slate {{
-          --bg-canvas: #0B1120;
-          --bg-card: #151F32;
-          --bg-cell: #0F172A;
-          --border-subtle: rgba(148, 163, 184, 0.16);
-          --ring-track: rgba(255, 255, 255, 0.08);
-          --text-primary: #F8FAFC;
-          --text-secondary: #CBD5E1;
-          --text-muted: #94A3B8;
-          --card-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
-          --stage-1: #F59E0B;
-          --stage-2: #60A5FA;
-          --stage-3: #34D399;
-          --stage-4: #C084FC;
-          --stage-5: #F87171;
-          --stage-6: #2DD4BF;
+          --bg-canvas: #13101C;
+          --bg-card: #211C2C;
+          --bg-cell: #1A1524;
+          --border-subtle: rgba(245, 230, 215, 0.13);
+          --ring-track: rgba(245, 230, 215, 0.10);
+          --text-primary: #FAF5EE;
+          --text-secondary: #D9D0E3;
+          --text-muted: #8F86A2;
+          --brand-indigo: #F4A261;
+          --card-shadow: 0 14px 34px -6px rgba(0, 0, 0, 0.48);
+          --stage-1: #F4A261;
+          --stage-2: #7EB6D9;
+          --stage-3: #74C69D;
+          --stage-4: #A569BD;
+          --stage-5: #FF6B6B;
+          --stage-6: #52B788;
+          --stage-1-rgb: 244, 162, 97;
+          --stage-2-rgb: 126, 182, 217;
+          --stage-3-rgb: 116, 198, 157;
+          --stage-4-rgb: 165, 105, 189;
+          --stage-5-rgb: 255, 107, 107;
+          --stage-6-rgb: 82, 183, 136;
         }}
         * {{ box-sizing: border-box; margin: 0; padding: 0; }}
         body {{
-          background: var(--bg-canvas);
+          background: radial-gradient(circle at 12% 8%, rgba(226, 198, 176, 0.55) 0%, transparent 45%),
+                      radial-gradient(circle at 88% 18%, rgba(194, 216, 202, 0.45) 0%, transparent 42%),
+                      radial-gradient(circle at 50% 55%, rgba(214, 202, 228, 0.40) 0%, transparent 50%),
+                      var(--bg-canvas);
           color: var(--text-primary);
           font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
           min-height: 100vh;
           padding: 20px 18px 80px;
           -webkit-font-smoothing: antialiased;
           transition: background 0.2s ease, color 0.2s ease;
+        }}
+        body.theme-slate {{
+          background: radial-gradient(circle at 18% 10%, rgba(244, 162, 97, 0.15) 0%, transparent 45%),
+                      radial-gradient(circle at 82% 22%, rgba(116, 198, 157, 0.12) 0%, transparent 42%),
+                      radial-gradient(circle at 50% 60%, rgba(165, 105, 189, 0.10) 0%, transparent 50%),
+                      var(--bg-canvas);
         }}
         .container {{
           max-width: 1320px;
@@ -8421,9 +8448,9 @@ def analytics_dashboard_page(
         }}
         .subcat-pill.active {{
           background: var(--brand-indigo);
-          color: #FFFFFF;
+          color: #FAF5EE;
           border-color: var(--brand-indigo);
-          box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25);
+          box-shadow: 0 4px 12px rgba(200, 100, 70, 0.25);
         }}
         .collapse-btn {{
           border: 1px solid var(--border-subtle);
@@ -8438,7 +8465,7 @@ def analytics_dashboard_page(
           transition: all 0.15s ease;
         }}
         .collapse-btn:hover {{
-          background: rgba(79, 70, 229, 0.1);
+          background: rgba(200, 100, 70, 0.12);
         }}
 
         /* SUNUM MODU (BOARDROOM / KEYNOTE PRESENTATION MODE) */
@@ -8465,13 +8492,13 @@ def analytics_dashboard_page(
           z-index: 9999;
           padding: 10px 18px;
           border-radius: 99px;
-          background: #0F172A;
-          color: #FFFFFF;
-          border: 1px solid rgba(255,255,255,0.2);
+          background: var(--bg-card);
+          color: var(--text-primary);
+          border: 1px solid rgba(var(--stage-1-rgb), 0.42);
           font-size: 12.5px;
           font-weight: 800;
           cursor: pointer;
-          box-shadow: 0 10px 25px rgba(15, 23, 42, 0.35);
+          box-shadow: var(--card-shadow);
         }}
         body.presentation-mode .pres-exit-fab {{
           display: inline-flex;
@@ -8501,11 +8528,11 @@ def analytics_dashboard_page(
         .brand {{ display: flex; align-items: center; gap: 14px; }}
         .brand-icon {{
           width: 42px; height: 42px; border-radius: 12px;
-          background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-          color: #FFFFFF;
+          background: linear-gradient(135deg, #F4A261 0%, #C86446 100%);
+          color: #13101C;
           display: flex; align-items: center; justify-content: center;
           font-size: 19px;
-          box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+          box-shadow: 0 4px 12px rgba(244, 162, 97, 0.30);
         }}
         .brand h1 {{ font-family: 'Sora', sans-serif; font-size: 17.5px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.02em; }}
         .brand p {{ font-size: 12px; color: var(--text-muted); margin-top: 2px; font-weight: 500; }}
@@ -8525,10 +8552,10 @@ def analytics_dashboard_page(
           cursor: pointer;
           transition: all 0.15s ease;
         }}
-        .btn:hover {{ background: var(--bg-card); border-color: #10B981; color: var(--text-primary); }}
+        .btn:hover {{ background: var(--bg-card); border-color: var(--brand-indigo); color: var(--text-primary); }}
         .btn-pres {{
-          background: linear-gradient(135deg, rgba(124, 58, 237, 0.10), rgba(37, 99, 235, 0.10));
-          border-color: rgba(124, 58, 237, 0.28);
+          background: linear-gradient(135deg, rgba(165, 105, 189, 0.12), rgba(200, 100, 70, 0.12));
+          border-color: rgba(165, 105, 189, 0.32);
           color: var(--stage-4);
         }}
         .btn-pres:hover {{
@@ -8542,9 +8569,9 @@ def analytics_dashboard_page(
           gap: 7px;
           padding: 7px 13px;
           border-radius: 99px;
-          background: rgba(16, 185, 129, 0.10);
-          border: 1px solid rgba(16, 185, 129, 0.28);
-          color: #059669;
+          background: rgba(116, 198, 157, 0.14);
+          border: 1px solid rgba(116, 198, 157, 0.38);
+          color: #74C69D;
           font-size: 11.5px;
           font-weight: 800;
           cursor: pointer;
@@ -8552,8 +8579,8 @@ def analytics_dashboard_page(
         }}
         .pulse-dot {{
           width: 7px; height: 7px; border-radius: 50%;
-          background: #10B981;
-          box-shadow: 0 0 8px #10B981;
+          background: #74C69D;
+          box-shadow: 0 0 8px #74C69D;
         }}
 
         /* KOMPAKT TEK SATIR VERİ KAYNAKLARI ŞERİDİ (ESKİ 4 KOCA KART YERİNE) */
@@ -8576,9 +8603,9 @@ def analytics_dashboard_page(
           font-size: 11px;
           cursor: help;
         }}
-        .fs-dot {{ width: 6px; height: 6px; border-radius: 50%; background: #10B981; }}
-        .fs-reconciling .fs-dot {{ background: #3B82F6; }}
-        .fs-synced .fs-dot {{ background: #F59E0B; }}
+        .fs-dot {{ width: 6px; height: 6px; border-radius: 50%; background: var(--stage-3); }}
+        .fs-reconciling .fs-dot {{ background: var(--stage-2); }}
+        .fs-synced .fs-dot {{ background: var(--stage-1); }}
         .fs-lbl {{ font-weight: 600; color: var(--text-muted); }}
         .fs-badge {{ font-weight: 700; color: var(--text-primary); font-variant-numeric: tabular-nums; }}
 
@@ -8609,17 +8636,17 @@ def analytics_dashboard_page(
           cursor: pointer;
           transition: all 0.15s ease;
         }}
-        .period-pill:hover {{ color: var(--text-primary); border-color: #CBD5E1; }}
+        .period-pill:hover {{ color: var(--text-primary); border-color: rgba(200, 100, 70, 0.45); }}
         .period-pill.active {{
-          color: #FFFFFF;
-          background: #0F172A;
-          border-color: #0F172A;
-          box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+          color: #FAF5EE;
+          background: linear-gradient(135deg, #C86446 0%, #A84E32 100%);
+          border-color: #C86446;
+          box-shadow: 0 3px 10px rgba(200, 100, 70, 0.25);
         }}
         body.theme-slate .period-pill.active {{
-          background: #10B981;
-          border-color: #059669;
-          color: #06281E;
+          background: linear-gradient(135deg, #F4A261 0%, #C86446 100%);
+          border-color: #F4A261;
+          color: #13101C;
         }}
         .compare-toggle-btn {{
           padding: 6px 12px;
@@ -8635,7 +8662,7 @@ def analytics_dashboard_page(
         .compare-toggle-btn:hover, .compare-toggle-btn.active {{
           color: var(--stage-2);
           border-color: var(--stage-2);
-          background: rgba(37, 99, 235, 0.06);
+          background: rgba(59, 110, 140, 0.10);
         }}
 
         /* GENEL BENTO KART & KPI GRID (ALT SEKMELER İÇİN) */
@@ -8706,8 +8733,8 @@ def analytics_dashboard_page(
           font-size: 11.5px;
           font-weight: 700;
           font-variant-numeric: tabular-nums;
-          border: 1px solid rgba(124, 58, 237, 0.25);
-          background: rgba(124, 58, 237, 0.07);
+          border: 1px solid rgba(165, 105, 189, 0.30);
+          background: rgba(165, 105, 189, 0.10);
           color: var(--stage-4);
         }}
         .conv-summary-pill strong {{
@@ -8824,8 +8851,8 @@ def analytics_dashboard_page(
           border-radius: 99px;
           font-size: 10.5px;
           font-weight: 700;
-          background: rgba(16, 185, 129, 0.12);
-          color: #059669;
+          background: rgba(61, 110, 87, 0.14);
+          color: var(--stage-3);
           font-variant-numeric: tabular-nums;
           white-space: nowrap;
         }}
@@ -8907,13 +8934,13 @@ def analytics_dashboard_page(
           background: var(--bg-cell);
         }}
         .tab-btn.active {{
-          background: #0F172A;
-          color: #FFFFFF;
-          box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+          background: linear-gradient(135deg, #C86446 0%, #A84E32 100%);
+          color: #FAF5EE;
+          box-shadow: 0 4px 12px rgba(200, 100, 70, 0.22);
         }}
         body.theme-slate .tab-btn.active {{
-          background: #10B981;
-          color: #06281E;
+          background: linear-gradient(135deg, #F4A261 0%, #C86446 100%);
+          color: #13101C;
         }}
         .tab-pane {{ display: none; }}
         .tab-pane.active {{ display: block; }}
@@ -8985,9 +9012,14 @@ def analytics_dashboard_page(
           cursor: pointer;
         }}
         .chart-toggle button.active {{
-          background: #10B981;
-          color: #FFFFFF;
-          border-color: #059669;
+          background: linear-gradient(135deg, #C86446 0%, #A84E32 100%);
+          color: #FAF5EE;
+          border-color: #C86446;
+        }}
+        body.theme-slate .chart-toggle button.active {{
+          background: linear-gradient(135deg, #F4A261 0%, #C86446 100%);
+          color: #13101C;
+          border-color: #F4A261;
         }}
         .timeline-scroll {{
           width: 100%;
@@ -8997,7 +9029,7 @@ def analytics_dashboard_page(
           padding-bottom: 8px;
           -webkit-overflow-scrolling: touch;
           scrollbar-width: thin;
-          scrollbar-color: #94A3B8 var(--bg-cell);
+          scrollbar-color: var(--text-muted) var(--bg-cell);
         }}
         .timeline-scroll::-webkit-scrollbar {{
           height: 7px;
@@ -9007,11 +9039,11 @@ def analytics_dashboard_page(
           border-radius: 99px;
         }}
         .timeline-scroll::-webkit-scrollbar-thumb {{
-          background: #94A3B8;
+          background: var(--text-muted);
           border-radius: 99px;
         }}
         .timeline-scroll::-webkit-scrollbar-thumb:hover {{
-          background: #64748B;
+          background: var(--brand-indigo);
         }}
         .timeline-grid {{
           display: grid;
@@ -9035,11 +9067,11 @@ def analytics_dashboard_page(
           border-radius: 8px;
         }}
         .t-today {{
-          background: rgba(16, 185, 129, 0.08);
-          border: 1px dashed rgba(16, 185, 129, 0.45);
+          background: rgba(116, 198, 157, 0.12);
+          border: 1px dashed rgba(61, 110, 87, 0.48);
         }}
         .t-pending {{
-          background: rgba(245, 158, 11, 0.06);
+          background: rgba(244, 162, 97, 0.10);
         }}
         .t-top-val {{
           font-size: 10.5px;
@@ -9126,12 +9158,12 @@ def analytics_dashboard_page(
           font-weight: 800;
           white-space: nowrap;
         }}
-        .badge-meta {{ background: rgba(37, 99, 235, 0.12); color: #2563EB; }}
-        .badge-gp {{ background: rgba(16, 185, 129, 0.14); color: #059669; }}
+        .badge-meta {{ background: rgba(200, 100, 70, 0.14); color: var(--stage-1); }}
+        .badge-gp {{ background: rgba(61, 110, 87, 0.16); color: var(--stage-3); }}
         .toast-banner {{
-          background: rgba(16, 185, 129, 0.12);
-          border: 1px solid rgba(16, 185, 129, 0.35);
-          color: #059669;
+          background: rgba(61, 110, 87, 0.14);
+          border: 1px solid rgba(116, 198, 157, 0.38);
+          color: var(--stage-3);
           padding: 13px 18px;
           border-radius: 14px;
           margin-bottom: 16px;
@@ -9157,8 +9189,8 @@ def analytics_dashboard_page(
           transition: border-color 0.15s ease, box-shadow 0.15s ease;
         }}
         .table-search-input:focus {{
-          border-color: #10B981;
-          box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.14);
+          border-color: var(--brand-indigo);
+          box-shadow: 0 0 0 3px rgba(200, 100, 70, 0.16);
         }}
 
         /* GERÇEK FULL-VIEWPORT SAAS APP SHELL (SOL SABİT KOYU RAY + SAĞ GENİŞ ÇALIŞMA ALANI) */
@@ -9186,48 +9218,50 @@ def analytics_dashboard_page(
           width: 264px;
           height: 100vh;
           z-index: 120;
-          background: linear-gradient(180deg, #090D16 0%, #0F172A 100%);
-          color: #F8FAFC;
-          border-right: 1px solid rgba(148, 163, 184, 0.16);
+          background: radial-gradient(circle at 18% 10%, rgba(244, 162, 97, 0.16) 0%, transparent 48%),
+                      radial-gradient(circle at 82% 85%, rgba(116, 198, 157, 0.12) 0%, transparent 45%),
+                      linear-gradient(180deg, #13101C 0%, #1D1829 100%);
+          color: #FAF5EE;
+          border-right: 1px solid rgba(245, 230, 215, 0.14);
           padding: 18px 14px;
           display: flex;
           flex-direction: column;
           justify-content: space-between;
           gap: 14px;
           overflow-y: auto;
-          box-shadow: 8px 0 30px rgba(2, 6, 23, 0.22);
+          box-shadow: 8px 0 32px rgba(10, 8, 16, 0.32);
         }}
         .sidebar-brand-box {{
           display: flex;
           align-items: center;
           gap: 11px;
           padding: 6px 8px 14px;
-          border-bottom: 1px solid rgba(148, 163, 184, 0.14);
+          border-bottom: 1px solid rgba(245, 230, 215, 0.12);
         }}
         .sidebar-brand-icon {{
           width: 38px;
           height: 38px;
-          border-radius: 11px;
-          background: linear-gradient(135deg, #10B981 0%, #059669 100%);
-          color: #FFFFFF;
+          border-radius: 12px;
+          background: linear-gradient(135deg, #F4A261 0%, #C86446 100%);
+          color: #13101C;
           display: flex;
           align-items: center;
           justify-content: center;
           font-size: 19px;
           flex-shrink: 0;
-          box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+          box-shadow: 0 4px 14px rgba(244, 162, 97, 0.35);
         }}
         .sidebar-brand-box h1 {{
           font-family: 'Sora', sans-serif;
           font-size: 14.5px;
           font-weight: 800;
-          color: #FFFFFF;
+          color: #FAF5EE;
           line-height: 1.2;
           letter-spacing: -0.02em;
         }}
         .sidebar-brand-box p {{
           font-size: 10.5px;
-          color: #94A3B8;
+          color: #FFD4C4;
           margin-top: 2px;
           font-weight: 600;
         }}
@@ -9236,7 +9270,7 @@ def analytics_dashboard_page(
           font-weight: 800;
           text-transform: uppercase;
           letter-spacing: 0.8px;
-          color: #64748B;
+          color: #8F86A2;
           padding: 4px 10px 2px;
         }}
         .cockpit-sidebar .tabs-nav {{
@@ -9255,10 +9289,10 @@ def analytics_dashboard_page(
           justify-content: flex-start;
           text-align: left;
           padding: 10px 12px;
-          border-radius: 10px;
+          border-radius: 12px;
           font-size: 12.5px;
           font-weight: 600;
-          color: #94A3B8;
+          color: #C4BACF;
           background: transparent;
           border: 1px solid transparent;
           white-space: normal;
@@ -9267,20 +9301,20 @@ def analytics_dashboard_page(
           transition: all 0.15s ease;
         }}
         .cockpit-sidebar .tab-btn:hover {{
-          color: #F8FAFC;
-          background: rgba(255, 255, 255, 0.05);
+          color: #FAF5EE;
+          background: rgba(245, 230, 215, 0.06);
         }}
         .cockpit-sidebar .tab-btn.active {{
-          background: rgba(16, 185, 129, 0.14);
-          color: #FFFFFF;
+          background: linear-gradient(135deg, rgba(244, 162, 97, 0.20) 0%, rgba(200, 100, 70, 0.12) 100%);
+          color: #FAF5EE;
           font-weight: 800;
-          border-color: rgba(16, 185, 129, 0.35);
-          box-shadow: inset 3px 0 0 #10B981;
+          border-color: rgba(244, 162, 97, 0.42);
+          box-shadow: inset 3px 0 0 #F4A261;
         }}
         .sidebar-kpi-mini {{
-          background: rgba(15, 23, 42, 0.75);
-          border: 1px solid rgba(148, 163, 184, 0.16);
-          border-radius: 12px;
+          background: rgba(33, 28, 44, 0.88);
+          border: 1px solid rgba(244, 162, 97, 0.24);
+          border-radius: 14px;
           padding: 12px;
           font-size: 11.5px;
           display: flex;
@@ -9292,26 +9326,26 @@ def analytics_dashboard_page(
           justify-content: space-between;
           align-items: center;
           font-variant-numeric: tabular-nums;
-          color: #CBD5E1;
+          color: #E4D8FA;
         }}
         .sidebar-actions-grid {{
           display: grid;
           grid-template-columns: 1fr 1fr;
           gap: 6px;
           padding-top: 8px;
-          border-top: 1px solid rgba(148, 163, 184, 0.14);
+          border-top: 1px solid rgba(245, 230, 215, 0.12);
         }}
         .sidebar-actions-grid .btn {{
           justify-content: center;
-          background: rgba(255, 255, 255, 0.06);
-          border-color: rgba(148, 163, 184, 0.2);
-          color: #E2E8F0;
+          background: rgba(44, 38, 58, 0.75);
+          border-color: rgba(245, 230, 215, 0.18);
+          color: #FAF5EE;
           font-size: 11.5px;
           padding: 7px 10px;
         }}
         .sidebar-actions-grid .btn:hover {{
-          background: rgba(16, 185, 129, 0.18);
-          border-color: #10B981;
+          background: rgba(244, 162, 97, 0.22);
+          border-color: #F4A261;
           color: #FFFFFF;
         }}
         .cockpit-main {{
@@ -9334,9 +9368,9 @@ def analytics_dashboard_page(
           border-radius: 0;
           border: none;
           border-bottom: 1px solid var(--border-subtle);
-          background: rgba(255, 255, 255, 0.88);
+          background: rgba(247, 242, 235, 0.90);
           backdrop-filter: blur(16px);
-          box-shadow: 0 2px 12px rgba(15, 23, 42, 0.04);
+          box-shadow: 0 2px 14px rgba(100, 76, 56, 0.06);
           display: flex;
           flex-direction: row;
           align-items: center;
@@ -9345,7 +9379,8 @@ def analytics_dashboard_page(
           flex-wrap: wrap;
         }}
         body.theme-slate .topbar {{
-          background: rgba(11, 17, 32, 0.88);
+          background: rgba(19, 16, 28, 0.88);
+          box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35);
         }}
         .workspace-canvas {{
           padding: 18px 24px 64px;
@@ -9353,10 +9388,8 @@ def analytics_dashboard_page(
           width: 100%;
           margin: 0 auto;
         }}
-        /* RADİKAL MİNİMALİST TİPOGRAFİ & YAZI YIĞINI GİZLEME (APPLE / LINEAR / STRIPE STANDARDI) */
-        .sr-only,
-        .card-desc,
-        .step-sub {{
+        /* EKRAN OKUYUCU (SR-ONLY) YARDIMCISI — .card-desc ve .step-sub GÖRÜNÜR KALIR */
+        .sr-only {{
           position: absolute !important;
           width: 1px !important;
           height: 1px !important;
@@ -9392,9 +9425,9 @@ def analytics_dashboard_page(
         }}
         .bento-card {{
           padding: 22px 24px !important;
-          border-radius: 16px !important;
+          border-radius: 20px !important;
           border: 1px solid var(--border-subtle) !important;
-          box-shadow: 0 2px 10px rgba(15, 23, 42, 0.03) !important;
+          box-shadow: var(--card-shadow) !important;
           min-width: 0 !important;
           max-width: 100% !important;
         }}
@@ -9692,7 +9725,7 @@ def analytics_dashboard_page(
               </div>
 
               <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; padding:0 4px;">
-                <div class="live-pill" onclick="toggleAutoRefresh()" id="liveToggleBtn" style="width:100%; justify-content:center; background:rgba(16,185,129,0.14); border-color:rgba(16,185,129,0.35); color:#34D399;" title="15 saniyede bir canlı yenileme">
+                <div class="live-pill" onclick="toggleAutoRefresh()" id="liveToggleBtn" style="width:100%; justify-content:center; background:rgba(116,198,157,0.14); border-color:rgba(116,198,157,0.38); color:#74C69D;" title="15 saniyede bir canlı yenileme">
                   <span class="pulse-dot" id="liveDot"></span>
                   <span id="liveCountdown">Canlı: 15s</span>
                 </div>
@@ -9710,18 +9743,18 @@ def analytics_dashboard_page(
 
             <div style="display:flex; flex-direction:column; gap:10px;">
               <div class="sidebar-kpi-mini">
-                <div style="font-size:10px; font-weight:800; text-transform:uppercase; color:#64748B; letter-spacing:0.5px;">Özet</div>
+                <div style="font-size:10px; font-weight:800; text-transform:uppercase; color:#FFD4C4; letter-spacing:0.5px;">Özet</div>
                 <div class="sidebar-kpi-row">
                   <span>Kurulum</span>
-                  <strong style="color:#34D399;" id="sideKpiDl">{f_dl}</strong>
+                  <strong style="color:#74C69D;" id="sideKpiDl">{f_dl}</strong>
                 </div>
                 <div class="sidebar-kpi-row">
                   <span>Aktif VIP</span>
-                  <strong style="color:#C084FC;" id="sideKpiVip">{f_vip}</strong>
+                  <strong style="color:#F4A261;" id="sideKpiVip">{f_vip}</strong>
                 </div>
                 <div class="sidebar-kpi-row">
                   <span>Net MRR</span>
-                  <strong style="color:#F8FAFC;" id="sideKpiMrr">{fl['projected_total_mrr_net_try']:.2f} ₺</strong>
+                  <strong style="color:#FAF5EE;" id="sideKpiMrr">{fl['projected_total_mrr_net_try']:.2f} ₺</strong>
                 </div>
               </div>
 
@@ -9764,10 +9797,10 @@ def analytics_dashboard_page(
                     <span id="funnelHeadTitle">🎯 Dönüşüm Hunisi (Edinim ➔ VIP ➔ Churn ➔ Net Abone){'' if clean_period == 'all' else f" — {html.escape(s['period_label'])}"}</span>
                   </div>
                   <div class="conv-summary-pills" id="funnelHeadBadge">
-                    <span class="conv-summary-pill" style="background:rgba(5,150,105,0.08); border-color:rgba(5,150,105,0.28); color:var(--stage-3);">Mağaza CVR: <strong id="convStoreCvrPill">%{ps_all.get('store_cvr_pct', 0)}</strong></span>
+                    <span class="conv-summary-pill" style="background:rgba(var(--stage-3-rgb),0.10); border-color:rgba(var(--stage-3-rgb),0.28); color:var(--stage-3);">Mağaza CVR: <strong id="convStoreCvrPill">%{ps_all.get('store_cvr_pct', 0)}</strong></span>
                     <span class="conv-summary-pill">İndirme ➔ VIP: <strong id="convStartedVipDlPill">%{ps_all.get('started_vip_of_dl_pct', 0)}</strong></span>
-                    <span class="conv-summary-pill" style="background:rgba(220,38,38,0.08); border-color:rgba(220,38,38,0.28); color:var(--stage-5);">Churn: <strong id="convChurnPill">%{ps_all.get('churn_rate_pct', 0)}</strong></span>
-                    <span class="conv-summary-pill" style="background:rgba(13,148,136,0.08); border-color:rgba(13,148,136,0.28); color:var(--stage-6);">Net Tutundurma: <strong id="convRetentionPill">%{ps_all.get('retention_rate_pct', 0)}</strong></span>
+                    <span class="conv-summary-pill" style="background:rgba(var(--stage-5-rgb),0.10); border-color:rgba(var(--stage-5-rgb),0.28); color:var(--stage-5);">Churn: <strong id="convChurnPill">%{ps_all.get('churn_rate_pct', 0)}</strong></span>
+                    <span class="conv-summary-pill" style="background:rgba(var(--stage-6-rgb),0.10); border-color:rgba(var(--stage-6-rgb),0.28); color:var(--stage-6);">Net Tutundurma: <strong id="convRetentionPill">%{ps_all.get('retention_rate_pct', 0)}</strong></span>
                     <span class="sr-only">Gösterim ➔ VIP: <strong id="convSumVipImp">%{vip_of_imp_pct}</strong> • Tık ➔ VIP: <strong id="convCum4">%{vip_of_vis_pct}</strong></span>
                   </div>
                 </div>
@@ -9779,7 +9812,7 @@ def analytics_dashboard_page(
               <div>
                 <div class="card-label">
                   <span id="kpiTitle1">1. Gösterim</span>
-                  <span class="delta-chip" id="kpiDelta1" style="background:rgba(217,119,6,0.12); color:var(--stage-1);">+{s['kpi_deltas']['recent_3d_impressions']} (3G)</span>
+                  <span class="delta-chip" id="kpiDelta1" style="background:rgba(var(--stage-1-rgb),0.14); color:var(--stage-1);">+{s['kpi_deltas']['recent_3d_impressions']} (3G)</span>
                 </div>
                 <div class="kpi-hero-row">
                   <div class="big-num" style="color:var(--stage-1);" id="kpiImpressions">{f_imp:,}</div>
@@ -9796,7 +9829,7 @@ def analytics_dashboard_page(
             <!-- KÖPRÜ 1: GÖSTERİM ➔ TIK -->
             <div class="conv-connector">
               <span class="conv-conn-lbl">Gösterim ➔ Tık</span>
-              <span class="conv-conn-pill" style="color:var(--stage-2); border-color:rgba(37,99,235,0.28);" id="convBridge1">%{vis_of_imp_pct} ➔</span>
+              <span class="conv-conn-pill" style="color:var(--stage-2); border-color:rgba(var(--stage-2-rgb),0.30);" id="convBridge1">%{vis_of_imp_pct} ➔</span>
               <span class="sr-only" id="convBridge1Sub">{ps_all.get('imp_breakdown_label', '')}</span>
             </div>
 
@@ -9805,7 +9838,7 @@ def analytics_dashboard_page(
               <div>
                 <div class="card-label">
                   <span id="kpiTitle2">2. Ziyaret & Tık</span>
-                  <span class="delta-chip" id="kpiDelta2" style="background:rgba(37,99,235,0.12); color:var(--stage-2);">+{s['today_unique_clicks']} Bugün</span>
+                  <span class="delta-chip" id="kpiDelta2" style="background:rgba(var(--stage-2-rgb),0.14); color:var(--stage-2);">+{s['today_unique_clicks']} Bugün</span>
                 </div>
                 <div class="kpi-hero-row">
                   <div class="big-num" style="color:var(--stage-2);" id="kpiVisitsClicks">{f_vis:,}</div>
@@ -9822,7 +9855,7 @@ def analytics_dashboard_page(
             <!-- KÖPRÜ 2: TIK ➔ İNDİRME -->
             <div class="conv-connector">
               <span class="conv-conn-lbl">Tık ➔ İndirme</span>
-              <span class="conv-conn-pill" style="color:var(--stage-3); border-color:rgba(5,150,105,0.28);" id="convBridge2">%{dl_of_vis_pct} ➔</span>
+              <span class="conv-conn-pill" style="color:var(--stage-3); border-color:rgba(var(--stage-3-rgb),0.30);" id="convBridge2">%{dl_of_vis_pct} ➔</span>
               <span class="sr-only" id="convBridge2Sub">{ps_all.get('cvr_breakdown_label', '')}</span>
             </div>
 
@@ -9851,9 +9884,9 @@ def analytics_dashboard_page(
             <span class="conv-tier-lbl">⤵ Kurulumdan Aboneliğe Geçiş Hunisi (İndirme ➔ VIP ➔ İptaller / Churn ➔ Net Abone)</span>
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
               <span style="font-size:11px; color:var(--text-muted);">İndirme ➔ Başlayan VIP:</span>
-              <span class="conv-conn-pill" style="color:var(--stage-4); border-color:rgba(124,58,237,0.28);" id="convBridge3">%{ps_all.get('started_vip_of_dl_pct', 0)} ➔</span>
+              <span class="conv-conn-pill" style="color:var(--stage-4); border-color:rgba(var(--stage-4-rgb),0.32);" id="convBridge3">%{ps_all.get('started_vip_of_dl_pct', 0)} ➔</span>
               <span style="font-size:11px; color:var(--text-muted);">İndirme ➔ Net Abone:</span>
-              <span class="conv-conn-pill" style="color:var(--stage-6); border-color:rgba(13,148,136,0.28);" id="convBridge3Net">%{vip_of_dl_pct}</span>
+              <span class="conv-conn-pill" style="color:var(--stage-6); border-color:rgba(var(--stage-6-rgb),0.30);" id="convBridge3Net">%{vip_of_dl_pct}</span>
             </div>
           </div>
 
@@ -9864,7 +9897,7 @@ def analytics_dashboard_page(
               <div>
                 <div class="card-label">
                   <span id="kpiTitle4">4. Başlayan VIP</span>
-                  <span class="delta-chip" id="kpiDelta4" style="background:rgba(124,58,237,0.12); color:var(--stage-4);">%{ps_all.get('started_vip_of_dl_pct', 0)} Kurulumdan</span>
+                  <span class="delta-chip" id="kpiDelta4" style="background:rgba(var(--stage-4-rgb),0.14); color:var(--stage-4);">%{ps_all.get('started_vip_of_dl_pct', 0)} Kurulumdan</span>
                 </div>
                 <div class="kpi-hero-row">
                   <div class="big-num" style="color:var(--stage-4);" id="kpiStartedVip">{ps_all.get('total_vip_count', f_vip)}</div>
@@ -9881,7 +9914,7 @@ def analytics_dashboard_page(
             <!-- KÖPRÜ 4: BAŞLAYAN VIP ➔ İPTALLER (CHURN) -->
             <div class="conv-connector">
               <span class="conv-conn-lbl">VIP ➔ Churn</span>
-              <span class="conv-conn-pill" style="color:var(--stage-5); border-color:rgba(220,38,38,0.28);" id="convBridge4">-%{ps_all.get('churn_rate_pct', 0)} ➔</span>
+              <span class="conv-conn-pill" style="color:var(--stage-5); border-color:rgba(var(--stage-5-rgb),0.30);" id="convBridge4">-%{ps_all.get('churn_rate_pct', 0)} ➔</span>
             </div>
 
             <!-- ADIM 5: İPTALLER & CHURN -->
@@ -9889,7 +9922,7 @@ def analytics_dashboard_page(
               <div>
                 <div class="card-label">
                   <span id="kpiTitle5">5. İptaller (Churn)</span>
-                  <span class="delta-chip" id="kpiDelta5" style="background:rgba(220,38,38,0.12); color:var(--stage-5);">%{ps_all.get('churn_rate_pct', 0)} Churn</span>
+                  <span class="delta-chip" id="kpiDelta5" style="background:rgba(var(--stage-5-rgb),0.14); color:var(--stage-5);">%{ps_all.get('churn_rate_pct', 0)} Churn</span>
                 </div>
                 <div class="kpi-hero-row">
                   <div class="big-num" style="color:var(--stage-5);" id="kpiCancelledVip">{ps_all.get('cancelled_vip_count', 0)}</div>
@@ -9906,15 +9939,15 @@ def analytics_dashboard_page(
             <!-- KÖPRÜ 5: TUTUNDURMA (NET KORUNAN) -->
             <div class="conv-connector">
               <span class="conv-conn-lbl">Tutundurma</span>
-              <span class="conv-conn-pill" style="color:var(--stage-6); border-color:rgba(13,148,136,0.28);" id="convBridge5">%{ps_all.get('retention_rate_pct', 0)} ➔</span>
+              <span class="conv-conn-pill" style="color:var(--stage-6); border-color:rgba(var(--stage-6-rgb),0.30);" id="convBridge5">%{ps_all.get('retention_rate_pct', 0)} ➔</span>
             </div>
 
             <!-- ADIM 6: NET AKTİF ABONE & BEKLENEN NET MRR -->
-            <div class="hero-stage-card" style="border-color:rgba(13,148,136,0.35) !important;">
+            <div class="hero-stage-card" style="border-color:rgba(var(--stage-6-rgb),0.38) !important;">
               <div>
                 <div class="card-label">
                   <span id="kpiTitle6">6. Net Abone</span>
-                  <span class="delta-chip" id="kpiDelta6" style="background:rgba(13,148,136,0.12); color:var(--stage-6);">{fl['projected_total_mrr_net_try']:.2f} ₺/Ay</span>
+                  <span class="delta-chip" id="kpiDelta6" style="background:rgba(var(--stage-6-rgb),0.14); color:var(--stage-6);">{fl['projected_total_mrr_net_try']:.2f} ₺/Ay</span>
                 </div>
                 <div class="kpi-hero-row">
                   <div class="big-num" style="color:var(--stage-6);" id="kpiVip">{f_vip}</div>
