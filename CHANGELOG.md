@@ -2,6 +2,16 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.14-cockpit-period-filter-engine] - 2026-11-23 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` Dönem Seçici (`Tüm Zamanlar / Bugün / Dün / Son 7 Gün`) Dinamik Veri Filtreleme, `NameError: sr` Onarımı ve Dönemsel 6 Aşamalı Huni / Abone Defteri / Ürün Telemetrisi Senkronizasyonu • 🟢 Yeni Native EAS Build Gerekmez)
+### 📅📊 Kurucu Kokpiti (`/admin/analytics`) Dönem Seçici (`all`, `today`, `yesterday`, `7d`) Dinamik Filtreleme Mimarisi (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **Gizli `NameError: name 'sr' is not defined` (Satır 6458) SWR Düşüş Hatasının Onarımı:**
+   - `period="today"` seçildiğinde `latest_store_metric_date` boş olduğundan `data_governance_matrix` içindeki tanımsız `sr.get('apple_latest_report_date')` çağrısının `NameError` fırlatarak SWR önbelleğine düşmesi `store_reconciliation.get('apple_latest_report_date')` ile onarıldı.
+2. **6 Aşamalı Dönüşüm Hunisi & `platform_split` (`Tümü / iOS / Android`) Dönem Süzmesi:**
+   - `_in_store_metric_period` (Apple 1 günlük `T-1 PST` rapor gecikmesini koruyarak) ve `_in_period_window` üzerinden `StoreDailyMetric` (`impressions`, `page_views`, `downloads`, `sessions`), `BridgeClick` ve `SubscriberLedger` kayıtları seçilen döneme göre süzülerek huninin 6 aşamasının ve huni başlığının (`🎯 Dönüşüm Hunisi — 📅 Bugün (TSİ)` vb.) dinamik güncellenmesi sağlandı.
+3. **Sekme 1 (İndirme Trendi & Edinim Kanalları), Sekme 2 (Abone Defteri & Ülke Gelirleri) ve Sekme 3 (Ürün Kullanımı & Paywall Hunisi):**
+   - `timeline_days` başlangıç tarihi, `aso_attribution_matrix`, `subscriber_ledger`, `country_revenue_breakdown`, `active_signals_set` (`first_open`, `daily_active`, `paywall_*`) ve ürün DB tabloları (`Baby`, `CryEvent`, `SleepLog`, `RoutineLog`, `DadiChatHistory`) seçilen zaman penceresine bağlandı.
+   - **Claude Code CLI (`task-123` 8 maddelik kök neden ve satır bazlı konsensüs analizi + `task-160` uygulama sonrası diff denetimi: `İnceleme Sonucu: ✅ ONAY`)** + **Antigravity (`70/70 pytest PASS` `task-167`)**.
+
 ## [4.56.13-cockpit-ios-meta-ads-active-symmetry] - 2026-11-22 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` iOS Meta Uygulama Reklamları (`APP_INSTALLS`) Aktivasyonu & Çift Platform Reklam Simetrisi • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🍏🎯 Kurucu Kokpiti (`/admin/analytics`) iOS + Android Aktif Reklam Simetrisi (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **Kampanya Aktifliği ile Cihaz SDK Sayacının Ayrıştırılması (`meta_app_installs_sdk`):**

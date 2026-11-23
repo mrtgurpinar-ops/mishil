@@ -720,6 +720,202 @@ def test_churn_chips_promo_code_reconcile_and_android_telemetry_derived_impressi
     assert summary["instagram_bio"]["android_clicks"] >= 1
 
 
+def test_period_filter_updates_funnel_ledger_and_tabs(client, db_session):
+    """
+    v4.56.14:
+    Üst bardaki dönem seçici ('all', '7d', 'yesterday', 'today') değiştirildiğinde:
+    1) 6 aşamalı Dönüşüm Hunisi (platform_split['all'/'ios'/'android']: impressions, touchpoints, downloads,
+       total_vip_count, cancelled_vip_count, vip_count),
+    2) Sekme 1 timeline_days ve edinim kanalları (aso_attribution_matrix),
+    3) Sekme 2 Abone Defteri (subscriber_ledger) ve Ülke Gelirleri (country_revenue_breakdown),
+    4) Sekme 3 Ürün Kullanımı & Paywall Hunisi (product_funnel)
+    seçilen zaman penceresine göre dinamik olarak süzülmeli; 'all' ile 'today'/'yesterday'/'7d' aynı kalmamalıdır.
+    """
+    from datetime import datetime, timedelta, timezone
+    from app.db.models import AppInstallSignal, BridgeClick, StoreDailyMetric, SubscriberLedger
+    from app.api.v1.endpoints.analytics import (
+        get_resilient_analytics_summary,
+        invalidate_analytics_summary_cache,
+    )
+
+    db_session.query(BridgeClick).delete()
+    db_session.query(AppInstallSignal).delete()
+    db_session.query(StoreDailyMetric).delete()
+    db_session.query(SubscriberLedger).delete()
+    db_session.commit()
+
+    tz_tr = timezone(timedelta(hours=3))
+    now_tr = datetime.now(tz_tr)
+    today_str = now_tr.strftime("%Y-%m-%d")
+    yesterday_str = (now_tr - timedelta(days=1)).strftime("%Y-%m-%d")
+    old_20d_str = (now_tr - timedelta(days=20)).strftime("%Y-%m-%d")
+    old_20d_utc = (now_tr - timedelta(days=20)).astimezone(timezone.utc).replace(tzinfo=None)
+    today_utc = now_tr.astimezone(timezone.utc).replace(tzinfo=None)
+
+    # 20 gün önce yüksek gösterim/indirme vs dün ve bugün daha düşük günlük metrikler
+    db_session.add_all([
+        StoreDailyMetric(
+            metric_date=old_20d_str,
+            platform="ios",
+            impressions=5000,
+            impressions_unique=4000,
+            page_views=800,
+            page_views_unique=650,
+            downloads_total=120,
+            downloads_search=90,
+            downloads_referrer=20,
+            downloads_browse=10,
+            active_sessions=300,
+        ),
+        StoreDailyMetric(
+            metric_date=yesterday_str,
+            platform="ios",
+            impressions=400,
+            impressions_unique=320,
+            page_views=60,
+            page_views_unique=50,
+            downloads_total=12,
+            downloads_search=8,
+            downloads_referrer=3,
+            downloads_browse=1,
+            active_sessions=40,
+        ),
+        StoreDailyMetric(
+            metric_date=old_20d_str,
+            platform="android",
+            impressions=2000,
+            impressions_unique=1500,
+            page_views=350,
+            page_views_unique=280,
+            downloads_total=80,
+            active_sessions=110,
+        ),
+        StoreDailyMetric(
+            metric_date=yesterday_str,
+            platform="android",
+            impressions=150,
+            impressions_unique=120,
+            page_views=30,
+            page_views_unique=25,
+            downloads_total=8,
+            active_sessions=15,
+        ),
+    ])
+
+    # 20 gün önce başlayan eski abone vs bugün başlayan yeni abone
+    db_session.add_all([
+        SubscriberLedger(
+            subscriber_id="OLD_SUB_20D_111111",
+            platform="ios",
+            product_id="misil_monthly",
+            plan_label="Aylık Esnek VIP",
+            status="paid_active",
+            offer_type="standard_paid",
+            offer_code_name="7 Günlük Deneme",
+            started_date=old_20d_str,
+            converted_or_renewed_date=old_20d_str,
+            maturity_or_renewal_date=(now_tr + timedelta(days=10)).strftime("%Y-%m-%d"),
+            auto_renew_enabled=True,
+            customer_price_try=149.99,
+            developer_proceeds_try=83.12,
+            expected_next_price_try=149.99,
+            expected_next_proceeds_try=83.12,
+            country="TR",
+            device_type="iPhone",
+        ),
+        SubscriberLedger(
+            subscriber_id="TODAY_SUB_222222",
+            platform="ios",
+            product_id="misil_annual",
+            plan_label="Yıllık VIP",
+            status="paid_active",
+            offer_type="standard_paid",
+            offer_code_name="Doğrudan Yıllık",
+            started_date=today_str,
+            converted_or_renewed_date=today_str,
+            maturity_or_renewal_date=(now_tr + timedelta(days=365)).strftime("%Y-%m-%d"),
+            auto_renew_enabled=True,
+            customer_price_try=599.99,
+            developer_proceeds_try=332.50,
+            expected_next_price_try=599.99,
+            expected_next_proceeds_try=332.50,
+            country="DE",
+            device_type="iPhone",
+        ),
+    ])
+
+    # Sinyaller: 20 gün önce 2 paywall_viewed, bugün 1 paywall_viewed
+    db_session.add_all([
+        AppInstallSignal(
+            device_uid="old_dev_1",
+            event_type="paywall_viewed",
+            os_family="ios",
+            platform="ios_native",
+            app_version="4.55.0",
+            country="TR",
+            created_at=old_20d_utc,
+        ),
+        AppInstallSignal(
+            device_uid="old_dev_2",
+            event_type="paywall_viewed",
+            os_family="android",
+            platform="android_native",
+            app_version="4.55.0",
+            country="TR",
+            created_at=old_20d_utc,
+        ),
+        AppInstallSignal(
+            device_uid="today_dev_1",
+            event_type="paywall_viewed",
+            os_family="ios",
+            platform="ios_native",
+            app_version="4.56.0",
+            country="DE",
+            created_at=today_utc,
+        ),
+    ])
+    db_session.commit()
+
+    invalidate_analytics_summary_cache(mark_reconcile=False)
+    s_all = get_resilient_analytics_summary(db_session, period="all", use_cache=False)
+    s_7d = get_resilient_analytics_summary(db_session, period="7d", use_cache=False)
+    s_yest = get_resilient_analytics_summary(db_session, period="yesterday", use_cache=False)
+    s_today = get_resilient_analytics_summary(db_session, period="today", use_cache=False)
+
+    # 1) Tüm Zamanlar vs Son 7 Gün vs Dün vs Bugün: Mağaza gösterimi ve kurulumlar döneme göre değişmeli
+    assert s_all["platform_split"]["all"]["impressions"] == 5000 + 400 + 2000 + 150
+    assert s_all["platform_split"]["all"]["downloads"] == 120 + 12 + 80 + 8
+    assert s_7d["platform_split"]["all"]["impressions"] == 400 + 150
+    assert s_7d["platform_split"]["all"]["downloads"] == 12 + 8
+    assert s_yest["platform_split"]["all"]["impressions"] == 400 + 150
+    assert s_yest["platform_split"]["all"]["downloads"] == 12 + 8
+    assert s_today["platform_split"]["all"]["impressions"] == 0
+
+    # 2) Abone Defteri ve Dönüşüm Hunisi VIP sayısı seçilen döneme göre filtrelenmeli
+    assert len(s_all["subscriber_ledger"]) == 2
+    assert s_all["platform_split"]["all"]["total_vip_count"] == 2
+    assert len(s_today["subscriber_ledger"]) == 1
+    assert s_today["subscriber_ledger"][0]["subscriber_id"] == "TODAY_SUB_222222"
+    assert s_today["platform_split"]["all"]["total_vip_count"] == 1
+    assert s_today["platform_split"]["all"]["vip_count"] == 1
+
+    # 3) Ürün Hunisi (Paywall) sinyalleri seçilen döneme göre filtrelenmeli
+    assert s_all["product_funnel"]["paywall_funnel"]["paywall_viewed"] == 3
+    assert s_today["product_funnel"]["paywall_funnel"]["paywall_viewed"] == 1
+
+    # 4) Dashboard HTML çıktısı da period parametresine göre güncellenmeli
+    res_all = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842", "period": "all"})
+    res_today = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842", "period": "today"})
+    assert res_all.status_code == 200
+    assert res_today.status_code == 200
+    assert "#111111" in res_all.text
+    assert "#222222" in res_all.text
+    assert "#111111" not in res_today.text
+    assert "#222222" in res_today.text
+    assert "Bugün (TSİ)" in res_today.text
+
+
+
 
 
 

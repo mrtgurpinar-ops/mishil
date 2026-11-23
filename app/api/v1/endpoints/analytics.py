@@ -4451,31 +4451,40 @@ def _build_analytics_summary(
     golden_hours = top_hours_sorted[:3]
 
     # Uygulama İçi Cihaz Sinyalleri (app.html ve köprü tarafından gönderilen event türleri)
-    first_opens = [s for s in signals if s.event_type == "first_open"]
-    daily_actives = [s for s in signals if s.event_type == "daily_active"]
-    store_jumps = [s for s in signals if s.event_type == "store_jump"]
-    store_button_clicks = [s for s in signals if s.event_type == "store_button_click"]
-    baby_created_signals = [s for s in signals if s.event_type == "baby_created"]
-    vip_started_signals = [s for s in signals if s.event_type == "vip_started"]
-    sleep_sound_signals = [s for s in signals if s.event_type == "sleep_sound_play"]
-    cry_analysis_signals = [s for s in signals if s.event_type == "cry_analysis"]
-    routine_logged_signals = [s for s in signals if s.event_type == "routine_logged"]
-    dadi_chat_signals = [s for s in signals if s.event_type == "dadi_chat"]
-    paywall_viewed_signals = [s for s in signals if s.event_type == "paywall_viewed"]
-    paywall_cta_clicked_signals = [s for s in signals if s.event_type == "paywall_cta_clicked"]
-    paywall_skipped_signals = [s for s in signals if s.event_type == "paywall_skipped"]
-    purchase_cancelled_signals = [s for s in signals if s.event_type == "purchase_cancelled"]
-    purchase_error_signals = [s for s in signals if s.event_type == "purchase_error"]
-    sound_preview_60s_ended_signals = [s for s in signals if s.event_type == "sound_preview_60s_ended"]
-    cry_limit_reached_signals = [s for s in signals if s.event_type == "cry_limit_reached"]
-    dadi_limit_reached_signals = [s for s in signals if s.event_type == "dadi_limit_reached"]
-    routine_limit_reached_signals = [s for s in signals if s.event_type == "routine_limit_reached"]
-    paywall_cancel_recovery_signals = [s for s in signals if s.event_type == "paywall_cancel_recovery_shown"]
+    if period == "today":
+        active_signals_set = [s for s in signals if s.created_at and to_tr_date(s.created_at) == today_str]
+    elif period == "yesterday":
+        active_signals_set = [s for s in signals if s.created_at and to_tr_date(s.created_at) == yesterday_str]
+    elif period == "7d":
+        active_signals_set = [s for s in signals if s.created_at and cutoff_7d_date <= to_tr_date(s.created_at) <= today_str]
+    else:
+        active_signals_set = signals
+
+    first_opens = [s for s in active_signals_set if s.event_type == "first_open"]
+    daily_actives = [s for s in active_signals_set if s.event_type == "daily_active"]
+    store_jumps = [s for s in active_signals_set if s.event_type == "store_jump"]
+    store_button_clicks = [s for s in active_signals_set if s.event_type == "store_button_click"]
+    baby_created_signals = [s for s in active_signals_set if s.event_type == "baby_created"]
+    vip_started_signals = [s for s in active_signals_set if s.event_type == "vip_started"]
+    sleep_sound_signals = [s for s in active_signals_set if s.event_type == "sleep_sound_play"]
+    cry_analysis_signals = [s for s in active_signals_set if s.event_type == "cry_analysis"]
+    routine_logged_signals = [s for s in active_signals_set if s.event_type == "routine_logged"]
+    dadi_chat_signals = [s for s in active_signals_set if s.event_type == "dadi_chat"]
+    paywall_viewed_signals = [s for s in active_signals_set if s.event_type == "paywall_viewed"]
+    paywall_cta_clicked_signals = [s for s in active_signals_set if s.event_type == "paywall_cta_clicked"]
+    paywall_skipped_signals = [s for s in active_signals_set if s.event_type == "paywall_skipped"]
+    purchase_cancelled_signals = [s for s in active_signals_set if s.event_type == "purchase_cancelled"]
+    purchase_error_signals = [s for s in active_signals_set if s.event_type == "purchase_error"]
+    sound_preview_60s_ended_signals = [s for s in active_signals_set if s.event_type == "sound_preview_60s_ended"]
+    cry_limit_reached_signals = [s for s in active_signals_set if s.event_type == "cry_limit_reached"]
+    dadi_limit_reached_signals = [s for s in active_signals_set if s.event_type == "dadi_limit_reached"]
+    routine_limit_reached_signals = [s for s in active_signals_set if s.event_type == "routine_limit_reached"]
+    paywall_cancel_recovery_signals = [s for s in active_signals_set if s.event_type == "paywall_cancel_recovery_shown"]
     unmatched_organic_opens = len([
         s for s in first_opens if (s.match_confidence or "unmatched") == "unmatched"
     ])
     distinct_signal_devices = len({
-        s.device_uid for s in signals
+        s.device_uid for s in active_signals_set
         if s.device_uid and s.event_type in (
             "first_open", "daily_active", "baby_created", "vip_started", "sleep_sound_play", "cry_analysis",
             "routine_logged", "dadi_chat",
@@ -4484,6 +4493,40 @@ def _build_analytics_summary(
             "paywall_cancel_recovery_shown"
         )
     })
+
+    if period != "all":
+        if period == "today":
+            p_start_tr = now_tr.replace(hour=0, minute=0, second=0, microsecond=0)
+            p_end_tr = now_tr
+        elif period == "yesterday":
+            p_start_tr = (now_tr - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+            p_end_tr = p_start_tr + timedelta(days=1) - timedelta(microseconds=1)
+        else:
+            p_start_tr = (now_tr - timedelta(days=6)).replace(hour=0, minute=0, second=0, microsecond=0)
+            p_end_tr = now_tr
+        p_start_utc = p_start_tr.astimezone(timezone.utc).replace(tzinfo=None)
+        p_end_utc = p_end_tr.astimezone(timezone.utc).replace(tzinfo=None)
+        try:
+            p_counts_row = db.execute(
+                select(
+                    select(func.count(User.id)).where(User.created_at >= p_start_utc, User.created_at <= p_end_utc).scalar_subquery(),
+                    select(func.count(Baby.id)).where(Baby.created_at >= p_start_utc, Baby.created_at <= p_end_utc).scalar_subquery(),
+                    select(func.count(CryEvent.id)).where(CryEvent.created_at >= p_start_utc, CryEvent.created_at <= p_end_utc).scalar_subquery(),
+                    select(func.count(SleepLog.id)).where(SleepLog.created_at >= p_start_utc, SleepLog.created_at <= p_end_utc).scalar_subquery(),
+                    select(func.count(RoutineLog.id)).where(RoutineLog.created_at >= p_start_utc, RoutineLog.created_at <= p_end_utc).scalar_subquery(),
+                    select(func.count(DadiChatHistory.id)).where(DadiChatHistory.created_at >= p_start_utc, DadiChatHistory.created_at <= p_end_utc).scalar_subquery(),
+                )
+            ).one()
+            (
+                db_users_count,
+                db_babies_count,
+                db_cry_count,
+                db_sleep_count,
+                db_routine_count,
+                db_dadi_count,
+            ) = [int(v or 0) for v in p_counts_row]
+        except Exception:
+            pass
 
     # Resmi Mağaza Verileri: DB StoreDailyMetric + StoreSyncState anlık görüntüsü (Sıfır statik veri)
     with _BASELINE_LOCK:
@@ -4565,23 +4608,123 @@ def _build_analytics_summary(
             db_android_sess += row_sess
 
     sb["daily_store_series"] = daily_series_merged
-    # SSOT Kuralı: StoreDailyMetric (DB) birincil otoritedir; yalnızca tablo boşsa son resmi snapshot (sb) kullanılır.
+
+    # Apple TSV raporunun ulaştığı son kesinleşmiş günü tespit et (Dün / Son 7 Gün pencereleri için T-1 anchor)
+    confirmed_store_dates_pre = [
+        d_k for d_k, d_v in daily_series_merged.items()
+        if int(d_v.get("ios_downloads", 0) or 0) > 0
+    ]
+    latest_confirmed_store_date_pre = max(confirmed_store_dates_pre) if confirmed_store_dates_pre else ""
+    apple_anchor_pre_str = latest_confirmed_store_date_pre or str(sb.get("apple_latest_report_date") or "") or yesterday_str
+    try:
+        apple_anchor_pre_dt = datetime.strptime(apple_anchor_pre_str, "%Y-%m-%d").date()
+    except Exception:
+        apple_anchor_pre_dt = (now_tr - timedelta(days=1)).date()
+        apple_anchor_pre_str = apple_anchor_pre_dt.strftime("%Y-%m-%d")
+    apple_7d_start_pre_str = (apple_anchor_pre_dt - timedelta(days=6)).strftime("%Y-%m-%d")
+
+    def _in_store_metric_period(dt_k: str, plat_val: str) -> bool:
+        if period == "all":
+            return True
+        if not dt_k or len(dt_k) < 10:
+            return False
+        d_c = dt_k[:10]
+        is_ios_p = (plat_val or "ios").lower() != "android"
+        if period == "today":
+            return d_c == today_str
+        if period == "yesterday":
+            return (d_c == apple_anchor_pre_str) if is_ios_p else (d_c == yesterday_str)
+        if period == "7d":
+            s_b = apple_7d_start_pre_str if is_ios_p else cutoff_7d_date
+            return s_b <= d_c <= today_str
+        return True
+
+    if period != "all":
+        db_ios_imp = 0
+        db_ios_imp_uniq = 0
+        db_ios_pv = 0
+        db_ios_pv_uniq = 0
+        db_ios_dl = 0
+        db_ios_dl_search = 0
+        db_ios_dl_ref = 0
+        db_ios_dl_browse = 0
+        db_ios_sess = 0
+        db_android_imp = 0
+        db_android_imp_uniq = 0
+        db_android_pv = 0
+        db_android_pv_uniq = 0
+        db_android_dl = 0
+        db_android_sess = 0
+        seen_ios_days = set()
+        seen_and_days = set()
+        for m_row in daily_db_rows:
+            d_k = m_row.metric_date
+            row_dl = int(getattr(m_row, "downloads_total", None) or getattr(m_row, "first_time_downloads", 0) or 0)
+            row_sess = int(getattr(m_row, "active_sessions", 0) or 0)
+            row_imp = int(m_row.impressions or 0)
+            row_imp_u = int(getattr(m_row, "impressions_unique", 0) or 0)
+            row_pv = int(m_row.page_views or 0)
+            row_pv_u = int(getattr(m_row, "page_views_unique", 0) or 0)
+            if m_row.platform == "ios" and _in_store_metric_period(d_k, "ios"):
+                seen_ios_days.add(d_k)
+                db_ios_imp += row_imp
+                db_ios_imp_uniq += row_imp_u
+                db_ios_pv += row_pv
+                db_ios_pv_uniq += row_pv_u
+                db_ios_dl += row_dl
+                db_ios_dl_search += int(getattr(m_row, "downloads_search", 0) or 0)
+                db_ios_dl_ref += int(getattr(m_row, "downloads_referrer", 0) or 0)
+                db_ios_dl_browse += int(getattr(m_row, "downloads_browse", 0) or 0)
+                db_ios_sess += row_sess
+            elif m_row.platform == "android" and _in_store_metric_period(d_k, "android"):
+                seen_and_days.add(d_k)
+                db_android_imp += row_imp
+                db_android_imp_uniq += row_imp_u
+                db_android_pv += row_pv
+                db_android_pv_uniq += row_pv_u
+                db_android_dl += row_dl
+                db_android_sess += row_sess
+        for d_k, d_v in daily_series_merged.items():
+            if d_k not in seen_ios_days and _in_store_metric_period(d_k, "ios"):
+                db_ios_imp += int(d_v.get("impressions", 0) or 0)
+                db_ios_pv += int(d_v.get("page_views", 0) or 0)
+                db_ios_dl += int(d_v.get("ios_downloads", 0) or 0)
+                db_ios_sess += int(d_v.get("sessions", 0) or 0)
+            if d_k not in seen_and_days and _in_store_metric_period(d_k, "android"):
+                db_android_dl += int(d_v.get("android_downloads", 0) or 0)
+
+    # SSOT Kuralı: StoreDailyMetric (DB) birincil otoritedir; yalnızca tablo boşsa (ve period == 'all' ise) son resmi snapshot (sb) kullanılır.
     # Canlı istemci telemetrisi (first_open) resmi mağaza indirme sayısını max() ile şişirmez; yalnızca resmi veri 0 ise yedek olur.
-    apple_impressions = db_ios_imp if db_ios_imp > 0 else int(sb.get("apple_impressions_total", 0) or 0)
-    apple_page_views = db_ios_pv if db_ios_pv > 0 else int(sb.get("apple_page_views_total", 0) or 0)
-    apple_taps = int(sb.get("apple_taps_total", 0) or 0)
-    ios_signal_opens = len([s for s in first_opens if s.os_family == "ios"])
-    android_signal_opens = len([s for s in first_opens if s.os_family == "android"])
-    official_ios_dl = db_ios_dl if db_ios_dl > 0 else int(sb.get("apple_downloads_total", 0) or 0)
-    apple_downloads = official_ios_dl if official_ios_dl > 0 else ios_signal_opens
-    apple_official_sessions = db_ios_sess if db_ios_sess > 0 else int(sb.get("apple_sessions_total", 0) or 0)
-    android_official_sessions = db_android_sess if db_android_sess > 0 else int(sb.get("google_play_sessions_total", 0) or 0)
-    live_telemetry_sessions = len(first_opens) + len(daily_actives)
-    apple_sessions = (apple_official_sessions + android_official_sessions) if (apple_official_sessions + android_official_sessions) > 0 else live_telemetry_sessions
-    official_android_dl = db_android_dl if db_android_dl > 0 else int(sb.get("google_play_downloads_baseline", 0) or 0)
-    google_play_downloads = max(official_android_dl, android_signal_opens)
-    google_play_impressions_base = db_android_imp if db_android_imp > 0 else int(sb.get("google_play_impressions_total", 0) or 0)
-    google_play_page_views_base = db_android_pv if db_android_pv > 0 else int(sb.get("google_play_page_views_total", 0) or 0)
+    if period == "all":
+        apple_impressions = db_ios_imp if db_ios_imp > 0 else int(sb.get("apple_impressions_total", 0) or 0)
+        apple_page_views = db_ios_pv if db_ios_pv > 0 else int(sb.get("apple_page_views_total", 0) or 0)
+        apple_taps = int(sb.get("apple_taps_total", 0) or 0)
+        ios_signal_opens = len([s for s in first_opens if s.os_family == "ios"])
+        android_signal_opens = len([s for s in first_opens if s.os_family == "android"])
+        official_ios_dl = db_ios_dl if db_ios_dl > 0 else int(sb.get("apple_downloads_total", 0) or 0)
+        apple_downloads = official_ios_dl if official_ios_dl > 0 else ios_signal_opens
+        apple_official_sessions = db_ios_sess if db_ios_sess > 0 else int(sb.get("apple_sessions_total", 0) or 0)
+        android_official_sessions = db_android_sess if db_android_sess > 0 else int(sb.get("google_play_sessions_total", 0) or 0)
+        live_telemetry_sessions = len(first_opens) + len(daily_actives)
+        apple_sessions = (apple_official_sessions + android_official_sessions) if (apple_official_sessions + android_official_sessions) > 0 else live_telemetry_sessions
+        official_android_dl = db_android_dl if db_android_dl > 0 else int(sb.get("google_play_downloads_baseline", 0) or 0)
+        google_play_downloads = max(official_android_dl, android_signal_opens)
+        google_play_impressions_base = db_android_imp if db_android_imp > 0 else int(sb.get("google_play_impressions_total", 0) or 0)
+        google_play_page_views_base = db_android_pv if db_android_pv > 0 else int(sb.get("google_play_page_views_total", 0) or 0)
+    else:
+        apple_impressions = db_ios_imp
+        apple_page_views = db_ios_pv
+        apple_taps = db_ios_pv
+        ios_signal_opens = len([s for s in first_opens if s.os_family == "ios"])
+        android_signal_opens = len([s for s in first_opens if s.os_family == "android"])
+        apple_downloads = db_ios_dl if db_ios_dl > 0 else ios_signal_opens
+        apple_official_sessions = db_ios_sess
+        android_official_sessions = db_android_sess
+        live_telemetry_sessions = len(first_opens) + len(daily_actives)
+        apple_sessions = max(apple_official_sessions + android_official_sessions, live_telemetry_sessions)
+        google_play_downloads = max(db_android_dl, android_signal_opens)
+        google_play_impressions_base = db_android_imp
+        google_play_page_views_base = db_android_pv
 
     sb["apple_impressions_total"] = apple_impressions
     sb["apple_page_views_total"] = apple_page_views
@@ -4618,6 +4761,21 @@ def _build_analytics_summary(
 
     if (now_tr.date() - start_dt.date()).days > 60:
         start_dt = now_tr - timedelta(days=30)
+
+    if period == "today":
+        start_dt = now_tr.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == "yesterday":
+        try:
+            y_anchor_dt = datetime.strptime(apple_anchor_pre_str, "%Y-%m-%d").replace(tzinfo=tz_tr)
+            start_dt = min(y_anchor_dt, (now_tr - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0))
+        except Exception:
+            start_dt = (now_tr - timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+    elif period == "7d":
+        try:
+            s7_anchor_dt = datetime.strptime(apple_7d_start_pre_str, "%Y-%m-%d").replace(tzinfo=tz_tr)
+            start_dt = min(s7_anchor_dt, (now_tr - timedelta(days=6)).replace(hour=0, minute=0, second=0, microsecond=0))
+        except Exception:
+            start_dt = (now_tr - timedelta(days=6)).replace(hour=0, minute=0, second=0, microsecond=0)
 
     end_dt = now_tr
     num_days = max(1, (end_dt.date() - start_dt.date()).days + 1)
@@ -5318,15 +5476,23 @@ def _build_analytics_summary(
         }
 
     for lr in ledger_rows_db:
+        l_pl_c = "android" if (lr.platform or "ios").lower() == "android" else "ios"
+        st_d_c = (lr.started_date or "").strip()[:10]
+        tx_d_c = (lr.converted_or_renewed_date or lr.started_date or "").strip()[:10]
+        if period != "all" and not (_in_period_window(st_d_c, l_pl_c, period) or _in_period_window(tx_d_c, l_pl_c, period)):
+            continue
         cc = str(lr.country or "TR").strip().upper() or "TR"
         ca = country_agg[cc]
-        c_p = float(lr.customer_price_try or 0.0)
-        d_p = float(lr.developer_proceeds_try or 0.0)
+        if period != "all":
+            c_p, d_p = _resolve_single_window_tx_amount(lr, period, l_pl_c)
+        else:
+            c_p = float(lr.customer_price_try or 0.0)
+            d_p = float(lr.developer_proceeds_try or 0.0)
         exp_g = float(lr.expected_next_price_try or 0.0)
         exp_n = float(lr.expected_next_proceeds_try or 0.0)
         is_ann_lr = _is_annual_product(lr.product_id)
 
-        if lr.status == "paid_active" and c_p > 0:
+        if lr.status == "paid_active" and c_p > 0 and _in_period_window(tx_d_c, l_pl_c, period):
             ca["paid_subs_count"] += 1
             ca["active_vip_count"] += 1
             if is_ann_lr:
@@ -5506,8 +5672,12 @@ def _build_analytics_summary(
 
     gp_cfg_imp = int(gp_org_cfg.reported_impressions if gp_org_cfg else 0) + int(meta_and_cfg.reported_impressions if meta_and_cfg else 0)
     gp_cfg_pv = int(gp_org_cfg.reported_clicks if gp_org_cfg else 0) + int(meta_and_cfg.reported_clicks if meta_and_cfg else 0)
-    google_play_impressions = max(google_play_impressions_base, gp_cfg_imp)
-    google_play_page_views = max(google_play_page_views_base, gp_cfg_pv)
+    if period == "all":
+        google_play_impressions = max(google_play_impressions_base, gp_cfg_imp)
+        google_play_page_views = max(google_play_page_views_base, gp_cfg_pv)
+    else:
+        google_play_impressions = google_play_impressions_base
+        google_play_page_views = google_play_page_views_base
 
     # Doğrulanmış AppInstallSignal (instagram_bio) kayıtları varsa, eski /ios reklam sıfırlaması sonrası
     # organik Instagram Bio (/download) profil trafiğinin 0'a düşmesini önle (eski /ios reklam trafiği 0 kalır)
@@ -5532,32 +5702,43 @@ def _build_analytics_summary(
 
     sb["google_play_impressions_total"] = google_play_impressions
     sb["google_play_page_views_total"] = google_play_page_views
-    effective_unique_bridge_clicks = max(len(unique_human), ig_unique_count + len(meta_unique))
+    active_bridge_pool = unique_human if period == "all" else active_human_set
+    effective_unique_bridge_clicks = max(len(active_bridge_pool), ig_unique_count + len(meta_unique))
     total_cumulative_impressions = apple_impressions + google_play_impressions
     total_cumulative_store_page_views = apple_page_views + google_play_page_views
     total_cumulative_visits_and_clicks = total_cumulative_store_page_views + effective_unique_bridge_clicks
 
-    r3_search = max(
-        int(sb.get("apple_downloads_search", 0) or 0),
-        db_ios_dl_search,
-        int(asa_cfg.reported_installs if asa_cfg else 0),
-    )
-    r3_ref = max(
-        int(sb.get("apple_downloads_referrer", 0) or 0),
-        db_ios_dl_ref,
-        int(meta_cfg.reported_installs if meta_cfg else 0),
-        matched_meta_installs,
-    )
-    r3_browse = max(
-        int(sb.get("apple_downloads_browse", 0) or 0),
-        db_ios_dl_browse,
-        int(ig_cfg.reported_installs if ig_cfg else 0),
-        matched_ig_installs,
-    )
-    asa_clicks_val = max(apple_taps, int(asa_cfg.reported_clicks if asa_cfg else 0))
-
-    imp_search_val = int(sb.get("apple_impressions_search", 0) or apple_impressions)
-    imp_browse_val = int(sb.get("apple_impressions_browse", 0) or 0)
+    if period == "all":
+        r3_search = max(
+            int(sb.get("apple_downloads_search", 0) or 0),
+            db_ios_dl_search,
+            int(asa_cfg.reported_installs if asa_cfg else 0),
+        )
+        r3_ref = max(
+            int(sb.get("apple_downloads_referrer", 0) or 0),
+            db_ios_dl_ref,
+            int(meta_cfg.reported_installs if meta_cfg else 0),
+            matched_meta_installs,
+        )
+        r3_browse = max(
+            int(sb.get("apple_downloads_browse", 0) or 0),
+            db_ios_dl_browse,
+            int(ig_cfg.reported_installs if ig_cfg else 0),
+            matched_ig_installs,
+        )
+        asa_clicks_val = max(apple_taps, int(asa_cfg.reported_clicks if asa_cfg else 0))
+        imp_search_val = int(sb.get("apple_impressions_search", 0) or apple_impressions)
+        imp_browse_val = int(sb.get("apple_impressions_browse", 0) or 0)
+    else:
+        r3_search = db_ios_dl_search
+        r3_ref = max(db_ios_dl_ref, matched_meta_installs)
+        r3_browse = max(db_ios_dl_browse, matched_ig_installs)
+        asa_clicks_val = apple_taps
+        base_s = int(sb.get("apple_impressions_search", 0) or 0)
+        base_b = int(sb.get("apple_impressions_browse", 0) or 0)
+        s_ratio = (base_s / max(1, base_s + base_b)) if (base_s + base_b) > 0 else 0.85
+        imp_search_val = round(apple_impressions * s_ratio)
+        imp_browse_val = max(0, apple_impressions - imp_search_val)
 
     # T3 Çözümü: Apple r3 kaynak raporu henüz senkronize edilmemişse (0 ise), doğrulanmış r14 Discovery
     # arama/keşfet oranları ve köprü sinyalleri üzerinden kaynak dağılımını hesapla
@@ -5567,8 +5748,8 @@ def _build_analytics_summary(
         r3_search = round(allocatable_ios * search_share)
         r3_browse = max(0, allocatable_ios - r3_search)
 
-    recent_ios_dl = max(0, apple_downloads - (r3_search + r3_ref + r3_browse + offer_code_cnt))
-    android_bridge_uniq = max(len([c for c in unique_human if c.os_family == "android"]), ig_android_count)
+    recent_ios_dl = max(0, apple_downloads - (r3_search + r3_ref + r3_browse + (offer_code_cnt if period == "all" else 0)))
+    android_bridge_uniq = max(len([c for c in active_bridge_pool if c.os_family == "android"]), ig_android_count)
 
     total_all_spend_usd = round(sum(float(c.spend_usd or 0.0) for c in cfg_rows), 2)
     blended_cpi_usd = (
@@ -5762,15 +5943,20 @@ def _build_analytics_summary(
     recent_3d_dl = sum(d.get("daily_downloads", 0) for d in settled_days[-3:]) if settled_days else 0
     latest_store_metric_date = settled_days[-1]["date"] if settled_days else ""
 
-    ios_bridge_uniq = max(len([c for c in unique_human if c.os_family == "ios"]), ig_ios_count)
-    desktop_bridge_uniq = len([c for c in unique_human if c.os_family not in ("ios", "android")])
+    ios_bridge_uniq = max(len([c for c in active_bridge_pool if c.os_family == "ios"]), ig_ios_count)
+    desktop_bridge_uniq = len([c for c in active_bridge_pool if c.os_family not in ("ios", "android")])
     ios_touchpoints = apple_page_views + ios_bridge_uniq
     android_touchpoints = google_play_page_views + android_bridge_uniq
 
     # P1: Simpson Paradoksu & 24s Gecikme Ayrımı — Mağaza Sayfası CVR vs Sosyal Köprü CVR vs Kesinleşen Günler CVR
-    apple_page_views_uniq = int(sb.get("apple_page_views_unique", 0) or apple_page_views)
+    apple_page_views_uniq = db_ios_pv_uniq if (period != "all" or db_ios_pv_uniq > 0) else int(sb.get("apple_page_views_unique", 0) or apple_page_views)
+    if apple_page_views_uniq == 0 and apple_page_views > 0:
+        apple_page_views_uniq = apple_page_views
     google_play_page_views_uniq = db_android_pv_uniq if db_android_pv_uniq > 0 else google_play_page_views
-    total_impressions_unique = (db_ios_imp_uniq if db_ios_imp_uniq > 0 else int(sb.get("apple_impressions_unique", 0) or 0)) + (
+    ios_imp_uniq_display = db_ios_imp_uniq if (period != "all" or db_ios_imp_uniq > 0) else int(sb.get("apple_impressions_unique", 0) or 0)
+    if ios_imp_uniq_display == 0 and apple_impressions > 0:
+        ios_imp_uniq_display = apple_impressions
+    total_impressions_unique = ios_imp_uniq_display + (
         db_android_imp_uniq if db_android_imp_uniq > 0 else google_play_impressions
     )
     total_store_page_views_unique = apple_page_views_uniq + google_play_page_views_uniq
@@ -5853,27 +6039,95 @@ def _build_analytics_summary(
     )
     desktop_sub_suffix = f" • 💻 {desktop_bridge_uniq} Masaüstü" if desktop_bridge_uniq > 0 else ""
 
+    if period != "all":
+        filtered_subscriber_ledger_list = []
+        for s_item in subscriber_ledger_list:
+            s_plat_k = "android" if (s_item.get("platform") or "ios").lower() == "android" else "ios"
+            st_d_k = str(s_item.get("started_date") or "").strip()[:10]
+            tx_d_k = str(s_item.get("converted_or_renewed_date") or s_item.get("started_date") or "").strip()[:10]
+            if _in_period_window(st_d_k, s_plat_k, period) or _in_period_window(tx_d_k, s_plat_k, period):
+                filtered_subscriber_ledger_list.append(s_item)
+        subscriber_ledger_list = filtered_subscriber_ledger_list
+
     ios_subs_list = [s for s in subscriber_ledger_list if (s.get("platform") or "ios") == "ios"]
     android_subs_list = [s for s in subscriber_ledger_list if s.get("platform") == "android"]
     gp_catalog = sb.get("google_play_subscriptions_catalog") or _empty_store_state()["google_play_subscriptions_catalog"]
 
-    ios_paid_cnt = int(plat_fin["ios"]["paid_cnt"])
-    ios_trial_cnt = int(plat_fin["ios"]["trial_cnt"])
-    ios_code_cnt = int(plat_fin["ios"]["code_cnt"])
-    ios_cancelled_cnt = int(plat_fin["ios"]["cancelled_cnt"])
-    ios_active_cnt = ios_paid_cnt + ios_trial_cnt + ios_code_cnt
-    ios_mrr_net = round(plat_fin["ios"]["paid_mrr_net"] + plat_fin["ios"]["pipeline_mrr_net"], 2)
-    ios_mrr_gross = round(plat_fin["ios"]["paid_mrr_gross"] + plat_fin["ios"]["pipeline_mrr_gross"], 2)
-    ios_realized_net = round(plat_fin["ios"]["realized_net"], 2)
+    if period == "all":
+        ios_paid_cnt = int(plat_fin["ios"]["paid_cnt"])
+        ios_trial_cnt = int(plat_fin["ios"]["trial_cnt"])
+        ios_code_cnt = int(plat_fin["ios"]["code_cnt"])
+        ios_cancelled_cnt = int(plat_fin["ios"]["cancelled_cnt"])
+        ios_active_cnt = ios_paid_cnt + ios_trial_cnt + ios_code_cnt
+        ios_mrr_net = round(plat_fin["ios"]["paid_mrr_net"] + plat_fin["ios"]["pipeline_mrr_net"], 2)
+        ios_mrr_gross = round(plat_fin["ios"]["paid_mrr_gross"] + plat_fin["ios"]["pipeline_mrr_gross"], 2)
+        ios_realized_net = round(plat_fin["ios"]["realized_net"], 2)
 
-    and_paid_cnt = int(plat_fin["android"]["paid_cnt"])
-    and_trial_cnt = int(plat_fin["android"]["trial_cnt"])
-    and_code_cnt = int(plat_fin["android"]["code_cnt"])
-    and_cancelled_cnt = int(plat_fin["android"]["cancelled_cnt"])
-    and_active_cnt = and_paid_cnt + and_trial_cnt + and_code_cnt
-    and_mrr_net = round(plat_fin["android"]["paid_mrr_net"] + plat_fin["android"]["pipeline_mrr_net"], 2)
-    and_mrr_gross = round(plat_fin["android"]["paid_mrr_gross"] + plat_fin["android"]["pipeline_mrr_gross"], 2)
-    and_realized_net = round(plat_fin["android"]["realized_net"], 2)
+        and_paid_cnt = int(plat_fin["android"]["paid_cnt"])
+        and_trial_cnt = int(plat_fin["android"]["trial_cnt"])
+        and_code_cnt = int(plat_fin["android"]["code_cnt"])
+        and_cancelled_cnt = int(plat_fin["android"]["cancelled_cnt"])
+        and_active_cnt = and_paid_cnt + and_trial_cnt + and_code_cnt
+        and_mrr_net = round(plat_fin["android"]["paid_mrr_net"] + plat_fin["android"]["pipeline_mrr_net"], 2)
+        and_mrr_gross = round(plat_fin["android"]["paid_mrr_gross"] + plat_fin["android"]["pipeline_mrr_gross"], 2)
+        and_realized_net = round(plat_fin["android"]["realized_net"], 2)
+    else:
+        ios_paid_cnt = sum(1 for s in ios_subs_list if s.get("status") == "paid_active")
+        ios_trial_cnt = sum(1 for s in ios_subs_list if s.get("status") == "intro_free_trial" and s.get("auto_renew_enabled"))
+        ios_code_cnt = sum(1 for s in ios_subs_list if s.get("status") == "offer_code_trial")
+        ios_cancelled_cnt = sum(1 for s in ios_subs_list if s.get("status") == "cancelled" or (s.get("status") != "paid_active" and not s.get("auto_renew_enabled")))
+        ios_active_cnt = ios_paid_cnt + ios_trial_cnt + ios_code_cnt
+        ios_realized_net = round(float(win_selected.get("ios_net_try", 0.0) or 0.0), 2)
+        ios_mrr_net = round(
+            sum(
+                (float(s.get("expected_next_proceeds_try") or s.get("developer_proceeds_try") or 0.0) / (12.0 if _is_annual_product(s.get("product_id")) else 1.0))
+                for s in ios_subs_list
+                if s.get("auto_renew_enabled") and s.get("status") in ("paid_active", "intro_free_trial")
+            ),
+            2,
+        )
+        ios_mrr_gross = round(
+            sum(
+                (float(s.get("expected_next_price_try") or s.get("customer_price_try") or 0.0) / (12.0 if _is_annual_product(s.get("product_id")) else 1.0))
+                for s in ios_subs_list
+                if s.get("auto_renew_enabled") and s.get("status") in ("paid_active", "intro_free_trial")
+            ),
+            2,
+        )
+
+        and_paid_cnt = sum(1 for s in android_subs_list if s.get("status") == "paid_active")
+        and_trial_cnt = sum(1 for s in android_subs_list if s.get("status") == "intro_free_trial" and s.get("auto_renew_enabled"))
+        and_code_cnt = sum(1 for s in android_subs_list if s.get("status") == "offer_code_trial")
+        and_cancelled_cnt = sum(1 for s in android_subs_list if s.get("status") == "cancelled" or (s.get("status") != "paid_active" and not s.get("auto_renew_enabled")))
+        and_active_cnt = and_paid_cnt + and_trial_cnt + and_code_cnt
+        and_realized_net = round(float(win_selected.get("android_net_try", 0.0) or 0.0), 2)
+        and_mrr_net = round(
+            sum(
+                (float(s.get("expected_next_proceeds_try") or s.get("developer_proceeds_try") or 0.0) / (12.0 if _is_annual_product(s.get("product_id")) else 1.0))
+                for s in android_subs_list
+                if s.get("auto_renew_enabled") and s.get("status") in ("paid_active", "intro_free_trial")
+            ),
+            2,
+        )
+        and_mrr_gross = round(
+            sum(
+                (float(s.get("expected_next_price_try") or s.get("customer_price_try") or 0.0) / (12.0 if _is_annual_product(s.get("product_id")) else 1.0))
+                for s in android_subs_list
+                if s.get("auto_renew_enabled") and s.get("status") in ("paid_active", "intro_free_trial")
+            ),
+            2,
+        )
+        active_vip_total = ios_active_cnt + and_active_cnt
+        cancelled_cnt = ios_cancelled_cnt + and_cancelled_cnt
+        apple_vip = active_vip_total
+        paid_subs_cnt = ios_paid_cnt + and_paid_cnt
+        intro_trial_cnt = ios_trial_cnt + and_trial_cnt
+        offer_code_cnt = ios_code_cnt + and_code_cnt
+        all_churn_rate_pct = (
+            round((cancelled_cnt / len(subscriber_ledger_list)) * 100, 1)
+            if len(subscriber_ledger_list) > 0
+            else 0.0
+        )
 
     all_reviews = sb.get("store_reviews") or []
     ios_reviews_cnt = sum(1 for r in all_reviews if r.get("store") == "App Store")
@@ -5889,9 +6143,9 @@ def _build_analytics_summary(
     ios_retention_rate_pct = round(100.0 - ios_churn_rate_pct, 1) if ios_total_rec > 0 else 0.0
     and_retention_rate_pct = round(100.0 - and_churn_rate_pct, 1) if and_total_rec > 0 else 0.0
 
-    all_started_vip_of_dl_pct = round((all_total_rec / max(1, total_cumulative_downloads)) * 100, 1)
-    ios_started_vip_of_dl_pct = round((ios_total_rec / max(1, apple_downloads)) * 100, 1)
-    and_started_vip_of_dl_pct = round((and_total_rec / max(1, google_play_downloads)) * 100, 1)
+    all_started_vip_of_dl_pct = min(100.0, round((all_total_rec / max(1, total_cumulative_downloads)) * 100, 1)) if total_cumulative_downloads > 0 else 0.0
+    ios_started_vip_of_dl_pct = min(100.0, round((ios_total_rec / max(1, apple_downloads)) * 100, 1)) if apple_downloads > 0 else 0.0
+    and_started_vip_of_dl_pct = min(100.0, round((and_total_rec / max(1, google_play_downloads)) * 100, 1)) if google_play_downloads > 0 else 0.0
 
     ios_vip_sub_str = (
         f"Toplam {ios_total_rec} Kayıt ({ios_active_cnt} Aktif • {ios_cancelled_cnt} İptal / %{ios_churn_rate_pct} Churn) — "
@@ -5966,12 +6220,12 @@ def _build_analytics_summary(
                 f"🍏 {ios_active_cnt} Net ({ios_total_rec} Başlayan • {ios_cancelled_cnt} İptal) • "
                 f"🤖 {and_active_cnt} Net ({and_total_rec} Başlayan • {and_cancelled_cnt} İptal) • %{all_retention_rate_pct} Tutundurma"
             ),
-            "mrr_net_try": financial_ledger["projected_total_mrr_net_try"],
-            "mrr_gross_try": financial_ledger["projected_total_mrr_gross_try"],
-            "realized_net_try": financial_ledger["realized_net_proceeds_try"],
+            "mrr_net_try": financial_ledger["projected_total_mrr_net_try"] if period == "all" else round(ios_mrr_net + and_mrr_net, 2),
+            "mrr_gross_try": financial_ledger["projected_total_mrr_gross_try"] if period == "all" else round(ios_mrr_gross + and_mrr_gross, 2),
+            "realized_net_try": financial_ledger["realized_net_proceeds_try"] if period == "all" else round(ios_realized_net + and_realized_net, 2),
             "reviews_count": len(all_reviews),
-            "delta_1": f"+{recent_3d_imp} (3G)",
-            "delta_2": f"+{today_unique_clicks} Bugün",
+            "delta_1": f"+{recent_3d_imp} (3G)" if period == "all" else period_label,
+            "delta_2": f"+{today_unique_clicks} Bugün" if period == "all" else f"{effective_unique_bridge_clicks} Dönem Tıkı",
             "meta_chips_1": [f"{total_impressions_unique:,} Tekil Cihaz", f"%{imp_search_pct_calc} Arama"],
             "meta_chips_2": [f"{total_cumulative_store_page_views} Mağaza", f"{ig_unique_count:,} Instagram Profil"],
             "meta_chips_3": [f"🍏 {apple_downloads} iOS", f"🤖 {google_play_downloads} Android"],
@@ -5985,9 +6239,9 @@ def _build_analytics_summary(
                 f"✖ %{all_churn_rate_pct} Churn",
             ],
             "meta_chips_6": [
-                f"💳 {financial_ledger['paid_subs_count']} Ücretli",
-                f"⏳ {financial_ledger['pipeline_7d_trials_count']} Deneme",
-                f"🎟️ {financial_ledger['offer_code_subs_count']} Kod",
+                f"💳 {paid_subs_cnt} Ücretli",
+                f"⏳ {intro_trial_cnt} Deneme",
+                f"🎟️ {offer_code_cnt} Kod",
             ],
         },
         "ios": {
@@ -5995,7 +6249,7 @@ def _build_analytics_summary(
             "label": "🍏 Apple App Store (iOS)",
             "impressions": apple_impressions,
             "impressions_display": f"{apple_impressions:,}",
-            "impressions_sub": f"{int(sb.get('apple_impressions_unique', 0) or 0):,} tekil iPhone • {imp_search_val:,} Arama + {imp_browse_val} Keşfet • {ios_att_sdk_status_badge}",
+            "impressions_sub": f"{ios_imp_uniq_display:,} tekil iPhone • {imp_search_val:,} Arama + {imp_browse_val} Keşfet • {ios_att_sdk_status_badge}",
             "touchpoints": ios_touchpoints,
             "touchpoints_display": f"{ios_touchpoints:,}",
             "touchpoints_sub": f"{apple_page_views} App Store Sayfası + {ig_ios_count} Instagram Profil iOS Tıkı",
@@ -6033,7 +6287,7 @@ def _build_analytics_summary(
             "reviews_count": ios_reviews_cnt,
             "delta_1": f"%{round((apple_impressions / max(1, total_cumulative_impressions)) * 100)} Pay",
             "delta_2": f"%{ios_store_imp_to_pv_pct} Mağaza",
-            "meta_chips_1": [f"{int(sb.get('apple_impressions_unique', 0) or 0):,} Tekil iPhone", "🎯 Meta Reklam Aktif"],
+            "meta_chips_1": [f"{ios_imp_uniq_display:,} Tekil iPhone", "🎯 Meta Reklam Aktif"],
             "meta_chips_2": [f"{apple_page_views} Mağaza", f"{ig_ios_count:,} Instagram Profil"],
             "meta_chips_3": [f"🔍 {r3_search} Arama", f"📲 {r3_ref} Sosyal", f"📅 {recent_ios_dl} Doğrudan"],
             "meta_chips_4": [
@@ -6201,7 +6455,7 @@ def _build_analytics_summary(
             "update_method": "App Store Connect API (ES256 .p8 JWT — SALES, SUBSCRIBER v1_3, SUBSCRIPTION_EVENT v1_3)",
             "frequency": "6 Saatte Bir Otomatik Kontrol (run_periodic_store_sync_loop) • Apple Günde 1 Kez Yayınlar",
             "latency_class": "🏛️ T-1 (1 Gün PST Gecikmeli — Resmi Kesinleşen)",
-            "last_sync": f"Son Kesinleşen Rapor: {latest_store_metric_date or sr.get('apple_latest_report_date') or '-'}",
+            "last_sync": f"Son Kesinleşen Rapor: {latest_store_metric_date or store_reconciliation.get('apple_latest_report_date') or '-'}",
             "consistency_rule": "Finansal ve resmi indirme otoritesidir. Kartlarda son kesinleşen rapor tarihi açıkça belirtilir.",
         },
         {
@@ -9507,7 +9761,7 @@ def analytics_dashboard_page(
               <div class="conv-bridge-card" id="conversionBridgeCard">
                 <div class="conv-bridge-head">
                   <div class="conv-bridge-title">
-                    <span id="funnelHeadTitle">🎯 Dönüşüm Hunisi (Edinim ➔ VIP ➔ Churn ➔ Net Abone)</span>
+                    <span id="funnelHeadTitle">🎯 Dönüşüm Hunisi (Edinim ➔ VIP ➔ Churn ➔ Net Abone){'' if clean_period == 'all' else f" — {html.escape(s['period_label'])}"}</span>
                   </div>
                   <div class="conv-summary-pills" id="funnelHeadBadge">
                     <span class="conv-summary-pill" style="background:rgba(5,150,105,0.08); border-color:rgba(5,150,105,0.28); color:var(--stage-3);">Mağaza CVR: <strong id="convStoreCvrPill">%{ps_all.get('store_cvr_pct', 0)}</strong></span>
