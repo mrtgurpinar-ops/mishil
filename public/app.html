@@ -18514,7 +18514,7 @@
       </div>
       <div style="position:absolute; top:0; bottom:0; left:74%; width:26%; background:linear-gradient(90deg, #3F3C5A 0%, #2D2C44 100%); display:flex; align-items:center; justify-content:center; font-size:11px; border-left:1.5px solid rgba(255,255,255,0.18);">🌙</div>
     `;
-    // Uyku blokları (Yeşil/Adaçayı)
+    // Uyku blokları (Yeşil/Adaçayı — dokunulduğunda doğrudan o uykunun saat düzenleme penceresi açılır)
     todaySleeps.forEach(s => {
       const ext = extractSleepStartEnd(s);
       const [sh1, sm1] = (ext.start || '13:00').split(':').map(Number);
@@ -18524,7 +18524,8 @@
       if (eMin < sMin) sMin = 0; // Gece devri bugünün başlangıcından itibaren gösterilir
       const leftPct = Math.max(0, Math.min(98, (sMin / 1440) * 100));
       const widthPct = Math.max(2, Math.min(100 - leftPct, ((eMin - sMin) / 1440) * 100));
-      html += `<div title="${trEnDe('Uyku', 'Sleep', 'Schlaf')}: ${ext.start} - ${ext.end}" style="position:absolute; top:3px; bottom:3px; left:${leftPct.toFixed(1)}%; width:${widthPct.toFixed(1)}%; background:linear-gradient(90deg, #74C69D, #487A63); border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,0.35); z-index:2;"></div>`;
+      const safeId = escapeHtml(String(s.id || ''));
+      html += `<div onclick="event.stopPropagation(); if (typeof openEditRoutineModal === 'function') openEditRoutineModal('${safeId}');" title="${trEnDe('Uyku', 'Sleep', 'Schlaf')}: ${ext.start} - ${ext.end} (${trEnDe('Düzenlemek için dokunun', 'Tap to edit', 'Zum Bearbeiten tippen')})" style="position:absolute; top:3px; bottom:3px; left:${leftPct.toFixed(1)}%; width:${widthPct.toFixed(1)}%; background:linear-gradient(90deg, #74C69D, #487A63); border-radius:6px; box-shadow:0 1px 4px rgba(0,0,0,0.35); z-index:2; cursor:pointer;"></div>`;
     });
 
     // Beslenme ve Bez Noktaları (Kehribar / Gül)
@@ -19537,11 +19538,24 @@
           targetSub.style.cursor = 'default';
           targetSub.onclick = null;
         }
-        showToast(trEnDe(
-          `☀️ Günaydın! ${totalMins} dk uyku kaydedildi. Sıradaki MışılSpot: ${nextSleepFormatted}`,
-          `☀️ Good morning! ${totalMins} min sleep logged. Next MışılSpot: ${nextSleepFormatted}`,
-          `☀️ Guten Morgen! ${totalMins} Min. Schlaf gespeichert. Nächster MışılSpot: ${nextSleepFormatted}`
-        ));
+        showToast(
+          trEnDe(
+            `☀️ Günaydın! ${totalMins} dk uyku kaydedildi. Sıradaki MışılSpot: ${nextSleepFormatted}`,
+            `☀️ Good morning! ${totalMins} min sleep logged. Next MışılSpot: ${nextSleepFormatted}`,
+            `☀️ Guten Morgen! ${totalMins} Min. Schlaf gespeichert. Nächster MışılSpot: ${nextSleepFormatted}`
+          ),
+          totalMins < 180
+            ? {
+                actionLabel: trEnDe('✏️ Saati Düzelt', '✏️ Edit Time', '✏️ Zeit ändern'),
+                durationMs: 6500,
+                onAction: () => {
+                  if (typeof openEditRoutineModal === 'function') {
+                    openEditRoutineModal(newSleepLog.id);
+                  }
+                }
+              }
+            : undefined
+        );
       }
       broadcastRealtimeEvent('SLEEP_COMPLETED', { by: role, duration_mins: totalMins });
       syncLiveSleepToNative('STOP');

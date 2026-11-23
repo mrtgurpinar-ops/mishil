@@ -946,6 +946,98 @@ def test_period_filter_updates_funnel_ledger_and_tabs(client, db_session):
     assert "/apple-touch-icon.png" in res_login.text
 
 
+def test_store_review_reply_endpoint_and_cockpit_rendering(client, db_session, monkeypatch):
+    """
+    v4.56.17: Kurucu Kokpiti (Sekme 4: Mağaza Yorumları) üzerinden POST /api/v1/analytics/review-reply
+    ile Apple App Store Connect API (customerReviewResponses) veya Google Play API (reviews:reply)
+    geliştirici yanıtı gönderilebilmeli, OFFICIAL_STORE_BASELINE['store_reviews'] güncellenmeli
+    ve kokpit HTML çıktısında geliştirici yanıtı ve yanıtlama çekmecesi yer almalıdır.
+    """
+    import json
+    from app.api.v1.endpoints import analytics as analytics_ep
+
+    with analytics_ep._BASELINE_LOCK:
+        analytics_ep.OFFICIAL_STORE_BASELINE["store_reviews"] = [
+            {
+                "review_id": "00000195-dc80-1b03-7317-e4ad00000000",
+                "store": "App Store",
+                "platform": "ios",
+                "badge": "🍏 iOS",
+                "rating": 1,
+                "title": "İki günde bir bozuluyor",
+                "body": "Asla uyku ve uyanma saatlerini düzgün kaydetmiyor...",
+                "author": "Rabia Özcan Kahya",
+                "date": "21.11.2026",
+                "response_id": "",
+                "response_body": "",
+                "response_state": "",
+                "response_date": "",
+            }
+        ]
+
+    # 1) Yetkisiz çağrılar 401 dönmeli
+    unauth = client.post(
+        "/api/v1/analytics/review-reply",
+        json={
+            "review_id": "00000195-dc80-1b03-7317-e4ad00000000",
+            "response_body": "Merhaba Rabia Hanım, güncelleme ile çözüldü.",
+            "platform": "ios",
+        },
+    )
+    assert unauth.status_code == 401
+
+    # 2) Mock _submit_store_review_reply_sync veya urllib.request.urlopen ile başarılı yanıt
+    class _FakeHttpResp:
+        status = 201
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, exc_type, exc_val, exc_tb):
+            return False
+
+        def read(self):
+            return json.dumps(
+                {
+                    "data": {
+                        "id": "40000195-dc80-1b03-7317-e4ad00000000",
+                        "type": "customerReviewResponses",
+                        "attributes": {
+                            "responseBody": "Merhaba Rabia Hanım, 21 Kasım güncellemesiyle sorun tamamen giderildi.",
+                            "state": "PENDING_PUBLISH",
+                        },
+                    }
+                }
+            ).encode("utf-8")
+
+    monkeypatch.setattr(analytics_ep.urllib.request, "urlopen", lambda req, timeout=10: _FakeHttpResp())
+    monkeypatch.setattr(analytics_ep.jwt, "encode", lambda *a, **kw: "mock_asc_jwt_token")
+    monkeypatch.setenv("ASC_PRIVATE_KEY", "MOCK_KEY")
+
+    res_reply = client.post(
+        "/api/v1/analytics/review-reply",
+        params={"pin": "MISIL-REV-9842"},
+        json={
+            "review_id": "00000195-dc80-1b03-7317-e4ad00000000",
+            "response_body": "Merhaba Rabia Hanım, 21 Kasım güncellemesiyle sorun tamamen giderildi.",
+            "platform": "ios",
+        },
+    )
+    assert res_reply.status_code == 200
+    body_json = res_reply.json()
+    assert body_json["status"] == "ok"
+    assert body_json["review_id"] == "00000195-dc80-1b03-7317-e4ad00000000"
+    assert body_json["response_state"] == "PENDING_PUBLISH"
+
+    # 3) Kokpit HTML çıktısında hem geliştirici yanıtı hem de submitStoreReviewReply fonksiyonu yer almalı
+    dash_res = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"})
+    assert dash_res.status_code == 200
+    assert "submitStoreReviewReply" in dash_res.text
+    assert "Mışıl Baby Geliştirici Yanıtı" in dash_res.text
+    assert "21 Kasım güncellemesiyle sorun tamamen giderildi" in dash_res.text
+
+
+
 
 
 

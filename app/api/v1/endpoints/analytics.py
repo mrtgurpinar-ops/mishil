@@ -2297,28 +2297,51 @@ def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
             )
             hdrs = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
             req = urllib.request.Request(
-                "https://api.appstoreconnect.apple.com/v1/apps/6809223195/customerReviews?limit=50",
+                "https://api.appstoreconnect.apple.com/v1/apps/6809223195/customerReviews?limit=50&sort=-createdDate&include=response",
                 headers=hdrs,
             )
             with urllib.request.urlopen(req, timeout=4) as resp:
                 if resp.status == 200:
                     apple_connected = True
                     data = json.loads(resp.read().decode("utf-8"))
+                    included_responses: Dict[str, Dict[str, Any]] = {}
+                    for inc in data.get("included", []) or []:
+                        if inc.get("type") == "customerReviewResponses" and inc.get("id"):
+                            included_responses[str(inc["id"])] = inc.get("attributes") or {}
                     for r in data.get("data", []):
+                        rev_id = str(r.get("id") or "").strip()
                         attr = r.get("attributes", {})
                         cdate = (attr.get("createdDate") or "")[:10]
                         if len(cdate) == 10 and "-" in cdate:
                             parts = cdate.split("-")
                             cdate = f"{parts[2]}.{parts[1]}.{parts[0]}"
                         rating_clamped = max(1, min(5, int(attr.get("rating") or 5)))
+                        rel_resp = ((r.get("relationships") or {}).get("response") or {}).get("data") or {}
+                        resp_id = str(rel_resp.get("id") or "").strip() if isinstance(rel_resp, dict) else ""
+                        resp_attr = included_responses.get(resp_id, {}) if resp_id else {}
+                        resp_body = str(resp_attr.get("responseBody") or "").strip()
+                        resp_state = str(resp_attr.get("state") or ("PUBLISHED" if resp_body else "")).strip()
+                        resp_date_raw = (resp_attr.get("lastModifiedDate") or "")[:10]
+                        if len(resp_date_raw) == 10 and "-" in resp_date_raw:
+                            rp = resp_date_raw.split("-")
+                            resp_date_str = f"{rp[2]}.{rp[1]}.{rp[0]}"
+                        else:
+                            resp_date_str = resp_date_raw
                         fetched_apple_reviews.append({
+                            "review_id": rev_id,
                             "store": "App Store",
+                            "platform": "ios",
                             "badge": "🍏 iOS",
                             "rating": rating_clamped,
                             "title": attr.get("title") or "App Store Yorumu",
                             "body": attr.get("body") or "",
                             "author": attr.get("reviewerNickname") or "App Store Kullanıcısı",
                             "date": cdate,
+                            "territory": attr.get("territory") or "TUR",
+                            "response_id": resp_id,
+                            "response_body": resp_body,
+                            "response_state": resp_state,
+                            "response_date": resp_date_str,
                         })
                     synced_sources.append("Apple App Store Connect API (Reviews)")
 
@@ -3087,21 +3110,40 @@ def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
                             if gp_rev_resp.status == 200:
                                 rev_payload = json.loads(gp_rev_resp.read().decode("utf-8"))
                                 for r_item in rev_payload.get("reviews", []):
+                                    gp_rev_id = str(r_item.get("reviewId") or "").strip()
                                     comments = r_item.get("comments", [])
                                     if not comments:
                                         continue
                                     uc = comments[0].get("userComment", {})
+                                    dc = {}
+                                    for c_obj in comments:
+                                        if isinstance(c_obj, dict) and c_obj.get("developerComment"):
+                                            dc = c_obj.get("developerComment") or {}
+                                            break
                                     star_r = max(1, min(5, int(uc.get("starRating") or 5)))
                                     ts_sec = int((uc.get("lastModified") or {}).get("seconds") or now_gp)
                                     dt_str = datetime.fromtimestamp(ts_sec, tz=timezone(timedelta(hours=3))).strftime("%d.%m.%Y")
+                                    dc_text = str(dc.get("text") or "").strip()
+                                    dc_ts = int((dc.get("lastModified") or {}).get("seconds") or 0)
+                                    dc_date = (
+                                        datetime.fromtimestamp(dc_ts, tz=timezone(timedelta(hours=3))).strftime("%d.%m.%Y")
+                                        if dc_ts > 0
+                                        else ""
+                                    )
                                     fetched_gp_reviews.append({
+                                        "review_id": gp_rev_id,
                                         "store": "Google Play",
+                                        "platform": "android",
                                         "badge": "🤖 Android",
                                         "rating": star_r,
                                         "title": (uc.get("deviceMetadata") or {}).get("productName") or "Google Play Yorumu",
                                         "body": (uc.get("text") or "").strip(),
                                         "author": r_item.get("authorName") or "Google Play Kullanıcısı",
                                         "date": dt_str,
+                                        "response_id": gp_rev_id if dc_text else "",
+                                        "response_body": dc_text,
+                                        "response_state": "PUBLISHED" if dc_text else "",
+                                        "response_date": dc_date,
                                     })
                                 synced_sources.append("Google Play Developer API (Reviews)")
                         try:
@@ -7335,6 +7377,201 @@ def ingest_local_store_sync(
     }
 
 
+class StoreReviewReplyPayload(BaseModel):
+    review_id: str = Field(..., min_length=2, max_length=160)
+    response_body: str = Field(..., min_length=2, max_length=5970)
+    platform: Optional[str] = Field(default="ios", max_length=32)
+
+
+def _submit_store_review_reply_sync(
+    review_id: str,
+    response_body: str,
+    platform: str = "ios",
+) -> Dict[str, Any]:
+    """
+    Apple App Store Connect API (POST /v1/customerReviewResponses) veya
+    Google Play Developer API (POST .../reviews/{reviewId}:reply) üzerinden
+    resmi geliştirici yanıtı gönderir ve OFFICIAL_STORE_BASELINE + StoreSyncState önbelleğini günceller.
+    """
+    clean_rev_id = (review_id or "").strip()
+    clean_body = (response_body or "").strip()
+    plat = "android" if (platform or "ios").strip().lower() == "android" else "ios"
+    if not clean_rev_id or not clean_body:
+        raise ValueError("Yorum ID (review_id) ve yanıt metni (response_body) boş olamaz.")
+
+    tz_tr = timezone(timedelta(hours=3))
+    today_tr_str = datetime.now(tz_tr).strftime("%d.%m.%Y")
+    resp_id = ""
+    resp_state = "PUBLISHED"
+
+    if plat == "ios":
+        if not jwt:
+            raise RuntimeError("PyJWT kütüphanesi yüklü değil.")
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+        env_p8_path = os.environ.get("ASC_PRIVATE_KEY_PATH")
+        p8_candidates: List[str] = []
+        if env_p8_path:
+            p8_candidates.append(env_p8_path)
+        p8_candidates.extend(glob.glob(os.path.join(project_root, "mobile", "AuthKey_*.p8")))
+        p8_candidates.extend(glob.glob(os.path.join(project_root, "..", "..", "projects", "mishil", "mobile", "AuthKey_*.p8")))
+        p8_path = next((p for p in p8_candidates if os.path.exists(p)), None)
+        detected_key_id = ""
+        if p8_path:
+            bn = os.path.basename(p8_path)
+            if bn.startswith("AuthKey_") and bn.endswith(".p8"):
+                detected_key_id = bn[len("AuthKey_"):-len(".p8")]
+        asc_key_id = os.environ.get("ASC_KEY_ID") or detected_key_id or "8YHMP6BH2H"
+        asc_issuer_id = os.environ.get("ASC_ISSUER_ID") or "7d2413c6-ea40-4bd9-9334-8313a514b0e6"
+        asc_priv_key = os.environ.get("ASC_PRIVATE_KEY")
+        if not asc_priv_key and p8_path:
+            with open(p8_path, "r", encoding="utf-8") as f:
+                asc_priv_key = f.read()
+        if asc_priv_key:
+            asc_priv_key = asc_priv_key.replace("\\n", "\n")
+        if not asc_priv_key:
+            raise RuntimeError("Apple App Store Connect .p8 anahtarı bulunamadı.")
+
+        now_ts = int(time.time())
+        token = jwt.encode(
+            {"iss": asc_issuer_id, "iat": now_ts - 30, "exp": now_ts + 900, "aud": "appstoreconnect-v1"},
+            asc_priv_key,
+            algorithm="ES256",
+            headers={"kid": asc_key_id, "typ": "JWT"},
+        )
+        asc_payload = {
+            "data": {
+                "type": "customerReviewResponses",
+                "attributes": {
+                    "responseBody": clean_body,
+                },
+                "relationships": {
+                    "review": {
+                        "data": {
+                            "type": "customerReviews",
+                            "id": clean_rev_id,
+                        }
+                    }
+                },
+            }
+        }
+        req = urllib.request.Request(
+            "https://api.appstoreconnect.apple.com/v1/customerReviewResponses",
+            data=json.dumps(asc_payload).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {token}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                resp_json = json.loads(resp.read().decode("utf-8"))
+                d_obj = resp_json.get("data") or {}
+                resp_id = str(d_obj.get("id") or clean_rev_id)
+                attr_obj = d_obj.get("attributes") or {}
+                resp_state = str(attr_obj.get("state") or "PENDING_PUBLISH")
+        except urllib.error.HTTPError as http_err:
+            err_raw = ""
+            try:
+                err_raw = http_err.read().decode("utf-8", errors="replace")
+            except Exception:
+                pass
+            raise RuntimeError(f"Apple App Store Connect API hatası ({http_err.code}): {err_raw[:350]}")
+    else:
+        gp_token = _get_google_play_access_token()
+        if not gp_token:
+            raise RuntimeError("Google Play Developer API erişim anahtarı (Service Account) alınamadı.")
+        gp_url = (
+            "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/"
+            f"com.levitas.misilbaby/reviews/{urllib.parse.quote(clean_rev_id, safe='')}:reply"
+        )
+        req = urllib.request.Request(
+            gp_url,
+            data=json.dumps({"replyText": clean_body}).encode("utf-8"),
+            headers={
+                "Authorization": f"Bearer {gp_token}",
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                _ = resp.read()
+                resp_id = clean_rev_id
+                resp_state = "PUBLISHED"
+        except urllib.error.HTTPError as http_err:
+            err_raw = ""
+            try:
+                err_raw = http_err.read().decode("utf-8", errors="replace")
+            except Exception:
+                pass
+            raise RuntimeError(f"Google Play Developer API hatası ({http_err.code}): {err_raw[:350]}")
+
+    db_s = SessionLocal()
+    try:
+        ensure_historical_seed(db_s)
+        with _BASELINE_LOCK:
+            revs = list(OFFICIAL_STORE_BASELINE.get("store_reviews") or [])
+            matched = False
+            for rv in revs:
+                if str(rv.get("review_id") or "") == clean_rev_id:
+                    rv["response_id"] = resp_id
+                    rv["response_body"] = clean_body
+                    rv["response_state"] = resp_state
+                    rv["response_date"] = today_tr_str
+                    matched = True
+                    break
+            if matched:
+                OFFICIAL_STORE_BASELINE["store_reviews"] = revs
+            snap_copy = _mask_sensitive_sync_value(dict(OFFICIAL_STORE_BASELINE))
+        st_row = db_s.query(StoreSyncState).filter(StoreSyncState.state_key == "primary_store_baseline").first()
+        if st_row:
+            st_row.snapshot_json = snap_copy
+            db_s.commit()
+    except Exception as db_exc:
+        logger.debug("Review reply cache update warning: %s", db_exc)
+    finally:
+        db_s.close()
+
+    invalidate_analytics_summary_cache(mark_reconcile=False, reset_baseline_stamp=True)
+    return {
+        "status": "ok",
+        "review_id": clean_rev_id,
+        "platform": plat,
+        "response_id": resp_id,
+        "response_body": clean_body,
+        "response_state": resp_state,
+        "response_date": today_tr_str,
+    }
+
+
+@router.post("/review-reply")
+async def reply_to_store_review(
+    payload: StoreReviewReplyPayload,
+    request: Request,
+    pin: Optional[str] = Query(None),
+    x_admin_pin: Optional[str] = Header(None),
+):
+    """
+    Kurucu Kokpiti (Sekme 4: Mağaza Yorumları) üzerinden doğrudan Apple App Store Connect API
+    (customerReviewResponses) veya Google Play Developer API (reviews:reply) ile resmi geliştirici yanıtı gönderir.
+    """
+    if not authorize_admin_request(request, pin, x_admin_pin, request.cookies.get(_ADMIN_SESSION_COOKIE)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz veya eksik Yönetici PIN kodu.")
+    try:
+        res = await run_in_threadpool(
+            _submit_store_review_reply_sync,
+            payload.review_id,
+            payload.response_body,
+            payload.platform or "ios",
+        )
+        return res
+    except ValueError as val_err:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(val_err))
+    except RuntimeError as rt_err:
+        raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(rt_err))
+
+
 @router.post("/trigger-sync")
 async def trigger_store_sync_now(
     request: Request,
@@ -7857,13 +8094,65 @@ def analytics_dashboard_page(
         avg_stars_label = "Yorum Yok"
 
     reviews_html = ""
-    for rv in reviews_list:
+    for idx_rv, rv in enumerate(reviews_list):
         safe_rating = max(1, min(5, int(rv.get("rating", 5) or 5)))
         stars = "⭐" * safe_rating
         badge_txt = str(rv.get("badge", "Mağaza"))
         rv_plat = "ios" if "iOS" in badge_txt or rv.get("store") == "App Store" else "android"
+        rev_id = str(rv.get("review_id") or "").strip()
+        resp_body = str(rv.get("response_body") or "").strip()
+        resp_state = str(rv.get("response_state") or "").strip()
+        resp_date = str(rv.get("response_date") or "").strip()
+        dom_key = html.escape(rev_id if rev_id else f"rv_{idx_rv}")
+        state_badge_html = ""
+        if resp_body:
+            is_pend = "PENDING" in resp_state.upper()
+            st_lbl = "⏳ Apple Onayında (PENDING_PUBLISH)" if is_pend else "✔ Yayında (PUBLISHED)"
+            st_col = "#D97706" if is_pend else "var(--stage-3)"
+            st_bg = "rgba(217, 119, 6, 0.14)" if is_pend else "rgba(var(--stage-3-rgb), 0.14)"
+            dt_suffix = f" • {html.escape(resp_date)}" if resp_date else ""
+            state_badge_html = f'<span class="badge" style="background:{st_bg}; color:{st_col}; font-size:10px; padding:2px 8px;">{st_lbl}{dt_suffix}</span>'
+
+        existing_reply_block = ""
+        if resp_body:
+            existing_reply_block = f"""
+            <div class="review-dev-reply" id="devReplyBox_{dom_key}">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
+                <strong style="font-size:11px; color:var(--brand-indigo);">💬 Mışıl Baby Geliştirici Yanıtı</strong>
+                {state_badge_html}
+              </div>
+              <div class="review-dev-reply-text" id="devReplyText_{dom_key}">{html.escape(resp_body)}</div>
+            </div>
+            """
+        else:
+            existing_reply_block = f"""
+            <div class="review-dev-reply" id="devReplyBox_{dom_key}" style="display:none;">
+              <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px; flex-wrap:wrap;">
+                <strong style="font-size:11px; color:var(--brand-indigo);">💬 Mışıl Baby Geliştirici Yanıtı</strong>
+                <span class="badge" id="devReplyState_{dom_key}" style="background:rgba(var(--stage-3-rgb),0.14); color:var(--stage-3); font-size:10px; padding:2px 8px;">✔ Gönderildi</span>
+              </div>
+              <div class="review-dev-reply-text" id="devReplyText_{dom_key}"></div>
+            </div>
+            """
+
+        reply_action_html = ""
+        if rev_id:
+            btn_lbl = "✏️ Yanıtı Güncelle (API)" if resp_body else "💬 Mağaza Yorumunu Yanıtla (API)"
+            reply_action_html = f"""
+            <div style="margin-top:8px;">
+              <button type="button" class="collapse-btn" onclick="toggleReviewReplyDrawer('{dom_key}')" id="btnToggleReply_{dom_key}" style="font-size:11px; padding:4px 10px;">{btn_lbl}</button>
+              <div id="replyDrawer_{dom_key}" style="display:none; margin-top:8px;">
+                <textarea id="replyInput_{dom_key}" rows="3" placeholder="Resmi mağaza geliştirici yanıtınızı yazın..." style="width:100%; border-radius:10px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:8px 10px; font-size:12px; font-family:inherit; resize:vertical;">{html.escape(resp_body)}</textarea>
+                <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-top:6px;">
+                  <button type="button" class="btn" onclick="toggleReviewReplyDrawer('{dom_key}')" style="padding:5px 10px; font-size:11px;">Vazgeç</button>
+                  <button type="button" class="subcat-pill active" id="btnSendReply_{dom_key}" onclick="submitStoreReviewReply('{html.escape(rev_id)}', '{rv_plat}', '{dom_key}')" style="padding:5px 12px; font-size:11px;">🚀 Resmi API İle Gönder</button>
+                </div>
+              </div>
+            </div>
+            """
+
         reviews_html += f"""
-        <div class="review-bubble" data-platform="{rv_plat}">
+        <div class="review-bubble" data-platform="{rv_plat}" data-review-id="{html.escape(rev_id)}">
           <div class="review-head">
             <div>
               <span class="badge {'badge-meta' if rv_plat == 'ios' else 'badge-gp'}">{html.escape(badge_txt)}</span>
@@ -7873,6 +8162,8 @@ def analytics_dashboard_page(
           </div>
           <p class="review-body">“{html.escape(str(rv.get('body', '')))}”</p>
           <div class="review-foot">👤 {html.escape(str(rv.get('author', 'Kullanıcı')))} — {html.escape(str(rv.get('store', '')))}</div>
+          {existing_reply_block}
+          {reply_action_html}
         </div>
         """
     if not reviews_html:
@@ -9187,6 +9478,22 @@ def analytics_dashboard_page(
         .review-head {{ display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }}
         .review-body {{ font-size: 13.5px; color: var(--text-primary); line-height: 1.55; margin-bottom: 8px; }}
         .review-foot {{ font-size: 11.5px; color: var(--text-muted); font-weight: 600; }}
+        .review-dev-reply {{
+          margin-top: 10px;
+          padding: 10px 12px;
+          border-radius: 10px;
+          background: var(--bg-card);
+          border-left: 3px solid var(--brand-indigo);
+          border-top: 1px solid var(--border-subtle);
+          border-right: 1px solid var(--border-subtle);
+          border-bottom: 1px solid var(--border-subtle);
+        }}
+        .review-dev-reply-text {{
+          font-size: 12px;
+          color: var(--text-secondary);
+          line-height: 1.48;
+          white-space: pre-wrap;
+        }}
 
         .badge {{
           display: inline-flex;
@@ -10796,6 +11103,61 @@ def analytics_dashboard_page(
               btn.textContent = txt.replace('▼', '▲');
             }} else {{
               btn.textContent = txt.replace('▲', '▼');
+            }}
+          }}
+        }}
+
+        function toggleReviewReplyDrawer(domKey) {{
+          var drawer = document.getElementById('replyDrawer_' + domKey);
+          if (!drawer) return;
+          var isHidden = (drawer.style.display === 'none' || drawer.style.display === '');
+          drawer.style.display = isHidden ? 'block' : 'none';
+        }}
+
+        async function submitStoreReviewReply(reviewId, platform, domKey) {{
+          var inputEl = document.getElementById('replyInput_' + domKey);
+          var sendBtn = document.getElementById('btnSendReply_' + domKey);
+          if (!inputEl || !reviewId) return;
+          var bodyTxt = (inputEl.value || '').trim();
+          if (bodyTxt.length < 3) {{
+            alert('Lütfen en az 3 karakterlik bir geliştirici yanıtı girin.');
+            return;
+          }}
+          var origTxt = sendBtn ? sendBtn.textContent : '🚀 Resmi API İle Gönder';
+          if (sendBtn) {{
+            sendBtn.disabled = true;
+            sendBtn.textContent = '⏳ Gönderiliyor...';
+          }}
+          try {{
+            var res = await fetch('/api/v1/analytics/review-reply', {{
+              method: 'POST',
+              headers: {{ 'Content-Type': 'application/json', 'Accept': 'application/json' }},
+              credentials: 'same-origin',
+              body: JSON.stringify({{
+                review_id: reviewId,
+                response_body: bodyTxt,
+                platform: platform || 'ios'
+              }})
+            }});
+            var data = await res.json();
+            if (!res.ok) {{
+              alert('Mağaza API hatası: ' + (data.detail || res.status));
+              return;
+            }}
+            var boxEl = document.getElementById('devReplyBox_' + domKey);
+            var txtEl = document.getElementById('devReplyText_' + domKey);
+            var toggleBtn = document.getElementById('btnToggleReply_' + domKey);
+            var drawerEl = document.getElementById('replyDrawer_' + domKey);
+            if (txtEl) txtEl.textContent = data.response_body || bodyTxt;
+            if (boxEl) boxEl.style.display = 'block';
+            if (toggleBtn) toggleBtn.textContent = '✏️ Yanıtı Güncelle (API)';
+            if (drawerEl) drawerEl.style.display = 'none';
+          }} catch (err) {{
+            alert('Bağlantı hatası: ' + err);
+          }} finally {{
+            if (sendBtn) {{
+              sendBtn.disabled = false;
+              sendBtn.textContent = origTxt;
             }}
           }}
         }}

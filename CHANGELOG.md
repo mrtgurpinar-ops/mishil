@@ -2,6 +2,16 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.56.17-zero-clutter-wake-toast-and-cockpit-review-reply-api] - 2026-11-23 (Railway Canlı Yayın — 3-Baloncuk Ana Ekran Sadeliğini Koruyan Sıfır-Kalabalık Uyanış Bildirimi `✏️ Saati Düzelt` & 24s Şerit Uyku Bloğu Düzenleme Kısayolu + Kurucu Kokpiti `/admin/analytics` Sekme 4 Üzerinden Apple App Store Connect `customerReviewResponses` & Google Play `reviews:reply` Resmi API Yorum Yanıtlama Motoru • 🟢 Yeni Native EAS Build Gerekmez)
+### 💬🌙 Sıfır-Kalabalık (Zero-Clutter) Uyku Saati Düzeltme Kısayolu & Kurucu Kokpiti Mağaza Yorumu API Yanıtlama Motoru (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`, `app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **3-Baloncuk Ana Ekran Sadeliğini %100 Koruyan Bağlamsal Düzenleme (`public/app.html`):**
+   - Ana ekranın sade 3-Baloncuk tasarımına hiçbir kalıcı çubuk veya alt metin eklenmeden; yalnızca **"☀️ Bebek Uyandı"** (`toggleLiveSleep`) tamamlanma bildirimine (toast) tek dokunuşlu **`✏️ Saati Düzelt`** (`openEditRoutineModal(newSleepLog.id)`) aksiyonu eklendi.
+   - 1. Baloncuktaki 24 saatlik sirkadiyen ritim şeridi (`#circadian-strip-bar`) üzerindeki yeşil uyku bloklarına dokunulduğunda doğrudan o uyku kaydının düzenleme penceresinin açılması sağlandı (`offlineHtml.generated.ts` güncellendi).
+2. **Kurucu Kokpiti (`/admin/analytics`) Sekme 4 Mağaza Yorumu Resmi API Yanıtlama Motoru (`analytics.py`):**
+   - `_sync_live_store_apis_inner` içinde Apple App Store Connect `customerReviews` sorgusu `?limit=50&sort=-createdDate&include=response` ile genişletilerek her yorumun `review_id`, `response_id`, `response_body`, `response_state` (`PUBLISHED` / `PENDING_PUBLISH`) ve `response_date` alanları; Google Play tarafında ise `developerComment` yanıtları çekildi.
+   - `POST /api/v1/analytics/review-reply` uç noktası (`_submit_store_review_reply_sync`) eklendi: Yönetici yetkisiyle doğrudan Apple App Store Connect API (`POST https://api.appstoreconnect.apple.com/v1/customerReviewResponses`) veya Google Play Developer API (`POST .../reviews/{reviewId}:reply`) üzerinden resmi geliştirici yanıtı gönderir ve Sekme 4 yorum kartlarındaki **"💬 Mağaza Yorumunu Yanıtla / Güncelle (API)"** çekmecesiyle anında senkronize olur.
+   - **Claude Code CLI (`task-362` & `task-479` kronolojik kök neden konsensüsü + `task-689` uygulama sonrası Seviye 2 karşı ajan denetimi: `Sonuç: ✅ ONAY`)** + **Antigravity (`71/71 pytest PASS` `task-685`)**.
+
 ## [4.56.16-cockpit-logo-mobile-dock-pastel-ux] - 2026-11-23 (Railway Canlı Yayın — Kurucu Kokpiti `/admin/analytics` Gerçek Kurumsal Logo `/icon-192.png` + Favicon/PWA Entegrasyonu, Mobil Sabit Alt Navigasyon Barı `#cockpitMobileBottomDock`, Mobil Canlı Net MRR/VIP Rozeti `#mobileHeaderMrrBadge`, 2 Satır `line-clamp` + Dokunarak Genişletme ve 6'lı Pastel Kart Dokuları `--soft-*-card` • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🌙📱 Kurucu Kokpiti (`/admin/analytics`) Tam Kapsamlı Kurumsal Logo, Mobil App Shell & Pastel Doku Revizyonu (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **Gerçek Kurumsal Logo (`/icon-192.png`), Favicon ve PWA İkon Entegrasyonu:**
