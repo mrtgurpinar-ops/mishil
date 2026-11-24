@@ -24,6 +24,8 @@ yarn-error.log*
 # Store submission credentials — ASLA commit edilmez
 mobile/google-play-service-account.json
 **/google-play-service-account.json
+mobile/.gp_tok.txt
+**/.gp_tok.txt
 *.p8
 AuthKey_*.p8
 mobile/ios/certs/
