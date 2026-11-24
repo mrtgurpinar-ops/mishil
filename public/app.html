@@ -11831,7 +11831,8 @@
       ? mClean
       : formatLocalizedPriceDisplay(currSymbol, monthlyVal, mClean || introClean);
     const yearlyStr = yClean || formatLocalizedPriceDisplay(currSymbol, yearlyVal, yClean);
-    const monthlyEqVal = yearlyVal / 12;
+    const monthlyEqRaw = Math.floor((yearlyVal / 12) * 100) / 100;
+    const monthlyEqVal = monthlyEqRaw > 0 ? monthlyEqRaw : (yearlyVal / 12);
     const dailyEqVal = yearlyVal / 365;
     const isLargeUnit = yearlyVal >= 1000;
     const monthlyEqStr = isLargeUnit ? `${currSymbol}${Math.round(monthlyEqVal).toLocaleString('en-US')}` : formatLocalizedPriceDisplay(currSymbol, monthlyEqVal, yClean);
@@ -12358,6 +12359,37 @@
   }
 
   let lastPaywallCancelledPlan = 'monthly';
+  let lastSelectedCancelReason = null;
+
+  function buildCancelReasonReplyText(cleanKey, dp) {
+    const dailyStr = (dp && dp.introDailyEqStr) ? dp.introDailyEqStr : '₺1,66';
+    if (cleanKey === 'price') {
+      return trEnDe(
+        `💡 İlk ay boyunca 30 gün tam VIP erişim günde sadece ${dailyStr} (tek bir bebek bezinden bile uygun) ve 3 aile üyesi aynı paketi ortak kullanabilir.`,
+        `💡 Your first 30 days of full VIP access cost just ${dailyStr}/day (less than a single diaper) and up to 3 family members share 1 subscription.`,
+        `💡 Die ersten 30 Tage Voll-VIP kosten nur ${dailyStr}/Tag (weniger als 1 Windel) und bis zu 3 Familienmitglieder nutzen dasselbe Abo.`
+      );
+    }
+    if (cleanKey === 'cancel_fear') {
+      return trEnDe(
+        '🔒 Resmi App Store / Google Play güvencesiyle istediğiniz saniye telefon ayarlarınızdan tek tuşla iptal edebilirsiniz; kimseyi aramanız veya form doldurmanız gerekmez.',
+        '🔒 Protected by App Store / Google Play: cancel anytime with 1 tap in your phone settings—no calls or forms ever required.',
+        '🔒 Offizieller App Store / Google Play Schutz: jederzeit mit 1 Tipp in den Handyeinstellungen kündbar – ohne Anruf oder Formular.'
+      );
+    }
+    if (cleanKey === 'partner') {
+      return trEnDe(
+        '👨‍👩‍👧 Tek bir VIP abonelik başlattığınızda otomatik oluşan 6 haneli Aile Kodunuzla eşiniz kendi telefonundan ücretsiz bağlanır (2 ayrı abonelik gerekmez).',
+        '👨‍👩‍👧 Once you start 1 VIP plan, your partner joins free on their own phone using your 6-digit Family Code (no 2nd subscription needed).',
+        '👨‍👩‍👧 Mit nur 1 VIP-Abo verbindet sich Ihr Partner über den 6-stelligen Familiencode kostenlos auf dem eigenen Handy (kein 2. Abo nötig).'
+      );
+    }
+    return trEnDe(
+      '💳 Bebeğinizin profili ve tüm yanıtlarınız cihazınızda güvende! Hazır olduğunuzda kaldığınız yerden tek dokunuşla başlatabilirsiniz.',
+      '💳 Your baby\'s profile and answers are safely saved on your device! You can start anytime with one tap right where you left off.',
+      '💳 Das Profil Ihres Babys und alle Antworten sind sicher auf Ihrem Gerät gespeichert! Sie können jederzeit nahtlos starten.'
+    );
+  }
 
   function syncPaywallCancelRecoveryModalCopy(cancelledPlan) {
     const dp = getDynamicPricingState();
@@ -12377,6 +12409,7 @@
     const ctaEl = document.getElementById('btn-cancel-recovery-cta');
     const disEl = document.getElementById('btn-cancel-recovery-dismiss');
     const promptEl = document.getElementById('cancel-recovery-reason-prompt');
+    const replyEl = document.getElementById('cancel-recovery-reason-reply');
 
     if (titleEl) {
       titleEl.textContent = trEnDe(
@@ -12460,11 +12493,16 @@
         'Zurück zur Tarifauswahl'
       );
     }
+    if (replyEl && lastSelectedCancelReason) {
+      replyEl.textContent = buildCancelReasonReplyText(lastSelectedCancelReason, dp);
+      replyEl.style.display = 'block';
+    }
   }
   window.syncPaywallCancelRecoveryModalCopy = syncPaywallCancelRecoveryModalCopy;
 
   function openPaywallCancelRecoveryModal(cancelledPlan) {
     lastPaywallCancelledPlan = cancelledPlan === 'yearly' ? 'yearly' : 'monthly';
+    lastSelectedCancelReason = null;
     syncPaywallCancelRecoveryModalCopy(lastPaywallCancelledPlan);
     const replyEl = document.getElementById('cancel-recovery-reason-reply');
     if (replyEl) {
@@ -12498,6 +12536,7 @@
   function selectPaywallCancelReason(reasonKey, btnEl) {
     if (typeof hapticPulse === 'function') hapticPulse();
     const cleanKey = ['price', 'cancel_fear', 'partner', 'card'].includes(reasonKey) ? reasonKey : 'other';
+    lastSelectedCancelReason = cleanKey;
     document.querySelectorAll('#cancel-recovery-reason-chips .cancel-reason-chip').forEach(btn => {
       btn.style.border = '1px solid var(--border-night)';
       btn.style.background = 'rgba(255,255,255,0.05)';
@@ -12515,36 +12554,9 @@
     } catch (_cre) {}
 
     const dp = getDynamicPricingState();
-    const dailyStr = dp.introDailyEqStr || '₺1,66';
     const replyEl = document.getElementById('cancel-recovery-reason-reply');
     if (!replyEl) return;
-    let msg = '';
-    if (cleanKey === 'price') {
-      msg = trEnDe(
-        `💡 İlk ay boyunca 30 gün tam VIP erişim günde sadece ${dailyStr} (tek bir bebek bezinden bile uygun) ve 3 aile üyesi aynı paketi ortak kullanabilir.`,
-        `💡 Your first 30 days of full VIP access cost just ${dailyStr}/day (less than a single diaper) and up to 3 family members share 1 subscription.`,
-        `💡 Die ersten 30 Tage Voll-VIP kosten nur ${dailyStr}/Tag (weniger als 1 Windel) und bis zu 3 Familienmitglieder nutzen dasselbe Abo.`
-      );
-    } else if (cleanKey === 'cancel_fear') {
-      msg = trEnDe(
-        '🔒 Resmi App Store / Google Play güvencesiyle istediğiniz saniye telefon ayarlarınızdan tek tuşla iptal edebilirsiniz; kimseyi aramanız veya form doldurmanız gerekmez.',
-        '🔒 Protected by App Store / Google Play: cancel anytime with 1 tap in your phone settings—no calls or forms ever required.',
-        '🔒 Offizieller App Store / Google Play Schutz: jederzeit mit 1 Tipp in den Handyeinstellungen kündbar – ohne Anruf oder Formular.'
-      );
-    } else if (cleanKey === 'partner') {
-      msg = trEnDe(
-        '👨‍👩‍👧 Tek bir VIP abonelik başlattığınızda otomatik oluşan 6 haneli Aile Kodunuzla eşiniz kendi telefonundan ücretsiz bağlanır (2 ayrı abonelik gerekmez).',
-        '👨‍👩‍👧 Once you start 1 VIP plan, your partner joins free on their own phone using your 6-digit Family Code (no 2nd subscription needed).',
-        '👨‍👩‍👧 Mit nur 1 VIP-Abo verbindet sich Ihr Partner über den 6-stelligen Familiencode kostenlos auf dem eigenen Handy (kein 2. Abo nötig).'
-      );
-    } else {
-      msg = trEnDe(
-        '💳 Bebeğinizin profili ve tüm yanıtlarınız cihazınızda güvende! Hazır olduğunuzda kaldığınız yerden tek dokunuşla başlatabilirsiniz.',
-        '💳 Your baby\'s profile and answers are safely saved on your device! You can start anytime with one tap right where you left off.',
-        '💳 Das Profil Ihres Babys und alle Antworten sind sicher auf Ihrem Gerät gespeichert! Sie können jederzeit nahtlos starten.'
-      );
-    }
-    replyEl.textContent = msg;
+    replyEl.textContent = buildCancelReasonReplyText(cleanKey, dp);
     replyEl.style.display = 'block';
   }
   window.selectPaywallCancelReason = selectPaywallCancelReason;
@@ -20505,7 +20517,7 @@
     if (typeof handleModalClosedSideEffects === 'function') {
       handleModalClosedSideEffects(modalId);
     }
-    if (modalId !== 'vip-renewal-modal' && typeof enforceHardPaywallIfNeeded === 'function') {
+    if (modalId !== 'vip-renewal-modal' && modalId !== 'modal-paywall-cancel-recovery' && typeof enforceHardPaywallIfNeeded === 'function') {
       enforceHardPaywallIfNeeded();
     }
   }
@@ -23940,6 +23952,9 @@
     if (vipRenModalEl && vipRenModalEl.classList.contains('active') && typeof openVipRenewalModal === 'function') {
       openVipRenewalModal(lastVipRenewalFeature, { silentRefresh: true });
     }
+    if (typeof syncPaywallCancelRecoveryModalCopy === 'function') {
+      syncPaywallCancelRecoveryModalCopy(typeof lastPaywallCancelledPlan === 'string' && lastPaywallCancelledPlan ? lastPaywallCancelledPlan : 'monthly');
+    }
     if (Array.isArray(activeRoutines) && typeof recomputeDailyNapIndices === 'function') {
       recomputeDailyNapIndices(activeRoutines);
     }
@@ -24191,7 +24206,7 @@
           if (closedId && typeof handleModalClosedSideEffects === 'function') {
             handleModalClosedSideEffects(closedId);
           }
-          if (closedId !== 'vip-renewal-modal' && typeof enforceHardPaywallIfNeeded === 'function') {
+          if (closedId !== 'vip-renewal-modal' && closedId !== 'modal-paywall-cancel-recovery' && typeof enforceHardPaywallIfNeeded === 'function') {
             enforceHardPaywallIfNeeded();
           }
         }
