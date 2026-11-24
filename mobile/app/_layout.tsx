@@ -3,10 +3,11 @@ import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { useColorScheme } from 'react-native';
+import { AppState, Platform, useColorScheme } from 'react-native';
 import { useAppStore } from '../store/useAppStore';
 import { getTheme } from '../lib/theme';
 import { initRevenueCat } from '../features/subscription/revenuecat';
+import { initMetaSdkAndActivateApp } from '../features/analytics/metaAppEvents';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +31,21 @@ export default function RootLayout() {
   useEffect(() => {
     // RevenueCat native IAP köprüsü hazırla
     initRevenueCat().catch(() => {});
+
+    // Android'de ATT diyaloğu bulunmadığı için Meta SDK'yı WebView yüklenmesini beklemeden
+    // RootLayout mount anında hemen başlat ve ön plana dönüşlerde (AppState === 'active') oturum sinyalini yenile.
+    // iOS'ta ise Apple Guideline 5.1.2(i) gereği ATT diyaloğu MishilUnifiedWebView hazır olduğunda tetiklenir.
+    if (Platform.OS === 'android') {
+      initMetaSdkAndActivateApp().catch(() => {});
+    }
+    const sub = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active' && Platform.OS === 'android') {
+        initMetaSdkAndActivateApp().catch(() => {});
+      }
+    });
+    return () => {
+      sub.remove();
+    };
   }, []);
 
   return (

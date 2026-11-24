@@ -125,7 +125,6 @@ describe('Meta App Events & SKAdNetwork Bridge', () => {
     expect(calls.setAdvertiserIDCollectionEnabled).toEqual([true]);
     expect(calls.setAutoLogAppEventsEnabled).toEqual([true]);
     expect(calls.initializeSDK).toBe(1);
-    expect(calls.aemEnable).toBe(1);
     expect(calls.logEvent).toContainEqual(['fb_mobile_activate_app', { platform: 'ios' }]);
   });
 
@@ -217,5 +216,32 @@ describe('Meta App Events & SKAdNetwork Bridge', () => {
       'fb_mobile_complete_registration',
       { fb_registration_method: 'onboarding_quiz' },
     ]);
+  });
+
+  test('6. Android AppState active dönüşlerinde 15s throttle içinde tekrar loglamaz, 15s sonrasında fb_mobile_activate_app sinyalini yeniler', async () => {
+    const origNow = Date.now;
+    let fakeNow = 1_000_000;
+    Date.now = () => fakeNow;
+    try {
+      const { meta, calls } = createMetaHarness({ platformOs: 'android' });
+      await meta.initMetaSdkAndActivateApp();
+      expect(calls.initializeSDK).toBe(1);
+      expect(calls.logEvent.length).toBe(1);
+
+      // 5s sonra çağrıldığında throttle nedeniyle yeni activate_app atmaz
+      fakeNow += 5_000;
+      await meta.initMetaSdkAndActivateApp();
+      expect(calls.initializeSDK).toBe(1);
+      expect(calls.logEvent.length).toBe(1);
+
+      // 16s sonra çağrıldığında SDK yeniden init edilmeden activate_app + flush yenilenir
+      fakeNow += 11_000;
+      await meta.initMetaSdkAndActivateApp();
+      expect(calls.initializeSDK).toBe(1);
+      expect(calls.logEvent.length).toBe(2);
+      expect(calls.flush).toBe(2);
+    } finally {
+      Date.now = origNow;
+    }
   });
 });

@@ -31,10 +31,12 @@ export interface MetaPurchaseLogResult {
 let isMetaInitialized = false;
 let cachedTrackingGranted = false;
 let activeInitPromise: Promise<{ initialized: boolean; trackingGranted: boolean }> | null = null;
+let lastActivateAppLoggedAt = 0;
+const ACTIVATE_APP_MIN_INTERVAL_MS = 15_000;
 const inMemoryLoggedTxIds = new Set<string>();
 const inFlightTxIds = new Set<string>();
 
-function getFbSdkModules(): { Settings: any; AppEventsLogger: any; AEMReporterIOS?: any } | null {
+function getFbSdkModules(): { Settings: any; AppEventsLogger: any } | null {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const fbsdk = require('react-native-fbsdk-next');
@@ -44,7 +46,6 @@ function getFbSdkModules(): { Settings: any; AppEventsLogger: any; AEMReporterIO
     return {
       Settings: fbsdk.Settings,
       AppEventsLogger: fbsdk.AppEventsLogger,
-      AEMReporterIOS: fbsdk.AEMReporterIOS,
     };
   } catch {
     return null;
@@ -101,6 +102,23 @@ async function persistLoggedTransaction(txId: string): Promise<void> {
  */
 export async function initMetaSdkAndActivateApp(): Promise<{ initialized: boolean; trackingGranted: boolean }> {
   if (isMetaInitialized) {
+    // SDK zaten başlatıldıysa (ör. Android RootLayout soğuk başlangıç veya arka plandan ön plana dönüş),
+    // en az 15sn aralıkla fb_mobile_activate_app sinyalini tekrar gönder ve flush et.
+    const now = Date.now();
+    if (now - lastActivateAppLoggedAt >= ACTIVATE_APP_MIN_INTERVAL_MS) {
+      try {
+        const fb = getFbSdkModules();
+        if (fb) {
+          fb.AppEventsLogger.logEvent('fb_mobile_activate_app', {
+            platform: Platform.OS,
+          });
+          if (typeof fb.AppEventsLogger.flush === 'function') {
+            fb.AppEventsLogger.flush();
+          }
+          lastActivateAppLoggedAt = now;
+        }
+      } catch {}
+    }
     return { initialized: true, trackingGranted: cachedTrackingGranted };
   }
   if (activeInitPromise) {
@@ -146,9 +164,6 @@ export async function initMetaSdkAndActivateApp(): Promise<{ initialized: boolea
         if (typeof fb.Settings.initializeSDK === 'function') {
           fb.Settings.initializeSDK();
         }
-        if (Platform.OS === 'ios' && fb.AEMReporterIOS && typeof fb.AEMReporterIOS.enable === 'function') {
-          fb.AEMReporterIOS.enable();
-        }
       } catch {}
 
       try {
@@ -158,6 +173,7 @@ export async function initMetaSdkAndActivateApp(): Promise<{ initialized: boolea
         if (typeof fb.AppEventsLogger.flush === 'function') {
           fb.AppEventsLogger.flush();
         }
+        lastActivateAppLoggedAt = Date.now();
       } catch {}
 
       cachedTrackingGranted = trackingGranted;
@@ -318,6 +334,7 @@ export function __resetMetaAppEventsForTests(): void {
   isMetaInitialized = false;
   cachedTrackingGranted = false;
   activeInitPromise = null;
+  lastActivateAppLoggedAt = 0;
   inMemoryLoggedTxIds.clear();
   inFlightTxIds.clear();
 }
