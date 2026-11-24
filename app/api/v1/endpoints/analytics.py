@@ -3999,7 +3999,7 @@ def record_app_open_signal(
     today_start_tr = datetime(now_tr.year, now_tr.month, now_tr.day, tzinfo=tz_tr)
     today_start_utc = today_start_tr.astimezone(timezone.utc)
 
-    clean_uid = "".join(ch for ch in payload.device_uid if ch.isalnum() or ch in ("-", "_"))[:100] or "anon"
+    clean_uid = "".join(ch for ch in (payload.device_uid or "").strip().lower() if ch.isalnum() or ch in ("-", "_"))[:100] or "anon"
     clean_event = "".join(ch for ch in payload.event_type if ch.isalnum() or ch == "_")[:40] or "first_open"
 
     # first_open/daily_active için eşzamanlı isteklerde çift kayıt oluşmasını (TOCTOU) önlemek
@@ -4522,17 +4522,43 @@ def _build_analytics_summary(
     dadi_limit_reached_signals = [s for s in active_signals_set if s.event_type == "dadi_limit_reached"]
     routine_limit_reached_signals = [s for s in active_signals_set if s.event_type == "routine_limit_reached"]
     paywall_cancel_recovery_signals = [s for s in active_signals_set if s.event_type == "paywall_cancel_recovery_shown"]
+    paywall_cancel_recovery_cta_signals = [s for s in active_signals_set if s.event_type == "paywall_cancel_recovery_cta_clicked"]
+    paywall_cancel_reason_signals = [s for s in active_signals_set if (s.event_type or "").startswith("paywall_cancel_reason_")]
+    paywall_cancel_reasons_breakdown = {
+        "price": len([s for s in paywall_cancel_reason_signals if s.event_type == "paywall_cancel_reason_price"]),
+        "cancel_fear": len([s for s in paywall_cancel_reason_signals if s.event_type == "paywall_cancel_reason_cancel_fear"]),
+        "partner": len([s for s in paywall_cancel_reason_signals if s.event_type == "paywall_cancel_reason_partner"]),
+        "card": len([s for s in paywall_cancel_reason_signals if s.event_type == "paywall_cancel_reason_card"]),
+    }
+    def _count_distinct_signal_devices(sig_list: List[Any]) -> int:
+        if not sig_list:
+            return 0
+        keys = set()
+        for idx_s, s_item in enumerate(sig_list):
+            raw_u = (getattr(s_item, "device_uid", None) or "").strip().lower()
+            if not raw_u or raw_u in ("anon", "msl_anon", "unknown", "none", "null"):
+                keys.add(f"__anon_{idx_s}")
+            else:
+                keys.add(raw_u)
+        return len(keys)
+
+    paywall_cta_unique_devs = _count_distinct_signal_devices(paywall_cta_clicked_signals)
+    purchase_cancelled_unique_devs = _count_distinct_signal_devices(purchase_cancelled_signals)
+
     unmatched_organic_opens = len([
         s for s in first_opens if (s.match_confidence or "unmatched") == "unmatched"
     ])
     distinct_signal_devices = len({
-        s.device_uid for s in active_signals_set
-        if s.device_uid and s.event_type in (
-            "first_open", "daily_active", "baby_created", "vip_started", "sleep_sound_play", "cry_analysis",
-            "routine_logged", "dadi_chat",
-            "paywall_viewed", "paywall_cta_clicked", "paywall_skipped", "purchase_cancelled", "purchase_error",
-            "sound_preview_60s_ended", "cry_limit_reached", "dadi_limit_reached", "routine_limit_reached",
-            "paywall_cancel_recovery_shown"
+        (s.device_uid or "").strip().lower() for s in active_signals_set
+        if s.device_uid and (s.device_uid or "").strip().lower() not in ("anon", "msl_anon", "unknown") and (
+            s.event_type in (
+                "first_open", "daily_active", "baby_created", "vip_started", "sleep_sound_play", "cry_analysis",
+                "routine_logged", "dadi_chat",
+                "paywall_viewed", "paywall_cta_clicked", "paywall_skipped", "purchase_cancelled", "purchase_error",
+                "sound_preview_60s_ended", "cry_limit_reached", "dadi_limit_reached", "routine_limit_reached",
+                "paywall_cancel_recovery_shown", "paywall_cancel_recovery_cta_clicked"
+            )
+            or (s.event_type or "").startswith("paywall_cancel_reason_")
         )
     })
 
@@ -6707,11 +6733,16 @@ def _build_analytics_summary(
                 "paywall_cta_clicked": len(paywall_cta_clicked_signals),
                 "paywall_skipped": len(paywall_skipped_signals),
                 "purchase_cancelled": len(purchase_cancelled_signals),
+                "purchase_cancelled_unique_devices": purchase_cancelled_unique_devs,
+                "paywall_cta_clicked_unique_devices": paywall_cta_unique_devs,
                 "purchase_error": len(purchase_error_signals),
                 "vip_started": len(vip_started_signals),
                 "cancel_rate_pct": (
-                    round((len(purchase_cancelled_signals) / max(1, len(paywall_cta_clicked_signals))) * 100, 1)
-                    if len(paywall_cta_clicked_signals) > 0
+                    min(
+                        100.0,
+                        round((purchase_cancelled_unique_devs / max(1, paywall_cta_unique_devs)) * 100, 1),
+                    )
+                    if paywall_cta_unique_devs > 0
                     else 0.0
                 ),
                 "sound_preview_60s_ended": len(sound_preview_60s_ended_signals),
@@ -6719,6 +6750,8 @@ def _build_analytics_summary(
                 "dadi_limit_reached": len(dadi_limit_reached_signals),
                 "routine_limit_reached": len(routine_limit_reached_signals),
                 "paywall_cancel_recovery_shown": len(paywall_cancel_recovery_signals),
+                "paywall_cancel_recovery_cta_clicked": len(paywall_cancel_recovery_cta_signals),
+                "paywall_cancel_reasons": paywall_cancel_reasons_breakdown,
                 "ios": {
                     "paywall_viewed": len([s for s in paywall_viewed_signals if (s.os_family or "").lower() == "ios"]),
                     "paywall_cta_clicked": len([s for s in paywall_cta_clicked_signals if (s.os_family or "").lower() == "ios"]),
@@ -10854,7 +10887,7 @@ def analytics_dashboard_page(
                 <div class="step-box">
                   <div class="step-num" style="color:#DC2626;">4. ÖDEME İPTALİ</div>
                   <div class="step-val">{pf['paywall_funnel']['purchase_cancelled']} (%{pf['paywall_funnel']['cancel_rate_pct']})</div>
-                  <div class="step-sub">🍏 iOS: <strong>{pf['paywall_funnel']['ios']['purchase_cancelled']}/{pf['paywall_funnel']['ios']['paywall_cta_clicked']}</strong> • 🤖 Android: <strong>{pf['paywall_funnel']['android']['purchase_cancelled']}/{pf['paywall_funnel']['android']['paywall_cta_clicked']}</strong> • Kurtarma Teklifi: <strong>{pf['paywall_funnel']['paywall_cancel_recovery_shown']}</strong>.</div>
+                  <div class="step-sub">🍏 iOS: <strong>{pf['paywall_funnel']['ios']['purchase_cancelled']}/{pf['paywall_funnel']['ios']['paywall_cta_clicked']}</strong> • 🤖 Android: <strong>{pf['paywall_funnel']['android']['purchase_cancelled']}/{pf['paywall_funnel']['android']['paywall_cta_clicked']}</strong> • Kurtarma Gösterimi: <strong>{pf['paywall_funnel']['paywall_cancel_recovery_shown']}</strong> (Kurtarma CTA: <strong>{pf['paywall_funnel'].get('paywall_cancel_recovery_cta_clicked', 0)}</strong>).</div>
                   <span class="step-rate">🍏 {pf['paywall_funnel']['ios']['purchase_cancelled']} • 🤖 {pf['paywall_funnel']['android']['purchase_cancelled']}</span>
                 </div>
               </div>
