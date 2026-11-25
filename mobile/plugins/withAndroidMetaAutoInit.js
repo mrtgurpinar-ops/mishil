@@ -1,4 +1,4 @@
-const { withAndroidManifest } = require('@expo/config-plugins');
+const { withBaseMod } = require('@expo/config-plugins/build/plugins/withMod');
 
 /**
  * Expo Config Plugin: withAndroidMetaAutoInit
@@ -7,11 +7,12 @@ const { withAndroidManifest } = require('@expo/config-plugins');
  * `isAutoInitEnabled: false`, `autoLogAppEventsEnabled: false`, `advertiserIDCollectionEnabled: false`
  * tutularak iOS `Info.plist` tarafındaki çalışan/onaylanmış ATT akışı %100 korunur.
  *
- * YALNIZCA Android (`AndroidManifest.xml`) tarafında ise Meta SDK'nın soğuk başlangıçta (`Application.onCreate` /
- * `MainActivity.onResume`) `ActivityLifecycleTracker` ve Google Play `InstallReferrerUtil` kancalarını
- * kaçırmaması ve Meta Ads Manager'da Android `MOBILE_APP_INSTALL` olaylarının eksiksiz sayılması için
- * `com.facebook.sdk.AutoInitEnabled`, `AutoLogAppEventsEnabled` ve `AdvertiserIDCollectionEnabled`
- * meta-data değerlerini `true` olarak yazar.
+ * `@expo/config-plugins` `withMod` zinciri LIFO (`action -> nextMod`) çalıştığı için,
+ * bu eklenti hem `app.config.ts` içinde `react-native-fbsdk-next` öncesine konumlandırılır
+ * hem de `withBaseMod` üzerinde hem `nextMod` öncesinde hem de `await nextMod(...)` dönüşünde
+ * (post-hook olarak) `AndroidManifest.xml` içerisindeki Meta SDK bayraklarını `'true'` yapar.
+ * Böylece `plugins` dizisindeki sıra ne olursa olsun `withFacebookManifest` tarafından
+ * `'false'` ile ezilmesi imkânsız hale getirilir.
  */
 function setOrReplaceMetaData(mainApplication, name, value) {
   if (!mainApplication['meta-data']) {
@@ -32,20 +33,37 @@ function setOrReplaceMetaData(mainApplication, name, value) {
   }
 }
 
-const withAndroidMetaAutoInit = (config) => {
-  return withAndroidManifest(config, (cfg) => {
-    const mainApp =
-      cfg.modResults &&
-      cfg.modResults.manifest &&
-      Array.isArray(cfg.modResults.manifest.application) &&
-      cfg.modResults.manifest.application[0];
+function applyAndroidMetaAutoInitFlags(modResults) {
+  const mainApp =
+    modResults &&
+    modResults.manifest &&
+    Array.isArray(modResults.manifest.application) &&
+    modResults.manifest.application[0];
 
-    if (mainApp) {
-      setOrReplaceMetaData(mainApp, 'com.facebook.sdk.AutoInitEnabled', 'true');
-      setOrReplaceMetaData(mainApp, 'com.facebook.sdk.AutoLogAppEventsEnabled', 'true');
-      setOrReplaceMetaData(mainApp, 'com.facebook.sdk.AdvertiserIDCollectionEnabled', 'true');
-    }
-    return cfg;
+  if (mainApp) {
+    setOrReplaceMetaData(mainApp, 'com.facebook.sdk.AutoInitEnabled', 'true');
+    setOrReplaceMetaData(mainApp, 'com.facebook.sdk.AutoLogAppEventsEnabled', 'true');
+    setOrReplaceMetaData(mainApp, 'com.facebook.sdk.AdvertiserIDCollectionEnabled', 'true');
+  }
+}
+
+const withAndroidMetaAutoInit = (config) => {
+  return withBaseMod(config, {
+    platform: 'android',
+    mod: 'manifest',
+    isProvider: false,
+    async action({ modRequest: { nextMod, ...modRequest }, modResults, ...cfg }) {
+      applyAndroidMetaAutoInitFlags(modResults);
+      const nextResults = await nextMod({
+        modRequest,
+        modResults,
+        ...cfg,
+      });
+      if (nextResults && nextResults.modResults) {
+        applyAndroidMetaAutoInitFlags(nextResults.modResults);
+      }
+      return nextResults;
+    },
   });
 };
 

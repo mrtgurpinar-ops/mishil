@@ -13,6 +13,7 @@ function createMetaHarness(overrides = {}) {
     setAdvertiserIDCollectionEnabled: [],
     setAutoLogAppEventsEnabled: [],
     initializeSDK: 0,
+    fetchDeferredAppLink: 0,
     logEvent: [],
     logPurchase: [],
     flush: 0,
@@ -82,6 +83,12 @@ function createMetaHarness(overrides = {}) {
           },
           flush: () => {
             calls.flush += 1;
+          },
+        },
+        AppLink: {
+          fetchDeferredAppLink: async () => {
+            calls.fetchDeferredAppLink += 1;
+            return null;
           },
         },
         AEMReporterIOS: {
@@ -238,10 +245,86 @@ describe('Meta App Events & SKAdNetwork Bridge', () => {
       fakeNow += 11_000;
       await meta.initMetaSdkAndActivateApp();
       expect(calls.initializeSDK).toBe(1);
+      expect(calls.fetchDeferredAppLink).toBe(1);
       expect(calls.logEvent.length).toBe(2);
       expect(calls.flush).toBe(2);
     } finally {
       Date.now = origNow;
     }
+  });
+
+  test('7. Expo Config Plugins: AndroidManifest içinde AutoInit/AutoLog/AdvertiserID true üretilirken, iOS Info.plist içinde ATT koruması (false) %100 korunur', async () => {
+    const mobileRoot = path.resolve(__dirname, '..');
+    const { getConfig } = require(path.join(mobileRoot, 'node_modules/@expo/config'));
+    const androidBm = require(path.join(
+      mobileRoot,
+      'node_modules/@expo/config-plugins/build/plugins/withAndroidBaseMods'
+    ));
+    const iosBm = require(path.join(
+      mobileRoot,
+      'node_modules/@expo/config-plugins/build/plugins/withIosBaseMods'
+    ));
+
+    // 1) AndroidManifest.xml mod zinciri doğrulaması
+    let { exp: androidExp } = getConfig(mobileRoot, {
+      skipSDKVersionRequirement: true,
+      isModdedConfig: true,
+    });
+    androidExp = androidBm.withAndroidBaseMods(androidExp, {
+      introspect: true,
+      saveToInternal: true,
+      providers: {
+        manifest: androidBm.getAndroidModFileProviders().manifest,
+      },
+    });
+    const androidRes = await androidExp.mods.android.manifest({
+      modRequest: {
+        projectRoot: mobileRoot,
+        platformProjectRoot: path.join(mobileRoot, 'android'),
+        modName: 'manifest',
+        platform: 'android',
+        introspect: true,
+      },
+      ...androidExp,
+    });
+    const metaDataList = androidRes.modResults.manifest.application[0]['meta-data'] || [];
+    const getMetaValue = (name) => {
+      const entry = metaDataList.find((item) => item && item.$ && item.$['android:name'] === name);
+      return entry ? entry.$['android:value'] : undefined;
+    };
+
+    expect(getMetaValue('com.facebook.sdk.AutoInitEnabled')).toBe('true');
+    expect(getMetaValue('com.facebook.sdk.AutoLogAppEventsEnabled')).toBe('true');
+    expect(getMetaValue('com.facebook.sdk.AdvertiserIDCollectionEnabled')).toBe('true');
+    expect(getMetaValue('com.facebook.sdk.ApplicationId')).toBe('@string/facebook_app_id');
+    expect(getMetaValue('com.facebook.sdk.ClientToken')).toBe('@string/facebook_client_token');
+
+    // 2) iOS Info.plist mod zinciri doğrulaması (ATT öncesi false kalmalı)
+    let { exp: iosExp } = getConfig(mobileRoot, {
+      skipSDKVersionRequirement: true,
+      isModdedConfig: true,
+    });
+    iosExp = iosBm.withIosBaseMods(iosExp, {
+      introspect: true,
+      saveToInternal: true,
+      providers: {
+        infoPlist: iosBm.getIosModFileProviders().infoPlist,
+      },
+    });
+    const iosRes = await iosExp.mods.ios.infoPlist({
+      modRequest: {
+        projectRoot: mobileRoot,
+        platformProjectRoot: path.join(mobileRoot, 'ios'),
+        modName: 'infoPlist',
+        platform: 'ios',
+        introspect: true,
+      },
+      ...iosExp,
+    });
+    const plist = iosRes.modResults;
+    expect(plist.FacebookAutoInitEnabled).toBe(false);
+    expect(plist.FacebookAutoLogAppEventsEnabled).toBe(false);
+    expect(plist.FacebookAdvertiserIDCollectionEnabled).toBe(false);
+    expect(plist.FacebookAppID).toBe('1093539003520092');
   });
 });

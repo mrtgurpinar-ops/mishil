@@ -89,6 +89,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   plugins: [
     'expo-router',
+    './plugins/withAndroidMetaAutoInit',
     [
       'expo-tracking-transparency',
       {
@@ -143,8 +144,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       }
     ],
     './plugins/withMinDeploymentTarget',
-    './plugins/withMishilLiveActivity',
-    './plugins/withAndroidMetaAutoInit'
+    './plugins/withMishilLiveActivity'
   ],
   extra: {
     eas: {

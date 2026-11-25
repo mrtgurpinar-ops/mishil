@@ -36,7 +36,7 @@ const ACTIVATE_APP_MIN_INTERVAL_MS = 15_000;
 const inMemoryLoggedTxIds = new Set<string>();
 const inFlightTxIds = new Set<string>();
 
-function getFbSdkModules(): { Settings: any; AppEventsLogger: any } | null {
+function getFbSdkModules(): { Settings: any; AppEventsLogger: any; AppLink?: any } | null {
   try {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const fbsdk = require('react-native-fbsdk-next');
@@ -46,6 +46,7 @@ function getFbSdkModules(): { Settings: any; AppEventsLogger: any } | null {
     return {
       Settings: fbsdk.Settings,
       AppEventsLogger: fbsdk.AppEventsLogger,
+      AppLink: fbsdk.AppLink,
     };
   } catch {
     return null;
@@ -165,6 +166,15 @@ export async function initMetaSdkAndActivateApp(): Promise<{ initialized: boolea
           fb.Settings.initializeSDK();
         }
       } catch {}
+
+      // Ertelenmiş derin bağlantı (Deferred App Link / Meta Ad Click) yakalayıcısı:
+      // Android'de her ilk başlatmada, iOS'ta ise ATT izni verildiğinde (trackingGranted)
+      // Meta sunucusundan ertelenmiş reklam bağlantısını çekerek kurulum eşleşmesini güçlendirir.
+      if (trackingGranted && fb.AppLink && typeof fb.AppLink.fetchDeferredAppLink === 'function') {
+        try {
+          await fb.AppLink.fetchDeferredAppLink();
+        } catch {}
+      }
 
       try {
         fb.AppEventsLogger.logEvent('fb_mobile_activate_app', {
