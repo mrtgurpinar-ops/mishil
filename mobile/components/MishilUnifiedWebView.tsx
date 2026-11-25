@@ -554,10 +554,10 @@ export default function MishilUnifiedWebView() {
       if (rawProfile || rawOnboarding === 'true' || resolvedSavedLang || safeReviewTs || hasAnyQuotaFlag) {
         let pObj: any = null;
         try { pObj = rawProfile ? JSON.parse(rawProfile) : null; } catch {}
-        const nameVal = pObj?.babyName ? String(pObj.babyName).replace(/[`\\$]/g, '') : '';
-        const bdateVal = pObj?.babyBdate ? String(pObj.babyBdate).replace(/[`\\$]/g, '') : '';
-        const roleVal = pObj?.userRole ? String(pObj.userRole).replace(/[`\\$]/g, '') : '';
-        const uNameVal = pObj?.userName ? String(pObj.userName).replace(/[`\\$]/g, '') : '';
+        const nameVal = pObj?.babyName ? String(pObj.babyName).replace(/[\r\n<>]/g, '').trim() : '';
+        const bdateVal = pObj?.babyBdate ? String(pObj.babyBdate).replace(/[^0-9-]/g, '').trim() : '';
+        const roleVal = pObj?.userRole ? String(pObj.userRole).replace(/[^a-z_]/gi, '').trim() : '';
+        const uNameVal = pObj?.userName ? String(pObj.userName).replace(/[\r\n<>]/g, '').trim() : '';
         const planVal = rawPlan ? String(rawPlan).replace(/[^a-z_]/gi, '') : '';
         const shouldHydrateFamilyPlan = planVal === 'family_vip';
         const safeSoundElapsed = Math.max(0, Math.min(60000, Math.round(deviceQuotas.freeSoundElapsedMs || 0)));
@@ -569,11 +569,11 @@ export default function MishilUnifiedWebView() {
               if (window.__MISHIL_APP__) {
                 window.__MISHIL_APP__.savedLang = ${JSON.stringify(resolvedSavedLang)};
               }
-              ${resolvedSavedLang ? `if (!localStorage.getItem('mishil_lang')) { localStorage.setItem('mishil_lang', '${resolvedSavedLang}'); modified = true; }` : ''}
-              ${nameVal ? `if (!localStorage.getItem('mishil_baby_name')) { localStorage.setItem('mishil_baby_name', '${nameVal}'); modified = true; }` : ''}
-              ${bdateVal ? `if (!localStorage.getItem('mishil_baby_bdate')) { localStorage.setItem('mishil_baby_bdate', '${bdateVal}'); modified = true; }` : ''}
-              ${roleVal ? `if (!localStorage.getItem('mishil_user_role')) { localStorage.setItem('mishil_user_role', '${roleVal}'); modified = true; }` : ''}
-              ${uNameVal ? `if (!localStorage.getItem('mishil_user_name')) { localStorage.setItem('mishil_user_name', '${uNameVal}'); modified = true; }` : ''}
+              ${resolvedSavedLang ? `if (!localStorage.getItem('mishil_lang')) { localStorage.setItem('mishil_lang', ${JSON.stringify(resolvedSavedLang)}); modified = true; }` : ''}
+              ${nameVal ? `if (!localStorage.getItem('mishil_baby_name')) { localStorage.setItem('mishil_baby_name', ${JSON.stringify(nameVal)}); modified = true; }` : ''}
+              ${bdateVal ? `if (!localStorage.getItem('mishil_baby_bdate')) { localStorage.setItem('mishil_baby_bdate', ${JSON.stringify(bdateVal)}); modified = true; }` : ''}
+              ${roleVal ? `if (!localStorage.getItem('mishil_user_role')) { localStorage.setItem('mishil_user_role', ${JSON.stringify(roleVal)}); modified = true; }` : ''}
+              ${uNameVal ? `if (!localStorage.getItem('mishil_user_name')) { localStorage.setItem('mishil_user_name', ${JSON.stringify(uNameVal)}); modified = true; }` : ''}
               ${rawOnboarding === 'true' ? `if (!localStorage.getItem('mishil_onboarding_completed')) { localStorage.setItem('mishil_onboarding_completed', 'true'); modified = true; }` : ''}
               ${shouldHydrateFamilyPlan ? `if (!localStorage.getItem('mishil_subscription_plan') && localStorage.getItem('mishil_family_vip_verified') === '1') { localStorage.setItem('mishil_subscription_plan', 'family_vip'); modified = true; }` : ''}
               ${safeReviewTs ? `if (!localStorage.getItem('mishil_native_review_last_ts')) { localStorage.setItem('mishil_native_review_last_ts', '${safeReviewTs}'); }` : ''}

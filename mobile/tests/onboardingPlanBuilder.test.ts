@@ -57,7 +57,7 @@ const SAMPLE_TR_VACCINES = [
 ];
 
 describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
-  it('verifies zero text/keyboard inputs inside #screen-onboarding and presence of #modal-post-paywall-profile', () => {
+  it('verifies mandatory single-entry Baby Name input (#onb-baby-name-input) on Step 1, Welcome Screen (#quiz-step-0) with honest trust pills, and zero duplicate post-paywall prompt', () => {
     const htmlPath = path.resolve(__dirname, '../../public/app.html');
     const html = fs.readFileSync(htmlPath, 'utf8');
     const onbStart = html.indexOf('<div id="screen-onboarding"');
@@ -66,8 +66,39 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(mainStart).toBeGreaterThan(onbStart);
 
     const onboardingMarkup = html.slice(onbStart, mainStart);
-    expect(onboardingMarkup.includes('type="text"')).toBe(false);
+    // Only #onb-baby-name-input is a text input inside #screen-onboarding (zero textareas)
+    const textInputMatches = onboardingMarkup.match(/type="text"/g) || [];
+    expect(textInputMatches.length).toBe(1);
+    expect(onboardingMarkup.includes('id="onb-baby-name-input"')).toBe(true);
     expect(onboardingMarkup.includes('<textarea')).toBe(false);
+    expect(onboardingMarkup.includes('id="quiz-step-0"')).toBe(true);
+    expect(onboardingMarkup.includes('id="welcome-trust-pills"')).toBe(true);
+    expect(onboardingMarkup.includes('id="btn-welcome-start-plan"')).toBe(true);
+    expect(onboardingMarkup.includes('✨ 1 Dakikada Uyku Planımı Oluştur ➔')).toBe(true);
+    // Welcome Screen must contain ZERO fake/static star ratings (AGENTS.md §6.1/§6.2)
+    const step0Slice = onboardingMarkup.slice(onboardingMarkup.indexOf('id="quiz-step-0"'), onboardingMarkup.indexOf('id="quiz-step-1"'));
+    expect(step0Slice.includes('★★★★★')).toBe(false);
+    expect(step0Slice.includes('5.0')).toBe(false);
+    expect(step0Slice.includes('nextQuizStep(1)')).toBe(true);
+    expect(step0Slice.includes('openJoinFamilyModal()')).toBe(true);
+    expect(step0Slice.includes('restoreVipRenewalPurchases()')).toBe(true);
+    // currentQuizStep must be hoisted with var BEFORE checkOnboardingState() so top-level execution never hits TDZ ReferenceError
+    const currentStepVarIdx = html.indexOf('var currentQuizStep = 0;');
+    const checkOnbCallIdx = html.indexOf('checkOnboardingState();');
+    expect(currentStepVarIdx).toBeGreaterThan(0);
+    expect(checkOnbCallIdx).toBeGreaterThan(currentStepVarIdx);
+    expect(html.includes('let currentQuizStep =')).toBe(false);
+    // Step 1 mandatory name check & zero duplicate post-paywall prompt guarantee
+    expect(html.includes('👶 Lütfen bebeğinizin adını girin')).toBe(true);
+    expect(html.includes('function onOnboardingBabyNameInput(')).toBe(true);
+    expect(html.includes("const nm = (!isPlaceholderBabyName(rawTypedName) ? rawTypedName : '') || fallbackKnownName;")).toBe(true);
+    // Light theme contrast rules for #report-transformation-card, #quiz-back-btn, and .cancel-reason-chip
+    expect(html.includes('[data-theme="light"] #report-transformation-card')).toBe(true);
+    expect(html.includes('[data-theme="light"] #quiz-back-btn')).toBe(true);
+    expect(html.includes('[data-theme="light"] .cancel-reason-chip')).toBe(true);
+    const maybePostIdx = html.indexOf('function maybeOpenPostPaywallProfileModal()');
+    const maybePostSlice = html.slice(maybePostIdx, maybePostIdx + 520);
+    expect(maybePostSlice.includes('!isPlaceholderBabyName(existingSavedNm)')).toBe(true);
     expect(onboardingMarkup.includes('id="quiz-step-6"')).toBe(true);
     expect(onboardingMarkup.includes('id="quiz-step-7"')).toBe(true);
     expect(onboardingMarkup.includes('id="quiz-step-8"')).toBe(true);
@@ -338,8 +369,17 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     const step8Html = html.slice(step8Idx, step9Idx);
     const step9Html = html.slice(step9Idx, mainIdx);
 
-    // Step 8 focuses strictly on personal report + locked evening roadmap CTA, with zero plan cards
+    // Step 8 focuses strictly on personal report + visible transformation card + locked evening roadmap CTA, with zero plan cards
     expect(step8Html.includes('id="report-next-sweetspot-time"')).toBe(true);
+    expect(step8Html.includes('id="report-transformation-card"')).toBe(true);
+    expect(step8Html.includes('id="report-transformation-title"')).toBe(true);
+    // Before/After transformation goals (#report-target-latency/wakes/extra & #report-score-val) must be ABOVE <details id="report-details-drawer"> (never hidden inside collapsed drawer!)
+    const transIdx = step8Html.indexOf('id="report-transformation-card"');
+    const latencyIdx = step8Html.indexOf('id="report-target-latency"');
+    const drawerIdx = step8Html.indexOf('id="report-details-drawer"');
+    expect(transIdx).toBeGreaterThan(-1);
+    expect(latencyIdx).toBeGreaterThan(transIdx);
+    expect(drawerIdx).toBeGreaterThan(latencyIdx);
     expect(step8Html.includes('id="report-locked-roadmap-card"')).toBe(true);
     expect(step8Html.includes('id="btn-report-unlock-plan"')).toBe(true);
     expect(step8Html.includes('id="onboarding-plan-monthly"')).toBe(false);
@@ -352,6 +392,11 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(step9Html.includes('openJoinFamilyModal()')).toBe(true);
     expect(step9Html.includes('id="onb-paywall-delete-btn"')).toBe(true);
     expect(step9Html.includes('id="paywall-version-trigger"')).toBe(true);
+    // Concept D value anchoring on Step 9: zero daily-cost badge clutter (.badge-monthly-daily-cost) & zero front-facing '⚡ Tek Tuşla İptal' in micro trust strip
+    expect(step9Html.includes('badge-monthly-daily-cost')).toBe(false);
+    expect(step9Html.includes('⚡ Tek Tuşla İptal')).toBe(false);
+    expect(step9Html.includes('Sonrasında ayda bir kahve fiyatına')).toBe(true);
+    expect(step9Html.includes('class="paywall-micro-intro-pill"')).toBe(true);
 
     // Apple Guideline 3.1.2c: total annual billed amount (.price-yearly-text) must precede monthly equivalent (.price-yearly-monthly-eq-text)
     const yearlyCardStart = step9Html.indexOf('id="onboarding-plan-yearly"');
@@ -1066,6 +1111,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
       '.badge-trial-7d-hero': [{ textContent: '' }],
       '.badge-trial-7d-vip': [{ textContent: '' }],
       '.badge-trial-7d-flex, .badge-trial-7d': [{ id: 'onb-badge', textContent: '', style: {} }],
+      '.paywall-micro-intro-pill': [{ textContent: '' }],
     };
     const vmCtx = {
       window: { __MISHIL_STORE_PRICES__: {}, __MISHIL_SUB_META__: null },
@@ -1091,7 +1137,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
       JSON,
     };
     vm.runInNewContext(
-      pricingSnippet + '\nthis._p = { dp: getDynamicPricingState, apply: window.applyStorePrices, cta: buildPaywallCtaLabel, legal: buildPaywallLegalTimelineLabel, care: hasActiveInProgressCareSession, setLang: (l) => { activeLang = l; } };',
+      pricingSnippet + '\nthis._p = { dp: getDynamicPricingState, apply: window.applyStorePrices, cta: buildPaywallCtaLabel, shield: buildPaywallShieldLabel, legal: buildPaywallLegalTimelineLabel, care: hasActiveInProgressCareSession, setLang: (l) => { activeLang = l; } };',
       vmCtx
     );
 
@@ -1111,6 +1157,8 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(dpEligible.introMonthlyStr).toBe('₺49,99');
     expect(dpEligible.monthlyStr).toBe('₺149,99');
     expect(vmCtx._p.cta('monthly', dpEligible)).toBe('✨ İlk Ay ₺49,99 ile VIP Başlat');
+    expect(vmCtx._p.shield('monthly', dpEligible)).toBe('☕ İlk ay denemeniz için ₺49,99 • Sonrasında ayda bir kahve fiyatına (₺149,99/ay)');
+    expect(vmCtx._p.shield('yearly', dpEligible)).toBe('👑 Yıllık ₺599,99 (Aylık ₺49,99 karşılığı) • Tüm yıl 3 cihazda ortak kullanım');
     expect(vmCtx._p.legal('monthly', dpEligible)).toContain('2. aydan itibaren Aylık ₺149,99/ay');
 
     // State 2a: Store reports 'ineligible' (returning/former trial user) -> ZERO ₺49,99 claim, shows ₺149,99/ay directly
@@ -1127,6 +1175,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(dpIneligible.showIntroOffer).toBe(false);
     expect(vmCtx._p.cta('monthly', dpIneligible)).toBe('🌙 Aylık VIP Başlat (₺149,99/ay)');
     expect(vmCtx._p.cta('monthly', dpIneligible)).not.toContain('₺49,99');
+    expect(vmCtx._p.shield('monthly', dpIneligible)).toBe('☕ Ayda bir kahve fiyatına (₺149,99/ay) • Tüm VIP özellikler anında açılır');
 
     // State 2b: Legacy client ('unknown') WITH local prior subscription trace -> treated as 'ineligible'
     store.mishil_has_ever_subscribed = '1';
@@ -1172,6 +1221,8 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(domNodes['.price-monthly-primary-text'][0].textContent).toBe('₺49,99');
     expect(domNodes['.price-monthly-unit-text'][0].textContent).toBe('/ilk ay');
     expect(domNodes['.price-monthly-after-text'][0].innerHTML).toContain('149,99');
+    expect(domNodes['.price-monthly-subtext'][0].textContent).toBe('İlk ay tanışma fiyatı ₺49,99 • Sonrasında ayda bir kahve fiyatına (₺149,99/ay)');
+    expect(domNodes['.paywall-micro-intro-pill'][0].textContent).toBe('✨ İlk Ay ₺49,99 Başlangıç');
 
     vmCtx._p.apply({
       monthly: '₺149,99',
@@ -1185,7 +1236,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     });
     expect(domNodes['.price-monthly-primary-text'][0].textContent).toBe('₺49,99');
     expect(domNodes['.price-monthly-unit-text'][0].textContent).toBe('/ilk ay');
-    expect(domNodes['.price-monthly-subtext'][0].textContent).toContain('Uygun yeni hesaplarda ilk ay ₺49,99');
+    expect(domNodes['.price-monthly-subtext'][0].textContent).toBe('Uygun yeni hesaplarda ilk ay ₺49,99 • Sonrasında ayda bir kahve fiyatına (₺149,99/ay)');
 
     vmCtx._p.apply({
       monthly: '₺149,99',
@@ -1200,7 +1251,9 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(domNodes['.price-monthly-primary-text'][0].textContent).toBe('₺149,99');
     expect(domNodes['.price-monthly-unit-text'][0].textContent).toBe('/ay');
     expect(domNodes['.price-monthly-after-text'][0].textContent).toBe('Otomatik yenilenir');
+    expect(domNodes['.price-monthly-subtext'][0].textContent).toBe('Ayda bir kahve fiyatına • 3 cihazda ortak aile kullanımı');
     expect(domNodes['.price-monthly-subtext'][0].textContent).not.toContain('49,99');
+    expect(domNodes['.paywall-micro-intro-pill'][0].textContent).toBe('☕ Ayda Bir Kahve Fiyatına');
 
     // State 3a: Web preview client with zero prior trace -> 'unknown_new_user' (primary headline stays ₺149,99/ay; conditional 'Uygun' copy shown)
     const dpUnknownNew = vmCtx._p.dp({ monthly: '₺149,99', monthlyPrice: 149.99, yearly: '₺599,99', yearlyPrice: 599.99, currencyCode: 'TRY' });
