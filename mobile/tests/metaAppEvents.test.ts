@@ -132,6 +132,7 @@ describe('Meta App Events & SKAdNetwork Bridge', () => {
     expect(calls.setAdvertiserIDCollectionEnabled).toEqual([true]);
     expect(calls.setAutoLogAppEventsEnabled).toEqual([true]);
     expect(calls.initializeSDK).toBe(1);
+    expect(calls.fetchDeferredAppLink).toBe(0);
     expect(calls.logEvent).toContainEqual(['fb_mobile_activate_app', { platform: 'ios' }]);
   });
 

@@ -167,12 +167,12 @@ export async function initMetaSdkAndActivateApp(): Promise<{ initialized: boolea
         }
       } catch {}
 
-      // Ertelenmiş derin bağlantı (Deferred App Link / Meta Ad Click) yakalayıcısı:
-      // Android'de her ilk başlatmada, iOS'ta ise ATT izni verildiğinde (trackingGranted)
-      // Meta sunucusundan ertelenmiş reklam bağlantısını çekerek kurulum eşleşmesini güçlendirir.
-      if (trackingGranted && fb.AppLink && typeof fb.AppLink.fetchDeferredAppLink === 'function') {
+      // YALNIZCA Android: Ertelenmiş derin bağlantı (Deferred App Link / Meta Ad Click) yakalayıcısı.
+      // iOS'taki çalışan ve Apple tarafından onaylanmış ATT/SKAdNetwork akışına hiç dokunmamak ve
+      // fb_mobile_activate_app olayını ağ çağrısıyla bekletmemek için fire-and-forget olarak yalnız Android'de tetiklenir.
+      if (Platform.OS === 'android' && fb.AppLink && typeof fb.AppLink.fetchDeferredAppLink === 'function') {
         try {
-          await fb.AppLink.fetchDeferredAppLink();
+          Promise.resolve(fb.AppLink.fetchDeferredAppLink()).catch(() => {});
         } catch {}
       }
 
