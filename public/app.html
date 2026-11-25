@@ -5109,7 +5109,7 @@
 
       <!-- REVIEWER TEST BYPASS TRIGGER (GOOGLE PLAY ANSWER 15748846) -->
       <div style="text-align: center; margin-top: 8px; margin-bottom: 6px;">
-        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.57.0 (Build 73)</span>
+        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.57.3 (Build 74)</span>
       </div>
     </div>
   </div>
@@ -6580,7 +6580,7 @@
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
     </div>
     <div style="text-align: center; margin-top: 8px;">
-      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.57.0 (Build 73)</span>
+      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.57.3 (Build 74)</span>
     </div>
   </div>
 </div>
@@ -7689,7 +7689,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.57.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.57.3', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -7943,7 +7943,17 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.57.0', date: '24 Kasım 2026', dateEn: 'November 24, 2026', dateDe: '24. November 2026', latest: true, items: [
+    { v: '4.57.3', date: '25 Kasım 2026', dateEn: 'November 25, 2026', dateDe: '25. November 2026', latest: true, items: [
+      '🌙 1 Dakikada Kişisel Uyku Planı & Görünür Dönüşüm Hedefi (Build 74): İlk açılış karşılama ekranı, tek seferlik bebek adı girişi ve bebeğinizin adına özel hesaplanan Önce ➔ Sonra uyku dönüşüm hedefi kartı yenilendi.',
+      '☕ Şeffaf İlk Ay Tanışma Avantajı & Android Kampanya Ölçümleme: Aylık VIP ilk ay tanışma akışı, gündüz/gece tema kontrastları ve Android Meta SDK / Install Referrer yaşam döngüsü senkronizasyonu güçlendirildi.'
+    ], itemsEn: [
+      '🌙 1-Minute Personal Sleep Plan & Visible Transformation Goal (Build 74): Refreshed the welcome screen, single-entry baby name setup, and your baby\'s personalized Before ➔ After sleep transformation goal card.',
+      '☕ Transparent First-Month Intro Flow & Android Attribution: Refined the Monthly VIP first-month intro flow, light/dark theme contrast, and Android Meta SDK / Install Referrer lifecycle synchronization.'
+    ], itemsDe: [
+      '🌙 Persönlicher Schlafplan in 1 Minute & Sichtbares Transformationsziel (Build 74): Überarbeiteter Willkommensbildschirm, einmalige Eingabe des Babynamens und persönliche Vorher-Nachher-Schlafzielkarte.',
+      '☕ Transparenter Kennenlernmonat & Android-Kampagnenmessung: Optimierter Monats-VIP-Kennenlernablauf, Tag-/Nacht-Kontraste sowie Android Meta SDK / Install Referrer Synchronisation.'
+    ]},
+    { v: '4.57.0', date: '24 Kasım 2026', dateEn: 'November 24, 2026', dateDe: '24. November 2026', items: [
       '🤖 Android & iOS Kampanya Ölçümleme ve Yaşam Döngüsü İyileştirmesi (Build 73): Android cihazlarda soğuk başlangıç (cold-start) ve ön plana dönüşlerde (AppState) Meta App Events & Google Play Install Referrer senkronizasyonu güçlendirildi; iOS ATT uyumluluğu %100 korundu.',
       '🌍 3 Dil (TR / EN-US / DE-DE) Mağaza, Product Page Header (3840x1646), Search Results (1920x1280) ve In-App Event Vitrin Yenilemesi: 30 Stüdyo Master Uyku Sesi ve 3-Baloncuklu Ana Ekran görselleri tüm mağaza dillerinde senkronize edildi.'
     ], itemsEn: [
