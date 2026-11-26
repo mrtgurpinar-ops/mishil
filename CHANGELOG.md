@@ -2,6 +2,20 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.57.5-cockpit-decluttering-onboarding-priority-and-zero-static-audit] - 2026-11-26 (Yerel Ortamda Doğrulandı — Kurucu Kokpiti Sıfır Veri Kayıplı Görsel Sadeleştirme, `.card-desc` Progressive Disclosure `📖 Açıklamalar`, Sekme Değişiminde Otomatik Huni Daraltma, 9 Adımlı Onboarding Analizi `🧭 3. Onboarding & Ürün` En Üst Konum + Sol Menü/Üst Huni Tek Tık Kısayolları `jumpToOnboardingFunnel()` ve 5 Kontratlı Canlı `zero_static_data_audit` Motoru • 🟢 Yeni Native EAS Build Gerekmez)
+### 🧭✨ Kurucu Kokpiti Tam Kapsamlı Görsel Sadeleştirme & Otomatik Sıfır Statik Veri Denetim Motoru (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **Göz Yormayan Sadeleştirilmiş Kokpit Mimarisi (Sıfır Rakam / Hesaplama Kaybı):**
+   - Kartlarda büyük rakam (`.big-num`) ve mikro-çiplerle (`.kpi-micro-chip`) aynı sayıları uzun cümlelerle tekrar eden `.card-desc` paragrafları varsayılan olarak gizlendi (`body:not(.show-verbose-desc) .card-desc:not(.desc-expanded) { display: none !important; }`, DOM'da %100 korunur); üst bardaki **`📖 Açıklamalar`** butonuyla (`toggleVerboseDescriptions()`) veya karta tıklandığında anında açılır.
+   - Kullanıcı **Sekme 2 (`💰 2. Gelir & Abone`)**, **Sekme 3 (`🧭 3. Onboarding & Ürün`)**, **Sekme 4** veya **Sekme 5**'e geçtiğinde üstteki 6 kartlı dönüşüm hunisi (`#conversionBridgeCard`) otomatik olarak tek satır özet şeridine (`funnel-collapsed`) küçülür; böylece sekme içerikleri kaydırma yapmadan ekranın en üstünde açılır.
+   - **Sekme 1 (`#tab1SubNav`)** ve **Sekme 3 (`#tab3SubNav`)** için hızlı kategori filtre çubukları (`filterTab1Category`, `filterTab3Category`) eklendi.
+2. **9 Adımlı Kullanıcı Onboarding Analizine Tek Tıkla Anında Erişim (`jumpToOnboardingFunnel`):**
+   - 3. sekme adı **`🧭 3. Onboarding & Ürün`** (mobilde **`🧭 Onboarding`**) olarak güncellendi ve `#onboardingNineStepFunnelCard` sekmenin **en üstüne (1. sıraya)** taşındı.
+   - Sol sabit menüdeki **Özet** kutusuna (`#sideKpiOnb`) ve üst huni başlığına (`#convOnbCompPill`) hangi sekmede olunursa olunsun tek tıkla 9 Adımlı Onboarding tablosunu açan kısayollar eklendi.
+3. **%100 Otomatik Sıfır Statik Veri Denetim Motoru (`zero_static_data_audit`):**
+   - `platformCompareDrawer` ve `switchPlatform()` içinde kalan sabit `5.0 ★` ifadeleri kaldırılarak canlı `store_reviews` listesinden dinamik hesaplanan `_calc_dynamic_avg_stars_str()` (`avg_rating_str`) değerine bağlandı; Google Play katalog net tutarları `DEFAULT_PLAN_PRICING_TRY` sabitlerine bağlandı.
+   - Her sorguda 5 canlı kontratı (`no_synthetic_seed_rows`, `onboarding_9step_live_db`, `financial_ledger_live_db`, `reviews_rating_dynamic`, `store_metrics_ssot`) çalışma zamanında denetleyen `zero_static_data_audit` motoru ve üst bar `🛡️ %100 Canlı Veri (5/5)` rozeti (`#zeroStaticAuditBadge`) devreye alındı.
+   - **Claude Code CLI (`task-281` UX/mimari konsensüs + `task-356` uygulama sonrası denetim ve `zero_static_data_audit` canlı hesaplama sertleştirmesi: `PASS`)** + **Antigravity (`39/39 pytest PASS`)**.
+
 ## [4.57.4-cockpit-9step-onboarding-funnel-and-15pct-sbp-reconciliation] - 2026-11-26 (Yerel Ortam Hazır — Kurucu Kokpiti Sekme 3 `#onboardingNineStepFunnelCard` 9 Adımlı Kullanıcı Onboarding & Paywall İlerleme Analizi `onboarding_step_viewed_0..9` Sıfır Statik Veri, Apple Small Business Program %15 `0.67292` & Google Play %15 `0.727` Komisyon Motoru ve Sekme 2 7. Gün Vade Mutabakatı `pipeline_7d_mrr_net_try` + Oto-Yenileme Kırılımı • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🧭💰 9 Adımlı Kullanıcı Onboarding İlerleme Analizi & %15 Komisyon / Vade Mutabakatı (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`, `tests/test_sleep_and_analytics_remediation.py`)
 1. **Sekme 3 (`#tabPane_tab3`) — 9 Adımlı Kullanıcı Onboarding & Paywall İlerleme Analizi (`#onboardingNineStepFunnelCard`):**

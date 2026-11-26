@@ -1244,11 +1244,29 @@ def test_nine_step_onboarding_funnel_and_15pct_sbp_revenue_reconciliation(client
     assert fl["pipeline_7d_mrr_net_try"] == 109.04
     assert fl["projected_total_mrr_net_try"] == 209.97  # 100.93 + 109.04
 
+    # Otomatik Sıfır Statik Veri Denetim Motoru (zero_static_data_audit) kontrolü:
+    z_audit = summary["zero_static_data_audit"]
+    assert z_audit["all_passed"] is True
+    assert z_audit["contracts_checked"] == 5
+    assert z_audit["contracts_passed"] == 5
+    assert z_audit["contracts"]["onboarding_9step_live_db"]["tracked_unique_devices"] == 3
+
     dash_res = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"})
     assert dash_res.status_code == 200
     assert 'id="onboardingNineStepFunnelCard"' in dash_res.text
     assert 'id="onboardingNineStepTbody"' in dash_res.text
+    assert 'id="zeroStaticAuditBadge"' in dash_res.text
+    assert 'id="sideKpiOnb"' in dash_res.text
+    assert 'id="convOnbCompPill"' in dash_res.text
+    assert "function jumpToOnboardingFunnel()" in dash_res.text
+    assert "function toggleVerboseDescriptions()" in dash_res.text
+    assert "function filterTab1Category(cat)" in dash_res.text
+    assert "function filterTab3Category(cat)" in dash_res.text
+    assert "🧭 3. Onboarding & Ürün" in dash_res.text
     assert "9 Adımlı Kullanıcı Onboarding" in dash_res.text
+    assert "Her İki Mağaza 5.0 ★ Tam Puan" not in dash_res.text
+    assert "★ 5.0 (" not in dash_res.text
+    assert dash_res.text.index('id="onboardingNineStepFunnelCard"') < dash_res.text.index("📱 UYGULAMA OTURUMLARI")
     assert "+109.04 ₺" in dash_res.text
     assert "1/2 Oto-Yenileme" in dash_res.text
 

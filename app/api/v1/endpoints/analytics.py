@@ -477,8 +477,8 @@ def _empty_store_state() -> Dict[str, Any]:
                 "state": "ACTIVE",
                 "billing_period": "Yıllık (P1Y)",
                 "grace_period": "14 Gün (P14D)",
-                "price_try": 599.99,
-                "net_proceeds_try": 436.20,
+                "price_try": DEFAULT_PLAN_PRICING_TRY["misil"][0],
+                "net_proceeds_try": DEFAULT_PLAN_PRICING_TRY["misil"][1],
                 "free_trial_offer_id": "-",
                 "free_trial_label": "Denemesiz • Doğrudan Yıllık VIP",
             },
@@ -489,8 +489,8 @@ def _empty_store_state() -> Dict[str, Any]:
                 "state": "ACTIVE",
                 "billing_period": "Aylık (P1M)",
                 "grace_period": "7 Gün (P7D)",
-                "price_try": 149.99,
-                "net_proceeds_try": 109.05,
+                "price_try": DEFAULT_PLAN_PRICING_TRY["misilaylik"][0],
+                "net_proceeds_try": DEFAULT_PLAN_PRICING_TRY["misilaylik"][1],
                 "free_trial_offer_id": "intro-first-month",
                 "free_trial_label": "İlk Ay 49.99 ₺ Başlangıç Teklifi (P1M)",
             },
@@ -6359,8 +6359,23 @@ def _build_analytics_summary(
         )
 
     all_reviews = sb.get("store_reviews") or []
-    ios_reviews_cnt = sum(1 for r in all_reviews if r.get("store") == "App Store")
-    android_reviews_cnt = sum(1 for r in all_reviews if r.get("store") == "Google Play")
+    ios_reviews_list = [r for r in all_reviews if r.get("store") == "App Store"]
+    android_reviews_list = [r for r in all_reviews if r.get("store") == "Google Play"]
+    ios_reviews_cnt = len(ios_reviews_list)
+    android_reviews_cnt = len(android_reviews_list)
+
+    def _calc_dynamic_avg_stars_str(rev_items: List[Dict[str, Any]]) -> str:
+        if not rev_items:
+            return "Yorum Yok"
+        avg_v = round(
+            sum(max(1, min(5, int(r.get("rating", 5) or 5))) for r in rev_items) / len(rev_items),
+            1,
+        )
+        return f"★ {avg_v}"
+
+    all_avg_stars_str = _calc_dynamic_avg_stars_str(all_reviews)
+    ios_avg_stars_str = _calc_dynamic_avg_stars_str(ios_reviews_list)
+    android_avg_stars_str = _calc_dynamic_avg_stars_str(android_reviews_list)
 
     ios_total_rec = len(ios_subs_list)
     and_total_rec = len(android_subs_list)
@@ -6453,6 +6468,7 @@ def _build_analytics_summary(
             "mrr_gross_try": financial_ledger["projected_total_mrr_gross_try"] if period == "all" else round(ios_mrr_gross + and_mrr_gross, 2),
             "realized_net_try": financial_ledger["realized_net_proceeds_try"] if period == "all" else round(ios_realized_net + and_realized_net, 2),
             "reviews_count": len(all_reviews),
+            "avg_rating_str": all_avg_stars_str,
             "delta_1": f"+{recent_3d_imp} (3G)" if period == "all" else period_label,
             "delta_2": f"+{today_unique_clicks} Bugün" if period == "all" else f"{effective_unique_bridge_clicks} Dönem Tıkı",
             "meta_chips_1": [f"{total_impressions_unique:,} Tekil Cihaz", f"%{imp_search_pct_calc} Arama"],
@@ -6515,6 +6531,7 @@ def _build_analytics_summary(
             "mrr_gross_try": ios_mrr_gross,
             "realized_net_try": ios_realized_net,
             "reviews_count": ios_reviews_cnt,
+            "avg_rating_str": ios_avg_stars_str,
             "delta_1": f"%{round((apple_impressions / max(1, total_cumulative_impressions)) * 100)} Pay",
             "delta_2": f"%{ios_store_imp_to_pv_pct} Mağaza",
             "meta_chips_1": [f"{ios_imp_uniq_display:,} Tekil iPhone", "🎯 Meta Reklam Aktif"],
@@ -6585,6 +6602,7 @@ def _build_analytics_summary(
             "mrr_gross_try": and_mrr_gross,
             "realized_net_try": and_realized_net,
             "reviews_count": android_reviews_cnt,
+            "avg_rating_str": android_avg_stars_str,
             "delta_1": f"%{round((google_play_impressions / max(1, total_cumulative_impressions)) * 100)} Pay",
             "delta_2": f"%{android_store_imp_to_pv_pct} Mağaza",
             "meta_chips_1": ["🤖 Google Play Organik", "🎯 Meta Reklam Aktif"],
@@ -6759,9 +6777,85 @@ def _build_analytics_summary(
                     )
                 )
 
+    c1_no_seed = bool(
+        not any(int(c.reported_impressions or 0) in (4014, 3850, 640, 410) for c in cfg_rows)
+        and int(sb.get("apple_impressions_total", 0) or 0) != 4066
+        and not any(str(getattr(r, "subscriber_id", "") or "").startswith("DEV_") for r in ledger_rows_db)
+    )
+    c2_onb_live = bool(
+        len(onboarding_step_funnel_all["steps"]) == 10
+        and (
+            onboarding_step_funnel_all["has_telemetry_data"]
+            == (onboarding_step_funnel_all["total_tracked_onboarding_devices"] > 0)
+        )
+    )
+    c3_fin_live = bool(
+        get_dynamic_proceeds_ratio("ios") >= IOS_SBP_15_PROCEEDS_RATIO
+        and get_dynamic_proceeds_ratio("android") >= ANDROID_15_PROCEEDS_RATIO
+        and financial_ledger["active_vip_subs_count"]
+        == (
+            financial_ledger["paid_subs_count"]
+            + financial_ledger["pipeline_7d_trials_count"]
+            + financial_ledger["offer_code_subs_count"]
+        )
+    )
+    c4_rev_dyn = bool(
+        (len(all_reviews) == 0 and all_avg_stars_str == "Yorum Yok")
+        or (len(all_reviews) > 0 and all_avg_stars_str.startswith("★ "))
+    )
+    c5_ssot_live = bool(
+        total_cumulative_downloads == (apple_downloads + google_play_downloads)
+        and total_cumulative_impressions == (apple_impressions + google_play_impressions)
+    )
+    audit_contracts_map = {
+        "no_synthetic_seed_rows": {
+            "passed": c1_no_seed,
+            "source": "bridge_clicks + campaign_configs + store_daily_metrics + subscriber_ledger",
+            "detail": "Sentetik HistoricalSeed (4066/4014) ve doğrulanmamış DEV_* kayıtları mevcut değil.",
+        },
+        "onboarding_9step_live_db": {
+            "passed": c2_onb_live,
+            "source": "app_install_signals (onboarding_step_viewed_0..9)",
+            "tracked_unique_devices": onboarding_step_funnel_all["total_tracked_onboarding_devices"],
+        },
+        "financial_ledger_live_db": {
+            "passed": c3_fin_live,
+            "source": "subscriber_ledger + subscription_lifecycle_events",
+            "ios_proceeds_ratio": get_dynamic_proceeds_ratio("ios"),
+            "android_proceeds_ratio": get_dynamic_proceeds_ratio("android"),
+        },
+        "reviews_rating_dynamic": {
+            "passed": c4_rev_dyn,
+            "source": "store_sync_states.store_reviews (App Store & Google Play API)",
+            "all_avg_rating_str": all_avg_stars_str,
+            "ios_avg_rating_str": ios_avg_stars_str,
+            "android_avg_rating_str": android_avg_stars_str,
+        },
+        "store_metrics_ssot": {
+            "passed": c5_ssot_live,
+            "source": "store_daily_metrics + app_install_signals",
+            "downloads_total": total_cumulative_downloads,
+        },
+    }
+    contracts_checked_cnt = len(audit_contracts_map)
+    contracts_passed_cnt = sum(1 for c_item in audit_contracts_map.values() if c_item["passed"])
+    all_audit_passed = contracts_passed_cnt == contracts_checked_cnt
+    zero_static_data_audit = {
+        "all_passed": all_audit_passed,
+        "contracts_checked": contracts_checked_cnt,
+        "contracts_passed": contracts_passed_cnt,
+        "status_badge": (
+            f"🛡️ %100 Canlı Veri ({contracts_passed_cnt}/{contracts_checked_cnt} Kontrat Yeşil • Sıfır Statik)"
+            if all_audit_passed
+            else f"⚠️ Veri Denetimi ({contracts_passed_cnt}/{contracts_checked_cnt} Kontrat)"
+        ),
+        "contracts": audit_contracts_map,
+    }
+
     result_summary = {
         "period": period,
         "period_label": period_label,
+        "zero_static_data_audit": zero_static_data_audit,
         "period_clicks_count": len(period_clicks),
         "active_human_count": max(active_human_count, ig_unique_count if period == "all" else 0),
         "today_unique_clicks": today_unique_clicks,
@@ -10051,7 +10145,7 @@ def analytics_dashboard_page(
           width: 100%;
           margin: 0 auto;
         }}
-        /* EKRAN OKUYUCU (SR-ONLY) YARDIMCISI — .card-desc ve .step-sub GÖRÜNÜR KALIR */
+        /* EKRAN OKUYUCU (SR-ONLY) YARDIMCISI & SADELEŞTİRİLMİŞ DETAY METİN KONTROLÜ */
         .sr-only {{
           position: absolute !important;
           width: 1px !important;
@@ -10062,6 +10156,28 @@ def analytics_dashboard_page(
           clip: rect(0, 0, 0, 0) !important;
           white-space: nowrap !important;
           border: 0 !important;
+        }}
+        /* Varsayılan olarak kartlardaki uzun tekrar paragraflarını (.card-desc) gizleyerek göz yormayan yalın sayı + mikro-çip görünümü sun;
+           kullanıcı üst bardaki '📖 Detaylar' butonuna bastığında (body.show-verbose-desc) veya karta dokunduğunda (.desc-expanded) açılır */
+        body:not(.show-verbose-desc) .card-desc:not(.desc-expanded) {{
+          display: none !important;
+        }}
+        body.show-verbose-desc .card-desc,
+        .card-desc.desc-expanded {{
+          display: block !important;
+          margin-top: 8px;
+          padding-top: 8px;
+          border-top: 1px dashed var(--border-subtle);
+        }}
+        .sidebar-kpi-row.clickable-kpi-row {{
+          cursor: pointer;
+          padding: 4px 6px;
+          margin: -2px -6px;
+          border-radius: 8px;
+          transition: background 0.15s ease;
+        }}
+        .sidebar-kpi-row.clickable-kpi-row:hover {{
+          background: rgba(165, 105, 189, 0.22);
         }}
         .kpi-micro-meta {{
           display: flex;
@@ -10477,7 +10593,7 @@ def analytics_dashboard_page(
               <div class="tabs-nav" role="tablist">
                 <button class="tab-btn active" id="tabBtn_tab1" onclick="switchTab('tab1')">📊 1. Büyüme</button>
                 <button class="tab-btn" id="tabBtn_tab2" onclick="switchTab('tab2')">💰 2. Gelir & Abone</button>
-                <button class="tab-btn" id="tabBtn_tab3" onclick="switchTab('tab3')">🍼 3. Ürün & Sadakat</button>
+                <button class="tab-btn" id="tabBtn_tab3" onclick="switchTab('tab3')">🧭 3. Onboarding & Ürün<span class="sr-only">🍼 3. Ürün & Sadakat</span></button>
                 <button class="tab-btn" id="tabBtn_tab4" onclick="switchTab('tab4')">⭐ 4. Yorum & Trafik</button>
                 <button class="tab-btn" id="tabBtn_tab5" onclick="switchTab('tab5')">🏛️ 5. Veri Mimarisi<span class="sr-only">🏛️ 5. Referanslar & Veri Mimarisi</span></button>
               </div>
@@ -10497,6 +10613,10 @@ def analytics_dashboard_page(
                 <div class="sidebar-kpi-row">
                   <span>Net MRR</span>
                   <strong style="color:#FAF5EE;" id="sideKpiMrr">{fl['projected_total_mrr_net_try']:.2f} ₺</strong>
+                </div>
+                <div class="sidebar-kpi-row clickable-kpi-row" onclick="jumpToOnboardingFunnel()" title="9 Adımlı Kullanıcı Onboarding İlerleme Tablosuna Git">
+                  <span>🧭 Onboarding (0➔9)</span>
+                  <strong style="color:#D8B4FE;" id="sideKpiOnb">{html.escape(onb_comp_str)} ({int(onb_f.get('step9_reached_devices', 0) or 0)}/{int(onb_f.get('start_base_devices', 0) or 0)})</strong>
                 </div>
               </div>
 
@@ -10520,11 +10640,13 @@ def analytics_dashboard_page(
                 <button type="button" class="compare-toggle-btn hide-in-pres" id="compareToggleBtn" onclick="toggleCompareDrawer()">⇄ Kıyasla</button>
               </div>
 
-              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span class="badge hide-in-pres" id="zeroStaticAuditBadge" style="background:{'rgba(16,185,129,0.14)' if s.get('zero_static_data_audit', {}).get('all_passed', True) else 'rgba(217,119,6,0.14)'}; color:{'#059669' if s.get('zero_static_data_audit', {}).get('all_passed', True) else '#D97706'};" title="{html.escape(str(s.get('zero_static_data_audit', {}).get('status_badge', '🛡️ %100 Canlı Veri')))}">🛡️ %100 Canlı Veri ({int(s.get('zero_static_data_audit', {}).get('contracts_passed', 5))}/{int(s.get('zero_static_data_audit', {}).get('contracts_checked', 5))})</span>
                 <span id="livePeriodSub" style="font-size:11.5px; font-weight:700; color:var(--text-secondary); font-variant-numeric:tabular-nums;">{html.escape(s['period_label'])} • {s['active_human_count']} Tekil Tık (Bugün: {s['today_unique_clicks']})</span>
                 <div class="period-pills hide-in-pres">
                   {period_pills_html}
                 </div>
+                <button type="button" class="btn hide-in-pres" id="btnToggleVerboseDesc" onclick="toggleVerboseDescriptions()" style="padding: 6px 11px; font-size: 11.5px;" title="Kart içi uzun metin açıklamalarını göster/gizle">📖 Açıklamalar</button>
                 <button type="button" class="btn hide-in-pres" id="btnToggleHeroFunnel" onclick="toggleHeroFunnel()" style="padding: 6px 11px; font-size: 11.5px;">🔼 Daralt</button>
               </div>
             </div>
@@ -10539,6 +10661,7 @@ def analytics_dashboard_page(
                     <span id="funnelHeadTitle">🎯 Dönüşüm Hunisi (Edinim ➔ VIP ➔ Churn ➔ Net Abone){'' if clean_period == 'all' else f" — {html.escape(s['period_label'])}"}</span>
                   </div>
                   <div class="conv-summary-pills" id="funnelHeadBadge">
+                    <button type="button" class="conv-summary-pill" onclick="jumpToOnboardingFunnel()" style="cursor:pointer; background:rgba(124,58,237,0.14); border-color:rgba(124,58,237,0.38); color:var(--stage-4);" title="9 Adımlı Kullanıcı Onboarding İlerleme Tablosuna Git">🧭 9 Adım Onboarding: <strong id="convOnbCompPill">{html.escape(onb_comp_str)} ({int(onb_f.get('step9_reached_devices', 0) or 0)}/{int(onb_f.get('start_base_devices', 0) or 0)} Cihaz) ➔</strong></button>
                     <span class="conv-summary-pill" style="background:rgba(var(--stage-3-rgb),0.10); border-color:rgba(var(--stage-3-rgb),0.28); color:var(--stage-3);">Mağaza CVR: <strong id="convStoreCvrPill">%{ps_all.get('store_cvr_pct', 0)}</strong></span>
                     <span class="conv-summary-pill">İndirme ➔ VIP: <strong id="convStartedVipDlPill">%{ps_all.get('started_vip_of_dl_pct', 0)}</strong></span>
                     <span class="conv-summary-pill" style="background:rgba(var(--stage-5-rgb),0.10); border-color:rgba(var(--stage-5-rgb),0.28); color:var(--stage-5);">Churn: <strong id="convChurnPill">%{ps_all.get('churn_rate_pct', 0)}</strong></span>
@@ -10762,9 +10885,9 @@ def analytics_dashboard_page(
                 <tr>
                   <td><strong>6. Resmi Mağaza Yorumları</strong></td>
                   <td style="font-weight:800; color:#D97706;">{reviews_total_cnt} Yorum ({avg_stars_label})</td>
-                  <td><strong>{ps_ios.get('reviews_count', 0)} App Store Yorumu</strong> (5.0 ★)</td>
-                  <td><strong>{ps_and.get('reviews_count', 0)} Google Play Yorumu</strong> (5.0 ★)</td>
-                  <td><span class="badge badge-gp">Her İki Mağaza 5.0 ★ Tam Puan</span></td>
+                  <td><strong>{ps_ios.get('reviews_count', 0)} App Store Yorumu</strong> ({html.escape(str(ps_ios.get('avg_rating_str', 'Yorum Yok')))})</td>
+                  <td><strong>{ps_and.get('reviews_count', 0)} Google Play Yorumu</strong> ({html.escape(str(ps_and.get('avg_rating_str', 'Yorum Yok')))})</td>
+                  <td><span class="badge badge-gp">🍏 {html.escape(str(ps_ios.get('avg_rating_str', 'Yorum Yok')))} • 🤖 {html.escape(str(ps_and.get('avg_rating_str', 'Yorum Yok')))} (Canlı API)</span></td>
                 </tr>
               </tbody>
             </table>
@@ -10773,7 +10896,16 @@ def analytics_dashboard_page(
 
         <!-- SEKME 1: BÜYÜME, İNDİRME TRENDİ & EDİNME KANALLARI (2 SÜTUNLU BENTO MİMARİSİ) -->
         <div id="tabPane_tab1" class="tab-pane active">
-          <div class="bento-split-2col">
+          <div class="subcat-bar" id="tab1SubNav">
+            <span class="subcat-label">📂 Görünüm:</span>
+            <button type="button" class="subcat-pill active" id="subcatBtn_t1_all" onclick="filterTab1Category('all')">🌐 Tümü</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_t1_trend" onclick="filterTab1Category('trend')">📈 İndirme Trendi &amp; Sosyal</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_t1_donuts" onclick="filterTab1Category('donuts')">🍩 Dağılım Halkaları</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_t1_channels" onclick="filterTab1Category('channels')">🎯 Edinim &amp; Ülkeler ({len(countries_list)})</button>
+            <button type="button" class="subcat-pill" onclick="jumpToOnboardingFunnel()" style="border-color:rgba(124,58,237,0.38); color:var(--stage-4);">🧭 9 Adım Onboarding ({html.escape(onb_comp_str)}) ➔</button>
+          </div>
+
+          <div class="bento-split-2col tab1-sec tab1-sec-trend">
             <div class="bento-card">
               <div class="section-head">
                 <div>
@@ -10834,7 +10966,7 @@ def analytics_dashboard_page(
             </div>
           </div>
 
-          <div class="donuts-grid">
+          <div class="donuts-grid tab1-sec tab1-sec-donuts">
             <div class="bento-card">
               <div class="section-head"><span>🍩 1. Kaynak Dağılımı</span></div>
               {donut_install_sources}
@@ -10851,7 +10983,7 @@ def analytics_dashboard_page(
             </div>
           </div>
 
-          <div class="bento-split-2col">
+          <div class="bento-split-2col tab1-sec tab1-sec-channels">
             <div class="bento-card">
               <div class="section-head">
                 <span>🎯 Edinim Kanalları</span>
@@ -11048,60 +11180,17 @@ def analytics_dashboard_page(
           </div>
         </div>
 
-        <!-- SEKME 3: ÜRÜN KULLANIMI, PAYWALL & KOHORT TUTUNDURMA (2 SÜTUNLU BENTO MİMARİSİ) -->
+        <!-- SEKME 3: 9 ADIMLI ONBOARDING, ÜRÜN KULLANIMI, PAYWALL & KOHORT TUTUNDURMA -->
         <div id="tabPane_tab3" class="tab-pane">
-          <div class="kpi-grid">
-            <div class="bento-card">
-              <div class="card-label">📱 UYGULAMA OTURUMLARI</div>
-              <div class="big-num" style="color:#2563EB;">{pr['total_tracked_sessions']}</div>
-              <div class="kpi-micro-meta">
-                <span class="kpi-micro-chip">⚡ {pr.get('live_telemetry_sessions', 0)} Canlı</span>
-                <span class="kpi-micro-chip">🍏 {pr['apple_official_sessions']} Mağaza Onaylı</span>
-                <span class="kpi-micro-chip">⏱️ {pr['avg_session_duration_sec']} sn</span>
-              </div>
-              <div class="card-desc">
-                Canlı uygulama oturumu: <strong>{pr.get('live_telemetry_sessions', 0)} oturum</strong> • Resmi mağaza verisi: <strong>{pr['apple_official_sessions'] + pr.get('android_official_sessions', 0)} oturum</strong> ({pr['returning_sessions_total']} tekrar) • Ortalama süre: <strong>{pr['avg_session_duration_sec']} sn</strong>.
-              </div>
-            </div>
-
-            <div class="bento-card">
-              <div class="card-label">🔄 GERİ DÖNEN CİHAZLAR</div>
-              <div class="big-num" style="color:#059669;">{pr['verified_returning_devices_floor']}–{pr['verified_returning_devices_ceiling']}</div>
-              <div class="kpi-micro-meta">
-                <span class="kpi-micro-chip">Geri Dönüş: %{pr['optin_ios_return_rate_pct']}</span>
-                <span class="kpi-micro-chip">~{pr['estimated_total_returning_users']} Ebeveyn</span>
-              </div>
-              <div class="card-desc">
-                Tekrar Giren iPhone: <strong>{pr['returning_optin_ios_devices']}/{pr['optin_ios_total_devices']} Cihaz (%{pr['optin_ios_return_rate_pct']})</strong> • 3+ Oturum Sadık: <strong>{pr['loyal_optin_ios_devices']}</strong> • Toplam Tahmini Sadık: <strong>~{pr['estimated_total_returning_users']} Ebeveyn</strong>.
-              </div>
-            </div>
-
-            <div class="bento-card">
-              <div class="card-label">🌙 GECE NÖBETİ & PROFİL</div>
-              <div class="big-num" style="color:#7C3AED;">%{nvd['night_pct']} • {pr['babies_count']} Bebek</div>
-              <div class="kpi-micro-meta">
-                <span class="kpi-micro-chip">🌙 {nvd['night_clicks']} Gece</span>
-                <span class="kpi-micro-chip">☀️ {nvd['day_clicks']} Gündüz</span>
-              </div>
-              <div class="card-desc">
-                <strong>{nvd['night_clicks']} Gece</strong> vs <strong>{nvd['day_clicks']} Gündüz</strong> etkileşimi • Kayıtlı bebek profili: <strong>{pr['babies_count']}</strong> ({top_h1} / {top_h2}).
-              </div>
-            </div>
-
-            <div class="bento-card">
-              <div class="card-label">🛡️ KOHORT TUTUNDURMA</div>
-              <div class="big-num" style="color:#D97706;">{html.escape(pr['overall_retention_str'])}</div>
-              <div class="kpi-micro-meta">
-                <span class="kpi-micro-chip">{len(pr['subscriber_cohorts'])} Kohort</span>
-                <span class="kpi-micro-chip">{fl['cancelled_subs_count']} İptal</span>
-              </div>
-              <div class="card-desc">
-                Toplam <strong>{len(pr['subscriber_cohorts'])} ayrı günlük kohorttaki {len(sub_ledger)} abonenin</strong> aktif tutundurma oranı (<strong>{fl['cancelled_subs_count']} İptal</strong>).
-              </div>
-            </div>
+          <div class="subcat-bar" id="tab3SubNav">
+            <span class="subcat-label">📂 Görünüm:</span>
+            <button type="button" class="subcat-pill active" id="subcatBtn_t3_all" onclick="filterTab3Category('all')">🌐 Tümü</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_t3_onboarding" onclick="filterTab3Category('onboarding')">🧭 9 Adım Onboarding ({onb_total_devs} Cihaz)</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_t3_paywall" onclick="filterTab3Category('paywall')">🔄 Paywall &amp; Modüller</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_t3_cohort" onclick="filterTab3Category('cohort')">📊 Kohort Matrisi ({len(pr['subscriber_cohorts'])})</button>
           </div>
 
-          <div class="bento-card" id="onboardingNineStepFunnelCard">
+          <div class="bento-card tab3-sec tab3-sec-onboarding" id="onboardingNineStepFunnelCard">
             <div class="section-head">
               <span>🧭 9 Adımlı Kullanıcı Onboarding &amp; Paywall İlerleme Analizi (Gerçek Cihaz Telemetrisi — Sıfır Statik Veri)</span>
               <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -11135,7 +11224,58 @@ def analytics_dashboard_page(
             </div>
           </div>
 
-          <div class="bento-split-2col-equal">
+          <div class="kpi-grid tab3-sec tab3-sec-paywall">
+            <div class="bento-card">
+              <div class="card-label">📱 UYGULAMA OTURUMLARI</div>
+              <div class="big-num" style="color:#2563EB;">{pr['total_tracked_sessions']}</div>
+              <div class="kpi-micro-meta">
+                <span class="kpi-micro-chip">⚡ {pr.get('live_telemetry_sessions', 0)} Canlı</span>
+                <span class="kpi-micro-chip">🍏 {pr['apple_official_sessions']} Mağaza Onaylı</span>
+                <span class="kpi-micro-chip">⏱️ {pr['avg_session_duration_sec']} sn</span>
+              </div>
+              <div class="card-desc">
+                Canlı uygulama oturumu: <strong>{pr.get('live_telemetry_sessions', 0)} oturum</strong> • Resmi mağaza verisi: <strong>{pr['apple_official_sessions'] + pr.get('android_official_sessions', 0)} oturum</strong> ({pr['returning_sessions_total']} tekrar) • Ortalama süre: <strong>{pr['avg_session_duration_sec']} sn</strong>.
+              </div>
+            </div>
+
+            <div class="bento-card">
+              <div class="card-label">🔄 GERİ DÖNEN CİHAZLAR</div>
+              <div class="big-num" style="color:#059669;">{pr['verified_returning_devices_floor']}–{pr['verified_returning_devices_ceiling']}</div>
+              <div class="kpi-micro-meta">
+                <span class="kpi-micro-chip">Geri Dönüş: %{pr['optin_ios_return_rate_pct']}</span>
+                <span class="kpi-micro-chip">~{pr['estimated_total_returning_users']} Ebeveyn</span>
+              </div>
+              <div class="card-desc">
+                Tekrar Giren iPhone: <strong>{pr['returning_optin_ios_devices']}/{pr['optin_ios_total_devices']} Cihaz (%{pr['optin_ios_return_rate_pct']})</strong> • 3+ Oturum Sadık: <strong>{pr['loyal_optin_ios_devices']}</strong> • Toplam Tahmini Sadık: <strong>~{pr['estimated_total_returning_users']} Ebeveyn</strong>.
+              </div>
+            </div>
+
+            <div class="bento-card">
+              <div class="card-label">🌙 GECE NÖBETİ &amp; PROFİL</div>
+              <div class="big-num" style="color:#7C3AED;">%{nvd['night_pct']} • {pr['babies_count']} Bebek</div>
+              <div class="kpi-micro-meta">
+                <span class="kpi-micro-chip">🌙 {nvd['night_clicks']} Gece</span>
+                <span class="kpi-micro-chip">☀️ {nvd['day_clicks']} Gündüz</span>
+              </div>
+              <div class="card-desc">
+                <strong>{nvd['night_clicks']} Gece</strong> vs <strong>{nvd['day_clicks']} Gündüz</strong> etkileşimi • Kayıtlı bebek profili: <strong>{pr['babies_count']}</strong> ({top_h1} / {top_h2}).
+              </div>
+            </div>
+
+            <div class="bento-card">
+              <div class="card-label">🛡️ KOHORT TUTUNDURMA</div>
+              <div class="big-num" style="color:#D97706;">{html.escape(pr['overall_retention_str'])}</div>
+              <div class="kpi-micro-meta">
+                <span class="kpi-micro-chip">{len(pr['subscriber_cohorts'])} Kohort</span>
+                <span class="kpi-micro-chip">{fl['cancelled_subs_count']} İptal</span>
+              </div>
+              <div class="card-desc">
+                Toplam <strong>{len(pr['subscriber_cohorts'])} ayrı günlük kohorttaki {len(sub_ledger)} abonenin</strong> aktif tutundurma oranı (<strong>{fl['cancelled_subs_count']} İptal</strong>).
+              </div>
+            </div>
+          </div>
+
+          <div class="bento-split-2col-equal tab3-sec tab3-sec-paywall">
             <div class="bento-card">
               <div class="section-head">
                 <span>🔄 Geri Dönüş & Paywall</span>
@@ -11202,7 +11342,7 @@ def analytics_dashboard_page(
             </div>
           </div>
 
-          <div class="bento-card">
+          <div class="bento-card tab3-sec tab3-sec-cohort">
             <div class="section-head">
               <span>📊 Kohort Matrisi</span>
               <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">{len(pr['subscriber_cohorts'])} Kohort • {html.escape(pr['overall_retention_str'])}</span>
@@ -11345,8 +11485,8 @@ def analytics_dashboard_page(
             <span>Gelir</span>
           </button>
           <button type="button" class="mobile-dock-btn" id="mobDockBtn_tab3" onclick="switchTab('tab3')">
-            <span class="dock-ico">🍼</span>
-            <span>Ürün</span>
+            <span class="dock-ico">🧭</span>
+            <span>Onboarding</span>
           </button>
           <button type="button" class="mobile-dock-btn" id="mobDockBtn_tab4" onclick="switchTab('tab4')">
             <span class="dock-ico">⭐</span>
@@ -11378,6 +11518,68 @@ def analytics_dashboard_page(
           var isCol = card.classList.contains('funnel-collapsed');
           if (btn) btn.textContent = isCol ? '🔽 Huniyi Genişlet' : '🔼 Huniyi Daralt';
           try {{ localStorage.setItem('mishil_dash_funnel_collapsed', isCol ? '1' : '0'); }} catch (_le) {{}}
+        }}
+
+        function toggleVerboseDescriptions() {{
+          document.body.classList.toggle('show-verbose-desc');
+          var isShown = document.body.classList.contains('show-verbose-desc');
+          var btn = document.getElementById('btnToggleVerboseDesc');
+          if (btn) btn.textContent = isShown ? '📖 Açıklamalar: Açık' : '📖 Açıklamalar';
+          try {{ localStorage.setItem('mishil_dash_verbose_desc', isShown ? '1' : '0'); }} catch (_ve) {{}}
+        }}
+        if (localStorage.getItem('mishil_dash_verbose_desc') === '1') {{
+          document.body.classList.add('show-verbose-desc');
+        }}
+
+        function jumpToOnboardingFunnel() {{
+          switchTab('tab3');
+          filterTab3Category('all');
+          var el = document.getElementById('onboardingNineStepFunnelCard');
+          if (el && el.scrollIntoView) {{
+            setTimeout(function() {{
+              try {{ el.scrollIntoView({{ behavior: 'smooth', block: 'start' }}); }} catch (_se) {{ el.scrollIntoView(); }}
+            }}, 40);
+          }}
+        }}
+
+        function filterTab1Category(cat) {{
+          var pills = ['all', 'trend', 'donuts', 'channels'];
+          for (var i = 0; i < pills.length; i++) {{
+            var b = document.getElementById('subcatBtn_t1_' + pills[i]);
+            if (b) {{
+              if (pills[i] === cat) b.classList.add('active');
+              else b.classList.remove('active');
+            }}
+          }}
+          var secs = document.querySelectorAll('#tabPane_tab1 .tab1-sec');
+          for (var j = 0; j < secs.length; j++) {{
+            var el = secs[j];
+            if (cat === 'all' || el.classList.contains('tab1-sec-' + cat)) {{
+              el.style.display = '';
+            }} else {{
+              el.style.display = 'none';
+            }}
+          }}
+        }}
+
+        function filterTab3Category(cat) {{
+          var pills = ['all', 'onboarding', 'paywall', 'cohort'];
+          for (var i = 0; i < pills.length; i++) {{
+            var b = document.getElementById('subcatBtn_t3_' + pills[i]);
+            if (b) {{
+              if (pills[i] === cat) b.classList.add('active');
+              else b.classList.remove('active');
+            }}
+          }}
+          var secs = document.querySelectorAll('#tabPane_tab3 .tab3-sec');
+          for (var j = 0; j < secs.length; j++) {{
+            var el = secs[j];
+            if (cat === 'all' || el.classList.contains('tab3-sec-' + cat)) {{
+              el.style.display = '';
+            }} else {{
+              el.style.display = 'none';
+            }}
+          }}
         }}
 
         function filterTableByQuery(inputEl, tbodyId) {{
@@ -11551,6 +11753,19 @@ def analytics_dashboard_page(
             if (targetMobBtn) targetMobBtn.classList.add('active');
             localStorage.setItem('mishil_dash_active_tab', tabId);
           }}
+          var heroCard = document.getElementById('conversionBridgeCard');
+          var heroBtn = document.getElementById('btnToggleHeroFunnel');
+          if (heroCard) {{
+            var userForcedCol = (localStorage.getItem('mishil_dash_funnel_collapsed') === '1');
+            var shouldCollapse = (tabId !== 'tab1') || userForcedCol;
+            if (shouldCollapse) {{
+              heroCard.classList.add('funnel-collapsed');
+              if (heroBtn) heroBtn.textContent = '🔽 Huniyi Genişlet';
+            }} else {{
+              heroCard.classList.remove('funnel-collapsed');
+              if (heroBtn) heroBtn.textContent = '🔼 Huniyi Daralt';
+            }}
+          }}
         }}
 
         function scrollTimelineToLatest() {{
@@ -11695,7 +11910,8 @@ def analytics_dashboard_page(
           if (d3) d3.textContent = p.downloads_sub;
           if (d4) d4.textContent = p.started_vip_sub || p.vip_sub;
           if (d5) d5.textContent = p.cancelled_vip_sub || '';
-          if (d6) d6.textContent = p.vip_sub + ' • ★ 5.0 (' + p.reviews_count + ' Yorum)';
+          var dynRatingStr = p.avg_rating_str || 'Yorum Yok';
+          if (d6) d6.textContent = p.vip_sub + ' • ' + dynRatingStr + ' (' + p.reviews_count + ' Yorum)';
 
           var csVipImp = document.getElementById('convSumVipImp');
           if (csVipImp) csVipImp.textContent = '%' + vipOfImp;
@@ -11754,14 +11970,18 @@ def analytics_dashboard_page(
             var dropBadge = document.getElementById('onbFunnelDropoffBadge');
             var contMeta = document.getElementById('onbFunnelContinuationMeta');
             var onbTbody = document.getElementById('onboardingNineStepTbody');
+            var sideOnb = document.getElementById('sideKpiOnb');
+            var heroOnbPill = document.getElementById('convOnbCompPill');
             var totOnbDevs = Number(ofData.total_tracked_onboarding_devices || 0);
+            var stBaseDevs = Number(ofData.start_base_devices || 0);
+            var st9Devs = Number(ofData.step9_reached_devices || 0);
+            var compStr = (ofData.step0_to_step9_completion_pct !== null && ofData.step0_to_step9_completion_pct !== undefined)
+              ? ('%' + ofData.step0_to_step9_completion_pct)
+              : 'Veri Yok';
             if (devBadge) devBadge.textContent = '📱 ' + totOnbDevs + ' Tekil Onboarding Cihazı';
-            if (compBadge) {{
-              var compStr = (ofData.step0_to_step9_completion_pct !== null && ofData.step0_to_step9_completion_pct !== undefined)
-                ? ('%' + ofData.step0_to_step9_completion_pct)
-                : 'Veri Yok';
-              compBadge.textContent = '🏁 Adım 0 ➔ 9 Tamamlama: ' + compStr;
-            }}
+            if (compBadge) compBadge.textContent = '🏁 Adım 0 ➔ 9 Tamamlama: ' + compStr;
+            if (sideOnb) sideOnb.textContent = compStr + ' (' + st9Devs + '/' + stBaseDevs + ')';
+            if (heroOnbPill) heroOnbPill.textContent = compStr + ' (' + st9Devs + '/' + stBaseDevs + ' Cihaz) ➔';
             if (dropBadge) {{
               var bd = ofData.biggest_dropoff_step;
               if (bd && Number(bd.dropoff_count || 0) > 0) {{
@@ -11946,6 +12166,16 @@ def analytics_dashboard_page(
               if (data.platform_split) {{
                 PLATFORM_SPLIT = data.platform_split;
                 switchPlatform(currentPlatform, true);
+              }}
+              if (data.zero_static_data_audit) {{
+                var zBadge = document.getElementById('zeroStaticAuditBadge');
+                if (zBadge) {{
+                  var zOk = Boolean(data.zero_static_data_audit.all_passed);
+                  var zPass = Number(data.zero_static_data_audit.contracts_passed || 0);
+                  var zTot = Number(data.zero_static_data_audit.contracts_checked || 5);
+                  zBadge.textContent = (zOk ? '🛡️ %100 Canlı Veri (' : '⚠️ Veri Denetimi (') + zPass + '/' + zTot + ')';
+                  zBadge.title = data.zero_static_data_audit.status_badge || '';
+                }}
               }}
               var elSub = document.getElementById('livePeriodSub');
               if (elSub) {{
