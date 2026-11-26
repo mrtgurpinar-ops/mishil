@@ -1486,53 +1486,70 @@
       border-radius: 999px !important;
     }
 
-    /* Adım 8: Kişisel Rapor Baloncukları */
+    /* Adım 8: Kişisel Rapor Baloncukları (Tek Parlak Odak = Ana CTA Butonu, Kartlar Sakin & Mat) */
+    #report-unified-summary-card {
+      background: rgba(34, 28, 46, 0.72) !important;
+      border: 1px solid var(--border-night) !important;
+      border-radius: 22px !important;
+      padding: 12px 14px !important;
+      box-shadow: none !important;
+    }
     #report-live-sweetspot-banner {
-      background: radial-gradient(circle at 22% 22%, rgba(244, 162, 97, 0.28) 0%, rgba(44, 34, 48, 0.96) 72%) !important;
-      border: 1.5px solid rgba(244, 162, 97, 0.55) !important;
-      border-radius: 28px !important;
-      padding: 16px !important;
-      box-shadow: 0 14px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.24) !important;
-    }
-    #report-locked-roadmap-card {
-      background: linear-gradient(135deg, rgba(64, 108, 92, 0.86) 0%, rgba(88, 68, 114, 0.88) 100%) !important;
-      border: 1.5px solid rgba(155, 215, 185, 0.48) !important;
-      border-radius: 28px !important;
-      padding: 15px !important;
-      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
-    }
-    #report-details-drawer {
-      background: rgba(44, 34, 48, 0.88) !important;
-      border: 1.5px solid rgba(244, 162, 97, 0.32) !important;
-      border-radius: 24px !important;
-      padding: 11px 15px !important;
-    }
-    [data-theme="light"] #report-live-sweetspot-banner {
-      background: radial-gradient(circle at 22% 22%, rgba(234, 200, 168, 0.95) 0%, rgba(241, 231, 218, 0.98) 75%) !important;
+      background: transparent !important;
+      border: none !important;
+      border-radius: 0 !important;
+      padding: 0 0 10px 0 !important;
+      margin-bottom: 10px !important;
+      border-bottom: 1px solid var(--border-night) !important;
+      box-shadow: none !important;
     }
     #report-transformation-card {
-      background: rgba(34, 28, 46, 0.92) !important;
-      border: 1.5px solid rgba(46, 213, 115, 0.42) !important;
-      border-radius: 24px !important;
-      padding: 13px 15px !important;
+      background: transparent !important;
+      border: none !important;
+      border-radius: 0 !important;
+      padding: 0 !important;
+      margin-bottom: 0 !important;
+      box-shadow: none !important;
+    }
+    #report-locked-roadmap-card {
+      background: rgba(34, 28, 46, 0.56) !important;
+      border: 1px dashed var(--border-night) !important;
+      border-radius: 18px !important;
+      padding: 10px 13px !important;
+      box-shadow: none !important;
+    }
+    #report-details-drawer {
+      background: rgba(34, 28, 46, 0.42) !important;
+      border: 1px solid var(--border-night) !important;
+      border-radius: 16px !important;
+      padding: 8px 13px !important;
+    }
+    [data-theme="light"] #report-unified-summary-card {
+      background: #F3ECE2 !important;
+      border-color: rgba(175, 115, 75, 0.24) !important;
+    }
+    [data-theme="light"] #report-live-sweetspot-banner {
+      background: transparent !important;
+      border-bottom-color: rgba(175, 115, 75, 0.20) !important;
     }
     [data-theme="light"] #report-transformation-card {
-      background: linear-gradient(145deg, #EEF6F0 0%, #E7F0EA 100%) !important;
-      border-color: rgba(36, 82, 58, 0.35) !important;
+      background: transparent !important;
+      border-color: transparent !important;
     }
     [data-theme="light"] #report-transformation-card #report-score-desc {
-      color: #B45309 !important;
+      color: var(--text-muted) !important;
     }
     [data-theme="light"] #report-locked-roadmap-card {
-      background: linear-gradient(135deg, #BCD4C6 0%, #CBC0DF 100%) !important;
+      background: #EFE7DC !important;
+      border-color: rgba(175, 115, 75, 0.30) !important;
     }
-    [data-theme="light"] #report-locked-roadmap-card > div:nth-of-type(2) > div {
-      background: rgba(255, 255, 255, 0.56) !important;
+    [data-theme="light"] #report-locked-roadmap-card .report-locked-cell {
+      background: rgba(255, 255, 255, 0.62) !important;
       border: 1px solid rgba(175, 115, 75, 0.16) !important;
     }
     [data-theme="light"] #report-compact-chips-row > span {
-      background: rgba(255, 255, 255, 0.62) !important;
-      border-color: rgba(175, 115, 75, 0.25) !important;
+      background: rgba(255, 255, 255, 0.65) !important;
+      border-color: rgba(175, 115, 75, 0.22) !important;
     }
     [data-theme="light"] #report-details-drawer {
       background: #F1E8DC !important;
@@ -4607,55 +4624,62 @@
       </div>
     </div>
 
-    <!-- Step 0: Welcome Screen (Sıfır Sahte Puan • Bilimsel Metodoloji & Problem Çözümü) -->
+    <!-- Step 0: Welcome Screen (Sıfır Sahte Puan • Sakin Tek Kart & Tek Parlak Odak = Ana CTA Butonu) -->
     <div id="quiz-step-0" class="quiz-step" style="width: 100%; box-sizing: border-box;">
       <div class="onb-step-kicker">🌙 BİLİMSEL BEBEK UYKU & BAKIM ASİSTANI</div>
-      <div class="onb-step-title" style="font-size: 21px; line-height: 1.28; margin-bottom: 6px;">Bu gece, bebeğiniz için ağlamadan uykuya geçiş planı</div>
+      <div class="onb-step-title" style="font-size: 20px; line-height: 1.26; margin-bottom: 6px;">Bu gece, bebeğiniz için ağlamadan uykuya geçiş planı</div>
       <div class="onb-step-sub" style="margin-bottom: 12px;">
         Bebeğinizin yaşına özel uyku penceresini, sakinleştirici akustik frekansını ve gelişim takvimini 1 dakikada birlikte oluşturalım.
       </div>
 
-      <!-- DÜRÜST BİLİMSEL & GİZLİLİK GÜVEN ROZETLERİ (SIFIR SAHTE MAĞAZA PUANI) -->
-      <div id="welcome-trust-pills" style="display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px;">
-        <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(232, 168, 85, 0.14); border: 1px solid rgba(232, 168, 85, 0.38); color: var(--accent); font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px;">🧬 Sirkadiyen Ritim Bilimi</span>
-        <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(165, 105, 189, 0.16); border: 1px solid rgba(165, 105, 189, 0.38); color: #D7BDE2; font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px;">🤫 Dr. Karp 5S Akustik Yöntemi</span>
-        <span style="display: inline-flex; align-items: center; gap: 4px; background: rgba(46, 213, 115, 0.14); border: 1px solid rgba(46, 213, 115, 0.35); color: #2ED573; font-size: 10.5px; font-weight: 700; padding: 4px 9px; border-radius: 999px;">🔒 Cihaz İçi Gizlilik (KVKK/GDPR)</span>
-      </div>
-
-      <!-- 3 SOMUT DEĞER & PROBLEM ÇÖZÜMÜ KARTI -->
-      <div style="display: flex; flex-direction: column; gap: 9px; margin-bottom: 14px;">
-        <div class="onb-combo-card" style="margin-bottom: 0; padding: 11px 13px; display: flex; align-items: flex-start; gap: 11px;">
-          <span style="width: 36px; height: 36px; border-radius: 10px; background: rgba(232, 168, 85, 0.18); border: 1px solid rgba(232, 168, 85, 0.4); display: inline-flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">🌙</span>
+      <!-- TEK SAKİN & MAT DEĞER KARTI (CTA İLE YARIŞMAYAN NÖTR YÜZEY) -->
+      <div class="onb-combo-card" style="margin-bottom: 10px; padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; background: rgba(255, 255, 255, 0.03); border: 1px solid var(--border-night); box-shadow: none;">
+        <div style="display: flex; align-items: center; gap: 11px;">
+          <span style="width: 32px; height: 32px; border-radius: 9px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-night); display: inline-flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">🌙</span>
           <div style="min-width: 0;">
-            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 800; color: var(--heading-night); line-height: 1.25;">MışılSpot™ Uyku Penceresi</div>
-            <div style="font-size: 11.5px; color: var(--text-night); line-height: 1.38; margin-top: 2px;">Aşırı yorgunluk ve ağlama krizi başlamadan 15 dk önce en ideal uyku saatini yakalayın.</div>
+            <div style="font-family: 'Sora'; font-size: 12.5px; font-weight: 700; color: var(--heading-night); line-height: 1.25;">MışılSpot™ Uyku Penceresi</div>
+            <div style="font-size: 11px; color: var(--text-muted); line-height: 1.3; margin-top: 1px;">Aşırı yorgunluk ve ağlama krizi başlamadan 15 dk önce en ideal uyku saatini yakalayın.</div>
           </div>
         </div>
 
-        <div class="onb-combo-card" style="margin-bottom: 0; padding: 11px 13px; display: flex; align-items: flex-start; gap: 11px;">
-          <span style="width: 36px; height: 36px; border-radius: 10px; background: rgba(165, 105, 189, 0.18); border: 1px solid rgba(165, 105, 189, 0.4); display: inline-flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">🎧</span>
+        <div style="height: 1px; background: var(--border-night); opacity: 0.55;"></div>
+
+        <div style="display: flex; align-items: center; gap: 11px;">
+          <span style="width: 32px; height: 32px; border-radius: 9px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-night); display: inline-flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">🎧</span>
           <div style="min-width: 0;">
-            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 800; color: var(--heading-night); line-height: 1.25;">30 Stüdyo Ninni & Anne Karnı Sesi</div>
-            <div style="font-size: 11.5px; color: var(--text-night); line-height: 1.38; margin-top: 2px;">Kilit ekranında kesintisiz çalan Dr. Karp 5S pışpış, rahim içi kalp atışı ve 432Hz ninnilerle sakinleştirin.</div>
+            <div style="font-family: 'Sora'; font-size: 12.5px; font-weight: 700; color: var(--heading-night); line-height: 1.25;">30 Stüdyo Ninni & Anne Karnı Sesi</div>
+            <div style="font-size: 11px; color: var(--text-muted); line-height: 1.3; margin-top: 1px;">Kilit ekranında kesintisiz çalan Dr. Karp 5S pışpış, rahim içi kalp atışı ve 432Hz ninnilerle sakinleştirin.</div>
           </div>
         </div>
 
-        <div class="onb-combo-card" style="margin-bottom: 0; padding: 11px 13px; display: flex; align-items: flex-start; gap: 11px;">
-          <span style="width: 36px; height: 36px; border-radius: 10px; background: rgba(46, 213, 115, 0.16); border: 1px solid rgba(46, 213, 115, 0.36); display: inline-flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;">👵</span>
+        <div style="height: 1px; background: var(--border-night); opacity: 0.55;"></div>
+
+        <div style="display: flex; align-items: center; gap: 11px;">
+          <span style="width: 32px; height: 32px; border-radius: 9px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-night); display: inline-flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0;">👵</span>
           <div style="min-width: 0;">
-            <div style="font-family: 'Sora'; font-size: 13px; font-weight: 800; color: var(--heading-night); line-height: 1.25;">7/24 Mışıl Dadı & 5 Sn Ağlama Rehberi</div>
-            <div style="font-size: 11.5px; color: var(--text-night); line-height: 1.38; margin-top: 2px;">Açlık, gaz ve uyku ağlamasını 5 saniyede ayırt edin; 10 gelişim atağını ve resmi aşı takvimini takip edin.</div>
+            <div style="font-family: 'Sora'; font-size: 12.5px; font-weight: 700; color: var(--heading-night); line-height: 1.25;">7/24 Mışıl Dadı & 5 Sn Ağlama Rehberi</div>
+            <div style="font-size: 11px; color: var(--text-muted); line-height: 1.3; margin-top: 1px;">Açlık, gaz ve uyku ağlamasını 5 saniyede ayırt edin; 10 gelişim atağını ve resmi aşı takvimini takip edin.</div>
           </div>
         </div>
       </div>
 
-      <button class="btn-primary" id="btn-welcome-start-plan" style="margin-top: 4px; margin-bottom: 10px; box-shadow: 0 8px 24px rgba(232, 168, 85, 0.32);" onclick="nextQuizStep(1)">✨ 1 Dakikada Uyku Planımı Oluştur ➔</button>
+      <!-- DÜRÜST BİLİMSEL & GİZLİLİK GÜVEN SATIRI (TEK RENK SAKİN MİKRO ŞERİT) -->
+      <div id="welcome-trust-pills" style="display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; font-size: 10px; font-weight: 600; color: var(--text-muted); text-align: center;">
+        <span>🧬 Sirkadiyen Ritim Bilimi</span>
+        <span>•</span>
+        <span>🤫 Dr. Karp 5S Akustik Yöntemi</span>
+        <span>•</span>
+        <span>🔒 Cihaz İçi Gizlilik (KVKK/GDPR)</span>
+      </div>
+
+      <!-- ANA ODAK NOKTASI: EKRANDAKİ TEK PARLAK ALTIN/KEHRİBAR BUTON -->
+      <button class="btn-primary" id="btn-welcome-start-plan" style="margin-top: 2px; margin-bottom: 10px; min-height: 54px; font-size: 15px; box-shadow: 0 10px 28px rgba(244, 162, 97, 0.42);" onclick="nextQuizStep(1)">✨ 1 Dakikada Uyku Planımı Oluştur ➔</button>
 
       <!-- İKİNCİL AKSİYONLAR: MEVCUT AİLE KODU & SATIN ALIM GERİ YÜKLEME -->
-      <div style="display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 2px; margin-bottom: 8px;">
-        <button type="button" onclick="openJoinFamilyModal()" style="background: none; border: none; font-size: 11.5px; color: var(--accent); font-weight: 700; cursor: pointer; text-decoration: underline; padding: 4px 6px;">👨‍👩‍👧 Eşimin Aile Kodu Var</button>
+      <div style="display: flex; justify-content: center; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 2px; margin-bottom: 6px;">
+        <button type="button" onclick="openJoinFamilyModal()" style="background: none; border: none; font-size: 11px; color: var(--text-muted); font-weight: 600; cursor: pointer; text-decoration: underline; padding: 4px 6px;">👨‍👩‍👧 Eşimin Aile Kodu Var</button>
         <span style="color: var(--text-muted); font-size: 10px;">•</span>
-        <button type="button" onclick="restoreVipRenewalPurchases()" style="background: none; border: none; font-size: 11.5px; color: var(--text-muted); font-weight: 600; cursor: pointer; text-decoration: underline; padding: 4px 6px;">Satın Alımları Geri Yükle</button>
+        <button type="button" onclick="restoreVipRenewalPurchases()" style="background: none; border: none; font-size: 11px; color: var(--text-muted); font-weight: 600; cursor: pointer; text-decoration: underline; padding: 4px 6px;">Satın Alımları Geri Yükle</button>
       </div>
     </div>
 
@@ -4911,91 +4935,84 @@
       <button class="btn-primary" onclick="saveOnboardingVaccinesAndGenerateReport()">📊 Kişisel Raporumu Oluştur</button>
     </div>
 
-    <!-- Step 8 (Görsel Kişisel Rapor — Düşük Bilişsel Yük • Tek Odak) -->
+    <!-- Step 8 (Görsel Kişisel Rapor — Sakin Tek Kart + Tek Parlak Odak = Ana CTA Butonu) -->
     <div id="quiz-step-8" class="quiz-step" style="display: none;">
-      <div style="text-align: center; margin-bottom: 10px;">
-        <div style="display: flex; justify-content: center; align-items: center; gap: 8px;">
-          <span class="leap-badge" style="margin-bottom: 0;">📊 KİŞİSEL UYKU & BAKIM RAPORU</span>
-          <button type="button" id="btn-report-edit-answers" onclick="prevQuizStep(7)" style="min-height: 30px; background: rgba(255,255,255,0.08); border: 1px solid var(--border-night); color: var(--accent); font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 8px; cursor: pointer;">✏️ Yanıtlarımı Düzenle</button>
-        </div>
-        <div style="font-family: 'Sora'; font-size: 18px; font-weight: 800; color: var(--heading-night); margin-top: 5px;" id="report-baby-title">
+      <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px;">
+        <div style="font-family: 'Sora'; font-size: 16.5px; font-weight: 800; color: var(--heading-night); line-height: 1.22; min-width: 0;" id="report-baby-title">
           Bebeğiniz İçin Kişisel Plan Hazır
         </div>
+        <button type="button" id="btn-report-edit-answers" onclick="prevQuizStep(7)" style="min-height: 28px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-night); color: var(--text-muted); font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 999px; cursor: pointer; flex-shrink: 0; white-space: nowrap;">✏️ Yanıtlarımı Düzenle</button>
       </div>
 
-      <!-- 1. ANA "AHA!" ÇIKTISI: SIRADAKİ MIŞILSPOT SAATİ + 3 DURUM ÇİPİ -->
-      <div id="report-live-sweetspot-banner" style="background: linear-gradient(145deg, rgba(244, 162, 97, 0.22) 0%, rgba(24, 30, 52, 0.98) 100%); border: 1.5px solid var(--accent); border-radius: 16px; padding: 14px; margin-bottom: 10px; box-shadow: 0 8px 24px rgba(0,0,0,0.22);">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
-          <div style="flex: 1;">
-            <div id="report-sweetspot-kicker" style="font-size: 10px; font-weight: 800; color: var(--accent); text-transform: uppercase; letter-spacing: 0.35px;">🌙 Hesaplanan İlk MışılSpot™ Uyku Vakti</div>
-            <div style="font-size: 11px; color: var(--text-night); margin-top: 3px; line-height: 15px;" id="report-wake-window-note">Yaşa özel biyolojik uyanıklık penceresi: <strong id="report-wake-window-min">90 dk</strong></div>
+      <!-- 1. BİRLEŞİK SAKİN RAPOR KARTI (İLK MIŞILSPOT + DÖNÜŞÜM HEDEFİ TEK MAT KARTTA) -->
+      <div id="report-unified-summary-card" style="background: rgba(34, 28, 46, 0.72); border: 1px solid var(--border-night); border-radius: 22px; padding: 12px 14px; margin-bottom: 8px;">
+        <div id="report-live-sweetspot-banner">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+            <div style="flex: 1; min-width: 0;">
+              <div id="report-sweetspot-kicker" style="font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">🌙 Hesaplanan İlk MışılSpot™ Uyku Vakti</div>
+              <div style="font-size: 11px; color: var(--text-night); margin-top: 2px; line-height: 14.5px;" id="report-wake-window-note">Yaşa özel biyolojik uyanıklık penceresi: <strong id="report-wake-window-min">90 dk</strong></div>
+            </div>
+            <div style="text-align: right; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-night); border-radius: 12px; padding: 5px 11px; min-width: 78px; flex-shrink: 0;">
+              <div style="font-family: 'Sora'; font-size: 19px; font-weight: 800; color: var(--heading-night); line-height: 1.1;" id="report-next-sweetspot-time">14:30</div>
+              <div id="report-sweetspot-status-pill" style="font-size: 9px; color: var(--text-muted); font-weight: 700; margin-top: 1px;">✓ Hazır</div>
+            </div>
           </div>
-          <div style="text-align: right; background: rgba(15, 20, 36, 0.85); border: 1px solid rgba(232, 168, 85, 0.55); border-radius: 12px; padding: 7px 12px; min-width: 82px;">
-            <div style="font-family: 'Sora'; font-size: 21px; font-weight: 800; color: var(--accent); line-height: 1.1;" id="report-next-sweetspot-time">14:30</div>
-            <div id="report-sweetspot-status-pill" style="font-size: 9px; color: #2ED573; font-weight: 700; margin-top: 2px;">✓ Hazır</div>
+          <div id="report-primary-focus-tip" style="display: none;">💡 Aşırı yorgunluk başlamadan 10 dk önce loş odaya geçin.</div>
+          <div id="report-compact-chips-row" style="display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px;">
+            <span id="report-chip-feed" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); border-radius: 999px; padding: 2px 8px; font-size: 9.5px; font-weight: 600; color: var(--text-night);">🍼 Beslenme Uyumu ✓</span>
+            <span id="report-chip-leap" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); border-radius: 999px; padding: 2px 8px; font-size: 9.5px; font-weight: 600; color: var(--text-night);">🌱 Sakin Dönem ✓</span>
+            <span id="report-chip-vaccine" style="background: rgba(255,255,255,0.05); border: 1px solid var(--border-night); border-radius: 999px; padding: 2px 8px; font-size: 9.5px; font-weight: 600; color: var(--text-night);">💉 Aşılar Güncel ✓</span>
           </div>
         </div>
-        <div id="report-primary-focus-tip" style="margin-top: 9px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 11px; color: #E8ECF6; line-height: 15px;">
-          💡 Aşırı yorgunluk başlamadan 10 dk önce loş odaya geçin.
-        </div>
-        <div id="report-compact-chips-row" style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px;">
-          <span id="report-chip-feed" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 4px 9px; font-size: 10px; font-weight: 700; color: var(--heading-night);">🍼 Beslenme Uyumu ✓</span>
-          <span id="report-chip-leap" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 4px 9px; font-size: 10px; font-weight: 700; color: var(--heading-night);">🌱 Sakin Dönem ✓</span>
-          <span id="report-chip-vaccine" style="background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12); border-radius: 999px; padding: 4px 9px; font-size: 10px; font-weight: 700; color: var(--heading-night);">💉 Aşılar Güncel ✓</span>
-        </div>
-      </div>
 
-      <!-- 2. HER ZAMAN AÇIK KİŞİSEL DÖNÜŞÜM HEDEFİ & RİTİM SKORU (KAPALI ÇEKMECEDEN ÇIKARILDI) -->
-      <div id="report-transformation-card" style="background: rgba(22, 30, 52, 0.94); border: 1px solid rgba(46, 213, 115, 0.42); border-radius: 14px; padding: 11px 13px; margin-bottom: 10px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 7px;">
-          <div id="report-transformation-title" style="font-family: 'Sora'; font-size: 12px; font-weight: 800; color: var(--heading-night); line-height: 1.25;">🎯 Kişisel Uyku Dönüşüm Hedefi</div>
-          <div style="display: inline-flex; align-items: baseline; gap: 5px; background: rgba(232, 168, 85, 0.16); border: 1px solid rgba(232, 168, 85, 0.45); border-radius: 999px; padding: 2px 9px; flex-shrink: 0;">
-            <span style="font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.3px;">Ritim Skoru</span>
-            <span style="font-family: 'Sora'; font-size: 13px; font-weight: 800; color: var(--accent); line-height: 1;" id="report-score-val">—</span>
+        <!-- KİŞİSEL DÖNÜŞÜM HEDEFİ & RİTİM SKORU (AYNI KART İÇİNDE SAKİN ALT BÖLÜM) -->
+        <div id="report-transformation-card">
+          <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 5px;">
+            <div id="report-transformation-title" style="font-family: 'Sora'; font-size: 11.5px; font-weight: 700; color: var(--heading-night); line-height: 1.2;">🎯 Kişisel Uyku Dönüşüm Hedefi</div>
+            <div style="display: inline-flex; align-items: baseline; gap: 4px; background: rgba(255, 255, 255, 0.05); border: 1px solid var(--border-night); border-radius: 999px; padding: 1px 8px; flex-shrink: 0;">
+              <span style="font-size: 8.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Ritim Skoru</span>
+              <span style="font-family: 'Sora'; font-size: 11.5px; font-weight: 800; color: var(--heading-night); line-height: 1;" id="report-score-val">—</span>
+            </div>
           </div>
-        </div>
-        <div style="font-size: 10.5px; font-weight: 700; color: #FFA502; line-height: 14px; margin-bottom: 8px; padding-bottom: 7px; border-bottom: 1px solid rgba(255,255,255,0.08); overflow-wrap: anywhere;" id="report-score-desc">🌿 Ritim Analizi</div>
-        <div style="display: flex; flex-direction: column; gap: 5px; font-size: 11px; line-height: 15px; color: var(--text-night); min-width: 0; overflow-wrap: anywhere;">
-          <div id="report-target-latency">✓ Uykuya dalma: <strong>45 dk ➔ 12 dk</strong></div>
-          <div id="report-target-wakes">✓ Gece uyanması: <strong>4 kez ➔ 1 kez</strong></div>
-          <div id="report-target-extra">✓ MışılSpot™ ile huzurlu uyku ritmi</div>
-        </div>
-      </div>
-
-      <!-- 3. KİLİTLİ GÜN SONU & GECE HARİTASI ÖNİZLEMESİ (SOMUT AÇMA SEBEBİ) -->
-      <div id="report-locked-roadmap-card" onclick="openOnboardingPaywallStep()" style="background: rgba(20, 27, 46, 0.92); border: 1px dashed rgba(232, 168, 85, 0.48); border-radius: 14px; padding: 11px 13px; margin-bottom: 10px; cursor: pointer;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-          <span style="font-family: 'Sora'; font-size: 11.5px; font-weight: 800; color: var(--heading-night);">🔒 Günün Devamı & Bu Geceki Planınız</span>
-          <span class="badge-trial-7d-vip" style="background: rgba(232, 168, 85, 0.18); color: var(--accent); font-size: 9px; font-weight: 800; padding: 2px 7px; border-radius: 999px;">👑 TAM VIP PLAN</span>
-        </div>
-        <div style="display: flex; flex-direction: column; gap: 6px; font-size: 11px;">
-          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border-radius: 9px; padding: 6px 9px;">
-            <span style="color: var(--text-night);">☀️ Sonraki Uyku Penceresi</span>
-            <strong id="report-locked-next-nap" style="font-family: 'Sora'; color: var(--accent); letter-spacing: 0.4px;">🔒 16:••</strong>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border-radius: 9px; padding: 6px 9px;">
-            <span style="color: var(--text-night);">🌙 Bu Gece İdeal Yatış Saati</span>
-            <strong id="report-locked-bedtime" style="font-family: 'Sora'; color: var(--accent); letter-spacing: 0.4px;">🔒 19:••</strong>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border-radius: 9px; padding: 6px 9px;">
-            <span id="report-locked-rx-label" style="color: var(--text-night);">🎧 Kilit Ekranı 30 Stüdyo Sesi & Gece Rehberi</span>
-            <strong style="font-family: 'Sora'; color: #2ED573; font-size: 10px;">🔒 VIP</strong>
-          </div>
-          <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border-radius: 9px; padding: 6px 9px;">
-            <span style="color: var(--text-night);">👨‍👩‍👧 Ortak Aile Takibi (Anne, Baba, Bakıcı)</span>
-            <strong style="font-family: 'Sora'; color: var(--accent); font-size: 10px;">🔒 3 Üye VIP</strong>
+          <div style="display: none;" id="report-score-desc">🌿 Ritim Analizi</div>
+          <div style="display: flex; flex-direction: column; gap: 3px; font-size: 11px; line-height: 14.5px; color: var(--text-night); min-width: 0; overflow-wrap: anywhere;">
+            <div id="report-target-latency">✓ Uykuya dalma: <strong>45 dk ➔ 12 dk</strong></div>
+            <div id="report-target-wakes">✓ Gece uyanması: <strong>4 kez ➔ 1 kez</strong></div>
+            <div id="report-target-extra" style="display: none;">✓ MışılSpot™ ile huzurlu uyku ritmi</div>
           </div>
         </div>
       </div>
 
-      <!-- 4. İSTEĞE BAĞLI DETAY ÇEKMECESİ (VARSAYILAN KAPALI — 4 BAKIM & RUTİN ANALİZİ) -->
-      <details id="report-details-drawer" style="background: rgba(20, 27, 46, 0.65); border: 1px solid var(--border-night); border-radius: 12px; padding: 8px 11px; margin-bottom: 12px;">
-        <summary style="font-size: 11px; font-weight: 700; color: var(--text-muted); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
+      <!-- 2. KOMPAKT KİLİTLİ GECE HARİTASI (2 SÜTUNLU TEK SATIR + TEK ÖZET SATIRI) -->
+      <div id="report-locked-roadmap-card" onclick="openOnboardingPaywallStep()" style="margin-bottom: 8px; cursor: pointer;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <span style="font-family: 'Sora'; font-size: 11px; font-weight: 700; color: var(--heading-night);">🔒 Günün Devamı & Bu Geceki Planınız</span>
+          <span class="badge-trial-7d-vip" style="background: rgba(255, 255, 255, 0.07); color: var(--text-muted); font-size: 8.5px; font-weight: 700; padding: 2px 7px; border-radius: 999px;">👑 TAM VIP PLAN</span>
+        </div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 10.5px; margin-bottom: 5px;">
+          <div class="report-locked-cell" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border-radius: 9px; padding: 5px 8px;">
+            <span style="color: var(--text-night);">☀️ Sonraki Uyku</span>
+            <strong id="report-locked-next-nap" style="font-family: 'Sora'; color: var(--heading-night);">🔒 16:••</strong>
+          </div>
+          <div class="report-locked-cell" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border-radius: 9px; padding: 5px 8px;">
+            <span style="color: var(--text-night);">🌙 Gece Yatışı</span>
+            <strong id="report-locked-bedtime" style="font-family: 'Sora'; color: var(--heading-night);">🔒 19:••</strong>
+          </div>
+        </div>
+        <div class="report-locked-cell" style="display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.03); border-radius: 9px; padding: 5px 8px; font-size: 10px;">
+          <span id="report-locked-rx-label" style="color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">🎧 Kilit Ekranı 30 Stüdyo Sesi & Gece Rehberi</span>
+          <strong style="font-family: 'Sora'; color: var(--text-muted); font-size: 9.5px; flex-shrink: 0; margin-left: 6px;">🔒 3 Üye VIP</strong>
+        </div>
+      </div>
+
+      <!-- 3. İSTEĞE BAĞLI DETAY ÇEKMECESİ (VARSAYILAN KAPALI — TEK İNCE SATIR) -->
+      <details id="report-details-drawer" style="margin-bottom: 10px;">
+        <summary style="font-size: 10.5px; font-weight: 600; color: var(--text-muted); cursor: pointer; list-style: none; display: flex; justify-content: space-between; align-items: center;">
           <span>📋 Planınıza İşlenen 4 Bakım & Rutin Analizi</span>
-          <span style="color: var(--accent); font-size: 10px;">Aç ▾</span>
+          <span style="color: var(--text-muted); font-size: 10px;">Aç ▾</span>
         </summary>
-        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.07);">
-          <div id="report-personal-insights-card" style="display: flex; flex-direction: column; gap: 6px; font-size: 10.5px; line-height: 15px; color: var(--text-night); min-width: 0; overflow-wrap: anywhere;">
+        <div style="margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(255,255,255,0.07);">
+          <div id="report-personal-insights-card" style="display: flex; flex-direction: column; gap: 5px; font-size: 10.5px; line-height: 14.5px; color: var(--text-night); min-width: 0; overflow-wrap: anywhere;">
             <div id="report-insight-sleep">🌙 —</div>
             <div id="report-insight-feed">🍼 —</div>
             <div id="report-insight-leaps">🌱 —</div>
@@ -5004,8 +5021,9 @@
         </div>
       </details>
 
-      <button class="btn-primary" id="btn-report-unlock-plan" style="margin-top: 0; box-shadow: 0 8px 24px rgba(232, 168, 85, 0.32);" onclick="openOnboardingPaywallStep()">🔓 Bugünkü Tam Uyku Planımı Aç ➔</button>
-      <div style="font-size: 9.5px; color: var(--text-muted); text-align: center; margin-top: 8px; line-height: 13.5px;">
+      <!-- ANA ODAK NOKTASI: EKRANDAKİ TEK PARLAK ALTIN/KEHRİBAR BUTON -->
+      <button class="btn-primary" id="btn-report-unlock-plan" style="margin-top: 0; min-height: 54px; font-size: 15px; box-shadow: 0 10px 30px rgba(244, 162, 97, 0.45);" onclick="openOnboardingPaywallStep()">🔓 Bugünkü Tam Uyku Planımı Aç ➔</button>
+      <div style="font-size: 9px; color: var(--text-muted); text-align: center; margin-top: 6px; line-height: 12.5px;">
         🩺 Bilgilendirme amaçlıdır; tıbbi teşhis veya hekim tavsiyesi yerine geçmez.
       </div>
     </div>
@@ -12422,17 +12440,14 @@
         if (spotPillEl) {
           if (insights.isLiveSleepingNow) {
             spotPillEl.textContent = trEnDe('● Aktif', '● Active', '● Aktiv');
-            spotPillEl.style.color = '#A569BD';
           } else if (insights.isOverdueNow) {
             spotPillEl.textContent = trEnDe('⚠️ Şimdi Uyutun', '⚠️ Sleep Now', '⚠️ Jetzt hinlegen');
-            spotPillEl.style.color = '#FF6B81';
           } else if (insights.isEstimatedWake) {
             spotPillEl.textContent = trEnDe('≈ Tahmini', '≈ Estimate', '≈ Schätzung');
-            spotPillEl.style.color = 'var(--accent)';
           } else {
             spotPillEl.textContent = trEnDe('✓ Hazır', '✓ Ready', '✓ Bereit');
-            spotPillEl.style.color = '#2ED573';
           }
+          spotPillEl.style.color = 'var(--text-muted)';
         }
         if (spotNoteEl && insights.wakeSourceLine) {
           spotNoteEl.innerHTML = insights.wakeSourceLine;
@@ -23081,6 +23096,8 @@
     "📅 Bebeğiniz ne zaman doğdu?": "📅 When was your baby born?",
     "🎯 Kişisel Uyku Dönüşüm Hedefi": "🎯 Personal Sleep Transformation Goal",
     "📋 Planınıza İşlenen 4 Bakım & Rutin Analizi": "📋 4 Care & Routine Insights Logged to Your Plan",
+    "☀️ Sonraki Uyku": "☀️ Next Sleep",
+    "🌙 Gece Yatışı": "🌙 Tonight's Bedtime",
     "✨ İlk Ay ₺49,99 Başlangıç": "✨ ₺49,99 First Month Start",
     "☕ Ayda Bir Kahve Fiyatına": "☕ Price of a Coffee a Month"
   };
@@ -23951,6 +23968,8 @@
     "📅 Bebeğiniz ne zaman doğdu?": "📅 Wann wurde Ihr Baby geboren?",
     "🎯 Kişisel Uyku Dönüşüm Hedefi": "🎯 Persönliches Schlaf-Transformationsziel",
     "📋 Planınıza İşlenen 4 Bakım & Rutin Analizi": "📋 4 in Ihren Plan übernommene Pflege- & Routine-Analysen",
+    "☀️ Sonraki Uyku": "☀️ Nächster Schlaf",
+    "🌙 Gece Yatışı": "🌙 Abend-Bettzeit",
     "✨ İlk Ay ₺49,99 Başlangıç": "✨ 1. Monat ₺49,99 Start",
     "☕ Ayda Bir Kahve Fiyatına": "☕ Zum Preis eines Kaffees im Monat"
   };
