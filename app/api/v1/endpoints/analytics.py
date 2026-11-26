@@ -733,6 +733,74 @@ _RC_V2_PRODUCT_MAP_LOCK = threading.Lock()
 _RC_V2_PRODUCT_MAP_CACHE: Dict[str, Any] = {"ts": 0.0, "map": {}}
 _GP_OAUTH_TOKEN_LOCK = threading.Lock()
 _GP_OAUTH_TOKEN_CACHE: Dict[str, Any] = {"exp": 0.0, "token": None}
+_ITUNES_RATING_LOCK = threading.Lock()
+_ITUNES_RATING_CACHE: Dict[str, Any] = {"ts": 0.0, "avg": 0.0, "count": 0}
+
+
+def _get_live_apple_itunes_rating() -> Tuple[float, int]:
+    """
+    6 saatlik arka plan döngüsünü beklemeden resmi Apple iTunes Lookup API'den
+    (https://itunes.apple.com/lookup?id=6809223195&country=tr) yorumsuz oylar dahil
+    genel mağaza puanını (örn. 4.6 ★) ve toplam oy sayısını 30 dk önbellekli çeker.
+    """
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        with _BASELINE_LOCK:
+            return (
+                float(OFFICIAL_STORE_BASELINE.get("apple_overall_rating", 0.0) or 0.0),
+                int(OFFICIAL_STORE_BASELINE.get("apple_overall_ratings_count", 0) or 0),
+            )
+    now_ts = time.time()
+    with _ITUNES_RATING_LOCK:
+        c_avg = float(_ITUNES_RATING_CACHE.get("avg") or 0.0)
+        c_cnt = int(_ITUNES_RATING_CACHE.get("count") or 0)
+        c_ts = float(_ITUNES_RATING_CACHE.get("ts") or 0.0)
+        if c_avg > 0 and c_cnt > 0 and (now_ts - c_ts) < 1800:
+            return (c_avg, c_cnt)
+        if (now_ts - c_ts) < 120 and c_ts > 0:
+            return (c_avg, c_cnt)
+        _ITUNES_RATING_CACHE["ts"] = now_ts
+
+    try:
+        req = urllib.request.Request(
+            "https://itunes.apple.com/lookup?id=6809223195&country=tr",
+            headers={"Accept": "application/json", "User-Agent": "MishilCockpit/4.57.8"},
+        )
+        with urllib.request.urlopen(req, timeout=2.5) as resp:
+            if resp.status == 200:
+                payload = json.loads(resp.read().decode("utf-8"))
+                results = payload.get("results") or []
+                if results and isinstance(results[0], dict):
+                    app_obj = results[0]
+                    avg_v = round(
+                        float(
+                            app_obj.get("averageUserRating")
+                            or app_obj.get("averageUserRatingForCurrentVersion")
+                            or 0.0
+                        ),
+                        1,
+                    )
+                    cnt_v = int(
+                        app_obj.get("userRatingCount")
+                        or app_obj.get("userRatingCountForCurrentVersion")
+                        or 0
+                    )
+                    if avg_v > 0 and cnt_v > 0:
+                        with _ITUNES_RATING_LOCK:
+                            _ITUNES_RATING_CACHE["avg"] = avg_v
+                            _ITUNES_RATING_CACHE["count"] = cnt_v
+                            _ITUNES_RATING_CACHE["ts"] = now_ts
+                        with _BASELINE_LOCK:
+                            OFFICIAL_STORE_BASELINE["apple_overall_rating"] = avg_v
+                            OFFICIAL_STORE_BASELINE["apple_overall_ratings_count"] = cnt_v
+                        return (avg_v, cnt_v)
+    except Exception as exc:
+        logger.debug("Live iTunes rating lookup info: %s", exc)
+
+    with _BASELINE_LOCK:
+        return (
+            float(OFFICIAL_STORE_BASELINE.get("apple_overall_rating", 0.0) or 0.0),
+            int(OFFICIAL_STORE_BASELINE.get("apple_overall_ratings_count", 0) or 0),
+        )
 
 # Kokpit hızlandırma katmanı: hafif projeksiyonlar, anında geçersiz kılınan (instant-invalidated)
 # kısa ömürlü özet önbelleği ve tekil uçuş (single-flight) mağaza senkron kilidi
@@ -6395,16 +6463,14 @@ def _build_analytics_summary(
         overall_rating: float = 0.0,
         overall_count: int = 0,
     ) -> Dict[str, Any]:
-        counts: Dict[int, int] = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
+        written_counts: Dict[int, int] = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
         for r_it in rev_items:
             st_v = max(1, min(5, int(r_it.get("rating", 5) or 5)))
-            counts[st_v] = counts.get(st_v, 0) + 1
+            written_counts[st_v] = written_counts.get(st_v, 0) + 1
         written_cnt = len(rev_items)
-        written_avg = (
-            round(sum(st_k * st_c for st_k, st_c in counts.items()) / written_cnt, 1)
-            if written_cnt > 0
-            else 0.0
-        )
+        written_sum = sum(st_k * st_c for st_k, st_c in written_counts.items())
+        written_avg = round(written_sum / written_cnt, 1) if written_cnt > 0 else 0.0
+
         eff_overall_cnt = max(written_cnt, int(overall_count or 0))
         eff_overall_avg = (
             round(float(overall_rating), 1)
@@ -6412,13 +6478,42 @@ def _build_analytics_summary(
             else written_avg
         )
         silent_ratings_cnt = max(0, eff_overall_cnt - written_cnt)
+
+        # Yorumsuz oyları (silent_ratings_cnt) mağaza genel puanı (eff_overall_avg) ile matematiksel mutabakata sokarak
+        # 5★..1★ toplam oy çubuklarına dağıt (böylece toplam oy çubuğu mağazadaki gerçek oy dağılımını birebir gösterir)
+        total_counts: Dict[int, int] = dict(written_counts)
+        silent_counts: Dict[int, int] = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
+        if silent_ratings_cnt > 0:
+            target_total_points = int(round(eff_overall_avg * eff_overall_cnt))
+            rem_points = max(silent_ratings_cnt, min(5 * silent_ratings_cnt, target_total_points - written_sum))
+            rem_votes = silent_ratings_cnt
+            for st_lvl in (5, 4, 3, 2, 1):
+                if rem_votes <= 0:
+                    break
+                if st_lvl == 1:
+                     take = rem_votes
+                else:
+                    # Kalan oyların en az 1'er puan alabilmesi için bu yıldız seviyesine verilebilecek maksimum oy
+                    max_possible = (rem_points - rem_votes) // (st_lvl - 1)
+                    take = max(0, min(rem_votes, int(max_possible)))
+                if take > 0:
+                    silent_counts[st_lvl] += take
+                    total_counts[st_lvl] += take
+                    rem_votes -= take
+                    rem_points -= take * st_lvl
+
+        denom_cnt = eff_overall_cnt if eff_overall_cnt > 0 else written_cnt
         bars: List[Dict[str, Any]] = []
         for s_lvl in (5, 4, 3, 2, 1):
-            c_val = counts[s_lvl]
-            pct_val = round((c_val / written_cnt) * 100, 1) if written_cnt > 0 else 0.0
+            tot_c = total_counts[s_lvl]
+            wr_c = written_counts[s_lvl]
+            sil_c = silent_counts[s_lvl]
+            pct_val = round((tot_c / denom_cnt) * 100, 1) if denom_cnt > 0 else 0.0
             bars.append({
                 "star": s_lvl,
-                "count": c_val,
+                "count": tot_c,
+                "written_count": wr_c,
+                "silent_count": sil_c,
                 "pct": pct_val,
             })
         return {
@@ -6429,12 +6524,20 @@ def _build_analytics_summary(
             "overall_avg": eff_overall_avg,
             "overall_avg_str": f"★ {eff_overall_avg}" if eff_overall_cnt > 0 else "Yorum Yok",
             "silent_ratings_count": silent_ratings_cnt,
-            "counts": {str(k): v for k, v in counts.items()},
+            "counts": {str(k): v for k, v in total_counts.items()},
+            "written_counts": {str(k): v for k, v in written_counts.items()},
             "bars": bars,
         }
 
     ios_overall_r = float(sb.get("apple_overall_rating", 0.0) or 0.0)
     ios_overall_c = int(sb.get("apple_overall_ratings_count", 0) or 0)
+    if ios_overall_r <= 0 or ios_overall_c <= 0:
+        live_it_r, live_it_c = _get_live_apple_itunes_rating()
+        if live_it_r > 0 and live_it_c > 0:
+            ios_overall_r = live_it_r
+            ios_overall_c = live_it_c
+            sb["apple_overall_rating"] = live_it_r
+            sb["apple_overall_ratings_count"] = live_it_c
     and_overall_r = float(sb.get("google_overall_rating", 0.0) or 0.0)
     and_overall_c = int(sb.get("google_overall_ratings_count", 0) or 0)
     for cfg_r in cfg_rows:
@@ -8741,6 +8844,7 @@ def analytics_dashboard_page(
         plat_title: str,
         sd_obj: Dict[str, Any],
         accent_color: str,
+        id_prefix: str = "star",
     ) -> str:
         ov_str = html.escape(str(sd_obj.get("overall_avg_str") or "Yorum Yok"))
         ov_cnt = int(sd_obj.get("overall_count", 0) or 0)
@@ -8748,36 +8852,39 @@ def analytics_dashboard_page(
         wr_cnt = int(sd_obj.get("written_count", 0) or 0)
         sil_cnt = int(sd_obj.get("silent_ratings_count", 0) or 0)
         bars_list = sd_obj.get("bars") or [
-            {"star": st_l, "count": 0, "pct": 0.0} for st_l in (5, 4, 3, 2, 1)
+            {"star": st_l, "count": 0, "written_count": 0, "silent_count": 0, "pct": 0.0} for st_l in (5, 4, 3, 2, 1)
         ]
         bars_rows_html = ""
         for b_it in bars_list:
             st_lvl = int(b_it.get("star", 5) or 5)
             st_cnt = int(b_it.get("count", 0) or 0)
+            st_wr = int(b_it.get("written_count", st_cnt) or 0)
+            st_sil = int(b_it.get("silent_count", 0) or 0)
             st_pct = float(b_it.get("pct", 0.0) or 0.0)
             b_col = "#10B981" if st_lvl >= 4 else ("#F59E0B" if st_lvl == 3 else "#EF4444")
+            cnt_label = f"{st_cnt} ({st_wr}+{st_sil})" if st_sil > 0 else f"{st_cnt}"
             bars_rows_html += f"""
-            <div style="display:flex; align-items:center; gap:8px; font-size:11.5px; margin-top:4px; font-variant-numeric:tabular-nums;">
-              <span style="width:28px; font-weight:800; color:var(--text-primary);">{st_lvl} ★</span>
-              <div style="flex:1; height:7px; background:rgba(148,163,184,0.18); border-radius:999px; overflow:hidden;">
-                <div id="starBarFill_{plat_key}_{st_lvl}" style="width:{st_pct}%; height:100%; background:{b_col}; border-radius:999px;"></div>
+            <div style="display:flex; align-items:center; gap:8px; font-size:12px; margin-top:5px; font-variant-numeric:tabular-nums;">
+              <span style="width:32px; font-weight:800; color:var(--text-primary);">{st_lvl} ★</span>
+              <div style="flex:1; height:9px; background:rgba(148,163,184,0.18); border-radius:999px; overflow:hidden;">
+                <div class="js-star-fill-{plat_key}-{st_lvl}" id="{id_prefix}BarFill_{plat_key}_{st_lvl}" style="width:{st_pct}%; height:100%; background:{b_col}; border-radius:999px;"></div>
               </div>
-              <strong id="starBarCnt_{plat_key}_{st_lvl}" style="min-width:22px; text-align:right; color:var(--text-primary);">{st_cnt}</strong>
-              <span id="starBarPct_{plat_key}_{st_lvl}" style="min-width:38px; text-align:right; color:var(--text-muted); font-size:10.5px;">%{st_pct}</span>
+              <strong class="js-star-cnt-{plat_key}-{st_lvl}" id="{id_prefix}BarCnt_{plat_key}_{st_lvl}" style="min-width:44px; text-align:right; color:var(--text-primary);">{cnt_label}</strong>
+              <span class="js-star-pct-{plat_key}-{st_lvl}" id="{id_prefix}BarPct_{plat_key}_{st_lvl}" style="min-width:42px; text-align:right; color:var(--text-muted); font-size:11px;">%{st_pct}</span>
             </div>
             """
         silent_chip = (
-            f'<span class="kpi-micro-chip" id="starSilentChip_{plat_key}" title="Yorum yazmadan yalnızca yıldız veren kullanıcılar">+{sil_cnt} Yorumsuz Oy</span>'
+            f'<span class="kpi-micro-chip js-star-silent-{plat_key}" id="{id_prefix}SilentChip_{plat_key}" title="Yorum yazmadan yalnızca yıldız veren kullanıcılar">+{sil_cnt} Yorumsuz Oy</span>'
             if sil_cnt > 0
-            else f'<span class="kpi-micro-chip" id="starSilentChip_{plat_key}" style="display:none;"></span>'
+            else f'<span class="kpi-micro-chip js-star-silent-{plat_key}" id="{id_prefix}SilentChip_{plat_key}" style="display:none;"></span>'
         )
         return f"""
-        <div class="step-box" data-platform="{plat_key}" id="starDistBox_{plat_key}" style="border-left: 4px solid {accent_color};">
+        <div class="step-box" data-platform="{plat_key}" id="{id_prefix}DistBox_{plat_key}" style="border-left: 4px solid {accent_color};">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
-            <span style="font-size:11.5px; font-weight:800; color:{accent_color};">{plat_title}</span>
+            <span style="font-size:12.5px; font-weight:800; color:{accent_color};">{plat_title}</span>
             <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
-              <span class="badge" id="starOverallBadge_{plat_key}" style="background:rgba(245,158,11,0.16); color:#D97706; font-size:11px; padding:2px 8px;" title="Mağaza Genel Puanı (Yorumsuz Oylar Dahil)">Mağaza: {ov_str} ({ov_cnt})</span>
-              <span class="badge badge-meta" id="starWrittenBadge_{plat_key}" style="font-size:10.5px; padding:2px 7px;" title="Yazılı Yorum Bırakanların Ortalaması">Yazılı: {wr_str} ({wr_cnt})</span>
+              <span class="badge js-star-overall-{plat_key}" id="{id_prefix}OverallBadge_{plat_key}" style="background:rgba(245,158,11,0.16); color:#D97706; font-size:11px; padding:2px 8px;" title="Mağaza Genel Puanı (Yorumsuz Oylar Dahil)">Mağaza: {ov_str} ({ov_cnt})</span>
+              <span class="badge badge-meta js-star-written-{plat_key}" id="{id_prefix}WrittenBadge_{plat_key}" style="font-size:10.5px; padding:2px 7px;" title="Yazılı Yorum Bırakanların Ortalaması">Yazılı: {wr_str} ({wr_cnt})</span>
               {silent_chip}
             </div>
           </div>
@@ -8788,8 +8895,12 @@ def analytics_dashboard_page(
         """
 
     star_dist_boxes_html = (
-        _render_platform_star_box("ios", "🍏 iOS App Store", ios_sd, "#059669")
-        + _render_platform_star_box("android", "🤖 Android Google Play", and_sd, "#2563EB")
+        _render_platform_star_box("ios", "🍏 iOS App Store (5★ ➔ 1★ Oy Dağılımı)", ios_sd, "#059669", id_prefix="star")
+        + _render_platform_star_box("android", "🤖 Android Google Play (5★ ➔ 1★ Oy Dağılımı)", and_sd, "#2563EB", id_prefix="star")
+    )
+    tab1_star_dist_boxes_html = (
+        _render_platform_star_box("ios", "🍏 iOS App Store (5★ ➔ 1★ Oy Dağılımı)", ios_sd, "#059669", id_prefix="t1Star")
+        + _render_platform_star_box("android", "🤖 Android Google Play (5★ ➔ 1★ Oy Dağılımı)", and_sd, "#2563EB", id_prefix="t1Star")
     )
 
     pulse_info = s.get("satisfaction_pulse") or {}
@@ -11052,6 +11163,10 @@ def analytics_dashboard_page(
                   <span>🧭 Onboarding (0➔9)</span>
                   <strong style="color:#D8B4FE;" id="sideKpiOnb">{html.escape(onb_comp_str)} ({int(onb_f.get('step9_reached_devices', 0) or 0)}/{int(onb_f.get('start_base_devices', 0) or 0)})</strong>
                 </div>
+                <div class="sidebar-kpi-row clickable-kpi-row" onclick="jumpToStarDistribution()" title="🍏 iOS & 🤖 Android 5★..1★ Mağaza Oy Dağılımına Git">
+                  <span>⭐ Mağaza Puanı</span>
+                  <strong style="color:#F4A261;" id="sideKpiStars">{html.escape(str(all_sd.get('overall_avg_str') or 'Yorum Yok'))} ({int(all_sd.get('overall_count', 0) or 0)} Oy)</strong>
+                </div>
               </div>
 
               <div class="sidebar-actions-grid">
@@ -11096,6 +11211,7 @@ def analytics_dashboard_page(
                   </div>
                   <div class="conv-summary-pills" id="funnelHeadBadge">
                     <button type="button" class="conv-summary-pill" onclick="jumpToOnboardingFunnel()" style="cursor:pointer; background:rgba(124,58,237,0.14); border-color:rgba(124,58,237,0.38); color:var(--stage-4);" title="9 Adımlı Kullanıcı Onboarding İlerleme Tablosuna Git">🧭 Onboarding: <strong id="convOnbCompPill">{html.escape(onb_comp_str)} ({int(onb_f.get('step9_reached_devices', 0) or 0)}/{int(onb_f.get('start_base_devices', 0) or 0)}) ➔</strong></button>
+                    <button type="button" class="conv-summary-pill" onclick="jumpToStarDistribution()" style="cursor:pointer; background:rgba(245,158,11,0.15); border-color:rgba(245,158,11,0.40); color:#D97706;" title="🍏 iOS & 🤖 Android 5★..1★ Mağaza Oy Dağılımına Git">⭐ Oy Dağılımı: <strong id="convStarsPill">{html.escape(str(all_sd.get('overall_avg_str') or 'Yorum Yok'))} ({int(all_sd.get('overall_count', 0) or 0)} Oy) ➔</strong></button>
                     <span class="conv-summary-pill" style="background:rgba(var(--stage-3-rgb),0.10); border-color:rgba(var(--stage-3-rgb),0.28); color:var(--stage-3);">CVR: <strong id="convStoreCvrPill">%{ps_all.get('store_cvr_pct', 0)}</strong></span>
                     <span class="conv-summary-pill">➔ VIP: <strong id="convStartedVipDlPill">%{ps_all.get('started_vip_of_dl_pct', 0)}</strong></span>
                     <span class="conv-summary-pill" style="background:rgba(var(--stage-5-rgb),0.10); border-color:rgba(var(--stage-5-rgb),0.28); color:var(--stage-5);">Churn: <strong id="convChurnPill">%{ps_all.get('churn_rate_pct', 0)}</strong></span>
@@ -11337,6 +11453,21 @@ def analytics_dashboard_page(
             <button type="button" class="subcat-pill" id="subcatBtn_t1_donuts" onclick="filterTab1Category('donuts')">🍩 Dağılım Halkaları</button>
             <button type="button" class="subcat-pill" id="subcatBtn_t1_channels" onclick="filterTab1Category('channels')">🎯 Edinim &amp; Ülkeler ({len(countries_list)})</button>
             <button type="button" class="subcat-pill" onclick="jumpToOnboardingFunnel()" style="border-color:rgba(124,58,237,0.38); color:var(--stage-4);">🧭 9 Adım Onboarding ({html.escape(onb_comp_str)}) ➔</button>
+            <button type="button" class="subcat-pill" onclick="jumpToStarDistribution()" style="border-color:rgba(245,158,11,0.40); color:#D97706;">⭐ Oy Dağılımı ({html.escape(str(all_sd.get('overall_avg_str') or 'Yorum Yok'))}) ➔</button>
+          </div>
+
+          <!-- SEKME 1 DOĞRUDAN GÖRÜNÜR 5★..1★ MAĞAZA OY DAĞILIMI (🍏 iOS & 🤖 Android AYRI AYRI) -->
+          <div class="bento-card tab1-sec tab1-sec-trend" id="tab1StarDistributionCard">
+            <div class="section-head">
+              <span>⭐ Mağaza Oy &amp; Yıldız Dağılımı (🍏 iOS vs 🤖 Android)</span>
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <span class="badge" style="background:rgba(245,158,11,0.16); color:#D97706;">{avg_stars_label}</span>
+                <button type="button" class="collapse-btn" onclick="jumpToStarDistribution()">💬 Yorumlar &amp; Çözüm Yoklaması ➔</button>
+              </div>
+            </div>
+            <div class="bento-split-2col-equal" style="margin-bottom:0;">
+              {tab1_star_dist_boxes_html}
+            </div>
           </div>
 
           <div class="bento-split-2col tab1-sec tab1-sec-trend">
@@ -11804,16 +11935,21 @@ def analytics_dashboard_page(
 
         <!-- SEKME 4: MAĞAZA YORUMLARI & CANLI SOSYAL KÖPRÜ TRAFİĞİ (2 SÜTUN YAN YANA) -->
         <div id="tabPane_tab4" class="tab-pane">
+          <!-- SEKME 4 EN ÜST TAM GENİŞLİKLİ 5★..1★ YILDIZ & OY DAĞILIMI KARTI -->
+          <div class="bento-card" id="reviewsStarDistributionCard" style="margin-bottom:14px;">
+            <div class="section-head">
+              <span>⭐ Mağaza Oy &amp; Yıldız Dağılımı (🍏 iOS App Store &amp; 🤖 Android Google Play)</span>
+              <span class="badge" id="reviewsTopAvgBadge" style="background:rgba(217,119,6,0.14); color:#D97706;">{avg_stars_label}</span>
+            </div>
+            <div class="bento-split-2col-equal" id="reviewsStarDistributionGrid" style="margin-bottom:0;">
+              {star_dist_boxes_html}
+            </div>
+          </div>
+
           <div class="bento-split-2col-equal">
             <div class="bento-card">
               <div class="section-head">
-                <span>⭐ Mağaza Yorumları ({reviews_total_cnt})</span>
-                <span class="badge" id="reviewsTopAvgBadge" style="background:rgba(217,119,6,0.14); color:#D97706;">{avg_stars_label}</span>
-              </div>
-
-              <!-- DİNAMİK 5★..1★ YILDIZ ÇUBUĞU DAĞILIMI (🍏 iOS & 🤖 Android AYRI AYRI) -->
-              <div class="steps-grid" id="reviewsStarDistributionGrid" style="margin-bottom:12px;">
-                {star_dist_boxes_html}
+                <span>💬 Yazılı Mağaza Yorumları ({reviews_total_cnt})</span>
               </div>
 
               <!-- DÜŞÜK YILDIZ KURTARMA: UYGULAMA İÇİ + YEREL BİLDİRİM MEMNUNİYET & ÇÖZÜM YOKLAMASI -->
@@ -12008,6 +12144,16 @@ def analytics_dashboard_page(
           switchTab('tab3');
           filterTab3Category('all');
           var el = document.getElementById('onboardingNineStepFunnelCard');
+          if (el && el.scrollIntoView) {{
+            setTimeout(function() {{
+              try {{ el.scrollIntoView({{ behavior: 'smooth', block: 'start' }}); }} catch (_se) {{ el.scrollIntoView(); }}
+            }}, 40);
+          }}
+        }}
+
+        function jumpToStarDistribution() {{
+          switchTab('tab4');
+          var el = document.getElementById('reviewsStarDistributionCard');
           if (el && el.scrollIntoView) {{
             setTimeout(function() {{
               try {{ el.scrollIntoView({{ behavior: 'smooth', block: 'start' }}); }} catch (_se) {{ el.scrollIntoView(); }}
@@ -12219,30 +12365,36 @@ def analytics_dashboard_page(
 
         function updatePlatformStarDistDom(platKey, sd) {{
           if (!sd) return;
-          var ovBadge = document.getElementById('starOverallBadge_' + platKey);
-          var wrBadge = document.getElementById('starWrittenBadge_' + platKey);
-          var silChip = document.getElementById('starSilentChip_' + platKey);
-          if (ovBadge) ovBadge.textContent = 'Mağaza: ' + (sd.overall_avg_str || 'Yorum Yok') + ' (' + Number(sd.overall_count || 0) + ')';
-          if (wrBadge) wrBadge.textContent = 'Yazılı: ' + (sd.written_avg_str || 'Yorum Yok') + ' (' + Number(sd.written_count || 0) + ')';
+          var ovNodes = document.querySelectorAll('.js-star-overall-' + platKey);
+          var wrNodes = document.querySelectorAll('.js-star-written-' + platKey);
+          var silNodes = document.querySelectorAll('.js-star-silent-' + platKey);
+          var ovTxt = 'Mağaza: ' + (sd.overall_avg_str || 'Yorum Yok') + ' (' + Number(sd.overall_count || 0) + ')';
+          var wrTxt = 'Yazılı: ' + (sd.written_avg_str || 'Yorum Yok') + ' (' + Number(sd.written_count || 0) + ')';
+          for (var i = 0; i < ovNodes.length; i++) ovNodes[i].textContent = ovTxt;
+          for (var j = 0; j < wrNodes.length; j++) wrNodes[j].textContent = wrTxt;
           var silCnt = Number(sd.silent_ratings_count || 0);
-          if (silChip) {{
+          for (var k = 0; k < silNodes.length; k++) {{
             if (silCnt > 0) {{
-              silChip.textContent = '+' + silCnt + ' Yorumsuz Oy';
-              silChip.style.display = '';
+              silNodes[k].textContent = '+' + silCnt + ' Yorumsuz Oy';
+              silNodes[k].style.display = '';
             }} else {{
-              silChip.style.display = 'none';
+              silNodes[k].style.display = 'none';
             }}
           }}
           if (Array.isArray(sd.bars)) {{
             for (var bi = 0; bi < sd.bars.length; bi++) {{
               var b = sd.bars[bi];
               var sLvl = Number(b.star || 5);
-              var fillEl = document.getElementById('starBarFill_' + platKey + '_' + sLvl);
-              var cntEl = document.getElementById('starBarCnt_' + platKey + '_' + sLvl);
-              var pctEl = document.getElementById('starBarPct_' + platKey + '_' + sLvl);
-              if (fillEl) fillEl.style.width = Number(b.pct || 0) + '%';
-              if (cntEl) cntEl.textContent = String(Number(b.count || 0));
-              if (pctEl) pctEl.textContent = '%' + Number(b.pct || 0);
+              var totC = Number(b.count || 0);
+              var wrC = Number(b.written_count !== undefined ? b.written_count : totC);
+              var silC = Number(b.silent_count || 0);
+              var cntLbl = (silC > 0) ? (totC + ' (' + wrC + '+' + silC + ')') : String(totC);
+              var fillNodes = document.querySelectorAll('.js-star-fill-' + platKey + '-' + sLvl);
+              var cntNodes = document.querySelectorAll('.js-star-cnt-' + platKey + '-' + sLvl);
+              var pctNodes = document.querySelectorAll('.js-star-pct-' + platKey + '-' + sLvl);
+              for (var fIdx = 0; fIdx < fillNodes.length; fIdx++) fillNodes[fIdx].style.width = Number(b.pct || 0) + '%';
+              for (var cIdx = 0; cIdx < cntNodes.length; cIdx++) cntNodes[cIdx].textContent = cntLbl;
+              for (var pIdx = 0; pIdx < pctNodes.length; pIdx++) pctNodes[pIdx].textContent = '%' + Number(b.pct || 0);
             }}
           }}
         }}
@@ -12624,12 +12776,19 @@ def analytics_dashboard_page(
 
           if (p && p.star_distribution) {{
             var topAvg = document.getElementById('reviewsTopAvgBadge');
+            var sideStars = document.getElementById('sideKpiStars');
+            var convStars = document.getElementById('convStarsPill');
+            var sdP = p.star_distribution;
             if (topAvg) {{
-              var sdP = p.star_distribution;
               topAvg.textContent = (sdP.overall_count > 0)
                 ? (sdP.overall_avg_str + ' (' + sdP.overall_count + ' Oy • ' + sdP.written_count + ' Yorum)')
                 : 'Yorum Yok';
             }}
+            var shortStarTxt = (sdP.overall_count > 0)
+              ? (sdP.overall_avg_str + ' (' + sdP.overall_count + ' Oy)')
+              : 'Yorum Yok';
+            if (sideStars) sideStars.textContent = shortStarTxt;
+            if (convStars) convStars.textContent = shortStarTxt + ' ➔';
           }}
           if (PLATFORM_SPLIT && PLATFORM_SPLIT.ios && PLATFORM_SPLIT.ios.star_distribution) {{
             updatePlatformStarDistDom('ios', PLATFORM_SPLIT.ios.star_distribution);

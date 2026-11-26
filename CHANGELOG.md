@@ -2,6 +2,15 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.57.8-cockpit-star-distribution-prominence-and-live-itunes-rating] - 2026-11-26 (Railway Canlı Yayın — Kurucu Kokpiti İlk Açılış Ekranı Sekme 1 `#tab1StarDistributionCard` & Sekme 4 En Üst Tam Genişlikli `#reviewsStarDistributionCard` 2 Sütunlu `🍏 iOS App Store | 🤖 Android Google Play` `5★..1★` Oy Dağılımı Kartı, Sol Menü `#sideKpiStars` & Üst Huni `#convStarsPill` Tek Tık Kısayolları `jumpToStarDistribution()` ve 30dk Önbellekli Anlık Apple iTunes Lookup API + Yorumsuz Oy Matematiksel Dağılımı • 🟢 Yeni Native EAS Build Gerekmez)
+### ⭐📊 Oy Dağılımının İlk Açılış Ekranında (Sekme 1) & Sekme 4 En Üstünde Doğrudan Görünür Kılınması (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **Kokpit Açılışında Doğrudan Görünür 2 Sütunlu `🍏 iOS | 🤖 Android` Oy Dağılımı Kartı (`#tab1StarDistributionCard` & `#reviewsStarDistributionCard`):**
+   - Oy dağılımı yalnızca 4. sekmenin sağ altındaki yorum kutusunun içinde kalmayacak şekilde hem **Sekme 1 (`📊 1. Büyüme` — kokpit ilk açılış ekranı)** içine hem de **Sekme 4 (`⭐ 4. Yorum & Trafik`)** en üstüne tam genişlikli, 2 sütunlu (`🍏 iOS App Store (5★ ➔ 1★ Oy Dağılımı)` | `🤖 Android Google Play (5★ ➔ 1★ Oy Dağılımı)`) kart olarak yerleştirildi.
+   - **Sol Menü (`Özet` Kutusu — `#sideKpiStars`)**, **Üst Dönüşüm Hunisi (`#convStarsPill`)** ve **Sekme 1 Alt Kategori Çubuğu (`#tab1SubNav`)** üzerine hangi sekmede olunursa olunsun tek tıkla Oy Dağılımı ve Çözüm Yoklaması ekranını açan `jumpToStarDistribution()` kısayolları eklendi.
+2. **6 Saatlik Senkronu Beklemeden Anlık Apple iTunes Lookup & Yorumsuz Oy Dağılımı (`_get_live_apple_itunes_rating`):**
+   - `_get_live_apple_itunes_rating()` fonksiyonu ile 6 saatlik arka plan döngüsünü beklemeden kokpit özetinde (30 dk önbellekli) `https://itunes.apple.com/lookup?id=6809223195&country=tr` üzerinden resmi mağaza genel puanı (`★ 4.6`) ve toplam oy sayısı canlı çekildi.
+   - `_build_star_distribution()` içinde yorumsuz oylar (`silent_ratings_count`), mağaza genel puanı ile matematiksel mutabakata sokularak `5★..1★` çubuklarına dahil edildi ve çubuk yanında **`Toplam (Yazılı+Yorumsuz)`** (örn. `9 (5+4)`) formatında gösterildi (`40/40 pytest PASS`).
+
 ## [4.57.7-cockpit-dynamic-star-bars-and-satisfaction-pulse] - 2026-11-26 (Railway Canlı Yayın — Kurucu Kokpiti Sekme 4 `🍏 iOS` ve `🤖 Android` Ayrı `5★..1★` Dinamik Yıldız Çubuğu & Kişi Adetleri, Apple iTunes Lookup API Genel Mağaza Puanı `4.6 ★` vs Yazılı Yorum `4.3 ★` Mutabakatı + Yorumsuz Oy Sayacı ve Düşük Puanlı Yorumlar İçin Tek Tıkla Uygulama İçi `"🔔 Çözüm & Memnuniyet Yoklaması"` Tetikleyicisi • 🟢 Yeni Native EAS Build Gerekmez)
 ### ⭐🔔 Dinamik `5★..1★` Yıldız Çubuğu (`iOS` & `Android` Ayrı) + Mağaza `4.6 ★` Mutabakatı & Çözüm Yoklaması (`app/api/v1/endpoints/analytics.py`, `public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`, `tests/test_analytics_cockpit_resilience.py`)
 1. **Neden Mağazada `4.6 ★` Olan Puan Kokpitte `4.3 ★` Görünüyordu? (İki Katmanlı Canlı Puan Mutabakatı):**

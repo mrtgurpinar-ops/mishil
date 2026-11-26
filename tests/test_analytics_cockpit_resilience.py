@@ -1311,7 +1311,8 @@ def test_dynamic_star_distribution_and_satisfaction_pulse_flow(client, db_sessio
     assert sd_ios["overall_count"] == 10
     assert sd_ios["overall_avg"] == 4.6
     assert sd_ios["silent_ratings_count"] == 4
-    assert sd_ios["counts"]["5"] == 5
+    assert sd_ios["written_counts"]["5"] == 5
+    assert sd_ios["counts"]["5"] == 9  # 5 yazılı 5★ + 4 yorumsuz 5★ = 9 (9*5 + 1*1 = 46 / 10 = 4.6 ★)
     assert sd_ios["counts"]["4"] == 0
     assert sd_ios["counts"]["1"] == 1
     assert sd_and["written_count"] == 0
@@ -1365,12 +1366,20 @@ def test_dynamic_star_distribution_and_satisfaction_pulse_flow(client, db_sessio
     assert "Çözüm Yoklaması" in fb_row.message
 
     dash_html = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"}).text
+    assert 'id="reviewsStarDistributionCard"' in dash_html
+    assert 'id="tab1StarDistributionCard"' in dash_html
     assert 'id="reviewsStarDistributionGrid"' in dash_html
     assert 'id="starDistBox_ios"' in dash_html
     assert 'id="starDistBox_android"' in dash_html
+    assert 'id="t1StarDistBox_ios"' in dash_html
+    assert 'id="t1StarDistBox_android"' in dash_html
+    assert 'id="sideKpiStars"' in dash_html
+    assert 'id="convStarsPill"' in dash_html
     assert 'id="satisfactionPulseCard"' in dash_html
+    assert "function jumpToStarDistribution()" in dash_html
     assert "Mağaza: ★ 4.6 (10)" in dash_html
     assert "Yazılı: ★ 4.3 (6)" in dash_html
+    assert "9 (5+4)" in dash_html
     assert "+4 Yorumsuz Oy" in dash_html
     assert "🔔 Çözüm Yoklaması Tetikle" in dash_html
 
