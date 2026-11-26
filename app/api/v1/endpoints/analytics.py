@@ -211,9 +211,13 @@ def _convert_try_to_usd(amount_try: float) -> float:
 
 
 # Doğrulanmış App Store / Google Play katalog tarife referansı (Brüt TRY, Net Hakediş TRY)
+# Apple Small Business Program (%15 komisyon, Türkiye %20 KDV düşüldükten sonra net oran: 0.67292)
+# Google Play Abonelik Programı (%15 komisyon, Türkiye %20 KDV düşüldükten sonra net oran: 0.727)
+IOS_SBP_15_PROCEEDS_RATIO: float = 0.67292
+ANDROID_15_PROCEEDS_RATIO: float = 0.727
 DEFAULT_PLAN_PRICING_TRY: Dict[str, tuple] = {
-    "misil_monthly": (149.99, 83.12),
-    "misil_annual": (599.99, 332.50),
+    "misil_monthly": (149.99, 100.93),
+    "misil_annual": (599.99, 403.75),
     "misilaylik": (149.99, 109.04),
     "misil": (599.99, 436.19),
 }
@@ -222,36 +226,39 @@ DEFAULT_PLAN_PRICING_TRY: Dict[str, tuple] = {
 INTRO_1M_DISCOUNTED_GROSS_TRY: float = 49.99
 
 # Mağaza TSV / Orders API gerçek gözlemlerinden dinamik güncellenen net hakediş çarpanı
-# (%30 standart Apple komisyonunda 0.55417 -> %15 Small Business Program onaylandığında ~0.6729;
-#  Google Play %15 abonelik kademesinde 0.727).
+# (%15 Apple Small Business Program onaylandığı için taban 0.67292; Google Play %15 abonelik kademesinde taban 0.727).
 _DYNAMIC_PROCEEDS_RATIOS: Dict[str, float] = {
-    "ios": 0.55417,
-    "android": 0.727,
+    "ios": IOS_SBP_15_PROCEEDS_RATIO,
+    "android": ANDROID_15_PROCEEDS_RATIO,
 }
 _PROCEEDS_RATIO_LOCK = threading.RLock()
 
 
 def get_dynamic_proceeds_ratio(platform: Optional[str] = "ios") -> float:
-    """Platform bazlı en güncel gerçek net hakediş çarpanını döndürür (thread-safe)."""
+    """Platform bazlı en güncel gerçek net hakediş çarpanını döndürür (thread-safe, %15 program taban korumalı)."""
     plat = "android" if (platform or "ios").strip().lower() == "android" else "ios"
+    floor_ratio = ANDROID_15_PROCEEDS_RATIO if plat == "android" else IOS_SBP_15_PROCEEDS_RATIO
     with _PROCEEDS_RATIO_LOCK:
-        return float(_DYNAMIC_PROCEEDS_RATIOS.get(plat, 0.727 if plat == "android" else 0.55417))
+        return max(floor_ratio, float(_DYNAMIC_PROCEEDS_RATIOS.get(plat, floor_ratio)))
 
 
 def observe_proceeds_ratio(platform: Optional[str], gross_try: float, net_try: float) -> float:
     """
     Apple SUBSCRIBER TSV ('Developer Proceeds' / 'Customer Price') veya Google Play Orders API
     ('developerRevenueInBuyerCurrency' / 'total') üzerinden gelen gerçek tahsilat oranını gözlemler.
-    Apple Small Business Program (%15 komisyon) veya Google Play %15 kademesi devreye girdiğinde
-    sabit kod değişikliğine gerek kalmadan ileriye dönük MRR ve deneme tahmin oranını otomatik günceller.
+    Apple Small Business Program (%15 komisyon -> 0.67292) ve Google Play (%15 komisyon -> 0.727) onaylı olduğu için
+    onay öncesi geçmiş %30 komisyonlu (0.55417) TSV satırları ileriye dönük net hakediş oranını tabanın altına çekmez.
     """
     plat = "android" if (platform or "ios").strip().lower() == "android" else "ios"
+    floor_ratio = ANDROID_15_PROCEEDS_RATIO if plat == "android" else IOS_SBP_15_PROCEEDS_RATIO
     with _PROCEEDS_RATIO_LOCK:
         if gross_try > 10.0 and net_try > 0.0:
             ratio = round(float(net_try) / float(gross_try), 5)
-            if 0.45 <= ratio <= 0.90:
+            if floor_ratio <= ratio <= 0.90:
                 _DYNAMIC_PROCEEDS_RATIOS[plat] = ratio
-        return float(_DYNAMIC_PROCEEDS_RATIOS.get(plat, 0.727 if plat == "android" else 0.55417))
+            elif _DYNAMIC_PROCEEDS_RATIOS.get(plat, 0.0) < floor_ratio:
+                _DYNAMIC_PROCEEDS_RATIOS[plat] = floor_ratio
+        return max(floor_ratio, float(_DYNAMIC_PROCEEDS_RATIOS.get(plat, floor_ratio)))
 
 
 def _extract_single_period_standard_ref(
@@ -349,8 +356,8 @@ def _resolve_expected_trial_pricing(
         base_g, base_n = DEFAULT_PLAN_PRICING_TRY["misil" if is_ann else "misilaylik"]
     else:
         base_g, base_n = DEFAULT_PLAN_PRICING_TRY["misil_annual" if is_ann else "misil_monthly"]
-    # Dinamik oran değişmişse (örn. Apple %15 Small Business devreye girdiğinde 0.55417 -> 0.6729) yeni net oranı uygula
-    default_static_ratio = 0.727 if plat == "android" else 0.55417
+    # Dinamik oran varsayılan %15 program tabanından farklıysa yeni net oranı uygula
+    default_static_ratio = ANDROID_15_PROCEEDS_RATIO if plat == "android" else IOS_SBP_15_PROCEEDS_RATIO
     if abs(net_ratio - default_static_ratio) > 0.005:
         return (base_g, round(base_g * net_ratio, 2))
     return (base_g, base_n)
@@ -1777,7 +1784,7 @@ def sync_revenuecat_v2_production_bridge(
         for cg in pending_crossgrades:
             cg_start = cg.get("started_date") or ""
             cg_price = float(cg.get("expected_next_price_try") or 149.99)
-            cg_proc = float(cg.get("expected_next_proceeds_try") or 83.12)
+            cg_proc = float(cg.get("expected_next_proceeds_try") or round(cg_price * get_dynamic_proceeds_ratio("ios"), 2))
             cg_to_lbl = "Yıllık VIP" if _is_annual_product(cg.get("to_product_id")) else "Aylık VIP"
             target_row = next(
                 (
@@ -2010,12 +2017,22 @@ def _reconcile_ios_ledger_and_cancellations(
                     changed = True
                 if (r.expected_next_proceeds_try or 0.0) <= 0:
                     r.expected_next_proceeds_try = round(
-                        float(r.developer_proceeds_try or round(float(r.expected_next_price_try or r.customer_price_try) * 0.55417, 2)), 2
+                        float(r.expected_next_price_try or r.customer_price_try) * get_dynamic_proceeds_ratio("ios"), 2
                     )
                     changed = True
+                elif (r.expected_next_price_try or 0.0) > 0:
+                    sbp15_expected_net = round(float(r.expected_next_price_try) * get_dynamic_proceeds_ratio("ios"), 2)
+                    if float(r.expected_next_proceeds_try or 0.0) < (sbp15_expected_net - 0.50):
+                        r.expected_next_proceeds_try = sbp15_expected_net
+                        changed = True
 
         if r.offer_type == "intro_1m_discounted":
             continue
+        if r.status == "offer_code_trial" and r.auto_renew_enabled and (r.expected_next_price_try or 0.0) > 0:
+            sbp15_cg_net = round(float(r.expected_next_price_try) * get_dynamic_proceeds_ratio("ios"), 2)
+            if float(r.expected_next_proceeds_try or 0.0) < (sbp15_cg_net - 0.50):
+                r.expected_next_proceeds_try = sbp15_cg_net
+                changed = True
         if r.status == "intro_free_trial" and r.subscriber_id in will_not_renew_sids:
             if r.auto_renew_enabled or r.status != "cancelled" or (r.expected_next_price_try or 0.0) > 0:
                 r.status = "cancelled"
@@ -2072,6 +2089,11 @@ def _reconcile_ios_ledger_and_cancellations(
             r.expected_next_price_try = std_g
             r.expected_next_proceeds_try = std_n
             changed = True
+        elif r.status == "intro_free_trial" and r.auto_renew_enabled and (r.expected_next_price_try or 0.0) > 0:
+            sbp15_trial_net = round(float(r.expected_next_price_try) * get_dynamic_proceeds_ratio("ios"), 2)
+            if float(r.expected_next_proceeds_try or 0.0) < (sbp15_trial_net - 0.50):
+                r.expected_next_proceeds_try = sbp15_trial_net
+                changed = True
 
     # 2) SUBSCRIPTION_EVENT (Event='Cancel') kohort eşleşmesi
     merged_cancels: Counter = Counter()
@@ -4545,6 +4567,119 @@ def _build_analytics_summary(
     paywall_cta_unique_devs = _count_distinct_signal_devices(paywall_cta_clicked_signals)
     purchase_cancelled_unique_devs = _count_distinct_signal_devices(purchase_cancelled_signals)
 
+    ONBOARDING_9_STEPS_META = [
+        (0, "onboarding_step_viewed_0", "Adım 0: Karşılama Ekranı", "1 Dakikada Uyku Planımı Oluştur"),
+        (1, "onboarding_step_viewed_1", "Adım 1: Bebek Profili", "Bebek Adı & Doğum Tarihi"),
+        (2, "onboarding_step_viewed_2", "Adım 2: Uyku Rutini", "Uyuyor mu & Son Uyanış Saati"),
+        (3, "onboarding_step_viewed_3", "Adım 3: Beslenme Rutini", "Anne Sütü / Mama / Ek Gıda"),
+        (4, "onboarding_step_viewed_4", "Adım 4: Bakım & Konfor", "Son Bez Değişimi Saati"),
+        (5, "onboarding_step_viewed_5", "Adım 5: Uyku Zorluğu", "Uykuda En Büyük Zorluk Seçimi"),
+        (6, "onboarding_step_viewed_6", "Adım 6: Gelişim Atakları", "BabySteps™ Atak Kontrol Listesi"),
+        (7, "onboarding_step_viewed_7", "Adım 7: Aşı Takvimi", "Pediatrik Aşı Kontrol Listesi"),
+        (8, "onboarding_step_viewed_8", "Adım 8: Kişisel Uyku Raporu", "İlk MışılSpot™ & Dönüşüm Hedefi"),
+        (9, "onboarding_step_viewed_9", "Adım 9: VIP Paywall", "Aylık ₺49,99 İlk Ay / Yıllık ₺599,99"),
+    ]
+
+    def _build_onboarding_step_funnel(plat_filter: str = "all") -> Dict[str, Any]:
+        if plat_filter == "ios":
+            plat_sigs = [s for s in active_signals_set if (s.os_family or "").lower() == "ios"]
+        elif plat_filter == "android":
+            plat_sigs = [s for s in active_signals_set if (s.os_family or "").lower() == "android"]
+        else:
+            plat_sigs = active_signals_set
+
+        steps_out: List[Dict[str, Any]] = []
+        for st_num, ev_key, st_title, st_desc in ONBOARDING_9_STEPS_META:
+            ev_sigs = [s for s in plat_sigs if s.event_type == ev_key]
+            ios_ev_sigs = [s for s in active_signals_set if s.event_type == ev_key and (s.os_family or "").lower() == "ios"]
+            and_ev_sigs = [s for s in active_signals_set if s.event_type == ev_key and (s.os_family or "").lower() == "android"]
+            steps_out.append({
+                "step_number": st_num,
+                "event_type": ev_key,
+                "title": st_title,
+                "subtitle": st_desc,
+                "unique_devices": _count_distinct_signal_devices(ev_sigs),
+                "raw_events": len(ev_sigs),
+                "ios_unique_devices": _count_distinct_signal_devices(ios_ev_sigs),
+                "android_unique_devices": _count_distinct_signal_devices(and_ev_sigs),
+                "retention_from_prev_pct": None,
+                "dropoff_from_prev_count": 0,
+                "dropoff_from_prev_pct": None,
+                "cumulative_from_start_pct": None,
+            })
+
+        start_base = steps_out[0]["unique_devices"]
+        if start_base == 0 and len(steps_out) > 1:
+            start_base = steps_out[1]["unique_devices"]
+
+        biggest_dropoff_step: Optional[Dict[str, Any]] = None
+        for idx_st, st_row in enumerate(steps_out):
+            cur_u = st_row["unique_devices"]
+            if start_base > 0:
+                st_row["cumulative_from_start_pct"] = min(100.0, round((cur_u / start_base) * 100.0, 1))
+            if idx_st == 0:
+                st_row["retention_from_prev_pct"] = 100.0 if cur_u > 0 else None
+                st_row["dropoff_from_prev_count"] = 0
+                st_row["dropoff_from_prev_pct"] = 0.0 if cur_u > 0 else None
+            else:
+                prev_u = steps_out[idx_st - 1]["unique_devices"]
+                if prev_u > 0:
+                    ret_pct = min(100.0, round((cur_u / prev_u) * 100.0, 1))
+                    drop_cnt = max(0, prev_u - cur_u)
+                    drop_pct = max(0.0, round(((prev_u - cur_u) / prev_u) * 100.0, 1))
+                    st_row["retention_from_prev_pct"] = ret_pct
+                    st_row["dropoff_from_prev_count"] = drop_cnt
+                    st_row["dropoff_from_prev_pct"] = drop_pct
+                    if drop_cnt > 0 and (
+                        biggest_dropoff_step is None or drop_cnt > biggest_dropoff_step["dropoff_count"]
+                    ):
+                        biggest_dropoff_step = {
+                            "step_number": st_row["step_number"],
+                            "title": st_row["title"],
+                            "dropoff_count": drop_cnt,
+                            "dropoff_pct": drop_pct,
+                        }
+
+        all_onb_sigs = [s for s in plat_sigs if (s.event_type or "").startswith("onboarding_step_viewed_")]
+        total_onb_unique_devs = _count_distinct_signal_devices(all_onb_sigs)
+        fo_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "first_open"])
+        pw_view_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "paywall_viewed"])
+        pw_cta_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "paywall_cta_clicked"])
+        vip_start_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "vip_started"])
+        step9_u = steps_out[9]["unique_devices"] if len(steps_out) > 9 else 0
+        step0_to_step9_pct = (
+            min(100.0, round((step9_u / start_base) * 100.0, 1))
+            if start_base > 0
+            else None
+        )
+
+        return {
+            "platform": plat_filter,
+            "period": period,
+            "period_label": period_label,
+            "has_telemetry_data": total_onb_unique_devs > 0,
+            "total_tracked_onboarding_devices": total_onb_unique_devs,
+            "total_raw_onboarding_signals": len(all_onb_sigs),
+            "start_base_devices": start_base,
+            "step9_reached_devices": step9_u,
+            "step0_to_step9_completion_pct": step0_to_step9_pct,
+            "biggest_dropoff_step": biggest_dropoff_step,
+            "first_open_unique_devices": fo_uniq,
+            "paywall_viewed_unique_devices": pw_view_uniq,
+            "paywall_cta_unique_devices": pw_cta_uniq,
+            "vip_started_unique_devices": vip_start_uniq,
+            "steps": steps_out,
+        }
+
+    onboarding_step_funnel_all = _build_onboarding_step_funnel("all")
+    onboarding_step_funnel_ios = _build_onboarding_step_funnel("ios")
+    onboarding_step_funnel_android = _build_onboarding_step_funnel("android")
+    onboarding_step_funnel_by_platform = {
+        "all": onboarding_step_funnel_all,
+        "ios": onboarding_step_funnel_ios,
+        "android": onboarding_step_funnel_android,
+    }
+
     unmatched_organic_opens = len([
         s for s in first_opens if (s.match_confidence or "unmatched") == "unmatched"
     ])
@@ -4559,6 +4694,7 @@ def _build_analytics_summary(
                 "paywall_cancel_recovery_shown", "paywall_cancel_recovery_cta_clicked"
             )
             or (s.event_type or "").startswith("paywall_cancel_reason_")
+            or (s.event_type or "").startswith("onboarding_step_viewed_")
         )
     })
 
@@ -5065,6 +5201,8 @@ def _build_analytics_summary(
     upcoming_7d_net = 0.0
     upcoming_7d_cnt = 0
     paid_subs_cnt = 0
+    auto_renewing_paid_subs_cnt = 0
+    non_renewing_paid_subs_cnt = 0
     offer_code_cnt = 0
     intro_trial_cnt = 0
     cancelled_cnt = 0
@@ -5076,14 +5214,16 @@ def _build_analytics_summary(
             "paid_mrr_gross": 0.0, "paid_mrr_net": 0.0,
             "pipeline_gross": 0.0, "pipeline_net": 0.0,
             "pipeline_mrr_gross": 0.0, "pipeline_mrr_net": 0.0,
-            "paid_cnt": 0, "trial_cnt": 0, "code_cnt": 0, "cancelled_cnt": 0,
+            "paid_cnt": 0, "auto_renew_paid_cnt": 0, "non_renew_paid_cnt": 0,
+            "trial_cnt": 0, "code_cnt": 0, "cancelled_cnt": 0,
         },
         "android": {
             "realized_gross": 0.0, "realized_net": 0.0,
             "paid_mrr_gross": 0.0, "paid_mrr_net": 0.0,
             "pipeline_gross": 0.0, "pipeline_net": 0.0,
             "pipeline_mrr_gross": 0.0, "pipeline_mrr_net": 0.0,
-            "paid_cnt": 0, "trial_cnt": 0, "code_cnt": 0, "cancelled_cnt": 0,
+            "paid_cnt": 0, "auto_renew_paid_cnt": 0, "non_renew_paid_cnt": 0,
+            "trial_cnt": 0, "code_cnt": 0, "cancelled_cnt": 0,
         },
     }
 
@@ -5108,6 +5248,8 @@ def _build_analytics_summary(
             pf_bucket["cancelled_cnt"] += 1
 
         # T1 Çözümü: Deneme abonelerinde expected_next_price_try 0.0 kalmışsa katalog/referans tarifeden tamamla
+        # ve %15 komisyon programı (Apple Small Business %15 / Google Play %15) tabanının altında kalmış ileriye dönük
+        # expected_next_proceeds_try değerlerini güncelle (geçmiş realized developer_proceeds_try asla değiştirilmez).
         ref_pair = paid_ref_by_prod.get(r.product_id or "misil_monthly", (0.0, 0.0))
         resolved_gross, resolved_net = _resolve_expected_trial_pricing(
             r.product_id, ref_pair[0], ref_pair[1], r_plat
@@ -5117,9 +5259,17 @@ def _build_analytics_summary(
                 r.expected_next_price_try = resolved_gross
                 r.expected_next_proceeds_try = resolved_net
                 healed_trial_pricing = True
-            elif (r.expected_next_proceeds_try or 0.0) <= 0:
-                r.expected_next_proceeds_try = round(float(r.expected_next_price_try) * net_ratio, 2)
-                healed_trial_pricing = True
+            else:
+                min_15_trial_net = round(float(r.expected_next_price_try) * net_ratio, 2)
+                if (r.expected_next_proceeds_try or 0.0) < (min_15_trial_net - 1.0):
+                    r.expected_next_proceeds_try = min_15_trial_net
+                    healed_trial_pricing = True
+        elif r.status in ("paid_active", "offer_code_trial") and r.auto_renew_enabled and r.offer_type != "intro_1m_discounted":
+            if (r.expected_next_price_try or 0.0) > 0:
+                min_15_next_net = round(float(r.expected_next_price_try) * net_ratio, 2)
+                if (r.expected_next_proceeds_try or 0.0) < (min_15_next_net - 1.0):
+                    r.expected_next_proceeds_try = min_15_next_net
+                    healed_trial_pricing = True
 
         lifecycle_stage = r.status
         lifecycle_badge = "⏳ 7 Günlük Deneme"
@@ -5132,6 +5282,12 @@ def _build_analytics_summary(
         elif r.status == "paid_active":
             paid_subs_cnt += 1
             pf_bucket["paid_cnt"] += 1
+            if r.auto_renew_enabled:
+                auto_renewing_paid_subs_cnt += 1
+                pf_bucket["auto_renew_paid_cnt"] += 1
+            else:
+                non_renewing_paid_subs_cnt += 1
+                pf_bucket["non_renew_paid_cnt"] += 1
             lifecycle_stage = "paid_active"
             if r.offer_type == "intro_1m_discounted":
                 lifecycle_badge = (
@@ -5675,6 +5831,11 @@ def _build_analytics_summary(
         "total_vip_records_count": len(ledger_rows_db),
         "offer_code_subs_count": offer_code_cnt,
         "paid_subs_count": paid_subs_cnt,
+        "auto_renewing_paid_subs_count": auto_renewing_paid_subs_cnt,
+        "non_renewing_paid_subs_count": non_renewing_paid_subs_cnt,
+        "ios_proceeds_ratio_pct": round(get_dynamic_proceeds_ratio("ios") * 100.0, 1),
+        "android_proceeds_ratio_pct": round(get_dynamic_proceeds_ratio("android") * 100.0, 1),
+        "commission_program_badge": "🏷️ %15 Komisyon Programı Aktif (Apple SBP %15 & Google Play %15)",
         "cancelled_subs_count": cancelled_cnt,
         "churn_rate_pct": all_churn_rate_pct,
         "auto_renew_on_pct": auto_renew_on_pct,
@@ -6311,6 +6472,7 @@ def _build_analytics_summary(
                 f"⏳ {intro_trial_cnt} Deneme",
                 f"🎟️ {offer_code_cnt} Kod",
             ],
+            "onboarding_step_funnel": onboarding_step_funnel_all,
         },
         "ios": {
             "key": "ios",
@@ -6372,6 +6534,7 @@ def _build_analytics_summary(
                 f"⏳ {ios_trial_cnt} Deneme",
                 f"🎟️ {ios_code_cnt} Kod",
             ],
+            "onboarding_step_funnel": onboarding_step_funnel_ios,
         },
         "android": {
             "key": "android",
@@ -6440,6 +6603,7 @@ def _build_analytics_summary(
                 f"💳 {and_paid_cnt} Ücretli",
                 f"⏳ {and_trial_cnt} Deneme",
             ],
+            "onboarding_step_funnel": onboarding_step_funnel_android,
         },
     }
 
@@ -6709,7 +6873,11 @@ def _build_analytics_summary(
             "ios_sdk_status_badge": ios_att_sdk_status_badge,
             "ios_sdk_live_devices": ios_att_sdk_devices_cnt,
         },
+        "onboarding_step_funnel": onboarding_step_funnel_all,
+        "onboarding_step_funnel_by_platform": onboarding_step_funnel_by_platform,
         "product_funnel": {
+            "onboarding_step_funnel": onboarding_step_funnel_all,
+            "onboarding_step_funnel_by_platform": onboarding_step_funnel_by_platform,
             "bridge_unique_clicks": effective_unique_bridge_clicks,
             "asa_clicks": asa_clicks_val,
             "total_acquisition_clicks": total_cumulative_visits_and_clicks,
@@ -7540,23 +7708,23 @@ def _submit_store_review_reply_sync(
                 pass
             raise RuntimeError(f"Google Play Developer API hatası ({http_err.code}): {err_raw[:350]}")
 
+    with _BASELINE_LOCK:
+        revs = list(OFFICIAL_STORE_BASELINE.get("store_reviews") or [])
+        matched = False
+        for rv in revs:
+            if str(rv.get("review_id") or "") == clean_rev_id:
+                rv["response_id"] = resp_id
+                rv["response_body"] = clean_body
+                rv["response_state"] = resp_state
+                rv["response_date"] = today_tr_str
+                matched = True
+                break
+        if matched:
+            OFFICIAL_STORE_BASELINE["store_reviews"] = revs
+        snap_copy = _mask_sensitive_sync_value(dict(OFFICIAL_STORE_BASELINE))
+
     db_s = SessionLocal()
     try:
-        ensure_historical_seed(db_s)
-        with _BASELINE_LOCK:
-            revs = list(OFFICIAL_STORE_BASELINE.get("store_reviews") or [])
-            matched = False
-            for rv in revs:
-                if str(rv.get("review_id") or "") == clean_rev_id:
-                    rv["response_id"] = resp_id
-                    rv["response_body"] = clean_body
-                    rv["response_state"] = resp_state
-                    rv["response_date"] = today_tr_str
-                    matched = True
-                    break
-            if matched:
-                OFFICIAL_STORE_BASELINE["store_reviews"] = revs
-            snap_copy = _mask_sensitive_sync_value(dict(OFFICIAL_STORE_BASELINE))
         st_row = db_s.query(StoreSyncState).filter(StoreSyncState.state_key == "primary_store_baseline").first()
         if st_row:
             st_row.snapshot_json = snap_copy
@@ -7566,7 +7734,7 @@ def _submit_store_review_reply_sync(
     finally:
         db_s.close()
 
-    invalidate_analytics_summary_cache(mark_reconcile=False, reset_baseline_stamp=True)
+    invalidate_analytics_summary_cache(mark_reconcile=False, reset_baseline_stamp=False)
     return {
         "status": "ok",
         "review_id": clean_rev_id,
@@ -8475,7 +8643,7 @@ def analytics_dashboard_page(
         card1_desc_html = (
             f"Tüm Zamanlar Brüt: <strong>{fl['realized_gross_try']:.2f} ₺ (~${fl.get('realized_gross_usd', 0.0):.2f} Sales)</strong> • "
             f"Son 7G (Apple T-1): <strong>{sr_7d.get('gross_try', 0.0):.2f} ₺ Brüt / {sr_7d.get('net_try', 0.0):.2f} ₺ Net (~${sr_7d.get('net_usd', 0.0):.2f})</strong> • "
-            f"Aktif MRR: <strong>{fl['active_paid_mrr_net_try']:.2f} ₺ Net/Ay</strong> (<strong>{fl['paid_subs_count']} Ücretli</strong>)."
+            f"Aktif MRR (%15 Komisyon): <strong>{fl['active_paid_mrr_net_try']:.2f} ₺ Net/Ay</strong> (<strong>{fl.get('auto_renewing_paid_subs_count', fl['paid_subs_count'])}/{fl['paid_subs_count']} Oto-Yenileme Açık</strong>)."
         )
     else:
         card1_big_html = (
@@ -8486,6 +8654,77 @@ def analytics_dashboard_page(
             f"Seçili Dönem Brüt: <strong>{fl.get('period_realized_gross_try', 0.0):.2f} ₺ (~${fl.get('period_realized_gross_usd', 0.0):.2f} Sales • {fl.get('period_paid_subs_count', 0)} Tahsilat)</strong> • "
             f"Kümülatif Tüm Zamanlar: <strong>{fl['realized_gross_try']:.2f} ₺ Brüt / {fl['realized_net_proceeds_try']:.2f} ₺ Net (~${fl.get('realized_net_proceeds_usd', 0.0):.2f})</strong>."
         )
+
+    onb_f = s.get("onboarding_step_funnel") or pf.get("onboarding_step_funnel") or {}
+    onb_steps_list = onb_f.get("steps") or []
+    onb_total_devs = int(onb_f.get("total_tracked_onboarding_devices", 0) or 0)
+    onb_comp_pct = onb_f.get("step0_to_step9_completion_pct")
+    onb_comp_str = f"%{onb_comp_pct}" if onb_comp_pct is not None else "Veri Yok"
+    onb_big_drop = onb_f.get("biggest_dropoff_step")
+    if onb_big_drop and int(onb_big_drop.get("dropoff_count", 0) or 0) > 0:
+        onb_drop_badge_str = (
+            f"⚠️ En Yüksek Kayıp: {onb_big_drop.get('title')} "
+            f"(-{onb_big_drop.get('dropoff_count')} Kişi / -%{onb_big_drop.get('dropoff_pct')})"
+        )
+    else:
+        onb_drop_badge_str = "🟢 Adım Kaybı Yok" if onb_total_devs > 0 else "⏳ Telemetri Bekleniyor (Sıfır Statik Veri)"
+
+    onb_rows_html = ""
+    for st_item in onb_steps_list:
+        st_num = int(st_item.get("step_number", 0) or 0)
+        st_title = html.escape(str(st_item.get("title") or f"Adım {st_num}"))
+        st_sub = html.escape(str(st_item.get("subtitle") or ""))
+        st_uniq = int(st_item.get("unique_devices", 0) or 0)
+        st_raw = int(st_item.get("raw_events", 0) or 0)
+        st_ios_u = int(st_item.get("ios_unique_devices", 0) or 0)
+        st_and_u = int(st_item.get("android_unique_devices", 0) or 0)
+        st_ret = st_item.get("retention_from_prev_pct")
+        st_drop_cnt = int(st_item.get("dropoff_from_prev_count", 0) or 0)
+        st_drop_pct = st_item.get("dropoff_from_prev_pct")
+        st_cum = st_item.get("cumulative_from_start_pct")
+
+        if st_num == 0:
+            ret_cell = (
+                "<span class='badge' style='background:rgba(37,99,235,0.12); color:#2563EB;'>🏁 Başlangıç (%100)</span>"
+                if st_uniq > 0
+                else "<span style='color:var(--text-muted); font-size:12px;'>Veri Yok</span>"
+            )
+            drop_cell = "<span style='color:var(--text-muted); font-size:12px;'>—</span>"
+        else:
+            if st_ret is not None:
+                ret_color = "#059669" if st_ret >= 80.0 else ("#D97706" if st_ret >= 50.0 else "#DC2626")
+                ret_cell = f"<strong style='color:{ret_color};'>%{st_ret}</strong>"
+            else:
+                ret_cell = "<span style='color:var(--text-muted); font-size:12px;'>Veri Yok</span>"
+
+            if st_drop_pct is not None and st_drop_cnt > 0:
+                drop_cell = f"<span style='color:#DC2626; font-weight:700;'>-{st_drop_cnt} Kişi (-%{st_drop_pct})</span>"
+            elif st_drop_pct is not None:
+                drop_cell = "<span style='color:#059669; font-weight:700;'>0 Kayıp (%0)</span>"
+            else:
+                drop_cell = "<span style='color:var(--text-muted); font-size:12px;'>Veri Yok</span>"
+
+        bar_w = max(0.0, min(100.0, float(st_cum or 0.0)))
+        cum_lbl = f"%{st_cum}" if st_cum is not None else "0% (Veri Yok)"
+        bar_color = "#7C3AED" if st_num == 9 else ("#059669" if bar_w >= 65.0 else ("#2563EB" if bar_w >= 35.0 else "#D97706"))
+
+        onb_rows_html += f"""
+        <tr>
+          <td style="font-weight:800; color:var(--text-primary); white-space:nowrap;">{st_title}<div style="font-size:11px; color:var(--text-muted); font-weight:500;">{st_sub}</div></td>
+          <td style="font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums;">{st_uniq} Cihaz <span style="font-size:11px; color:var(--text-muted); font-weight:500;">({st_raw} sinyal)</span></td>
+          <td style="font-size:12px; white-space:nowrap;">🍏 <strong>{st_ios_u}</strong> • 🤖 <strong>{st_and_u}</strong></td>
+          <td style="font-variant-numeric:tabular-nums;">{ret_cell}</td>
+          <td style="font-variant-numeric:tabular-nums;">{drop_cell}</td>
+          <td style="min-width:150px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="flex:1; height:8px; background:rgba(148,163,184,0.18); border-radius:999px; overflow:hidden;">
+                <div style="width:{bar_w}%; height:100%; background:{bar_color}; border-radius:999px;"></div>
+              </div>
+              <span style="font-size:12px; font-weight:700; color:var(--text-secondary); min-width:48px; text-align:right;">{cum_lbl}</span>
+            </div>
+          </td>
+        </tr>
+        """
 
     paid_countries_cnt = int(fl.get("paid_countries_count", 0) or 0)
     vip_countries_cnt = int(fl.get("vip_countries_count", 0) or 0)
@@ -10676,6 +10915,7 @@ def analytics_dashboard_page(
               <div class="kpi-micro-meta">
                 <span class="kpi-micro-chip">Brüt: {fl['realized_gross_try']:.2f} ₺</span>
                 <span class="kpi-micro-chip">Son 7 Gün: {sr_7d.get('net_try', 0.0):.2f} ₺ Net</span>
+                <span class="kpi-micro-chip">🏷️ %15 Komisyon Aktif</span>
               </div>
               <div class="card-desc">
                 {card1_desc_html}
@@ -10696,14 +10936,14 @@ def analytics_dashboard_page(
             </div>
 
             <div class="bento-card">
-              <div class="card-label">⏳ 3. AKTİF 7G DENEME</div>
-              <div class="big-num" style="color:#D97706;">+{fl['upcoming_7d_mrr_net_try']:.2f} ₺</div>
+              <div class="card-label">⏳ 3. AKTİF 7G DENEME &amp; MUTABAKAT</div>
+              <div class="big-num" style="color:#D97706;">+{fl['pipeline_7d_mrr_net_try']:.2f} ₺</div>
               <div class="kpi-micro-meta">
-                <span class="kpi-micro-chip">{fl['upcoming_7d_trials_count']} Aktif Deneme</span>
-                <span class="kpi-micro-chip">Pipeline: +{fl['pipeline_7d_mrr_net_try']:.2f} ₺</span>
+                <span class="kpi-micro-chip">⏳ {fl['upcoming_7d_trials_count']} Süren (+{fl['upcoming_7d_mrr_net_try']:.2f} ₺)</span>
+                <span class="kpi-micro-chip">🔄 {fl['reconciling_7d_trials_count']} Vade Mutabakatında (+{fl['reconciling_7d_mrr_net_try']:.2f} ₺)</span>
               </div>
               <div class="card-desc">
-                Deneme süresi devam eden <strong>{fl['upcoming_7d_trials_count']} abone</strong> (Brüt <strong>{fl['upcoming_7d_mrr_gross_try']:.2f} ₺</strong>) • Toplam Pipeline: <strong>{fl['pipeline_7d_mrr_net_try']:.2f} ₺ Net</strong>.
+                Toplam 7G Deneme Havuzu: <strong>{fl['pipeline_7d_trials_count']} Abone (+{fl['pipeline_7d_mrr_net_try']:.2f} ₺ Net / {fl['pipeline_7d_mrr_gross_try']:.2f} ₺ Brüt)</strong> — Süresi devam eden: <strong>{fl['upcoming_7d_trials_count']} abone (+{fl['upcoming_7d_mrr_net_try']:.2f} ₺)</strong> • 7. günü dolup mağaza tahsilat mutabakatında olan: <strong>{fl['reconciling_7d_trials_count']} abone (+{fl['reconciling_7d_mrr_net_try']:.2f} ₺)</strong>.
               </div>
             </div>
 
@@ -10713,9 +10953,11 @@ def analytics_dashboard_page(
               <div class="kpi-micro-meta">
                 <span class="kpi-micro-chip">🍏 {ps_ios.get('mrr_net_try', fl['projected_total_mrr_net_try']):.2f} ₺</span>
                 <span class="kpi-micro-chip">🤖 {ps_and.get('mrr_net_try', 0.0):.2f} ₺</span>
+                <span class="kpi-micro-chip">💳 {fl.get('auto_renewing_paid_subs_count', fl['paid_subs_count'])}/{fl['paid_subs_count']} Oto-Yenileme</span>
+                <span class="kpi-micro-chip">🏷️ %15 Komisyon</span>
               </div>
               <div class="card-desc">
-                🍏 Apple: <strong>{ps_ios.get('mrr_net_try', fl['projected_total_mrr_net_try']):.2f} ₺ Net/Ay</strong> ({ps_ios.get('vip_count', f_vip)} Aktif / {ps_ios.get('total_vip_count', len(sub_ledger))} Kayıt • {ps_ios.get('cancelled_vip_count', 0)} İptal) • 🤖 Google Play: <strong>{ps_and.get('mrr_net_try', 0.0):.2f} ₺ Net/Ay</strong> ({ps_and.get('vip_count', 0)} Abone / {len(gp_catalog)} Aktif Paket).
+                🍏 Apple (%15 SBP): <strong>{ps_ios.get('mrr_net_try', fl['projected_total_mrr_net_try']):.2f} ₺ Net/Ay</strong> ({ps_ios.get('vip_count', f_vip)} Aktif / {ps_ios.get('total_vip_count', len(sub_ledger))} Kayıt • <strong>{fl.get('auto_renewing_paid_subs_count', fl['paid_subs_count'])} Oto-Yenileme Açık</strong>, <strong>{fl.get('non_renewing_paid_subs_count', 0)} Dönem Sonu Bitecek</strong>) • 🤖 Google Play (%15): <strong>{ps_and.get('mrr_net_try', 0.0):.2f} ₺ Net/Ay</strong> ({ps_and.get('vip_count', 0)} Abone).
               </div>
             </div>
           </div>
@@ -10856,6 +11098,40 @@ def analytics_dashboard_page(
               <div class="card-desc">
                 Toplam <strong>{len(pr['subscriber_cohorts'])} ayrı günlük kohorttaki {len(sub_ledger)} abonenin</strong> aktif tutundurma oranı (<strong>{fl['cancelled_subs_count']} İptal</strong>).
               </div>
+            </div>
+          </div>
+
+          <div class="bento-card" id="onboardingNineStepFunnelCard">
+            <div class="section-head">
+              <span>🧭 9 Adımlı Kullanıcı Onboarding &amp; Paywall İlerleme Analizi (Gerçek Cihaz Telemetrisi — Sıfır Statik Veri)</span>
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span class="badge" id="onbFunnelDevicesBadge" style="background:rgba(37,99,235,0.12); color:#2563EB;">📱 {onb_total_devs} Tekil Onboarding Cihazı</span>
+                <span class="badge" id="onbFunnelCompletionBadge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">🏁 Adım 0 ➔ 9 Tamamlama: {html.escape(onb_comp_str)}</span>
+                <span class="badge" id="onbFunnelDropoffBadge" style="background:rgba(217,119,6,0.14); color:#D97706;">{html.escape(onb_drop_badge_str)}</span>
+              </div>
+            </div>
+            <div class="kpi-micro-meta" id="onbFunnelContinuationMeta" style="margin-bottom:10px;">
+              <span class="kpi-micro-chip">🚀 İlk Açılış (first_open): {int(onb_f.get('first_open_unique_devices', 0) or 0)} Cihaz</span>
+              <span class="kpi-micro-chip">👁️ Paywall Gösterimi (paywall_viewed): {int(onb_f.get('paywall_viewed_unique_devices', 0) or 0)} Cihaz</span>
+              <span class="kpi-micro-chip">👆 Satın Al Tıklaması (paywall_cta_clicked): {int(onb_f.get('paywall_cta_unique_devices', 0) or 0)} Cihaz</span>
+              <span class="kpi-micro-chip">👑 VIP Başlangıç (vip_started): {int(onb_f.get('vip_started_unique_devices', 0) or 0)} Cihaz</span>
+            </div>
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Onboarding Adımı &amp; Ekran İçeriği</th>
+                    <th>Tekil Kullanıcı (device_uid)</th>
+                    <th>Platform (🍏 iOS / 🤖 Android)</th>
+                    <th>Önceki Adımdan Geçiş</th>
+                    <th>Adımda Kayıp (Drop-off)</th>
+                    <th>Başlangıçtan Kümülatif İlerleme</th>
+                  </tr>
+                </thead>
+                <tbody id="onboardingNineStepTbody">
+                  {onb_rows_html}
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -11469,6 +11745,87 @@ def analytics_dashboard_page(
             var cCnt = (p.cancelled_vip_count !== undefined) ? p.cancelled_vip_count : 0;
             var chPct = (p.churn_rate_pct !== undefined) ? p.churn_rate_pct : 0;
             ledHead.textContent = '📒 Abone Defteri (' + (p.vip_count !== undefined ? p.vip_count : 0) + ' Aktif • ' + cCnt + ' İptal / %' + chPct + ' Churn • Toplam ' + (p.total_vip_count !== undefined ? p.total_vip_count : 0) + ' Kayıt)';
+          }}
+
+          if (p && p.onboarding_step_funnel) {{
+            var ofData = p.onboarding_step_funnel;
+            var devBadge = document.getElementById('onbFunnelDevicesBadge');
+            var compBadge = document.getElementById('onbFunnelCompletionBadge');
+            var dropBadge = document.getElementById('onbFunnelDropoffBadge');
+            var contMeta = document.getElementById('onbFunnelContinuationMeta');
+            var onbTbody = document.getElementById('onboardingNineStepTbody');
+            var totOnbDevs = Number(ofData.total_tracked_onboarding_devices || 0);
+            if (devBadge) devBadge.textContent = '📱 ' + totOnbDevs + ' Tekil Onboarding Cihazı';
+            if (compBadge) {{
+              var compStr = (ofData.step0_to_step9_completion_pct !== null && ofData.step0_to_step9_completion_pct !== undefined)
+                ? ('%' + ofData.step0_to_step9_completion_pct)
+                : 'Veri Yok';
+              compBadge.textContent = '🏁 Adım 0 ➔ 9 Tamamlama: ' + compStr;
+            }}
+            if (dropBadge) {{
+              var bd = ofData.biggest_dropoff_step;
+              if (bd && Number(bd.dropoff_count || 0) > 0) {{
+                dropBadge.textContent = '⚠️ En Yüksek Kayıp: ' + bd.title + ' (-' + bd.dropoff_count + ' Kişi / -%' + bd.dropoff_pct + ')';
+              }} else {{
+                dropBadge.textContent = totOnbDevs > 0 ? '🟢 Adım Kaybı Yok' : '⏳ Telemetri Bekleniyor (Sıfır Statik Veri)';
+              }}
+            }}
+            if (contMeta) {{
+              contMeta.innerHTML =
+                '<span class="kpi-micro-chip">🚀 İlk Açılış (first_open): ' + Number(ofData.first_open_unique_devices || 0) + ' Cihaz</span>' +
+                '<span class="kpi-micro-chip">👁️ Paywall Gösterimi (paywall_viewed): ' + Number(ofData.paywall_viewed_unique_devices || 0) + ' Cihaz</span>' +
+                '<span class="kpi-micro-chip">👆 Satın Al Tıklaması (paywall_cta_clicked): ' + Number(ofData.paywall_cta_unique_devices || 0) + ' Cihaz</span>' +
+                '<span class="kpi-micro-chip">👑 VIP Başlangıç (vip_started): ' + Number(ofData.vip_started_unique_devices || 0) + ' Cihaz</span>';
+            }}
+            if (onbTbody && Array.isArray(ofData.steps)) {{
+              var rowsHtml = '';
+              for (var si = 0; si < ofData.steps.length; si++) {{
+                var st = ofData.steps[si];
+                var sNum = Number(st.step_number || 0);
+                var sUniq = Number(st.unique_devices || 0);
+                var sRaw = Number(st.raw_events || 0);
+                var sIos = Number(st.ios_unique_devices || 0);
+                var sAnd = Number(st.android_unique_devices || 0);
+                var sRet = st.retention_from_prev_pct;
+                var sDropCnt = Number(st.dropoff_from_prev_count || 0);
+                var sDropPct = st.dropoff_from_prev_pct;
+                var sCum = st.cumulative_from_start_pct;
+                var retHtml = '';
+                var dropHtml = '';
+                if (sNum === 0) {{
+                  retHtml = sUniq > 0
+                    ? '<span class="badge" style="background:rgba(37,99,235,0.12); color:#2563EB;">🏁 Başlangıç (%100)</span>'
+                    : '<span style="color:var(--text-muted); font-size:12px;">Veri Yok</span>';
+                  dropHtml = '<span style="color:var(--text-muted); font-size:12px;">—</span>';
+                }} else {{
+                  if (sRet !== null && sRet !== undefined) {{
+                    var rCol = sRet >= 80 ? '#059669' : (sRet >= 50 ? '#D97706' : '#DC2626');
+                    retHtml = '<strong style="color:' + rCol + ';">%' + sRet + '</strong>';
+                  }} else {{
+                    retHtml = '<span style="color:var(--text-muted); font-size:12px;">Veri Yok</span>';
+                  }}
+                  if (sDropPct !== null && sDropPct !== undefined && sDropCnt > 0) {{
+                    dropHtml = '<span style="color:#DC2626; font-weight:700;">-' + sDropCnt + ' Kişi (-%' + sDropPct + ')</span>';
+                  }} else if (sDropPct !== null && sDropPct !== undefined) {{
+                    dropHtml = '<span style="color:#059669; font-weight:700;">0 Kayıp (%0)</span>';
+                  }} else {{
+                    dropHtml = '<span style="color:var(--text-muted); font-size:12px;">Veri Yok</span>';
+                  }}
+                }}
+                var bW = Math.max(0, Math.min(100, Number(sCum || 0)));
+                var cLbl = (sCum !== null && sCum !== undefined) ? ('%' + sCum) : '0% (Veri Yok)';
+                var bCol = (sNum === 9) ? '#7C3AED' : (bW >= 65 ? '#059669' : (bW >= 35 ? '#2563EB' : '#D97706'));
+                rowsHtml += '<tr>' +
+                  '<td style="font-weight:800; color:var(--text-primary); white-space:nowrap;">' + escapeHtmlJs(st.title) + '<div style="font-size:11px; color:var(--text-muted); font-weight:500;">' + escapeHtmlJs(st.subtitle) + '</div></td>' +
+                  '<td style="font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums;">' + sUniq + ' Cihaz <span style="font-size:11px; color:var(--text-muted); font-weight:500;">(' + sRaw + ' sinyal)</span></td>' +
+                  '<td style="font-size:12px; white-space:nowrap;">🍏 <strong>' + sIos + '</strong> • 🤖 <strong>' + sAnd + '</strong></td>' +
+                  '<td style="font-variant-numeric:tabular-nums;">' + retHtml + '</td>' +
+                  '<td style="font-variant-numeric:tabular-nums;">' + dropHtml + '</td>' +
+                  '<td style="min-width:150px;"><div style="display:flex; align-items:center; gap:8px;"><div style="flex:1; height:8px; background:rgba(148,163,184,0.18); border-radius:999px; overflow:hidden;"><div style="width:' + bW + '%; height:100%; background:' + bCol + '; border-radius:999px;"></div></div><span style="font-size:12px; font-weight:700; color:var(--text-secondary); min-width:48px; text-align:right;">' + cLbl + '</span></div></td>' +
+                  '</tr>';
+              }}
+              onbTbody.innerHTML = rowsHtml;
+            }}
           }}
 
           var platNodes = document.querySelectorAll('[data-platform]');

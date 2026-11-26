@@ -286,13 +286,15 @@ def test_reactivate_downgrade_rc_t0_dedup_and_trial_will_not_renew_reconcile(cli
     summary = get_resilient_analytics_summary(db_session, period="all", use_cache=False)
     fl = summary["financial_ledger"]
 
-    # 2 gerçek ücretli abone (299.98 TL Brüt / 166.24 TL Net), yalnız 1 tanesinin oto-yenilemesi açık (83.12 TL Net MRR)
+    # 2 gerçek ücretli abone (299.98 TL Brüt / 166.24 TL Net geçmiş tahsilat), yalnız 1 tanesinin oto-yenilemesi açık (%15 SBP: 100.93 TL Net MRR)
     assert fl["paid_subs_count"] == 2
+    assert fl["auto_renewing_paid_subs_count"] == 1
+    assert fl["non_renewing_paid_subs_count"] == 1
     assert fl["realized_gross_try"] == 299.98
     assert fl["realized_net_proceeds_try"] == 166.24
-    assert fl["active_paid_mrr_net_try"] == 83.12
+    assert fl["active_paid_mrr_net_try"] == 100.93
     assert fl["pipeline_7d_trials_count"] == 0
-    assert fl["projected_total_mrr_net_try"] == 83.12
+    assert fl["projected_total_mrr_net_try"] == 100.93
 
     # Ülke tablosundaki Türkiye MRR değeri ile üst karttaki projected_total_mrr_net_try birebir aynı olmalı
     tr_row = next(c for c in fl["country_revenue_breakdown"] if c["code"] == "TR")
@@ -1035,6 +1037,221 @@ def test_store_review_reply_endpoint_and_cockpit_rendering(client, db_session, m
     assert "submitStoreReviewReply" in dash_res.text
     assert "Mışıl Baby Geliştirici Yanıtı" in dash_res.text
     assert "21 Kasım güncellemesiyle sorun tamamen giderildi" in dash_res.text
+
+
+def test_nine_step_onboarding_funnel_and_15pct_sbp_revenue_reconciliation(client, db_session):
+    """
+    v4.57.4:
+    1) 9 Adımlı Kullanıcı Onboarding İlerleme Analizi (onboarding_step_viewed_0..9) sıfır statik/sahte veri ilkesiyle
+       boş veritabanında 0 cihaz ve 'Veri Yok' döndürmeli; gerçek AppInstallSignal kayıtları geldiğinde aynı device_uid
+       tekrarlarını tekilleştirerek adım adım geçiş (%) ve kayıp (drop-off) oranlarını tüm platformlar (all/ios/android)
+       için doğru hesaplamalı.
+    2) Apple Small Business Program (%15 komisyon -> 0.67292 net oran) ve Google Play (%15 komisyon -> 0.727 net oran)
+       onayları sonrasında geçmiş %30 komisyonlu TSV satırları (83.12 TL / 332.49 TL) geçmiş tahsilat (realized_net_proceeds_try)
+       olarak korunurken, ileriye dönük aktif MRR ve deneme vade beklentilerini %15 tabanının (100.93 TL / 403.75 TL) altına
+       çekmemeli; vade günü (7. gün) gelen denemeler Tab 2 Kart 3'te 0.00 TL'ye düşmeyip toplam pipeline (+109.04 TL) olarak
+       gösterilmeli.
+    """
+    from datetime import datetime, timezone
+    from app.db.models import AppInstallSignal, SubscriberLedger, SubscriptionLifecycleEvent
+    from app.api.v1.endpoints.analytics import (
+        ANDROID_15_PROCEEDS_RATIO,
+        IOS_SBP_15_PROCEEDS_RATIO,
+        _build_analytics_summary,
+        get_dynamic_proceeds_ratio,
+        invalidate_analytics_summary_cache,
+        observe_proceeds_ratio,
+    )
+
+    AppInstallSignal.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    SubscriberLedger.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    SubscriptionLifecycleEvent.__table__.create(bind=db_session.get_bind(), checkfirst=True)
+    db_session.query(AppInstallSignal).delete()
+    db_session.query(SubscriberLedger).delete()
+    db_session.query(SubscriptionLifecycleEvent).delete()
+    db_session.commit()
+
+    # 1) Boş veritabanında sıfır statik veri kontrolü
+    empty_sum = _build_analytics_summary(db_session, period="all")
+    empty_onb = empty_sum["onboarding_step_funnel"]
+    assert empty_onb["has_telemetry_data"] is False
+    assert empty_onb["total_tracked_onboarding_devices"] == 0
+    assert empty_onb["step0_to_step9_completion_pct"] is None
+    assert len(empty_onb["steps"]) == 10
+    assert all(st["unique_devices"] == 0 and st["retention_from_prev_pct"] is None for st in empty_onb["steps"])
+
+    # 2) Gerçek cihaz sinyalleri:
+    # - ios_dev_1: Adım 0..9 tamamlar + paywall_viewed + paywall_cta_clicked + vip_started (Adım 0 ve 1'i 2 kez görüntüler -> tekilleştirilmeli)
+    # - ios_dev_2: Adım 0..4'e kadar gelir, Adım 5'te düşer
+    # - and_dev_1: Adım 0..9 tamamlar + paywall_viewed
+    now_utc = datetime.now(timezone.utc)
+    signals_to_seed = []
+    for step_idx in range(10):
+        signals_to_seed.append(
+            AppInstallSignal(
+                device_uid="ios_dev_1",
+                event_type=f"onboarding_step_viewed_{step_idx}",
+                os_family="ios",
+                platform="ios_native",
+                created_at=now_utc,
+            )
+        )
+        signals_to_seed.append(
+            AppInstallSignal(
+                device_uid="and_dev_1",
+                event_type=f"onboarding_step_viewed_{step_idx}",
+                os_family="android",
+                platform="android_native",
+                created_at=now_utc,
+            )
+        )
+    # Tekrarlı (duplicate) sinyal: ios_dev_1 Adım 0 ve Adım 1'i tekrar açsa bile unique_devices artmamalı
+    signals_to_seed.append(
+        AppInstallSignal(
+            device_uid="ios_dev_1",
+            event_type="onboarding_step_viewed_0",
+            os_family="ios",
+            platform="ios_native",
+            created_at=now_utc,
+        )
+    )
+    for step_idx in range(5):
+        signals_to_seed.append(
+            AppInstallSignal(
+                device_uid="ios_dev_2",
+                event_type=f"onboarding_step_viewed_{step_idx}",
+                os_family="ios",
+                platform="ios_native",
+                created_at=now_utc,
+            )
+        )
+    db_session.add_all(signals_to_seed)
+
+    # 3) %15 komisyon programı & 7. gün vade mutabakatı testi:
+    # Geçmiş %30 komisyonlu (83.12 TL) TSV satırı observe_proceeds_ratio çağrıldığında oranı 0.67292'nin altına düşürmemeli
+    observed_ios = observe_proceeds_ratio("ios", 149.99, 83.12)
+    assert observed_ios >= IOS_SBP_15_PROCEEDS_RATIO
+    assert get_dynamic_proceeds_ratio("android") >= ANDROID_15_PROCEEDS_RATIO
+
+    today_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    db_session.add_all([
+        # Oto-yenilemesi açık aktif ücretli iOS abone (geçmiş tahsilat 83.12 TL korunmalı, gelecek MRR 100.93 TL olmalı)
+        SubscriberLedger(
+            subscriber_id="455612656912233",
+            platform="ios",
+            product_id="misil_monthly",
+            plan_label="Aylık Esnek VIP",
+            status="paid_active",
+            offer_type="standard_paid",
+            started_date="2026-11-14",
+            converted_or_renewed_date="2026-11-21",
+            maturity_or_renewal_date="2026-12-21",
+            auto_renew_enabled=True,
+            customer_price_try=149.99,
+            developer_proceeds_try=83.12,
+            expected_next_price_try=149.99,
+            expected_next_proceeds_try=83.12,
+            country="TR",
+            device_type="iPhone",
+        ),
+        # Oto-yenilemesi kapalı (will_not_renew) ücretli iOS abone (geçmiş tahsilata dahil, gelecek MRR'a dahil değil)
+        SubscriberLedger(
+            subscriber_id="602650322813562",
+            rc_app_user_id="$RCAnonymousID:602650322813562",
+            platform="ios",
+            product_id="misil_monthly",
+            plan_label="Aylık Esnek VIP",
+            status="paid_active",
+            offer_type="standard_paid",
+            started_date="2026-10-20",
+            converted_or_renewed_date="2026-10-27",
+            maturity_or_renewal_date="2026-11-27",
+            auto_renew_enabled=False,
+            customer_price_try=149.99,
+            developer_proceeds_try=83.12,
+            expected_next_price_try=0.0,
+            expected_next_proceeds_try=0.0,
+            country="TR",
+            device_type="iPhone",
+        ),
+        # Bugün vadesi dolan (7/7 gün mutabakatında) Android 7G deneme abonesi (+109.04 TL Net)
+        SubscriberLedger(
+            subscriber_id="GPA.3393-7847-2790-81158",
+            platform="android",
+            product_id="misilaylik",
+            plan_label="Mışıl Baby Aylık VIP",
+            status="intro_free_trial",
+            offer_type="intro_7d_trial",
+            started_date="2026-11-19",
+            converted_or_renewed_date="2026-11-19",
+            maturity_or_renewal_date=today_str,
+            auto_renew_enabled=True,
+            customer_price_try=0.0,
+            developer_proceeds_try=0.0,
+            expected_next_price_try=149.99,
+            expected_next_proceeds_try=109.04,
+            country="TR",
+            device_type="Android",
+        ),
+        SubscriptionLifecycleEvent(
+            event_date="2026-10-27",
+            platform="ios",
+            event_type="602650322813562:will_not_renew",
+            product_id="misil_monthly",
+            plan_label="Aylık Esnek VIP",
+            country="TR",
+            device_type="iPhone",
+            quantity=1,
+        ),
+    ])
+    db_session.commit()
+
+    invalidate_analytics_summary_cache(mark_reconcile=True)
+    summary = _build_analytics_summary(db_session, period="all")
+    onb = summary["onboarding_step_funnel"]
+
+    assert onb["has_telemetry_data"] is True
+    assert onb["total_tracked_onboarding_devices"] == 3
+    assert onb["steps"][0]["unique_devices"] == 3
+    assert onb["steps"][0]["raw_events"] == 4  # ios_dev_1 duplicate sinyali ham sayıda 4, tekil cihazda 3 olmalı
+    assert onb["steps"][4]["unique_devices"] == 3
+    assert onb["steps"][5]["unique_devices"] == 2
+    assert onb["steps"][5]["dropoff_from_prev_count"] == 1
+    assert onb["steps"][5]["dropoff_from_prev_pct"] == 33.3
+    assert onb["steps"][9]["unique_devices"] == 2
+    assert onb["step0_to_step9_completion_pct"] == 66.7
+    assert onb["biggest_dropoff_step"]["step_number"] == 5
+
+    # Platform kırılımı: iOS 2 başlangıç -> 1 tamamlama (%50), Android 1 başlangıç -> 1 tamamlama (%100)
+    onb_ios = summary["platform_split"]["ios"]["onboarding_step_funnel"]
+    onb_and = summary["platform_split"]["android"]["onboarding_step_funnel"]
+    assert onb_ios["steps"][0]["unique_devices"] == 2
+    assert onb_ios["steps"][9]["unique_devices"] == 1
+    assert onb_ios["step0_to_step9_completion_pct"] == 50.0
+    assert onb_and["steps"][0]["unique_devices"] == 1
+    assert onb_and["steps"][9]["unique_devices"] == 1
+    assert onb_and["step0_to_step9_completion_pct"] == 100.0
+
+    # Finansal mutabakat kontrolü:
+    fl = summary["financial_ledger"]
+    assert fl["paid_subs_count"] == 2
+    assert fl["auto_renewing_paid_subs_count"] == 1
+    assert fl["non_renewing_paid_subs_count"] == 1
+    assert fl["realized_net_proceeds_try"] == 166.24  # Geçmiş %30 tahsilat (83.12 * 2) asla bozulmaz
+    assert fl["active_paid_mrr_net_try"] == 100.93    # Oto-yenilemesi açık iOS abone %15 SBP (100.93 TL)
+    assert fl["reconciling_7d_trials_count"] == 1
+    assert fl["reconciling_7d_mrr_net_try"] == 109.04
+    assert fl["pipeline_7d_mrr_net_try"] == 109.04
+    assert fl["projected_total_mrr_net_try"] == 209.97  # 100.93 + 109.04
+
+    dash_res = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"})
+    assert dash_res.status_code == 200
+    assert 'id="onboardingNineStepFunnelCard"' in dash_res.text
+    assert 'id="onboardingNineStepTbody"' in dash_res.text
+    assert "9 Adımlı Kullanıcı Onboarding" in dash_res.text
+    assert "+109.04 ₺" in dash_res.text
+    assert "1/2 Oto-Yenileme" in dash_res.text
+
 
 
 

@@ -200,7 +200,7 @@ def test_mrr_separates_cumulative_ltv_from_recurring_and_period_filter_has_no_si
     assert fl["realized_gross_try"] == 449.97
     assert fl["realized_net_proceeds_try"] == 249.36
     assert fl["active_paid_mrr_gross_try"] == 149.99
-    assert fl["active_paid_mrr_net_try"] == 83.12
+    assert fl["active_paid_mrr_net_try"] == 100.93
 
 
 def test_campaign_config_whitelist_and_csv_sanitization(client, db_session):
@@ -375,10 +375,10 @@ def test_obsidian_cockpit_v2_trial_mrr_healing_and_3row_grid(client, db_session)
     assert fl["pipeline_7d_trials_count"] == 2
     assert fl["reconciling_7d_trials_count"] == 1
     assert fl["upcoming_7d_trials_count"] == 1
-    assert fl["reconciling_7d_mrr_net_try"] == 83.12
-    assert fl["upcoming_7d_mrr_net_try"] == 83.12
-    assert fl["pipeline_7d_mrr_net_try"] == 166.24
-    assert fl["projected_total_mrr_net_try"] == 166.24
+    assert fl["reconciling_7d_mrr_net_try"] == 100.93
+    assert fl["upcoming_7d_mrr_net_try"] == 100.93
+    assert fl["pipeline_7d_mrr_net_try"] == 201.86
+    assert fl["projected_total_mrr_net_try"] == 201.86
 
     ps = summary["platform_split"]
     assert "all" in ps and "ios" in ps and "android" in ps
@@ -572,9 +572,9 @@ def test_apple_connect_12_active_16_records_reconciliation_and_google_play_bridg
     assert fl["paid_subs_count"] == 1
     assert fl["offer_code_subs_count"] == 5
     assert fl["pipeline_7d_trials_count"] == 6
-    # 3 × 149.99 + 3 × 599.99 = 2249.94 Brüt / 3 × 83.12 + 3 × 332.50 = 1246.86 Net
+    # 3 × 149.99 + 3 × 599.99 = 2249.94 Brüt / %15 SBP: 3 × 100.93 + 3 × 403.75 = 1514.04 Net
     assert fl["pipeline_7d_mrr_gross_try"] == 2249.94
-    assert fl["pipeline_7d_mrr_net_try"] == 1246.86
+    assert fl["pipeline_7d_mrr_net_try"] == 1514.04
 
     # Google Play /api/v1/analytics/subscriber-sync ve RevenueCat webhook testi
     sync_res = client.post(
@@ -1143,13 +1143,13 @@ def test_dashboard_audit_remediation_dev_purge_mrr_and_aso_ios_isolation(client,
     assert fl["cancelled_subs_count"] == 1
     assert fl["total_vip_records_count"] == 6
 
-    # MRR: 149.99 + (599.99 / 12) = 199.99 Brüt, 83.12 + (332.49 / 12) = 110.83 Net
+    # MRR (%15 SBP): 149.99 + (599.99 / 12) = 199.99 Brüt, 100.93 + (403.75 / 12) = 134.58 Net
     assert fl["active_paid_mrr_gross_try"] == 199.99
-    assert fl["active_paid_mrr_net_try"] == 110.83
+    assert fl["active_paid_mrr_net_try"] == 134.58
 
-    # 7G Pipeline: 149.99 + 599.99 + 599.99 = 1349.97 Brüt, 83.12 + 332.50 + 332.50 = 748.12 Net
+    # 7G Pipeline (%15 SBP): 149.99 + 599.99 + 599.99 = 1349.97 Brüt, 100.93 + 403.75 + 403.75 = 908.43 Net
     assert fl["pipeline_7d_mrr_gross_try"] == 1349.97
-    assert fl["pipeline_7d_mrr_net_try"] == 748.12
+    assert fl["pipeline_7d_mrr_net_try"] == 908.43
 
     # ASO Sosyal Yönlendirme (r3_ref) Android sinyallerinden etkilenmeyip 50 kalmalı
     social_row = next(r for r in summary["aso_attribution_matrix"] if "Sosyal Yönlendirme" in r["channel"])
@@ -1250,7 +1250,7 @@ def test_v4_48_0_returning_users_and_paywall_cancellation_cro(client, db_session
     assert "report-next-sweetspot-time" in app_html
     assert "vip-calibration-progress-box" in app_html
     assert "mishil_family_vip_verified" in app_html
-    assert "version: '4.57.0'" in app_html
+    assert "version: '4.57." in app_html
     assert "openPaywallCancelRecoveryModal" in app_html
     assert "modal-paywall-cancel-recovery" in app_html
 
@@ -1594,7 +1594,7 @@ def test_apple_t1_lag_period_revenue_reconciliation_and_rc_v2_bridge(client, db_
     assert sr["last_7d_t1"]["gross_try"] == 599.99
     assert sr["last_7d_t1"]["net_try"] == 332.49
     assert sr["rc_v2_crossgrades_count"] == 1
-    assert sr["rc_v2_crossgrades_net_try"] == 83.12
+    assert sr["rc_v2_crossgrades_net_try"] == 100.93
 
     sum_7d = _build_analytics_summary(db_session, period="7d")
     fl_7d = sum_7d["financial_ledger"]
@@ -2180,9 +2180,9 @@ def test_dynamic_rc_v2_google_play_orders_downgrade_mrr_and_zero_static_data(cli
     assert ps_and["total_vip_count"] == 3
     assert ps_and["cancelled_vip_count"] == 1
 
-    # Yıllık deneme (332.50 / 12 = 27.71) + 2 Android aylık deneme (109.04 * 2 = 218.08) -> MRR = 245.79 (pipeline_7d_mrr_net_try ise 550.58)
-    assert fl["pipeline_7d_mrr_net_try"] == 550.58
-    assert fl["projected_total_mrr_net_try"] == 245.79
+    # Yıllık deneme (%15 SBP: 403.75 / 12 = 33.65) + 2 Android aylık deneme (109.04 * 2 = 218.08) -> MRR = 251.73 (pipeline_7d_mrr_net_try ise 621.83)
+    assert fl["pipeline_7d_mrr_net_try"] == 621.83
+    assert fl["projected_total_mrr_net_try"] == 251.73
     assert pr["routine_logs_count"] >= 1
     assert pr["dadi_chats_count"] >= 1
 
