@@ -2,6 +2,17 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.57.7-cockpit-dynamic-star-bars-and-satisfaction-pulse] - 2026-11-26 (Railway Canlı Yayın — Kurucu Kokpiti Sekme 4 `🍏 iOS` ve `🤖 Android` Ayrı `5★..1★` Dinamik Yıldız Çubuğu & Kişi Adetleri, Apple iTunes Lookup API Genel Mağaza Puanı `4.6 ★` vs Yazılı Yorum `4.3 ★` Mutabakatı + Yorumsuz Oy Sayacı ve Düşük Puanlı Yorumlar İçin Tek Tıkla Uygulama İçi `"🔔 Çözüm & Memnuniyet Yoklaması"` Tetikleyicisi • 🟢 Yeni Native EAS Build Gerekmez)
+### ⭐🔔 Dinamik `5★..1★` Yıldız Çubuğu (`iOS` & `Android` Ayrı) + Mağaza `4.6 ★` Mutabakatı & Çözüm Yoklaması (`app/api/v1/endpoints/analytics.py`, `public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`, `tests/test_analytics_cockpit_resilience.py`)
+1. **Neden Mağazada `4.6 ★` Olan Puan Kokpitte `4.3 ★` Görünüyordu? (İki Katmanlı Canlı Puan Mutabakatı):**
+   - App Store Connect `customerReviews` API'si yalnızca yazılı metin bırakan yorumları (`5× 5★ + 1× 1★ Rabia Özcan Kahya = 4.3 ★`) döndürürken, uygulama içinden yorum yazmadan `5 ★` veren kullanıcılar mağaza genel puanını `4.6 ★` yapmaktadır.
+   - `sync_live_store_apis()` içine resmi **Apple iTunes Lookup API** (`https://itunes.apple.com/lookup?id=6809223195&country=tr`) entegre edilerek `apple_overall_rating` (`★ 4.6`) ve `apple_overall_ratings_count` canlı çekildi; `_build_star_distribution()` ile hem **Mağaza Genel Puanı (`Mağaza: ★ 4.6`)**, hem **Yazılı Yorum Ortalaması (`Yazılı: ★ 4.3`)**, hem de **`+N Yorumsuz Oy`** farkı dinamik hesaplandı.
+2. **`🍏 iOS` ve `🤖 Android` Ayrı `5★..1★` Yıldız Çubuğu ve Kişi Adetleri (`#reviewsStarDistributionGrid`):**
+   - Sekme 4 (`⭐ 4. Yorum & Trafik`) üstüne `#starDistBox_ios` ve `#starDistBox_android` kutuları eklendi; her iki platform için `5 ★`, `4 ★`, `3 ★`, `2 ★`, `1 ★` yatay doluluk çubukları, kişi adetleri ve yüzdeleri `%100` dinamik olarak (`switchPlatform` ve 15sn canlı polling uyumlu) gösterildi.
+3. **Rabia Özcan Kahya (`1 ★`) ve Benzeri Sorun Yaşayanlara Kokpitten Tek Tıkla `"🔔 Çözüm & Memnuniyet Yoklaması"` (`satisfaction-pulse`):**
+   - Her düşük yıldızlı (`≤ 3★`) yorum kartına **`🔔 Çözüm Yoklaması Tetikle`** butonu ve Sekme 4 üstüne canlı sayaçlı (`👁️ Gösterim • 😍 Memnun / Mağazaya Gitti • 💬 Sorun Devam Ediyor`) `#satisfactionPulseCard` kontrol kutusu eklendi.
+   - `POST /api/v1/analytics/satisfaction-pulse`, `GET /api/v1/analytics/satisfaction-pulse/active` ve `POST /api/v1/analytics/satisfaction-pulse/respond` uç noktaları ile `public/app.html` uygulama içi memnuniyet baloncuğu devreye alındı: **`😍 Evet, Düzeldi`** diyen kullanıcı doğrudan mağaza yıldız güncelleme ekranına (`submitStoreRating()`) yönlendirilirken, **`💬 Sorun Var`** diyen kullanıcının mesajı mağazaya gitmeden doğrudan `Feedback` tablosuna ve kokpite düşer (`40/40 pytest PASS`).
+
 ## [4.57.6-cockpit-numbers-and-visuals-only-zero-prose] - 2026-11-26 (Yerel Ortamda Doğrulandı — Kurucu Kokpiti "Sıfır Cümle — Yalnızca Rakam, İkon & Görsel Çubuk" Dönüşümü: `.step-sub` Paragraflarının Masaüstü/Mobil Varsayılan Gizlenmesi, 9 Adımlı Onboarding Tablosu İkinci Satır Alt Başlıkları & İngilizce `first_open`/`paywall_viewed` Jargonlarının Temizlenmesi ve Tüm Tablo Başlıklarının Tek Kelimelik İkon+Rakam Formatına İndirgenmesi • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🔢✨ Kurucu Kokpiti "Sıfır Cümle — Yalnızca Rakam, İkon & Görsel Çubuk" Dönüşümü (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **Tüm Sekmelerde `.step-sub` Uzun Cümlelerinin Varsayılan Olarak Gizlenmesi (`analytics.py:10165-10180`):**

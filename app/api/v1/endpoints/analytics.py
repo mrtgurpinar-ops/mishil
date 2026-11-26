@@ -497,6 +497,10 @@ def _empty_store_state() -> Dict[str, Any]:
         ],
         "daily_store_series": {},
         "store_reviews": [],
+        "apple_overall_rating": 0.0,
+        "apple_overall_ratings_count": 0,
+        "google_overall_rating": 0.0,
+        "google_overall_ratings_count": 0,
     }
 
 
@@ -2366,6 +2370,28 @@ def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
                             "response_date": resp_date_str,
                         })
                     synced_sources.append("Apple App Store Connect API (Reviews)")
+
+            # iTunes Lookup API: Yazılı yorum bırakmadan yıldız verenler dahil resmi mağaza genel puanı (örn. 4.6 ★) ve toplam oy sayısı
+            try:
+                itunes_req = urllib.request.Request(
+                    "https://itunes.apple.com/lookup?id=6809223195&country=tr",
+                    headers={"Accept": "application/json", "User-Agent": "MishilCockpit/4.57.7"},
+                )
+                with urllib.request.urlopen(itunes_req, timeout=4) as it_resp:
+                    if it_resp.status == 200:
+                        it_payload = json.loads(it_resp.read().decode("utf-8"))
+                        it_results = it_payload.get("results") or []
+                        if it_results and isinstance(it_results[0], dict):
+                            it_app = it_results[0]
+                            it_avg = round(float(it_app.get("averageUserRating") or it_app.get("averageUserRatingForCurrentVersion") or 0.0), 1)
+                            it_cnt = int(it_app.get("userRatingCount") or it_app.get("userRatingCountForCurrentVersion") or 0)
+                            if it_avg > 0 and it_cnt > 0:
+                                with _BASELINE_LOCK:
+                                    OFFICIAL_STORE_BASELINE["apple_overall_rating"] = it_avg
+                                    OFFICIAL_STORE_BASELINE["apple_overall_ratings_count"] = it_cnt
+                                synced_sources.append("Apple iTunes Lookup API (Overall Rating)")
+            except Exception as it_exc:
+                logger.debug("iTunes Lookup rating sync info: %s", it_exc)
 
             vendor_num = os.environ.get("ASC_VENDOR_NUMBER", "94806500")
             tz_tr_sync = timezone(timedelta(hours=3))
@@ -6359,23 +6385,116 @@ def _build_analytics_summary(
         )
 
     all_reviews = sb.get("store_reviews") or []
-    ios_reviews_list = [r for r in all_reviews if r.get("store") == "App Store"]
-    android_reviews_list = [r for r in all_reviews if r.get("store") == "Google Play"]
+    ios_reviews_list = [r for r in all_reviews if r.get("store") == "App Store" or r.get("platform") == "ios"]
+    android_reviews_list = [r for r in all_reviews if r.get("store") == "Google Play" or r.get("platform") == "android"]
     ios_reviews_cnt = len(ios_reviews_list)
     android_reviews_cnt = len(android_reviews_list)
 
-    def _calc_dynamic_avg_stars_str(rev_items: List[Dict[str, Any]]) -> str:
-        if not rev_items:
-            return "Yorum Yok"
-        avg_v = round(
-            sum(max(1, min(5, int(r.get("rating", 5) or 5))) for r in rev_items) / len(rev_items),
+    def _build_star_distribution(
+        rev_items: List[Dict[str, Any]],
+        overall_rating: float = 0.0,
+        overall_count: int = 0,
+    ) -> Dict[str, Any]:
+        counts: Dict[int, int] = {5: 0, 4: 0, 3: 0, 2: 0, 1: 0}
+        for r_it in rev_items:
+            st_v = max(1, min(5, int(r_it.get("rating", 5) or 5)))
+            counts[st_v] = counts.get(st_v, 0) + 1
+        written_cnt = len(rev_items)
+        written_avg = (
+            round(sum(st_k * st_c for st_k, st_c in counts.items()) / written_cnt, 1)
+            if written_cnt > 0
+            else 0.0
+        )
+        eff_overall_cnt = max(written_cnt, int(overall_count or 0))
+        eff_overall_avg = (
+            round(float(overall_rating), 1)
+            if (float(overall_rating or 0.0) > 0 and eff_overall_cnt > 0)
+            else written_avg
+        )
+        silent_ratings_cnt = max(0, eff_overall_cnt - written_cnt)
+        bars: List[Dict[str, Any]] = []
+        for s_lvl in (5, 4, 3, 2, 1):
+            c_val = counts[s_lvl]
+            pct_val = round((c_val / written_cnt) * 100, 1) if written_cnt > 0 else 0.0
+            bars.append({
+                "star": s_lvl,
+                "count": c_val,
+                "pct": pct_val,
+            })
+        return {
+            "written_count": written_cnt,
+            "written_avg": written_avg,
+            "written_avg_str": f"★ {written_avg}" if written_cnt > 0 else "Yorum Yok",
+            "overall_count": eff_overall_cnt,
+            "overall_avg": eff_overall_avg,
+            "overall_avg_str": f"★ {eff_overall_avg}" if eff_overall_cnt > 0 else "Yorum Yok",
+            "silent_ratings_count": silent_ratings_cnt,
+            "counts": {str(k): v for k, v in counts.items()},
+            "bars": bars,
+        }
+
+    ios_overall_r = float(sb.get("apple_overall_rating", 0.0) or 0.0)
+    ios_overall_c = int(sb.get("apple_overall_ratings_count", 0) or 0)
+    and_overall_r = float(sb.get("google_overall_rating", 0.0) or 0.0)
+    and_overall_c = int(sb.get("google_overall_ratings_count", 0) or 0)
+    for cfg_r in cfg_rows:
+        if cfg_r.channel_key == "apple_search_ads" and float(cfg_r.store_rating or 0.0) > 0 and ios_overall_r <= 0:
+            ios_overall_r = float(cfg_r.store_rating)
+            ios_overall_c = max(ios_overall_c, int(cfg_r.store_reviews_count or 0))
+        elif cfg_r.channel_key == "google_play_organic" and float(cfg_r.store_rating or 0.0) > 0 and and_overall_r <= 0:
+            and_overall_r = float(cfg_r.store_rating)
+            and_overall_c = max(and_overall_c, int(cfg_r.store_reviews_count or 0))
+
+    ios_star_dist = _build_star_distribution(ios_reviews_list, ios_overall_r, ios_overall_c)
+    android_star_dist = _build_star_distribution(android_reviews_list, and_overall_r, and_overall_c)
+    comb_overall_cnt = ios_star_dist["overall_count"] + android_star_dist["overall_count"]
+    comb_overall_avg = (
+        round(
+            (
+                (ios_star_dist["overall_avg"] * ios_star_dist["overall_count"])
+                + (android_star_dist["overall_avg"] * android_star_dist["overall_count"])
+            )
+            / comb_overall_cnt,
             1,
         )
-        return f"★ {avg_v}"
+        if comb_overall_cnt > 0
+        else 0.0
+    )
+    all_star_dist = _build_star_distribution(all_reviews, comb_overall_avg, comb_overall_cnt)
+    reviews_star_distribution = {
+        "all": all_star_dist,
+        "ios": ios_star_dist,
+        "android": android_star_dist,
+    }
 
-    all_avg_stars_str = _calc_dynamic_avg_stars_str(all_reviews)
-    ios_avg_stars_str = _calc_dynamic_avg_stars_str(ios_reviews_list)
-    android_avg_stars_str = _calc_dynamic_avg_stars_str(android_reviews_list)
+    all_avg_stars_str = all_star_dist["overall_avg_str"]
+    ios_avg_stars_str = ios_star_dist["overall_avg_str"]
+    android_avg_stars_str = android_star_dist["overall_avg_str"]
+
+    pulse_state_row = (
+        db.query(StoreSyncState)
+        .filter(StoreSyncState.state_key == "active_satisfaction_pulse")
+        .first()
+    )
+    raw_pulse_snap = (
+        dict(pulse_state_row.snapshot_json)
+        if (pulse_state_row and isinstance(pulse_state_row.snapshot_json, dict))
+        else {}
+    )
+    satisfaction_pulse = {
+        "pulse_id": str(raw_pulse_snap.get("pulse_id") or ""),
+        "active": bool(raw_pulse_snap.get("active", False)),
+        "target_platform": str(raw_pulse_snap.get("target_platform") or "ios"),
+        "topic_key": str(raw_pulse_snap.get("topic_key") or "sleep_save_fix"),
+        "title_tr": str(raw_pulse_snap.get("title_tr") or "Uyku ve uyanma saatleri kaydı iyileştirildi"),
+        "question_tr": str(raw_pulse_snap.get("question_tr") or "Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?"),
+        "reference_author": str(raw_pulse_snap.get("reference_author") or ""),
+        "reference_review_id": str(raw_pulse_snap.get("reference_review_id") or ""),
+        "triggered_at": str(raw_pulse_snap.get("triggered_at") or ""),
+        "shown_count": int(raw_pulse_snap.get("shown_count", 0) or 0),
+        "satisfied_count": int(raw_pulse_snap.get("satisfied_count", 0) or 0),
+        "issue_persists_count": int(raw_pulse_snap.get("issue_persists_count", 0) or 0),
+    }
 
     ios_total_rec = len(ios_subs_list)
     and_total_rec = len(android_subs_list)
@@ -6469,6 +6588,7 @@ def _build_analytics_summary(
             "realized_net_try": financial_ledger["realized_net_proceeds_try"] if period == "all" else round(ios_realized_net + and_realized_net, 2),
             "reviews_count": len(all_reviews),
             "avg_rating_str": all_avg_stars_str,
+            "star_distribution": all_star_dist,
             "delta_1": f"+{recent_3d_imp} (3G)" if period == "all" else period_label,
             "delta_2": f"+{today_unique_clicks} Bugün" if period == "all" else f"{effective_unique_bridge_clicks} Dönem Tıkı",
             "meta_chips_1": [f"{total_impressions_unique:,} Tekil Cihaz", f"%{imp_search_pct_calc} Arama"],
@@ -6532,6 +6652,7 @@ def _build_analytics_summary(
             "realized_net_try": ios_realized_net,
             "reviews_count": ios_reviews_cnt,
             "avg_rating_str": ios_avg_stars_str,
+            "star_distribution": ios_star_dist,
             "delta_1": f"%{round((apple_impressions / max(1, total_cumulative_impressions)) * 100)} Pay",
             "delta_2": f"%{ios_store_imp_to_pv_pct} Mağaza",
             "meta_chips_1": [f"{ios_imp_uniq_display:,} Tekil iPhone", "🎯 Meta Reklam Aktif"],
@@ -6603,6 +6724,7 @@ def _build_analytics_summary(
             "realized_net_try": and_realized_net,
             "reviews_count": android_reviews_cnt,
             "avg_rating_str": android_avg_stars_str,
+            "star_distribution": android_star_dist,
             "delta_1": f"%{round((google_play_impressions / max(1, total_cumulative_impressions)) * 100)} Pay",
             "delta_2": f"%{android_store_imp_to_pv_pct} Mağaza",
             "meta_chips_1": ["🤖 Google Play Organik", "🎯 Meta Reklam Aktif"],
@@ -6871,6 +6993,8 @@ def _build_analytics_summary(
         "data_governance_matrix": data_governance_matrix,
         "architecture_principles": architecture_principles,
         "platform_split": platform_split,
+        "reviews_star_distribution": reviews_star_distribution,
+        "satisfaction_pulse": satisfaction_pulse,
         "google_play_subscriptions_catalog": gp_catalog,
         "kpi_deltas": {
             "recent_3d_impressions": recent_3d_imp,
@@ -7867,6 +7991,223 @@ async def reply_to_store_review(
         raise HTTPException(status_code=status.HTTP_502_BAD_GATEWAY, detail=str(rt_err))
 
 
+class SatisfactionPulseConfigPayload(BaseModel):
+    active: bool = Field(default=True)
+    target_platform: str = Field(default="ios", max_length=32)  # 'ios', 'android', 'all'
+    topic_key: str = Field(default="sleep_save_fix", max_length=64)
+    title_tr: str = Field(default="Uyku ve uyanma saatleri kaydı iyileştirildi", max_length=160)
+    question_tr: str = Field(default="Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?", max_length=240)
+    reference_author: Optional[str] = Field(default="", max_length=100)
+    reference_review_id: Optional[str] = Field(default="", max_length=160)
+    reset_counters: bool = Field(default=False)
+
+
+class SatisfactionPulseResponsePayload(BaseModel):
+    pulse_id: str = Field(..., min_length=2, max_length=80)
+    device_uid: str = Field(..., min_length=3, max_length=120)
+    outcome: str = Field(..., max_length=32)  # 'shown', 'satisfied', 'issue_persists'
+    platform: Optional[str] = Field(default="ios", max_length=32)
+    note: Optional[str] = Field(default="", max_length=500)
+
+
+@router.post("/satisfaction-pulse")
+def configure_satisfaction_pulse(
+    payload: SatisfactionPulseConfigPayload,
+    request: Request,
+    pin: Optional[str] = Query(None),
+    x_admin_pin: Optional[str] = Header(None),
+    db: Session = Depends(get_db),
+):
+    """
+    Kurucu Kokpiti (Sekme 4) üzerinden düşük puan veren (örn. Rabia Özcan Kahya — uyku saatleri kaydı)
+    veya sorun yaşayan kullanıcılara uygulama içi + yerel bildirim memnuniyet yoklaması başlatır/durdurur.
+    """
+    if not authorize_admin_request(request, pin, x_admin_pin, request.cookies.get(_ADMIN_SESSION_COOKIE)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz veya eksik Yönetici PIN kodu.")
+
+    clean_plat = (payload.target_platform or "ios").strip().lower()
+    if clean_plat not in ("ios", "android", "all"):
+        clean_plat = "ios"
+
+    tz_tr = timezone(timedelta(hours=3))
+    now_tr_str = datetime.now(tz_tr).strftime("%d.%m.%Y %H:%M")
+
+    st_row = (
+        db.query(StoreSyncState)
+        .filter(StoreSyncState.state_key == "active_satisfaction_pulse")
+        .first()
+    )
+    prev_snap = (
+        dict(st_row.snapshot_json)
+        if (st_row and isinstance(st_row.snapshot_json, dict))
+        else {}
+    )
+    is_new_campaign = bool(payload.reset_counters or not prev_snap.get("pulse_id") or (payload.active and not prev_snap.get("active")))
+    pulse_id = (
+        f"pulse_{int(time.time())}"
+        if is_new_campaign
+        else str(prev_snap.get("pulse_id") or f"pulse_{int(time.time())}")
+    )
+
+    new_snap = {
+        "pulse_id": pulse_id,
+        "active": bool(payload.active),
+        "target_platform": clean_plat,
+        "topic_key": (payload.topic_key or "sleep_save_fix").strip(),
+        "title_tr": (payload.title_tr or "Uyku ve uyanma saatleri kaydı iyileştirildi").strip(),
+        "question_tr": (payload.question_tr or "Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?").strip(),
+        "reference_author": (payload.reference_author or "").strip(),
+        "reference_review_id": (payload.reference_review_id or "").strip(),
+        "triggered_at": now_tr_str if payload.active else str(prev_snap.get("triggered_at") or now_tr_str),
+        "shown_count": 0 if payload.reset_counters else int(prev_snap.get("shown_count", 0) or 0),
+        "satisfied_count": 0 if payload.reset_counters else int(prev_snap.get("satisfied_count", 0) or 0),
+        "issue_persists_count": 0 if payload.reset_counters else int(prev_snap.get("issue_persists_count", 0) or 0),
+        "shown_devices": [] if payload.reset_counters else list(prev_snap.get("shown_devices") or [])[-500:],
+        "responded_devices": [] if payload.reset_counters else list(prev_snap.get("responded_devices") or [])[-500:],
+    }
+
+    if st_row:
+        st_row.snapshot_json = new_snap
+        st_row.last_synced_at_str = now_tr_str
+    else:
+        db.add(
+            StoreSyncState(
+                state_key="active_satisfaction_pulse",
+                snapshot_json=new_snap,
+                last_synced_at_str=now_tr_str,
+            )
+        )
+    db.commit()
+    invalidate_analytics_summary_cache(mark_reconcile=False, reset_baseline_stamp=False)
+    return {
+        "status": "ok",
+        "satisfaction_pulse": {k: v for k, v in new_snap.items() if k not in ("shown_devices", "responded_devices")},
+    }
+
+
+@router.get("/satisfaction-pulse/active")
+def get_active_satisfaction_pulse(
+    platform: Optional[str] = Query("ios"),
+    device_uid: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+):
+    """Mobil uygulama / WebView açılışında aktif bir memnuniyet & çözüm yoklaması olup olmadığını döner."""
+    st_row = (
+        db.query(StoreSyncState)
+        .filter(StoreSyncState.state_key == "active_satisfaction_pulse")
+        .first()
+    )
+    snap = (
+        dict(st_row.snapshot_json)
+        if (st_row and isinstance(st_row.snapshot_json, dict))
+        else {}
+    )
+    if not snap.get("active"):
+        return {"active": False}
+
+    req_plat = "android" if "android" in (platform or "ios").lower() else "ios"
+    tgt_plat = str(snap.get("target_platform") or "all").lower()
+    if tgt_plat in ("ios", "android") and tgt_plat != req_plat:
+        return {"active": False}
+
+    clean_duid = (device_uid or "").strip()
+    responded_list = list(snap.get("responded_devices") or [])
+    if clean_duid and clean_duid in responded_list:
+        return {"active": False, "already_responded": True}
+
+    return {
+        "active": True,
+        "pulse_id": str(snap.get("pulse_id") or ""),
+        "target_platform": tgt_plat,
+        "topic_key": str(snap.get("topic_key") or "sleep_save_fix"),
+        "title_tr": str(snap.get("title_tr") or ""),
+        "question_tr": str(snap.get("question_tr") or ""),
+        "reference_author": str(snap.get("reference_author") or ""),
+    }
+
+
+@router.post("/satisfaction-pulse/respond")
+def respond_to_satisfaction_pulse(
+    payload: SatisfactionPulseResponsePayload,
+    request: Request,
+    db: Session = Depends(get_db),
+):
+    """
+    Kullanıcının uygulama içi memnuniyet yoklamasına verdiği yanıtı ('shown', 'satisfied', 'issue_persists') kaydeder.
+    'issue_persists' durumunda doğrudan Feedback tablosuna kayıt düşer; 'satisfied' durumunda mağaza puanlaması tetiklenir.
+    """
+    st_row = (
+        db.query(StoreSyncState)
+        .filter(StoreSyncState.state_key == "active_satisfaction_pulse")
+        .first()
+    )
+    if not st_row or not isinstance(st_row.snapshot_json, dict):
+        return {"status": "inactive"}
+
+    snap = dict(st_row.snapshot_json)
+    clean_duid = (payload.device_uid or "").strip()[:120]
+    clean_outcome = (payload.outcome or "").strip().lower()
+    clean_plat = "android" if "android" in (payload.platform or "ios").lower() else "ios"
+
+    shown_devs = list(snap.get("shown_devices") or [])
+    resp_devs = list(snap.get("responded_devices") or [])
+
+    if clean_outcome == "shown":
+        if clean_duid and clean_duid not in shown_devs:
+            shown_devs.append(clean_duid)
+            snap["shown_devices"] = shown_devs[-500:]
+            snap["shown_count"] = int(snap.get("shown_count", 0) or 0) + 1
+    elif clean_outcome in ("satisfied", "issue_persists"):
+        if clean_duid and clean_duid not in shown_devs:
+            shown_devs.append(clean_duid)
+            snap["shown_devices"] = shown_devs[-500:]
+            snap["shown_count"] = int(snap.get("shown_count", 0) or 0) + 1
+        if clean_duid and clean_duid not in resp_devs:
+            resp_devs.append(clean_duid)
+            snap["responded_devices"] = resp_devs[-500:]
+            if clean_outcome == "satisfied":
+                snap["satisfied_count"] = int(snap.get("satisfied_count", 0) or 0) + 1
+            else:
+                snap["issue_persists_count"] = int(snap.get("issue_persists_count", 0) or 0) + 1
+
+        if clean_outcome == "issue_persists":
+            note_txt = (payload.note or "").strip() or f"[{snap.get('title_tr', 'Çözüm Yoklaması')}] Kullanıcı sorunun devam ettiğini bildirdi."
+            db.add(
+                Feedback(
+                    message=f"🔔 [Çözüm Yoklaması #{snap.get('pulse_id', '')}] {note_txt}",
+                    sentiment="needs_improvement",
+                    contact_info=clean_duid,
+                    platform=clean_plat,
+                    app_version="4.57.7",
+                    ip_address=_extract_client_ip(request),
+                )
+            )
+
+        db.add(
+            AppInstallSignal(
+                device_uid=clean_duid or "msl_pulse",
+                event_type=f"pulse_{clean_outcome}",
+                os_family=clean_plat,
+                platform=f"{clean_plat}_native",
+                app_version="4.57.7",
+                ip_masked=_extract_client_ip(request),
+                country="TR",
+                match_confidence="unmatched",
+            )
+        )
+
+    st_row.snapshot_json = snap
+    db.commit()
+    invalidate_analytics_summary_cache(mark_reconcile=False, reset_baseline_stamp=False)
+    return {
+        "status": "ok",
+        "outcome": clean_outcome,
+        "shown_count": int(snap.get("shown_count", 0) or 0),
+        "satisfied_count": int(snap.get("satisfied_count", 0) or 0),
+        "issue_persists_count": int(snap.get("issue_persists_count", 0) or 0),
+    }
+
+
 @router.post("/trigger-sync")
 async def trigger_store_sync_now(
     request: Request,
@@ -8379,7 +8720,14 @@ def analytics_dashboard_page(
 
     reviews_list = sb.get("store_reviews") or []
     reviews_total_cnt = len(reviews_list)
-    if reviews_total_cnt > 0:
+    star_dist_map = s.get("reviews_star_distribution") or {}
+    all_sd = star_dist_map.get("all") or {}
+    ios_sd = star_dist_map.get("ios") or {}
+    and_sd = star_dist_map.get("android") or {}
+
+    if all_sd.get("overall_count", 0) > 0:
+        avg_stars_label = f"{all_sd.get('overall_avg_str', 'Yorum Yok')} ({all_sd.get('overall_count', 0)} Oy • {all_sd.get('written_count', reviews_total_cnt)} Yorum)"
+    elif reviews_total_cnt > 0:
         avg_stars_val = round(
             sum(max(1, min(5, int(r.get("rating", 5) or 5))) for r in reviews_list) / reviews_total_cnt,
             1,
@@ -8387,6 +8735,72 @@ def analytics_dashboard_page(
         avg_stars_label = f"{avg_stars_val} ★"
     else:
         avg_stars_label = "Yorum Yok"
+
+    def _render_platform_star_box(
+        plat_key: str,
+        plat_title: str,
+        sd_obj: Dict[str, Any],
+        accent_color: str,
+    ) -> str:
+        ov_str = html.escape(str(sd_obj.get("overall_avg_str") or "Yorum Yok"))
+        ov_cnt = int(sd_obj.get("overall_count", 0) or 0)
+        wr_str = html.escape(str(sd_obj.get("written_avg_str") or "Yorum Yok"))
+        wr_cnt = int(sd_obj.get("written_count", 0) or 0)
+        sil_cnt = int(sd_obj.get("silent_ratings_count", 0) or 0)
+        bars_list = sd_obj.get("bars") or [
+            {"star": st_l, "count": 0, "pct": 0.0} for st_l in (5, 4, 3, 2, 1)
+        ]
+        bars_rows_html = ""
+        for b_it in bars_list:
+            st_lvl = int(b_it.get("star", 5) or 5)
+            st_cnt = int(b_it.get("count", 0) or 0)
+            st_pct = float(b_it.get("pct", 0.0) or 0.0)
+            b_col = "#10B981" if st_lvl >= 4 else ("#F59E0B" if st_lvl == 3 else "#EF4444")
+            bars_rows_html += f"""
+            <div style="display:flex; align-items:center; gap:8px; font-size:11.5px; margin-top:4px; font-variant-numeric:tabular-nums;">
+              <span style="width:28px; font-weight:800; color:var(--text-primary);">{st_lvl} ★</span>
+              <div style="flex:1; height:7px; background:rgba(148,163,184,0.18); border-radius:999px; overflow:hidden;">
+                <div id="starBarFill_{plat_key}_{st_lvl}" style="width:{st_pct}%; height:100%; background:{b_col}; border-radius:999px;"></div>
+              </div>
+              <strong id="starBarCnt_{plat_key}_{st_lvl}" style="min-width:22px; text-align:right; color:var(--text-primary);">{st_cnt}</strong>
+              <span id="starBarPct_{plat_key}_{st_lvl}" style="min-width:38px; text-align:right; color:var(--text-muted); font-size:10.5px;">%{st_pct}</span>
+            </div>
+            """
+        silent_chip = (
+            f'<span class="kpi-micro-chip" id="starSilentChip_{plat_key}" title="Yorum yazmadan yalnızca yıldız veren kullanıcılar">+{sil_cnt} Yorumsuz Oy</span>'
+            if sil_cnt > 0
+            else f'<span class="kpi-micro-chip" id="starSilentChip_{plat_key}" style="display:none;"></span>'
+        )
+        return f"""
+        <div class="step-box" data-platform="{plat_key}" id="starDistBox_{plat_key}" style="border-left: 4px solid {accent_color};">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; flex-wrap:wrap; margin-bottom:6px;">
+            <span style="font-size:11.5px; font-weight:800; color:{accent_color};">{plat_title}</span>
+            <div style="display:flex; align-items:center; gap:5px; flex-wrap:wrap;">
+              <span class="badge" id="starOverallBadge_{plat_key}" style="background:rgba(245,158,11,0.16); color:#D97706; font-size:11px; padding:2px 8px;" title="Mağaza Genel Puanı (Yorumsuz Oylar Dahil)">Mağaza: {ov_str} ({ov_cnt})</span>
+              <span class="badge badge-meta" id="starWrittenBadge_{plat_key}" style="font-size:10.5px; padding:2px 7px;" title="Yazılı Yorum Bırakanların Ortalaması">Yazılı: {wr_str} ({wr_cnt})</span>
+              {silent_chip}
+            </div>
+          </div>
+          <div>
+            {bars_rows_html}
+          </div>
+        </div>
+        """
+
+    star_dist_boxes_html = (
+        _render_platform_star_box("ios", "🍏 iOS App Store", ios_sd, "#059669")
+        + _render_platform_star_box("android", "🤖 Android Google Play", and_sd, "#2563EB")
+    )
+
+    pulse_info = s.get("satisfaction_pulse") or {}
+    pulse_is_active = bool(pulse_info.get("active", False))
+    pulse_status_badge = (
+        f"🟢 Aktif ({html.escape(str(pulse_info.get('target_platform', 'ios')).upper())})"
+        if pulse_is_active
+        else "⚪ Pasif"
+    )
+    pulse_status_bg = "rgba(16,185,129,0.16)" if pulse_is_active else "rgba(148,163,184,0.15)"
+    pulse_status_col = "#059669" if pulse_is_active else "var(--text-muted)"
 
     reviews_html = ""
     for idx_rv, rv in enumerate(reviews_list):
@@ -8430,12 +8844,23 @@ def analytics_dashboard_page(
             </div>
             """
 
+        low_star_pulse_btn = ""
+        if safe_rating <= 3:
+            safe_author_js = html.escape(str(rv.get("author", "Kullanıcı")).replace("'", "").replace('"', ""))
+            safe_title_js = html.escape(str(rv.get("title", "Uyku kaydı")).replace("'", "").replace('"', ""))
+            low_star_pulse_btn = f"""
+            <button type="button" class="collapse-btn" onclick="prefillAndTriggerPulse('{rv_plat}', '{safe_author_js}', '{html.escape(rev_id)}', '{safe_title_js}')" style="font-size:11px; padding:4px 10px; border-color:rgba(244,162,97,0.45); color:#F4A261;" title="Bu sorunu yaşayan kullanıcılara uygulama içi memnuniyet & çözüm bildirimi gönder">🔔 Çözüm Yoklaması Tetikle</button>
+            """
+
         reply_action_html = ""
         if rev_id:
             btn_lbl = "✏️ Yanıtı Güncelle (API)" if resp_body else "💬 Mağaza Yorumunu Yanıtla (API)"
             reply_action_html = f"""
             <div style="margin-top:8px;">
-              <button type="button" class="collapse-btn" onclick="toggleReviewReplyDrawer('{dom_key}')" id="btnToggleReply_{dom_key}" style="font-size:11px; padding:4px 10px;">{btn_lbl}</button>
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <button type="button" class="collapse-btn" onclick="toggleReviewReplyDrawer('{dom_key}')" id="btnToggleReply_{dom_key}" style="font-size:11px; padding:4px 10px;">{btn_lbl}</button>
+                {low_star_pulse_btn}
+              </div>
               <div id="replyDrawer_{dom_key}" style="display:none; margin-top:8px;">
                 <textarea id="replyInput_{dom_key}" rows="3" placeholder="Resmi mağaza geliştirici yanıtınızı yazın..." style="width:100%; border-radius:10px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:8px 10px; font-size:12px; font-family:inherit; resize:vertical;">{html.escape(resp_body)}</textarea>
                 <div style="display:flex; justify-content:flex-end; align-items:center; gap:8px; margin-top:6px;">
@@ -11383,8 +11808,47 @@ def analytics_dashboard_page(
             <div class="bento-card">
               <div class="section-head">
                 <span>⭐ Mağaza Yorumları ({reviews_total_cnt})</span>
-                <span class="badge" style="background:rgba(217,119,6,0.14); color:#D97706;">{avg_stars_label}</span>
+                <span class="badge" id="reviewsTopAvgBadge" style="background:rgba(217,119,6,0.14); color:#D97706;">{avg_stars_label}</span>
               </div>
+
+              <!-- DİNAMİK 5★..1★ YILDIZ ÇUBUĞU DAĞILIMI (🍏 iOS & 🤖 Android AYRI AYRI) -->
+              <div class="steps-grid" id="reviewsStarDistributionGrid" style="margin-bottom:12px;">
+                {star_dist_boxes_html}
+              </div>
+
+              <!-- DÜŞÜK YILDIZ KURTARMA: UYGULAMA İÇİ + YEREL BİLDİRİM MEMNUNİYET & ÇÖZÜM YOKLAMASI -->
+              <div class="step-box" id="satisfactionPulseCard" style="margin-bottom:12px; border-left:4px solid #F4A261;">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <span style="font-size:11.5px; font-weight:800; color:#F4A261;">🔔 Çözüm &amp; Memnuniyet Yoklaması</span>
+                    <span class="badge" id="pulseStatusBadge" style="background:{pulse_status_bg}; color:{pulse_status_col}; font-size:10.5px; padding:2px 8px;">{pulse_status_badge}</span>
+                  </div>
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <span class="kpi-micro-chip" title="Yoklamayı Gören Cihaz">👁️ <strong id="pulseShownCnt">{int(pulse_info.get('shown_count', 0) or 0)}</strong></span>
+                    <span class="kpi-micro-chip" style="color:#059669;" title="Sorun Çözüldü / Memnun (Mağaza Puanına Yönlendirildi)">😍 <strong id="pulseSatisfiedCnt">{int(pulse_info.get('satisfied_count', 0) or 0)}</strong></span>
+                    <span class="kpi-micro-chip" style="color:#DC2626;" title="Sorun Devam Ediyor (Kokpite Geri Bildirim Düştü)">💬 <strong id="pulseIssueCnt">{int(pulse_info.get('issue_persists_count', 0) or 0)}</strong></span>
+                    <button type="button" class="collapse-btn" onclick="toggleDetailWrap('pulseConfigDrawer', 'btnTogglePulseDrawer')" id="btnTogglePulseDrawer" style="font-size:11px; padding:3px 9px;">⚙️ Ayarla</button>
+                  </div>
+                </div>
+                <div id="pulseConfigDrawer" style="display:none; margin-top:10px; padding-top:8px; border-top:1px dashed var(--border-subtle);">
+                  <div style="display:grid; grid-template-columns:110px 1fr; gap:6px; margin-bottom:6px;">
+                    <select id="pulseTargetPlat" style="border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:6px 8px; font-size:11.5px;">
+                      <option value="ios" {'selected' if pulse_info.get('target_platform', 'ios') == 'ios' else ''}>🍏 iOS</option>
+                      <option value="android" {'selected' if pulse_info.get('target_platform') == 'android' else ''}>🤖 Android</option>
+                      <option value="all" {'selected' if pulse_info.get('target_platform') == 'all' else ''}>🌐 Tümü</option>
+                    </select>
+                    <input type="text" id="pulseTitleInput" value="{html.escape(str(pulse_info.get('title_tr') or 'Uyku ve uyanma saatleri kaydı iyileştirildi'))}" placeholder="Başlık (Örn: Uyku saatleri kaydı iyileştirildi)" style="border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:6px 10px; font-size:11.5px;" />
+                  </div>
+                  <input type="text" id="pulseQuestionInput" value="{html.escape(str(pulse_info.get('question_tr') or 'Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?'))}" placeholder="Kullanıcıya sorulacak soru..." style="width:100%; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:6px 10px; font-size:11.5px; margin-bottom:8px;" />
+                  <input type="hidden" id="pulseRefAuthor" value="{html.escape(str(pulse_info.get('reference_author') or 'Rabia Özcan Kahya'))}" />
+                  <input type="hidden" id="pulseRefReviewId" value="{html.escape(str(pulse_info.get('reference_review_id') or ''))}" />
+                  <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap;">
+                    <button type="button" class="btn" onclick="submitSatisfactionPulseConfig(false)" id="btnStopPulse" style="padding:5px 10px; font-size:11px;">⏹️ Durdur</button>
+                    <button type="button" class="subcat-pill active" onclick="submitSatisfactionPulseConfig(true)" id="btnStartPulse" style="padding:5px 12px; font-size:11px;">🚀 Bildirim &amp; Yoklamayı Başlat</button>
+                  </div>
+                </div>
+              </div>
+
               <div class="reviews-grid">
                 {reviews_html}
               </div>
@@ -11678,6 +12142,107 @@ def analytics_dashboard_page(
             if (sendBtn) {{
               sendBtn.disabled = false;
               sendBtn.textContent = origTxt;
+            }}
+          }}
+        }}
+
+        function prefillAndTriggerPulse(plat, authorName, revId, revTitle) {{
+          var drawer = document.getElementById('pulseConfigDrawer');
+          var platSel = document.getElementById('pulseTargetPlat');
+          var titleIn = document.getElementById('pulseTitleInput');
+          var qIn = document.getElementById('pulseQuestionInput');
+          var authIn = document.getElementById('pulseRefAuthor');
+          var revIn = document.getElementById('pulseRefReviewId');
+          if (drawer) drawer.style.display = 'block';
+          if (platSel) platSel.value = (plat === 'android' ? 'android' : 'ios');
+          if (authIn) authIn.value = authorName || '';
+          if (revIn) revIn.value = revId || '';
+          if (titleIn) titleIn.value = 'Uyku ve uyanma saatleri kaydı iyileştirildi';
+          if (qIn) qIn.value = 'Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?';
+          var card = document.getElementById('satisfactionPulseCard');
+          if (card && card.scrollIntoView) {{
+            try {{ card.scrollIntoView({{ behavior: 'smooth', block: 'center' }}); }} catch (_se) {{ card.scrollIntoView(); }}
+          }}
+          submitSatisfactionPulseConfig(true);
+        }}
+
+        async function submitSatisfactionPulseConfig(isActive) {{
+          var platSel = document.getElementById('pulseTargetPlat');
+          var titleIn = document.getElementById('pulseTitleInput');
+          var qIn = document.getElementById('pulseQuestionInput');
+          var authIn = document.getElementById('pulseRefAuthor');
+          var revIn = document.getElementById('pulseRefReviewId');
+          var startBtn = document.getElementById('btnStartPulse');
+          if (startBtn) startBtn.disabled = true;
+          try {{
+            var res = await fetch('/api/v1/analytics/satisfaction-pulse', {{
+              method: 'POST',
+              headers: {{ 'Content-Type': 'application/json', 'Accept': 'application/json' }},
+              credentials: 'same-origin',
+              body: JSON.stringify({{
+                active: Boolean(isActive),
+                target_platform: platSel ? platSel.value : 'ios',
+                topic_key: 'sleep_save_fix',
+                title_tr: titleIn ? titleIn.value : 'Uyku ve uyanma saatleri kaydı iyileştirildi',
+                question_tr: qIn ? qIn.value : 'Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?',
+                reference_author: authIn ? authIn.value : '',
+                reference_review_id: revIn ? revIn.value : '',
+                reset_counters: false
+              }})
+            }});
+            var data = await res.json();
+            if (res.ok && data.satisfaction_pulse) {{
+              updateSatisfactionPulseDom(data.satisfaction_pulse);
+            }}
+          }} catch (_pe) {{
+          }} finally {{
+            if (startBtn) startBtn.disabled = false;
+          }}
+        }}
+
+        function updateSatisfactionPulseDom(sp) {{
+          if (!sp) return;
+          var stBadge = document.getElementById('pulseStatusBadge');
+          var shCnt = document.getElementById('pulseShownCnt');
+          var satCnt = document.getElementById('pulseSatisfiedCnt');
+          var issCnt = document.getElementById('pulseIssueCnt');
+          var isAct = Boolean(sp.active);
+          if (stBadge) {{
+            stBadge.textContent = isAct ? ('🟢 Aktif (' + String(sp.target_platform || 'ios').toUpperCase() + ')') : '⚪ Pasif';
+            stBadge.style.background = isAct ? 'rgba(16,185,129,0.16)' : 'rgba(148,163,184,0.15)';
+            stBadge.style.color = isAct ? '#059669' : 'var(--text-muted)';
+          }}
+          if (shCnt) shCnt.textContent = String(Number(sp.shown_count || 0));
+          if (satCnt) satCnt.textContent = String(Number(sp.satisfied_count || 0));
+          if (issCnt) issCnt.textContent = String(Number(sp.issue_persists_count || 0));
+        }}
+
+        function updatePlatformStarDistDom(platKey, sd) {{
+          if (!sd) return;
+          var ovBadge = document.getElementById('starOverallBadge_' + platKey);
+          var wrBadge = document.getElementById('starWrittenBadge_' + platKey);
+          var silChip = document.getElementById('starSilentChip_' + platKey);
+          if (ovBadge) ovBadge.textContent = 'Mağaza: ' + (sd.overall_avg_str || 'Yorum Yok') + ' (' + Number(sd.overall_count || 0) + ')';
+          if (wrBadge) wrBadge.textContent = 'Yazılı: ' + (sd.written_avg_str || 'Yorum Yok') + ' (' + Number(sd.written_count || 0) + ')';
+          var silCnt = Number(sd.silent_ratings_count || 0);
+          if (silChip) {{
+            if (silCnt > 0) {{
+              silChip.textContent = '+' + silCnt + ' Yorumsuz Oy';
+              silChip.style.display = '';
+            }} else {{
+              silChip.style.display = 'none';
+            }}
+          }}
+          if (Array.isArray(sd.bars)) {{
+            for (var bi = 0; bi < sd.bars.length; bi++) {{
+              var b = sd.bars[bi];
+              var sLvl = Number(b.star || 5);
+              var fillEl = document.getElementById('starBarFill_' + platKey + '_' + sLvl);
+              var cntEl = document.getElementById('starBarCnt_' + platKey + '_' + sLvl);
+              var pctEl = document.getElementById('starBarPct_' + platKey + '_' + sLvl);
+              if (fillEl) fillEl.style.width = Number(b.pct || 0) + '%';
+              if (cntEl) cntEl.textContent = String(Number(b.count || 0));
+              if (pctEl) pctEl.textContent = '%' + Number(b.pct || 0);
             }}
           }}
         }}
@@ -12057,6 +12622,22 @@ def analytics_dashboard_page(
             }}
           }}
 
+          if (p && p.star_distribution) {{
+            var topAvg = document.getElementById('reviewsTopAvgBadge');
+            if (topAvg) {{
+              var sdP = p.star_distribution;
+              topAvg.textContent = (sdP.overall_count > 0)
+                ? (sdP.overall_avg_str + ' (' + sdP.overall_count + ' Oy • ' + sdP.written_count + ' Yorum)')
+                : 'Yorum Yok';
+            }}
+          }}
+          if (PLATFORM_SPLIT && PLATFORM_SPLIT.ios && PLATFORM_SPLIT.ios.star_distribution) {{
+            updatePlatformStarDistDom('ios', PLATFORM_SPLIT.ios.star_distribution);
+          }}
+          if (PLATFORM_SPLIT && PLATFORM_SPLIT.android && PLATFORM_SPLIT.android.star_distribution) {{
+            updatePlatformStarDistDom('android', PLATFORM_SPLIT.android.star_distribution);
+          }}
+
           var platNodes = document.querySelectorAll('[data-platform]');
           for (var m = 0; m < platNodes.length; m++) {{
             var node = platNodes[m];
@@ -12175,6 +12756,9 @@ def analytics_dashboard_page(
               if (data.platform_split) {{
                 PLATFORM_SPLIT = data.platform_split;
                 switchPlatform(currentPlatform, true);
+              }}
+              if (data.satisfaction_pulse) {{
+                updateSatisfactionPulseDom(data.satisfaction_pulse);
               }}
               if (data.zero_static_data_audit) {{
                 var zBadge = document.getElementById('zeroStaticAuditBadge');

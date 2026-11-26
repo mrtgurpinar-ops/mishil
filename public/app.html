@@ -24635,6 +24635,92 @@
         if (r && r.ok) { localStorage.setItem('mishil_first_open_v1', '1'); localStorage.setItem(_todayActiveKey, '1'); }
         if (typeof window.syncBabyProfileToBackend === 'function') window.syncBabyProfileToBackend(false);
       }).catch(function() {});
+
+      // Kokpitten Tetiklenen Memnuniyet & Çözüm Yoklaması (Satisfaction Pulse — v4.57.7)
+      setTimeout(function checkActiveSatisfactionPulse() {
+        try {
+          if (localStorage.getItem('mishil_onboarding_completed') !== 'true') return;
+          var _onbEl = document.getElementById('screen-onboarding');
+          if (_onbEl && _onbEl.classList.contains('active')) return;
+          var _duid = localStorage.getItem('mishil_device_uid') || devUid || 'msl_anon';
+          var _ua = (navigator.userAgent || '').toLowerCase();
+          var _os = _ua.indexOf('android') > -1 ? 'android' : 'ios';
+          fetch(apiBase + '/api/v1/analytics/satisfaction-pulse/active?platform=' + encodeURIComponent(_os) + '&device_uid=' + encodeURIComponent(_duid))
+            .then(function(rp) { return rp && rp.ok ? rp.json() : null; })
+            .then(function(pData) {
+              if (!pData || !pData.active || !pData.pulse_id) return;
+              var _seenKey = 'mishil_pulse_done_' + pData.pulse_id;
+              if (localStorage.getItem(_seenKey) === '1') return;
+              fetch(apiBase + '/api/v1/analytics/satisfaction-pulse/respond', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pulse_id: pData.pulse_id, device_uid: _duid, outcome: 'shown', platform: _os })
+              }).catch(function() {});
+
+              var existingCard = document.getElementById('mishil-satisfaction-pulse-banner');
+              if (existingCard) existingCard.remove();
+              var card = document.createElement('div');
+              card.id = 'mishil-satisfaction-pulse-banner';
+              card.style.cssText = 'position:fixed; left:14px; right:14px; bottom:94px; z-index:9998; background:rgba(24,20,36,0.97); border:1.5px solid rgba(244,162,97,0.55); border-radius:22px; padding:14px 16px; box-shadow:0 16px 38px rgba(0,0,0,0.65); color:#FAF5EE; font-family:inherit; backdrop-filter:blur(16px);';
+              var titleTxt = pData.title_tr || trEnDe('Uyku saatleri kaydı iyileştirildi', 'Sleep time logging improved', 'Schlafzeit-Speicherung verbessert');
+              var qTxt = pData.question_tr || trEnDe('Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?', 'Are your sleep logs working smoothly after our latest update?', 'Funktionieren Ihre Schlafeinträge nach dem Update reibungslos?');
+              card.innerHTML =
+                '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;">' +
+                  '<strong style="font-size:13px; color:#F4A261;">🔔 ' + escapeHtml(titleTxt) + '</strong>' +
+                  '<button type="button" id="btnPulseCloseX" style="background:none; border:none; color:#9E94B0; font-size:16px; cursor:pointer; padding:2px 6px;">✕</button>' +
+                '</div>' +
+                '<div style="font-size:12.5px; color:#E2DAE8; line-height:1.45; margin-bottom:10px;">' + escapeHtml(qTxt) + '</div>' +
+                '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">' +
+                  '<button type="button" id="btnPulseSatisfied" style="border:none; border-radius:14px; padding:9px 10px; font-size:12px; font-weight:800; background:linear-gradient(135deg,#74C69D,#40916C); color:#0E1712; cursor:pointer;">' +
+                    escapeHtml(trEnDe('😍 Evet, Düzeldi', '😍 Yes, Fixed!', '😍 Ja, super!')) +
+                  '</button>' +
+                  '<button type="button" id="btnPulseIssue" style="border:1px solid rgba(244,162,97,0.45); border-radius:14px; padding:9px 10px; font-size:12px; font-weight:700; background:rgba(255,255,255,0.06); color:#FAF5EE; cursor:pointer;">' +
+                    escapeHtml(trEnDe('💬 Sorun Var', '💬 Still an Issue', '💬 Noch ein Problem')) +
+                  '</button>' +
+                '</div>';
+              document.body.appendChild(card);
+
+              var closeBtn = document.getElementById('btnPulseCloseX');
+              if (closeBtn) {
+                closeBtn.onclick = function() {
+                  localStorage.setItem(_seenKey, '1');
+                  card.remove();
+                };
+              }
+              var satBtn = document.getElementById('btnPulseSatisfied');
+              if (satBtn) {
+                satBtn.onclick = function() {
+                  localStorage.setItem(_seenKey, '1');
+                  card.remove();
+                  fetch(apiBase + '/api/v1/analytics/satisfaction-pulse/respond', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pulse_id: pData.pulse_id, device_uid: _duid, outcome: 'satisfied', platform: _os })
+                  }).catch(function() {});
+                  if (typeof submitStoreRating === 'function') {
+                    submitStoreRating();
+                  }
+                };
+              }
+              var issBtn = document.getElementById('btnPulseIssue');
+              if (issBtn) {
+                issBtn.onclick = function() {
+                  localStorage.setItem(_seenKey, '1');
+                  card.remove();
+                  fetch(apiBase + '/api/v1/analytics/satisfaction-pulse/respond', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ pulse_id: pData.pulse_id, device_uid: _duid, outcome: 'issue_persists', platform: _os })
+                  }).catch(function() {});
+                  if (typeof openMotherFeedbackSheet === 'function') {
+                    openMotherFeedbackSheet();
+                  }
+                };
+              }
+            })
+            .catch(function() {});
+        } catch (_pe) {}
+      }, 2800);
     } catch (e) {}
   })();
 </script>

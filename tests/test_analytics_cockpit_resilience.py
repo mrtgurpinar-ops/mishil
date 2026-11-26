@@ -1274,6 +1274,108 @@ def test_nine_step_onboarding_funnel_and_15pct_sbp_revenue_reconciliation(client
     assert "1/2 Oto-Yenileme" in dash_res.text
 
 
+def test_dynamic_star_distribution_and_satisfaction_pulse_flow(client, db_session):
+    """
+    v4.57.7:
+    1) Mağaza genel puanı (apple_overall_rating: 4.6, apple_overall_ratings_count: 10 -> +4 yorumsuz oy) ile
+       yazılı yorumların (5★: 5 kişi, 1★: 1 kişi -> yazılı ortalama 4.3 ★) iOS ve Android için ayrı ayrı
+       5★..1★ yıldız çubuğu ve adetlerinin dinamik hesaplanmasını doğrular.
+    2) Rabia Özcan Kahya (1★) ve benzeri sorun yaşayan kullanıcılara kokpit üzerinden tek tıkla
+       Memnuniyet & Çözüm Yoklaması (POST /satisfaction-pulse, GET /satisfaction-pulse/active,
+       POST /satisfaction-pulse/respond) akışını doğrular.
+    """
+    from app.api.v1.endpoints import analytics as analytics_ep
+    from app.db.models import Feedback
+
+    with analytics_ep._BASELINE_LOCK:
+        analytics_ep.OFFICIAL_STORE_BASELINE["apple_overall_rating"] = 4.6
+        analytics_ep.OFFICIAL_STORE_BASELINE["apple_overall_ratings_count"] = 10
+        analytics_ep.OFFICIAL_STORE_BASELINE["store_reviews"] = [
+            {"review_id": "ios_r1", "store": "App Store", "platform": "ios", "badge": "🍏 iOS", "rating": 5, "title": "Harika", "body": "Çok iyi", "author": "Anne 1", "date": "25.11.2026"},
+            {"review_id": "ios_r2", "store": "App Store", "platform": "ios", "badge": "🍏 iOS", "rating": 5, "title": "Süper", "body": "Çok memnunuz", "author": "Anne 2", "date": "24.11.2026"},
+            {"review_id": "ios_r3", "store": "App Store", "platform": "ios", "badge": "🍏 iOS", "rating": 5, "title": "Kurtarıcı", "body": "Gece uyuduk", "author": "Anne 3", "date": "23.11.2026"},
+            {"review_id": "ios_r4", "store": "App Store", "platform": "ios", "badge": "🍏 iOS", "rating": 5, "title": "Mükemmel", "body": "5 yıldız", "author": "Anne 4", "date": "22.11.2026"},
+            {"review_id": "ios_r5", "store": "App Store", "platform": "ios", "badge": "🍏 iOS", "rating": 5, "title": "Başarılı", "body": "Tavsiye ederim", "author": "Anne 5", "date": "22.11.2026"},
+            {"review_id": "ios_rabia", "store": "App Store", "platform": "ios", "badge": "🍏 iOS", "rating": 1, "title": "İki günde bir bozuluyor", "body": "Uyku saatlerini kaydetmiyor", "author": "Rabia Özcan Kahya", "date": "21.11.2026"},
+        ]
+
+    analytics_ep.invalidate_analytics_summary_cache(mark_reconcile=False)
+    s_res = client.get("/api/v1/analytics/summary", params={"pin": "MISIL-REV-9842"})
+    assert s_res.status_code == 200
+    s_data = s_res.json()
+
+    sd_ios = s_data["reviews_star_distribution"]["ios"]
+    sd_and = s_data["reviews_star_distribution"]["android"]
+    assert sd_ios["written_count"] == 6
+    assert sd_ios["written_avg"] == 4.3
+    assert sd_ios["overall_count"] == 10
+    assert sd_ios["overall_avg"] == 4.6
+    assert sd_ios["silent_ratings_count"] == 4
+    assert sd_ios["counts"]["5"] == 5
+    assert sd_ios["counts"]["4"] == 0
+    assert sd_ios["counts"]["1"] == 1
+    assert sd_and["written_count"] == 0
+
+    # Kokpitten Rabia Hanım'ın yorumu için Çözüm Yoklaması başlat
+    cfg_res = client.post(
+        "/api/v1/analytics/satisfaction-pulse",
+        params={"pin": "MISIL-REV-9842"},
+        json={
+            "active": True,
+            "target_platform": "ios",
+            "topic_key": "sleep_save_fix",
+            "title_tr": "Uyku ve uyanma saatleri kaydı iyileştirildi",
+            "question_tr": "Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?",
+            "reference_author": "Rabia Özcan Kahya",
+            "reference_review_id": "ios_rabia",
+            "reset_counters": True,
+        },
+    )
+    assert cfg_res.status_code == 200
+    assert cfg_res.json()["satisfaction_pulse"]["active"] is True
+
+    # iOS cihaz aktif yoklamayı görmeli, Android cihaz görmemeli (target_platform=ios)
+    act_ios = client.get("/api/v1/analytics/satisfaction-pulse/active", params={"platform": "ios", "device_uid": "dev_rabia_1"})
+    act_and = client.get("/api/v1/analytics/satisfaction-pulse/active", params={"platform": "android", "device_uid": "dev_and_1"})
+    assert act_ios.status_code == 200
+    assert act_ios.json()["active"] is True
+    assert act_and.json()["active"] is False
+
+    # 1. Cihaz 'satisfied' yanıtı verir -> mağazaya yönlendirilir
+    r1 = client.post(
+        "/api/v1/analytics/satisfaction-pulse/respond",
+        json={"pulse_id": act_ios.json()["pulse_id"], "device_uid": "dev_rabia_1", "outcome": "satisfied", "platform": "ios"},
+    )
+    assert r1.status_code == 200
+    assert r1.json()["satisfied_count"] == 1
+
+    # Yanıt veren cihaz tekrar yoklama görmemeli
+    act_ios_again = client.get("/api/v1/analytics/satisfaction-pulse/active", params={"platform": "ios", "device_uid": "dev_rabia_1"})
+    assert act_ios_again.json()["active"] is False
+
+    # 2. Cihaz 'issue_persists' yanıtı verir -> Feedback tablosuna kayıt düşmeli
+    r2 = client.post(
+        "/api/v1/analytics/satisfaction-pulse/respond",
+        json={"pulse_id": act_ios.json()["pulse_id"], "device_uid": "dev_ios_2", "outcome": "issue_persists", "platform": "ios", "note": "Saat seçici hâlâ sıfırlanıyor"},
+    )
+    assert r2.status_code == 200
+    assert r2.json()["issue_persists_count"] == 1
+    fb_row = db_session.query(Feedback).filter(Feedback.contact_info == "dev_ios_2").first()
+    assert fb_row is not None
+    assert "Çözüm Yoklaması" in fb_row.message
+
+    dash_html = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"}).text
+    assert 'id="reviewsStarDistributionGrid"' in dash_html
+    assert 'id="starDistBox_ios"' in dash_html
+    assert 'id="starDistBox_android"' in dash_html
+    assert 'id="satisfactionPulseCard"' in dash_html
+    assert "Mağaza: ★ 4.6 (10)" in dash_html
+    assert "Yazılı: ★ 4.3 (6)" in dash_html
+    assert "+4 Yorumsuz Oy" in dash_html
+    assert "🔔 Çözüm Yoklaması Tetikle" in dash_html
+
+
+
 
 
 
