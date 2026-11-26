@@ -1,6 +1,11 @@
-# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.56.12 Railway Canlıda • Apple Build 72 İncelemede • Google Play 3 Dil Ebeveyn Asistanı Canlıda)
+# Mışıl Baby — Kusursuz Yayın Hazırlık Planı (v4.57.3 / Build 74 Railway Canlıda • Google Play Build 74 Production COMPLETED • Apple App Store v4.57.3 Build 74 WAITING_FOR_REVIEW)
 
-> **🔔📌 `Build 73` Native Derleme Kuyruğu Hatırlatıcısı (Apple `Build 72` Onayı Sonrası İlk Native Build'de Çıkılacaklar — 2026-11-22):**
+> **🚀📦 `v4.57.3` (`Build 74`) Çift Platform Mağaza & Railway Canlı Teslimat Özeti (2026-11-26):**
+> - **Railway Canlı WebView (`v4.57.3`):** 5 Aşamalı Satış Hunisi Optimizasyonu, Tek Odaklı Karşılama Ekranı (`#quiz-step-0` `#btn-welcome-start-plan`), Adım 1 Tek Seferlik Zorunlu Bebek Adı (`#onb-baby-name-input`), Kaydırmasız Tek Ekran (`~460px`) Birleşik Rapor Kartı (`#quiz-step-8` `#report-unified-summary-card` + `#btn-report-unlock-plan`) ve Sıfır-Cringe Konsept D Paywall (`İlk ay denemeniz için ₺49,99 • Sonrasında ayda bir kahve fiyatına (₺149,99/ay)`) canlıda.
+> - **Google Play Console (`Build 74` / `versionCode: 74`):** EAS Build `b0592a0a-c245-43a9-a893-8c4cb73b9d32` ➔ EAS Submit `372b49c9-4612-45c3-882f-4e2abcb83c54` ➔ `production` kanalı `status: completed` (`Committed Edit ID: 14994238185154928324`, `tr-TR / en-US / de-DE` sürüm notları ve tüm telefon/tablet/featureGraphic görsel yuvaları eksiksiz).
+> - **Apple App Store Connect (`v4.57.3` / `Build 74`):** EAS Build `2316f0f9-817f-4ea0-89bb-a421ddfd3a61` ➔ EAS Submit `57f5388d-ee96-4568-838f-72b9ac780abb` ➔ Version ID `6c74420c-8298-475e-9728-3965247b90a1`, ASC Build ID `04b378ee-4532-4e91-8fcd-ee6ce3de022e` (`VALID`), Review Submission ID `fb1b3965-9321-46b5-8cc4-e20e1af4de74` (**`WAITING_FOR_REVIEW`**).
+
+> **🔔📌 `Build 73` & `Build 74` Native Derleme Kuyruğu Hatırlatıcısı (Teslim Edildi — 2026-11-26):**
 > - **10'lu Yaşa/Güne/Duruma Duyarlı Akıllı Bildirim Rotasyon Motoru (`mobile/features/notifications/careNotificationEngine.ts`, `mobile/components/MishilUnifiedWebView.tsx`, `mobile/features/webview/offlineHtml.generated.ts`):**
 >   - `v4.56.12` (`afb190e`) ile git deposuna (`origin/main`) ve WebView (`app.html`) ayarlarına eklendi.
 >   - Native TypeScript (`expo-notifications` OS takvim planlayıcısı) katmanında çalıştığı için, Apple `v4.56.0 (Build 72)` incelemesi tamamlandıktan sonra alınacak **`Build 73` (iOS + Android)** native EAS derlemesiyle telefonların işletim sistemi bildirim kuyruğuna (`ROUTINE_SLEEP_VARIANTS` 10'lu rotasyon + `isLiveSleepingToday` + `completedVaccineMonths` + `routineFrequency`) gömülecektir.
