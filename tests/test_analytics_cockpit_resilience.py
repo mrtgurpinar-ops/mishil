@@ -1266,6 +1266,9 @@ def test_nine_step_onboarding_funnel_and_15pct_sbp_revenue_reconciliation(client
     assert "9 Adımlı Kullanıcı Onboarding" in dash_res.text
     assert "Her İki Mağaza 5.0 ★ Tam Puan" not in dash_res.text
     assert "★ 5.0 (" not in dash_res.text
+    assert "body:not(.show-verbose-desc) .step-sub:not(.desc-expanded)" in dash_res.text
+    assert "İlk Açılış (first_open):" not in dash_res.text
+    assert "Paywall Gösterimi (paywall_viewed):" not in dash_res.text
     assert dash_res.text.index('id="onboardingNineStepFunnelCard"') < dash_res.text.index("📱 UYGULAMA OTURUMLARI")
     assert "+109.04 ₺" in dash_res.text
     assert "1/2 Oto-Yenileme" in dash_res.text

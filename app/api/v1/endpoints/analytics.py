@@ -8605,7 +8605,7 @@ def analytics_dashboard_page(
         am_dl = int(am.get("downloads", 0) or 0)
         am_bar_w = max(4, round((am_dl / max_aso_dl) * 100)) if am_dl > 0 else 0
         cvr_cell = (
-            f"<strong style='color:#059669;'>%{am['cvr_pct']}</strong> <span style='font-size:11px; color:var(--text-muted);'>({html.escape(str(am['cvr_basis']))})</span>"
+            f"<strong style='color:#059669;'>%{am['cvr_pct']}</strong><span class='sr-only'> ({html.escape(str(am['cvr_basis']))})</span>"
             if am["cvr_pct"] is not None
             else f"<span style='color:var(--text-muted);'>{html.escape(str(am['cvr_basis']))}</span>"
         )
@@ -8757,11 +8757,11 @@ def analytics_dashboard_page(
     onb_big_drop = onb_f.get("biggest_dropoff_step")
     if onb_big_drop and int(onb_big_drop.get("dropoff_count", 0) or 0) > 0:
         onb_drop_badge_str = (
-            f"⚠️ En Yüksek Kayıp: {onb_big_drop.get('title')} "
-            f"(-{onb_big_drop.get('dropoff_count')} Kişi / -%{onb_big_drop.get('dropoff_pct')})"
+            f"⚠️ {onb_big_drop.get('title')} "
+            f"(-{onb_big_drop.get('dropoff_count')} / -%{onb_big_drop.get('dropoff_pct')})"
         )
     else:
-        onb_drop_badge_str = "🟢 Adım Kaybı Yok" if onb_total_devs > 0 else "⏳ Telemetri Bekleniyor (Sıfır Statik Veri)"
+        onb_drop_badge_str = "🟢 Kayıp Yok" if onb_total_devs > 0 else "⏳ Bekleniyor"
 
     onb_rows_html = ""
     for st_item in onb_steps_list:
@@ -8779,9 +8779,9 @@ def analytics_dashboard_page(
 
         if st_num == 0:
             ret_cell = (
-                "<span class='badge' style='background:rgba(37,99,235,0.12); color:#2563EB;'>🏁 Başlangıç (%100)</span>"
+                "<span class='badge' style='background:rgba(37,99,235,0.12); color:#2563EB;'>🏁 %100</span>"
                 if st_uniq > 0
-                else "<span style='color:var(--text-muted); font-size:12px;'>Veri Yok</span>"
+                else "<span style='color:var(--text-muted); font-size:12px;'>—</span>"
             )
             drop_cell = "<span style='color:var(--text-muted); font-size:12px;'>—</span>"
         else:
@@ -8789,23 +8789,23 @@ def analytics_dashboard_page(
                 ret_color = "#059669" if st_ret >= 80.0 else ("#D97706" if st_ret >= 50.0 else "#DC2626")
                 ret_cell = f"<strong style='color:{ret_color};'>%{st_ret}</strong>"
             else:
-                ret_cell = "<span style='color:var(--text-muted); font-size:12px;'>Veri Yok</span>"
+                ret_cell = "<span style='color:var(--text-muted); font-size:12px;'>—</span>"
 
             if st_drop_pct is not None and st_drop_cnt > 0:
-                drop_cell = f"<span style='color:#DC2626; font-weight:700;'>-{st_drop_cnt} Kişi (-%{st_drop_pct})</span>"
+                drop_cell = f"<span style='color:#DC2626; font-weight:700;'>-{st_drop_cnt} (-%{st_drop_pct})</span>"
             elif st_drop_pct is not None:
-                drop_cell = "<span style='color:#059669; font-weight:700;'>0 Kayıp (%0)</span>"
+                drop_cell = "<span style='color:#059669; font-weight:700;'>0</span>"
             else:
-                drop_cell = "<span style='color:var(--text-muted); font-size:12px;'>Veri Yok</span>"
+                drop_cell = "<span style='color:var(--text-muted); font-size:12px;'>—</span>"
 
         bar_w = max(0.0, min(100.0, float(st_cum or 0.0)))
-        cum_lbl = f"%{st_cum}" if st_cum is not None else "0% (Veri Yok)"
+        cum_lbl = f"%{st_cum}" if st_cum is not None else "—"
         bar_color = "#7C3AED" if st_num == 9 else ("#059669" if bar_w >= 65.0 else ("#2563EB" if bar_w >= 35.0 else "#D97706"))
 
         onb_rows_html += f"""
         <tr>
-          <td style="font-weight:800; color:var(--text-primary); white-space:nowrap;">{st_title}<div style="font-size:11px; color:var(--text-muted); font-weight:500;">{st_sub}</div></td>
-          <td style="font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums;">{st_uniq} Cihaz <span style="font-size:11px; color:var(--text-muted); font-weight:500;">({st_raw} sinyal)</span></td>
+          <td style="font-weight:800; color:var(--text-primary); white-space:nowrap;">{st_title}<span class="sr-only"> {st_sub}</span></td>
+          <td style="font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums;">{st_uniq}<span class="sr-only"> Cihaz ({st_raw} sinyal)</span></td>
           <td style="font-size:12px; white-space:nowrap;">🍏 <strong>{st_ios_u}</strong> • 🤖 <strong>{st_and_u}</strong></td>
           <td style="font-variant-numeric:tabular-nums;">{ret_cell}</td>
           <td style="font-variant-numeric:tabular-nums;">{drop_cell}</td>
@@ -8844,27 +8844,28 @@ def analytics_dashboard_page(
 
         if c_paid > 0:
             paid_cell = (
-                f"<span class='badge' style='background:rgba(16,185,129,0.15); color:#059669;'>💳 {c_paid} Ücretli Abone</span> "
-                f"<span style='font-size:11.5px; color:var(--text-secondary); font-weight:600; margin-left:4px;'>({c_plans_lbl})</span>"
+                f"<span class='badge' style='background:rgba(16,185,129,0.15); color:#059669;'>💳 {c_paid}</span>"
+                f"<span class='sr-only'> Ücretli Abone ({c_plans_lbl})</span>"
             )
             rev_cell = (
-                f"<strong style='color:#059669;'>{c_gross:.2f} ₺</strong> Brüt / "
-                f"<strong style='color:#059669;'>{c_net:.2f} ₺</strong> Net "
-                f"<span style='font-size:11.5px; color:var(--text-muted);'>(~${c_gross_usd:.2f} Sales / ${c_net_usd:.2f} Proceeds • %{c_share})</span>"
+                f"<strong style='color:#059669;'>{c_gross:.2f} ₺</strong> / "
+                f"<strong style='color:#059669;'>{c_net:.2f} ₺</strong> "
+                f"<span style='font-size:11.5px; color:var(--text-muted);'>(~${c_net_usd:.2f} • %{c_share})</span>"
+                f"<span class='sr-only'> Brüt / Net (~${c_gross_usd:.2f} Sales / ${c_net_usd:.2f} Proceeds)</span>"
             )
         else:
-            paid_cell = "<span style='color:var(--text-muted); font-size:12px;'>0 Ücretli Alım</span>"
-            rev_cell = "<span style='color:var(--text-muted);'>0.00 ₺ ($0.00)</span>"
+            paid_cell = "<span style='color:var(--text-muted); font-size:12px;'>0</span>"
+            rev_cell = "<span style='color:var(--text-muted);'>0.00 ₺<span class='sr-only'> ($0.00)</span></span>"
 
         vip_pipe_parts: List[str] = []
         if c_trial > 0:
-            vip_pipe_parts.append(f"⏳ {c_trial} Deneme (7G)")
+            vip_pipe_parts.append(f"⏳ {c_trial}")
         if c_code_cnt > 0:
-            vip_pipe_parts.append(f"🎟️ {c_code_cnt} Kodlu")
+            vip_pipe_parts.append(f"🎟️ {c_code_cnt}")
         vip_pipe_str = " + ".join(vip_pipe_parts) if vip_pipe_parts else "—"
 
         mrr_cell = (
-            f"<strong style='color:#7C3AED;'>{c_mrr_net:.2f} ₺ Net/Ay</strong>"
+            f"<strong style='color:#7C3AED;'>{c_mrr_net:.2f} ₺/Ay</strong><span class='sr-only'>{c_mrr_net:.2f} ₺ Net/Ay</span>"
             if c_mrr_net > 0
             else "<span style='color:var(--text-muted);'>0.00 ₺</span>"
         )
@@ -8872,7 +8873,7 @@ def analytics_dashboard_page(
         country_rev_rows_html += f"""
         <tr style="{'background:rgba(16,185,129,0.06);' if c_paid > 0 else ''}">
           <td>{c_flag} <strong>{c_name}</strong> <span style="color:var(--text-muted); font-size:11.5px;">({c_code})</span></td>
-          <td style="font-weight:700; color:var(--text-primary); font-variant-numeric:tabular-nums;">{c_dl} Kurulum</td>
+          <td style="font-weight:700; color:var(--text-primary); font-variant-numeric:tabular-nums;">{c_dl}<span class="sr-only"> Kurulum</span></td>
           <td>{paid_cell}</td>
           <td style="color:var(--text-secondary); font-weight:600;">{vip_pipe_str}</td>
           <td style="font-variant-numeric:tabular-nums;">{rev_cell}</td>
@@ -8884,15 +8885,15 @@ def analytics_dashboard_page(
           <div class="bento-card tab2-sec tab2-sec-country" id="countryRevenueCard">
             <div class="section-head">
               <div>
-                <span>🌍 Ülke Gelirleri ({paid_countries_cnt} Ücretli / {dl_countries_cnt} Ülke)</span>
+                <span>🌍 Ülke Gelirleri ({paid_countries_cnt}/{dl_countries_cnt})</span>
                 <div class="sr-only">
                   Hangi ülkelerden kaç gerçek ücretli abonelik alındığını, paket kırılımını (Yıllık / Aylık), tahsil edilen ₺ / $ tutarını ve ülke bazlı beklenen aylık net geliri (MRR) tek tabloda gösterir.
                 </div>
               </div>
               <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                 <input type="search" id="countryRevenueSearchInput" class="table-search-input" placeholder="🔍 Ülke ara (TR, DE, US...)" oninput="filterTableByQuery(this, 'countryRevenueTableBody')" />
-                <span class="badge" style="background:rgba(16,185,129,0.15); color:#059669;">💳 {paid_countries_cnt} Ülke ({fl['paid_subs_count']} Abone)</span>
-                <span class="badge badge-meta">🌍 {dl_countries_cnt} Ülke ({f_dl} İndirme)</span>
+                <span class="badge" style="background:rgba(16,185,129,0.15); color:#059669;">💳 {paid_countries_cnt} Ülke ({fl['paid_subs_count']})</span>
+                <span class="badge badge-meta">🌍 {dl_countries_cnt} Ülke ({f_dl})</span>
               </div>
             </div>
             <div class="table-wrap table-scroll-bounded">
@@ -8900,11 +8901,11 @@ def analytics_dashboard_page(
                 <thead>
                   <tr>
                     <th>Ülke</th>
-                    <th>Toplam Kurulum</th>
-                    <th>Ücretli Alım & Paket Dağılımı</th>
-                    <th>Deneme / Kodlu VIP</th>
-                    <th>Tahsil Edilen Gelir (Brüt / Net ₺ & ~$USD)</th>
-                    <th>Beklenen Aylık Gelir (MRR Net)</th>
+                    <th>Kurulum</th>
+                    <th>Ücretli</th>
+                    <th>Deneme / Kod</th>
+                    <th>Tahsilat (Brüt / Net)</th>
+                    <th>MRR</th>
                   </tr>
                 </thead>
                 <tbody id="countryRevenueTableBody">
@@ -8924,47 +8925,47 @@ def analytics_dashboard_page(
                   Aktif Dönem: <strong>{sr_win_lbl}</strong> • Apple Connect Trends varsayılan olarak <strong>Son 7 Gün ({sr_7d_start} ➔ {sr_anchor})</strong> penceresini gösterirken, burada hem <strong>Son 7 Gün</strong> hem <strong>Tüm Zamanlar Kümülatif</strong> tahsilatı yan yana görebilirsiniz.
                 </div>
               </div>
-              <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">Son Rapor: {sr_anchor} • Canlı Senkron</span>
+              <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">{sr_anchor}</span>
             </div>
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr>
-                    <th>Zaman Penceresi & Mağaza Karşılığı</th>
-                    <th>🍏 Apple App Store (Brüt / Net ₺)</th>
-                    <th>🍏 Connect Trends (~USD Sales / Proceeds)</th>
-                    <th>🤖 Google Play Console (Brüt / Net ₺)</th>
-                    <th>🌐 Toplam Tahsilat & Abone Hareketi</th>
+                    <th>Dönem</th>
+                    <th>🍏 App Store (Brüt / Net)</th>
+                    <th>🍏 ~USD</th>
+                    <th>🤖 Google Play</th>
+                    <th>🌐 Toplam</th>
                   </tr>
                 </thead>
                 <tbody>
                   <tr style="{'background:rgba(16,185,129,0.06);' if clean_period == 'today' else ''}">
-                    <td><strong>📅 Bugün (Canlı Tahsilat)</strong> <span style="font-size:11px; color:var(--text-muted);">(Günlük Resmi Rapor Yarın Gelir)</span></td>
-                    <td style="font-variant-numeric:tabular-nums;"><strong>{sr_today.get('ios_gross_try', 0.0):.2f} ₺</strong> Brüt / <strong style="color:#059669;">{sr_today.get('ios_net_try', 0.0):.2f} ₺</strong> Net</td>
-                    <td style="font-variant-numeric:tabular-nums; color:var(--text-secondary);">${sr_today.get('ios_gross_usd', 0.0):.2f} Sales / <strong>${sr_today.get('ios_net_usd', 0.0):.2f}</strong> Proceeds</td>
-                    <td style="font-variant-numeric:tabular-nums;">{sr_today.get('android_gross_try', 0.0):.2f} ₺ Brüt / {sr_today.get('android_net_try', 0.0):.2f} ₺ Net</td>
-                    <td><span class="badge badge-meta">{sr_today.get('paid_count', 0)} Tahsilat • +{sr_today.get('new_trials_count', 0)} Yeni Deneme</span></td>
+                    <td><strong>📅 Bugün</strong><span class="sr-only"> (Canlı Tahsilat) (Günlük Resmi Rapor Yarın Gelir)</span></td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong>{sr_today.get('ios_gross_try', 0.0):.2f} ₺</strong> / <strong style="color:#059669;">{sr_today.get('ios_net_try', 0.0):.2f} ₺</strong><span class="sr-only"> Brüt / Net</span></td>
+                    <td style="font-variant-numeric:tabular-nums; color:var(--text-secondary);">${sr_today.get('ios_gross_usd', 0.0):.2f} / <strong>${sr_today.get('ios_net_usd', 0.0):.2f}</strong><span class="sr-only"> Sales / Proceeds</span></td>
+                    <td style="font-variant-numeric:tabular-nums;">{sr_today.get('android_gross_try', 0.0):.2f} ₺ / {sr_today.get('android_net_try', 0.0):.2f} ₺</td>
+                    <td><span class="badge badge-meta">💳 {sr_today.get('paid_count', 0)} • ⏳ +{sr_today.get('new_trials_count', 0)}</span></td>
                   </tr>
                   <tr style="{'background:rgba(16,185,129,0.06);' if clean_period == 'yesterday' else ''}">
-                    <td><strong>⏮️ Dün / Son Kesinleşen Apple Günü (T-1: {sr_anchor})</strong></td>
-                    <td style="font-variant-numeric:tabular-nums;"><strong>{sr_yest.get('ios_gross_try', 0.0):.2f} ₺</strong> Brüt / <strong style="color:#059669;">{sr_yest.get('ios_net_try', 0.0):.2f} ₺</strong> Net</td>
-                    <td style="font-variant-numeric:tabular-nums; color:var(--text-secondary);">${sr_yest.get('ios_gross_usd', 0.0):.2f} Sales / <strong>${sr_yest.get('ios_net_usd', 0.0):.2f}</strong> Proceeds</td>
-                    <td style="font-variant-numeric:tabular-nums;">{sr_yest.get('android_gross_try', 0.0):.2f} ₺ Brüt / {sr_yest.get('android_net_try', 0.0):.2f} ₺ Net</td>
-                    <td><span class="badge badge-meta">{sr_yest.get('paid_count', 0)} Tahsilat • +{sr_yest.get('new_trials_count', 0)} Yeni Deneme</span></td>
+                    <td><strong>⏮️ Dün ({sr_anchor})</strong><span class="sr-only"> / Son Kesinleşen Apple Günü (T-1: {sr_anchor})</span></td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong>{sr_yest.get('ios_gross_try', 0.0):.2f} ₺</strong> / <strong style="color:#059669;">{sr_yest.get('ios_net_try', 0.0):.2f} ₺</strong><span class="sr-only"> Brüt / Net</span></td>
+                    <td style="font-variant-numeric:tabular-nums; color:var(--text-secondary);">${sr_yest.get('ios_gross_usd', 0.0):.2f} / <strong>${sr_yest.get('ios_net_usd', 0.0):.2f}</strong><span class="sr-only"> Sales / Proceeds</span></td>
+                    <td style="font-variant-numeric:tabular-nums;">{sr_yest.get('android_gross_try', 0.0):.2f} ₺ / {sr_yest.get('android_net_try', 0.0):.2f} ₺</td>
+                    <td><span class="badge badge-meta">💳 {sr_yest.get('paid_count', 0)} • ⏳ +{sr_yest.get('new_trials_count', 0)}</span></td>
                   </tr>
                   <tr style="{'background:rgba(16,185,129,0.08);' if clean_period == '7d' else ''}">
-                    <td><strong>📆 Son 7 Gün (Connect Trends Varsayılan T-1: {sr_7d_start} ➔ {sr_anchor})</strong></td>
-                    <td style="font-variant-numeric:tabular-nums;"><strong>{sr_7d.get('ios_gross_try', 0.0):.2f} ₺</strong> Brüt / <strong style="color:#059669;">{sr_7d.get('ios_net_try', 0.0):.2f} ₺</strong> Net</td>
-                    <td style="font-variant-numeric:tabular-nums; color:#059669; font-weight:700;">${sr_7d.get('ios_gross_usd', 0.0):.2f} Sales / ${sr_7d.get('ios_net_usd', 0.0):.2f} Proceeds</td>
-                    <td style="font-variant-numeric:tabular-nums;">{sr_7d.get('android_gross_try', 0.0):.2f} ₺ Brüt / {sr_7d.get('android_net_try', 0.0):.2f} ₺ Net</td>
-                    <td><span class="badge badge-gp">{sr_7d.get('paid_count', 0)} Ücretli Tahsilat • +{sr_7d.get('new_trials_count', 0)} Aktif Deneme</span></td>
+                    <td><strong>📆 Son 7G ({sr_7d_start}➔{sr_anchor})</strong><span class="sr-only"> Son 7 Gün (Connect Trends Varsayılan T-1: {sr_7d_start} ➔ {sr_anchor})</span></td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong>{sr_7d.get('ios_gross_try', 0.0):.2f} ₺</strong> / <strong style="color:#059669;">{sr_7d.get('ios_net_try', 0.0):.2f} ₺</strong><span class="sr-only"> Brüt / Net</span></td>
+                    <td style="font-variant-numeric:tabular-nums; color:#059669; font-weight:700;">${sr_7d.get('ios_gross_usd', 0.0):.2f} / ${sr_7d.get('ios_net_usd', 0.0):.2f}<span class="sr-only"> Sales / Proceeds</span></td>
+                    <td style="font-variant-numeric:tabular-nums;">{sr_7d.get('android_gross_try', 0.0):.2f} ₺ / {sr_7d.get('android_net_try', 0.0):.2f} ₺</td>
+                    <td><span class="badge badge-gp">💳 {sr_7d.get('paid_count', 0)} • ⏳ +{sr_7d.get('new_trials_count', 0)}</span></td>
                   </tr>
                   <tr style="{'background:rgba(16,185,129,0.08);' if clean_period == 'all' else ''}">
-                    <td><strong>♾️ Tüm Zamanlar (Kümülatif — Tüm Doğrulanmış Mağaza Tahsilatları)</strong></td>
-                    <td style="font-variant-numeric:tabular-nums;"><strong>{sr_all.get('ios_gross_try', 0.0):.2f} ₺</strong> Brüt / <strong style="color:#059669;">{sr_all.get('ios_net_try', 0.0):.2f} ₺</strong> Net</td>
-                    <td style="font-variant-numeric:tabular-nums; color:#059669; font-weight:700;">${sr_all.get('ios_gross_usd', 0.0):.2f} Sales / ${sr_all.get('ios_net_usd', 0.0):.2f} Proceeds</td>
-                    <td style="font-variant-numeric:tabular-nums;">{sr_all.get('android_gross_try', 0.0):.2f} ₺ Brüt / {sr_all.get('android_net_try', 0.0):.2f} ₺ Net</td>
-                    <td><span class="badge" style="background:rgba(16,185,129,0.15); color:#059669;">{sr_all.get('paid_count', 0)} Ücretli + {fl['pipeline_7d_trials_count']} Deneme + {fl['offer_code_subs_count']} Kodlu ({sr_cg_cnt} Plan Geçişi: +{sr_cg_net:.2f} ₺ Net)</span></td>
+                    <td><strong>♾️ Tüm Zamanlar</strong><span class="sr-only"> (Kümülatif — Tüm Doğrulanmış Mağaza Tahsilatları)</span></td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong>{sr_all.get('ios_gross_try', 0.0):.2f} ₺</strong> / <strong style="color:#059669;">{sr_all.get('ios_net_try', 0.0):.2f} ₺</strong><span class="sr-only"> Brüt / Net</span></td>
+                    <td style="font-variant-numeric:tabular-nums; color:#059669; font-weight:700;">${sr_all.get('ios_gross_usd', 0.0):.2f} / ${sr_all.get('ios_net_usd', 0.0):.2f}<span class="sr-only"> Sales / Proceeds</span></td>
+                    <td style="font-variant-numeric:tabular-nums;">{sr_all.get('android_gross_try', 0.0):.2f} ₺ / {sr_all.get('android_net_try', 0.0):.2f} ₺</td>
+                    <td><span class="badge" style="background:rgba(16,185,129,0.15); color:#059669;">💳 {sr_all.get('paid_count', 0)} • ⏳ {fl['pipeline_7d_trials_count']} • 🎟️ {fl['offer_code_subs_count']}<span class="sr-only"> ({sr_cg_cnt} Plan Geçişi: +{sr_cg_net:.2f} ₺ Net)</span></span></td>
                   </tr>
                 </tbody>
               </table>
@@ -10157,9 +10158,12 @@ def analytics_dashboard_page(
           white-space: nowrap !important;
           border: 0 !important;
         }}
-        /* Varsayılan olarak kartlardaki uzun tekrar paragraflarını (.card-desc) gizleyerek göz yormayan yalın sayı + mikro-çip görünümü sun;
-           kullanıcı üst bardaki '📖 Detaylar' butonuna bastığında (body.show-verbose-desc) veya karta dokunduğunda (.desc-expanded) açılır */
+        /* Varsayılan olarak kartlardaki uzun tekrar paragraflarını (.card-desc ve .step-sub) gizleyerek göz yormayan yalın sayı + mikro-çip görünümü sun;
+           kullanıcı üst bardaki '📖 Açıklamalar' butonuna bastığında (body.show-verbose-desc) veya karta dokunduğunda (.desc-expanded) açılır */
         body:not(.show-verbose-desc) .card-desc:not(.desc-expanded) {{
+          display: none !important;
+        }}
+        body:not(.show-verbose-desc) .step-sub:not(.desc-expanded) {{
           display: none !important;
         }}
         body.show-verbose-desc .card-desc,
@@ -10168,6 +10172,11 @@ def analytics_dashboard_page(
           margin-top: 8px;
           padding-top: 8px;
           border-top: 1px dashed var(--border-subtle);
+        }}
+        body.show-verbose-desc .step-sub,
+        .step-sub.desc-expanded {{
+          display: block !important;
+          margin-top: 6px;
         }}
         .sidebar-kpi-row.clickable-kpi-row {{
           cursor: pointer;
@@ -10641,8 +10650,8 @@ def analytics_dashboard_page(
               </div>
 
               <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <span class="badge hide-in-pres" id="zeroStaticAuditBadge" style="background:{'rgba(16,185,129,0.14)' if s.get('zero_static_data_audit', {}).get('all_passed', True) else 'rgba(217,119,6,0.14)'}; color:{'#059669' if s.get('zero_static_data_audit', {}).get('all_passed', True) else '#D97706'};" title="{html.escape(str(s.get('zero_static_data_audit', {}).get('status_badge', '🛡️ %100 Canlı Veri')))}">🛡️ %100 Canlı Veri ({int(s.get('zero_static_data_audit', {}).get('contracts_passed', 5))}/{int(s.get('zero_static_data_audit', {}).get('contracts_checked', 5))})</span>
-                <span id="livePeriodSub" style="font-size:11.5px; font-weight:700; color:var(--text-secondary); font-variant-numeric:tabular-nums;">{html.escape(s['period_label'])} • {s['active_human_count']} Tekil Tık (Bugün: {s['today_unique_clicks']})</span>
+                <span class="badge hide-in-pres" id="zeroStaticAuditBadge" style="background:{'rgba(16,185,129,0.14)' if s.get('zero_static_data_audit', {}).get('all_passed', True) else 'rgba(217,119,6,0.14)'}; color:{'#059669' if s.get('zero_static_data_audit', {}).get('all_passed', True) else '#D97706'};" title="{html.escape(str(s.get('zero_static_data_audit', {}).get('status_badge', '🛡️ %100 Canlı Veri')))}">🛡️ {int(s.get('zero_static_data_audit', {}).get('contracts_passed', 5))}/{int(s.get('zero_static_data_audit', {}).get('contracts_checked', 5))} Canlı<span class="sr-only"> %100 Canlı Veri</span></span>
+                <span id="livePeriodSub" style="font-size:11.5px; font-weight:700; color:var(--text-secondary); font-variant-numeric:tabular-nums;"><span class="sr-only">{html.escape(s['period_label'])} • </span>{s['active_human_count']} Tık (+{s['today_unique_clicks']} Bugün)</span>
                 <div class="period-pills hide-in-pres">
                   {period_pills_html}
                 </div>
@@ -10658,14 +10667,14 @@ def analytics_dashboard_page(
               <div class="conv-bridge-card" id="conversionBridgeCard">
                 <div class="conv-bridge-head">
                   <div class="conv-bridge-title">
-                    <span id="funnelHeadTitle">🎯 Dönüşüm Hunisi (Edinim ➔ VIP ➔ Churn ➔ Net Abone){'' if clean_period == 'all' else f" — {html.escape(s['period_label'])}"}</span>
+                    <span id="funnelHeadTitle">🎯 Dönüşüm Hunisi<span class="sr-only"> (Edinim ➔ VIP ➔ Churn ➔ Net Abone)</span>{'' if clean_period == 'all' else f" — {html.escape(s['period_label'])}"}</span>
                   </div>
                   <div class="conv-summary-pills" id="funnelHeadBadge">
-                    <button type="button" class="conv-summary-pill" onclick="jumpToOnboardingFunnel()" style="cursor:pointer; background:rgba(124,58,237,0.14); border-color:rgba(124,58,237,0.38); color:var(--stage-4);" title="9 Adımlı Kullanıcı Onboarding İlerleme Tablosuna Git">🧭 9 Adım Onboarding: <strong id="convOnbCompPill">{html.escape(onb_comp_str)} ({int(onb_f.get('step9_reached_devices', 0) or 0)}/{int(onb_f.get('start_base_devices', 0) or 0)} Cihaz) ➔</strong></button>
-                    <span class="conv-summary-pill" style="background:rgba(var(--stage-3-rgb),0.10); border-color:rgba(var(--stage-3-rgb),0.28); color:var(--stage-3);">Mağaza CVR: <strong id="convStoreCvrPill">%{ps_all.get('store_cvr_pct', 0)}</strong></span>
-                    <span class="conv-summary-pill">İndirme ➔ VIP: <strong id="convStartedVipDlPill">%{ps_all.get('started_vip_of_dl_pct', 0)}</strong></span>
+                    <button type="button" class="conv-summary-pill" onclick="jumpToOnboardingFunnel()" style="cursor:pointer; background:rgba(124,58,237,0.14); border-color:rgba(124,58,237,0.38); color:var(--stage-4);" title="9 Adımlı Kullanıcı Onboarding İlerleme Tablosuna Git">🧭 Onboarding: <strong id="convOnbCompPill">{html.escape(onb_comp_str)} ({int(onb_f.get('step9_reached_devices', 0) or 0)}/{int(onb_f.get('start_base_devices', 0) or 0)}) ➔</strong></button>
+                    <span class="conv-summary-pill" style="background:rgba(var(--stage-3-rgb),0.10); border-color:rgba(var(--stage-3-rgb),0.28); color:var(--stage-3);">CVR: <strong id="convStoreCvrPill">%{ps_all.get('store_cvr_pct', 0)}</strong></span>
+                    <span class="conv-summary-pill">➔ VIP: <strong id="convStartedVipDlPill">%{ps_all.get('started_vip_of_dl_pct', 0)}</strong></span>
                     <span class="conv-summary-pill" style="background:rgba(var(--stage-5-rgb),0.10); border-color:rgba(var(--stage-5-rgb),0.28); color:var(--stage-5);">Churn: <strong id="convChurnPill">%{ps_all.get('churn_rate_pct', 0)}</strong></span>
-                    <span class="conv-summary-pill" style="background:rgba(var(--stage-6-rgb),0.10); border-color:rgba(var(--stage-6-rgb),0.28); color:var(--stage-6);">Net Tutundurma: <strong id="convRetentionPill">%{ps_all.get('retention_rate_pct', 0)}</strong></span>
+                    <span class="conv-summary-pill" style="background:rgba(var(--stage-6-rgb),0.10); border-color:rgba(var(--stage-6-rgb),0.28); color:var(--stage-6);">Tutundurma: <strong id="convRetentionPill">%{ps_all.get('retention_rate_pct', 0)}</strong></span>
                     <span class="sr-only">Gösterim ➔ VIP: <strong id="convSumVipImp">%{vip_of_imp_pct}</strong> • Tık ➔ VIP: <strong id="convCum4">%{vip_of_vis_pct}</strong></span>
                   </div>
                 </div>
@@ -10746,11 +10755,11 @@ def analytics_dashboard_page(
 
           <!-- KATMAN GEÇİŞ KÖPRÜSÜ: KURULUM ➔ BAŞLAYAN VIP -->
           <div class="conv-tier-bridge">
-            <span class="conv-tier-lbl">⤵ Kurulumdan Aboneliğe Geçiş Hunisi (İndirme ➔ VIP ➔ İptaller / Churn ➔ Net Abone)</span>
+            <span class="conv-tier-lbl">⤵ Kurulum ➔ VIP<span class="sr-only"> Hunisi (İndirme ➔ VIP ➔ İptaller / Churn ➔ Net Abone)</span></span>
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span style="font-size:11px; color:var(--text-muted);">İndirme ➔ Başlayan VIP:</span>
+              <span style="font-size:11px; color:var(--text-muted);">➔ VIP:</span>
               <span class="conv-conn-pill" style="color:var(--stage-4); border-color:rgba(var(--stage-4-rgb),0.32);" id="convBridge3">%{ps_all.get('started_vip_of_dl_pct', 0)} ➔</span>
-              <span style="font-size:11px; color:var(--text-muted);">İndirme ➔ Net Abone:</span>
+              <span style="font-size:11px; color:var(--text-muted);">➔ Net:</span>
               <span class="conv-conn-pill" style="color:var(--stage-6); border-color:rgba(var(--stage-6-rgb),0.30);" id="convBridge3Net">%{vip_of_dl_pct}</span>
             </div>
           </div>
@@ -10993,13 +11002,13 @@ def analytics_dashboard_page(
                 <table>
                   <thead>
                     <tr>
-                      <th>Edinim / Büyüme Kanalı</th>
-                      <th>Doğrulama Kaynağı</th>
-                      <th>Mağaza Gösterimi</th>
-                      <th>Sayfa Ziyareti / Sosyal Tık</th>
-                      <th>Gerçek İndirme</th>
-                      <th>Dönüşüm Oranı (CVR)</th>
-                      <th>VIP & Abonelik Etkisi</th>
+                      <th>Kanal</th>
+                      <th>Kaynak</th>
+                      <th>Gösterim</th>
+                      <th>Ziyaret / Tık</th>
+                      <th>Kurulum</th>
+                      <th>CVR</th>
+                      <th>VIP</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -11192,29 +11201,29 @@ def analytics_dashboard_page(
 
           <div class="bento-card tab3-sec tab3-sec-onboarding" id="onboardingNineStepFunnelCard">
             <div class="section-head">
-              <span>🧭 9 Adımlı Kullanıcı Onboarding &amp; Paywall İlerleme Analizi (Gerçek Cihaz Telemetrisi — Sıfır Statik Veri)</span>
+              <span>🧭 9 Adım Onboarding<span class="sr-only"> — 9 Adımlı Kullanıcı Onboarding &amp; Paywall İlerleme Analizi (Gerçek Cihaz Telemetrisi — Sıfır Statik Veri)</span></span>
               <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <span class="badge" id="onbFunnelDevicesBadge" style="background:rgba(37,99,235,0.12); color:#2563EB;">📱 {onb_total_devs} Tekil Onboarding Cihazı</span>
-                <span class="badge" id="onbFunnelCompletionBadge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">🏁 Adım 0 ➔ 9 Tamamlama: {html.escape(onb_comp_str)}</span>
+                <span class="badge" id="onbFunnelDevicesBadge" style="background:rgba(37,99,235,0.12); color:#2563EB;">📱 {onb_total_devs} Cihaz</span>
+                <span class="badge" id="onbFunnelCompletionBadge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">🏁 0➔9: {html.escape(onb_comp_str)}</span>
                 <span class="badge" id="onbFunnelDropoffBadge" style="background:rgba(217,119,6,0.14); color:#D97706;">{html.escape(onb_drop_badge_str)}</span>
               </div>
             </div>
             <div class="kpi-micro-meta" id="onbFunnelContinuationMeta" style="margin-bottom:10px;">
-              <span class="kpi-micro-chip">🚀 İlk Açılış (first_open): {int(onb_f.get('first_open_unique_devices', 0) or 0)} Cihaz</span>
-              <span class="kpi-micro-chip">👁️ Paywall Gösterimi (paywall_viewed): {int(onb_f.get('paywall_viewed_unique_devices', 0) or 0)} Cihaz</span>
-              <span class="kpi-micro-chip">👆 Satın Al Tıklaması (paywall_cta_clicked): {int(onb_f.get('paywall_cta_unique_devices', 0) or 0)} Cihaz</span>
-              <span class="kpi-micro-chip">👑 VIP Başlangıç (vip_started): {int(onb_f.get('vip_started_unique_devices', 0) or 0)} Cihaz</span>
+              <span class="kpi-micro-chip">🚀 Açılış: {int(onb_f.get('first_open_unique_devices', 0) or 0)}</span>
+              <span class="kpi-micro-chip">👁️ Paywall: {int(onb_f.get('paywall_viewed_unique_devices', 0) or 0)}</span>
+              <span class="kpi-micro-chip">👆 Tık: {int(onb_f.get('paywall_cta_unique_devices', 0) or 0)}</span>
+              <span class="kpi-micro-chip">👑 VIP: {int(onb_f.get('vip_started_unique_devices', 0) or 0)}</span>
             </div>
             <div class="table-wrap">
               <table>
                 <thead>
                   <tr>
-                    <th>Onboarding Adımı &amp; Ekran İçeriği</th>
-                    <th>Tekil Kullanıcı (device_uid)</th>
-                    <th>Platform (🍏 iOS / 🤖 Android)</th>
-                    <th>Önceki Adımdan Geçiş</th>
-                    <th>Adımda Kayıp (Drop-off)</th>
-                    <th>Başlangıçtan Kümülatif İlerleme</th>
+                    <th>Adım</th>
+                    <th>Cihaz</th>
+                    <th>🍏 / 🤖</th>
+                    <th>Geçiş</th>
+                    <th>Kayıp</th>
+                    <th>İlerleme</th>
                   </tr>
                 </thead>
                 <tbody id="onboardingNineStepTbody">
@@ -11978,24 +11987,24 @@ def analytics_dashboard_page(
             var compStr = (ofData.step0_to_step9_completion_pct !== null && ofData.step0_to_step9_completion_pct !== undefined)
               ? ('%' + ofData.step0_to_step9_completion_pct)
               : 'Veri Yok';
-            if (devBadge) devBadge.textContent = '📱 ' + totOnbDevs + ' Tekil Onboarding Cihazı';
-            if (compBadge) compBadge.textContent = '🏁 Adım 0 ➔ 9 Tamamlama: ' + compStr;
+            if (devBadge) devBadge.textContent = '📱 ' + totOnbDevs + ' Cihaz';
+            if (compBadge) compBadge.textContent = '🏁 0➔9: ' + compStr;
             if (sideOnb) sideOnb.textContent = compStr + ' (' + st9Devs + '/' + stBaseDevs + ')';
-            if (heroOnbPill) heroOnbPill.textContent = compStr + ' (' + st9Devs + '/' + stBaseDevs + ' Cihaz) ➔';
+            if (heroOnbPill) heroOnbPill.textContent = compStr + ' (' + st9Devs + '/' + stBaseDevs + ') ➔';
             if (dropBadge) {{
               var bd = ofData.biggest_dropoff_step;
               if (bd && Number(bd.dropoff_count || 0) > 0) {{
-                dropBadge.textContent = '⚠️ En Yüksek Kayıp: ' + bd.title + ' (-' + bd.dropoff_count + ' Kişi / -%' + bd.dropoff_pct + ')';
+                dropBadge.textContent = '⚠️ ' + bd.title + ' (-' + bd.dropoff_count + ' / -%' + bd.dropoff_pct + ')';
               }} else {{
-                dropBadge.textContent = totOnbDevs > 0 ? '🟢 Adım Kaybı Yok' : '⏳ Telemetri Bekleniyor (Sıfır Statik Veri)';
+                dropBadge.textContent = totOnbDevs > 0 ? '🟢 Kayıp Yok' : '⏳ Bekleniyor';
               }}
             }}
             if (contMeta) {{
               contMeta.innerHTML =
-                '<span class="kpi-micro-chip">🚀 İlk Açılış (first_open): ' + Number(ofData.first_open_unique_devices || 0) + ' Cihaz</span>' +
-                '<span class="kpi-micro-chip">👁️ Paywall Gösterimi (paywall_viewed): ' + Number(ofData.paywall_viewed_unique_devices || 0) + ' Cihaz</span>' +
-                '<span class="kpi-micro-chip">👆 Satın Al Tıklaması (paywall_cta_clicked): ' + Number(ofData.paywall_cta_unique_devices || 0) + ' Cihaz</span>' +
-                '<span class="kpi-micro-chip">👑 VIP Başlangıç (vip_started): ' + Number(ofData.vip_started_unique_devices || 0) + ' Cihaz</span>';
+                '<span class="kpi-micro-chip">🚀 Açılış: ' + Number(ofData.first_open_unique_devices || 0) + '</span>' +
+                '<span class="kpi-micro-chip">👁️ Paywall: ' + Number(ofData.paywall_viewed_unique_devices || 0) + '</span>' +
+                '<span class="kpi-micro-chip">👆 Tık: ' + Number(ofData.paywall_cta_unique_devices || 0) + '</span>' +
+                '<span class="kpi-micro-chip">👑 VIP: ' + Number(ofData.vip_started_unique_devices || 0) + '</span>';
             }}
             if (onbTbody && Array.isArray(ofData.steps)) {{
               var rowsHtml = '';
@@ -12014,30 +12023,30 @@ def analytics_dashboard_page(
                 var dropHtml = '';
                 if (sNum === 0) {{
                   retHtml = sUniq > 0
-                    ? '<span class="badge" style="background:rgba(37,99,235,0.12); color:#2563EB;">🏁 Başlangıç (%100)</span>'
-                    : '<span style="color:var(--text-muted); font-size:12px;">Veri Yok</span>';
+                    ? '<span class="badge" style="background:rgba(37,99,235,0.12); color:#2563EB;">🏁 %100</span>'
+                    : '<span style="color:var(--text-muted); font-size:12px;">—</span>';
                   dropHtml = '<span style="color:var(--text-muted); font-size:12px;">—</span>';
                 }} else {{
                   if (sRet !== null && sRet !== undefined) {{
                     var rCol = sRet >= 80 ? '#059669' : (sRet >= 50 ? '#D97706' : '#DC2626');
                     retHtml = '<strong style="color:' + rCol + ';">%' + sRet + '</strong>';
                   }} else {{
-                    retHtml = '<span style="color:var(--text-muted); font-size:12px;">Veri Yok</span>';
+                    retHtml = '<span style="color:var(--text-muted); font-size:12px;">—</span>';
                   }}
                   if (sDropPct !== null && sDropPct !== undefined && sDropCnt > 0) {{
-                    dropHtml = '<span style="color:#DC2626; font-weight:700;">-' + sDropCnt + ' Kişi (-%' + sDropPct + ')</span>';
+                    dropHtml = '<span style="color:#DC2626; font-weight:700;">-' + sDropCnt + ' (-%' + sDropPct + ')</span>';
                   }} else if (sDropPct !== null && sDropPct !== undefined) {{
-                    dropHtml = '<span style="color:#059669; font-weight:700;">0 Kayıp (%0)</span>';
+                    dropHtml = '<span style="color:#059669; font-weight:700;">0</span>';
                   }} else {{
-                    dropHtml = '<span style="color:var(--text-muted); font-size:12px;">Veri Yok</span>';
+                    dropHtml = '<span style="color:var(--text-muted); font-size:12px;">—</span>';
                   }}
                 }}
                 var bW = Math.max(0, Math.min(100, Number(sCum || 0)));
-                var cLbl = (sCum !== null && sCum !== undefined) ? ('%' + sCum) : '0% (Veri Yok)';
+                var cLbl = (sCum !== null && sCum !== undefined) ? ('%' + sCum) : '—';
                 var bCol = (sNum === 9) ? '#7C3AED' : (bW >= 65 ? '#059669' : (bW >= 35 ? '#2563EB' : '#D97706'));
                 rowsHtml += '<tr>' +
-                  '<td style="font-weight:800; color:var(--text-primary); white-space:nowrap;">' + escapeHtmlJs(st.title) + '<div style="font-size:11px; color:var(--text-muted); font-weight:500;">' + escapeHtmlJs(st.subtitle) + '</div></td>' +
-                  '<td style="font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums;">' + sUniq + ' Cihaz <span style="font-size:11px; color:var(--text-muted); font-weight:500;">(' + sRaw + ' sinyal)</span></td>' +
+                  '<td style="font-weight:800; color:var(--text-primary); white-space:nowrap;">' + escapeHtmlJs(st.title) + '<span class="sr-only"> ' + escapeHtmlJs(st.subtitle) + '</span></td>' +
+                  '<td style="font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums;">' + sUniq + '<span class="sr-only"> Cihaz (' + sRaw + ' sinyal)</span></td>' +
                   '<td style="font-size:12px; white-space:nowrap;">🍏 <strong>' + sIos + '</strong> • 🤖 <strong>' + sAnd + '</strong></td>' +
                   '<td style="font-variant-numeric:tabular-nums;">' + retHtml + '</td>' +
                   '<td style="font-variant-numeric:tabular-nums;">' + dropHtml + '</td>' +

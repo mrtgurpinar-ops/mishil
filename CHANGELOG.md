@@ -2,6 +2,20 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.57.6-cockpit-numbers-and-visuals-only-zero-prose] - 2026-11-26 (Yerel Ortamda Doğrulandı — Kurucu Kokpiti "Sıfır Cümle — Yalnızca Rakam, İkon & Görsel Çubuk" Dönüşümü: `.step-sub` Paragraflarının Masaüstü/Mobil Varsayılan Gizlenmesi, 9 Adımlı Onboarding Tablosu İkinci Satır Alt Başlıkları & İngilizce `first_open`/`paywall_viewed` Jargonlarının Temizlenmesi ve Tüm Tablo Başlıklarının Tek Kelimelik İkon+Rakam Formatına İndirgenmesi • 🟢 Yeni Native EAS Build Gerekmez)
+### 🔢✨ Kurucu Kokpiti "Sıfır Cümle — Yalnızca Rakam, İkon & Görsel Çubuk" Dönüşümü (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **Tüm Sekmelerde `.step-sub` Uzun Cümlelerinin Varsayılan Olarak Gizlenmesi (`analytics.py:10165-10180`):**
+   - `v4.57.5` sürümünde yalnızca `.card-desc` gizlenmiş, adım kutularının (`.step-box`) içindeki çok satırlı `.step-sub` paragrafları (Sekme 1 `Sosyal & Reklam`, Sekme 2 `7G Vade Takvimi`, Sekme 3 `Geri Dönüş & Paywall` ve `Modül Aktivitesi`, Sekme 5 `Tutarlılık İlkeleri`) görünür kalmıştı.
+   - `body:not(.show-verbose-desc) .step-sub:not(.desc-expanded) { display: none !important; }` kuralı eklenerek tüm adım kutuları yalnızca **Başlık + Büyük Rakam + Kısa Rozet** formatına indirildi (üst bardaki `📖 Açıklamalar` butonu ile istenirse açılır).
+2. **9 Adımlı Onboarding Kartı (`#onboardingNineStepFunnelCard`) Sıfır Jargon & Tek Satır Tablo (`analytics.py:8758-8822`, `11193-11225`, `11981-12056`):**
+   - Kart başlığı `🧭 9 Adım Onboarding`, rozetler `📱 16 Cihaz` • `🏁 0➔9: %53.3` • `⚠️ Adım 1: Bebek Profili (-4 / -%26.7)` olarak kısaltıldı.
+   - Üst bilgi çiplerindeki parantez içi İngilizce teknik olay adları (`(first_open)`, `(paywall_viewed)`, `(paywall_cta_clicked)`, `(vip_started)`) kaldırılarak `🚀 Açılış: 510 • 👁️ Paywall: 269 • 👆 Tık: 61 • 👑 VIP: 18` formatına çekildi.
+   - Tablo sütun başlıkları (`Adım | Cihaz | 🍏 / 🤖 | Geçiş | Kayıp | İlerleme`) ve satırları tek satıra indirildi; ikinci satır açıklamaları (`st_sub`) ve `({st_raw} sinyal)` ifadeleri görünür ekrandan kaldırılıp `<span class="sr-only">` içine alındı.
+3. **Dönüşüm Hunisi Ara Şeridi ve Tablo Sütun Başlıklarının Tek Kelimeye İndirgenmesi (`analytics.py:8607-8611`, `8845-8973`, `10652-10765`, `11003-11011`):**
+   - `.conv-tier-bridge` ara şeridi `⤵ Kurulum ➔ VIP` (`➔ VIP: %4.5` • `➔ Net: %3.3`), üst bar `#zeroStaticAuditBadge` `🛡️ 5/5 Canlı` ve `#livePeriodSub` `400 Tık (+6 Bugün)` olarak sadeleştirildi.
+   - `Mağaza Mutabakatı`, `Ülke Gelirleri` ve `Edinim Kanalları` tablolarındaki uzun cümle başlıklar ve parantez içi tekrarlar temizlenerek yalnızca rakam ve ikonların konuşacağı yalın tablo düzenine geçildi (tüm rakamlar ve hesaplamalar %100 korundu).
+   - **Claude Code CLI (`task-384` metin yoğunluğu teşhisi + `task-423` diff denetimi ve `$0.00` `sr-only` rötuşu: `PASS`)** + **Antigravity (`39/39 pytest PASS`)**.
+
 ## [4.57.5-cockpit-decluttering-onboarding-priority-and-zero-static-audit] - 2026-11-26 (Yerel Ortamda Doğrulandı — Kurucu Kokpiti Sıfır Veri Kayıplı Görsel Sadeleştirme, `.card-desc` Progressive Disclosure `📖 Açıklamalar`, Sekme Değişiminde Otomatik Huni Daraltma, 9 Adımlı Onboarding Analizi `🧭 3. Onboarding & Ürün` En Üst Konum + Sol Menü/Üst Huni Tek Tık Kısayolları `jumpToOnboardingFunnel()` ve 5 Kontratlı Canlı `zero_static_data_audit` Motoru • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🧭✨ Kurucu Kokpiti Tam Kapsamlı Görsel Sadeleştirme & Otomatik Sıfır Statik Veri Denetim Motoru (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **Göz Yormayan Sadeleştirilmiş Kokpit Mimarisi (Sıfır Rakam / Hesaplama Kaybı):**
