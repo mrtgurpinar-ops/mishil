@@ -1384,6 +1384,171 @@ def test_dynamic_star_distribution_and_satisfaction_pulse_flow(client, db_sessio
     assert "🔔 Çözüm Yoklaması Tetikle" in dash_html
 
 
+def test_ab_experiment_cockpit_comparison_and_10step_onboarding_v4581(client, db_session):
+    """
+    v4.58.1:
+    1) RevenueCat Paywall A/B Testi (%50 / %50 Trafik):
+       - 🔥 Grup A (intro_1m_discounted / paid_intro): İlk Ay %67 İndirim (₺49,99 -> ₺149,99/ay)
+       - 🎁 Grup B (free_trial_1m / free_trial): İlk Ay Ücretsiz (30 Gün ₺0 -> ₺149,99/ay)
+       - 👑 Yıllık VIP Çıpa (misil_annual / misil): ₺599,99/Yıl (%67 Tasarruf)
+       - ⏳ Tarihsel 7G Deneme & 🎟️ Kodlu VIP: Veri kaybı olmadan ayrı referans satırında korunur.
+    2) 10 Adımlı Onboarding (Adım 0➔9 • Yeni Sıralama & 7. Kart Öneri C):
+       - onb_step7_quick_chip_used ve ab_a_* / ab_b_* paywall telemetri sinyalleri doğrulanır.
+    """
+    from datetime import datetime, timezone
+    from app.api.v1.endpoints import analytics as analytics_ep
+    from app.db.models import AppInstallSignal, SubscriberLedger, SubscriptionLifecycleEvent
+
+    # Temiz tablo durumu üzerinde test verisi oluştur
+    db_session.query(SubscriberLedger).delete()
+    db_session.query(SubscriptionLifecycleEvent).delete()
+    db_session.query(AppInstallSignal).delete()
+    db_session.commit()
+
+    now = datetime.now(timezone.utc)
+
+    # 1) Grup A: İlk Ay %67 İndirim (49.99 TL Brüt / 42.49 TL Net anında nakit)
+    sub_a = SubscriberLedger(
+        subscriber_id="ab_group_a_sub_1",
+        platform="ios",
+        country="TR",
+        device_type="iPhone",
+        product_id="misil_monthly",
+        plan_label="Aylık VIP (İlk Ay 49.99 ₺ ➔ 149.99 ₺/ay)",
+        status="paid_active",
+        offer_type="intro_1m_discounted",
+        offer_code_name="İlk Ay %67 İndirim (49.99 ₺)",
+        started_date="2026-11-26",
+        converted_or_renewed_date="2026-11-26",
+        maturity_or_renewal_date="2026-12-26",
+        auto_renew_enabled=True,
+        customer_price_try=49.99,
+        developer_proceeds_try=42.49,
+        expected_next_price_try=149.99,
+        expected_next_proceeds_try=100.93,
+    )
+    # 2) Grup B: İlk Ay Ücretsiz (30 Gün 0 TL -> 30. gün sonunda 149.99 TL Brüt / 109.04 TL Net)
+    sub_b = SubscriberLedger(
+        subscriber_id="ab_group_b_sub_1",
+        platform="android",
+        country="TR",
+        device_type="Android",
+        product_id="misilaylik",
+        plan_label="Aylık VIP (İlk Ay Ücretsiz ➔ 149.99 ₺/ay)",
+        status="intro_free_trial",
+        offer_type="free_trial_1m",
+        offer_code_name="İlk Ay Ücretsiz Deneme (Google Play)",
+        started_date="2026-11-25",
+        converted_or_renewed_date="2026-11-25",
+        maturity_or_renewal_date="2026-12-25",
+        auto_renew_enabled=True,
+        customer_price_try=0.0,
+        developer_proceeds_try=0.0,
+        expected_next_price_try=149.99,
+        expected_next_proceeds_try=109.04,
+    )
+    # 3) Yıllık VIP Çıpa (599.99 TL / Yıl -> 403.75 TL Net, Aylık MRR karşılığı 33.65 TL)
+    sub_ann = SubscriberLedger(
+        subscriber_id="ab_annual_sub_1",
+        platform="ios",
+        country="TR",
+        device_type="iPhone",
+        product_id="misil_annual",
+        plan_label="Yıllık VIP (599.99 ₺/Yıl)",
+        status="paid_active",
+        offer_type="standard_paid",
+        offer_code_name="Doğrudan Ücretli",
+        started_date="2026-11-24",
+        converted_or_renewed_date="2026-11-24",
+        maturity_or_renewal_date="2027-11-24",
+        auto_renew_enabled=True,
+        customer_price_try=599.99,
+        developer_proceeds_try=403.75,
+        expected_next_price_try=599.99,
+        expected_next_proceeds_try=403.75,
+    )
+    db_session.add_all([sub_a, sub_b, sub_ann])
+
+    # A/B Paywall ve 7. Kart Öneri C hızlı çip telemetri sinyalleri
+    signals = [
+        ("dev_a_1", "ios", "onboarding_step_viewed_0"),
+        ("dev_a_1", "ios", "onboarding_step_viewed_7"),
+        ("dev_a_1", "ios", "onb_step7_quick_chip_used"),
+        ("dev_a_1", "ios", "onboarding_step_viewed_9"),
+        ("dev_a_1", "ios", "paywall_viewed"),
+        ("dev_a_1", "ios", "ab_a_paywall_viewed"),
+        ("dev_a_1", "ios", "paywall_cta_clicked"),
+        ("dev_a_1", "ios", "ab_a_paywall_cta"),
+        ("dev_a_1", "ios", "vip_started"),
+        ("dev_a_1", "ios", "ab_a_vip_started"),
+        ("dev_b_1", "android", "onboarding_step_viewed_0"),
+        ("dev_b_1", "android", "onboarding_step_viewed_7"),
+        ("dev_b_1", "android", "onb_step7_quick_chip_used"),
+        ("dev_b_1", "android", "onboarding_step_viewed_9"),
+        ("dev_b_1", "android", "paywall_viewed"),
+        ("dev_b_1", "android", "ab_b_paywall_viewed"),
+        ("dev_b_1", "android", "paywall_cta_clicked"),
+        ("dev_b_1", "android", "ab_b_paywall_cta"),
+        ("dev_b_1", "android", "vip_started"),
+        ("dev_b_1", "android", "ab_b_vip_started"),
+    ]
+    for duid, plat, sig in signals:
+        db_session.add(
+            AppInstallSignal(
+                device_uid=duid,
+                event_type=sig,
+                os_family=plat,
+                platform=f"{plat}_native",
+                created_at=now,
+            )
+        )
+    db_session.commit()
+
+    analytics_ep.invalidate_analytics_summary_cache(mark_reconcile=False)
+    s_res = client.get("/api/v1/analytics/summary", params={"pin": "MISIL-REV-9842"})
+    assert s_res.status_code == 200
+    s_data = s_res.json()
+
+    ab = s_data["ab_experiment"]
+    assert ab["experiment_id"] == "paywall_monthly_intro_vs_free_trial_v1"
+    assert ab["group_a"]["active_vip_count"] == 1
+    assert ab["group_a"]["paid_converted_count"] == 1
+    assert ab["group_a"]["realized_net_try"] == 42.49
+    assert ab["group_a"]["paywall_views"] == 1
+    assert ab["group_a"]["cta_clicks"] == 1
+    assert ab["group_b"]["active_vip_count"] == 1
+    assert ab["group_b"]["trial_active_count"] == 1
+    assert ab["group_b"]["pipeline_trial_mrr_net_try"] == 109.04
+    assert ab["group_b"]["paywall_views"] == 1
+    assert ab["group_b"]["cta_clicks"] == 1
+    assert ab["annual_anchor"]["active_vip_count"] == 1
+    assert ab["annual_anchor"]["realized_net_try"] == 403.75
+
+    onb_f = s_data["onboarding_step_funnel"]
+    assert onb_f["step7_quick_chip_unique_devices"] == 2
+    assert onb_f["ab_a_paywall_viewed_unique_devices"] == 1
+    assert onb_f["ab_b_paywall_viewed_unique_devices"] == 1
+    assert onb_f["ab_a_vip_started_unique_devices"] == 1
+    assert onb_f["ab_b_vip_started_unique_devices"] == 1
+
+    fl = s_data["financial_ledger"]
+    assert fl["active_30d_trials_count"] == 1
+    assert fl["active_30d_mrr_net_try"] == 109.04
+
+    dash_html = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"}).text
+    assert 'id="abExperimentCommandCard"' in dash_html
+    assert 'id="abCardGroupA"' in dash_html
+    assert 'id="abCardGroupB"' in dash_html
+    assert 'id="abCardAnnual"' in dash_html
+    assert 'id="abExperimentTbody"' in dash_html
+    assert 'id="sideKpiAbTest"' in dash_html
+    assert 'id="convAbTestPill"' in dash_html
+    assert "function jumpToAbExperiment()" in dash_html
+    assert "🧭 10 Adım Onboarding" in dash_html
+    assert "⚡ 7. Kart Hızlı Çip: 2" in dash_html
+
+
+
 
 
 

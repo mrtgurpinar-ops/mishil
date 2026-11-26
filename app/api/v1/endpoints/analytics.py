@@ -491,8 +491,8 @@ def _empty_store_state() -> Dict[str, Any]:
                 "grace_period": "7 Gün (P7D)",
                 "price_try": DEFAULT_PLAN_PRICING_TRY["misilaylik"][0],
                 "net_proceeds_try": DEFAULT_PLAN_PRICING_TRY["misilaylik"][1],
-                "free_trial_offer_id": "intro-first-month",
-                "free_trial_label": "İlk Ay 49.99 ₺ Başlangıç Teklifi (P1M)",
+                "free_trial_offer_id": "intro-first-month / free-trial-1m",
+                "free_trial_label": "A/B: İlk Ay 49.99 ₺ (%67 İndirim) vs İlk Ay Ücretsiz (30G 0 ₺)",
             },
         ],
         "daily_store_series": {},
@@ -1239,6 +1239,30 @@ def verify_revenuecat_v2_customer(customer_id: str) -> Optional[Dict[str, Any]]:
     return primary
 
 
+def _is_30d_free_trial_window(
+    st_d_str: Optional[str],
+    exp_d_str: Optional[str],
+    raw_ident: str = "",
+) -> bool:
+    """
+    RevenueCat T-0 veya Google Play köprüsünde ücretli olmayan (gross == 0) bir aylık aboneliğin
+    30 günlük ücretsiz deneme (Grup B: free_trial_1m) mi yoksa eski 7 günlük deneme (intro_7d_trial) mi
+    olduğunu başlangıç-bitiş gün farkı (>= 20 gün) veya ürün/teklif tanımlayıcısından tespit eder.
+    """
+    ident_low = (raw_ident or "").lower()
+    if any(tok in ident_low for tok in ("free_trial", "free-trial", "trial_1m", "trial-1m", "30d", "first_month_free")):
+        return True
+    try:
+        if st_d_str and exp_d_str and len(st_d_str) >= 10 and len(exp_d_str) >= 10:
+            st_dt = datetime.strptime(st_d_str[:10], "%Y-%m-%d").date()
+            exp_dt = datetime.strptime(exp_d_str[:10], "%Y-%m-%d").date()
+            if (exp_dt - st_dt).days >= 20:
+                return True
+    except Exception:
+        pass
+    return False
+
+
 def sync_revenuecat_v2_production_bridge(
     db: Session,
     latest_apple_report_date: str = "",
@@ -1472,15 +1496,28 @@ def sync_revenuecat_v2_production_bridge(
                         else:
                             c_gross = 0.0
                             c_net = 0.0
+                        is_1m_trial_t0 = (
+                            not is_paid
+                            and not _is_annual_product(prod_id)
+                            and _is_30d_free_trial_window(
+                                st_date,
+                                exp_date,
+                                f"{v_sub.get('rc_product_id', '')} {v_sub.get('store_product_identifier', '')} {prod_id}",
+                            )
+                        )
                         t0_offer_type = (
                             ("intro_1m_discounted" if is_intro_t0 else "standard_paid")
                             if is_paid
-                            else "intro_7d_trial"
+                            else ("free_trial_1m" if is_1m_trial_t0 else "intro_7d_trial")
                         )
                         t0_offer_lbl = (
                             "İlk Ay İndirimli Başlangıç (T-0 Canlı Köprü)"
                             if is_intro_t0
-                            else "RevenueCat T-0 Canlı Köprü"
+                            else (
+                                "İlk Ay Ücretsiz Deneme (T-0 Canlı Köprü)"
+                                if is_1m_trial_t0
+                                else "RevenueCat T-0 Canlı Köprü"
+                            )
                         )
                         st_val = (
                             "cancelled"
@@ -1592,12 +1629,23 @@ def sync_revenuecat_v2_production_bridge(
                     and is_paid
                     and (gp_offer_phase in ("INTRODUCTORY", "SINGLE_PAYMENT") or (0.0 < c_gross < 100.0 and gp_country == "TR"))
                 )
+                is_1m_trial_gp = bool(
+                    st_val == "intro_free_trial"
+                    and not _is_annual_product(prod_id)
+                    and _is_30d_free_trial_window(
+                        st_date,
+                        exp_date,
+                        f"{v_sub.get('rc_product_id', '')} {v_sub.get('store_product_identifier', '')} {prod_id} {gp_offer_phase}",
+                    )
+                )
                 if gp_state == "REFUNDED" and not is_paid:
                     and_offer_lbl = "İptal / 72s Onaysız (Google Play)"
                 elif st_val == "paid_active" and is_intro_gp:
                     and_offer_lbl = "İlk Ay İndirimli Başlangıç (Google Play)"
                 elif st_val == "paid_active":
                     and_offer_lbl = "Standart Ücretli (Google Play)"
+                elif is_1m_trial_gp:
+                    and_offer_lbl = "İlk Ay Ücretsiz Deneme (Google Play)"
                 else:
                     and_offer_lbl = "Deneme / Promosyon (Google Play)"
 
@@ -1605,7 +1653,11 @@ def sync_revenuecat_v2_production_bridge(
                 and_of_type = (
                     ("intro_1m_discounted" if is_intro_gp else "standard_paid")
                     if st_val == "paid_active"
-                    else ("offer_code" if st_val == "offer_code_trial" else "intro_7d_trial")
+                    else (
+                        "offer_code"
+                        if st_val == "offer_code_trial"
+                        else ("free_trial_1m" if is_1m_trial_gp else "intro_7d_trial")
+                    )
                 )
                 existing_and = db.query(SubscriberLedger).filter(SubscriberLedger.subscriber_id == base_order_id).first()
                 if existing_and:
@@ -2681,8 +2733,27 @@ def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
                                             and 20.0 <= c_price_try < 100.0
                                         )
 
+                                        is_1m_free_trial_tsv = bool(
+                                            c_price_try <= 0
+                                            and not is_annual
+                                            and (
+                                                "1 month" in offer_dur_raw.lower()
+                                                or "30 days" in offer_dur_raw.lower()
+                                                or "free_trial_1m" in offer_name.lower()
+                                                or "free-trial-1m" in offer_name.lower()
+                                                or "first_month_free" in offer_name.lower()
+                                                or (
+                                                    ("default_intro" in offer_name.lower() or "introductory" in offer_type_raw.lower())
+                                                    and "7 days" not in offer_dur_raw.lower()
+                                                    and "1 week" not in offer_dur_raw.lower()
+                                                    and ("month" in offer_dur_raw.lower() or "30" in offer_dur_raw.lower())
+                                                )
+                                            )
+                                        )
+
                                         is_intro_offer = (
-                                            "default_intro" in offer_name.lower()
+                                            is_1m_free_trial_tsv
+                                            or "default_intro" in offer_name.lower()
                                             or "introductory" in offer_type_raw.lower()
                                             or "7 days" in offer_dur_raw.lower()
                                             or "1 week" in offer_dur_raw.lower()
@@ -2749,18 +2820,18 @@ def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
                                                     pass
                                             elif existing_sub.status == "offer_code_trial" and not is_offer_code and c_price_try <= 0:
                                                 existing_sub.status = "intro_free_trial"
-                                                existing_sub.offer_type = "intro_7d_trial"
+                                                existing_sub.offer_type = "free_trial_1m" if is_1m_free_trial_tsv else "intro_7d_trial"
                                                 ccy_suffix = f" ({c_ccy})" if c_ccy != "TRY" else ""
-                                                existing_sub.offer_code_name = ("7 Günlük Deneme" + ccy_suffix)[:95]
+                                                existing_sub.offer_code_name = (("İlk Ay Ücretsiz Deneme" if is_1m_free_trial_tsv else "7 Günlük Deneme") + ccy_suffix)[:95]
                                                 try:
                                                     dt_st = datetime.strptime(existing_sub.started_date or ev_date, "%Y-%m-%d")
-                                                    existing_sub.maturity_or_renewal_date = (dt_st + timedelta(days=7)).strftime("%Y-%m-%d")
+                                                    existing_sub.maturity_or_renewal_date = (dt_st + timedelta(days=30 if is_1m_free_trial_tsv else 7)).strftime("%Y-%m-%d")
                                                 except Exception:
                                                     pass
                                                 existing_sub.expected_next_price_try = std_price_try
                                                 existing_sub.expected_next_proceeds_try = std_proc_try
                                         else:
-                                            trial_days = (365 if is_annual else 30) if is_offer_code else 7
+                                            trial_days = (365 if is_annual else 30) if is_offer_code else (30 if is_1m_free_trial_tsv else 7)
                                             try:
                                                 dt_st = datetime.strptime(ev_date, "%Y-%m-%d")
                                                 mat_date = (dt_st + timedelta(days=(365 if is_annual else 30) if c_price_try > 0 else trial_days)).strftime("%Y-%m-%d")
@@ -2770,7 +2841,7 @@ def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
                                             of_type = (
                                                 ("intro_1m_discounted" if is_discounted_intro_paid else "standard_paid")
                                                 if c_price_try > 0
-                                                else ("offer_code" if is_offer_code else "intro_7d_trial")
+                                                else ("offer_code" if is_offer_code else ("free_trial_1m" if is_1m_free_trial_tsv else "intro_7d_trial"))
                                             )
                                             ccy_suffix = f" ({c_ccy})" if c_ccy != "TRY" else ""
                                             of_lbl = (
@@ -2779,7 +2850,11 @@ def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
                                                 else (
                                                     "İlk Ay İndirimli Başlangıç"
                                                     if is_discounted_intro_paid
-                                                    else ("Standart Ücretli" if c_price_try > 0 else "7 Günlük Deneme")
+                                                    else (
+                                                        "Standart Ücretli"
+                                                        if c_price_try > 0
+                                                        else ("İlk Ay Ücretsiz Deneme" if is_1m_free_trial_tsv else "7 Günlük Deneme")
+                                                    )
                                                 )
                                             ) + ccy_suffix
                                             db_sync.add(
@@ -3296,9 +3371,13 @@ def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
                                                 with urllib.request.urlopen(gp_off_req, timeout=3) as gp_off_resp:
                                                     if gp_off_resp.status == 200:
                                                         off_payload = json.loads(gp_off_resp.read().decode("utf-8"))
+                                                        active_off_ids: List[str] = []
+                                                        active_off_lbls: List[str] = []
                                                         for off_item in off_payload.get("subscriptionOffers", []):
                                                             if (off_item.get("state") or "") == "ACTIVE":
-                                                                offer_id = off_item.get("offerId") or offer_id
+                                                                cur_oid = str(off_item.get("offerId") or "").strip()
+                                                                if cur_oid:
+                                                                    active_off_ids.append(cur_oid)
                                                                 phases = off_item.get("phases") or []
                                                                 if phases:
                                                                     ph0 = phases[0]
@@ -3315,12 +3394,15 @@ def _sync_live_store_apis_inner(days_back: int = 5) -> Dict[str, Any]:
                                                                                 2,
                                                                             )
                                                                     if tr_off_p > 0:
-                                                                        offer_lbl = f"İlk Ay {tr_off_p:.2f} ₺ Başlangıç Teklifi ({ph_dur})"
+                                                                        active_off_lbls.append(f"🔥 İlk Ay {tr_off_p:.2f} ₺ (%67 İndirim • {ph_dur})")
                                                                     elif has_free_ph:
-                                                                        offer_lbl = f"Eski Deneme ({ph_dur} • Aktif)"
+                                                                        active_off_lbls.append(f"🎁 İlk Ay Ücretsiz (30G 0 ₺ • {ph_dur})")
                                                                     else:
-                                                                        offer_lbl = f"Başlangıç Teklifi ({ph_dur} • Aktif)"
-                                                                break
+                                                                        active_off_lbls.append(f"Başlangıç Teklifi ({ph_dur} • Aktif)")
+                                                        if active_off_ids:
+                                                            offer_id = " / ".join(active_off_ids)
+                                                        if active_off_lbls:
+                                                            offer_lbl = " vs ".join(active_off_lbls) if len(active_off_lbls) > 1 else active_off_lbls[0]
                                             except Exception:
                                                 pass
                                             tr_price = 599.99 if "Y" in dur_raw else 149.99
@@ -4741,6 +4823,16 @@ def _build_analytics_summary(
         pw_view_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "paywall_viewed"])
         pw_cta_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "paywall_cta_clicked"])
         vip_start_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "vip_started"])
+        step7_chip_sigs = [s for s in plat_sigs if s.event_type == "onb_step7_quick_chip_used"]
+        step7_chip_uniq = _count_distinct_signal_devices(step7_chip_sigs)
+        ab_a_pw_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_a_paywall_viewed"])
+        ab_b_pw_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_b_paywall_viewed"])
+        ab_a_cta_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_a_paywall_cta"])
+        ab_b_cta_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_b_paywall_cta"])
+        ab_a_cancel_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_a_purchase_cancelled"])
+        ab_b_cancel_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_b_purchase_cancelled"])
+        ab_a_vip_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_a_vip_started"])
+        ab_b_vip_uniq = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_b_vip_started"])
         step9_u = steps_out[9]["unique_devices"] if len(steps_out) > 9 else 0
         step0_to_step9_pct = (
             min(100.0, round((step9_u / start_base) * 100.0, 1))
@@ -4763,6 +4855,16 @@ def _build_analytics_summary(
             "paywall_viewed_unique_devices": pw_view_uniq,
             "paywall_cta_unique_devices": pw_cta_uniq,
             "vip_started_unique_devices": vip_start_uniq,
+            "step7_quick_chip_unique_devices": step7_chip_uniq,
+            "step7_quick_chip_raw_events": len(step7_chip_sigs),
+            "ab_a_paywall_viewed_unique_devices": ab_a_pw_uniq,
+            "ab_b_paywall_viewed_unique_devices": ab_b_pw_uniq,
+            "ab_a_paywall_cta_unique_devices": ab_a_cta_uniq,
+            "ab_b_paywall_cta_unique_devices": ab_b_cta_uniq,
+            "ab_a_purchase_cancelled_unique_devices": ab_a_cancel_uniq,
+            "ab_b_purchase_cancelled_unique_devices": ab_b_cancel_uniq,
+            "ab_a_vip_started_unique_devices": ab_a_vip_uniq,
+            "ab_b_vip_started_unique_devices": ab_b_vip_uniq,
             "steps": steps_out,
         }
 
@@ -4786,10 +4888,13 @@ def _build_analytics_summary(
                 "routine_logged", "dadi_chat",
                 "paywall_viewed", "paywall_cta_clicked", "paywall_skipped", "purchase_cancelled", "purchase_error",
                 "sound_preview_60s_ended", "cry_limit_reached", "dadi_limit_reached", "routine_limit_reached",
-                "paywall_cancel_recovery_shown", "paywall_cancel_recovery_cta_clicked"
+                "paywall_cancel_recovery_shown", "paywall_cancel_recovery_cta_clicked",
+                "onb_step7_quick_chip_used",
             )
             or (s.event_type or "").startswith("paywall_cancel_reason_")
             or (s.event_type or "").startswith("onboarding_step_viewed_")
+            or (s.event_type or "").startswith("ab_a_")
+            or (s.event_type or "").startswith("ab_b_")
         )
     })
 
@@ -5386,8 +5491,12 @@ def _build_analytics_summary(
             lifecycle_stage = "paid_active"
             if r.offer_type == "intro_1m_discounted":
                 lifecycle_badge = (
-                    "✨ İlk Ay İndirimli Aktif" if r.auto_renew_enabled else "✨ İlk Ay İndirimli (Yenileme Kapalı)"
+                    "🔥 Grup A • İlk Ay 49.99 ₺ Aktif"
+                    if r.auto_renew_enabled
+                    else "🔥 Grup A • İlk Ay 49.99 ₺ (Yenileme Kapalı)"
                 )
+            elif _is_annual_product(r.product_id):
+                lifecycle_badge = "👑 Yıllık VIP Aktif" if r.auto_renew_enabled else "👑 Yıllık VIP (Yenileme Kapalı)"
             else:
                 lifecycle_badge = "💳 Ücretli Aktif" if r.auto_renew_enabled else "💳 Ücretli Aktif (Yenileme Kapalı)"
             trial_progress_pct = 100
@@ -5481,9 +5590,9 @@ def _build_analytics_summary(
                         elapsed_days = 0
                     trial_progress_pct = max(0, min(90, round((elapsed_days / float(total_trial_days)) * 100)))
                     lifecycle_badge = (
-                        f"🎁 İlk Ay Ücretsiz ({elapsed_days}/30 Gün)"
+                        f"🎁 Grup B • İlk Ay Ücretsiz ({elapsed_days}/30 Gün)"
                         if is_1m_free_trial
-                        else f"⏳ Deneme ({elapsed_days}/7 Gün)"
+                        else f"⏳ Tarihsel Deneme ({elapsed_days}/7 Gün)"
                     )
 
                 if m_dt not in renewal_by_date:
@@ -5534,6 +5643,24 @@ def _build_analytics_summary(
             if lifecycle_stage == "reconciling_trial":
                 cohort_by_start_date[s_dt]["reconciling_trial"] += 1
 
+        is_1m_free_row = (r.offer_type == "free_trial_1m" or "trial" in str(r.product_id or "").lower())
+        if r.offer_type == "intro_1m_discounted" or (
+            not _is_annual_product(r.product_id)
+            and 0.0 < float(r.customer_price_try or 0.0) < 100.0
+            and str(r.country or "TR").upper() == "TR"
+        ):
+            ab_variant_grp = "group_a_paid_intro"
+        elif is_1m_free_row or "ilk ay ücretsiz" in str(r.offer_code_name or "").lower():
+            ab_variant_grp = "group_b_free_trial_1m"
+        elif _is_annual_product(r.product_id) and r.status != "offer_code_trial" and r.offer_type != "offer_code":
+            ab_variant_grp = "annual_anchor"
+        elif r.status == "offer_code_trial" or r.offer_type == "offer_code":
+            ab_variant_grp = "offer_code_vip"
+        elif r.offer_type == "intro_7d_trial":
+            ab_variant_grp = "legacy_7d_trial"
+        else:
+            ab_variant_grp = "standard_monthly"
+
         subscriber_ledger_list.append({
             "subscriber_id": r.subscriber_id,
             "subscriber_short": f"#{r.subscriber_id[-6:]}",
@@ -5545,6 +5672,7 @@ def _build_analytics_summary(
             "lifecycle_badge": lifecycle_badge,
             "trial_progress_pct": trial_progress_pct,
             "offer_type": r.offer_type,
+            "ab_variant_group": ab_variant_grp,
             "offer_code_name": r.offer_code_name or "-",
             "started_date": r.started_date or "-",
             "converted_or_renewed_date": r.converted_or_renewed_date or "-",
@@ -6387,6 +6515,275 @@ def _build_analytics_summary(
     android_subs_list = [s for s in subscriber_ledger_list if s.get("platform") == "android"]
     gp_catalog = sb.get("google_play_subscriptions_catalog") or _empty_store_state()["google_play_subscriptions_catalog"]
 
+    def _build_ab_experiment_comparison(plat_filter: str = "all") -> Dict[str, Any]:
+        """
+        RevenueCat Paywall A/B Testi (Grup A: İlk Ay %67 İndirim • 49.99 ₺ vs Grup B: İlk Ay Ücretsiz • 30 Gün 0 ₺ vs Yıllık VIP Çıpa • 599.99 ₺)
+        karşılaştırma matrisini gerçek SubscriberLedger ve AppInstallSignal verilerinden üretir.
+        """
+        if plat_filter == "ios":
+            plat_subs = ios_subs_list
+            plat_sigs = [s for s in active_signals_set if (s.os_family or "").lower() == "ios"]
+        elif plat_filter == "android":
+            plat_subs = android_subs_list
+            plat_sigs = [s for s in active_signals_set if (s.os_family or "").lower() == "android"]
+        else:
+            plat_subs = subscriber_ledger_list
+            plat_sigs = active_signals_set
+
+        ab_a_pw_u = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_a_paywall_viewed"])
+        ab_b_pw_u = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_b_paywall_viewed"])
+        ab_a_cta_u = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_a_paywall_cta"])
+        ab_b_cta_u = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_b_paywall_cta"])
+        ab_a_can_u = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_a_purchase_cancelled"])
+        ab_b_can_u = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_b_purchase_cancelled"])
+        ab_a_vip_u = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_a_vip_started"])
+        ab_b_vip_u = _count_distinct_signal_devices([s for s in plat_sigs if s.event_type == "ab_b_vip_started"])
+
+        grp_a_subs = [s for s in plat_subs if s.get("ab_variant_group") == "group_a_paid_intro"]
+        grp_b_subs = [s for s in plat_subs if s.get("ab_variant_group") == "group_b_free_trial_1m"]
+        ann_subs = [s for s in plat_subs if s.get("ab_variant_group") == "annual_anchor"]
+        legacy_7d_subs = [s for s in plat_subs if s.get("ab_variant_group") == "legacy_7d_trial"]
+        code_subs = [s for s in plat_subs if s.get("ab_variant_group") == "offer_code_vip"]
+        std_m_subs = [s for s in plat_subs if s.get("ab_variant_group") == "standard_monthly"]
+
+        def _summarize_variant_cohort(rows: List[Dict[str, Any]], pw_u: int, cta_u: int, can_u: int, sig_vip_u: int, is_annual_v: bool = False) -> Dict[str, Any]:
+            started_c = len(rows)
+            active_paid_c = sum(1 for r_it in rows if r_it.get("status") == "paid_active")
+            auto_renew_c = sum(
+                1 for r_it in rows
+                if r_it.get("status") != "cancelled" and bool(r_it.get("auto_renew_enabled", True))
+            )
+            active_trial_c = sum(
+                1 for r_it in rows
+                if r_it.get("status") == "intro_free_trial" and bool(r_it.get("auto_renew_enabled", True))
+            )
+            cancelled_c = sum(
+                1 for r_it in rows
+                if r_it.get("status") == "cancelled" or (r_it.get("status") != "paid_active" and not bool(r_it.get("auto_renew_enabled", True)))
+            )
+            active_tot_c = active_paid_c + active_trial_c
+            ios_act_c = sum(1 for r_it in rows if r_it.get("platform") == "ios" and r_it.get("status") in ("paid_active", "intro_free_trial", "offer_code_trial") and (r_it.get("status") == "paid_active" or bool(r_it.get("auto_renew_enabled", True))))
+            and_act_c = sum(1 for r_it in rows if r_it.get("platform") == "android" and r_it.get("status") in ("paid_active", "intro_free_trial", "offer_code_trial") and (r_it.get("status") == "paid_active" or bool(r_it.get("auto_renew_enabled", True))))
+            ret_pct = round(((started_c - cancelled_c) / started_c) * 100.0, 1) if started_c > 0 else 0.0
+            ch_pct = round((cancelled_c / started_c) * 100.0, 1) if started_c > 0 else 0.0
+            day0_g = round(sum(float(r_it.get("customer_price_try") or 0.0) for r_it in rows), 2)
+            day0_n = round(sum(float(r_it.get("developer_proceeds_try") or 0.0) for r_it in rows), 2)
+            day0_n_usd = round(day0_n / 34.5, 2)
+            pipe_g = round(
+                sum(
+                    float(r_it.get("expected_next_price_try") or 0.0)
+                    for r_it in rows
+                    if r_it.get("status") == "intro_free_trial" and bool(r_it.get("auto_renew_enabled", True))
+                ),
+                2,
+            )
+            pipe_n = round(
+                sum(
+                    float(r_it.get("expected_next_proceeds_try") or 0.0)
+                    for r_it in rows
+                    if r_it.get("status") == "intro_free_trial" and bool(r_it.get("auto_renew_enabled", True))
+                ),
+                2,
+            )
+            div_m = 12.0 if is_annual_v else 1.0
+            proj_mrr_g = 0.0
+            proj_mrr_n = 0.0
+            for r_it in rows:
+                if r_it.get("status") in ("paid_active", "intro_free_trial") and bool(r_it.get("auto_renew_enabled", True)):
+                    eg = float(r_it.get("expected_next_price_try") or r_it.get("customer_price_try") or 0.0)
+                    en = float(r_it.get("expected_next_proceeds_try") or r_it.get("developer_proceeds_try") or 0.0)
+                    proj_mrr_g += (eg / div_m)
+                    proj_mrr_n += (en / div_m)
+            eff_pw = max(pw_u, cta_u, started_c)
+            eff_cta = max(cta_u, started_c)
+            pw_to_cta = min(100.0, round((eff_cta / eff_pw) * 100.0, 1)) if eff_pw > 0 else 0.0
+            cancel_r = min(100.0, round((can_u / max(1, cta_u)) * 100.0, 1)) if cta_u > 0 else 0.0
+            pw_to_vip = min(100.0, round((max(started_c, sig_vip_u) / eff_pw) * 100.0, 1)) if eff_pw > 0 else 0.0
+            return {
+                "paywall_views": pw_u,
+                "paywall_views_devices": pw_u,
+                "cta_clicks": cta_u,
+                "paywall_cta_devices": cta_u,
+                "purchase_cancelled": can_u,
+                "purchase_cancelled_devices": can_u,
+                "vip_started_signals_devices": sig_vip_u,
+                "cta_of_view_pct": pw_to_cta,
+                "paywall_to_cta_pct": pw_to_cta,
+                "cancel_of_cta_pct": cancel_r,
+                "cta_cancel_rate_pct": cancel_r,
+                "paywall_to_vip_cvr_pct": pw_to_vip,
+                "started_vip_count": started_c,
+                "started_subs_count": started_c,
+                "active_vip_count": active_tot_c,
+                "active_subs_count": active_tot_c,
+                "paid_converted_count": active_paid_c,
+                "active_paid_count": active_paid_c,
+                "trial_active_count": active_trial_c,
+                "active_trials_count": active_trial_c,
+                "auto_renewing_count": auto_renew_c,
+                "cancelled_vip_count": cancelled_c,
+                "cancelled_subs_count": cancelled_c,
+                "ios_active_count": ios_act_c,
+                "android_active_count": and_act_c,
+                "retention_rate_pct": ret_pct,
+                "churn_rate_pct": ch_pct,
+                "realized_gross_try": day0_g,
+                "day0_realized_gross_try": day0_g,
+                "realized_net_try": day0_n,
+                "day0_realized_net_try": day0_n,
+                "realized_net_usd": day0_n_usd,
+                "pipeline_trial_mrr_gross_try": pipe_g,
+                "pipeline_30d_gross_try": pipe_g,
+                "pipeline_trial_mrr_net_try": pipe_n,
+                "pipeline_30d_net_try": pipe_n,
+                "projected_mrr_gross_try": round(proj_mrr_g, 2),
+                "projected_mrr_net_try": round(proj_mrr_n, 2),
+                "mrr_share_pct": 0.0,
+            }
+
+        ga_stats = _summarize_variant_cohort(grp_a_subs, ab_a_pw_u, ab_a_cta_u, ab_a_can_u, ab_a_vip_u, is_annual_v=False)
+        gb_stats = _summarize_variant_cohort(grp_b_subs, ab_b_pw_u, ab_b_cta_u, ab_b_can_u, ab_b_vip_u, is_annual_v=False)
+        ann_stats = _summarize_variant_cohort(ann_subs, 0, 0, 0, 0, is_annual_v=True)
+        leg_stats = _summarize_variant_cohort(legacy_7d_subs + std_m_subs, 0, 0, 0, 0, is_annual_v=False)
+        code_stats = _summarize_variant_cohort(code_subs, 0, 0, 0, 0, is_annual_v=True)
+        code_stats["active_vip_count"] = sum(1 for s_it in code_subs if s_it.get("status") == "offer_code_trial")
+        code_stats["active_subs_count"] = code_stats["active_vip_count"]
+
+        tot_mrr_ab = round(
+            ga_stats["projected_mrr_net_try"]
+            + gb_stats["projected_mrr_net_try"]
+            + ann_stats["projected_mrr_net_try"]
+            + leg_stats["projected_mrr_net_try"],
+            2,
+        )
+        tot_cash_ab = round(
+            ga_stats["realized_net_try"]
+            + gb_stats["realized_net_try"]
+            + ann_stats["realized_net_try"]
+            + leg_stats["realized_net_try"],
+            2,
+        )
+        tot_act_ab = (
+            ga_stats["active_vip_count"]
+            + gb_stats["active_vip_count"]
+            + ann_stats["active_vip_count"]
+            + leg_stats["active_vip_count"]
+            + code_stats["active_vip_count"]
+        )
+        if tot_mrr_ab > 0:
+            ga_stats["mrr_share_pct"] = round((ga_stats["projected_mrr_net_try"] / tot_mrr_ab) * 100.0, 1)
+            gb_stats["mrr_share_pct"] = round((gb_stats["projected_mrr_net_try"] / tot_mrr_ab) * 100.0, 1)
+            ann_stats["mrr_share_pct"] = round((ann_stats["projected_mrr_net_try"] / tot_mrr_ab) * 100.0, 1)
+            leg_stats["mrr_share_pct"] = round((leg_stats["projected_mrr_net_try"] / tot_mrr_ab) * 100.0, 1)
+
+        if ga_stats["started_subs_count"] > 0 or gb_stats["started_subs_count"] > 0:
+            if ga_stats["projected_mrr_net_try"] > gb_stats["projected_mrr_net_try"]:
+                lead_var = "group_a_paid_intro"
+                win_badge = f"🔥 Grup A Önde ({ga_stats['active_subs_count']} Aktif • {ga_stats['projected_mrr_net_try']:.2f} ₺ Net MRR)"
+                win_diag = (
+                    f"🔥 Grup A (İlk Ay %67 İndirim • 49.99 ₺) anlık nakit akışı ({ga_stats['day0_realized_net_try']:.2f} ₺ Net) ve "
+                    f"beklenen Net MRR ({ga_stats['projected_mrr_net_try']:.2f} ₺/Ay) ile Grup B'nin ({gb_stats['projected_mrr_net_try']:.2f} ₺/Ay) önünde."
+                )
+            elif gb_stats["projected_mrr_net_try"] > ga_stats["projected_mrr_net_try"]:
+                lead_var = "group_b_free_trial_1m"
+                win_badge = f"🎁 Grup B Önde ({gb_stats['active_subs_count']} Aktif • +{gb_stats['projected_mrr_net_try']:.2f} ₺ Net MRR)"
+                win_diag = (
+                    f"🎁 Grup B (İlk Ay Ücretsiz • 30 Gün 0 ₺) 30 günlük deneme havuzu (+{gb_stats['pipeline_30d_net_try']:.2f} ₺ Net) ve "
+                    f"beklenen Net MRR ({gb_stats['projected_mrr_net_try']:.2f} ₺/Ay) ile Grup A'nın ({ga_stats['projected_mrr_net_try']:.2f} ₺/Ay) önünde."
+                )
+            else:
+                lead_var = "tied"
+                win_badge = "⚖️ Grup A ve Grup B Başa Baş"
+                win_diag = "Grup A (İlk Ay 49.99 ₺) ve Grup B (İlk Ay 0 ₺) şu an eşit MRR katkısında; 30. gün vade dönüşümü izleniyor."
+        elif ab_a_pw_u > 0 or ab_b_pw_u > 0:
+            lead_var = "collecting_telemetry"
+            win_badge = f"🧪 Canlı Telemetri Aktif (A: {ab_a_pw_u} / B: {ab_b_pw_u} Cihaz)"
+            win_diag = f"Paywall A/B sinyalleri toplanıyor (🔥 Grup A: {ab_a_pw_u} görüntüleme / {ab_a_cta_u} CTA • 🎁 Grup B: {ab_b_pw_u} görüntüleme / {ab_b_cta_u} CTA)."
+        else:
+            lead_var = "collecting_data"
+            win_badge = f"🧪 A/B Testi Canlı (%50 Grup A • %50 Grup B)"
+            win_diag = (
+                f"RevenueCat %50/%50 Paywall A/B testi aktif (🔥 Grup A: İlk Ay 49.99 ₺ vs 🎁 Grup B: İlk Ay 30G 0 ₺). "
+                f"Mevcut portföyde 👑 {ann_stats['active_subs_count']} Yıllık VIP ve {leg_stats['active_subs_count']} Tarihsel Aylık/7G abone korunuyor."
+            )
+
+        ga_obj = {
+            "key": "group_a_paid_intro",
+            "label": "🔥 Grup A: İlk Ay %67 İndirim (₺49,99 ➔ ₺149,99/ay)",
+            "short_label": "🔥 Grup A (İlk Ay ₺49,99)",
+            "offer_type": "intro_1m_discounted",
+            **ga_stats,
+        }
+        gb_obj = {
+            "key": "group_b_free_trial_1m",
+            "label": "🎁 Grup B: İlk Ay Ücretsiz (30 Gün ₺0 ➔ ₺149,99/ay)",
+            "short_label": "🎁 Grup B (30 Gün ₺0)",
+            "offer_type": "free_trial_1m",
+            **gb_stats,
+        }
+        ann_obj = {
+            "key": "annual_anchor",
+            "label": "👑 Yıllık VIP Çıpa (₺599,99/Yıl • %67 Tasarruf)",
+            "short_label": "👑 Yıllık VIP (₺599,99)",
+            "offer_type": "standard_paid",
+            **ann_stats,
+        }
+        leg_obj = {
+            "key": "legacy_and_other",
+            "label": "⏳ Tarihsel 7G Deneme & Standart Aylık / 🎟️ Kodlu VIP",
+            "legacy_7d_active_trials_count": sum(
+                1 for s_it in legacy_7d_subs
+                if s_it.get("status") == "intro_free_trial" and bool(s_it.get("auto_renew_enabled", True))
+            ),
+            "legacy_7d_converted_paid_count": sum(1 for s_it in (legacy_7d_subs + std_m_subs) if s_it.get("status") == "paid_active"),
+            "offer_code_active_count": sum(1 for s_it in code_subs if s_it.get("status") == "offer_code_trial"),
+            **leg_stats,
+        }
+        code_obj = {
+            "key": "offer_code_vip",
+            "label": "🎟️ Teklif Kodu VIP",
+            **code_stats,
+        }
+        return {
+            "experiment_id": "paywall_monthly_intro_vs_free_trial_v1",
+            "platform": plat_filter,
+            "experiment_name": "RevenueCat Paywall A/B Testi: İlk Ay %67 İndirim (₺49,99) vs İlk Ay Ücretsiz (30 Gün ₺0)",
+            "split_ratio": "50% Grup A (paid_intro) / 50% Grup B (free_trial_1m)",
+            "group_a": ga_obj,
+            "group_a_paid_intro": ga_obj,
+            "group_b": gb_obj,
+            "group_b_free_trial_1m": gb_obj,
+            "annual_anchor": ann_obj,
+            "legacy_7d_trial": leg_obj,
+            "legacy_and_other": leg_obj,
+            "offer_code_vip": code_obj,
+            "winner_badge": win_badge,
+            "winner_diagnosis_tr": win_diag,
+            "total_active_vip": tot_act_ab,
+            "total_projected_mrr_net_try": tot_mrr_ab,
+            "total_realized_net_try": tot_cash_ab,
+            "winner_summary": {
+                "leading_variant": lead_var,
+                "badge": win_badge,
+                "diagnosis_tr": win_diag,
+            },
+        }
+
+    ab_experiment_all = _build_ab_experiment_comparison("all")
+    ab_experiment_ios = _build_ab_experiment_comparison("ios")
+    ab_experiment_android = _build_ab_experiment_comparison("android")
+    ab_experiment_by_platform = {
+        "all": ab_experiment_all,
+        "ios": ab_experiment_ios,
+        "android": ab_experiment_android,
+    }
+    financial_ledger["ab_experiment"] = ab_experiment_all
+    financial_ledger["active_30d_trials_count"] = ab_experiment_all["group_b_free_trial_1m"]["active_trials_count"]
+    financial_ledger["active_30d_mrr_net_try"] = ab_experiment_all["group_b_free_trial_1m"]["pipeline_trial_mrr_net_try"]
+    financial_ledger["active_legacy_7d_trials_count"] = ab_experiment_all["legacy_and_other"]["legacy_7d_active_trials_count"]
+    financial_ledger["active_legacy_7d_mrr_net_try"] = ab_experiment_all["legacy_and_other"]["pipeline_trial_mrr_net_try"]
+    financial_ledger["group_a_paid_intro_active_count"] = ab_experiment_all["group_a_paid_intro"]["active_subs_count"]
+
     if period == "all":
         ios_paid_cnt = int(plat_fin["ios"]["paid_cnt"])
         ios_trial_cnt = int(plat_fin["ios"]["trial_cnt"])
@@ -6723,6 +7120,7 @@ def _build_analytics_summary(
                 f"🎟️ {offer_code_cnt} Kod",
             ],
             "onboarding_step_funnel": onboarding_step_funnel_all,
+            "ab_experiment": ab_experiment_all,
         },
         "ios": {
             "key": "ios",
@@ -6787,6 +7185,7 @@ def _build_analytics_summary(
                 f"🎟️ {ios_code_cnt} Kod",
             ],
             "onboarding_step_funnel": onboarding_step_funnel_ios,
+            "ab_experiment": ab_experiment_ios,
         },
         "android": {
             "key": "android",
@@ -6858,6 +7257,7 @@ def _build_analytics_summary(
                 f"⏳ {and_trial_cnt} Deneme",
             ],
             "onboarding_step_funnel": onboarding_step_funnel_android,
+            "ab_experiment": ab_experiment_android,
         },
     }
 
@@ -6913,8 +7313,8 @@ def _build_analytics_summary(
         },
         {
             "id": "gov_app_telemetry",
-            "domain": "2. Uygulama İçi Cihaz & Ürün Telemetrisi",
-            "metrics": "first_open, daily_active, paywall_viewed/cta/cancelled, Uyku, Ağlama AI, Rutin, Dadı AI",
+            "domain": "2. Uygulama İçi Cihaz, 10 Adım Onboarding & A/B Paywall Telemetrisi",
+            "metrics": "first_open, daily_active, onboarding_step_viewed_0..9, onb_step7_quick_chip_used, ab_a_*/ab_b_* Paywall, Uyku, Ağlama AI, Rutin, Dadı AI",
             "ssot_table": "app_install_signals + babies, sleep_logs, cry_events, routine_logs, dadi_chat_history",
             "update_method": "Mobil Uygulama / WebView POST /api/v1/analytics/app-open-signal & /usage-signal",
             "frequency": "Anlık (Olay Anında) • Kokpitte 15 sn'de bir canlı polling",
@@ -6924,8 +7324,8 @@ def _build_analytics_summary(
         },
         {
             "id": "gov_live_sub_bridge",
-            "domain": "3. Canlı Abonelik & Tahsilat Köprüsü (iOS + Android)",
-            "metrics": "Yeni 7G Deneme, İlk Ücretli Alım, Plan Değişimi (Crossgrade), Google Play Aktif Abone",
+            "domain": "3. Canlı Abonelik, A/B Testi & Tahsilat Köprüsü (iOS + Android)",
+            "metrics": "🔥 Grup A İlk Ay %67 İndirim (49.99 ₺), 🎁 Grup B İlk Ay Ücretsiz (30G 0 ₺), 👑 Yıllık VIP (599.99 ₺), Plan Değişimi, Google Play Aktif Abone",
             "ssot_table": "subscriber_ledger (RC_T0_* & Google Play subscriptionsv2)",
             "update_method": "POST /api/v1/analytics/subscriber-sync + RevenueCat REST API v2 (production) & Google Play API",
             "frequency": "Satın Alma Anında (T-0) + 6 Saatte Bir Otomatik Arka Plan Senkronu",
@@ -7207,9 +7607,13 @@ def _build_analytics_summary(
         },
         "onboarding_step_funnel": onboarding_step_funnel_all,
         "onboarding_step_funnel_by_platform": onboarding_step_funnel_by_platform,
+        "ab_experiment": ab_experiment_all,
+        "ab_experiment_by_platform": ab_experiment_by_platform,
         "product_funnel": {
             "onboarding_step_funnel": onboarding_step_funnel_all,
             "onboarding_step_funnel_by_platform": onboarding_step_funnel_by_platform,
+            "ab_experiment": ab_experiment_all,
+            "ab_experiment_by_platform": ab_experiment_by_platform,
             "bridge_unique_clicks": effective_unique_bridge_clicks,
             "asa_clicks": asa_clicks_val,
             "total_acquisition_clicks": total_cumulative_visits_and_clicks,
@@ -7535,7 +7939,22 @@ def sync_client_subscriber_ledger(
                 st_val = "paid_active"
             else:
                 st_val = "intro_free_trial"
-            offer_code_nm = "RevenueCat T-0 Canlı Köprü" if plat == "ios" else "7 Günlük Deneme (Google Play)"
+            is_1m_rc_v2 = (
+                st_val == "intro_free_trial"
+                and not _is_annual_product(prod_id)
+                and _is_30d_free_trial_window(
+                    start_dt_str,
+                    mat_dt_str,
+                    f"{rc_v2.get('rc_product_id', '')} {rc_v2.get('store_product_identifier', '')} {prod_id} {payload.offer_type or ''}",
+                )
+            )
+            if is_1m_rc_v2 and not payload.offer_type:
+                payload.offer_type = "free_trial_1m"
+            offer_code_nm = (
+                ("İlk Ay Ücretsiz Deneme (T-0 Canlı Köprü)" if is_1m_rc_v2 else "RevenueCat T-0 Canlı Köprü")
+                if plat == "ios"
+                else ("İlk Ay Ücretsiz Deneme (Google Play)" if is_1m_rc_v2 else "Deneme (Google Play)")
+            )
             if plat == "ios":
                 from sqlalchemy import or_ as sa_or
                 raw_rc_lookup = (payload.subscriber_id or "").strip()[:128]
@@ -9532,6 +9951,157 @@ def analytics_dashboard_page(
           </div>
     """
 
+    ab_exp = fl.get("ab_experiment") or s.get("ab_experiment") or {}
+    ab_a = ab_exp.get("group_a") or {}
+    ab_b = ab_exp.get("group_b") or {}
+    ab_ann = ab_exp.get("annual_anchor") or {}
+    ab_code = ab_exp.get("offer_code_vip") or {}
+    ab_leg = ab_exp.get("legacy_7d_trial") or {}
+    ab_win_badge = html.escape(str(ab_exp.get("winner_badge") or "🧪 A/B Testi: Veri Toplanıyor"))
+    ab_win_diag = html.escape(str(ab_exp.get("winner_diagnosis_tr") or "A/B Testi aktif."))
+    ab_tot_act = int(ab_exp.get("total_active_vip", 0) or 0)
+    ab_tot_mrr = float(ab_exp.get("total_projected_mrr_net_try", 0.0) or 0.0)
+    ab_tot_cash = float(ab_exp.get("total_realized_net_try", 0.0) or 0.0)
+    ab_a_act = int(ab_a.get("active_vip_count", 0) or 0)
+    ab_b_act = int(ab_b.get("active_vip_count", 0) or 0)
+    ab_ann_act = int(ab_ann.get("active_vip_count", 0) or 0)
+
+    ab_experiment_html = f"""
+          <div class="bento-card tab2-sec tab2-sec-ab" id="abExperimentCommandCard" style="margin-bottom:14px; border-left:4px solid #7C3AED;">
+            <div class="section-head">
+              <div>
+                <span>🧪 RevenueCat Paywall A/B Testi Komuta Merkezi (%50 / %50 Trafik • Grup A: İlk Ay %67 İndirim vs Grup B: İlk Ay Ücretsiz)</span>
+                <div class="sr-only" id="abExperimentDiagnosisSr">{ab_win_diag}</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <span class="badge" id="abWinnerBadge" style="background:rgba(124,58,237,0.16); color:#7C3AED;">{ab_win_badge}</span>
+                <span class="badge" style="background:rgba(217,119,6,0.15); color:#D97706;" id="abTopSplitBadge">🔥 Grup A: {ab_a_act} • 🎁 Grup B: {ab_b_act} • 👑 Yıllık: {ab_ann_act}</span>
+              </div>
+            </div>
+
+            <div class="card-desc" id="abWinnerDiagnosis" style="display:block !important; margin-bottom:12px; padding:10px 12px; border-radius:10px; background:var(--bg-cell); border:1px solid var(--border-subtle); font-size:12px; color:var(--text-secondary);">
+              <strong>🎯 Otonom A/B Karar Motoru:</strong> <span id="abWinnerDiagnosisText">{ab_win_diag}</span>
+            </div>
+
+            <div class="donuts-grid" style="margin-bottom:12px;">
+              <!-- GRUP A: İLK AY %67 İNDİRİM (₺49,99 ➔ ₺149,99/ay) -->
+              <div class="step-box" id="abCardGroupA" style="border-left:4px solid #D97706;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px;">
+                  <div class="step-num" style="color:#D97706; margin-bottom:0;">🔥 GRUP A • İLK AY %67 İNDİRİM</div>
+                  <span class="badge" style="background:rgba(217,119,6,0.15); color:#D97706; font-size:10.5px;">paid_intro (%50)</span>
+                </div>
+                <div class="step-val" style="color:#D97706;" id="abGroupAActiveVal">{ab_a_act} Aktif VIP <span style="font-size:13px; color:var(--text-muted);">({int(ab_a.get('started_vip_count', 0) or 0)} Başlayan)</span></div>
+                <div class="kpi-micro-meta" style="margin:6px 0;" id="abGroupAMeta">
+                  <span class="kpi-micro-chip">💵 Anında Nakit: {float(ab_a.get('realized_net_try', 0.0) or 0.0):.2f} ₺ Net</span>
+                  <span class="kpi-micro-chip">🚀 MRR: {float(ab_a.get('projected_mrr_net_try', 0.0) or 0.0):.2f} ₺/Ay</span>
+                  <span class="kpi-micro-chip">🛡️ Tutundurma: %{float(ab_a.get('retention_rate_pct', 0.0) or 0.0)}</span>
+                </div>
+                <div class="step-sub" style="display:block !important; font-size:11.5px;">
+                  <strong>₺49,99 İlk Ay ➔ ₺149,99/ay</strong> • Paywall: <strong id="abGroupAFunnelTxt">{int(ab_a.get('paywall_views', 0) or 0)} Gösterim ➔ {int(ab_a.get('cta_clicks', 0) or 0)} Tık (%{float(ab_a.get('cta_of_view_pct', 0.0) or 0.0)}) ➔ {int(ab_a.get('purchase_cancelled', 0) or 0)} İptal</strong> •🍏 {int(ab_a.get('ios_active_count', 0) or 0)} iOS / 🤖 {int(ab_a.get('android_active_count', 0) or 0)} Android.
+                </div>
+              </div>
+
+              <!-- GRUP B: İLK AY ÜCRETSİZ (30 GÜN ₺0 ➔ ₺149,99/ay) -->
+              <div class="step-box" id="abCardGroupB" style="border-left:4px solid #059669;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px;">
+                  <div class="step-num" style="color:#059669; margin-bottom:0;">🎁 GRUP B • İLK AY ÜCRETSİZ (30G)</div>
+                  <span class="badge" style="background:rgba(16,185,129,0.15); color:#059669; font-size:10.5px;">free_trial (%50)</span>
+                </div>
+                <div class="step-val" style="color:#059669;" id="abGroupBActiveVal">{ab_b_act} Aktif VIP <span style="font-size:13px; color:var(--text-muted);">({int(ab_b.get('started_vip_count', 0) or 0)} Başlayan)</span></div>
+                <div class="kpi-micro-meta" style="margin:6px 0;" id="abGroupBMeta">
+                  <span class="kpi-micro-chip">⏳ 30G Havuz: +{float(ab_b.get('pipeline_trial_mrr_net_try', 0.0) or 0.0):.2f} ₺</span>
+                  <span class="kpi-micro-chip">🚀 MRR: {float(ab_b.get('projected_mrr_net_try', 0.0) or 0.0):.2f} ₺/Ay</span>
+                  <span class="kpi-micro-chip">🛡️ Tutundurma: %{float(ab_b.get('retention_rate_pct', 0.0) or 0.0)}</span>
+                </div>
+                <div class="step-sub" style="display:block !important; font-size:11.5px;">
+                  <strong>30 Gün ₺0 ➔ ₺149,99/ay</strong> • Paywall: <strong id="abGroupBFunnelTxt">{int(ab_b.get('paywall_views', 0) or 0)} Gösterim ➔ {int(ab_b.get('cta_clicks', 0) or 0)} Tık (%{float(ab_b.get('cta_of_view_pct', 0.0) or 0.0)}) ➔ {int(ab_b.get('purchase_cancelled', 0) or 0)} İptal</strong> • 🍏 {int(ab_b.get('ios_active_count', 0) or 0)} iOS / 🤖 {int(ab_b.get('android_active_count', 0) or 0)} Android.
+                </div>
+              </div>
+
+              <!-- YILLIK VIP ÇIPA (₺599,99/YIL • %67 TASARRUF) -->
+              <div class="step-box" id="abCardAnnual" style="border-left:4px solid #7C3AED;">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px;">
+                  <div class="step-num" style="color:#7C3AED; margin-bottom:0;">👑 YILLIK VIP ÇIPA (%67 TASARRUF)</div>
+                  <span class="badge" style="background:rgba(124,58,237,0.15); color:#7C3AED; font-size:10.5px;">Her İki Grupta Ortak</span>
+                </div>
+                <div class="step-val" style="color:#7C3AED;" id="abAnnualActiveVal">{ab_ann_act} Yıllık VIP <span style="font-size:13px; color:var(--text-muted);">({int(ab_ann.get('started_vip_count', 0) or 0)} Başlayan)</span></div>
+                <div class="kpi-micro-meta" style="margin:6px 0;" id="abAnnualMeta">
+                  <span class="kpi-micro-chip">💵 Tahsilat: {float(ab_ann.get('realized_net_try', 0.0) or 0.0):.2f} ₺ Net</span>
+                  <span class="kpi-micro-chip">🚀 MRR: {float(ab_ann.get('projected_mrr_net_try', 0.0) or 0.0):.2f} ₺/Ay</span>
+                  <span class="kpi-micro-chip">🎟️ Kodlu: {int(ab_code.get('active_vip_count', 0) or 0)} • ⏳ 7G: {int(ab_leg.get('active_vip_count', 0) or 0)}</span>
+                </div>
+                <div class="step-sub" style="display:block !important; font-size:11.5px;">
+                  <strong>₺599,99/Yıl (~₺49,99/ay)</strong> • Peşin yıllık nakit akışı ve sıfır aylık churn çıpası • 🍏 {int(ab_ann.get('ios_active_count', 0) or 0)} iOS / 🤖 {int(ab_ann.get('android_active_count', 0) or 0)} Android.
+                </div>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>A/B Varyantı &amp; Paket</th>
+                    <th>Paywall Gösterim ➔ Tık</th>
+                    <th>Ödeme İptali</th>
+                    <th>Başlayan VIP</th>
+                    <th>Aktif / İptal (Churn)</th>
+                    <th>🍏 / 🤖</th>
+                    <th>Gün-0 Tahsilat (Net ₺)</th>
+                    <th>Deneme Havuzu (30G/7G)</th>
+                    <th>Beklenen Net MRR</th>
+                  </tr>
+                </thead>
+                <tbody id="abExperimentTbody">
+                  <tr style="background:rgba(217,119,6,0.06);">
+                    <td><strong>🔥 Grup A: İlk Ay %67 İndirim</strong> <span style="font-size:11px; color:var(--text-muted);">(₺49,99 ➔ ₺149,99/ay)</span></td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong>{int(ab_a.get('paywall_views', 0) or 0)}</strong> ➔ <strong>{int(ab_a.get('cta_clicks', 0) or 0)}</strong> (%{float(ab_a.get('cta_of_view_pct', 0.0) or 0.0)})</td>
+                    <td style="font-variant-numeric:tabular-nums;">{int(ab_a.get('purchase_cancelled', 0) or 0)} (%{float(ab_a.get('cancel_of_cta_pct', 0.0) or 0.0)})</td>
+                    <td style="font-weight:800; color:#D97706;">{int(ab_a.get('started_vip_count', 0) or 0)}</td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong style="color:#059669;">{ab_a_act} Aktif</strong> • {int(ab_a.get('cancelled_vip_count', 0) or 0)} İptal (%{float(ab_a.get('churn_rate_pct', 0.0) or 0.0)})</td>
+                    <td>🍏 {int(ab_a.get('ios_active_count', 0) or 0)} • 🤖 {int(ab_a.get('android_active_count', 0) or 0)}</td>
+                    <td style="font-weight:800; color:#059669; font-variant-numeric:tabular-nums;">{float(ab_a.get('realized_net_try', 0.0) or 0.0):.2f} ₺ <span style="font-size:11px; color:var(--text-muted);">(${float(ab_a.get('realized_net_usd', 0.0) or 0.0):.2f})</span></td>
+                    <td style="color:var(--text-muted);">0.00 ₺ (Anında Ücretli)</td>
+                    <td style="font-weight:800; color:#7C3AED; font-variant-numeric:tabular-nums;">{float(ab_a.get('projected_mrr_net_try', 0.0) or 0.0):.2f} ₺/Ay (%{float(ab_a.get('mrr_share_pct', 0.0) or 0.0)})</td>
+                  </tr>
+                  <tr style="background:rgba(16,185,129,0.06);">
+                    <td><strong>🎁 Grup B: İlk Ay Ücretsiz (30G)</strong> <span style="font-size:11px; color:var(--text-muted);">(30G ₺0 ➔ ₺149,99/ay)</span></td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong>{int(ab_b.get('paywall_views', 0) or 0)}</strong> ➔ <strong>{int(ab_b.get('cta_clicks', 0) or 0)}</strong> (%{float(ab_b.get('cta_of_view_pct', 0.0) or 0.0)})</td>
+                    <td style="font-variant-numeric:tabular-nums;">{int(ab_b.get('purchase_cancelled', 0) or 0)} (%{float(ab_b.get('cancel_of_cta_pct', 0.0) or 0.0)})</td>
+                    <td style="font-weight:800; color:#059669;">{int(ab_b.get('started_vip_count', 0) or 0)}</td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong style="color:#059669;">{ab_b_act} Aktif</strong> • {int(ab_b.get('cancelled_vip_count', 0) or 0)} İptal (%{float(ab_b.get('churn_rate_pct', 0.0) or 0.0)})</td>
+                    <td>🍏 {int(ab_b.get('ios_active_count', 0) or 0)} • 🤖 {int(ab_b.get('android_active_count', 0) or 0)}</td>
+                    <td style="font-weight:700; color:#059669; font-variant-numeric:tabular-nums;">{float(ab_b.get('realized_net_try', 0.0) or 0.0):.2f} ₺</td>
+                    <td style="font-weight:700; color:#D97706; font-variant-numeric:tabular-nums;">+{float(ab_b.get('pipeline_trial_mrr_net_try', 0.0) or 0.0):.2f} ₺ ({int(ab_b.get('trial_active_count', 0) or 0)} Deneme)</td>
+                    <td style="font-weight:800; color:#7C3AED; font-variant-numeric:tabular-nums;">{float(ab_b.get('projected_mrr_net_try', 0.0) or 0.0):.2f} ₺/Ay (%{float(ab_b.get('mrr_share_pct', 0.0) or 0.0)})</td>
+                  </tr>
+                  <tr>
+                    <td><strong>👑 Yıllık VIP Çıpa</strong> <span style="font-size:11px; color:var(--text-muted);">(₺599,99/Yıl • %67 Tasarruf)</span></td>
+                    <td style="color:var(--text-muted); font-size:12px;">Ortak Üst Kart</td>
+                    <td style="color:var(--text-muted); font-size:12px;">—</td>
+                    <td style="font-weight:800; color:#7C3AED;">{int(ab_ann.get('started_vip_count', 0) or 0)}</td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong style="color:#059669;">{ab_ann_act} Aktif</strong> • {int(ab_ann.get('cancelled_vip_count', 0) or 0)} İptal (%{float(ab_ann.get('churn_rate_pct', 0.0) or 0.0)})</td>
+                    <td>🍏 {int(ab_ann.get('ios_active_count', 0) or 0)} • 🤖 {int(ab_ann.get('android_active_count', 0) or 0)}</td>
+                    <td style="font-weight:800; color:#059669; font-variant-numeric:tabular-nums;">{float(ab_ann.get('realized_net_try', 0.0) or 0.0):.2f} ₺ <span style="font-size:11px; color:var(--text-muted);">(${float(ab_ann.get('realized_net_usd', 0.0) or 0.0):.2f})</span></td>
+                    <td style="color:var(--text-muted);">0.00 ₺ (Peşin Yıllık)</td>
+                    <td style="font-weight:800; color:#7C3AED; font-variant-numeric:tabular-nums;">{float(ab_ann.get('projected_mrr_net_try', 0.0) or 0.0):.2f} ₺/Ay (%{float(ab_ann.get('mrr_share_pct', 0.0) or 0.0)})</td>
+                  </tr>
+                  <tr>
+                    <td><strong>⏳ Tarihsel 7G Deneme &amp; 🎟️ Kodlu VIP</strong> <span style="font-size:11px; color:var(--text-muted);">(Önceki Kohort Referansı)</span></td>
+                    <td style="color:var(--text-muted); font-size:12px;">Tarihsel Kohort</td>
+                    <td style="color:var(--text-muted); font-size:12px;">—</td>
+                    <td style="font-weight:700;">{int(ab_leg.get('started_vip_count', 0) or 0) + int(ab_code.get('started_vip_count', 0) or 0)}</td>
+                    <td style="font-variant-numeric:tabular-nums;"><strong>{int(ab_leg.get('active_vip_count', 0) or 0) + int(ab_code.get('active_vip_count', 0) or 0)} Aktif</strong> (⏳ {int(ab_leg.get('active_vip_count', 0) or 0)} • 🎟️ {int(ab_code.get('active_vip_count', 0) or 0)}) • {int(ab_leg.get('cancelled_vip_count', 0) or 0) + int(ab_code.get('cancelled_vip_count', 0) or 0)} İptal</td>
+                    <td>🍏 {int(ab_leg.get('ios_active_count', 0) or 0) + int(ab_code.get('ios_active_count', 0) or 0)} • 🤖 {int(ab_leg.get('android_active_count', 0) or 0) + int(ab_code.get('android_active_count', 0) or 0)}</td>
+                    <td style="font-variant-numeric:tabular-nums;">{float(ab_leg.get('realized_net_try', 0.0) or 0.0):.2f} ₺</td>
+                    <td style="font-weight:700; color:#D97706; font-variant-numeric:tabular-nums;">+{float(ab_leg.get('pipeline_trial_mrr_net_try', 0.0) or 0.0):.2f} ₺ ({int(ab_leg.get('trial_active_count', 0) or 0)} 7G)</td>
+                    <td style="font-weight:700; color:#7C3AED; font-variant-numeric:tabular-nums;">{float(ab_leg.get('projected_mrr_net_try', 0.0) or 0.0) + float(ab_code.get('projected_mrr_net_try', 0.0) or 0.0):.2f} ₺/Ay</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+    """
+
     dashboard_response = HTMLResponse(f"""
     <!DOCTYPE html>
     <html lang="tr">
@@ -11182,8 +11752,12 @@ def analytics_dashboard_page(
                   <span>Net MRR</span>
                   <strong style="color:#FAF5EE;" id="sideKpiMrr">{fl['projected_total_mrr_net_try']:.2f} ₺</strong>
                 </div>
-                <div class="sidebar-kpi-row clickable-kpi-row" onclick="jumpToOnboardingFunnel()" title="9 Adımlı Kullanıcı Onboarding İlerleme Tablosuna Git">
-                  <span>🧭 Onboarding (0➔9)</span>
+                <div class="sidebar-kpi-row clickable-kpi-row" onclick="jumpToAbExperiment()" title="RevenueCat Paywall A/B Testi (Grup A İlk Ay 49.99 ₺ vs Grup B İlk Ay Ücretsiz) Komuta Merkezine Git">
+                  <span>🧪 A/B Testi</span>
+                  <strong style="color:#F4A261;" id="sideKpiAbTest">🔥A:{ab_a_act} • 🎁B:{ab_b_act}</strong>
+                </div>
+                <div class="sidebar-kpi-row clickable-kpi-row" onclick="jumpToOnboardingFunnel()" title="10 Adımlı Kullanıcı Onboarding (Adım 0➔9 • Yeni Sıralama & 7. Kart Öneri C) Tablosuna Git">
+                  <span>🧭 10 Adım (0➔9)</span>
                   <strong style="color:#D8B4FE;" id="sideKpiOnb">{html.escape(onb_comp_str)} ({int(onb_f.get('step9_reached_devices', 0) or 0)}/{int(onb_f.get('start_base_devices', 0) or 0)})</strong>
                 </div>
                 <div class="sidebar-kpi-row clickable-kpi-row" onclick="jumpToStarDistribution()" title="🍏 iOS & 🤖 Android 5★..1★ Mağaza Oy Dağılımına Git">
@@ -11233,7 +11807,8 @@ def analytics_dashboard_page(
                     <span id="funnelHeadTitle">🎯 Dönüşüm Hunisi<span class="sr-only"> (Edinim ➔ VIP ➔ Churn ➔ Net Abone)</span>{'' if clean_period == 'all' else f" — {html.escape(s['period_label'])}"}</span>
                   </div>
                   <div class="conv-summary-pills" id="funnelHeadBadge">
-                    <button type="button" class="conv-summary-pill" onclick="jumpToOnboardingFunnel()" style="cursor:pointer; background:rgba(124,58,237,0.14); border-color:rgba(124,58,237,0.38); color:var(--stage-4);" title="9 Adımlı Kullanıcı Onboarding İlerleme Tablosuna Git">🧭 Onboarding: <strong id="convOnbCompPill">{html.escape(onb_comp_str)} ({int(onb_f.get('step9_reached_devices', 0) or 0)}/{int(onb_f.get('start_base_devices', 0) or 0)}) ➔</strong></button>
+                    <button type="button" class="conv-summary-pill" onclick="jumpToAbExperiment()" style="cursor:pointer; background:rgba(217,119,6,0.15); border-color:rgba(217,119,6,0.42); color:#D97706;" title="RevenueCat Paywall A/B Testi (Grup A İlk Ay 49.99 ₺ vs Grup B İlk Ay Ücretsiz) Tablosuna Git">🧪 A/B Testi: <strong id="convAbTestPill">🔥A:{ab_a_act} vs 🎁B:{ab_b_act} (👑{ab_ann_act}) ➔</strong></button>
+                    <button type="button" class="conv-summary-pill" onclick="jumpToOnboardingFunnel()" style="cursor:pointer; background:rgba(124,58,237,0.14); border-color:rgba(124,58,237,0.38); color:var(--stage-4);" title="10 Adımlı Kullanıcı Onboarding (Adım 0➔9) İlerleme Tablosuna Git">🧭 10 Adım Onboarding: <strong id="convOnbCompPill">{html.escape(onb_comp_str)} ({int(onb_f.get('step9_reached_devices', 0) or 0)}/{int(onb_f.get('start_base_devices', 0) or 0)}) ➔</strong></button>
                     <button type="button" class="conv-summary-pill" onclick="jumpToStarDistribution()" style="cursor:pointer; background:rgba(245,158,11,0.15); border-color:rgba(245,158,11,0.40); color:#D97706;" title="🍏 iOS & 🤖 Android 5★..1★ Mağaza Oy Dağılımına Git">⭐ Oy Dağılımı: <strong id="convStarsPill">{html.escape(str(all_sd.get('overall_avg_str') or 'Yorum Yok'))} ({int(all_sd.get('overall_count', 0) or 0)} Oy) ➔</strong></button>
                     <span class="conv-summary-pill" style="background:rgba(var(--stage-3-rgb),0.10); border-color:rgba(var(--stage-3-rgb),0.28); color:var(--stage-3);">CVR: <strong id="convStoreCvrPill">%{ps_all.get('store_cvr_pct', 0)}</strong></span>
                     <span class="conv-summary-pill">➔ VIP: <strong id="convStartedVipDlPill">%{ps_all.get('started_vip_of_dl_pct', 0)}</strong></span>
@@ -11442,11 +12017,11 @@ def analytics_dashboard_page(
                   <td><span class="badge badge-gp">🍏 %{ps_ios.get('cvr_pct', 0)} Genel (Mağaza %{ps_ios.get('store_cvr_pct', 0)}) vs 🤖 %{ps_and.get('cvr_pct', 0)} Android CVR</span></td>
                 </tr>
                 <tr>
-                  <td><strong>4. Canlı Abonelik Paketleri</strong></td>
-                  <td style="font-weight:700;">4 Aktif Paket (iOS + Android)</td>
-                  <td><strong>2 Paket:</strong> <code>misil_annual</code> (599.99 ₺) & <code>misil_monthly</code> (İlk Ay 49.99 ₺ ➔ 149.99 ₺)</td>
-                  <td><strong>{len(gp_catalog)} Paket Aktif:</strong> <code>misil</code> (599.99 ₺) & <code>misilaylik</code> (İlk Ay 49.99 ₺ ➔ 149.99 ₺)</td>
-                  <td><span class="badge badge-gp">İlk Ay 49.99 ₺ Başlangıç + Hard Paywall</span></td>
+                  <td><strong>4. Canlı Abonelik Paketleri &amp; A/B Testi</strong></td>
+                  <td style="font-weight:700;">4 Aktif Paket • %50/%50 A/B Testi</td>
+                  <td><strong>2 Paket:</strong> <code>misil_annual</code> (599.99 ₺) &amp; <code>misil_monthly</code> (🔥 Grup A: İlk Ay 49.99 ₺ vs 🎁 Grup B: İlk Ay 0 ₺ ➔ 149.99 ₺)</td>
+                  <td><strong>{len(gp_catalog)} Paket Aktif:</strong> <code>misil</code> (599.99 ₺) &amp; <code>misilaylik</code> (🔥 Grup A: İlk Ay 49.99 ₺ vs 🎁 Grup B: İlk Ay 0 ₺ ➔ 149.99 ₺)</td>
+                  <td><span class="badge badge-gp">🧪 RevenueCat A/B: İlk Ay %67 İndirim vs 30G Ücretsiz</span></td>
                 </tr>
                 <tr>
                   <td><strong>5. Aktif VIP Abone & Net MRR</strong></td>
@@ -11475,7 +12050,8 @@ def analytics_dashboard_page(
             <button type="button" class="subcat-pill" id="subcatBtn_t1_trend" onclick="filterTab1Category('trend')">📈 İndirme Trendi &amp; Sosyal</button>
             <button type="button" class="subcat-pill" id="subcatBtn_t1_donuts" onclick="filterTab1Category('donuts')">🍩 Dağılım Halkaları</button>
             <button type="button" class="subcat-pill" id="subcatBtn_t1_channels" onclick="filterTab1Category('channels')">🎯 Edinim &amp; Ülkeler ({len(countries_list)})</button>
-            <button type="button" class="subcat-pill" onclick="jumpToOnboardingFunnel()" style="border-color:rgba(124,58,237,0.38); color:var(--stage-4);">🧭 9 Adım Onboarding ({html.escape(onb_comp_str)}) ➔</button>
+            <button type="button" class="subcat-pill" onclick="jumpToAbExperiment()" style="border-color:rgba(217,119,6,0.42); color:#D97706;">🧪 A/B Testi (🔥A:{ab_a_act} vs 🎁B:{ab_b_act}) ➔</button>
+            <button type="button" class="subcat-pill" onclick="jumpToOnboardingFunnel()" style="border-color:rgba(124,58,237,0.38); color:var(--stage-4);">🧭 10 Adım Onboarding ({html.escape(onb_comp_str)}) ➔</button>
             <button type="button" class="subcat-pill" onclick="jumpToStarDistribution()" style="border-color:rgba(245,158,11,0.40); color:#D97706;">⭐ Oy Dağılımı ({html.escape(str(all_sd.get('overall_avg_str') or 'Yorum Yok'))}) ➔</button>
           </div>
 
@@ -11622,6 +12198,7 @@ def analytics_dashboard_page(
           <div class="subcat-bar" id="tab2SubNav">
             <span class="subcat-label">📂 Filtre:</span>
             <button type="button" class="subcat-pill active" id="subcatBtn_all" onclick="filterTab2Category('all')">🌐 Tümü</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_ab" onclick="filterTab2Category('ab')">🧪 A/B Testi (🔥A:{ab_a_act} vs 🎁B:{ab_b_act})</button>
             <button type="button" class="subcat-pill" id="subcatBtn_reconcile" onclick="filterTab2Category('reconcile')">⚖️ Mutabakat</button>
             <button type="button" class="subcat-pill" id="subcatBtn_country" onclick="filterTab2Category('country')">🌍 Ülke ({paid_countries_cnt})</button>
             <button type="button" class="subcat-pill" id="subcatBtn_calendar" onclick="filterTab2Category('calendar')">📅 Takvim</button>
@@ -11656,14 +12233,15 @@ def analytics_dashboard_page(
             </div>
 
             <div class="bento-card">
-              <div class="card-label">⏳ 3. AKTİF 7G DENEME &amp; MUTABAKAT</div>
+              <div class="card-label">⏳ 3. AKTİF DENEME &amp; VADE HAVUZU (30G / 7G)<span class="sr-only">⏳ 3. AKTİF 7G DENEME &amp; MUTABAKAT</span></div>
               <div class="big-num" style="color:#D97706;">+{fl['pipeline_7d_mrr_net_try']:.2f} ₺</div>
               <div class="kpi-micro-meta">
-                <span class="kpi-micro-chip">⏳ {fl['upcoming_7d_trials_count']} Süren (+{fl['upcoming_7d_mrr_net_try']:.2f} ₺)</span>
-                <span class="kpi-micro-chip">🔄 {fl['reconciling_7d_trials_count']} Vade Mutabakatında (+{fl['reconciling_7d_mrr_net_try']:.2f} ₺)</span>
+                <span class="kpi-micro-chip">🎁 30G Ücretsiz: {fl.get('active_30d_trials_count', 0)} (+{fl.get('active_30d_mrr_net_try', 0.0):.2f} ₺)</span>
+                <span class="kpi-micro-chip">⏳ 7G Tarihsel: {fl.get('active_legacy_7d_trials_count', 0)} (+{fl.get('active_legacy_7d_mrr_net_try', 0.0):.2f} ₺)</span>
+                <span class="kpi-micro-chip">🔄 Mutabakat: {fl['reconciling_7d_trials_count']}</span>
               </div>
               <div class="card-desc">
-                Toplam 7G Deneme Havuzu: <strong>{fl['pipeline_7d_trials_count']} Abone (+{fl['pipeline_7d_mrr_net_try']:.2f} ₺ Net / {fl['pipeline_7d_mrr_gross_try']:.2f} ₺ Brüt)</strong> — Süresi devam eden: <strong>{fl['upcoming_7d_trials_count']} abone (+{fl['upcoming_7d_mrr_net_try']:.2f} ₺)</strong> • 7. günü dolup mağaza tahsilat mutabakatında olan: <strong>{fl['reconciling_7d_trials_count']} abone (+{fl['reconciling_7d_mrr_net_try']:.2f} ₺)</strong>.
+                Toplam Deneme Havuzu: <strong>{fl['pipeline_7d_trials_count']} Abone (+{fl['pipeline_7d_mrr_net_try']:.2f} ₺ Net / {fl['pipeline_7d_mrr_gross_try']:.2f} ₺ Brüt)</strong> — 🎁 Grup B 30G Ücretsiz: <strong>{fl.get('active_30d_trials_count', 0)} abone (+{fl.get('active_30d_mrr_net_try', 0.0):.2f} ₺)</strong> • ⏳ Tarihsel 7G Deneme: <strong>{fl.get('active_legacy_7d_trials_count', 0)} abone (+{fl.get('active_legacy_7d_mrr_net_try', 0.0):.2f} ₺)</strong> • Vade mutabakatında: <strong>{fl['reconciling_7d_trials_count']} abone</strong>.
               </div>
             </div>
 
@@ -11682,12 +12260,14 @@ def analytics_dashboard_page(
             </div>
           </div>
 
+          {ab_experiment_html}
+
           <div class="bento-split-2col">
             {store_reconciliation_html}
 
             <div class="bento-card tab2-sec tab2-sec-calendar" id="appleRenewalCard">
               <div class="section-head">
-                <span>📅 7G Vade Takvimi</span>
+                <span>📅 Deneme &amp; Yenileme Vade Takvimi (30G / 7G)<span class="sr-only">📅 7G Vade Takvimi</span></span>
                 <span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">+{fl['pipeline_7d_mrr_net_try']:.2f} ₺ Net</span>
               </div>
               <div class="steps-grid">
@@ -11750,7 +12330,7 @@ def analytics_dashboard_page(
                     <th>#</th>
                     <th>Abone ID</th>
                     <th>Paket</th>
-                    <th>Durum & 7G İlerleme</th>
+                    <th>Durum &amp; A/B Vade İlerleme<span class="sr-only">Durum & 7G İlerleme</span></th>
                     <th>Başlangıç</th>
                     <th>Son İşlem</th>
                     <th>Yenilenme / Vade</th>
@@ -11768,19 +12348,20 @@ def analytics_dashboard_page(
           </div>
         </div>
 
-        <!-- SEKME 3: 9 ADIMLI ONBOARDING, ÜRÜN KULLANIMI, PAYWALL & KOHORT TUTUNDURMA -->
+        <!-- SEKME 3: 10 ADIMLI ONBOARDING (0➔9), ÜRÜN KULLANIMI, PAYWALL & KOHORT TUTUNDURMA -->
         <div id="tabPane_tab3" class="tab-pane">
           <div class="subcat-bar" id="tab3SubNav">
             <span class="subcat-label">📂 Görünüm:</span>
             <button type="button" class="subcat-pill active" id="subcatBtn_t3_all" onclick="filterTab3Category('all')">🌐 Tümü</button>
-            <button type="button" class="subcat-pill" id="subcatBtn_t3_onboarding" onclick="filterTab3Category('onboarding')">🧭 9 Adım Onboarding ({onb_total_devs} Cihaz)</button>
+            <button type="button" class="subcat-pill" id="subcatBtn_t3_onboarding" onclick="filterTab3Category('onboarding')">🧭 10 Adım Onboarding ({onb_total_devs} Cihaz)</button>
             <button type="button" class="subcat-pill" id="subcatBtn_t3_paywall" onclick="filterTab3Category('paywall')">🔄 Paywall &amp; Modüller</button>
             <button type="button" class="subcat-pill" id="subcatBtn_t3_cohort" onclick="filterTab3Category('cohort')">📊 Kohort Matrisi ({len(pr['subscriber_cohorts'])})</button>
+            <button type="button" class="subcat-pill" onclick="jumpToAbExperiment()" style="border-color:rgba(217,119,6,0.42); color:#D97706;">🧪 A/B Testi (🔥A:{ab_a_act} vs 🎁B:{ab_b_act}) ➔</button>
           </div>
 
           <div class="bento-card tab3-sec tab3-sec-onboarding" id="onboardingNineStepFunnelCard">
             <div class="section-head">
-              <span>🧭 9 Adım Onboarding<span class="sr-only"> — 9 Adımlı Kullanıcı Onboarding &amp; Paywall İlerleme Analizi (Gerçek Cihaz Telemetrisi — Sıfır Statik Veri)</span></span>
+              <span>🧭 10 Adım Onboarding (Adım 0➔9 • Yeni Sıralama &amp; 7. Kart Öneri C)<span class="sr-only"> — 9 Adımlı Kullanıcı Onboarding &amp; Paywall İlerleme Analizi (Gerçek Cihaz Telemetrisi — Sıfır Statik Veri)</span></span>
               <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <span class="badge" id="onbFunnelDevicesBadge" style="background:rgba(37,99,235,0.12); color:#2563EB;">📱 {onb_total_devs} Cihaz</span>
                 <span class="badge" id="onbFunnelCompletionBadge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">🏁 0➔9: {html.escape(onb_comp_str)}</span>
@@ -11789,9 +12370,10 @@ def analytics_dashboard_page(
             </div>
             <div class="kpi-micro-meta" id="onbFunnelContinuationMeta" style="margin-bottom:10px;">
               <span class="kpi-micro-chip">🚀 Açılış: {int(onb_f.get('first_open_unique_devices', 0) or 0)}</span>
-              <span class="kpi-micro-chip">👁️ Paywall: {int(onb_f.get('paywall_viewed_unique_devices', 0) or 0)}</span>
-              <span class="kpi-micro-chip">👆 Tık: {int(onb_f.get('paywall_cta_unique_devices', 0) or 0)}</span>
-              <span class="kpi-micro-chip">👑 VIP: {int(onb_f.get('vip_started_unique_devices', 0) or 0)}</span>
+              <span class="kpi-micro-chip">⚡ 7. Kart Hızlı Çip: {int(onb_f.get('step7_quick_chip_unique_devices', 0) or 0)}</span>
+              <span class="kpi-micro-chip">👁️ Paywall: {int(onb_f.get('paywall_viewed_unique_devices', 0) or 0)} (🔥A:{int(onb_f.get('ab_a_paywall_viewed_unique_devices', 0) or 0)} • 🎁B:{int(onb_f.get('ab_b_paywall_viewed_unique_devices', 0) or 0)})</span>
+              <span class="kpi-micro-chip">👆 Tık: {int(onb_f.get('paywall_cta_unique_devices', 0) or 0)} (🔥A:{int(onb_f.get('ab_a_paywall_cta_unique_devices', 0) or 0)} • 🎁B:{int(onb_f.get('ab_b_paywall_cta_unique_devices', 0) or 0)})</span>
+              <span class="kpi-micro-chip">👑 VIP: {int(onb_f.get('vip_started_unique_devices', 0) or 0)} (🔥A:{int(onb_f.get('ab_a_vip_started_unique_devices', 0) or 0)} • 🎁B:{int(onb_f.get('ab_b_vip_started_unique_devices', 0) or 0)})</span>
             </div>
             <div class="table-wrap">
               <table>
@@ -11941,9 +12523,9 @@ def analytics_dashboard_page(
                   <tr>
                     <th>Kohort Başlangıç Günü</th>
                     <th>Başlayan VIP</th>
-                    <th>Ücretliye Geçen</th>
+                    <th>Ücretliye Geçen (🔥 Grup A / 👑 Yıllık)</th>
                     <th>Yıllık Kodlu</th>
-                    <th>7G Denemesi Süren</th>
+                    <th>Denemesi Süren (🎁 30G / ⏳ 7G)<span class="sr-only">7G Denemesi Süren</span></th>
                     <th>İptal Eden</th>
                     <th>Kohort Tutundurma</th>
                   </tr>
@@ -12167,6 +12749,17 @@ def analytics_dashboard_page(
           switchTab('tab3');
           filterTab3Category('all');
           var el = document.getElementById('onboardingNineStepFunnelCard');
+          if (el && el.scrollIntoView) {{
+            setTimeout(function() {{
+              try {{ el.scrollIntoView({{ behavior: 'smooth', block: 'start' }}); }} catch (_se) {{ el.scrollIntoView(); }}
+            }}, 40);
+          }}
+        }}
+
+        function jumpToAbExperiment() {{
+          switchTab('tab2');
+          filterTab2Category('all');
+          var el = document.getElementById('abExperimentCommandCard');
           if (el && el.scrollIntoView) {{
             setTimeout(function() {{
               try {{ el.scrollIntoView({{ behavior: 'smooth', block: 'start' }}); }} catch (_se) {{ el.scrollIntoView(); }}
@@ -12423,7 +13016,7 @@ def analytics_dashboard_page(
         }}
 
         function filterTab2Category(cat) {{
-          var pills = ['all', 'country', 'reconcile', 'calendar', 'ledger'];
+          var pills = ['all', 'ab', 'country', 'reconcile', 'calendar', 'ledger'];
           for (var i = 0; i < pills.length; i++) {{
             var b = document.getElementById('subcatBtn_' + pills[i]);
             if (b) {{
@@ -12742,9 +13335,10 @@ def analytics_dashboard_page(
             if (contMeta) {{
               contMeta.innerHTML =
                 '<span class="kpi-micro-chip">🚀 Açılış: ' + Number(ofData.first_open_unique_devices || 0) + '</span>' +
-                '<span class="kpi-micro-chip">👁️ Paywall: ' + Number(ofData.paywall_viewed_unique_devices || 0) + '</span>' +
-                '<span class="kpi-micro-chip">👆 Tık: ' + Number(ofData.paywall_cta_unique_devices || 0) + '</span>' +
-                '<span class="kpi-micro-chip">👑 VIP: ' + Number(ofData.vip_started_unique_devices || 0) + '</span>';
+                '<span class="kpi-micro-chip">⚡ 7. Kart Hızlı Çip: ' + Number(ofData.step7_quick_chip_unique_devices || 0) + '</span>' +
+                '<span class="kpi-micro-chip">👁️ Paywall: ' + Number(ofData.paywall_viewed_unique_devices || 0) + ' (🔥A:' + Number(ofData.ab_a_paywall_viewed_unique_devices || 0) + ' • 🎁B:' + Number(ofData.ab_b_paywall_viewed_unique_devices || 0) + ')</span>' +
+                '<span class="kpi-micro-chip">👆 Tık: ' + Number(ofData.paywall_cta_unique_devices || 0) + ' (🔥A:' + Number(ofData.ab_a_paywall_cta_unique_devices || 0) + ' • 🎁B:' + Number(ofData.ab_b_paywall_cta_unique_devices || 0) + ')</span>' +
+                '<span class="kpi-micro-chip">👑 VIP: ' + Number(ofData.vip_started_unique_devices || 0) + ' (🔥A:' + Number(ofData.ab_a_vip_started_unique_devices || 0) + ' • 🎁B:' + Number(ofData.ab_b_vip_started_unique_devices || 0) + ')</span>';
             }}
             if (onbTbody && Array.isArray(ofData.steps)) {{
               var rowsHtml = '';
@@ -12795,6 +13389,34 @@ def analytics_dashboard_page(
               }}
               onbTbody.innerHTML = rowsHtml;
             }}
+          }}
+
+          if (p && p.ab_experiment) {{
+            var ab = p.ab_experiment;
+            var gA = ab.group_a || {{}};
+            var gB = ab.group_b || {{}};
+            var gAnn = ab.annual_anchor || {{}};
+            var gCode = ab.offer_code_vip || {{}};
+            var gLeg = ab.legacy_7d_trial || {{}};
+            var aAct = Number(gA.active_vip_count || 0);
+            var bAct = Number(gB.active_vip_count || 0);
+            var annAct = Number(gAnn.active_vip_count || 0);
+            var sideAb = document.getElementById('sideKpiAbTest');
+            var convAb = document.getElementById('convAbTestPill');
+            var winB = document.getElementById('abWinnerBadge');
+            var topSp = document.getElementById('abTopSplitBadge');
+            var winDiag = document.getElementById('abWinnerDiagnosisText');
+            var aVal = document.getElementById('abGroupAActiveVal');
+            var bVal = document.getElementById('abGroupBActiveVal');
+            var annVal = document.getElementById('abAnnualActiveVal');
+            if (sideAb) sideAb.textContent = '🔥A:' + aAct + ' • 🎁B:' + bAct;
+            if (convAb) convAb.textContent = '🔥A:' + aAct + ' vs 🎁B:' + bAct + ' (👑' + annAct + ') ➔';
+            if (winB && ab.winner_badge) winB.textContent = ab.winner_badge;
+            if (topSp) topSp.textContent = '🔥 Grup A: ' + aAct + ' • 🎁 Grup B: ' + bAct + ' • 👑 Yıllık: ' + annAct;
+            if (winDiag && ab.winner_diagnosis_tr) winDiag.textContent = ab.winner_diagnosis_tr;
+            if (aVal) aVal.innerHTML = aAct + ' Aktif VIP <span style="font-size:13px; color:var(--text-muted);">(' + Number(gA.started_vip_count || 0) + ' Başlayan)</span>';
+            if (bVal) bVal.innerHTML = bAct + ' Aktif VIP <span style="font-size:13px; color:var(--text-muted);">(' + Number(gB.started_vip_count || 0) + ' Başlayan)</span>';
+            if (annVal) annVal.innerHTML = annAct + ' Yıllık VIP <span style="font-size:13px; color:var(--text-muted);">(' + Number(gAnn.started_vip_count || 0) + ' Başlayan)</span>';
           }}
 
           if (p && p.star_distribution) {{

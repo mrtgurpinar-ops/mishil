@@ -11676,6 +11676,11 @@
         c.classList.toggle('active', isMatch);
       });
     }
+    if (chipEl && typeof window.sendMishilAnalyticsSignal === 'function') {
+      try {
+        window.sendMishilAnalyticsSignal('onb_step7_quick_chip_used');
+      } catch (_qce) {}
+    }
   }
   window.applyQuickLastWakeMinsAgo = applyQuickLastWakeMinsAgo;
 
@@ -24771,6 +24776,16 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ device_uid: _duid, event_type: evtType, os_family: _os, platform: _plat, app_version: _activeAppVer })
           }).catch(function() {});
+          if (evtType === 'paywall_viewed' || evtType === 'paywall_cta_clicked' || evtType === 'purchase_cancelled' || evtType === 'vip_started') {
+            var _dp = (typeof getDynamicPricingState === 'function') ? getDynamicPricingState() : null;
+            var _abPrefix = (_dp && _dp.isFreeTrialIntro) ? 'ab_b_' : 'ab_a_';
+            var _abEvt = _abPrefix + (evtType === 'paywall_cta_clicked' ? 'paywall_cta' : evtType);
+            fetch(apiBase + '/api/v1/analytics/app-open-signal', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ device_uid: _duid, event_type: _abEvt, os_family: _os, platform: _plat, app_version: _activeAppVer })
+            }).catch(function() {});
+          }
         } catch (_se) {}
       };
       var _onbScreenBoot = document.getElementById('screen-onboarding');
