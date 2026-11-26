@@ -7,9 +7,12 @@ import type {
 } from 'react-native-purchases';
 
 export type IntroEligibilityState = 'eligible' | 'ineligible' | 'unknown';
+export type IntroOfferType = 'free_trial' | 'paid_intro' | 'none';
 
 export interface PackageOffer {
   identifier: string;
+  offeringIdentifier?: string;
+  productId?: string;
   packageType: 'WEEKLY' | 'MONTHLY' | 'ANNUAL' | 'LIFETIME';
   priceString: string;
   price?: number;
@@ -17,6 +20,7 @@ export interface PackageOffer {
   introPriceString?: string;
   introPrice?: number;
   introEligibility?: IntroEligibilityState;
+  introOfferType?: IntroOfferType;
   title: string;
   description: string;
   rawPackage?: PurchasesPackage;
@@ -48,8 +52,9 @@ export const FALLBACK_OFFERINGS: PackageOffer[] = [
     introPriceString: '₺49,99',
     introPrice: 49.99,
     introEligibility: 'unknown',
+    introOfferType: 'paid_intro',
     title: '🌙 Mışıl Baby Aylık VIP (Önerilen)',
-    description: 'Yeni aboneler için ilk ay ₺49,99 • Sonrasında Aylık ₺149,99 • Otomatik yenilenir, mağazadan iptal.',
+    description: 'Yeni aboneler için ilk ay ₺49,99 • Memnun kalırsanız Aylık ₺149,99 • Otomatik yenilenir, mağazadan iptal.',
   },
   {
     identifier: '$rc_annual',
@@ -58,8 +63,9 @@ export const FALLBACK_OFFERINGS: PackageOffer[] = [
     price: 599.99,
     currencyCode: 'TRY',
     introEligibility: 'ineligible',
+    introOfferType: 'none',
     title: '👑 Mışıl Baby Yıllık VIP (Tasarruflu)',
-    description: 'Yıllık ₺599,99 • %67 Tasarruf (12 ay kesintisiz tam VIP) • Otomatik yenilenir.',
+    description: 'Yıllık ₺599,99 • Tüm yıl %67 indirim avantajı • Otomatik yenilenir.',
   },
 ];
 
@@ -121,13 +127,14 @@ export const hasActiveEntitlement = (customerInfo: any): boolean => {
   return activeEntitlements.length > 0 || activeSubs.length > 0;
 };
 
-function extractAndroidPaidIntroOption(product: any): {
+function extractAndroidIntroOption(product: any, packageIdentifier?: string, offeringIdentifier?: string): {
   option: any | null;
   introPriceString?: string;
   introPrice?: number;
   recurringPriceString?: string;
   recurringPrice?: number;
   eligibility: IntroEligibilityState;
+  introOfferType: IntroOfferType;
 } {
   try {
     const subsOpts: any[] = Array.isArray(product?.subscriptionOptions) ? product.subscriptionOptions : [];
@@ -142,13 +149,32 @@ function extractAndroidPaidIntroOption(product: any): {
         break;
       }
     }
+
+    const combinedHints = `${String(packageIdentifier || '')} ${String(offeringIdentifier || '')} ${String(product?.identifier || '')}`.toLowerCase();
+    const prefersFreeTrial = combinedHints.includes('free') || combinedHints.includes('trial') || combinedHints.includes('group_b') || combinedHints.includes('variant_b');
+    const prefersPaidIntro = combinedHints.includes('intro') || combinedHints.includes('49') || combinedHints.includes('group_a') || combinedHints.includes('variant_a');
+
+    type CandidateMatch = {
+      option: any;
+      introPriceString?: string;
+      introPrice: number;
+      recurringPriceString?: string;
+      recurringPrice: number;
+      eligibility: IntroEligibilityState;
+      introOfferType: IntroOfferType;
+      isDefaultOption: boolean;
+    };
+
+    const candidates: CandidateMatch[] = [];
     let sawMissingRecurringPrice = false;
+    const defaultOptId = product?.defaultOption?.id;
+
     for (const opt of subsOpts) {
       const phases: any[] = Array.isArray(opt?.pricingPhases) ? opt.pricingPhases : [];
       if (phases.length >= 2) {
         const p0 = phases[0]?.price;
         const pLast = opt?.fullPricePhase?.price || phases[phases.length - 1]?.price;
-        const micros0 = typeof p0?.amountMicros === 'number' ? p0.amountMicros : 0;
+        const micros0 = typeof p0?.amountMicros === 'number' ? p0.amountMicros : -1;
         const microsLast = typeof pLast?.amountMicros === 'number' && pLast.amountMicros > 0
           ? pLast.amountMicros
           : (basePlanMicros > 0 ? basePlanMicros : (basePrice > 0 ? Math.round(basePrice * 1_000_000) : 0));
@@ -156,21 +182,59 @@ function extractAndroidPaidIntroOption(product: any): {
           sawMissingRecurringPrice = true;
           continue;
         }
-        // Yalnızca ÜCRETLİ indirimli ilk dönem teklifini (0 TL olmayan ve doğrulanmış normal fiyattan düşük) kabul et
-        if (micros0 > 0 && micros0 < microsLast) {
-          return {
+        // Evrensel A/B Teklif Motoru (Build 75):
+        // 1) Grup B: micros0 === 0 -> İlk Ay Ücretsiz (free_trial)
+        // 2) Grup A: micros0 > 0 && micros0 < microsLast -> İlk Ay İndirimli (paid_intro)
+        if (micros0 === 0) {
+          const currSym = (pLast?.formatted || basePlanFormatted || '').replace(/[0-9.,\s]+/g, '') || '₺';
+          const zeroFormatted = (p0?.formatted && /\d/.test(String(p0.formatted))) ? p0.formatted : `${currSym}0`;
+          candidates.push({
+            option: opt,
+            introPriceString: zeroFormatted,
+            introPrice: 0,
+            recurringPriceString: pLast?.formatted || basePlanFormatted || undefined,
+            recurringPrice: Number((microsLast / 1_000_000).toFixed(2)),
+            eligibility: 'eligible',
+            introOfferType: 'free_trial',
+            isDefaultOption: Boolean(defaultOptId && opt?.id === defaultOptId),
+          });
+        } else if (micros0 > 0 && micros0 < microsLast) {
+          candidates.push({
             option: opt,
             introPriceString: p0?.formatted || undefined,
             introPrice: Number((micros0 / 1_000_000).toFixed(2)),
             recurringPriceString: pLast?.formatted || basePlanFormatted || undefined,
             recurringPrice: Number((microsLast / 1_000_000).toFixed(2)),
             eligibility: 'eligible',
-          };
+            introOfferType: 'paid_intro',
+            isDefaultOption: Boolean(defaultOptId && opt?.id === defaultOptId),
+          });
         }
       }
     }
+
+    if (candidates.length > 0) {
+      let chosen = candidates[0];
+      if (prefersFreeTrial) {
+        chosen = candidates.find(c => c.introOfferType === 'free_trial') || chosen;
+      } else if (prefersPaidIntro) {
+        chosen = candidates.find(c => c.introOfferType === 'paid_intro') || chosen;
+      } else {
+        chosen = candidates.find(c => c.isDefaultOption) || candidates[0];
+      }
+      return {
+        option: chosen.option,
+        introPriceString: chosen.introPriceString,
+        introPrice: chosen.introPrice,
+        recurringPriceString: chosen.recurringPriceString,
+        recurringPrice: chosen.recurringPrice,
+        eligibility: chosen.eligibility,
+        introOfferType: chosen.introOfferType,
+      };
+    }
+
     if (sawMissingRecurringPrice) {
-      return { option: null, eligibility: 'unknown' };
+      return { option: null, eligibility: 'unknown', introOfferType: 'none' };
     }
     if (subsOpts.length > 0) {
       return {
@@ -178,10 +242,11 @@ function extractAndroidPaidIntroOption(product: any): {
         recurringPriceString: basePlanFormatted,
         recurringPrice: basePlanMicros > 0 ? Number((basePlanMicros / 1_000_000).toFixed(2)) : undefined,
         eligibility: 'ineligible',
+        introOfferType: 'none',
       };
     }
   } catch {}
-  return { option: null, eligibility: 'unknown' };
+  return { option: null, eligibility: 'unknown', introOfferType: 'none' };
 }
 
 export const getOfferings = async (): Promise<PackageOffer[]> => {
@@ -191,6 +256,7 @@ export const getOfferings = async (): Promise<PackageOffer[]> => {
     const Purchases = require('react-native-purchases').default;
     const offerings = await Purchases.getOfferings();
     if (offerings.current && offerings.current.availablePackages.length > 0) {
+      const currentOfferingId: string | undefined = offerings.current.identifier || undefined;
       const pkgs: any[] = offerings.current.availablePackages;
       let iosEligMap: Record<string, any> = {};
       if (Platform.OS === 'ios' && typeof Purchases.checkTrialOrIntroductoryPriceEligibility === 'function') {
@@ -206,34 +272,49 @@ export const getOfferings = async (): Promise<PackageOffer[]> => {
 
       return pkgs.map((pkg: any) => {
         const prod = pkg?.product || {};
+        const pkgOfferingId = pkg?.offeringIdentifier || currentOfferingId;
         let introPriceString: string | undefined;
         let introPrice: number | undefined;
         let introEligibility: IntroEligibilityState = 'unknown';
+        let introOfferType: IntroOfferType = 'none';
 
         let resolvedPrice = typeof prod.price === 'number' ? prod.price : undefined;
         let resolvedPriceString = prod.priceString || `${prod.currencyCode} ${prod.price}`;
 
         if (Platform.OS === 'ios') {
           const ip = prod.introPrice;
-          const ipVal = typeof ip?.price === 'number' ? ip.price : 0;
+          const hasIpObj = Boolean(ip && typeof ip === 'object' && typeof ip.price === 'number');
+          const ipVal = hasIpObj ? Number(ip.price) : -1;
           const eligEntry = prod.identifier ? iosEligMap[prod.identifier] : undefined;
           const statusNum = typeof eligEntry?.status === 'number' ? eligEntry.status : undefined;
-          // Yalnızca ücretli (>0) introductory offer varsa dikkate al (0 TL eski denemeyi asla indirimli ilk ay sanma)
-          if (ip && ipVal > 0) {
-            introPriceString = ip.priceString || undefined;
+          // Evrensel A/B Teklif Motoru (Build 75):
+          // ipVal === 0 -> Grup B (İlk Ay Ücretsiz / FREE_TRIAL)
+          // ipVal > 0   -> Grup A (İlk Ay ₺49,99 / PAY_UP_FRONT)
+          if (hasIpObj && ipVal >= 0) {
+            const currSym = (prod.priceString || '').replace(/[0-9.,\s]+/g, '') || '₺';
+            introOfferType = ipVal === 0 ? 'free_trial' : 'paid_intro';
             introPrice = ipVal;
+            introPriceString = ipVal === 0
+              ? ((ip.priceString && /\d/.test(String(ip.priceString))) ? ip.priceString : `${currSym}0`)
+              : (ip.priceString || undefined);
             if (statusNum === 2) introEligibility = 'eligible';
-            else if (statusNum === 1 || statusNum === 3) introEligibility = 'ineligible';
-            else introEligibility = 'unknown';
+            else if (statusNum === 1 || statusNum === 3) {
+              introEligibility = 'ineligible';
+              introOfferType = 'none';
+            } else {
+              introEligibility = 'unknown';
+            }
           } else {
             introEligibility = 'ineligible';
+            introOfferType = 'none';
           }
         } else {
-          const gpIntro = extractAndroidPaidIntroOption(prod);
+          const gpIntro = extractAndroidIntroOption(prod, pkg?.identifier, pkgOfferingId);
           introPriceString = gpIntro.introPriceString;
           introPrice = gpIntro.introPrice;
           introEligibility = gpIntro.eligibility;
-          // Google Play'de prod.price alanı defaultOption (49.99) döndürdüğünde gerçek yinelenen baz fiyatı (149.99) koru
+          introOfferType = gpIntro.introOfferType;
+          // Google Play'de prod.price alanı defaultOption (0 veya 49.99) döndürdüğünde gerçek yinelenen baz fiyatı (149.99) koru
           if (typeof gpIntro.recurringPrice === 'number' && gpIntro.recurringPrice > 0) {
             resolvedPrice = gpIntro.recurringPrice;
           }
@@ -244,6 +325,8 @@ export const getOfferings = async (): Promise<PackageOffer[]> => {
 
         return {
           identifier: pkg.identifier,
+          offeringIdentifier: pkgOfferingId,
+          productId: prod.identifier || undefined,
           packageType: pkg.packageType,
           priceString: resolvedPriceString,
           price: resolvedPrice,
@@ -251,6 +334,7 @@ export const getOfferings = async (): Promise<PackageOffer[]> => {
           introPriceString,
           introPrice,
           introEligibility,
+          introOfferType,
           title: prod.title,
           description: prod.description,
           rawPackage: pkg,
@@ -268,10 +352,14 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
     const ready = await initRevenueCat();
     const Purchases = require('react-native-purchases').default;
 
-    // 1. Yol: RevenueCat rawPackage varsa (Android'de uygun ücretli intro option varsa onu seçerek) çağır
+    // 1. Yol: RevenueCat rawPackage varsa (Android'de A/B grubuna ait uygun intro/trial option varsa onu seçerek) çağır
     if (rawPackage) {
       if (Platform.OS === 'android' && Purchases.purchaseSubscriptionOption && rawPackage?.product) {
-        const gpIntro = extractAndroidPaidIntroOption(rawPackage.product);
+        const gpIntro = extractAndroidIntroOption(
+          rawPackage.product,
+          rawPackage.identifier || packageId,
+          rawPackage.offeringIdentifier
+        );
         if (gpIntro.option) {
           const optRes = await Purchases.purchaseSubscriptionOption(gpIntro.option);
           const optInfo = optRes?.customerInfo;
@@ -293,19 +381,19 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
       };
     }
 
-    // 2. Yol: rawPackage yoksa (StoreKit / Google Play doğrudan çoklu ürün fallback'i)
+    // 2. Yol: rawPackage yoksa (StoreKit / Google Play doğrudan çoklu ürün fallback'i - A/B SKU'ları dahil)
     const isIOS = Platform.OS === 'ios';
     const isYearly = packageId.toLowerCase().includes('year') || packageId.toLowerCase().includes('annual') || packageId.toLowerCase() === 'misil';
     const candidateProductIds = Array.from(new Set([
+      packageId,
       ...(isIOS
         ? (isYearly
             ? ['misil_annual', '$rc_annual', 'com.levitas.misilbaby.annual']
-            : ['misil_monthly', '$rc_monthly', 'com.levitas.misilbaby.monthly'])
+            : ['misil_monthly', 'misil_monthly_trial', 'misil_monthly_free', '$rc_monthly', 'com.levitas.misilbaby.monthly'])
         : (isYearly
             ? ['misil', 'misil:misil', 'misil_annual', '$rc_annual', 'com.levitas.misilbaby.annual']
-            : ['misilaylik', 'misilaylik:misilaylik', 'misil_monthly', '$rc_monthly', 'com.levitas.misilbaby.monthly'])
+            : ['misilaylik', 'misilaylik:misilaylik', 'misilaylik_trial', 'misil_monthly', '$rc_monthly', 'com.levitas.misilbaby.monthly'])
       ),
-      packageId
     ]));
 
     if (ready && Purchases.getProducts) {

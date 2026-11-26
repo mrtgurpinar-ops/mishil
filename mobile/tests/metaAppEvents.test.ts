@@ -213,7 +213,39 @@ describe('Meta App Events & SKAdNetwork Bridge', () => {
     expect(res.logged).toBe(true);
     expect(res.amount).toBe(149.99);
     expect(res.isIntroOffer).toBe(false);
+    expect(res.isFreeTrial).toBe(false);
     expect(calls.logPurchase[0][0]).toBe(149.99);
+  });
+
+  test('4b. Grup B (İlk Ay Ücretsiz / free_trial / 0 TRY) satın alındığında sahte ROAS şişmesini önlemek için logPurchase yerine standart StartTrial olayı ateşlenir', async () => {
+    const { meta, calls } = createMetaHarness({ platformOs: 'ios' });
+
+    const res = await meta.logMetaSubscriptionPurchase({
+      plan: 'monthly',
+      price: 149.99,
+      introPrice: 0,
+      introEligibility: 'eligible',
+      introOfferType: 'free_trial',
+      periodType: 'TRIAL',
+      currencyCode: 'TRY',
+      productId: 'misil_monthly_trial',
+      transactionId: 'tx_trial_001',
+    });
+
+    expect(res.logged).toBe(true);
+    expect(res.amount).toBe(0);
+    expect(res.isIntroOffer).toBe(true);
+    expect(res.isFreeTrial).toBe(true);
+    expect(calls.logPurchase.length).toBe(0);
+    expect(calls.logEvent.length).toBe(1);
+    expect(calls.logEvent[0][0]).toBe('StartTrial');
+    expect(calls.logEvent[0][1]).toMatchObject({
+      fb_currency: 'TRY',
+      fb_content_id: 'misil_monthly_trial',
+      is_intro_offer: 1,
+      is_free_trial: 1,
+      fb_order_id: 'tx_trial_001',
+    });
   });
 
   test('5. Onboarding tamamlandığında fb_mobile_complete_registration olayı gönderilir', () => {

@@ -193,10 +193,11 @@ class SubscriptionService:
             purchased_ms = event_data.get("purchased_at_ms")
             exp_ms = event_data.get("expiration_at_ms")
             start_dt = datetime.fromtimestamp(float(purchased_ms) / 1000.0, tz=timezone.utc) if purchased_ms else now_dt
+            is_1m_trial_sku = ("trial" in pid_low or "free" in pid_low or "free" in str(event_data.get("presented_offering_id") or "").lower())
             exp_dt = (
                 datetime.fromtimestamp(float(exp_ms) / 1000.0, tz=timezone.utc)
                 if exp_ms
-                else (start_dt + timedelta(days=7 if period_type == "TRIAL" else (365 if is_annual_prod else 30)))
+                else (start_dt + timedelta(days=(30 if is_1m_trial_sku else 7) if period_type == "TRIAL" else (365 if is_annual_prod else 30)))
             )
             start_str = start_dt.strftime("%Y-%m-%d")
             exp_str = exp_dt.strftime("%Y-%m-%d")
@@ -287,8 +288,10 @@ class SubscriptionService:
                 offer_type_val = "offer_code"
                 offer_code_lbl = event_data.get("presented_offering_id")
             elif ledger_status == "intro_free_trial":
-                offer_type_val = "intro_7d_trial"
-                offer_code_lbl = None
+                trial_days_span = max(0, (exp_dt - start_dt).days)
+                is_1m_free = is_1m_trial_sku or trial_days_span >= 20
+                offer_type_val = "free_trial_1m" if is_1m_free else "intro_7d_trial"
+                offer_code_lbl = "İlk Ay Ücretsiz Deneme" if is_1m_free else None
             elif is_intro_paid and ledger_status == "paid_active":
                 offer_type_val = "intro_1m_discounted"
                 offer_code_lbl = "İlk Ay İndirimli Başlangıç"

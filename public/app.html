@@ -195,6 +195,9 @@
       background: linear-gradient(145deg, #F3E4CE 0%, #ECD8BC 100%) !important;
       border-color: var(--accent) !important;
     }
+    [data-theme="light"] .price-monthly-strike-text {
+      color: #7C685B !important;
+    }
     [data-theme="light"] [style*="rgba(22, 29, 50"],
     [data-theme="light"] [style*="rgba(20, 27, 46"],
     [data-theme="light"] [style*="rgba(35, 42, 70"],
@@ -1559,6 +1562,42 @@
       background: rgba(175, 115, 75, 0.14) !important;
       border-color: rgba(175, 115, 75, 0.36) !important;
       color: var(--heading-night) !important;
+    }
+    .onb-wake-quick-chips {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+    .onb-wake-quick-chip {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-night);
+      color: var(--text-night);
+      font-family: 'Sora', sans-serif;
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 6px 4px;
+      border-radius: 999px;
+      cursor: pointer;
+      text-align: center;
+      white-space: nowrap;
+      transition: all 0.18s ease;
+    }
+    .onb-wake-quick-chip.active {
+      background: rgba(244, 162, 97, 0.22);
+      border-color: var(--accent);
+      color: var(--heading-night);
+      box-shadow: 0 2px 10px rgba(244, 162, 97, 0.22);
+    }
+    [data-theme="light"] .onb-wake-quick-chip {
+      background: rgba(175, 115, 75, 0.08);
+      border-color: rgba(175, 115, 75, 0.25);
+      color: var(--heading-night);
+    }
+    [data-theme="light"] .onb-wake-quick-chip.active {
+      background: linear-gradient(145deg, #F4E4CE 0%, #EAD2B5 100%);
+      border-color: var(--accent);
+      color: var(--heading-night);
     }
     [data-theme="light"] #modal-paywall-cancel-recovery .modal-sheet {
       background: linear-gradient(180deg, #F7F2EB 0%, #EDE5DA 100%) !important;
@@ -4751,45 +4790,79 @@
       </div>
     </div>
 
-    <!-- Step 2: Son Uyku Rutini -->
+    <!-- Step 2: Uykuda En Büyük Zorluk -->
     <div id="quiz-step-2" class="quiz-step" style="display: none;">
-      <div class="onb-step-kicker">🌙 UYKU RUTİNİ</div>
-      <div class="onb-step-title">Bebeğiniz şu an uyuyor mu?</div>
+      <div class="onb-step-kicker">💤 UYKU ODAĞI</div>
+      <div class="onb-step-title">Uykuda şu an en büyük zorluğunuz nedir?</div>
       <div class="onb-step-sub">
-        Sıradaki gerçek MışılSpot™ saatini ve günlük uyku çizelgenizi bu saate göre başlatalım.
+        Kişisel uyku hedefini ve önerilen akustik ninni reçetesini buna göre belirleyelim.
       </div>
 
-      <div class="onb-pill-row" style="grid-template-columns: 1fr 1fr;">
-        <button type="button" id="onb-sleep-state-awake" class="onb-pill-btn active" onclick="selectOnboardingSleepState('awake')">☀️ Uyanık</button>
-        <button type="button" id="onb-sleep-state-sleeping" class="onb-pill-btn" onclick="selectOnboardingSleepState('sleeping')">😴 Şu an uyuyor</button>
-      </div>
-
-      <div class="onb-combo-card">
-        <div id="onb-sleep-time-label" style="font-size: 12px; font-weight: 700; color: var(--heading-night); margin-bottom: 10px;">
-          En son saat kaçta uyandı?
-        </div>
-        <div class="onb-time-grid-3">
-          <div class="onb-select-wrap">
-            <span class="onb-select-lbl">Gün</span>
-            <select id="onb-sleep-day" class="onb-select" onchange="onOnboardingRoutineTimeChange('sleep')"></select>
-          </div>
-          <div class="onb-select-wrap">
-            <span class="onb-select-lbl">Saat</span>
-            <select id="onb-sleep-hour" class="onb-select" onchange="onOnboardingRoutineHourChange('sleep')"></select>
-          </div>
-          <div class="onb-select-wrap">
-            <span class="onb-select-lbl">Dakika</span>
-            <select id="onb-sleep-min" class="onb-select" onchange="onOnboardingRoutineTimeChange('sleep')"></select>
-          </div>
+      <div class="quiz-option" onclick="selectQuizOption(this, 2, 'hard_settle')">
+        <div class="quiz-option-radio"></div>
+        <div>
+          <div style="font-size: 13px; font-weight: 600; color: var(--heading-night);">Zor ve ağlayarak uykuya dalıyor</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Sürekli sallama veya destek istiyor (30+ dk)</div>
         </div>
       </div>
+      <div class="quiz-option" onclick="selectQuizOption(this, 2, 'night_wakes')">
+        <div class="quiz-option-radio"></div>
+        <div>
+          <div style="font-size: 13px; font-weight: 600; color: var(--heading-night);">Geceleri çok sık uyanıyor</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Gece boyunca 3 veya daha fazla bölünen uyku</div>
+        </div>
+      </div>
+      <div class="quiz-option" onclick="selectQuizOption(this, 2, 'short_naps')">
+        <div class="quiz-option-radio"></div>
+        <div>
+          <div style="font-size: 13px; font-weight: 600; color: var(--heading-night);">Gündüz uykuları çok kısa sürüyor</div>
+          <div style="font-size: 11px; color: var(--text-muted);">20-30 dakikada uyanıyor, tam dinlenemiyor</div>
+        </div>
+      </div>
+      <div class="quiz-option selected" onclick="selectQuizOption(this, 2, 'rhythm')">
+        <div class="quiz-option-radio"></div>
+        <div>
+          <div style="font-size: 13px; font-weight: 600; color: var(--heading-night);">Düzenli uyku ritmi kurmak istiyorum</div>
+          <div style="font-size: 11px; color: var(--text-muted);">Günün doğru MışılSpot™ saatlerini yakalamak</div>
+        </div>
+      </div>
 
-      <button class="btn-primary" onclick="saveOnboardingSleepStep(false)">Planıma Ekle ➔</button>
-      <button type="button" class="onb-skip-link" onclick="saveOnboardingSleepStep(true)">Hatırlamıyorum, bu adımı geç</button>
+      <button class="btn-primary" style="margin-top: 12px;" onclick="nextQuizStep(3)">Devam Et ➔</button>
     </div>
 
-    <!-- Step 3: Son Beslenme Rutini -->
+    <!-- Step 3: Gelişim Atakları (BabySteps™) Tikleme Listesi -->
     <div id="quiz-step-3" class="quiz-step" style="display: none;">
+      <div class="onb-step-kicker">🌱 BABYSTEPS™ GELİŞİM ATAKLARI</div>
+      <div class="onb-step-title">Gelişim ataklarından hangilerini gözlemlediniz?</div>
+      <div class="onb-step-sub" id="onb-leaps-subtitle">
+        Doğumdan bugüne kadarki gelişim sıçramalarını işaretleyin; takviminiz ve raporunuz güncellensin.
+      </div>
+
+      <div id="onb-leaps-checklist" class="onb-checklist-wrap no-scrollbar"></div>
+
+      <button class="btn-primary" onclick="saveOnboardingLeapsStep()">Planıma Ekle ➔</button>
+    </div>
+
+    <!-- Step 4: Doğumdan Bugüne Aşılar Tikleme Listesi -->
+    <div id="quiz-step-4" class="quiz-step" style="display: none;">
+      <div class="onb-step-kicker">💉 PEDİATRİK AŞI TAKVİMİ</div>
+      <div class="onb-step-title">Doğumdan bugüne bu aşılardan hangileri yapıldı?</div>
+      <div class="onb-step-sub" id="onb-vaccines-subtitle" style="margin-bottom: 10px;">
+        Bebeğinizin doğumundan bugüne yapılması gereken resmi aşıları işaretleyin.
+      </div>
+
+      <div id="onb-vaccines-bulk-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-night);">
+        <span id="onb-vaccines-count-label" style="font-size: 11.5px; font-weight: 700; color: var(--heading-night);">İşaretlenen: 0 / 0</span>
+        <button type="button" id="onb-vaccines-toggle-all-btn" onclick="toggleAllOnboardingVaccines()" style="background: rgba(232, 168, 85, 0.16); border: 1px solid rgba(232, 168, 85, 0.45); color: var(--accent); font-family: 'Sora', sans-serif; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 8px; cursor: pointer;">✓ Tümünü İşaretle</button>
+      </div>
+
+      <div id="onb-vaccines-checklist" class="onb-checklist-wrap no-scrollbar"></div>
+
+      <button class="btn-primary" onclick="saveOnboardingVaccinesStep()">Planıma Ekle ➔</button>
+    </div>
+
+    <!-- Step 5: Son Beslenme Rutini -->
+    <div id="quiz-step-5" class="quiz-step" style="display: none;">
       <div class="onb-step-kicker">🍼 BESLENME RUTİNİ</div>
       <div class="onb-step-title">En son ne zaman ve nasıl beslendi?</div>
       <div class="onb-step-sub">
@@ -4826,8 +4899,8 @@
       <button type="button" class="onb-skip-link" onclick="saveOnboardingFeedStep(true)">Hatırlamıyorum, bu adımı geç</button>
     </div>
 
-    <!-- Step 4: Son Bez Değişimi Rutini -->
-    <div id="quiz-step-4" class="quiz-step" style="display: none;">
+    <!-- Step 6: Son Bez Değişimi Rutini -->
+    <div id="quiz-step-6" class="quiz-step" style="display: none;">
       <div class="onb-step-kicker">🧷 BAKIM & KONFOR RUTİNİ</div>
       <div class="onb-step-title">Son bez değişimi ne zamandı?</div>
       <div class="onb-step-sub">
@@ -4864,75 +4937,47 @@
       <button type="button" class="onb-skip-link" onclick="saveOnboardingDiaperStep(true)">Hatırlamıyorum, bu adımı geç</button>
     </div>
 
-    <!-- Step 5: Uykuda En Büyük Zorluk -->
-    <div id="quiz-step-5" class="quiz-step" style="display: none;">
-      <div class="onb-step-kicker">💤 UYKU ODAĞI</div>
-      <div class="onb-step-title">Uykuda şu an en büyük zorluğunuz nedir?</div>
-      <div class="onb-step-sub">
-        Kişisel uyku hedefini ve önerilen akustik ninni reçetesini buna göre belirleyelim.
-      </div>
-
-      <div class="quiz-option" onclick="selectQuizOption(this, 5, 'hard_settle')">
-        <div class="quiz-option-radio"></div>
-        <div>
-          <div style="font-size: 13px; font-weight: 600; color: var(--heading-night);">Zor ve ağlayarak uykuya dalıyor</div>
-          <div style="font-size: 11px; color: var(--text-muted);">Sürekli sallama veya destek istiyor (30+ dk)</div>
-        </div>
-      </div>
-      <div class="quiz-option" onclick="selectQuizOption(this, 5, 'night_wakes')">
-        <div class="quiz-option-radio"></div>
-        <div>
-          <div style="font-size: 13px; font-weight: 600; color: var(--heading-night);">Geceleri çok sık uyanıyor</div>
-          <div style="font-size: 11px; color: var(--text-muted);">Gece boyunca 3 veya daha fazla bölünen uyku</div>
-        </div>
-      </div>
-      <div class="quiz-option" onclick="selectQuizOption(this, 5, 'short_naps')">
-        <div class="quiz-option-radio"></div>
-        <div>
-          <div style="font-size: 13px; font-weight: 600; color: var(--heading-night);">Gündüz uykuları çok kısa sürüyor</div>
-          <div style="font-size: 11px; color: var(--text-muted);">20-30 dakikada uyanıyor, tam dinlenemiyor</div>
-        </div>
-      </div>
-      <div class="quiz-option selected" onclick="selectQuizOption(this, 5, 'rhythm')">
-        <div class="quiz-option-radio"></div>
-        <div>
-          <div style="font-size: 13px; font-weight: 600; color: var(--heading-night);">Düzenli uyku ritmi kurmak istiyorum</div>
-          <div style="font-size: 11px; color: var(--text-muted);">Günün doğru MışılSpot™ saatlerini yakalamak</div>
-        </div>
-      </div>
-
-      <button class="btn-primary" style="margin-top: 12px;" onclick="nextQuizStep(6)">Devam Et ➔</button>
-    </div>
-
-    <!-- Step 6 (Sondan Bir Önceki Kart): Gelişim Atakları (BabySteps™) Tikleme Listesi -->
-    <div id="quiz-step-6" class="quiz-step" style="display: none;">
-      <div class="onb-step-kicker">🌱 BABYSTEPS™ GELİŞİM ATAKLARI</div>
-      <div class="onb-step-title">Gelişim ataklarından hangilerini gözlemlediniz?</div>
-      <div class="onb-step-sub" id="onb-leaps-subtitle">
-        Doğumdan bugüne kadarki gelişim sıçramalarını işaretleyin; takviminiz ve raporunuz güncellensin.
-      </div>
-
-      <div id="onb-leaps-checklist" class="onb-checklist-wrap no-scrollbar"></div>
-
-      <button class="btn-primary" onclick="saveOnboardingLeapsStep()">Planıma Ekle ➔</button>
-    </div>
-
-    <!-- Step 7 (Paywall Öncesi SON KART): Doğumdan Bugüne Aşılar Tikleme Listesi -->
+    <!-- Step 7 (Rapor Öncesi SON KART — Öneri C): MışılSpot™ Canlı Kalibrasyonu & Son Uyku Rutini -->
     <div id="quiz-step-7" class="quiz-step" style="display: none;">
-      <div class="onb-step-kicker">💉 PEDİATRİK AŞI TAKVİMİ</div>
-      <div class="onb-step-title">Doğumdan bugüne bu aşılardan hangileri yapıldı?</div>
-      <div class="onb-step-sub" id="onb-vaccines-subtitle" style="margin-bottom: 10px;">
-        Bebeğinizin doğumundan bugüne yapılması gereken resmi aşıları işaretleyin.
+      <div class="onb-step-kicker">🎯 SON ADIM • MIŞILSPOT™ KALİBRASYONU</div>
+      <div class="onb-step-title">Bebeğiniz şu an uyuyor mu?</div>
+      <div class="onb-step-sub">
+        Bir sonraki ekrandaki İlk MışılSpot™ uyku vakti doğrudan bu bilgiye göre hesaplanacak.
       </div>
 
-      <div id="onb-vaccines-bulk-bar" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding: 8px 12px; border-radius: 10px; background: rgba(255,255,255,0.04); border: 1px solid var(--border-night);">
-        <span id="onb-vaccines-count-label" style="font-size: 11.5px; font-weight: 700; color: var(--heading-night);">İşaretlenen: 0 / 0</span>
-        <button type="button" id="onb-vaccines-toggle-all-btn" onclick="toggleAllOnboardingVaccines()" style="background: rgba(232, 168, 85, 0.16); border: 1px solid rgba(232, 168, 85, 0.45); color: var(--accent); font-family: 'Sora', sans-serif; font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 8px; cursor: pointer;">✓ Tümünü İşaretle</button>
+      <div class="onb-pill-row" style="grid-template-columns: 1fr 1fr;">
+        <button type="button" id="onb-sleep-state-awake" class="onb-pill-btn active" onclick="selectOnboardingSleepState('awake')">☀️ Uyanık</button>
+        <button type="button" id="onb-sleep-state-sleeping" class="onb-pill-btn" onclick="selectOnboardingSleepState('sleeping')">😴 Şu an uyuyor</button>
       </div>
 
-      <div id="onb-vaccines-checklist" class="onb-checklist-wrap no-scrollbar"></div>
+      <div class="onb-combo-card">
+        <div id="onb-sleep-time-label" style="font-size: 12px; font-weight: 700; color: var(--heading-night); margin-bottom: 8px;">
+          En son saat kaçta uyandı?
+        </div>
+        <div id="onb-sleep-quick-chips" class="onb-wake-quick-chips">
+          <button type="button" class="onb-wake-quick-chip" data-wake-mins="15" onclick="applyQuickLastWakeMinsAgo(15, this)">Az önce</button>
+          <button type="button" class="onb-wake-quick-chip" data-wake-mins="60" onclick="applyQuickLastWakeMinsAgo(60, this)">1 sa önce</button>
+          <button type="button" class="onb-wake-quick-chip" data-wake-mins="120" onclick="applyQuickLastWakeMinsAgo(120, this)">2 sa önce</button>
+          <button type="button" class="onb-wake-quick-chip" data-wake-mins="180" onclick="applyQuickLastWakeMinsAgo(180, this)">3+ sa</button>
+        </div>
+        <div class="onb-time-grid-3">
+          <div class="onb-select-wrap">
+            <span class="onb-select-lbl">Gün</span>
+            <select id="onb-sleep-day" class="onb-select" onchange="onOnboardingRoutineTimeChange('sleep')"></select>
+          </div>
+          <div class="onb-select-wrap">
+            <span class="onb-select-lbl">Saat</span>
+            <select id="onb-sleep-hour" class="onb-select" onchange="onOnboardingRoutineHourChange('sleep')"></select>
+          </div>
+          <div class="onb-select-wrap">
+            <span class="onb-select-lbl">Dakika</span>
+            <select id="onb-sleep-min" class="onb-select" onchange="onOnboardingRoutineTimeChange('sleep')"></select>
+          </div>
+        </div>
+      </div>
 
-      <button class="btn-primary" onclick="saveOnboardingVaccinesAndGenerateReport()">📊 Kişisel Raporumu Oluştur</button>
+      <button class="btn-primary" onclick="saveOnboardingSleepStep(false)">📊 MışılSpot™ Raporumu Oluştur ➔</button>
+      <button type="button" class="onb-skip-link" onclick="saveOnboardingSleepStep(true)">Tam saati hatırlamıyorum, ortalama ile hesapla</button>
     </div>
 
     <!-- Step 8 (Görsel Kişisel Rapor — Sakin Tek Kart + Tek Parlak Odak = Ana CTA Butonu) -->
@@ -5068,11 +5113,11 @@
               <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">🌙 Aylık VIP Plan</strong>
               <span class="badge-trial-7d-flex" style="background: rgba(255,255,255,0.12); color: #FFF; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">YENİ ÜYE TEKLİFİ</span>
             </div>
-            <div class="price-monthly-subtext" style="font-size: 10.5px; color: var(--accent); font-weight: 700; margin-top: 2px;">Uygun yeni hesaplarda ilk ay ₺49,99 • Sonrasında ayda bir kahve fiyatına (₺149,99/ay)</div>
+            <div class="price-monthly-subtext" style="font-size: 10.5px; color: var(--accent); font-weight: 700; margin-top: 2px;">İlk ay tanışma fiyatı ₺49,99 • Memnun kalırsanız ayda bir kahve fiyatına (₺149,99/ay)</div>
           </div>
           <div style="text-align: right; flex-shrink: 0;">
-            <div style="font-family: 'Sora'; font-size: 15px; font-weight: 800; color: var(--accent);"><span class="price-monthly-primary-text">₺49,99</span><span class="price-monthly-unit-text" style="font-size: 10px; color: var(--text-muted);">/ilk ay</span></div>
-            <div class="price-monthly-after-text" style="font-size: 10.5px; color: #E2E8F0; font-weight: 700;">2. aydan: <span class="price-monthly-text">₺149,99</span>/ay</div>
+            <div style="font-family: 'Sora'; font-size: 15px; font-weight: 800; color: var(--accent);"><s class="price-monthly-strike-text" style="font-size: 11px; color: var(--text-muted); font-weight: 600; margin-right: 4px;">₺149,99</s><span class="price-monthly-primary-text">₺49,99</span><span class="price-monthly-unit-text" style="font-size: 10px; color: var(--text-muted);">/ilk ay</span></div>
+            <div class="price-monthly-after-text" style="display: none; font-size: 10.5px; color: #E2E8F0; font-weight: 700;">2. aydan: <span class="price-monthly-text">₺149,99</span>/ay</div>
           </div>
         </div>
 
@@ -5082,11 +5127,11 @@
               <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">👑 Yıllık VIP Plan</strong>
               <span id="plan-yearly-discount-badge" class="price-yearly-discount-badge" style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
             </div>
-            <div id="plan-yearly-subtext" class="price-yearly-subtext" style="font-size: 10.5px; color: var(--text-muted); font-weight: 600; margin-top: 2px;">Tüm yıl sabit avantaj • Aylık ₺49,99 karşılığı</div>
+            <div id="plan-yearly-subtext" class="price-yearly-subtext" style="font-size: 10.5px; color: var(--text-muted); font-weight: 600; margin-top: 2px;">Tüm yıl %67 indirim avantajı</div>
           </div>
           <div style="text-align: right; flex-shrink: 0;">
             <div style="font-family: 'Sora'; font-size: 15px; font-weight: 800; color: #FFF;"><span class="price-yearly-text">₺599,99</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></div>
-            <div style="font-size: 9.5px; color: var(--accent);"><span class="price-yearly-monthly-eq-text">₺49,99</span>/ay karşılığı</div>
+            <div style="display: none; font-size: 9.5px; color: var(--accent);"><span class="price-yearly-monthly-eq-text">₺49,99</span>/ay karşılığı</div>
           </div>
         </div>
       </div>
@@ -5127,7 +5172,7 @@
 
       <!-- REVIEWER TEST BYPASS TRIGGER (GOOGLE PLAY ANSWER 15748846) -->
       <div style="text-align: center; margin-top: 8px; margin-bottom: 6px;">
-        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.57.3 (Build 74)</span>
+        <span id="paywall-version-trigger" onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.58.0 (Build 75)</span>
       </div>
     </div>
   </div>
@@ -6165,13 +6210,13 @@
           <!-- 2-TIER PLAN CARDS WITH STATUS AWARENESS (YILLIK VIP ÖNCELİKLİ) -->
           <div id="settings-plan-cards-wrap" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px;">
             <!-- Plan 1: Yıllık VIP (Tasarruflu - Varsayılan Üstte) -->
-            <div id="settings-plan-card-yearly" class="onboarding-plan-card" style="border: 2px solid var(--accent); background: rgba(35, 42, 70, 0.95); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectPricingPlan('yearly', this)">
+            <div id="settings-plan-card-yearly" class="onboarding-plan-card selected" style="border: 2px solid var(--accent); background: rgba(35, 42, 70, 0.95); border-radius: 10px; padding: 10px 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;" onclick="selectPricingPlan('yearly', this)">
               <div>
                 <div style="display: flex; align-items: center; gap: 6px;">
                   <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">👑 Yıllık VIP Plan</strong>
                   <span id="settings-plan-badge-yearly" class="price-yearly-discount-badge" style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
                 </div>
-                <div id="settings-plan-sub-yearly" class="price-yearly-subtext" style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">Tüm yıl sabit avantaj • Aylık ₺49,99 karşılığı</div>
+                <div id="settings-plan-sub-yearly" class="price-yearly-subtext" style="font-size: 11px; color: var(--accent); font-weight: 700; margin-top: 2px;">Tüm yıl %67 indirim avantajı</div>
               </div>
               <div style="text-align: right;">
                 <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: var(--accent);"><span class="price-yearly-text">₺599,99</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></span>
@@ -6186,11 +6231,11 @@
                   <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">🌙 Aylık VIP Plan</strong>
                   <span id="settings-plan-badge-monthly" class="badge-trial-7d" style="background: rgba(255,255,255,0.1); color: #FFF; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">YENİ ÜYE TEKLİFİ</span>
                 </div>
-                <div id="settings-plan-sub-monthly" class="price-monthly-subtext" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Uygun yeni hesaplarda ilk ay ₺49,99 • Sonra ₺149,99/ay</div>
+                <div id="settings-plan-sub-monthly" class="price-monthly-subtext" style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">İlk ay tanışma fiyatı ₺49,99 • Memnun kalırsanız ayda bir kahve fiyatına (₺149,99/ay)</div>
               </div>
               <div style="text-align: right;">
-                <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: #FFF;"><span class="price-monthly-primary-text">₺49,99</span><span class="price-monthly-unit-text" style="font-size: 10px; color: var(--text-muted);">/ilk ay</span></span>
-                <div class="price-monthly-after-text" style="font-size: 10px; color: var(--text-muted);">2. aydan: <span class="price-monthly-text">₺149,99</span>/ay</div>
+                <span style="font-family: 'Sora'; font-size: 14px; font-weight: 800; color: #FFF;"><s class="price-monthly-strike-text" style="font-size: 10.5px; color: var(--text-muted); font-weight: 600; margin-right: 4px;">₺149,99</s><span class="price-monthly-primary-text">₺49,99</span><span class="price-monthly-unit-text" style="font-size: 10px; color: var(--text-muted);">/ilk ay</span></span>
+                <div class="price-monthly-after-text" style="display: none; font-size: 10px; color: var(--text-muted);">2. aydan: <span class="price-monthly-text">₺149,99</span>/ay</div>
               </div>
             </div>
           </div>
@@ -6529,12 +6574,12 @@
       Günün tüm uyku saatleri, kilit ekranı ninnileri ve 7/24 Mışıl Dadı rehberliği anında açılır.
     </div>
 
-    <!-- 4 SADE DEĞER SATIRI -->
+    <!-- 4 SADE DEĞER SATIRI (Step 9 ile %100 aynı span yapısı — sıfır dil sızıntısı) -->
     <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(232,168,85,0.28); border-radius: 11px; padding: 9px 11px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 6px; font-size: 11px; color: #FFF;">
-      <div>🌙 Gün boyu otomatik <strong>MışılSpot™</strong> & gece yatış saati</div>
-      <div>🎧 Kilit ekranında kesintisiz <strong>30 stüdyo ninni & pışpış</strong></div>
-      <div>🔔 Uykudan 15 dk önce uyarı, <strong>Ağlama Rehberi & 7/24 Dadı</strong></div>
-      <div>👨‍👩‍👧 Tek VIP ile <strong>3 kişiye kadar</strong> ortak canlı bebek takibi</div>
+      <div style="display: flex; align-items: center; gap: 8px;"><span>🌙</span><span>Gün boyu otomatik <strong>MışılSpot™</strong> & gece yatış saati</span></div>
+      <div style="display: flex; align-items: center; gap: 8px;"><span>🎧</span><span>Kilit ekranında kesintisiz <strong>30 stüdyo ninni & pışpış</strong></span></div>
+      <div style="display: flex; align-items: center; gap: 8px;"><span>🔔</span><span>Uykudan 15 dk önce uyarı, <strong>Ağlama Rehberi & 7/24 Dadı</strong></span></div>
+      <div style="display: flex; align-items: center; gap: 8px;"><span>👨‍👩‍👧</span><span>Tek VIP ile <strong>3 kişiye kadar</strong> ortak canlı bebek takibi</span></div>
     </div>
 
     <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
@@ -6545,11 +6590,11 @@
             <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">🌙 Aylık VIP Plan</strong>
             <span class="badge-trial-7d-flex" style="background: rgba(255,255,255,0.12); color: #FFF; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">YENİ ÜYE TEKLİFİ</span>
           </div>
-          <div class="price-monthly-subtext" style="font-size: 10.5px; color: var(--accent); font-weight: 700; margin-top: 2px;">Uygun yeni hesaplarda ilk ay ₺49,99 • Sonrasında ayda bir kahve fiyatına (₺149,99/ay)</div>
+          <div class="price-monthly-subtext" style="font-size: 10.5px; color: var(--accent); font-weight: 700; margin-top: 2px;">İlk ay tanışma fiyatı ₺49,99 • Memnun kalırsanız ayda bir kahve fiyatına (₺149,99/ay)</div>
         </div>
         <div style="text-align: right; flex-shrink: 0;">
-          <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: var(--accent);"><span class="price-monthly-primary-text">₺49,99</span><span class="price-monthly-unit-text" style="font-size: 10px; color: var(--text-muted);">/ilk ay</span></div>
-          <div class="price-monthly-after-text" style="font-size: 10.5px; color: #E2E8F0; font-weight: 700;">2. aydan: <span class="price-monthly-text">₺149,99</span>/ay</div>
+          <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: var(--accent);"><s class="price-monthly-strike-text" style="font-size: 11px; color: var(--text-muted); font-weight: 600; margin-right: 4px;">₺149,99</s><span class="price-monthly-primary-text">₺49,99</span><span class="price-monthly-unit-text" style="font-size: 10px; color: var(--text-muted);">/ilk ay</span></div>
+          <div class="price-monthly-after-text" style="display: none; font-size: 10.5px; color: #E2E8F0; font-weight: 700;">2. aydan: <span class="price-monthly-text">₺149,99</span>/ay</div>
         </div>
       </div>
 
@@ -6560,11 +6605,11 @@
             <strong style="font-family: 'Sora'; font-size: 13px; color: #FFF;">👑 Yıllık VIP Plan</strong>
             <span class="price-yearly-discount-badge" style="background: var(--accent); color: #141B2E; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px;">%67 TASARRUF</span>
           </div>
-          <div class="price-yearly-subtext" style="font-size: 10.5px; color: var(--text-muted); font-weight: 600; margin-top: 2px;">Tüm yıl sabit avantaj • Aylık ₺49,99 karşılığı</div>
+          <div class="price-yearly-subtext" style="font-size: 10.5px; color: var(--text-muted); font-weight: 600; margin-top: 2px;">Tüm yıl %67 indirim avantajı</div>
         </div>
         <div style="text-align: right; flex-shrink: 0;">
           <div style="font-family: 'Sora'; font-size: 16px; font-weight: 800; color: #FFF;"><span class="price-yearly-text">₺599,99</span><span style="font-size: 10px; color: var(--text-muted);">/yıl</span></div>
-          <div style="font-size: 9.5px; color: var(--accent);"><span class="price-yearly-monthly-eq-text">₺49,99</span>/ay karşılığı</div>
+          <div style="display: none; font-size: 9.5px; color: var(--accent);"><span class="price-yearly-monthly-eq-text">₺49,99</span>/ay karşılığı</div>
         </div>
       </div>
     </div>
@@ -6598,7 +6643,7 @@
       <a href="https://mishil-production.up.railway.app/privacy" target="_blank" onclick="openLegalUrl(event, 'https://mishil-production.up.railway.app/privacy')" style="color: var(--accent); text-decoration: underline; font-weight: 600;">🔒 Gizlilik Politikası</a>
     </div>
     <div style="text-align: center; margin-top: 8px;">
-      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.57.3 (Build 74)</span>
+      <span onclick="handleReviewerTap()" style="font-size: 10px; color: rgba(255,255,255,0.3); cursor: pointer; user-select: none; letter-spacing: 0.5px; padding: 4px 8px;">v4.58.0 (Build 75)</span>
     </div>
   </div>
 </div>
@@ -7707,7 +7752,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.57.3', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.58.0', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -7961,7 +8006,17 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.57.3', date: '25 Kasım 2026', dateEn: 'November 25, 2026', dateDe: '25. November 2026', latest: true, items: [
+    { v: '4.58.0', date: '26 Kasım 2026', dateEn: 'November 26, 2026', dateDe: '26. November 2026', latest: true, items: [
+      '🔥 Evrensel A/B Teklif Motoru & İlk Ay %67 İndirim / İlk Ay Ücretsiz Desteği (Build 75): RevenueCat Experiments üzerinden Grup A (İlk Ay %67 İndirimle ₺49,99) ve Grup B (İlk Ay Ücretsiz / ₺0) tekliflerini hem StoreKit 2 hem Google Play Billing v7 üzerinde dinamik tanıyan ve arayüzü otomatik şekillendiren yeni nesil teklif motoru devreye alındı.',
+      '🎯 Yeni Onboarding Akışı & 7. Adım MışılSpot™ Canlı Kalibrasyonu (4 Hızlı Çip): Bebek profilinden hemen sonra tek dokunuşluk Uyku Zorluğu, Gelişim Atakları ve Aşı Takvimi sıralaması ile rapor öncesi tek dokunuşlu hızlı uyanış çipleri (Az önce, 1 sa önce, 2 sa önce, 3+ sa) eklendi.'
+    ], itemsEn: [
+      '🔥 Universal A/B Offer Engine & 67% Off First Month / Free First Month Support (Build 75): Introduced the dynamic RevenueCat Experiments offer engine supporting both Group A (67% Off First Month) and Group B (Free First Month) across StoreKit 2 and Google Play Billing v7.',
+      '🎯 Streamlined Onboarding Flow & Step 7 MışılSpot™ Calibration (4 Quick Chips): Reordered onboarding to place Sleep Challenge, Developmental Leaps, and Vaccines right after Baby Profile, finishing with one-tap wake-time shortcut chips (Just now, 1h ago, 2h ago, 3h+ ago) right before your personal report.'
+    ], itemsDe: [
+      '🔥 Universelle A/B-Angebots-Engine & 67 % Rabatt im 1. Monat / 1. Monat Kostenlos (Build 75): Neue dynamische RevenueCat-Experiments-Engine für Gruppe A (67 % Rabatt im 1. Monat) und Gruppe B (1. Monat kostenlos) unter StoreKit 2 und Google Play Billing v7.',
+      '🎯 Optimierter Onboarding-Ablauf & Schritt 7 MışılSpot™-Kalibrierung (4 Schnell-Chips): Neue Reihenfolge mit Schlaf-Fokus, Entwicklungssprüngen und Impfkalender direkt nach dem Babyprofil sowie 1-Tipp-Aufwachzeit-Chips (Gerade eben, Vor 1 Std., Vor 2 Std., Vor 3+ Std.) direkt vor dem persönlichen Bericht.'
+    ]},
+    { v: '4.57.3', date: '25 Kasım 2026', dateEn: 'November 25, 2026', dateDe: '25. November 2026', items: [
       '🌙 1 Dakikada Kişisel Uyku Planı & Görünür Dönüşüm Hedefi (Build 74): İlk açılış karşılama ekranı, tek seferlik bebek adı girişi ve bebeğinizin adına özel hesaplanan Önce ➔ Sonra uyku dönüşüm hedefi kartı yenilendi.',
       '☕ Şeffaf İlk Ay Tanışma Avantajı & Android Kampanya Ölçümleme: Aylık VIP ilk ay tanışma akışı, gündüz/gece tema kontrastları ve Android Meta SDK / Install Referrer yaşam döngüsü senkronizasyonu güçlendirildi.'
     ], itemsEn: [
@@ -10653,6 +10708,9 @@
     const hourSel = document.getElementById(`onb-${prefix}-hour`);
     const minSel = document.getElementById(`onb-${prefix}-min`);
     if (!daySel || !hourSel || !minSel) return;
+    if (prefix === 'sleep' && typeof document.querySelectorAll === 'function') {
+      document.querySelectorAll('#onb-sleep-quick-chips .onb-wake-quick-chip').forEach(c => c.classList.remove('active'));
+    }
     const h = parseInt(hourSel.value, 10) || 0;
     const m = parseInt(minSel.value, 10) || 0;
     const adjustedDay = autoAdjustDayModeForHour(h, daySel.value, new Date());
@@ -10668,6 +10726,9 @@
     const hourSel = document.getElementById(`onb-${prefix}-hour`);
     const minSel = document.getElementById(`onb-${prefix}-min`);
     if (!daySel || !hourSel || !minSel) return;
+    if (prefix === 'sleep' && typeof document.querySelectorAll === 'function') {
+      document.querySelectorAll('#onb-sleep-quick-chips .onb-wake-quick-chip').forEach(c => c.classList.remove('active'));
+    }
     syncRoutineHourAndMinuteOptions(prefix, daySel.value, parseInt(hourSel.value, 10) || 0, parseInt(minSel.value, 10) || 0);
   }
   window.onOnboardingRoutineTimeChange = onOnboardingRoutineTimeChange;
@@ -10724,6 +10785,18 @@
     }
   }
 
+  function triggerOnboardingReportOrRepeatPaywall() {
+    whenNativeQuotasHydrated(() => {
+      if (!isSubscriptionCurrentlyActive() && isRepeatDeviceOnboarding()) {
+        localStorage.setItem('mishil_first_spot_aha_used', '1');
+        syncDeviceQuotasToNative();
+        openOnboardingPaywallStep();
+        return;
+      }
+      generateSleepReport();
+    });
+  }
+
   function saveOnboardingSleepStep(skip) {
     hapticPulse();
     let routines = readSafeActiveRoutines();
@@ -10734,7 +10807,7 @@
       localStorage.removeItem('mishil_onboarding_last_wake_ts');
       quizAnswers.sleepStepSkipped = true;
       quizAnswers.isCurrentlySleeping = false;
-      nextQuizStep(3);
+      triggerOnboardingReportOrRepeatPaywall();
       return;
     }
 
@@ -10789,7 +10862,7 @@
       routines = upsertOnboardingRoutineEntry(routines, sleepEntry, 'onb_slp_init');
       writeSafeActiveRoutines(routines);
     }
-    nextQuizStep(3);
+    triggerOnboardingReportOrRepeatPaywall();
   }
   window.saveOnboardingSleepStep = saveOnboardingSleepStep;
 
@@ -10800,7 +10873,7 @@
       routines = upsertOnboardingRoutineEntry(routines, null, 'onb_feed_init');
       writeSafeActiveRoutines(routines);
       quizAnswers.feedStepSkipped = true;
-      nextQuizStep(4);
+      nextQuizStep(6);
       return;
     }
 
@@ -10831,7 +10904,7 @@
     quizAnswers.feedStepSkipped = false;
     quizAnswers.lastFeedTs = evtTs;
     quizAnswers.lastFeedMethod = onboardingFeedMethod;
-    nextQuizStep(4);
+    nextQuizStep(6);
   }
   window.saveOnboardingFeedStep = saveOnboardingFeedStep;
 
@@ -10842,7 +10915,7 @@
       routines = upsertOnboardingRoutineEntry(routines, null, 'onb_diaper_init');
       writeSafeActiveRoutines(routines);
       quizAnswers.diaperStepSkipped = true;
-      nextQuizStep(5);
+      nextQuizStep(7);
       return;
     }
 
@@ -10870,7 +10943,7 @@
     quizAnswers.diaperStepSkipped = false;
     quizAnswers.lastDiaperTs = evtTs;
     quizAnswers.lastDiaperKind = onboardingDiaperKind;
-    nextQuizStep(5);
+    nextQuizStep(7);
   }
   window.saveOnboardingDiaperStep = saveOnboardingDiaperStep;
 
@@ -10994,7 +11067,7 @@
       }
     }
 
-    nextQuizStep(7);
+    nextQuizStep(4);
   }
   window.saveOnboardingLeapsStep = saveOnboardingLeapsStep;
 
@@ -11111,8 +11184,7 @@
   }
   window.toggleAllOnboardingVaccines = toggleAllOnboardingVaccines;
 
-  function saveOnboardingVaccinesAndGenerateReport() {
-    hapticPulse();
+  function persistOnboardingVaccinesSelection() {
     const bdate = quizAnswers.babyBdate || localStorage.getItem('mishil_baby_bdate') || '';
     const schedule = typeof getActiveVaccineSchedule === 'function' ? getActiveVaccineSchedule() : [];
     const vacCalc = getCumulativeDueVaccinesForBirthDate(bdate, schedule, new Date());
@@ -11137,16 +11209,19 @@
     localStorage.setItem('mishil_completed_vaccines', JSON.stringify(completed));
     if (typeof renderVaccineSchedule === 'function') renderVaccineSchedule();
     if (typeof renderHomeVaccineSummary === 'function') renderHomeVaccineSummary();
+  }
 
-    whenNativeQuotasHydrated(() => {
-      if (!isSubscriptionCurrentlyActive() && isRepeatDeviceOnboarding()) {
-        localStorage.setItem('mishil_first_spot_aha_used', '1');
-        syncDeviceQuotasToNative();
-        openOnboardingPaywallStep();
-        return;
-      }
-      generateSleepReport();
-    });
+  function saveOnboardingVaccinesStep() {
+    hapticPulse();
+    persistOnboardingVaccinesSelection();
+    nextQuizStep(5);
+  }
+  window.saveOnboardingVaccinesStep = saveOnboardingVaccinesStep;
+
+  function saveOnboardingVaccinesAndGenerateReport() {
+    hapticPulse();
+    persistOnboardingVaccinesSelection();
+    triggerOnboardingReportOrRepeatPaywall();
   }
   window.saveOnboardingVaccinesAndGenerateReport = saveOnboardingVaccinesAndGenerateReport;
 
@@ -11209,12 +11284,12 @@
         });
       }
 
-      const selectedStep5 = document.querySelector('#quiz-step-5 .quiz-option.selected');
-      if (selectedStep5) {
-        const oc = selectedStep5.getAttribute('onclick') || '';
-        const m5 = oc.match(/'(hard_settle|night_wakes|short_naps|rhythm)'/);
-        if (m5 && m5[1]) {
-          selectQuizOption(selectedStep5, 5, m5[1]);
+      const selectedChallengeEl = document.querySelector('#quiz-step-2 .quiz-option.selected, #quiz-step-5 .quiz-option.selected');
+      if (selectedChallengeEl) {
+        const oc = selectedChallengeEl.getAttribute('onclick') || '';
+        const mCh = oc.match(/'(hard_settle|night_wakes|short_naps|rhythm)'/);
+        if (mCh && mCh[1]) {
+          selectQuizOption(selectedChallengeEl, 2, mCh[1]);
         }
       }
     } catch (e) {}
@@ -11500,8 +11575,8 @@
       generateSleepReport({ preservePlan: true, silentHaptic: true });
       return;
     }
-    if (prev === 6) renderOnboardingLeapsChecklist();
-    if (prev === 7) renderOnboardingVaccinesChecklist();
+    if (prev === 3) renderOnboardingLeapsChecklist();
+    if (prev === 4) renderOnboardingVaccinesChecklist();
     document.querySelectorAll('.quiz-step').forEach(s => s.style.display = 'none');
     const targetEl = document.getElementById(`quiz-step-${prev}`);
     if (targetEl) targetEl.style.display = 'block';
@@ -11556,7 +11631,7 @@
       element.parentElement.querySelectorAll('.quiz-option').forEach(el => el.classList.remove('selected'));
       element.classList.add('selected');
     }
-    if (stepNum === 5) {
+    if (stepNum === 2 || stepNum === 5) {
       quizAnswers.sleepChallenge = value;
       if (value === 'hard_settle') {
         quizAnswers.sleepResistance = 'hard';
@@ -11576,7 +11651,6 @@
         quizAnswers.struggleArea = 'routine';
       }
     } else {
-      if (stepNum === 2) quizAnswers.sleepResistance = value;
       if (stepNum === 3) quizAnswers.nightWakes = value;
       if (stepNum === 4) quizAnswers.struggleArea = value;
     }
@@ -11591,10 +11665,17 @@
   }
   window.applyQuickBabyAgeMonths = applyQuickBabyAgeMonths;
 
-  function applyQuickLastWakeMinsAgo(minsAgo) {
+  function applyQuickLastWakeMinsAgo(minsAgo, chipEl) {
+    if (typeof hapticPulse === 'function') hapticPulse();
     const safeMins = Math.max(5, Math.min(360, Number(minsAgo) || 45));
     quizAnswers.lastWakeMinsAgo = safeMins;
     populateRoutineTimeCombobox('sleep', safeMins, 0);
+    if (typeof document !== 'undefined' && typeof document.querySelectorAll === 'function') {
+      document.querySelectorAll('#onb-sleep-quick-chips .onb-wake-quick-chip').forEach(c => {
+        const isMatch = chipEl ? (c === chipEl) : (Number(c.getAttribute('data-wake-mins')) === safeMins);
+        c.classList.toggle('active', isMatch);
+      });
+    }
   }
   window.applyQuickLastWakeMinsAgo = applyQuickLastWakeMinsAgo;
 
@@ -11654,9 +11735,9 @@
       }
     }
 
-    if (stepNum === 6) {
+    if (stepNum === 3) {
       renderOnboardingLeapsChecklist();
-    } else if (stepNum === 7) {
+    } else if (stepNum === 4) {
       renderOnboardingVaccinesChecklist();
     }
 
@@ -11679,11 +11760,16 @@
   function selectPricingPlan(planType, cardEl) {
     hapticPulse();
     settingsTargetPlan = planType;
+    if (!cardEl) return;
     const parent = cardEl.parentElement;
-    parent.querySelectorAll('.onboarding-plan-card').forEach(el => {
-      el.style.border = '1px solid var(--border-night)';
-      el.style.background = 'rgba(22, 29, 50, 0.8)';
-    });
+    if (parent) {
+      parent.querySelectorAll('.onboarding-plan-card').forEach(el => {
+        el.classList.remove('selected');
+        el.style.border = '1px solid var(--border-night)';
+        el.style.background = 'rgba(22, 29, 50, 0.8)';
+      });
+    }
+    cardEl.classList.add('selected');
     cardEl.style.border = '2px solid var(--accent)';
     cardEl.style.background = 'rgba(35, 42, 70, 0.95)';
 
@@ -11697,7 +11783,7 @@
     const isActive = isPaidOrVerifiedVip();
     const currentPlan = localStorage.getItem('mishil_subscription_plan') || 'monthly';
     const target = settingsTargetPlan || 'yearly';
-    const dp = typeof getDynamicPricingState === 'function' ? getDynamicPricingState() : { isStoreVerifiedIntro: false, isConditionalUnknownIntro: false, showIntroOffer: false, introMonthlyStr: '₺49,99', monthlyStr: '₺149,99', yearlyStr: '₺599,99' };
+    const dp = typeof getDynamicPricingState === 'function' ? getDynamicPricingState() : { isStoreVerifiedIntro: false, isConditionalUnknownIntro: false, isFreeTrialIntro: false, showIntroOffer: false, introDiscountPct: 67, introMonthlyStr: '₺49,99', monthlyStr: '₺149,99', yearlyStr: '₺599,99' };
 
     if (isActive) {
       if (currentPlan === target || (currentPlan === 'family_vip' && target === 'yearly')) {
@@ -11724,31 +11810,20 @@
         btn.style.borderColor = 'var(--border-night)';
       }
     } else {
-      if (target === 'yearly') {
+      if (typeof buildPaywallCtaLabel === 'function') {
+        btn.textContent = buildPaywallCtaLabel(target, dp);
+      } else if (target === 'yearly') {
         btn.textContent = trEnDe(
           `👑 Yıllık VIP Başlat (${dp.yearlyStr}/yıl)`,
           `👑 Start Annual VIP (${dp.yearlyStr}/yr)`,
           `👑 Jahres-VIP starten (${dp.yearlyStr}/Jahr)`
         );
       } else {
-        btn.textContent = dp.isStoreVerifiedIntro
-          ? trEnDe(
-              `✨ İlk Ay ${dp.introMonthlyStr} ile Aylık VIP Başlat`,
-              `✨ Start Monthly VIP (${dp.introMonthlyStr} 1st mo)`,
-              `✨ Monats-VIP starten (1. Monat ${dp.introMonthlyStr})`
-            )
-          : (dp.isConditionalUnknownIntro
-              ? trEnDe(
-                  `🌙 Aylık VIP Başlat (Uygun Hesaplarda İlk Ay ${dp.introMonthlyStr})`,
-                  `🌙 Start Monthly VIP (${dp.introMonthlyStr} 1st mo if eligible)`,
-                  `🌙 Monats-VIP starten (1. Mon. ${dp.introMonthlyStr} bei Berechtigung)`
-                )
-              : trEnDe(
-                  `🌙 Aylık VIP Başlat (${dp.monthlyStr}/ay)`,
-                  `🌙 Start Monthly VIP (${dp.monthlyStr}/mo)`,
-                  `🌙 Monats-VIP starten (${dp.monthlyStr}/Monat)`
-                )
-            );
+        btn.textContent = trEnDe(
+          `🌙 Aylık VIP Başlat (${dp.monthlyStr}/ay)`,
+          `🌙 Start Monthly VIP (${dp.monthlyStr}/mo)`,
+          `🌙 Monats-VIP starten (${dp.monthlyStr}/Monat)`
+        );
       }
       btn.style.opacity = '1';
       btn.style.background = 'linear-gradient(135deg, #E8A855, #C68A3E)';
@@ -11985,10 +12060,21 @@
 
   function hasPositiveStoreIntroOffer(storePrices) {
     if (!storePrices || typeof storePrices !== 'object') return false;
+    if (String(storePrices.introOfferType || '').toLowerCase() === 'free_trial') return false;
     if (typeof storePrices.introMonthlyPrice === 'number' && storePrices.introMonthlyPrice > 0) return true;
     if (storePrices.introMonthly) {
       const cleaned = String(storePrices.introMonthly).replace(/\s*\/.*/, '').trim();
       if (parseNumericPrice(cleaned) > 0) return true;
+    }
+    return false;
+  }
+
+  function hasZeroStoreFreeTrialOffer(storePrices) {
+    if (!storePrices || typeof storePrices !== 'object') return false;
+    const oType = String(storePrices.introOfferType || '').toLowerCase().trim();
+    if (oType === 'free_trial') return true;
+    if (typeof storePrices.introMonthlyPrice === 'number' && storePrices.introMonthlyPrice === 0 && oType !== 'none') {
+      return true;
     }
     return false;
   }
@@ -11999,17 +12085,22 @@
     if (rawElig === 'ineligible') return 'ineligible';
     if (hasLocalPriorSubscriptionOrTrialTrace() && rawElig !== 'eligible') return 'ineligible';
     const hasPaidStoreIntro = hasPositiveStoreIntroOffer(storePrices);
+    const hasFreeTrialIntro = hasZeroStoreFreeTrialOffer(storePrices);
+    const hasAnyStoreIntro = hasPaidStoreIntro || hasFreeTrialIntro;
     if (rawElig === 'eligible') {
-      return hasPaidStoreIntro ? 'eligible' : 'ineligible';
+      return hasAnyStoreIntro ? 'eligible' : 'ineligible';
     }
-    // Native WebView içinde StoreKit / Google Play henüz pozitif ücretli intro teklif döndürmediyse asla varsayımsal indirim gösterme
-    if (typeof window !== 'undefined' && window.ReactNativeWebView && !hasPaidStoreIntro) {
+    // Native WebView içinde StoreKit / Google Play henüz geçerli bir intro/trial teklif döndürmediyse asla varsayımsal indirim gösterme
+    if (typeof window !== 'undefined' && window.ReactNativeWebView && !hasAnyStoreIntro) {
       return 'ineligible';
     }
     return 'unknown_new_user';
   }
 
   function formatLocalizedPriceDisplay(currSymbol, val, sampleStr) {
+    if (val === 0) {
+      return `${currSymbol}0`;
+    }
     if (val >= 1000 || Number.isInteger(val) && val >= 20 && currSymbol !== 'CHF ') {
       return `${currSymbol}${Math.round(val).toLocaleString('en-US')}`;
     }
@@ -12035,17 +12126,21 @@
       : (parseNumericPrice(yClean) || defY);
 
     const introClean = storePrices.introMonthly ? String(storePrices.introMonthly).replace(/\s*\/.*/, '').trim() : '';
-    const hasPaidStoreIntro = hasPositiveStoreIntroOffer(storePrices);
+    const hasFreeTrialIntro = hasZeroStoreFreeTrialOffer(storePrices);
+    const hasPaidStoreIntro = !hasFreeTrialIntro && hasPositiveStoreIntroOffer(storePrices);
+    const introOfferType = hasFreeTrialIntro ? 'free_trial' : 'paid_intro';
     const fallbackIntroVal = INTRO_FIRST_MONTH_PPP_BY_CURRENCY[currCode]
       || (monthlyVal >= 1000 ? Math.max(100, Math.round((monthlyVal * 0.4) / 100) * 100) : Number(Math.max(0.99, monthlyVal * 0.4).toFixed(2)));
-    const introMonthlyVal = (typeof storePrices.introMonthlyPrice === 'number' && storePrices.introMonthlyPrice > 0)
-      ? storePrices.introMonthlyPrice
-      : (parseNumericPrice(introClean) || fallbackIntroVal);
+    const introMonthlyVal = hasFreeTrialIntro
+      ? 0
+      : ((typeof storePrices.introMonthlyPrice === 'number' && storePrices.introMonthlyPrice > 0)
+          ? storePrices.introMonthlyPrice
+          : (parseNumericPrice(introClean) || fallbackIntroVal));
 
-    // Android RevenueCat SDK defaultOption koruması (Build 71): prod.price değeri intro-first-month (49.99) döndüğünde baz aylık fiyatı (149.99) geri yükle
+    // Android RevenueCat SDK defaultOption koruması (Build 71/75): prod.price değeri intro-first-month (49.99 veya 0) döndüğünde baz aylık fiyatı (149.99) geri yükle
     let monthlyWasOverwrittenByIntro = false;
-    if (hasPaidStoreIntro && introMonthlyVal > 0 && monthlyVal <= introMonthlyVal) {
-      monthlyVal = defM > introMonthlyVal ? defM : Number((introMonthlyVal * 3).toFixed(2));
+    if ((hasPaidStoreIntro || hasFreeTrialIntro) && monthlyVal <= Math.max(0, introMonthlyVal)) {
+      monthlyVal = defM > introMonthlyVal ? defM : Number((Math.max(1, introMonthlyVal) * 3).toFixed(2));
       monthlyWasOverwrittenByIntro = true;
     }
 
@@ -12062,17 +12157,31 @@
     const discountPct = (monthlyVal > 0 && yearlyVal > 0 && yearlyVal < monthlyVal * 12)
       ? Math.round((1 - (yearlyVal / (monthlyVal * 12))) * 100)
       : 67;
+    const introDiscountPct = hasFreeTrialIntro
+      ? 100
+      : ((monthlyVal > 0 && introMonthlyVal > 0 && introMonthlyVal < monthlyVal)
+          ? Math.round((1 - (introMonthlyVal / monthlyVal)) * 100)
+          : 67);
 
-    const introMonthlyStr = (introClean && introMonthlyVal > 0)
-      ? introClean
-      : formatLocalizedPriceDisplay(currSymbol, introMonthlyVal, mClean);
+    const introMonthlyStr = hasFreeTrialIntro
+      ? `${currSymbol}0`
+      : ((introClean && introMonthlyVal > 0)
+          ? introClean
+          : formatLocalizedPriceDisplay(currSymbol, introMonthlyVal, mClean));
     const introDailyRaw = Math.floor((introMonthlyVal / 30) * 100) / 100;
-    const introDailyEqStr = isLargeUnit
-      ? `${currSymbol}${Math.max(1, Math.round(introMonthlyVal / 30)).toLocaleString('en-US')}`
-      : formatLocalizedPriceDisplay(currSymbol, introDailyRaw > 0 ? introDailyRaw : (introMonthlyVal / 30), mClean || introClean);
+    const introDailyEqStr = hasFreeTrialIntro
+      ? `${currSymbol}0`
+      : (isLargeUnit
+          ? `${currSymbol}${Math.max(1, Math.round(introMonthlyVal / 30)).toLocaleString('en-US')}`
+          : formatLocalizedPriceDisplay(currSymbol, introDailyRaw > 0 ? introDailyRaw : (introMonthlyVal / 30), mClean || introClean));
     const introEligibility = resolveMonthlyIntroEligibility(storePrices);
-    const isStoreVerifiedIntro = introEligibility === 'eligible' && hasPaidStoreIntro && introMonthlyVal > 0 && introMonthlyVal < monthlyVal;
-    const isConditionalUnknownIntro = introEligibility === 'unknown_new_user' && introMonthlyVal > 0 && introMonthlyVal < monthlyVal;
+    const isStoreVerifiedFreeTrial = introEligibility === 'eligible' && hasFreeTrialIntro;
+    const isConditionalUnknownFreeTrial = introEligibility === 'unknown_new_user' && hasFreeTrialIntro;
+    const isStoreVerifiedPaidIntro = introEligibility === 'eligible' && hasPaidStoreIntro && introMonthlyVal > 0 && introMonthlyVal < monthlyVal;
+    const isConditionalUnknownPaidIntro = introEligibility === 'unknown_new_user' && !hasFreeTrialIntro && introMonthlyVal > 0 && introMonthlyVal < monthlyVal;
+    const isStoreVerifiedIntro = isStoreVerifiedFreeTrial || isStoreVerifiedPaidIntro;
+    const isConditionalUnknownIntro = isConditionalUnknownFreeTrial || isConditionalUnknownPaidIntro;
+    const isFreeTrialIntro = isStoreVerifiedFreeTrial || isConditionalUnknownFreeTrial;
     const showIntroOffer = isStoreVerifiedIntro;
 
     return {
@@ -12085,13 +12194,20 @@
       monthlyEqStr,
       dailyEqStr,
       discountPct,
+      introDiscountPct,
+      introOfferType,
       introMonthlyVal,
       introMonthlyStr,
       introDailyEqStr,
       introEligibility,
       showIntroOffer,
       isStoreVerifiedIntro,
-      isConditionalUnknownIntro
+      isConditionalUnknownIntro,
+      isFreeTrialIntro,
+      isStoreVerifiedFreeTrial,
+      isConditionalUnknownFreeTrial,
+      isStoreVerifiedPaidIntro,
+      isConditionalUnknownPaidIntro
     };
   }
   window.getDynamicPricingState = getDynamicPricingState;
@@ -12584,18 +12700,27 @@
         `👑 Jahres-VIP starten (${dp.yearlyStr}/Jahr)`
       );
     }
-    if (dp.isStoreVerifiedIntro) {
+    if (dp.isFreeTrialIntro) {
       return trEnDe(
-        `✨ İlk Ay ${dp.introMonthlyStr} ile VIP Başlat`,
-        `✨ Start VIP — ${dp.introMonthlyStr} First Month`,
-        `✨ VIP starten — 1. Monat ${dp.introMonthlyStr}`
+        '🎁 İlk Ay Ücretsiz VIP Başlat',
+        '🎁 Start Free First Month VIP',
+        '🎁 1. Monat Kostenlos VIP starten'
+      );
+    }
+    if (dp.isStoreVerifiedIntro) {
+      const pct = dp.introDiscountPct || 67;
+      return trEnDe(
+        `✨ İlk Ay %${pct} İndirimle (${dp.introMonthlyStr}) VIP Başlat`,
+        `✨ Start VIP — ${pct}% Off 1st Month (${dp.introMonthlyStr})`,
+        `✨ VIP starten — ${pct}% Rabatt im 1. Mon. (${dp.introMonthlyStr})`
       );
     }
     if (dp.isConditionalUnknownIntro) {
+      const pct = dp.introDiscountPct || 67;
       return trEnDe(
-        `✨ Uygun Hesaplarda İlk Ay ${dp.introMonthlyStr} ile VIP Başlat`,
-        `✨ Start Monthly VIP (${dp.introMonthlyStr} 1st mo if eligible)`,
-        `✨ Monats-VIP starten (1. Mon. ${dp.introMonthlyStr} bei Berechtigung)`
+        `✨ İlk Ay %${pct} İndirimle (${dp.introMonthlyStr}) VIP Başlat`,
+        `✨ Start VIP — ${pct}% Off 1st Month (${dp.introMonthlyStr})`,
+        `✨ VIP starten — ${pct}% Rabatt im 1. Mon. (${dp.introMonthlyStr})`
       );
     }
     return trEnDe(
@@ -12612,10 +12737,17 @@
     const introStr = (dp && dp.introMonthlyStr) ? dp.introMonthlyStr : '₺49,99';
     const monthlyStr = (dp && dp.monthlyStr) ? dp.monthlyStr : '₺149,99';
     if (cleanKey === 'price') {
+      if (dp && dp.isFreeTrialIntro) {
+        return trEnDe(
+          `💡 İlk 30 günü tamamen ücretsiz (${introStr}) deneyebilirsiniz; memnun kalırsanız ayda sadece bir kahve fiyatına (${monthlyStr}/ay) 3 aile üyesi ortak kullanır.`,
+          `💡 Try your first 30 days completely free (${introStr}); if you love it, up to 3 family members share 1 subscription for the price of a coffee a month (${monthlyStr}/mo).`,
+          `💡 Testen Sie die ersten 30 Tage komplett kostenlos (${introStr}); wenn Sie zufrieden sind, nutzen bis zu 3 Familienmitglieder dasselbe Abo zum Preis eines Kaffees im Monat (${monthlyStr}/Monat).`
+        );
+      }
       return trEnDe(
-        `💡 İlk 30 günü tanışma fiyatıyla (${introStr}) rahatça deneyebilirsiniz; sonrasında da ayda sadece bir kahve fiyatına (${monthlyStr}/ay) 3 aile üyesi ortak kullanır.`,
-        `💡 Try your first 30 days for just ${introStr}; after that, up to 3 family members share 1 subscription for the price of a coffee a month (${monthlyStr}/mo).`,
-        `💡 Testen Sie die ersten 30 Tage für ${introStr}; danach nutzen bis zu 3 Familienmitglieder dasselbe Abo zum Preis eines Kaffees im Monat (${monthlyStr}/Monat).`
+        `💡 İlk 30 günü tanışma fiyatıyla (${introStr}) rahatça deneyebilirsiniz; memnun kalırsanız ayda sadece bir kahve fiyatına (${monthlyStr}/ay) 3 aile üyesi ortak kullanır.`,
+        `💡 Try your first 30 days for just ${introStr}; if you love it, up to 3 family members share 1 subscription for the price of a coffee a month (${monthlyStr}/mo).`,
+        `💡 Testen Sie die ersten 30 Tage für ${introStr}; wenn Sie zufrieden sind, nutzen bis zu 3 Familienmitglieder dasselbe Abo zum Preis eines Kaffees im Monat (${monthlyStr}/Monat).`
       );
     }
     if (cleanKey === 'cancel_fear') {
@@ -12642,6 +12774,8 @@
   function syncPaywallCancelRecoveryModalCopy(cancelledPlan) {
     const dp = getDynamicPricingState();
     const hasIntro = dp.isStoreVerifiedIntro || dp.isConditionalUnknownIntro;
+    const isFreeIntro = !!dp.isFreeTrialIntro;
+    const introPct = dp.introDiscountPct || 67;
     const savedCustomName = (quizAnswers && quizAnswers.babyName ? quizAnswers.babyName : (localStorage.getItem('mishil_baby_name') || '')).trim();
     const hasCustomName = !!(savedCustomName && typeof isPlaceholderBabyName === 'function' && !isPlaceholderBabyName(savedCustomName) && savedCustomName !== 'Bebeğiniz' && savedCustomName !== 'Your Baby' && savedCustomName !== 'Ihr Baby');
     const babyLabelTr = hasCustomName ? escapeHtml(savedCustomName) : 'Bebeğiniz';
@@ -12666,30 +12800,46 @@
       );
     }
     if (subEl) {
-      subEl.innerHTML = hasIntro
-        ? trEnDe(
-            `<strong>${babyLabelTr}</strong> için hazırlanan kişisel uyku planınız hazır. İlk 30 günü tanışma fiyatıyla (<strong>${escapeHtml(dp.introMonthlyStr)}/ilk ay</strong>) rahatça deneyebilir, sonrasında ayda bir kahve fiyatına (<strong>${escapeHtml(dp.monthlyStr)}/ay</strong>) devam edebilirsiniz:`,
-            `<strong>${babyLabelEn}</strong> personal sleep plan is ready. Try the first 30 days with our intro offer (<strong>${escapeHtml(dp.introMonthlyStr)} first month</strong>), then continue for the price of a coffee a month (<strong>${escapeHtml(dp.monthlyStr)}/mo</strong>):`,
-            `Der persönliche Schlafplan für <strong>${babyLabelDe}</strong> ist bereit. Testen Sie die ersten 30 Tage zum Kennenlernpreis (<strong>${escapeHtml(dp.introMonthlyStr)} im 1. Monat</strong>) und nutzen Sie es danach zum Preis eines Kaffees im Monat (<strong>${escapeHtml(dp.monthlyStr)}/Monat</strong>):`
-          )
-        : trEnDe(
-            `<strong>${babyLabelTr}</strong> için hazırlanan kişisel uyku planınız hazır. Ayda bir kahve fiyatına Esnek Aylık VIP (<strong>${escapeHtml(dp.monthlyStr)}/ay</strong>) ile tüm özellikleri hiçbir uzun vadeli taahhüt olmadan kullanabilirsiniz:`,
-            `<strong>${babyLabelEn}</strong> personal sleep plan is ready. Use all VIP features for the price of a coffee a month with Flexible Monthly VIP (<strong>${escapeHtml(dp.monthlyStr)}/mo</strong>):`,
-            `Der persönliche Schlafplan für <strong>${babyLabelDe}</strong> ist bereit. Nutzen Sie alle Funktionen flexibel im Monats-VIP zum Preis eines Kaffees im Monat (<strong>${escapeHtml(dp.monthlyStr)}/Monat</strong>):`
-          );
+      if (isFreeIntro) {
+        subEl.innerHTML = trEnDe(
+          `<strong>${babyLabelTr}</strong> için hazırlanan kişisel uyku planınız hazır. İlk 30 günü <strong>ücretsiz (${escapeHtml(dp.introMonthlyStr)})</strong> deneyebilir, memnun kalırsanız ayda bir kahve fiyatına (<strong>${escapeHtml(dp.monthlyStr)}/ay</strong>) devam edebilirsiniz:`,
+          `<strong>${babyLabelEn}</strong> personal sleep plan is ready. Try the first 30 days <strong>free (${escapeHtml(dp.introMonthlyStr)})</strong>, and if you love it, continue for the price of a coffee a month (<strong>${escapeHtml(dp.monthlyStr)}/mo</strong>):`,
+          `Der persönliche Schlafplan für <strong>${babyLabelDe}</strong> ist bereit. Testen Sie die ersten 30 Tage <strong>kostenlos (${escapeHtml(dp.introMonthlyStr)})</strong> und nutzen Sie es bei Gefallen zum Preis eines Kaffees im Monat (<strong>${escapeHtml(dp.monthlyStr)}/Monat</strong>):`
+        );
+      } else if (hasIntro) {
+        subEl.innerHTML = trEnDe(
+          `<strong>${babyLabelTr}</strong> için hazırlanan kişisel uyku planınız hazır. İlk 30 günü tanışma fiyatıyla (<strong>${escapeHtml(dp.introMonthlyStr)}/ilk ay</strong>) rahatça deneyebilir, memnun kalırsanız ayda bir kahve fiyatına (<strong>${escapeHtml(dp.monthlyStr)}/ay</strong>) devam edebilirsiniz:`,
+          `<strong>${babyLabelEn}</strong> personal sleep plan is ready. Try the first 30 days with our intro offer (<strong>${escapeHtml(dp.introMonthlyStr)} first month</strong>), and if you love it, continue for the price of a coffee a month (<strong>${escapeHtml(dp.monthlyStr)}/mo</strong>):`,
+          `Der persönliche Schlafplan für <strong>${babyLabelDe}</strong> ist bereit. Testen Sie die ersten 30 Tage zum Kennenlernpreis (<strong>${escapeHtml(dp.introMonthlyStr)} im 1. Monat</strong>) und nutzen Sie es bei Gefallen zum Preis eines Kaffees im Monat (<strong>${escapeHtml(dp.monthlyStr)}/Monat</strong>):`
+        );
+      } else {
+        subEl.innerHTML = trEnDe(
+          `<strong>${babyLabelTr}</strong> için hazırlanan kişisel uyku planınız hazır. Ayda bir kahve fiyatına Esnek Aylık VIP (<strong>${escapeHtml(dp.monthlyStr)}/ay</strong>) ile tüm özellikleri hiçbir uzun vadeli taahhüt olmadan kullanabilirsiniz:`,
+          `<strong>${babyLabelEn}</strong> personal sleep plan is ready. Use all VIP features for the price of a coffee a month with Flexible Monthly VIP (<strong>${escapeHtml(dp.monthlyStr)}/mo</strong>):`,
+          `Der persönliche Schlafplan für <strong>${babyLabelDe}</strong> ist bereit. Nutzen Sie alle Funktionen flexibel im Monats-VIP zum Preis eines Kaffees im Monat (<strong>${escapeHtml(dp.monthlyStr)}/Monat</strong>):`
+        );
+      }
     }
     if (pt1El) {
-      pt1El.innerHTML = hasIntro
-        ? trEnDe(
-            `<strong>İlk Ay Tanışma Avantajı (${escapeHtml(dp.introMonthlyStr)}):</strong> İlk 30 gün boyunca tüm 30 stüdyo uyku sesine, canlı MışılSpot™ takibine ve 7/24 Mışıl Dadı'ya tam erişim (sonrasında ${escapeHtml(dp.monthlyStr)}/ay).`,
-            `<strong>First Month Intro (${escapeHtml(dp.introMonthlyStr)}):</strong> Full access to all 30 studio sleep sounds, live MışılSpot™ tracking & 24/7 Mışıl Nanny (then ${escapeHtml(dp.monthlyStr)}/mo).`,
-            `<strong>1. Monat zum Kennenlernen (${escapeHtml(dp.introMonthlyStr)}):</strong> Voller Zugang zu allen 30 Studio-Klängen, Live-MışılSpot™ & 24/7 Mışıl Nanny (danach ${escapeHtml(dp.monthlyStr)}/Mon.).`
-          )
-        : trEnDe(
-            `<strong>Esnek Aylık Plan (${escapeHtml(dp.monthlyStr)}/ay):</strong> Tüm 30 stüdyo uyku sesine, canlı MışılSpot™ takibine ve 7/24 Mışıl Dadı'ya anında tam erişim.`,
-            `<strong>Flexible Monthly Plan (${escapeHtml(dp.monthlyStr)}/mo):</strong> Instant full access to all 30 studio sleep sounds, live MışılSpot™ & 24/7 Mışıl Nanny.`,
-            `<strong>Flexibles Monatsabo (${escapeHtml(dp.monthlyStr)}/Monat):</strong> Sofortiger Vollzugang zu allen 30 Studio-Klängen, Live-MışılSpot™ & 24/7 Mışıl Nanny.`
-          );
+      if (isFreeIntro) {
+        pt1El.innerHTML = trEnDe(
+          `<strong>İlk Ay Ücretsiz (${escapeHtml(dp.introMonthlyStr)}):</strong> İlk 30 gün boyunca tüm 30 stüdyo uyku sesine, canlı MışılSpot™ takibine ve 7/24 Mışıl Dadı'ya tam erişim (memnun kalırsanız ${escapeHtml(dp.monthlyStr)}/ay).`,
+          `<strong>First Month Free (${escapeHtml(dp.introMonthlyStr)}):</strong> Full access to all 30 studio sleep sounds, live MışılSpot™ tracking & 24/7 Mışıl Nanny (then ${escapeHtml(dp.monthlyStr)}/mo if you continue).`,
+          `<strong>1. Monat Kostenlos (${escapeHtml(dp.introMonthlyStr)}):</strong> Voller Zugang zu allen 30 Studio-Klängen, Live-MışılSpot™ & 24/7 Mışıl Nanny (danach ${escapeHtml(dp.monthlyStr)}/Mon.).`
+        );
+      } else if (hasIntro) {
+        pt1El.innerHTML = trEnDe(
+          `<strong>İlk Ay %${introPct} İndirim Avantajı (${escapeHtml(dp.introMonthlyStr)}):</strong> İlk 30 gün boyunca tüm 30 stüdyo uyku sesine, canlı MışılSpot™ takibine ve 7/24 Mışıl Dadı'ya tam erişim (memnun kalırsanız ${escapeHtml(dp.monthlyStr)}/ay).`,
+          `<strong>First Month ${introPct}% Off (${escapeHtml(dp.introMonthlyStr)}):</strong> Full access to all 30 studio sleep sounds, live MışılSpot™ tracking & 24/7 Mışıl Nanny (then ${escapeHtml(dp.monthlyStr)}/mo).`,
+          `<strong>1. Monat ${introPct}% Rabatt (${escapeHtml(dp.introMonthlyStr)}):</strong> Voller Zugang zu allen 30 Studio-Klängen, Live-MışılSpot™ & 24/7 Mışıl Nanny (danach ${escapeHtml(dp.monthlyStr)}/Mon.).`
+        );
+      } else {
+        pt1El.innerHTML = trEnDe(
+          `<strong>Esnek Aylık Plan (${escapeHtml(dp.monthlyStr)}/ay):</strong> Tüm 30 stüdyo uyku sesine, canlı MışılSpot™ takibine ve 7/24 Mışıl Dadı'ya anında tam erişim.`,
+          `<strong>Flexible Monthly Plan (${escapeHtml(dp.monthlyStr)}/mo):</strong> Instant full access to all 30 studio sleep sounds, live MışılSpot™ & 24/7 Mışıl Nanny.`,
+          `<strong>Flexibles Monatsabo (${escapeHtml(dp.monthlyStr)}/Monat):</strong> Sofortiger Vollzugang zu allen 30 Studio-Klängen, Live-MışılSpot™ & 24/7 Mışıl Nanny.`
+        );
+      }
     }
     if (pt2El) {
       pt2El.innerHTML = trEnDe(
@@ -12713,17 +12863,23 @@
       );
     }
     if (ctaEl) {
-      if (cancelledPlan === 'yearly' && hasIntro) {
+      if (isFreeIntro) {
         ctaEl.textContent = trEnDe(
-          `✨ İlk Ay ${dp.introMonthlyStr} Tanışma Fiyatıyla Deneyin`,
-          `✨ Try 1st Month for ${dp.introMonthlyStr}`,
-          `✨ 1. Monat für ${dp.introMonthlyStr} unverbindlich testen`
+          '🎁 İlk Ay Ücretsiz VIP Başlat',
+          '🎁 Start Free First Month VIP',
+          '🎁 1. Monat Kostenlos VIP starten'
+        );
+      } else if (cancelledPlan === 'yearly' && hasIntro) {
+        ctaEl.textContent = trEnDe(
+          `✨ İlk Ay %${introPct} İndirimle (${dp.introMonthlyStr}) Deneyin`,
+          `✨ Try 1st Month at ${introPct}% Off (${dp.introMonthlyStr})`,
+          `✨ 1. Monat mit ${introPct}% Rabatt (${dp.introMonthlyStr}) testen`
         );
       } else if (hasIntro) {
         ctaEl.textContent = trEnDe(
-          `✨ İlk Ay ${dp.introMonthlyStr} ile Güvenle Başlat`,
-          `✨ Start Safely — ${dp.introMonthlyStr} First Month`,
-          `✨ Sicher starten — 1. Monat ${dp.introMonthlyStr}`
+          `✨ İlk Ay %${introPct} İndirimle (${dp.introMonthlyStr}) VIP Başlat`,
+          `✨ Start VIP — ${introPct}% Off 1st Month (${dp.introMonthlyStr})`,
+          `✨ VIP starten — ${introPct}% Rabatt im 1. Mon. (${dp.introMonthlyStr})`
         );
       } else {
         ctaEl.textContent = trEnDe(
@@ -12839,23 +12995,23 @@
   function buildPaywallShieldLabel(planType, dp) {
     if (planType === 'yearly') {
       return trEnDe(
-        `👑 Yıllık ${dp.yearlyStr} (Aylık ${dp.monthlyEqStr} karşılığı) • Tüm yıl 3 cihazda ortak kullanım`,
-        `👑 ${dp.yearlyStr}/yr (${dp.monthlyEqStr}/mo equivalent) • Full year shared across 3 devices`,
-        `👑 ${dp.yearlyStr}/Jahr (entspricht ${dp.monthlyEqStr}/Monat) • Das ganze Jahr auf 3 Geräten nutzbar`
+        `👑 Yıllık ${dp.yearlyStr} • Tüm yıl %${dp.discountPct || 67} indirim avantajı & 3 cihazda ortak kullanım`,
+        `👑 ${dp.yearlyStr}/yr • Save ${dp.discountPct || 67}% all year & shared across 3 devices`,
+        `👑 ${dp.yearlyStr}/Jahr • Das ganze Jahr ${dp.discountPct || 67}% Rabatt & auf 3 Geräten nutzbar`
       );
     }
-    if (dp.isStoreVerifiedIntro) {
+    if (dp.isFreeTrialIntro) {
       return trEnDe(
-        `☕ İlk ay denemeniz için ${dp.introMonthlyStr} • Sonrasında ayda bir kahve fiyatına (${dp.monthlyStr}/ay)`,
-        `☕ Try your first month for ${dp.introMonthlyStr} • Then the price of a coffee a month (${dp.monthlyStr}/mo)`,
-        `☕ 1. Monat zum Testen für ${dp.introMonthlyStr} • Danach zum Preis eines Kaffees im Monat (${dp.monthlyStr}/Monat)`
+        `🛡️ Bugün tanışmamıza özel ücretsiz • Memnun kalırsanız ayda bir kahve fiyatına devam edebilirsiniz`,
+        `🛡️ Free today for new members • If you love it, continue for the price of a coffee a month`,
+        `🛡️ Heute kostenlos zum Kennenlernen • Bei Gefallen zum Preis eines Kaffees im Monat weiternutzen`
       );
     }
-    if (dp.isConditionalUnknownIntro) {
+    if (dp.isStoreVerifiedIntro || dp.isConditionalUnknownIntro) {
       return trEnDe(
-        `☕ Uygun yeni hesaplarda ilk ay ${dp.introMonthlyStr} • Sonrasında ayda bir kahve fiyatına (${dp.monthlyStr}/ay)`,
-        `☕ Eligible new accounts: ${dp.introMonthlyStr} 1st mo • Then the price of a coffee a month (${dp.monthlyStr}/mo)`,
-        `☕ Berechtigte Neukunden: 1. Mon. ${dp.introMonthlyStr} • Danach zum Preis eines Kaffees im Monat (${dp.monthlyStr}/Monat)`
+        `☕ İlk ay tanışmamıza özel ${dp.introMonthlyStr} • Memnun kalırsanız ayda bir kahve fiyatına devam edebilirsiniz`,
+        `☕ Special ${dp.introMonthlyStr} first month • If you love it, continue for the price of a coffee a month`,
+        `☕ 1. Monat zum Kennenlernen für ${dp.introMonthlyStr} • Bei Gefallen zum Preis eines Kaffees im Monat weiternutzen`
       );
     }
     return trEnDe(
@@ -12871,6 +13027,20 @@
         `Seçilen Yıllık ${dp.yearlyStr}/yıl (${dp.monthlyEqStr}/ay karşılığı) planı onayda faturalandırılır.`,
         `Selected Annual ${dp.yearlyStr}/yr (${dp.monthlyEqStr}/mo equivalent) plan is billed upon confirmation.`,
         `Das gewählte Jahresabo (${dp.yearlyStr}/Jahr • entspricht ${dp.monthlyEqStr}/Monat) wird bei Bestätigung abgerechnet.`
+      );
+    }
+    if (dp.isStoreVerifiedFreeTrial) {
+      return trEnDe(
+        `İlk 1 ay ücretsizdir (bugün ${dp.introMonthlyStr}); iptal edilmezse 2. aydan itibaren Aylık ${dp.monthlyStr}/ay olarak otomatik yenilenir.`,
+        `First month is free (${dp.introMonthlyStr} today); automatically renews at ${dp.monthlyStr}/mo starting month 2 unless canceled.`,
+        `Der 1. Monat ist kostenlos (heute ${dp.introMonthlyStr}); verlängert sich ab dem 2. Monat automatisch zu ${dp.monthlyStr}/Monat, sofern nicht gekündigt.`
+      );
+    }
+    if (dp.isConditionalUnknownFreeTrial) {
+      return trEnDe(
+        `Uygun yeni abonelerde ilk 1 ay ücretsizdir (${dp.introMonthlyStr}), 2. aydan itibaren (veya daha önce teklif kullananlarda) ${dp.monthlyStr}/ay olarak faturalandırılır; kesin tutar mağaza onay ekranında gösterilir.`,
+        `Eligible new subscribers get month 1 free (${dp.introMonthlyStr}), then ${dp.monthlyStr}/mo (prior subscribers pay ${dp.monthlyStr}/mo); exact charge is shown on the store sheet.`,
+        `Berechtigte Neukunden erhalten den 1. Monat kostenlos (${dp.introMonthlyStr}), danach ${dp.monthlyStr}/Monat (Bestandskunden: ${dp.monthlyStr}/Monat); der genaue Betrag erscheint vorab im Store.`
       );
     }
     if (dp.isStoreVerifiedIntro) {
@@ -18145,22 +18315,23 @@
       }
       if (badgeY) { badgeY.textContent = trEnDe(`%${dp.discountPct} TASARRUF`, `SAVE ${dp.discountPct}%`, `${dp.discountPct}% SPAREN`); badgeY.style.background = 'var(--accent)'; badgeY.style.color = '#141B2E'; }
       if (badgeM) {
-        if (dp.isStoreVerifiedIntro) {
-          badgeM.textContent = trEnDe('İLK AY AVANTAJI', '1ST MONTH OFFER', '1.-MONAT-VORTEIL');
+        if (dp.isFreeTrialIntro) {
+          badgeM.textContent = trEnDe('İLK 30 GÜN ÜCRETSİZ', 'FIRST 30 DAYS FREE', 'ERSTE 30 TAGE GRATIS');
           badgeM.style.background = 'rgba(46, 213, 115, 0.2)';
           badgeM.style.color = '#2ED573';
-        } else if (dp.isConditionalUnknownIntro) {
-          badgeM.textContent = trEnDe('YENİ ÜYE TEKLİFİ', 'NEW MEMBER OFFER', 'NEUKUNDEN-OPTION');
-          badgeM.style.background = 'rgba(255,255,255,0.1)';
-          badgeM.style.color = '#FFF';
+        } else if (dp.isStoreVerifiedIntro || dp.isConditionalUnknownIntro) {
+          const pct = dp.introDiscountPct || 67;
+          badgeM.textContent = trEnDe(`%${pct} İLK AY İNDİRİMİ`, `${pct}% OFF 1ST MONTH`, `${pct}% RABATT IM 1. MON.`);
+          badgeM.style.background = 'rgba(46, 213, 115, 0.2)';
+          badgeM.style.color = '#2ED573';
         } else {
           badgeM.textContent = trEnDe('ESNEK PLAN', 'FLEXIBLE', 'FLEXIBEL');
           badgeM.style.background = 'rgba(255,255,255,0.1)';
           badgeM.style.color = '#FFF';
         }
       }
-      if (cardY) { cardY.style.borderColor = 'var(--accent)'; cardY.style.background = 'rgba(35, 42, 70, 0.95)'; }
-      if (cardM) { cardM.style.borderColor = 'var(--border-night)'; cardM.style.background = 'rgba(22, 29, 50, 0.8)'; }
+      if (cardY) { cardY.classList.add('selected'); cardY.style.borderColor = 'var(--accent)'; cardY.style.background = 'rgba(35, 42, 70, 0.95)'; }
+      if (cardM) { cardM.classList.remove('selected'); cardM.style.borderColor = 'var(--border-night)'; cardM.style.background = 'rgba(22, 29, 50, 0.8)'; }
       settingsTargetPlan = 'yearly';
     }
 
@@ -18304,7 +18475,7 @@
   }
 
   // =========================================================================
-  // DİNAMİK REVENUECAT MAĞAZA FİYAT & İLK AY TANITIM FİYATI ENJEKSİYONU
+  // DİNAMİK REVENUECAT MAĞAZA FİYAT & A/B (İLK AY %67 İNDİRİM vs İLK AY ÜCRETSİZ) ENJEKSİYONU
   // =========================================================================
   window.applyStorePrices = function(prices) {
     if (prices && typeof prices === 'object') {
@@ -18312,11 +18483,16 @@
     }
     const dp = getDynamicPricingState(window.__MISHIL_STORE_PRICES__ || {});
     const paidVipNow = isPaidOrVerifiedVip();
+    const introPct = dp.introDiscountPct || 67;
 
-    // 1. Ana Aylık, İlk Ay İndirimli Aylık & Yıllık Fiyatlar (Apple 3.1.2c 3-Durumlu Kesin Ayrım)
+    // 1. Ana Aylık, Üstü Çizili Çıpa Fiyat, İlk Ay İndirimli/Ücretsiz & Yıllık Fiyatlar (Apple 3.1.2c Uyumlu)
     const showCardIntroPrice = dp.isStoreVerifiedIntro || dp.isConditionalUnknownIntro;
     document.querySelectorAll('.price-monthly-text').forEach(el => {
       el.textContent = dp.monthlyStr;
+    });
+    document.querySelectorAll('.price-monthly-strike-text').forEach(el => {
+      el.textContent = dp.monthlyStr;
+      el.style.display = showCardIntroPrice ? 'inline' : 'none';
     });
     document.querySelectorAll('.price-monthly-primary-text').forEach(el => {
       el.textContent = showCardIntroPrice ? dp.introMonthlyStr : dp.monthlyStr;
@@ -18328,28 +18504,30 @@
     });
     document.querySelectorAll('.price-monthly-after-text').forEach(el => {
       if (showCardIntroPrice) {
+        el.style.display = 'none';
         el.innerHTML = trEnDe(
           `2. aydan: <span class="price-monthly-text">${escapeHtml(dp.monthlyStr)}</span>/ay`,
           `From mo 2: <span class="price-monthly-text">${escapeHtml(dp.monthlyStr)}</span>/mo`,
           `Ab 2. Mon.: <span class="price-monthly-text">${escapeHtml(dp.monthlyStr)}</span>/Mon.`
         );
       } else {
+        el.style.display = 'none';
         el.textContent = trEnDe('Otomatik yenilenir', 'Auto-renews', 'Automatisch verlängert');
       }
     });
     document.querySelectorAll('.price-monthly-subtext').forEach(el => {
       if (el.id === 'settings-plan-sub-monthly' && paidVipNow) return;
-      if (dp.isStoreVerifiedIntro) {
+      if (dp.isFreeTrialIntro) {
         el.textContent = trEnDe(
-          `İlk ay tanışma fiyatı ${dp.introMonthlyStr} • Sonrasında ayda bir kahve fiyatına (${dp.monthlyStr}/ay)`,
-          `First month intro ${dp.introMonthlyStr} • Then the price of a coffee a month (${dp.monthlyStr}/mo)`,
-          `1. Monat zum Kennenlernen ${dp.introMonthlyStr} • Danach zum Preis eines Kaffees im Monat (${dp.monthlyStr}/Monat)`
+          `İlk ay ücretsiz deneyin • Memnun kalırsanız ayda bir kahve fiyatına (${dp.monthlyStr}/ay)`,
+          `Try your first month free • If you love it, the price of a coffee a month (${dp.monthlyStr}/mo)`,
+          `1. Monat kostenlos testen • Bei Gefallen zum Preis eines Kaffees im Monat (${dp.monthlyStr}/Monat)`
         );
-      } else if (dp.isConditionalUnknownIntro) {
+      } else if (dp.isStoreVerifiedIntro || dp.isConditionalUnknownIntro) {
         el.textContent = trEnDe(
-          `Uygun yeni hesaplarda ilk ay ${dp.introMonthlyStr} • Sonrasında ayda bir kahve fiyatına (${dp.monthlyStr}/ay)`,
-          `Eligible new accounts: ${dp.introMonthlyStr} 1st mo • Then the price of a coffee a month (${dp.monthlyStr}/mo)`,
-          `Berechtigte Neukunden: 1. Mon. ${dp.introMonthlyStr} • Danach zum Preis eines Kaffees im Monat (${dp.monthlyStr}/Monat)`
+          `İlk ay tanışma fiyatı ${dp.introMonthlyStr} • Memnun kalırsanız ayda bir kahve fiyatına (${dp.monthlyStr}/ay)`,
+          `First month intro ${dp.introMonthlyStr} • If you love it, the price of a coffee a month (${dp.monthlyStr}/mo)`,
+          `1. Monat zum Kennenlernen ${dp.introMonthlyStr} • Bei Gefallen zum Preis eines Kaffees im Monat (${dp.monthlyStr}/Monat)`
         );
       } else {
         el.textContent = trEnDe(
@@ -18361,11 +18539,17 @@
     });
 
     document.querySelectorAll('.paywall-micro-intro-pill').forEach(el => {
-      if (showCardIntroPrice) {
+      if (dp.isFreeTrialIntro) {
         el.textContent = trEnDe(
-          `✨ İlk Ay ${dp.introMonthlyStr} Başlangıç`,
-          `✨ ${dp.introMonthlyStr} First Month Start`,
-          `✨ 1. Monat ${dp.introMonthlyStr} Start`
+          '🎁 30 Gün Ücretsiz Dene',
+          '🎁 Try 30 Days Free',
+          '🎁 30 Tage Kostenlos Testen'
+        );
+      } else if (showCardIntroPrice) {
+        el.textContent = trEnDe(
+          `🔥 %${introPct} İndirimle 30 Gün Dene`,
+          `🔥 Try 30 Days at ${introPct}% Off`,
+          `🔥 30 Tage mit ${introPct}% Rabatt testen`
         );
       } else {
         el.textContent = trEnDe(
@@ -18385,13 +18569,13 @@
       syncPaywallCancelRecoveryModalCopy(lastPaywallCancelledPlan || 'monthly');
     }
 
-    // 2. Yıllık Planın Aylık & Günlük Karşılıkları ve Tasarruf Yüzdesi
+    // 2. Yıllık Planın Sadeleştirilmiş İndirim Açıklaması (Aylık ₺49,99 çakışması kaldırıldı)
     document.querySelectorAll('.price-yearly-subtext, #plan-yearly-subtext, #settings-plan-sub-yearly').forEach(el => {
       if (el.id === 'settings-plan-sub-yearly' && paidVipNow) return;
       el.textContent = trEnDe(
-        `Tüm yıl sabit avantaj • Aylık ${dp.monthlyEqStr} karşılığı`,
-        `Best annual value • Equals ${dp.monthlyEqStr}/mo`,
-        `Bester Jahresvorteil • entspricht ${dp.monthlyEqStr}/Monat`
+        `Tüm yıl %${dp.discountPct} indirim avantajı`,
+        `Save ${dp.discountPct}% all year round`,
+        `Das ganze Jahr ${dp.discountPct}% Rabatt-Vorteil`
       );
     });
     document.querySelectorAll('.price-daily-diaper-subtext').forEach(el => {
@@ -18413,19 +18597,19 @@
       el.textContent = trEnDe(`%${dp.discountPct} TASARRUF`, `SAVE ${dp.discountPct}%`, `${dp.discountPct}% SPAREN`);
     });
 
-    // 3. Paywall Rozetleri (Ücretsiz deneme sıfırlandı; uygunluğa göre İlk Ay, Koşullu Yeni Üye veya Tam VIP rozeti)
+    // 3. Paywall Rozetleri (Grup B: 🎁 İLK AY ÜCRETSİZ vs Grup A: 🔥 İLK AY %67 İNDİRİM • ₺49,99)
     document.querySelectorAll('.badge-trial-7d-hero').forEach(el => {
-      if (dp.isStoreVerifiedIntro) {
+      if (dp.isFreeTrialIntro) {
         el.textContent = trEnDe(
-          `✨ İLK AY ${dp.introMonthlyStr} • TAM VIP ERİŞİM`,
-          `✨ 1ST MONTH ${dp.introMonthlyStr} • FULL VIP ACCESS`,
-          `✨ 1. MONAT ${dp.introMonthlyStr} • VOLLER VIP-ZUGANG`
+          '🎁 İLK AY ÜCRETSİZ',
+          '🎁 FIRST MONTH FREE',
+          '🎁 1. MONAT KOSTENLOS'
         );
-      } else if (dp.isConditionalUnknownIntro) {
+      } else if (dp.isStoreVerifiedIntro || dp.isConditionalUnknownIntro) {
         el.textContent = trEnDe(
-          `✨ UYGUN HESAPLARDA İLK AY ${dp.introMonthlyStr} • SONRA ${dp.monthlyStr}/AY`,
-          `✨ ELIGIBLE ACCOUNTS: ${dp.introMonthlyStr} 1ST MO • THEN ${dp.monthlyStr}/MO`,
-          `✨ BERECHTIGTE KONTEN: 1. MON. ${dp.introMonthlyStr} • DANACH ${dp.monthlyStr}/MON.`
+          `🔥 İLK AY %${introPct} İNDİRİM • ${dp.introMonthlyStr}`,
+          `🔥 ${introPct}% OFF 1ST MONTH • ${dp.introMonthlyStr}`,
+          `🔥 1. MONAT ${introPct}% RABATT • ${dp.introMonthlyStr}`
         );
       } else {
         el.textContent = trEnDe(
@@ -18440,14 +18624,14 @@
     });
     document.querySelectorAll('.badge-trial-7d-flex, .badge-trial-7d').forEach(el => {
       if (el.id === 'settings-plan-badge-monthly' && paidVipNow) return;
-      if (dp.isStoreVerifiedIntro) {
-        el.textContent = trEnDe('İLK AY AVANTAJI', '1ST MONTH OFFER', '1.-MONAT-VORTEIL');
+      if (dp.isFreeTrialIntro) {
+        el.textContent = trEnDe('İLK 30 GÜN ÜCRETSİZ', 'FIRST 30 DAYS FREE', 'ERSTE 30 TAGE GRATIS');
         el.style.background = 'rgba(46, 213, 115, 0.2)';
         el.style.color = '#2ED573';
-      } else if (dp.isConditionalUnknownIntro) {
-        el.textContent = trEnDe('YENİ ÜYE TEKLİFİ', 'NEW MEMBER OFFER', 'NEUKUNDEN-OPTION');
-        el.style.background = 'rgba(255,255,255,0.12)';
-        el.style.color = '#FFF';
+      } else if (dp.isStoreVerifiedIntro || dp.isConditionalUnknownIntro) {
+        el.textContent = trEnDe(`%${introPct} İLK AY İNDİRİMİ`, `${introPct}% OFF 1ST MONTH`, `${introPct}% RABATT IM 1. MON.`);
+        el.style.background = 'rgba(46, 213, 115, 0.2)';
+        el.style.color = '#2ED573';
       } else {
         el.textContent = trEnDe('ESNEK PLAN', 'FLEXIBLE', 'FLEXIBEL');
         el.style.background = 'rgba(255,255,255,0.12)';
@@ -22554,8 +22738,16 @@
     "Beklenen tarihten kaç hafta erken doğdu?": "How many weeks early before due date?",
     "Planıma Ekle ➔": "Add to My Plan ➔",
     "🌙 UYKU RUTİNİ": "🌙 SLEEP ROUTINE",
+    "🎯 SON ADIM • MIŞILSPOT™ KALİBRASYONU": "🎯 FINAL STEP • MIŞILSPOT™ CALIBRATION",
     "Bebeğiniz şu an uyuyor mu?": "Is your baby sleeping right now?",
     "Sıradaki gerçek MışılSpot™ saatini ve günlük uyku çizelgenizi bu saate göre başlatalım.": "We will start your next exact MışılSpot™ window and daily sleep timeline from this time.",
+    "Bir sonraki ekrandaki İlk MışılSpot™ uyku vakti doğrudan bu bilgiye göre hesaplanacak.": "Your First MışılSpot™ sleep window on the next screen will be calculated directly from this time.",
+    "Az önce": "Just now",
+    "1 sa önce": "1h ago",
+    "2 sa önce": "2h ago",
+    "3+ sa": "3h+ ago",
+    "📊 MışılSpot™ Raporumu Oluştur ➔": "📊 Create My MışılSpot™ Report ➔",
+    "Tam saati hatırlamıyorum, ortalama ile hesapla": "I don't remember the exact time, calculate with average",
     "☀️ Uyanık": "☀️ Awake",
     "😴 Şu an uyuyor": "😴 Sleeping now",
     "En son saat kaçta uyandı?": "What time did your baby last wake up?",
@@ -23099,7 +23291,15 @@
     "☀️ Sonraki Uyku": "☀️ Next Sleep",
     "🌙 Gece Yatışı": "🌙 Tonight's Bedtime",
     "✨ İlk Ay ₺49,99 Başlangıç": "✨ ₺49,99 First Month Start",
-    "☕ Ayda Bir Kahve Fiyatına": "☕ Price of a Coffee a Month"
+    "☕ Ayda Bir Kahve Fiyatına": "☕ Price of a Coffee a Month",
+    "İlk ay tanışma fiyatı ₺49,99 • Memnun kalırsanız ayda bir kahve fiyatına (₺149,99/ay)": "First month intro ₺49,99 • If you love it, the price of a coffee a month (₺149,99/mo)",
+    "İlk ay ücretsiz deneyin • Memnun kalırsanız ayda bir kahve fiyatına (₺149,99/ay)": "Try your first month free • If you love it, the price of a coffee a month (₺149,99/mo)",
+    "Tüm yıl %67 indirim avantajı": "Save 67% all year round",
+    "🔥 %67 İndirimle 30 Gün Dene": "🔥 Try 30 Days at 67% Off",
+    "🎁 30 Gün Ücretsiz Dene": "🎁 Try 30 Days Free",
+    "%67 İLK AY İNDİRİMİ": "67% OFF 1ST MONTH",
+    "İLK 30 GÜN ÜCRETSİZ": "FIRST 30 DAYS FREE",
+    "🎁 İLK AY ÜCRETSİZ": "🎁 FIRST MONTH FREE"
   };
 
   const TR_TO_DE_EXACT_MAP = {
@@ -23427,8 +23627,16 @@
     "Beklenen tarihten kaç hafta erken doğdu?": "Wie viele Wochen vor dem errechneten Termin?",
     "Planıma Ekle ➔": "Zum Plan hinzufügen ➔",
     "🌙 UYKU RUTİNİ": "🌙 SCHLAFROUTINE",
+    "🎯 SON ADIM • MIŞILSPOT™ KALİBRASYONU": "🎯 LETZTER SCHRITT • MIŞILSPOT™-KALIBRIERUNG",
     "Bebeğiniz şu an uyuyor mu?": "Schläft Ihr Baby gerade?",
     "Sıradaki gerçek MışılSpot™ saatini ve günlük uyku çizelgenizi bu saate göre başlatalım.": "Wir starten Ihr nächstes exaktes MışılSpot™-Fenster und Ihr Schlafprotokoll ab dieser Uhrzeit.",
+    "Bir sonraki ekrandaki İlk MışılSpot™ uyku vakti doğrudan bu bilgiye göre hesaplanacak.": "Das erste MışılSpot™-Schlaffenster auf dem nächsten Bildschirm wird direkt anhand dieser Angabe berechnet.",
+    "Az önce": "Gerade eben",
+    "1 sa önce": "Vor 1 Std.",
+    "2 sa önce": "Vor 2 Std.",
+    "3+ sa": "Vor 3+ Std.",
+    "📊 MışılSpot™ Raporumu Oluştur ➔": "📊 Meinen MışılSpot™-Bericht erstellen ➔",
+    "Tam saati hatırlamıyorum, ortalama ile hesapla": "Genaue Uhrzeit nicht bekannt, mit Durchschnitt berechnen",
     "☀️ Uyanık": "☀️ Wach",
     "😴 Şu an uyuyor": "😴 Schläft gerade",
     "En son saat kaçta uyandı?": "Wann ist Ihr Baby zuletzt aufgewacht?",
@@ -23971,7 +24179,15 @@
     "☀️ Sonraki Uyku": "☀️ Nächster Schlaf",
     "🌙 Gece Yatışı": "🌙 Abend-Bettzeit",
     "✨ İlk Ay ₺49,99 Başlangıç": "✨ 1. Monat ₺49,99 Start",
-    "☕ Ayda Bir Kahve Fiyatına": "☕ Zum Preis eines Kaffees im Monat"
+    "☕ Ayda Bir Kahve Fiyatına": "☕ Zum Preis eines Kaffees im Monat",
+    "İlk ay tanışma fiyatı ₺49,99 • Memnun kalırsanız ayda bir kahve fiyatına (₺149,99/ay)": "1. Monat zum Kennenlernen ₺49,99 • Bei Gefallen zum Preis eines Kaffees im Monat (₺149,99/Monat)",
+    "İlk ay ücretsiz deneyin • Memnun kalırsanız ayda bir kahve fiyatına (₺149,99/ay)": "1. Monat kostenlos testen • Bei Gefallen zum Preis eines Kaffees im Monat (₺149,99/Monat)",
+    "Tüm yıl %67 indirim avantajı": "Das ganze Jahr 67% Rabatt-Vorteil",
+    "🔥 %67 İndirimle 30 Gün Dene": "🔥 30 Tage mit 67% Rabatt testen",
+    "🎁 30 Gün Ücretsiz Dene": "🎁 30 Tage Kostenlos Testen",
+    "%67 İLK AY İNDİRİMİ": "67% RABATT IM 1. MON.",
+    "İLK 30 GÜN ÜCRETSİZ": "ERSTE 30 TAGE GRATIS",
+    "🎁 İLK AY ÜCRETSİZ": "🎁 1. MONAT KOSTENLOS"
   };
 
   const REVERSE_TO_TR_EXACT_MAP = {};
@@ -24226,9 +24442,9 @@
     });
     const onbEl = document.getElementById('screen-onboarding');
     if (onbEl && onbEl.classList.contains('active')) {
-      if (currentQuizStep === 6 && typeof renderOnboardingLeapsChecklist === 'function') {
+      if (currentQuizStep === 3 && typeof renderOnboardingLeapsChecklist === 'function') {
         renderOnboardingLeapsChecklist();
-      } else if (currentQuizStep === 7 && typeof renderOnboardingVaccinesChecklist === 'function') {
+      } else if (currentQuizStep === 4 && typeof renderOnboardingVaccinesChecklist === 'function') {
         renderOnboardingVaccinesChecklist();
       } else if (currentQuizStep === 8 && typeof generateSleepReport === 'function') {
         generateSleepReport();
@@ -24576,8 +24792,9 @@
           var _prodId = _m.productId || _m.product_id || (_plat === 'android' ? (_plan === 'yearly' ? 'misil' : 'misilaylik') : (_plan === 'yearly' ? 'misil_annual' : 'misil_monthly'));
           var _subId = _verifiedSubId || ('GPA_TOKEN_' + String(_m.purchaseToken).slice(0, 24));
           var _pType = String(_m.periodType || 'NORMAL').toUpperCase();
-          var _isPaidIntro = (_pType === 'INTRO' || _pType === 'INTRODUCTORY');
-          var _status = _m.status || ((_pType === 'NORMAL' || _isPaidIntro) ? 'paid_active' : (_pType === 'PROMOTIONAL' ? 'offer_code_trial' : 'paid_active'));
+          var _isFreeTrial = (_pType === 'TRIAL' || String(_m.introOfferType || '').toLowerCase() === 'free_trial');
+          var _isPaidIntro = !_isFreeTrial && (_pType === 'INTRO' || _pType === 'INTRODUCTORY' || String(_m.introOfferType || '').toLowerCase() === 'paid_intro');
+          var _status = _m.status || (_isFreeTrial ? 'intro_free_trial' : ((_pType === 'NORMAL' || _isPaidIntro) ? 'paid_active' : (_pType === 'PROMOTIONAL' ? 'offer_code_trial' : 'paid_active')));
           fetch(apiBase + '/api/v1/analytics/subscriber-sync', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -24588,7 +24805,7 @@
               product_id: _prodId,
               plan: _plan,
               status: _status,
-              offer_type: _isPaidIntro ? 'intro_1m_discounted' : undefined,
+              offer_type: _isFreeTrial ? 'free_trial_1m' : (_isPaidIntro ? 'intro_1m_discounted' : undefined),
               auto_renew_enabled: _m.willRenew !== false,
               started_date: (_m.originalPurchaseDate || localStorage.getItem('mishil_vip_welcome_started_at') || new Date().toISOString()).slice(0, 10),
               maturity_or_renewal_date: _m.expirationDate ? String(_m.expirationDate).slice(0, 10) : undefined,

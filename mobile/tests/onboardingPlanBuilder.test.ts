@@ -104,6 +104,56 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(onboardingMarkup.includes('id="quiz-step-8"')).toBe(true);
     expect(onboardingMarkup.includes('id="report-personal-insights-card"')).toBe(true);
     expect(html.includes('id="modal-post-paywall-profile"')).toBe(true);
+
+    // v4.58.0 Onboarding Card Order & Card 7 Option C (MışılSpot™ Calibration + 4 Quick Wake Chips):
+    // 1:Profile -> 2:Sleep Challenge -> 3:Developmental Leaps -> 4:Vaccines -> 5:Feeding -> 6:Diaper -> 7:Sleep/MışılSpot Calibration -> 8:Report -> 9:Paywall
+    const s1Idx = onboardingMarkup.indexOf('id="quiz-step-1"');
+    const s2Idx = onboardingMarkup.indexOf('id="quiz-step-2"');
+    const s3Idx = onboardingMarkup.indexOf('id="quiz-step-3"');
+    const s4Idx = onboardingMarkup.indexOf('id="quiz-step-4"');
+    const s5Idx = onboardingMarkup.indexOf('id="quiz-step-5"');
+    const s6Idx = onboardingMarkup.indexOf('id="quiz-step-6"');
+    const s7Idx = onboardingMarkup.indexOf('id="quiz-step-7"');
+    const s8Idx = onboardingMarkup.indexOf('id="quiz-step-8"');
+    expect(s1Idx).toBeLessThan(s2Idx);
+    expect(s2Idx).toBeLessThan(s3Idx);
+    expect(s3Idx).toBeLessThan(s4Idx);
+    expect(s4Idx).toBeLessThan(s5Idx);
+    expect(s5Idx).toBeLessThan(s6Idx);
+    expect(s6Idx).toBeLessThan(s7Idx);
+    expect(s7Idx).toBeLessThan(s8Idx);
+
+    const step2Markup = onboardingMarkup.slice(s2Idx, s3Idx);
+    const step3Markup = onboardingMarkup.slice(s3Idx, s4Idx);
+    const step4Markup = onboardingMarkup.slice(s4Idx, s5Idx);
+    const step5Markup = onboardingMarkup.slice(s5Idx, s6Idx);
+    const step6Markup = onboardingMarkup.slice(s6Idx, s7Idx);
+    const step7Markup = onboardingMarkup.slice(s7Idx, s8Idx);
+
+    expect(step2Markup.includes('Uykuda şu an en büyük zorluğunuz nedir?')).toBe(true);
+    expect(step2Markup.includes("selectQuizOption(this, 2, 'hard_settle')")).toBe(true);
+    expect(step2Markup.includes('nextQuizStep(3)')).toBe(true);
+
+    expect(step3Markup.includes('id="onb-leaps-checklist"')).toBe(true);
+    expect(step3Markup.includes('saveOnboardingLeapsStep()')).toBe(true);
+
+    expect(step4Markup.includes('id="onb-vaccines-checklist"')).toBe(true);
+    expect(step4Markup.includes('saveOnboardingVaccinesStep()')).toBe(true);
+
+    expect(step5Markup.includes('id="onb-feed-method-breast"')).toBe(true);
+    expect(step5Markup.includes('saveOnboardingFeedStep(false)')).toBe(true);
+
+    expect(step6Markup.includes('id="onb-diaper-kind-wet"')).toBe(true);
+    expect(step6Markup.includes('saveOnboardingDiaperStep(false)')).toBe(true);
+
+    expect(step7Markup.includes('🎯 SON ADIM • MIŞILSPOT™ KALİBRASYONU')).toBe(true);
+    expect(step7Markup.includes('id="onb-sleep-quick-chips"')).toBe(true);
+    expect(step7Markup.includes('applyQuickLastWakeMinsAgo(15, this)')).toBe(true);
+    expect(step7Markup.includes('applyQuickLastWakeMinsAgo(60, this)')).toBe(true);
+    expect(step7Markup.includes('applyQuickLastWakeMinsAgo(120, this)')).toBe(true);
+    expect(step7Markup.includes('applyQuickLastWakeMinsAgo(180, this)')).toBe(true);
+    expect(step7Markup.includes('📊 MışılSpot™ Raporumu Oluştur ➔')).toBe(true);
+    expect(step7Markup.includes('Tam saati hatırlamıyorum, ortalama ile hesapla')).toBe(true);
   });
 
   it('clampBirthDateParts handles Gregorian leap years, 30-day months, and future date clamping', () => {
@@ -395,7 +445,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     // Concept D value anchoring on Step 9: zero daily-cost badge clutter (.badge-monthly-daily-cost) & zero front-facing '⚡ Tek Tuşla İptal' in micro trust strip
     expect(step9Html.includes('badge-monthly-daily-cost')).toBe(false);
     expect(step9Html.includes('⚡ Tek Tuşla İptal')).toBe(false);
-    expect(step9Html.includes('Sonrasında ayda bir kahve fiyatına')).toBe(true);
+    expect(step9Html.includes('Memnun kalırsanız ayda bir kahve fiyatına')).toBe(true);
     expect(step9Html.includes('class="paywall-micro-intro-pill"')).toBe(true);
 
     // Apple Guideline 3.1.2c: total annual billed amount (.price-yearly-text) must precede monthly equivalent (.price-yearly-monthly-eq-text)
@@ -1085,6 +1135,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
       extractBlock(scriptCode, 'function resolveCurrencySymbolFromStore('),
       extractBlock(scriptCode, 'function hasLocalPriorSubscriptionOrTrialTrace('),
       extractBlock(scriptCode, 'function hasPositiveStoreIntroOffer('),
+      extractBlock(scriptCode, 'function hasZeroStoreFreeTrialOffer('),
       extractBlock(scriptCode, 'function resolveMonthlyIntroEligibility('),
       extractBlock(scriptCode, 'function formatLocalizedPriceDisplay('),
       extractBlock(scriptCode, 'function getDynamicPricingState('),
@@ -1098,9 +1149,10 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     const store = {};
     const domNodes = {
       '.price-monthly-text': [{ textContent: '' }],
+      '.price-monthly-strike-text': [{ textContent: '', style: {} }],
       '.price-monthly-primary-text': [{ textContent: '₺149,99' }],
       '.price-monthly-unit-text': [{ textContent: '/ay' }],
-      '.price-monthly-after-text': [{ textContent: '', innerHTML: '' }],
+      '.price-monthly-after-text': [{ textContent: '', innerHTML: '', style: {} }],
       '.price-monthly-subtext': [{ id: 'onb-sub', textContent: '' }],
       '.price-yearly-text': [{ textContent: '' }],
       '.price-yearly-monthly-eq-text': [{ textContent: '' }],
@@ -1141,7 +1193,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
       vmCtx
     );
 
-    // State 1: Store-verified eligible new subscriber -> ₺49,99 1st month + ₺149,99/ay renewal
+    // State 1 (Group A): Store-verified eligible new subscriber -> ₺49,99 (%67 indirim) 1st month + ₺149,99/ay renewal
     const dpEligible = vmCtx._p.dp({
       monthly: '₺149,99',
       monthlyPrice: 149.99,
@@ -1151,15 +1203,37 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
       introMonthly: '₺49,99',
       introMonthlyPrice: 49.99,
       introEligibility: 'eligible',
+      introOfferType: 'paid_intro',
     });
     expect(dpEligible.showIntroOffer).toBe(true);
     expect(dpEligible.isStoreVerifiedIntro).toBe(true);
+    expect(dpEligible.isFreeTrialIntro).toBe(false);
     expect(dpEligible.introMonthlyStr).toBe('₺49,99');
     expect(dpEligible.monthlyStr).toBe('₺149,99');
-    expect(vmCtx._p.cta('monthly', dpEligible)).toBe('✨ İlk Ay ₺49,99 ile VIP Başlat');
-    expect(vmCtx._p.shield('monthly', dpEligible)).toBe('☕ İlk ay denemeniz için ₺49,99 • Sonrasında ayda bir kahve fiyatına (₺149,99/ay)');
-    expect(vmCtx._p.shield('yearly', dpEligible)).toBe('👑 Yıllık ₺599,99 (Aylık ₺49,99 karşılığı) • Tüm yıl 3 cihazda ortak kullanım');
+    expect(vmCtx._p.cta('monthly', dpEligible)).toBe('✨ İlk Ay %67 İndirimle (₺49,99) VIP Başlat');
+    expect(vmCtx._p.shield('monthly', dpEligible)).toBe('☕ İlk ay tanışmamıza özel ₺49,99 • Memnun kalırsanız ayda bir kahve fiyatına devam edebilirsiniz');
+    expect(vmCtx._p.shield('yearly', dpEligible)).toBe('👑 Yıllık ₺599,99 • Tüm yıl %67 indirim avantajı & 3 cihazda ortak kullanım');
     expect(vmCtx._p.legal('monthly', dpEligible)).toContain('2. aydan itibaren Aylık ₺149,99/ay');
+
+    // State 1-Free (Group B): Store-verified eligible FREE_TRIAL subscriber -> ₺0 1st month + ₺149,99/ay renewal
+    const dpFreeTrial = vmCtx._p.dp({
+      monthly: '₺149,99',
+      monthlyPrice: 149.99,
+      yearly: '₺599,99',
+      yearlyPrice: 599.99,
+      currencyCode: 'TRY',
+      introMonthly: '₺0',
+      introMonthlyPrice: 0,
+      introEligibility: 'eligible',
+      introOfferType: 'free_trial',
+    });
+    expect(dpFreeTrial.showIntroOffer).toBe(true);
+    expect(dpFreeTrial.isStoreVerifiedIntro).toBe(true);
+    expect(dpFreeTrial.isFreeTrialIntro).toBe(true);
+    expect(dpFreeTrial.introMonthlyStr).toBe('₺0');
+    expect(vmCtx._p.cta('monthly', dpFreeTrial)).toBe('🎁 İlk Ay Ücretsiz VIP Başlat');
+    expect(vmCtx._p.shield('monthly', dpFreeTrial)).toBe('🛡️ Bugün tanışmamıza özel ücretsiz • Memnun kalırsanız ayda bir kahve fiyatına devam edebilirsiniz');
+    expect(vmCtx._p.legal('monthly', dpFreeTrial)).toContain('İlk 1 ay ücretsizdir');
 
     // State 2a: Store reports 'ineligible' (returning/former trial user) -> ZERO ₺49,99 claim, shows ₺149,99/ay directly
     const dpIneligible = vmCtx._p.dp({
@@ -1207,7 +1281,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(dpAndroidCollision.monthlyVal).toBe(149.99);
     expect(dpAndroidCollision.monthlyStr).toBe('₺149,99');
 
-    // Rendered DOM verification across all 3 eligibility states via applyStorePrices
+    // Rendered DOM verification across Group A (paid_intro), Group B (free_trial), and Ineligible states via applyStorePrices
     vmCtx._p.apply({
       monthly: '₺149,99',
       monthlyPrice: 149.99,
@@ -1217,26 +1291,38 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
       introMonthly: '₺49,99',
       introMonthlyPrice: 49.99,
       introEligibility: 'eligible',
+      introOfferType: 'paid_intro',
     });
+    expect(domNodes['.badge-trial-7d-hero'][0].textContent).toBe('🔥 İLK AY %67 İNDİRİM • ₺49,99');
+    expect(domNodes['.badge-trial-7d-flex, .badge-trial-7d'][0].textContent).toBe('%67 İLK AY İNDİRİMİ');
+    expect(domNodes['.price-monthly-strike-text'][0].textContent).toBe('₺149,99');
+    expect(domNodes['.price-monthly-strike-text'][0].style.display).toBe('inline');
     expect(domNodes['.price-monthly-primary-text'][0].textContent).toBe('₺49,99');
     expect(domNodes['.price-monthly-unit-text'][0].textContent).toBe('/ilk ay');
-    expect(domNodes['.price-monthly-after-text'][0].innerHTML).toContain('149,99');
-    expect(domNodes['.price-monthly-subtext'][0].textContent).toBe('İlk ay tanışma fiyatı ₺49,99 • Sonrasında ayda bir kahve fiyatına (₺149,99/ay)');
-    expect(domNodes['.paywall-micro-intro-pill'][0].textContent).toBe('✨ İlk Ay ₺49,99 Başlangıç');
+    expect(domNodes['.price-monthly-subtext'][0].textContent).toBe('İlk ay tanışma fiyatı ₺49,99 • Memnun kalırsanız ayda bir kahve fiyatına (₺149,99/ay)');
+    expect(domNodes['.price-yearly-subtext, #plan-yearly-subtext, #settings-plan-sub-yearly'][0].textContent).toBe('Tüm yıl %67 indirim avantajı');
+    expect(domNodes['.paywall-micro-intro-pill'][0].textContent).toBe('🔥 %67 İndirimle 30 Gün Dene');
 
+    // Group B (First Month Free / ₺0) DOM verification
     vmCtx._p.apply({
       monthly: '₺149,99',
       monthlyPrice: 149.99,
       yearly: '₺599,99',
       yearlyPrice: 599.99,
       currencyCode: 'TRY',
-      introMonthly: '₺49,99',
-      introMonthlyPrice: 49.99,
-      introEligibility: 'unknown',
+      introMonthly: '₺0',
+      introMonthlyPrice: 0,
+      introEligibility: 'eligible',
+      introOfferType: 'free_trial',
     });
-    expect(domNodes['.price-monthly-primary-text'][0].textContent).toBe('₺49,99');
+    expect(domNodes['.badge-trial-7d-hero'][0].textContent).toBe('🎁 İLK AY ÜCRETSİZ');
+    expect(domNodes['.badge-trial-7d-flex, .badge-trial-7d'][0].textContent).toBe('İLK 30 GÜN ÜCRETSİZ');
+    expect(domNodes['.price-monthly-strike-text'][0].textContent).toBe('₺149,99');
+    expect(domNodes['.price-monthly-strike-text'][0].style.display).toBe('inline');
+    expect(domNodes['.price-monthly-primary-text'][0].textContent).toBe('₺0');
     expect(domNodes['.price-monthly-unit-text'][0].textContent).toBe('/ilk ay');
-    expect(domNodes['.price-monthly-subtext'][0].textContent).toBe('Uygun yeni hesaplarda ilk ay ₺49,99 • Sonrasında ayda bir kahve fiyatına (₺149,99/ay)');
+    expect(domNodes['.price-monthly-subtext'][0].textContent).toBe('İlk ay ücretsiz deneyin • Memnun kalırsanız ayda bir kahve fiyatına (₺149,99/ay)');
+    expect(domNodes['.paywall-micro-intro-pill'][0].textContent).toBe('🎁 30 Gün Ücretsiz Dene');
 
     vmCtx._p.apply({
       monthly: '₺149,99',
@@ -1248,6 +1334,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
       introMonthlyPrice: 49.99,
       introEligibility: 'ineligible',
     });
+    expect(domNodes['.price-monthly-strike-text'][0].style.display).toBe('none');
     expect(domNodes['.price-monthly-primary-text'][0].textContent).toBe('₺149,99');
     expect(domNodes['.price-monthly-unit-text'][0].textContent).toBe('/ay');
     expect(domNodes['.price-monthly-after-text'][0].textContent).toBe('Otomatik yenilenir');
@@ -1255,16 +1342,16 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(domNodes['.price-monthly-subtext'][0].textContent).not.toContain('49,99');
     expect(domNodes['.paywall-micro-intro-pill'][0].textContent).toBe('☕ Ayda Bir Kahve Fiyatına');
 
-    // State 3a: Web preview client with zero prior trace -> 'unknown_new_user' (primary headline stays ₺149,99/ay; conditional 'Uygun' copy shown)
+    // State 3a: Web preview client with zero prior trace -> 'unknown_new_user'
     const dpUnknownNew = vmCtx._p.dp({ monthly: '₺149,99', monthlyPrice: 149.99, yearly: '₺599,99', yearlyPrice: 599.99, currencyCode: 'TRY' });
     expect(dpUnknownNew.introEligibility).toBe('unknown_new_user');
     expect(dpUnknownNew.showIntroOffer).toBe(false);
     expect(dpUnknownNew.isStoreVerifiedIntro).toBe(false);
     expect(dpUnknownNew.isConditionalUnknownIntro).toBe(true);
-    expect(vmCtx._p.cta('monthly', dpUnknownNew)).toContain('Uygun Hesaplarda İlk Ay ₺49,99');
+    expect(vmCtx._p.cta('monthly', dpUnknownNew)).toBe('✨ İlk Ay %67 İndirimle (₺49,99) VIP Başlat');
     expect(vmCtx._p.legal('monthly', dpUnknownNew)).toContain('Uygun yeni abonelerde ilk ay');
 
-    // State 3b: Native ReactNativeWebView before StoreKit/Play returns positive introMonthlyPrice -> 'ineligible' (NEVER claims unverified intro price)
+    // State 3b: Native ReactNativeWebView before StoreKit/Play returns any intro offer -> 'ineligible' (NEVER claims unverified intro price)
     Object.assign(vmCtx.window, { ReactNativeWebView: { postMessage: () => {} } });
     const dpNativeUnverified = vmCtx._p.dp({ monthly: '₺149,99', monthlyPrice: 149.99, yearly: '₺599,99', yearlyPrice: 599.99, currencyCode: 'TRY' });
     expect(dpNativeUnverified.introEligibility).toBe('ineligible');
@@ -1280,7 +1367,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     delete store.mishil_live_nursing_state;
     expect(vmCtx._p.care()).toBe(false);
 
-    // RevenueCat native intro-offer & eligibility verification (iOS $0 trial rejection + Android multi-phase paid intro)
+    // RevenueCat native intro-offer & eligibility verification (Universal A/B Engine: Group B $0 FREE_TRIAL + Group A ₺49,99 PAID_INTRO)
     const rcPath = path.resolve(__dirname, '../features/subscription/revenuecat.ts');
     const rcSource = fs.readFileSync(rcPath, 'utf8');
     const rcTranspiled = ts.transpileModule(rcSource, {
@@ -1315,17 +1402,18 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
       rcMod.exports, rcRequire, rcMod, rcPath, path.dirname(rcPath)
     );
     return (async () => {
-      // 1) iOS legacy $0 FREE_TRIAL must NEVER be treated as a paid intro offer
+      // 1) iOS Group B ($0 FREE_TRIAL) + ELIGIBLE -> 'eligible', introOfferType = 'free_trial', introPrice = 0
       mockPlatformOS = 'ios';
       mockEligStatus = 2;
       mockOfferingsPayload = {
         current: {
+          identifier: 'ab_group_b_free_month',
           availablePackages: [{
             identifier: '$rc_monthly',
             packageType: 'MONTHLY',
             product: {
-              identifier: 'misil_monthly',
-              title: 'Mışıl Monthly',
+              identifier: 'misil_monthly_trial',
+              title: 'Mışıl Monthly Trial',
               description: 'VIP',
               priceString: '₺149,99',
               price: 149.99,
@@ -1336,20 +1424,31 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
         },
       };
       const iosZeroTrialRes = await rcMod.exports.getOfferings();
-      expect(iosZeroTrialRes[0].introEligibility).toBe('ineligible');
-      expect(iosZeroTrialRes[0].introPrice).toBeUndefined();
+      expect(iosZeroTrialRes[0].introEligibility).toBe('eligible');
+      expect(iosZeroTrialRes[0].introOfferType).toBe('free_trial');
+      expect(iosZeroTrialRes[0].introPrice).toBe(0);
 
-      // 2) iOS paid ₺49,99 intro + ELIGIBLE -> 'eligible' & introPrice = 49.99
+      // 1b) iOS Group B ($0 FREE_TRIAL) + INELIGIBLE (returning user) -> 'ineligible', introOfferType = 'none'
+      mockEligStatus = 1;
+      const iosIneligibleTrialRes = await rcMod.exports.getOfferings();
+      expect(iosIneligibleTrialRes[0].introEligibility).toBe('ineligible');
+      expect(iosIneligibleTrialRes[0].introOfferType).toBe('none');
+
+      // 2) iOS Group A (paid ₺49,99 intro) + ELIGIBLE -> 'eligible', introOfferType = 'paid_intro', introPrice = 49.99
+      mockEligStatus = 2;
+      mockOfferingsPayload.current.availablePackages[0].product.identifier = 'misil_monthly';
       mockOfferingsPayload.current.availablePackages[0].product.introPrice = { price: 49.99, priceString: '₺49,99' };
       const iosPaidIntroRes = await rcMod.exports.getOfferings();
       expect(iosPaidIntroRes[0].introEligibility).toBe('eligible');
+      expect(iosPaidIntroRes[0].introOfferType).toBe('paid_intro');
       expect(iosPaidIntroRes[0].introPrice).toBe(49.99);
       expect(iosPaidIntroRes[0].introPriceString).toBe('₺49,99');
 
-      // 3) Android multi-phase subscriptionOption (Phase 1: 49.99 TRY -> Phase 2: 149.99 TRY) even when prod.price is defaultOption (49.99)
+      // 3) Android Group A multi-phase subscriptionOption (Phase 1: 49.99 TRY -> Phase 2: 149.99 TRY)
       mockPlatformOS = 'android';
       mockOfferingsPayload = {
         current: {
+          identifier: 'default',
           availablePackages: [{
             identifier: '$rc_monthly',
             packageType: 'MONTHLY',
@@ -1383,10 +1482,54 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
       };
       const androidPaidIntroRes = await rcMod.exports.getOfferings();
       expect(androidPaidIntroRes[0].introEligibility).toBe('eligible');
+      expect(androidPaidIntroRes[0].introOfferType).toBe('paid_intro');
       expect(androidPaidIntroRes[0].introPrice).toBe(49.99);
       expect(androidPaidIntroRes[0].introPriceString).toBe('₺49,99');
       expect(androidPaidIntroRes[0].price).toBe(149.99);
       expect(androidPaidIntroRes[0].priceString).toBe('₺149,99');
+
+      // 4) Android Group B multi-phase FREE_TRIAL subscriptionOption (Phase 1: 0 TRY -> Phase 2: 149.99 TRY)
+      mockOfferingsPayload = {
+        current: {
+          identifier: 'ab_free_trial',
+          availablePackages: [{
+            identifier: '$rc_monthly',
+            packageType: 'MONTHLY',
+            product: {
+              identifier: 'misilaylik_trial:misilaylik',
+              title: 'Mışıl Aylık Deneme',
+              description: 'VIP',
+              priceString: 'Ücretsiz',
+              price: 0,
+              currencyCode: 'TRY',
+              subscriptionOptions: [
+                {
+                  id: 'misilaylik_trial',
+                  isBasePlan: true,
+                  pricingPhases: [
+                    { price: { amountMicros: 149990000, formatted: '₺149,99', currencyCode: 'TRY' } },
+                  ],
+                },
+                {
+                  id: 'misilaylik_trial:free-first-month',
+                  fullPricePhase: { price: { amountMicros: 149990000, formatted: '₺149,99', currencyCode: 'TRY' } },
+                  pricingPhases: [
+                    { price: { amountMicros: 0, formatted: 'Ücretsiz', currencyCode: 'TRY' } },
+                    { price: { amountMicros: 149990000, formatted: '₺149,99', currencyCode: 'TRY' } },
+                  ],
+                },
+              ],
+            },
+          }],
+        },
+      };
+      const androidFreeTrialRes = await rcMod.exports.getOfferings();
+      expect(androidFreeTrialRes[0].introEligibility).toBe('eligible');
+      expect(androidFreeTrialRes[0].introOfferType).toBe('free_trial');
+      expect(androidFreeTrialRes[0].introPrice).toBe(0);
+      expect(androidFreeTrialRes[0].introPriceString).toBe('₺0');
+      expect(androidFreeTrialRes[0].price).toBe(149.99);
+      expect(androidFreeTrialRes[0].priceString).toBe('₺149,99');
     })();
   });
 });

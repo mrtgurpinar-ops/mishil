@@ -682,8 +682,8 @@ export default function MishilUnifiedWebView() {
         list.find(o => o.packageType === 'MONTHLY') ||
         list.find(o => {
           const id = String(o?.identifier || '').toLowerCase();
-          const pid = String(o?.rawPackage?.product?.identifier || '').split(':')[0].toLowerCase();
-          return id.includes('month') || id.includes('aylik') || pid === 'misil_monthly' || pid === 'misilaylik';
+          const pid = String(o?.rawPackage?.product?.identifier || o?.productId || '').split(':')[0].toLowerCase();
+          return id.includes('month') || id.includes('aylik') || pid.startsWith('misil_monthly') || pid.startsWith('misilaylik');
         })
       );
     };
@@ -702,6 +702,9 @@ export default function MishilUnifiedWebView() {
           introMonthly: m?.introPriceString || undefined,
           introMonthlyPrice: m?.introPrice,
           introEligibility: m?.introEligibility || 'unknown',
+          introOfferType: m?.introOfferType || 'none',
+          monthlyProductId: m?.productId || m?.rawPackage?.product?.identifier || undefined,
+          offeringId: m?.offeringIdentifier || undefined,
         };
         webviewRef.current?.injectJavaScript(`
           (function() {
@@ -1133,8 +1136,8 @@ export default function MishilUnifiedWebView() {
               }
               if (o.packageType === 'MONTHLY') return true;
               const id = String(o?.identifier || '').toLowerCase();
-              const pid = String(o?.rawPackage?.product?.identifier || '').split(':')[0].toLowerCase();
-              return id.includes('month') || id.includes('aylik') || pid === 'misil_monthly' || pid === 'misilaylik';
+              const pid = String(o?.rawPackage?.product?.identifier || o?.productId || '').split(':')[0].toLowerCase();
+              return id.includes('month') || id.includes('aylik') || pid.startsWith('misil_monthly') || pid.startsWith('misilaylik');
             });
 
             let result = await purchasePackage(pkg?.identifier || plan, pkg?.rawPackage);
@@ -1178,6 +1181,7 @@ export default function MishilUnifiedWebView() {
                 price: pkg?.price,
                 introPrice: pkg?.introPrice,
                 introEligibility: pkg?.introEligibility,
+                introOfferType: pkg?.introOfferType,
                 periodType: firstEnt?.periodType,
                 currencyCode: pkg?.currencyCode,
                 productId: resolvedProductId,
@@ -1191,6 +1195,8 @@ export default function MishilUnifiedWebView() {
                 purchaseToken: txObj?.purchaseToken || txObj?.transactionIdentifier || undefined,
                 plan,
                 productId: resolvedProductId,
+                introOfferType: pkg?.introOfferType || undefined,
+                offeringId: pkg?.offeringIdentifier || undefined,
                 platform: Platform.OS === 'android' ? 'android' : 'ios',
                 store: firstEnt?.store || (Platform.OS === 'android' ? 'PLAY_STORE' : 'APP_STORE'),
                 periodType: firstEnt?.periodType || 'NORMAL',

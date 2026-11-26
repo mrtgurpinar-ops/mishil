@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { IntroEligibilityState } from '../subscription/revenuecat';
+import type { IntroEligibilityState, IntroOfferType } from '../subscription/revenuecat';
 
 export const META_APP_ID = '1093539003520092';
 export const META_LOGGED_TX_STORAGE_KEY = '@mishil_meta_logged_tx_ids_v1';
@@ -11,6 +11,7 @@ export interface MetaPurchaseLogInput {
   price?: number;
   introPrice?: number;
   introEligibility?: IntroEligibilityState;
+  introOfferType?: IntroOfferType;
   periodType?: string;
   currencyCode?: string;
   isIntroOffer?: boolean;
@@ -26,6 +27,7 @@ export interface MetaPurchaseLogResult {
   currency?: string;
   transactionId?: string;
   isIntroOffer?: boolean;
+  isFreeTrial?: boolean;
 }
 
 let isMetaInitialized = false;
@@ -223,9 +225,28 @@ export function logMetaOnboardingCompleted(): boolean {
 export function resolveTransactedSubscriptionPrice(input: MetaPurchaseLogInput): {
   amount: number;
   isIntroOffer: boolean;
+  isFreeTrial: boolean;
 } {
   const plan = input.plan === 'yearly' ? 'yearly' : 'monthly';
   const periodUpper = String(input.periodType || '').trim().toUpperCase();
+  const hasExplicitZeroIntro =
+    typeof input.introPrice === 'number' && Number.isFinite(input.introPrice) && input.introPrice === 0;
+  const isFreeTrialByType =
+    plan === 'monthly' &&
+    input.introEligibility !== 'ineligible' &&
+    (periodUpper === 'TRIAL' ||
+      input.introOfferType === 'free_trial' ||
+      (hasExplicitZeroIntro &&
+        (input.introEligibility === 'eligible' || (input.introEligibility === 'unknown' && periodUpper !== 'NORMAL'))));
+
+  if (isFreeTrialByType) {
+    return {
+      amount: 0,
+      isIntroOffer: true,
+      isFreeTrial: true,
+    };
+  }
+
   const hasValidIntroPrice =
     typeof input.introPrice === 'number' && Number.isFinite(input.introPrice) && input.introPrice > 0;
 
@@ -261,6 +282,7 @@ export function resolveTransactedSubscriptionPrice(input: MetaPurchaseLogInput):
   return {
     amount: finalAmount,
     isIntroOffer: isIntro,
+    isFreeTrial: false,
   };
 }
 
@@ -296,7 +318,7 @@ export async function logMetaSubscriptionPurchase(
       return { logged: false, reason: 'duplicate_transaction', transactionId: dedupKey };
     }
 
-    const { amount: rawPrice, isIntroOffer } = resolveTransactedSubscriptionPrice(input);
+    const { amount: rawPrice, isIntroOffer, isFreeTrial } = resolveTransactedSubscriptionPrice(input);
     const currency =
       typeof input.currencyCode === 'string' && input.currencyCode.trim().length === 3
         ? input.currencyCode.trim().toUpperCase()
@@ -308,6 +330,7 @@ export async function logMetaSubscriptionPurchase(
       fb_content_type: 'subscription',
       subscription_plan: plan,
       is_intro_offer: isIntroOffer ? 1 : 0,
+      is_free_trial: isFreeTrial ? 1 : 0,
       fb_order_id: dedupKey,
     };
 
@@ -315,11 +338,16 @@ export async function logMetaSubscriptionPurchase(
     inMemoryLoggedTxIds.add(dedupKey);
     await persistLoggedTransaction(dedupKey);
 
-    // 1. Standart Meta `Subscribe` olayı (parasız valueToSum olmadan, ROAS çift sayımını önler)
-    fb.AppEventsLogger.logEvent('Subscribe', eventParams);
+    if (isFreeTrial) {
+      // Grup B (İlk Ay ₺0 Ücretsiz Deneme): Sahte ROAS şişmesini önlemek için logPurchase yerine standart StartTrial olayı ateşlenir
+      fb.AppEventsLogger.logEvent('StartTrial', eventParams);
+    } else {
+      // 1. Standart Meta `Subscribe` olayı (parasız valueToSum olmadan, ROAS çift sayımını önler)
+      fb.AppEventsLogger.logEvent('Subscribe', eventParams);
 
-    // 2. Standart Meta `Purchase` olayı (tekil gelir / ROAS kaynağı ve otomatik iOS AEM köprüsü)
-    fb.AppEventsLogger.logPurchase(rawPrice, currency, eventParams);
+      // 2. Standart Meta `Purchase` olayı (tekil gelir / ROAS kaynağı ve otomatik iOS AEM köprüsü)
+      fb.AppEventsLogger.logPurchase(rawPrice, currency, eventParams);
+    }
 
     if (typeof fb.AppEventsLogger.flush === 'function') {
       fb.AppEventsLogger.flush();
@@ -331,6 +359,7 @@ export async function logMetaSubscriptionPurchase(
       currency,
       transactionId: dedupKey,
       isIntroOffer,
+      isFreeTrial,
     };
   } catch {
     inMemoryLoggedTxIds.delete(dedupKey);

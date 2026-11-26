@@ -1774,7 +1774,7 @@ def sync_revenuecat_v2_production_bridge(
             .filter(
                 SubscriberLedger.platform == "ios",
                 SubscriberLedger.status.in_(["intro_free_trial", "cancelled"]),
-                SubscriberLedger.offer_type == "intro_7d_trial",
+                SubscriberLedger.offer_type.in_(["intro_7d_trial", "free_trial_1m"]),
             )
             .order_by(SubscriberLedger.started_date.asc(), SubscriberLedger.subscriber_id.asc())
             .all()
@@ -2119,6 +2119,7 @@ def _reconcile_ios_ledger_and_cancellations(
             not of_name_low
             or "default_intro" in of_name_low
             or "7 günlük deneme" in of_name_low
+            or "ilk ay ücretsiz" in of_name_low
         )
         is_custom_promo_code = bool(
             (r.customer_price_try or 0.0) <= 0
@@ -2248,7 +2249,7 @@ def _reconcile_ios_ledger_and_cancellations(
             1 for r in ios_rows
             if r.subscriber_id in will_not_renew_sids
             and (r.customer_price_try or 0.0) <= 0
-            and r.offer_type == "intro_7d_trial"
+            and r.offer_type in ("intro_7d_trial", "free_trial_1m")
             and (not r.maturity_or_renewal_date or len(r.maturity_or_renewal_date) != 10 or r.maturity_or_renewal_date >= today_str)
         )
         effective_trials_target = max(0, int(active_trials_target) - unexpired_wnr_trials_cnt)
@@ -2260,7 +2261,7 @@ def _reconcile_ios_ledger_and_cancellations(
                 if (
                     r.status == "cancelled"
                     and (r.customer_price_try or 0.0) <= 0
-                    and r.offer_type == "intro_7d_trial"
+                    and r.offer_type in ("intro_7d_trial", "free_trial_1m")
                     and r.subscriber_id not in will_not_renew_sids
                 ):
                     ck = ((r.product_id or "misil_monthly"), (r.started_date or ""), (r.country or "TR").upper())
@@ -4664,14 +4665,14 @@ def _build_analytics_summary(
     ONBOARDING_9_STEPS_META = [
         (0, "onboarding_step_viewed_0", "Adım 0: Karşılama Ekranı", "1 Dakikada Uyku Planımı Oluştur"),
         (1, "onboarding_step_viewed_1", "Adım 1: Bebek Profili", "Bebek Adı & Doğum Tarihi"),
-        (2, "onboarding_step_viewed_2", "Adım 2: Uyku Rutini", "Uyuyor mu & Son Uyanış Saati"),
-        (3, "onboarding_step_viewed_3", "Adım 3: Beslenme Rutini", "Anne Sütü / Mama / Ek Gıda"),
-        (4, "onboarding_step_viewed_4", "Adım 4: Bakım & Konfor", "Son Bez Değişimi Saati"),
-        (5, "onboarding_step_viewed_5", "Adım 5: Uyku Zorluğu", "Uykuda En Büyük Zorluk Seçimi"),
-        (6, "onboarding_step_viewed_6", "Adım 6: Gelişim Atakları", "BabySteps™ Atak Kontrol Listesi"),
-        (7, "onboarding_step_viewed_7", "Adım 7: Aşı Takvimi", "Pediatrik Aşı Kontrol Listesi"),
+        (2, "onboarding_step_viewed_2", "Adım 2: Uyku Zorluğu", "Uykuda En Büyük Zorluk Seçimi"),
+        (3, "onboarding_step_viewed_3", "Adım 3: Gelişim Atakları", "BabySteps™ Atak Kontrol Listesi"),
+        (4, "onboarding_step_viewed_4", "Adım 4: Aşı Takvimi", "Pediatrik Aşı Kontrol Listesi"),
+        (5, "onboarding_step_viewed_5", "Adım 5: Beslenme Rutini", "Anne Sütü / Mama / Ek Gıda"),
+        (6, "onboarding_step_viewed_6", "Adım 6: Bakım & Konfor", "Son Bez Değişimi Saati"),
+        (7, "onboarding_step_viewed_7", "Adım 7: Son Uyku & MışılSpot™", "MışılSpot™ Kalibrasyonu & Hızlı Çipler"),
         (8, "onboarding_step_viewed_8", "Adım 8: Kişisel Uyku Raporu", "İlk MışılSpot™ & Dönüşüm Hedefi"),
-        (9, "onboarding_step_viewed_9", "Adım 9: VIP Paywall", "Aylık ₺49,99 İlk Ay / Yıllık ₺599,99"),
+        (9, "onboarding_step_viewed_9", "Adım 9: VIP Paywall", "A/B İlk Ay %67 İndirim (₺49,99) / İlk Ay Ücretsiz (₺0)"),
     ]
 
     def _build_onboarding_step_funnel(plat_filter: str = "all") -> Dict[str, Any]:
@@ -5452,13 +5453,19 @@ def _build_analytics_summary(
                 m_dt = r.maturity_or_renewal_date or "-"
 
                 # T4 Çözümü: Vade günü bugün veya geçmişteyse Apple 24-48s mutabakat penceresinde olarak ayır
+                is_1m_free_trial = (r.offer_type == "free_trial_1m" or "trial" in str(r.product_id or "").lower())
+                total_trial_days = 30 if is_1m_free_trial else 7
                 is_reconciling = bool(m_dt != "-" and len(m_dt) == 10 and m_dt <= today_str)
                 if is_reconciling:
                     reconciling_7d_cnt += 1
                     reconciling_7d_gross += next_gross
                     reconciling_7d_net += next_net
                     lifecycle_stage = "reconciling_trial"
-                    lifecycle_badge = "🔄 Apple Mutabakatında (7/7 Gün)" if r_plat == "ios" else "🔄 Google Play Mutabakatında (7/7 Gün)"
+                    lifecycle_badge = (
+                        f"🔄 Apple Mutabakatında ({total_trial_days}/{total_trial_days} Gün)"
+                        if r_plat == "ios"
+                        else f"🔄 Google Play Mutabakatında ({total_trial_days}/{total_trial_days} Gün)"
+                    )
                     trial_progress_pct = 100
                 else:
                     upcoming_7d_cnt += 1
@@ -5469,11 +5476,15 @@ def _build_analytics_summary(
                     try:
                         if r.started_date and len(r.started_date) == 10:
                             st_d = datetime.strptime(r.started_date, "%Y-%m-%d").date()
-                            elapsed_days = max(0, min(6, (now_tr.date() - st_d).days))
+                            elapsed_days = max(0, min(total_trial_days - 1, (now_tr.date() - st_d).days))
                     except Exception:
                         elapsed_days = 0
-                    trial_progress_pct = max(0, min(90, round((elapsed_days / 7.0) * 100)))
-                    lifecycle_badge = f"⏳ Deneme ({elapsed_days}/7 Gün)"
+                    trial_progress_pct = max(0, min(90, round((elapsed_days / float(total_trial_days)) * 100)))
+                    lifecycle_badge = (
+                        f"🎁 İlk Ay Ücretsiz ({elapsed_days}/30 Gün)"
+                        if is_1m_free_trial
+                        else f"⏳ Deneme ({elapsed_days}/7 Gün)"
+                    )
 
                 if m_dt not in renewal_by_date:
                     renewal_by_date[m_dt] = {
@@ -5560,7 +5571,7 @@ def _build_analytics_summary(
     matured_cutoff_str = (now_tr.date() - timedelta(days=7)).strftime("%Y-%m-%d")
     matured_7d_cohort = [
         r for r in ledger_rows_db
-        if r.offer_type in ("standard_paid", "intro_7d_trial")
+        if r.offer_type in ("standard_paid", "intro_7d_trial", "free_trial_1m")
         and r.started_date
         and r.started_date <= matured_cutoff_str
         and not (
@@ -7580,13 +7591,19 @@ def sync_client_subscriber_ledger(
     )
     plan_lbl = (payload.plan_label or default_lbl).strip()[:100]
 
+    raw_offer_type = (payload.offer_type or "").strip()
+    is_1m_free_trial_payload = (
+        raw_offer_type == "free_trial_1m"
+        or "trial" in prod_id.lower()
+        or "free" in prod_id.lower()
+    )
     if not mat_dt_str or len(mat_dt_str) != 10:
         try:
             dt_s = datetime.strptime(start_dt_str, "%Y-%m-%d")
         except Exception:
             dt_s = datetime.now(tz_tr)
             start_dt_str = dt_s.strftime("%Y-%m-%d")
-        days_add = 7 if st_val == "intro_free_trial" else (365 if is_ann else 30)
+        days_add = (30 if is_1m_free_trial_payload else 7) if st_val == "intro_free_trial" else (365 if is_ann else 30)
         mat_dt_str = (dt_s + timedelta(days=days_add)).strftime("%Y-%m-%d")
 
     std_gross, std_net = _resolve_expected_trial_pricing(
@@ -7603,24 +7620,30 @@ def sync_client_subscriber_ledger(
         c_gross = round(float(payload.customer_price_try or (std_gross if st_val == "paid_active" else 0.0)), 2)
         c_net = round(float(payload.developer_proceeds_try or (round(c_gross * net_ratio, 2) if c_gross > 0 else 0.0)), 2)
 
-    is_intro_payload = (payload.offer_type or "").strip() == "intro_1m_discounted"
+    is_intro_payload = raw_offer_type == "intro_1m_discounted"
     if st_val == "cancelled" or not auto_renew:
         exp_gross, exp_net = 0.0, 0.0
     elif st_val == "offer_code_trial":
         exp_gross, exp_net = 0.0, 0.0
-    elif is_intro_payload:
+    elif is_intro_payload or is_1m_free_trial_payload:
         exp_gross, exp_net = std_gross, std_net
     else:
         exp_gross, exp_net = (c_gross, c_net) if c_gross > 0 else (std_gross, std_net)
 
-    of_type = payload.offer_type or (
-        "standard_paid" if st_val == "paid_active" else ("offer_code" if st_val == "offer_code_trial" else "intro_7d_trial")
+    of_type = raw_offer_type or (
+        "standard_paid"
+        if st_val == "paid_active"
+        else ("offer_code" if st_val == "offer_code_trial" else ("free_trial_1m" if is_1m_free_trial_payload else "intro_7d_trial"))
     )
     if not offer_code_nm:
         offer_code_nm = (
             "İlk Ay İndirimli Başlangıç"
             if is_intro_payload
-            else ("Standart Ücretli" if st_val == "paid_active" else "Tarihsel Deneme")
+            else (
+                "İlk Ay Ücretsiz Deneme"
+                if (st_val == "intro_free_trial" and (of_type == "free_trial_1m" or is_1m_free_trial_payload))
+                else ("Standart Ücretli" if st_val == "paid_active" else "Tarihsel Deneme")
+            )
         )
 
     cntry_clean = "".join(ch for ch in (payload.country or "TR").upper() if ch.isalnum())[:16] or "TR"
