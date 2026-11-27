@@ -2,6 +2,17 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.58.8-cockpit-declutter-and-zero-mobile-scroll] - 2026-11-28 (Railway Canlı Yayın — Kurucu Kokpiti (`/admin/analytics`) 5 Sekme Baştan Sona Yazı Tekrarı Sadeleştirmesi, `3×2` / `2×3` Ara Oksuz Dönüşüm Hunisi, Çerçevesiz Sakin Alt Metinler, Sağdan Kesilen Tabloların Tam Sığdırılması ve Mobilde `724px ➔ 390px` Sıfır Sağa-Sola Kayma (`Zero Horizontal Scroll`) Onarımı • 🟢 Yeni Native EAS Build Gerekmez)
+### 📱✨ Kurucu Kokpiti 5 Sekme Sadeleştirmesi & Mobil Sıfır Yatay Kaydırma (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **3'lü Gerçek CLI Konsensüsü (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-62` teşhis, `task-93` tasarım analizi & `task-204` uygulama sonrası diff denetimi: `VERDICT: PASS`)** ve **Codex CLI (`task-63` & `task-94` — `gpt-6-luna`)** gerçek terminal çıktılarıyla doğrulandı.
+2. **Masaüstü & Mobil Yazı Tekrarı ve Kutu Kalabalığı Temizliği (Sıfır Veri / Hesaplama Kaybı):**
+   - Üst barda (`topbar`) iki satıra kırılmaya yol açan `#zeroStaticAuditBadge` ve `#livePeriodSub` tekrarları, sol menüdeki (`sidebar-kpi-mini`) 7 satırlık mükerrer özet kutusu ve Sekme 1–3 içindeki ikincil `.subcat-bar` filtre şeritleri görünür ekrandan kaldırıldı (DOM ID kontratları korundu).
+   - 6 aşamalı Dönüşüm Hunisi içindeki 5 ayrı `.conv-connector` ara ok kutusu ve `.conv-tier-bridge` ara şeridi gizlenerek 6 pastel kart masaüstünde `3×2`, mobilde `display: contents` ile boşluksuz `2×3` ızgarada birleştirildi; kart altlarındaki 40+ çerçeveli `.kpi-micro-chip` kutusu çerçevesiz sakin tek satır metne (`•` ayraçlı) dönüştürüldü.
+3. **Mobilde (`<= 768px`) `724px ➔ 390px` Sıfır Sağa-Sola Kayma (`Zero Horizontal Scroll`) Garantisi:**
+   - `html, body { max-width: 100vw !important; overflow-x: hidden !important; }` ve `.sr-only { left: 0 !important; top: 0 !important; white-space: normal !important; }` ile iOS Safari ve mobil Chrome'da gizli ekran okuyucu metinlerinin yarattığı `847px` yatay taşma tamamen sıfırlandı.
+   - Mobilde Dönem Seçicileri (`4` eşit sütun), Platform Seçicileri (`3` eşit sütun), Huni Özet Rozetleri (`2×2` ızgara) ve Sekme 3 Onboarding A/B Kohort Seçicileri (`3` eşit sütun) ekrana tam oturtuldu; 5 sekmedeki tüm geniş tablolar dar ekranda 3–4 ana sütuna indirilerek `360px`, `390px` ve `1440px` ekranlarda `docScrollW == clientWidth` (`0px` yatay kayma) Playwright ve `14/14 pytest PASS` ile doğrulandı.
+
 ## [4.58.7-build76-android-native-purchase-release] - 2026-11-27 (Railway Canlı Yayın & Android EAS Build 76 `7c97aaa9-714a-4947-b36b-1ef15ceeaf89` Google Play Console'a Yüklendi [Şu An `In Review`] — `v4.58.6` Native Satın Alma Dayanıklılığı, 120sn TTL `0ms` Canlı Offerings Önbelleği `getCachedOrFetchOfferings`, `120sn` Çifte Tetikleme Kilidi `isPurchaseLockActive`, `RESTORE_PURCHASES` `finally` Buton Sıfırlama Koruması ve `purchaseSubscriptionOption` ➔ `getCustomerInfo` ➔ `purchasePackage` Güvenli Yedekleme Zinciri)
 ### 🚀🤖 Android Native `Build 76` (`v4.58.7`) Mağaza Derlemesi (`In Review`) ve Canlı Senkronizasyon (`mobile/app.config.ts`, `public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`)
 1. **3'lü Gerçek CLI Konsensüsü (`AGENTS.md §5.1–§5.2`):**

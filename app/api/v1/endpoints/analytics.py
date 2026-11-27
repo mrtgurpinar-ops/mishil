@@ -12164,6 +12164,289 @@ def analytics_dashboard_page(
             grid-template-columns: minmax(0, 1fr) !important;
           }}
         }}
+
+        /* v4.58.8 KURUCU KOKPİTİ SADELEŞTİRME & SIFIR YATAY KAYDIRMA (ZERO HORIZONTAL SCROLL) */
+        html, body {{
+          max-width: 100vw !important;
+          overflow-x: hidden !important;
+          position: relative;
+        }}
+        .cockpit-shell, .cockpit-main, .workspace-canvas, .tab-pane, .bento-card, .conv-bridge-card {{
+          max-width: 100% !important;
+          min-width: 0 !important;
+          box-sizing: border-box !important;
+        }}
+        .sr-only {{
+          left: 0 !important;
+          top: 0 !important;
+          max-width: 1px !important;
+          max-height: 1px !important;
+          white-space: normal !important;
+          overflow: hidden !important;
+        }}
+        #livePeriodSub, #zeroStaticAuditBadge {{
+          display: none !important;
+        }}
+        .sidebar-kpi-mini {{
+          display: none !important;
+        }}
+        .conv-connector,
+        .conv-tier-bridge {{
+          display: none !important;
+        }}
+        #conversionBridgeCard {{
+          padding: 14px 18px !important;
+        }}
+        .conv-bridge-head {{
+          margin-bottom: 10px !important;
+          padding-bottom: 8px !important;
+        }}
+        .conv-bridge-grid {{
+          grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+          gap: 12px !important;
+          margin-bottom: 10px !important;
+        }}
+        .conv-bridge-grid:last-of-type {{
+          margin-bottom: 0 !important;
+        }}
+        .hero-stage-card {{
+          padding: 13px 15px !important;
+        }}
+        .kpi-micro-meta {{
+          gap: 8px !important;
+          margin-top: 4px !important;
+        }}
+        .kpi-micro-chip {{
+          background: transparent !important;
+          border: none !important;
+          padding: 0 !important;
+          font-size: 11.5px !important;
+          font-weight: 600 !important;
+          color: var(--text-secondary) !important;
+        }}
+        .kpi-micro-chip + .kpi-micro-chip::before {{
+          content: "• ";
+          color: var(--text-muted);
+          margin-right: 4px;
+        }}
+        .subcat-bar {{
+          display: none !important;
+        }}
+        table th, table td {{
+          white-space: normal !important;
+          padding: 8px 10px !important;
+        }}
+        #tabPane_tab1 .tab1-sec-channels table th:nth-child(2),
+        #tabPane_tab1 .tab1-sec-channels table td:nth-child(2),
+        #tabPane_tab1 .tab1-sec-channels table th:nth-child(4),
+        #tabPane_tab1 .tab1-sec-channels table td:nth-child(4) {{
+          display: none !important;
+        }}
+        #metaDirectSdkVal {{
+          font-size: 16px !important;
+        }}
+        #abTopSplitBadge {{
+          display: none !important;
+        }}
+        #appleRenewalCard .steps-grid {{
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          gap: 8px !important;
+        }}
+        #appleRenewalCard .step-box {{
+          padding: 10px 12px !important;
+        }}
+        #appleRenewalCard .step-val {{
+          font-size: 16px !important;
+        }}
+        #appleLedgerCard table th:nth-child(6),
+        #appleLedgerCard table td:nth-child(6),
+        #appleLedgerCard table th:nth-child(10),
+        #appleLedgerCard table td:nth-child(10) {{
+          display: none !important;
+        }}
+        #onbFunnelContinuationMeta,
+        #onbFunnelDropoffBadge {{
+          display: none !important;
+        }}
+        #onboardingNineStepFunnelCard .section-head > span:first-child {{
+          font-size: 14px !important;
+        }}
+        #tabPane_tab3 .big-num {{
+          font-size: 22px !important;
+          white-space: normal !important;
+        }}
+        #inAppFeedbacksTotalBadge {{
+          display: none !important;
+        }}
+        #dataGovernanceMatrixCard table th:nth-child(3),
+        #dataGovernanceMatrixCard table td:nth-child(3),
+        #dataGovernanceMatrixCard table th:nth-child(6),
+        #dataGovernanceMatrixCard table td:nth-child(6),
+        #dataGovernanceMatrixCard table th:nth-child(7),
+        #dataGovernanceMatrixCard table td:nth-child(7),
+        #syncPipelinesStatusCard table th:nth-child(2),
+        #syncPipelinesStatusCard table td:nth-child(2),
+        #syncPipelinesStatusCard table th:nth-child(4),
+        #syncPipelinesStatusCard table td:nth-child(4) {{
+          display: none !important;
+        }}
+        #tabPane_tab5 .badge {{
+          white-space: normal !important;
+          line-height: 1.3 !important;
+        }}
+        @media (max-width: 768px) {{
+          .topbar {{
+            flex-direction: column !important;
+            align-items: stretch !important;
+            padding: 8px 10px !important;
+            gap: 6px !important;
+          }}
+          .topbar > div {{
+            width: 100% !important;
+            display: flex !important;
+            flex-wrap: nowrap !important;
+            justify-content: space-between !important;
+            gap: 4px !important;
+          }}
+          .period-pills {{
+            display: grid !important;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+            overflow-x: hidden !important;
+            width: 100% !important;
+            gap: 4px !important;
+          }}
+          #platformPills {{
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            flex: 1 1 auto !important;
+          }}
+          .period-pill {{
+            text-align: center !important;
+            justify-content: center !important;
+            padding: 6px 3px !important;
+            font-size: 10.5px !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+          }}
+          #btnToggleVerboseDesc, #btnToggleHeroFunnel {{
+            display: none !important;
+          }}
+          .conv-bridge-head {{
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 6px !important;
+          }}
+          .conv-summary-pills {{
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            width: 100% !important;
+            gap: 5px !important;
+            overflow: hidden !important;
+          }}
+          .conv-summary-pill {{
+            justify-content: center !important;
+            padding: 5px 6px !important;
+            font-size: 11px !important;
+            text-align: center !important;
+            white-space: nowrap !important;
+          }}
+          #conversionBridgeCard {{
+            display: grid !important;
+            grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+            gap: 8px !important;
+          }}
+          #conversionBridgeCard .conv-bridge-head {{
+            grid-column: 1 / -1 !important;
+            margin-bottom: 2px !important;
+          }}
+          #conversionBridgeCard .conv-bridge-grid {{
+            display: contents !important;
+          }}
+          #conversionBridgeCard.funnel-collapsed .hero-stage-card {{
+            display: none !important;
+          }}
+          .hero-stage-card {{
+            padding: 10px 10px !important;
+            min-width: 0 !important;
+          }}
+          .kpi-micro-chip {{
+            font-size: 10px !important;
+          }}
+          .chart-toggle {{
+            width: 100% !important;
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 4px !important;
+          }}
+          .chart-toggle button {{
+            flex: 1 1 auto !important;
+            padding: 5px 6px !important;
+            font-size: 10.5px !important;
+          }}
+          #storeReconciliationCard table th:nth-child(3),
+          #storeReconciliationCard table td:nth-child(3),
+          #countryRevenueCard table th:nth-child(2),
+          #countryRevenueCard table td:nth-child(2),
+          #countryRevenueCard table th:nth-child(4),
+          #countryRevenueCard table td:nth-child(4),
+          #appleLedgerCard table th:nth-child(1),
+          #appleLedgerCard table td:nth-child(1),
+          #appleLedgerCard table th:nth-child(5),
+          #appleLedgerCard table td:nth-child(5),
+          #appleLedgerCard table th:nth-child(7),
+          #appleLedgerCard table td:nth-child(7),
+          #appleLedgerCard table th:nth-child(8),
+          #appleLedgerCard table td:nth-child(8),
+          #appleLedgerCard table th:nth-child(11),
+          #appleLedgerCard table td:nth-child(11) {{
+            display: none !important;
+          }}
+          #appleRenewalCard .steps-grid {{
+            grid-template-columns: minmax(0, 1fr) !important;
+          }}
+          #onbAbCohortPills {{
+            display: grid !important;
+            grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+            width: 100% !important;
+            gap: 4px !important;
+          }}
+          #onbAbCohortPills .period-pill {{
+            white-space: normal !important;
+            font-size: 10px !important;
+            line-height: 1.2 !important;
+            padding: 5px 4px !important;
+          }}
+          .tab3-sec-cohort table th:nth-child(4),
+          .tab3-sec-cohort table td:nth-child(4),
+          .tab3-sec-cohort table th:nth-child(5),
+          .tab3-sec-cohort table td:nth-child(5),
+          .tab3-sec-cohort table th:nth-child(6),
+          .tab3-sec-cohort table td:nth-child(6) {{
+            display: none !important;
+          }}
+          #tabPane_tab4 table th:nth-child(3),
+          #tabPane_tab4 table td:nth-child(3) {{
+            display: none !important;
+          }}
+          #inAppFeedbacksCard .section-head > div {{
+            width: 100% !important;
+          }}
+          #inAppFeedbacksSearchInput,
+          #liveClicksSearchInput {{
+            flex: 1 1 110px !important;
+            min-width: 0 !important;
+          }}
+          #dataGovernanceMatrixCard table th:nth-child(4),
+          #dataGovernanceMatrixCard table td:nth-child(4) {{
+            display: none !important;
+          }}
+          table th, table td {{
+            padding: 6px 5px !important;
+            font-size: 11px !important;
+            word-break: break-word !important;
+          }}
+        }}
       </style>
     </head>
     <body>

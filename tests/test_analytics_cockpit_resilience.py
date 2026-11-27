@@ -104,6 +104,10 @@ def test_mobile_first_responsive_css_and_fast_cache_hit(client, db_session):
     assert "@media (max-width: 768px)" in html_text
     assert "@media (max-width: 480px)" in html_text
     assert "grid-template-columns: repeat(2, minmax(0, 1fr)) !important;" in html_text
+    assert "max-width: 100vw !important;" in html_text
+    assert "overflow-x: hidden !important;" in html_text
+    assert "#conversionBridgeCard .conv-bridge-grid" in html_text
+    assert "display: contents !important;" in html_text
     assert "AbortController" in html_text
 
 
