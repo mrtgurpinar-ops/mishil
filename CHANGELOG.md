@@ -2,6 +2,13 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.58.2-cockpit-onboarding-ab-purchases-row] - 2026-11-27 (Yerel Ortamda Doğrulandı — Kurucu Kokpiti Sekme 3 `#onboardingNineStepFunnelCard` 10 Adımlı Onboarding Tablosu Altına `💳 Satın Alma / VIP Başlatma (🔥 Grup A & 🎁 Grup B)` Sonuç Satırı, Sağ Üst `#onbFunnelPurchasesBadge` Rozeti ve Mikro-Çip Şeridi Entegrasyonu • 🟢 Yeni Native EAS Build Gerekmez)
+### 💳🧭 10 Adımlı Onboarding Hunisine A ve B Grubu Satın Alma Sayılarının Eklenmesi (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **Onboarding Hunisi A ve B Grubu Satın Alma Mutabakatı (`_enrich_onboarding_funnel_with_ab_purchases`):**
+   - `onboarding_step_funnel` içerisine hem `SubscriberLedger` (`group_a_paid_intro`, `group_b_free_trial_1m`, `annual_anchor`) hem de `AppInstallSignal` (`ab_a_vip_started`, `ab_b_vip_started`) kaynaklarından gelen gerçek satın alma sayıları (`ab_a_purchases_count`, `ab_b_purchases_count`, `annual_purchases_count`, `total_purchases_count`, `ios/android` kırılımları, `step9_to_purchase_cvr_pct`, `step0_to_purchase_cvr_pct`) eklendi (`all`, `ios`, `android` platform kırılımlı).
+2. **Onboarding Kartı Üst Rozeti (`#onbFunnelPurchasesBadge`), Mikro-Çip Şeridi ve Tablo Sonuç Satırı (`#onbPurchaseSummaryRow`):**
+   - `#onboardingNineStepFunnelCard` sağ üst rozet alanına **`💳 Satın Alma: N (🔥A: X • 🎁B: Y)`** rozeti, `#onbFunnelContinuationMeta` şeridine vurgulu A/B satın alma çipi ve `#onboardingNineStepTbody` tablosunun en altına (`Adım 9: VIP Paywall` sonrasına) **`💳 Satın Alma / VIP Başlatma (🔥 Grup A: X • 🎁 Grup B: Y)`** sonuç satırı eklendi (`switchPlatform` ve 15sn canlı polling ile tam senkron; İcra Modu: Tek Ajan — Yalnızca Antigravity, `13/13 pytest PASS`).
+
 ## [4.58.1-cockpit-ab-test-command-center-and-10step-onboarding-sync] - 2026-11-26 (Yerel Ortamda Doğrulandı — Kurucu Kokpiti RevenueCat Paywall A/B Testi Komuta Merkezi `#abExperimentCommandCard`, `🔥 Grup A: İlk Ay %67 İndirim (₺49,99 ➔ ₺149,99/ay)` vs `🎁 Grup B: İlk Ay Ücretsiz (30 Gün ₺0 ➔ ₺149,99/ay)` vs `👑 Yıllık VIP Çıpa (₺599,99/Yıl)` Canlı Kıyaslama Matrisi, 30 Günlük Deneme Havuzu + Tarihsel 7G Deneme Koruması ve `🧭 10 Adım Onboarding (Adım 0➔9)` + `⚡ 7. Kart Hızlı Çip` Telemetrisi • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🧪🧭 Kurucu Kokpiti Baştan Sona A/B Testi ve 10 Adımlı Onboarding Revizyonu (`app/api/v1/endpoints/analytics.py`, `public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`, `tests/test_analytics_cockpit_resilience.py`)
 1. **RevenueCat Paywall A/B Testi Komuta Merkezi (`#abExperimentCommandCard` & `_build_ab_experiment_comparison`):**

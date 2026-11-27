@@ -1530,6 +1530,16 @@ def test_ab_experiment_cockpit_comparison_and_10step_onboarding_v4581(client, db
     assert onb_f["ab_b_paywall_viewed_unique_devices"] == 1
     assert onb_f["ab_a_vip_started_unique_devices"] == 1
     assert onb_f["ab_b_vip_started_unique_devices"] == 1
+    assert onb_f["ab_a_purchases_count"] == 1
+    assert onb_f["ab_b_purchases_count"] == 1
+    assert onb_f["annual_purchases_count"] == 1
+    assert onb_f["total_purchases_count"] == 3
+    assert onb_f["ios_purchases_count"] == 2
+    assert onb_f["android_purchases_count"] == 1
+    assert onb_f["ios_ab_a_purchases_count"] == 1
+    assert onb_f["android_ab_b_purchases_count"] == 1
+    assert onb_f["purchase_summary"]["group_a_purchases"] == 1
+    assert onb_f["purchase_summary"]["group_b_purchases"] == 1
 
     fl = s_data["financial_ledger"]
     assert fl["active_30d_trials_count"] == 1
@@ -1543,6 +1553,11 @@ def test_ab_experiment_cockpit_comparison_and_10step_onboarding_v4581(client, db
     assert 'id="abExperimentTbody"' in dash_html
     assert 'id="sideKpiAbTest"' in dash_html
     assert 'id="convAbTestPill"' in dash_html
+    assert 'id="onbFunnelPurchasesBadge"' in dash_html
+    assert 'id="onbPurchaseSummaryRow"' in dash_html
+    assert "💳 Satın Alma / VIP Başlatma" in dash_html
+    assert "🔥 Grup A: 1" in dash_html
+    assert "🎁 Grup B: 1" in dash_html
     assert "function jumpToAbExperiment()" in dash_html
     assert "🧭 10 Adım Onboarding" in dash_html
     assert "⚡ 7. Kart Hızlı Çip: 2" in dash_html

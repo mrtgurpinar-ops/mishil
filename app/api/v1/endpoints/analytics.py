@@ -6784,6 +6784,128 @@ def _build_analytics_summary(
     financial_ledger["active_legacy_7d_mrr_net_try"] = ab_experiment_all["legacy_and_other"]["pipeline_trial_mrr_net_try"]
     financial_ledger["group_a_paid_intro_active_count"] = ab_experiment_all["group_a_paid_intro"]["active_subs_count"]
 
+    def _enrich_onboarding_funnel_with_ab_purchases(
+        onb_obj: Dict[str, Any],
+        ab_obj: Dict[str, Any],
+        ab_ios_obj: Dict[str, Any],
+        ab_and_obj: Dict[str, Any],
+        plat_key: str,
+    ) -> None:
+        ga_d = ab_obj.get("group_a") or {}
+        gb_d = ab_obj.get("group_b") or {}
+        ann_d = ab_obj.get("annual_anchor") or {}
+        leg_d = ab_obj.get("legacy_and_other") or {}
+        code_d = ab_obj.get("offer_code_vip") or {}
+
+        sig_a = int(onb_obj.get("ab_a_vip_started_unique_devices", 0) or 0)
+        sig_b = int(onb_obj.get("ab_b_vip_started_unique_devices", 0) or 0)
+        sig_tot = int(onb_obj.get("vip_started_unique_devices", 0) or 0)
+
+        led_a = int(ga_d.get("started_vip_count", 0) or 0)
+        led_b = int(gb_d.get("started_vip_count", 0) or 0)
+        led_ann = int(ann_d.get("started_vip_count", 0) or 0)
+        led_leg = int(leg_d.get("started_vip_count", 0) or 0) + int(code_d.get("started_vip_count", 0) or 0)
+
+        eff_a = max(led_a, sig_a)
+        eff_b = max(led_b, sig_b)
+        eff_ann = led_ann
+        eff_tot = max(eff_a + eff_b + eff_ann + led_leg, sig_tot)
+
+        ga_ios_d = ab_ios_obj.get("group_a") or {}
+        gb_ios_d = ab_ios_obj.get("group_b") or {}
+        ann_ios_d = ab_ios_obj.get("annual_anchor") or {}
+        leg_ios_d = ab_ios_obj.get("legacy_and_other") or {}
+        code_ios_d = ab_ios_obj.get("offer_code_vip") or {}
+        ios_a = max(int(ga_ios_d.get("started_vip_count", 0) or 0), int(onboarding_step_funnel_ios.get("ab_a_vip_started_unique_devices", 0) or 0))
+        ios_b = max(int(gb_ios_d.get("started_vip_count", 0) or 0), int(onboarding_step_funnel_ios.get("ab_b_vip_started_unique_devices", 0) or 0))
+        ios_ann = int(ann_ios_d.get("started_vip_count", 0) or 0)
+        ios_leg = int(leg_ios_d.get("started_vip_count", 0) or 0) + int(code_ios_d.get("started_vip_count", 0) or 0)
+        ios_tot = max(ios_a + ios_b + ios_ann + ios_leg, int(onboarding_step_funnel_ios.get("vip_started_unique_devices", 0) or 0))
+
+        ga_and_d = ab_and_obj.get("group_a") or {}
+        gb_and_d = ab_and_obj.get("group_b") or {}
+        ann_and_d = ab_and_obj.get("annual_anchor") or {}
+        leg_and_d = ab_and_obj.get("legacy_and_other") or {}
+        code_and_d = ab_and_obj.get("offer_code_vip") or {}
+        and_a = max(int(ga_and_d.get("started_vip_count", 0) or 0), int(onboarding_step_funnel_android.get("ab_a_vip_started_unique_devices", 0) or 0))
+        and_b = max(int(gb_and_d.get("started_vip_count", 0) or 0), int(onboarding_step_funnel_android.get("ab_b_vip_started_unique_devices", 0) or 0))
+        and_ann = int(ann_and_d.get("started_vip_count", 0) or 0)
+        and_leg = int(leg_and_d.get("started_vip_count", 0) or 0) + int(code_and_d.get("started_vip_count", 0) or 0)
+        and_tot = max(and_a + and_b + and_ann + and_leg, int(onboarding_step_funnel_android.get("vip_started_unique_devices", 0) or 0))
+
+        if plat_key == "ios":
+            row_ios_a, row_ios_b, row_ios_tot = ios_a, ios_b, ios_tot
+            row_and_a, row_and_b, row_and_tot = 0, 0, 0
+        elif plat_key == "android":
+            row_ios_a, row_ios_b, row_ios_tot = 0, 0, 0
+            row_and_a, row_and_b, row_and_tot = and_a, and_b, and_tot
+        else:
+            row_ios_a, row_ios_b, row_ios_tot = ios_a, ios_b, ios_tot
+            row_and_a, row_and_b, row_and_tot = and_a, and_b, and_tot
+
+        st_base = int(onb_obj.get("start_base_devices", 0) or 0)
+        st9_devs = int(onb_obj.get("step9_reached_devices", 0) or 0)
+        pw_views = max(st9_devs, int(onb_obj.get("paywall_viewed_unique_devices", 0) or 0))
+        step9_to_purch_pct = (
+            min(100.0, round((eff_tot / pw_views) * 100.0, 1))
+            if pw_views > 0
+            else None
+        )
+        step0_to_purch_pct = (
+            min(100.0, round((eff_tot / st_base) * 100.0, 1))
+            if st_base > 0
+            else None
+        )
+        step9_drop_cnt = max(0, pw_views - eff_tot) if pw_views > 0 else 0
+        step9_drop_pct = (
+            max(0.0, round(((pw_views - eff_tot) / pw_views) * 100.0, 1))
+            if pw_views > 0
+            else None
+        )
+
+        onb_obj["ab_a_purchases_count"] = eff_a
+        onb_obj["ab_b_purchases_count"] = eff_b
+        onb_obj["annual_purchases_count"] = eff_ann
+        onb_obj["legacy_or_code_purchases_count"] = led_leg
+        onb_obj["total_purchases_count"] = eff_tot
+        onb_obj["ios_purchases_count"] = row_ios_tot
+        onb_obj["android_purchases_count"] = row_and_tot
+        onb_obj["ios_ab_a_purchases_count"] = row_ios_a
+        onb_obj["ios_ab_b_purchases_count"] = row_ios_b
+        onb_obj["android_ab_a_purchases_count"] = row_and_a
+        onb_obj["android_ab_b_purchases_count"] = row_and_b
+        onb_obj["step9_to_purchase_cvr_pct"] = step9_to_purch_pct
+        onb_obj["step0_to_purchase_cvr_pct"] = step0_to_purch_pct
+        onb_obj["step9_to_purchase_dropoff_count"] = step9_drop_cnt
+        onb_obj["step9_to_purchase_dropoff_pct"] = step9_drop_pct
+        onb_obj["purchase_summary"] = {
+            "group_a_purchases": eff_a,
+            "group_b_purchases": eff_b,
+            "annual_purchases": eff_ann,
+            "legacy_or_code_purchases": led_leg,
+            "total_purchases": eff_tot,
+            "ios_total_purchases": row_ios_tot,
+            "android_total_purchases": row_and_tot,
+            "ios_group_a_purchases": row_ios_a,
+            "ios_group_b_purchases": row_ios_b,
+            "android_group_a_purchases": row_and_a,
+            "android_group_b_purchases": row_and_b,
+            "step9_to_purchase_cvr_pct": step9_to_purch_pct,
+            "step0_to_purchase_cvr_pct": step0_to_purch_pct,
+            "dropoff_from_paywall_count": step9_drop_cnt,
+            "dropoff_from_paywall_pct": step9_drop_pct,
+        }
+
+    _enrich_onboarding_funnel_with_ab_purchases(
+        onboarding_step_funnel_all, ab_experiment_all, ab_experiment_ios, ab_experiment_android, "all"
+    )
+    _enrich_onboarding_funnel_with_ab_purchases(
+        onboarding_step_funnel_ios, ab_experiment_ios, ab_experiment_ios, ab_experiment_android, "ios"
+    )
+    _enrich_onboarding_funnel_with_ab_purchases(
+        onboarding_step_funnel_android, ab_experiment_android, ab_experiment_ios, ab_experiment_android, "android"
+    )
+
     if period == "all":
         ios_paid_cnt = int(plat_fin["ios"]["paid_cnt"])
         ios_trial_cnt = int(plat_fin["ios"]["trial_cnt"])
@@ -9741,6 +9863,24 @@ def analytics_dashboard_page(
     else:
         onb_drop_badge_str = "🟢 Kayıp Yok" if onb_total_devs > 0 else "⏳ Bekleniyor"
 
+    onb_purch_a = int(onb_f.get("ab_a_purchases_count", onb_f.get("ab_a_vip_started_unique_devices", 0)) or 0)
+    onb_purch_b = int(onb_f.get("ab_b_purchases_count", onb_f.get("ab_b_vip_started_unique_devices", 0)) or 0)
+    onb_purch_ann = int(onb_f.get("annual_purchases_count", 0) or 0)
+    onb_purch_leg = int(onb_f.get("legacy_or_code_purchases_count", 0) or 0)
+    onb_purch_tot = int(onb_f.get("total_purchases_count", onb_f.get("vip_started_unique_devices", 0)) or 0)
+    onb_purch_ios = int(onb_f.get("ios_purchases_count", 0) or 0)
+    onb_purch_and = int(onb_f.get("android_purchases_count", 0) or 0)
+    onb_purch_ios_a = int(onb_f.get("ios_ab_a_purchases_count", 0) or 0)
+    onb_purch_ios_b = int(onb_f.get("ios_ab_b_purchases_count", 0) or 0)
+    onb_purch_and_a = int(onb_f.get("android_ab_a_purchases_count", 0) or 0)
+    onb_purch_and_b = int(onb_f.get("android_ab_b_purchases_count", 0) or 0)
+    onb_step9_to_purch_pct = onb_f.get("step9_to_purchase_cvr_pct")
+    onb_step0_to_purch_pct = onb_f.get("step0_to_purchase_cvr_pct")
+    onb_step9_drop_cnt = int(onb_f.get("step9_to_purchase_dropoff_count", 0) or 0)
+    onb_step9_drop_pct = onb_f.get("step9_to_purchase_dropoff_pct")
+    onb_ann_badge_suffix = f" • 👑Yıllık: {onb_purch_ann}" if onb_purch_ann > 0 else ""
+    onb_purchases_badge_str = f"💳 Satın Alma: {onb_purch_tot} (🔥A: {onb_purch_a} • 🎁B: {onb_purch_b}{onb_ann_badge_suffix})"
+
     onb_rows_html = ""
     for st_item in onb_steps_list:
         st_num = int(st_item.get("step_number", 0) or 0)
@@ -9797,6 +9937,56 @@ def analytics_dashboard_page(
           </td>
         </tr>
         """
+
+    p_ret_cell = (
+        f"<strong style='color:#059669;'>%{onb_step9_to_purch_pct}</strong>"
+        if onb_step9_to_purch_pct is not None
+        else "<span style='color:var(--text-muted); font-size:12px;'>—</span>"
+    )
+    if onb_step9_drop_pct is not None and onb_step9_drop_cnt > 0:
+        p_drop_cell = f"<span style='color:#DC2626; font-weight:700;'>-{onb_step9_drop_cnt} (-%{onb_step9_drop_pct})</span>"
+    elif onb_step9_drop_pct is not None:
+        p_drop_cell = "<span style='color:#059669; font-weight:700;'>0</span>"
+    else:
+        p_drop_cell = "<span style='color:var(--text-muted); font-size:12px;'>—</span>"
+
+    p_bar_w = max(0.0, min(100.0, float(onb_step0_to_purch_pct or 0.0)))
+    p_cum_lbl = f"%{onb_step0_to_purch_pct}" if onb_step0_to_purch_pct is not None else "—"
+    p_ann_chip_html = (
+        f" <span class='badge' style='background:rgba(124,58,237,0.14); color:#7C3AED; font-size:10.5px; padding:2px 6px;'>👑 Yıllık: {onb_purch_ann}</span>"
+        if onb_purch_ann > 0
+        else ""
+    )
+    p_leg_chip_html = (
+        f" <span class='badge badge-meta' style='font-size:10.5px; padding:2px 6px;'>⏳/🎟️ Diğer: {onb_purch_leg}</span>"
+        if onb_purch_leg > 0
+        else ""
+    )
+    onb_rows_html += f"""
+        <tr class="onb-purchase-summary-row" id="onbPurchaseSummaryRow" style="background:rgba(16,185,129,0.08); border-top:2px solid rgba(16,185,129,0.32);">
+          <td style="font-weight:800; color:#059669; white-space:nowrap;">
+            💳 Satın Alma / VIP Başlatma
+            <span class="badge" style="background:rgba(217,119,6,0.16); color:#D97706; font-size:10.5px; padding:2px 7px; margin-left:4px;">🔥 Grup A: {onb_purch_a}</span>
+            <span class="badge" style="background:rgba(16,185,129,0.16); color:#059669; font-size:10.5px; padding:2px 7px; margin-left:2px;">🎁 Grup B: {onb_purch_b}</span>{p_ann_chip_html}{p_leg_chip_html}
+          </td>
+          <td style="font-weight:800; color:#059669; font-variant-numeric:tabular-nums; white-space:nowrap;">
+            {onb_purch_tot} <span style="font-size:11.5px; color:var(--text-secondary); font-weight:700;">(🔥A:{onb_purch_a} • 🎁B:{onb_purch_b})</span>
+          </td>
+          <td style="font-size:12px; white-space:nowrap;">
+            🍏 <strong>{onb_purch_ios}</strong> <span style="font-size:11px; color:var(--text-muted);">(A:{onb_purch_ios_a}/B:{onb_purch_ios_b})</span> • 🤖 <strong>{onb_purch_and}</strong> <span style="font-size:11px; color:var(--text-muted);">(A:{onb_purch_and_a}/B:{onb_purch_and_b})</span>
+          </td>
+          <td style="font-variant-numeric:tabular-nums;">{p_ret_cell}</td>
+          <td style="font-variant-numeric:tabular-nums;">{p_drop_cell}</td>
+          <td style="min-width:150px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <div style="flex:1; height:8px; background:rgba(148,163,184,0.18); border-radius:999px; overflow:hidden;">
+                <div style="width:{p_bar_w}%; height:100%; background:#059669; border-radius:999px;"></div>
+              </div>
+              <span style="font-size:12px; font-weight:800; color:#059669; min-width:48px; text-align:right;">{p_cum_lbl}</span>
+            </div>
+          </td>
+        </tr>
+    """
 
     paid_countries_cnt = int(fl.get("paid_countries_count", 0) or 0)
     vip_countries_cnt = int(fl.get("vip_countries_count", 0) or 0)
@@ -12365,6 +12555,7 @@ def analytics_dashboard_page(
               <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <span class="badge" id="onbFunnelDevicesBadge" style="background:rgba(37,99,235,0.12); color:#2563EB;">📱 {onb_total_devs} Cihaz</span>
                 <span class="badge" id="onbFunnelCompletionBadge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">🏁 0➔9: {html.escape(onb_comp_str)}</span>
+                <span class="badge" id="onbFunnelPurchasesBadge" style="background:rgba(16,185,129,0.16); color:#059669;">{html.escape(onb_purchases_badge_str)}</span>
                 <span class="badge" id="onbFunnelDropoffBadge" style="background:rgba(217,119,6,0.14); color:#D97706;">{html.escape(onb_drop_badge_str)}</span>
               </div>
             </div>
@@ -12373,7 +12564,7 @@ def analytics_dashboard_page(
               <span class="kpi-micro-chip">⚡ 7. Kart Hızlı Çip: {int(onb_f.get('step7_quick_chip_unique_devices', 0) or 0)}</span>
               <span class="kpi-micro-chip">👁️ Paywall: {int(onb_f.get('paywall_viewed_unique_devices', 0) or 0)} (🔥A:{int(onb_f.get('ab_a_paywall_viewed_unique_devices', 0) or 0)} • 🎁B:{int(onb_f.get('ab_b_paywall_viewed_unique_devices', 0) or 0)})</span>
               <span class="kpi-micro-chip">👆 Tık: {int(onb_f.get('paywall_cta_unique_devices', 0) or 0)} (🔥A:{int(onb_f.get('ab_a_paywall_cta_unique_devices', 0) or 0)} • 🎁B:{int(onb_f.get('ab_b_paywall_cta_unique_devices', 0) or 0)})</span>
-              <span class="kpi-micro-chip">👑 VIP: {int(onb_f.get('vip_started_unique_devices', 0) or 0)} (🔥A:{int(onb_f.get('ab_a_vip_started_unique_devices', 0) or 0)} • 🎁B:{int(onb_f.get('ab_b_vip_started_unique_devices', 0) or 0)})</span>
+              <span class="kpi-micro-chip" style="border-color:rgba(16,185,129,0.40); color:#059669; font-weight:800;">💳 Satın Alma: {onb_purch_tot} (🔥 Grup A: {onb_purch_a} • 🎁 Grup B: {onb_purch_b}{onb_ann_badge_suffix})</span>
             </div>
             <div class="table-wrap">
               <table>
@@ -13309,6 +13500,7 @@ def analytics_dashboard_page(
             var ofData = p.onboarding_step_funnel;
             var devBadge = document.getElementById('onbFunnelDevicesBadge');
             var compBadge = document.getElementById('onbFunnelCompletionBadge');
+            var purchBadge = document.getElementById('onbFunnelPurchasesBadge');
             var dropBadge = document.getElementById('onbFunnelDropoffBadge');
             var contMeta = document.getElementById('onbFunnelContinuationMeta');
             var onbTbody = document.getElementById('onboardingNineStepTbody');
@@ -13320,8 +13512,21 @@ def analytics_dashboard_page(
             var compStr = (ofData.step0_to_step9_completion_pct !== null && ofData.step0_to_step9_completion_pct !== undefined)
               ? ('%' + ofData.step0_to_step9_completion_pct)
               : 'Veri Yok';
+            var pA = Number(ofData.ab_a_purchases_count !== undefined ? ofData.ab_a_purchases_count : (ofData.ab_a_vip_started_unique_devices || 0));
+            var pB = Number(ofData.ab_b_purchases_count !== undefined ? ofData.ab_b_purchases_count : (ofData.ab_b_vip_started_unique_devices || 0));
+            var pAnn = Number(ofData.annual_purchases_count || 0);
+            var pLeg = Number(ofData.legacy_or_code_purchases_count || 0);
+            var pTot = Number(ofData.total_purchases_count !== undefined ? ofData.total_purchases_count : (ofData.vip_started_unique_devices || 0));
+            var pIos = Number(ofData.ios_purchases_count || 0);
+            var pAnd = Number(ofData.android_purchases_count || 0);
+            var pIosA = Number(ofData.ios_ab_a_purchases_count || 0);
+            var pIosB = Number(ofData.ios_ab_b_purchases_count || 0);
+            var pAndA = Number(ofData.android_ab_a_purchases_count || 0);
+            var pAndB = Number(ofData.android_ab_b_purchases_count || 0);
+            var pAnnSuffix = (pAnn > 0) ? (' • 👑Yıllık: ' + pAnn) : '';
             if (devBadge) devBadge.textContent = '📱 ' + totOnbDevs + ' Cihaz';
             if (compBadge) compBadge.textContent = '🏁 0➔9: ' + compStr;
+            if (purchBadge) purchBadge.textContent = '💳 Satın Alma: ' + pTot + ' (🔥A: ' + pA + ' • 🎁B: ' + pB + pAnnSuffix + ')';
             if (sideOnb) sideOnb.textContent = compStr + ' (' + st9Devs + '/' + stBaseDevs + ')';
             if (heroOnbPill) heroOnbPill.textContent = compStr + ' (' + st9Devs + '/' + stBaseDevs + ') ➔';
             if (dropBadge) {{
@@ -13338,7 +13543,7 @@ def analytics_dashboard_page(
                 '<span class="kpi-micro-chip">⚡ 7. Kart Hızlı Çip: ' + Number(ofData.step7_quick_chip_unique_devices || 0) + '</span>' +
                 '<span class="kpi-micro-chip">👁️ Paywall: ' + Number(ofData.paywall_viewed_unique_devices || 0) + ' (🔥A:' + Number(ofData.ab_a_paywall_viewed_unique_devices || 0) + ' • 🎁B:' + Number(ofData.ab_b_paywall_viewed_unique_devices || 0) + ')</span>' +
                 '<span class="kpi-micro-chip">👆 Tık: ' + Number(ofData.paywall_cta_unique_devices || 0) + ' (🔥A:' + Number(ofData.ab_a_paywall_cta_unique_devices || 0) + ' • 🎁B:' + Number(ofData.ab_b_paywall_cta_unique_devices || 0) + ')</span>' +
-                '<span class="kpi-micro-chip">👑 VIP: ' + Number(ofData.vip_started_unique_devices || 0) + ' (🔥A:' + Number(ofData.ab_a_vip_started_unique_devices || 0) + ' • 🎁B:' + Number(ofData.ab_b_vip_started_unique_devices || 0) + ')</span>';
+                '<span class="kpi-micro-chip" style="border-color:rgba(16,185,129,0.40); color:#059669; font-weight:800;">💳 Satın Alma: ' + pTot + ' (🔥 Grup A: ' + pA + ' • 🎁 Grup B: ' + pB + pAnnSuffix + ')</span>';
             }}
             if (onbTbody && Array.isArray(ofData.steps)) {{
               var rowsHtml = '';
@@ -13387,6 +13592,35 @@ def analytics_dashboard_page(
                   '<td style="min-width:150px;"><div style="display:flex; align-items:center; gap:8px;"><div style="flex:1; height:8px; background:rgba(148,163,184,0.18); border-radius:999px; overflow:hidden;"><div style="width:' + bW + '%; height:100%; background:' + bCol + '; border-radius:999px;"></div></div><span style="font-size:12px; font-weight:700; color:var(--text-secondary); min-width:48px; text-align:right;">' + cLbl + '</span></div></td>' +
                   '</tr>';
               }}
+              var pRetPct = ofData.step9_to_purchase_cvr_pct;
+              var pDropCnt = Number(ofData.step9_to_purchase_dropoff_count || 0);
+              var pDropPct = ofData.step9_to_purchase_dropoff_pct;
+              var pCumPct = ofData.step0_to_purchase_cvr_pct;
+              var pRetHtml = (pRetPct !== null && pRetPct !== undefined)
+                ? '<strong style="color:#059669;">%' + pRetPct + '</strong>'
+                : '<span style="color:var(--text-muted); font-size:12px;">—</span>';
+              var pDropHtml = '<span style="color:var(--text-muted); font-size:12px;">—</span>';
+              if (pDropPct !== null && pDropPct !== undefined && pDropCnt > 0) {{
+                pDropHtml = '<span style="color:#DC2626; font-weight:700;">-' + pDropCnt + ' (-%' + pDropPct + ')</span>';
+              }} else if (pDropPct !== null && pDropPct !== undefined) {{
+                pDropHtml = '<span style="color:#059669; font-weight:700;">0</span>';
+              }}
+              var pBarW = Math.max(0, Math.min(100, Number(pCumPct || 0)));
+              var pCumLbl = (pCumPct !== null && pCumPct !== undefined) ? ('%' + pCumPct) : '—';
+              var pAnnChip = (pAnn > 0)
+                ? ' <span class="badge" style="background:rgba(124,58,237,0.14); color:#7C3AED; font-size:10.5px; padding:2px 6px;">👑 Yıllık: ' + pAnn + '</span>'
+                : '';
+              var pLegChip = (pLeg > 0)
+                ? ' <span class="badge badge-meta" style="font-size:10.5px; padding:2px 6px;">⏳/🎟️ Diğer: ' + pLeg + '</span>'
+                : '';
+              rowsHtml += '<tr class="onb-purchase-summary-row" id="onbPurchaseSummaryRow" style="background:rgba(16,185,129,0.08); border-top:2px solid rgba(16,185,129,0.32);">' +
+                '<td style="font-weight:800; color:#059669; white-space:nowrap;">💳 Satın Alma / VIP Başlatma <span class="badge" style="background:rgba(217,119,6,0.16); color:#D97706; font-size:10.5px; padding:2px 7px; margin-left:4px;">🔥 Grup A: ' + pA + '</span> <span class="badge" style="background:rgba(16,185,129,0.16); color:#059669; font-size:10.5px; padding:2px 7px; margin-left:2px;">🎁 Grup B: ' + pB + '</span>' + pAnnChip + pLegChip + '</td>' +
+                '<td style="font-weight:800; color:#059669; font-variant-numeric:tabular-nums; white-space:nowrap;">' + pTot + ' <span style="font-size:11.5px; color:var(--text-secondary); font-weight:700;">(🔥A:' + pA + ' • 🎁B:' + pB + ')</span></td>' +
+                '<td style="font-size:12px; white-space:nowrap;">🍏 <strong>' + pIos + '</strong> <span style="font-size:11px; color:var(--text-muted);">(A:' + pIosA + '/B:' + pIosB + ')</span> • 🤖 <strong>' + pAnd + '</strong> <span style="font-size:11px; color:var(--text-muted);">(A:' + pAndA + '/B:' + pAndB + ')</span></td>' +
+                '<td style="font-variant-numeric:tabular-nums;">' + pRetHtml + '</td>' +
+                '<td style="font-variant-numeric:tabular-nums;">' + pDropHtml + '</td>' +
+                '<td style="min-width:150px;"><div style="display:flex; align-items:center; gap:8px;"><div style="flex:1; height:8px; background:rgba(148,163,184,0.18); border-radius:999px; overflow:hidden;"><div style="width:' + pBarW + '%; height:100%; background:#059669; border-radius:999px;"></div></div><span style="font-size:12px; font-weight:800; color:#059669; min-width:48px; text-align:right;">' + pCumLbl + '</span></div></td>' +
+                '</tr>';
               onbTbody.innerHTML = rowsHtml;
             }}
           }}
