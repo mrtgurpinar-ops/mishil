@@ -1,8 +1,8 @@
 import { ExpoConfig, ConfigContext } from 'expo/config';
 
 // Uygulama sürümü tek yerden — hem iOS buildNumber hem Android versionCode ile hizalı
-const APP_VERSION = '4.58.0';
-const BUILD_NUMBER = 75;
+const APP_VERSION = '4.58.7';
+const BUILD_NUMBER = 76;
 
 // Resmi Meta (Facebook) App Events & iOS 14+ SKAdNetwork kimlikleri
 const META_APP_ID = process.env.EXPO_PUBLIC_META_APP_ID || '1093539003520092';

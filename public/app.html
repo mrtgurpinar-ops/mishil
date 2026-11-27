@@ -7798,7 +7798,7 @@
   // native → window.__MISHIL_APP__ (injectedJavaScriptBeforeContentLoaded);
   // tarayıcı önizlemesinde WEB_APP_META fallback.
   // =========================================================================
-  const WEB_APP_META = { version: '4.58.0', build: 'web', platform: 'web', native: false };
+  const WEB_APP_META = { version: '4.58.7', build: 'web', platform: 'web', native: false };
   function appMeta() { return window.__MISHIL_APP__ || WEB_APP_META; }
   function getAppPlatform() {
     const meta = appMeta();
@@ -8052,7 +8052,17 @@
 
   // En yeni en üstte. app.html tek kaynak — projects/mishil/CHANGELOG.md ile senkron tutulur.
   const CHANGELOG_ENTRIES = [
-    { v: '4.58.0', date: '26 Kasım 2026', dateEn: 'November 26, 2026', dateDe: '26. November 2026', latest: true, items: [
+    { v: '4.58.7', date: '27 Kasım 2026', dateEn: 'November 27, 2026', dateDe: '27. November 2026', latest: true, items: [
+      '⚡ Sıfır Gecikmeli (0ms) Mağaza Ödeme Penceresi & Çifte Dokunma Koruması (Build 76): Ödeme butonuna dokunulduğunda ikinci bir ağ beklemesi olmadan Google Play / App Store ödeme ekranının anında açılması sağlandı; üst üste dokunuşlarda pencerenin iptale düşmesini önleyen akıllı kilit eklendi.',
+      '🛡️ Güvenli Abonelik Yedekleme & Satın Alımları Geri Yükleme Dayanıklılığı: İlk ay tanışma teklifi ve geri yükleme (Restore Purchases) adımlarında bağlantı dalgalanmalarına karşı otomatik hak doğrulama ve buton sıfırlama koruması güçlendirildi.'
+    ], itemsEn: [
+      '⚡ Instant (0ms) Store Checkout Sheet & Double-Tap Protection (Build 76): Cached live store offerings so the Google Play / App Store payment sheet opens immediately on tap without a secondary network delay, with smart debounce protection against accidental double-taps.',
+      '🛡️ Resilient Subscription Fallback & Restore Purchases Recovery: Added automatic entitlement verification on network blips and guaranteed button state recovery after Restore Purchases.'
+    ], itemsDe: [
+      '⚡ Sofortiges (0ms) Store-Zahlungsfenster & Doppeltipp-Schutz (Build 76): Live-Store-Angebote werden zwischengespeichert, sodass sich das Google Play / App Store Zahlungsfenster ohne zusätzliche Netzwerkverzögerung sofort öffnet – inklusive Schutz vor versehentlichem Doppeltippen.',
+      '🛡️ Robuste Abo-Absicherung & Wiederherstellungs-Schutz: Automatische Berechtigungsprüfung bei kurzen Verbindungsunterbrechungen sowie zuverlässige Button-Zurücksetzung nach „Käufe wiederherstellen“.'
+    ]},
+    { v: '4.58.0', date: '26 Kasım 2026', dateEn: 'November 26, 2026', dateDe: '26. November 2026', items: [
       '🔥 Evrensel A/B Teklif Motoru & İlk Ay %67 İndirim / İlk Ay Ücretsiz Desteği (Build 75): RevenueCat Experiments üzerinden Grup A (İlk Ay %67 İndirimle ₺49,99) ve Grup B (İlk Ay Ücretsiz / ₺0) tekliflerini hem StoreKit 2 hem Google Play Billing v7 üzerinde dinamik tanıyan ve arayüzü otomatik şekillendiren yeni nesil teklif motoru devreye alındı.',
       '🎯 Yeni Onboarding Akışı & 7. Adım MışılSpot™ Canlı Kalibrasyonu (4 Hızlı Çip): Bebek profilinden hemen sonra tek dokunuşluk Uyku Zorluğu, Gelişim Atakları ve Aşı Takvimi sıralaması ile rapor öncesi tek dokunuşlu hızlı uyanış çipleri (Az önce, 1 sa önce, 2 sa önce, 3+ sa) eklendi.'
     ], itemsEn: [
