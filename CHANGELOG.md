@@ -2,6 +2,15 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.58.5-cockpit-onboarding-ab-cohort-split] - 2026-11-27 (Railway Canlı Yayın — Kurucu Kokpiti Sekme 3 `🧭 10 Adım Onboarding (Adım 0➔9 + Satın Alma)` Tablosunda `🌐 Kümülatif`, `🔥 A Grubu Ayrı (İlk Ay %67 İndirim • ₺49,99)` ve `🎁 B Grubu Ayrı (İlk Ay Ücretsiz • 30G ₺0)` 3'lü Kohort Seçici `#onbAbCohortPills`, Adım Bazlı `(🔥A: X • 🎁B: Y)` Kırılımı ve `ab_a_onb_cohort` / `ab_b_onb_cohort` Erken Kohort Sinyali • 🟢 Yeni Native EAS Build Gerekmez)
+### 🧭🧪 10 Adımlı Onboarding Sürecinin A Grubu Ayrı, B Grubu Ayrı ve Kümülatif İzlenmesi (`app/api/v1/endpoints/analytics.py`, `public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`, `tests/test_analytics_cockpit_resilience.py`)
+1. **Cihaz Bazlı A/B Kohort Eşleştirme Motoru (`_build_onboarding_step_funnel` & `ab_cohorts`):**
+   - `AppInstallSignal` (`ab_a_*`, `ab_b_*`, `ab_a_onb_cohort`, `ab_b_onb_cohort`) ve `SubscriberLedger` (`device_uid` ➔ `group_a_paid_intro` / `group_b_free_trial_1m`) kaynaklarından cihazların A veya B grubu kohort haritası (`device_ab_cohort_map`) çıkarıldı.
+   - Her platform (`all`, `ios`, `android`) için `onboarding_step_funnel["ab_cohorts"]` altında **`all` (Kümülatif)**, **`group_a` (🔥 A Grubu Ayrı)** ve **`group_b` (🎁 B Grubu Ayrı)** 10 adımlı onboarding hunileri, adım geçiş yüzdeleri, kayıp adetleri, en çok kayıp yaşanan adım ve satın alma dönüşümleri ayrı ayrı hesaplandı.
+   - `public/app.html` içinde onboarding adımı (`onboarding_step_viewed_*`) başlar başlamaz aktif mağaza teklifine göre `ab_a_onb_cohort` veya `ab_b_onb_cohort` eşlikçi sinyali gönderilerek Adım 9'a (Paywall'a) ulaşmadan önceki adımlarda çıkan cihazların da hangi grupta olduğu netleştirildi.
+2. **Sekme 3 (`#onboardingNineStepFunnelCard`) 3'lü Kohort Seçici (`#onbAbCohortPills` & `switchOnboardingAbCohort`):**
+   - Tek tabloda mükerrerlik yaratmadan **`🌐 Kümülatif`**, **`🔥 A Grubu: İlk Ay ₺49,99`** ve **`🎁 B Grubu: 30G Ücretsiz`** seçici haplarıyla hem kümülatif (her adımda `(🔥A: X • 🎁B: Y)` kırılımlı) hem de yalnızca A Grubu veya yalnızca B Grubu onboarding hunisinin ayrı ayrı incelenmesi sağlandı (`İcra Modu: Tek Ajan — Yalnızca Antigravity`, `14/14 pytest PASS`).
+
 ## [4.58.4-cockpit-unified-in-app-feedbacks] - 2026-11-27 (Railway Canlı Yayın — Uygulama İçi Anne Mesajları & Geri Bildirimlerin Ayrı Sayfa Olmadan Doğrudan Kurucu Kokpiti Sekme 4 `#inAppFeedbacksCard` İçine Taşınması, Sol Menü `#sideKpiFeedbacks` Kısayolu, 15sn Canlı Polling ve Kokpit Geneli 5 Noktalı Mükerrerlik / Tekrar Eden Kart-Rozet Temizliği • 🟢 Yeni Native EAS Build Gerekmez)
 ### 💌📊 Uygulama İçi Anne Mesajlarının Doğrudan Kokpite Taşınması & 5 Noktalı Mükerrerlik Temizliği (`app/api/v1/endpoints/analytics.py`, `app/main.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **Ayrı Sayfa Olmadan Tek Merkezden Kokpit Takibi (`#inAppFeedbacksCard`):**

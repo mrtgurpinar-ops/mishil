@@ -24785,6 +24785,18 @@
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ device_uid: _duid, event_type: _abEvt, os_family: _os, platform: _plat, app_version: _activeAppVer })
             }).catch(function() {});
+          } else if (String(evtType || '').indexOf('onboarding_step_viewed_') === 0 && !window.__mishilAbOnbCohortTagged) {
+            var _sp = window.__MISHIL_STORE_PRICES__;
+            if (_sp && (_sp.introOfferType || _sp.monthlyIntroPrice !== undefined)) {
+              var _dpOnb = (typeof getDynamicPricingState === 'function') ? getDynamicPricingState() : null;
+              var _abOnbEvt = (_dpOnb && _dpOnb.isFreeTrialIntro) ? 'ab_b_onb_cohort' : 'ab_a_onb_cohort';
+              window.__mishilAbOnbCohortTagged = true;
+              fetch(apiBase + '/api/v1/analytics/app-open-signal', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ device_uid: _duid, event_type: _abOnbEvt, os_family: _os, platform: _plat, app_version: _activeAppVer })
+              }).catch(function() {});
+            }
           }
         } catch (_se) {}
       };

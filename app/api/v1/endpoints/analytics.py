@@ -4765,19 +4765,78 @@ def _build_analytics_summary(
         (9, "onboarding_step_viewed_9", "Adım 9: VIP Paywall", "A/B İlk Ay %67 İndirim (₺49,99) / İlk Ay Ücretsiz (₺0)"),
     ]
 
-    def _build_onboarding_step_funnel(plat_filter: str = "all") -> Dict[str, Any]:
+    def _normalize_onb_device_uid(raw_val: Any) -> str:
+        raw_s = str(raw_val or "").strip().lower()
+        if not raw_s or raw_s in ("anon", "msl_anon", "unknown", "none", "null"):
+            return ""
+        return raw_s
+
+    device_ab_cohort_map: Dict[str, str] = {}
+    for sig_it in signals:
+        d_key = _normalize_onb_device_uid(getattr(sig_it, "device_uid", None))
+        if not d_key:
+            continue
+        ev_t = str(getattr(sig_it, "event_type", "") or "")
+        if ev_t.startswith("ab_a_"):
+            device_ab_cohort_map[d_key] = "group_a"
+        elif ev_t.startswith("ab_b_"):
+            device_ab_cohort_map[d_key] = "group_b"
+    try:
+        sl_dev_rows = db.query(
+            SubscriberLedger.device_uid,
+            SubscriberLedger.offer_type,
+            SubscriberLedger.product_id,
+            SubscriberLedger.offer_code_name,
+            SubscriberLedger.customer_price_try,
+            SubscriberLedger.country,
+        ).filter(SubscriberLedger.device_uid.isnot(None)).all()
+        for sl_duid, sl_otype, sl_pid, sl_ocode, sl_cprice, sl_cc in sl_dev_rows:
+            d_key = _normalize_onb_device_uid(sl_duid)
+            if not d_key:
+                continue
+            is_1m_f = (sl_otype == "free_trial_1m" or "trial" in str(sl_pid or "").lower())
+            if sl_otype == "intro_1m_discounted" or (
+                not _is_annual_product(sl_pid)
+                and 0.0 < float(sl_cprice or 0.0) < 100.0
+                and str(sl_cc or "TR").upper() == "TR"
+            ):
+                device_ab_cohort_map[d_key] = "group_a"
+            elif is_1m_f or "ilk ay ücretsiz" in str(sl_ocode or "").lower():
+                device_ab_cohort_map[d_key] = "group_b"
+    except Exception:
+        pass
+
+    def _sig_matches_ab_cohort(sig_obj: Any, ab_cohort: str) -> bool:
+        if ab_cohort == "all":
+            return True
+        d_key = _normalize_onb_device_uid(getattr(sig_obj, "device_uid", None))
+        if d_key and device_ab_cohort_map.get(d_key) == ab_cohort:
+            return True
+        ev_t = str(getattr(sig_obj, "event_type", "") or "")
+        if ab_cohort == "group_a" and ev_t.startswith("ab_a_"):
+            return True
+        if ab_cohort == "group_b" and ev_t.startswith("ab_b_"):
+            return True
+        return False
+
+    def _build_onboarding_step_funnel(plat_filter: str = "all", ab_cohort: str = "all", include_sub_cohorts: bool = True) -> Dict[str, Any]:
         if plat_filter == "ios":
-            plat_sigs = [s for s in active_signals_set if (s.os_family or "").lower() == "ios"]
+            plat_sigs_base = [s for s in active_signals_set if (s.os_family or "").lower() == "ios"]
         elif plat_filter == "android":
-            plat_sigs = [s for s in active_signals_set if (s.os_family or "").lower() == "android"]
+            plat_sigs_base = [s for s in active_signals_set if (s.os_family or "").lower() == "android"]
         else:
-            plat_sigs = active_signals_set
+            plat_sigs_base = active_signals_set
+
+        plat_sigs = [s for s in plat_sigs_base if _sig_matches_ab_cohort(s, ab_cohort)]
+        all_ab_matched_sigs = [s for s in active_signals_set if _sig_matches_ab_cohort(s, ab_cohort)]
 
         steps_out: List[Dict[str, Any]] = []
         for st_num, ev_key, st_title, st_desc in ONBOARDING_9_STEPS_META:
             ev_sigs = [s for s in plat_sigs if s.event_type == ev_key]
-            ios_ev_sigs = [s for s in active_signals_set if s.event_type == ev_key and (s.os_family or "").lower() == "ios"]
-            and_ev_sigs = [s for s in active_signals_set if s.event_type == ev_key and (s.os_family or "").lower() == "android"]
+            ios_ev_sigs = [s for s in all_ab_matched_sigs if s.event_type == ev_key and (s.os_family or "").lower() == "ios"]
+            and_ev_sigs = [s for s in all_ab_matched_sigs if s.event_type == ev_key and (s.os_family or "").lower() == "android"]
+            ga_ev_sigs = [s for s in plat_sigs_base if s.event_type == ev_key and _sig_matches_ab_cohort(s, "group_a")]
+            gb_ev_sigs = [s for s in plat_sigs_base if s.event_type == ev_key and _sig_matches_ab_cohort(s, "group_b")]
             steps_out.append({
                 "step_number": st_num,
                 "event_type": ev_key,
@@ -4787,6 +4846,8 @@ def _build_analytics_summary(
                 "raw_events": len(ev_sigs),
                 "ios_unique_devices": _count_distinct_signal_devices(ios_ev_sigs),
                 "android_unique_devices": _count_distinct_signal_devices(and_ev_sigs),
+                "group_a_unique_devices": _count_distinct_signal_devices(ga_ev_sigs) if ab_cohort in ("all", "group_a") else 0,
+                "group_b_unique_devices": _count_distinct_signal_devices(gb_ev_sigs) if ab_cohort in ("all", "group_b") else 0,
                 "retention_from_prev_pct": None,
                 "dropoff_from_prev_count": 0,
                 "dropoff_from_prev_pct": None,
@@ -4848,8 +4909,9 @@ def _build_analytics_summary(
             else None
         )
 
-        return {
+        res_onb = {
             "platform": plat_filter,
+            "ab_cohort": ab_cohort,
             "period": period,
             "period_label": period_label,
             "has_telemetry_data": total_onb_unique_devs > 0,
@@ -4875,6 +4937,13 @@ def _build_analytics_summary(
             "ab_b_vip_started_unique_devices": ab_b_vip_uniq,
             "steps": steps_out,
         }
+        if include_sub_cohorts and ab_cohort == "all":
+            res_onb["ab_cohorts"] = {
+                "all": dict(res_onb),
+                "group_a": _build_onboarding_step_funnel(plat_filter, "group_a", include_sub_cohorts=False),
+                "group_b": _build_onboarding_step_funnel(plat_filter, "group_b", include_sub_cohorts=False),
+            }
+        return res_onb
 
     onboarding_step_funnel_all = _build_onboarding_step_funnel("all")
     onboarding_step_funnel_ios = _build_onboarding_step_funnel("ios")
@@ -6903,6 +6972,48 @@ def _build_analytics_summary(
             "dropoff_from_paywall_count": step9_drop_cnt,
             "dropoff_from_paywall_pct": step9_drop_pct,
         }
+
+        ab_cohorts_map = onb_obj.get("ab_cohorts")
+        if isinstance(ab_cohorts_map, dict):
+            for c_key in ("group_a", "group_b"):
+                c_onb = ab_cohorts_map.get(c_key)
+                if not isinstance(c_onb, dict):
+                    continue
+                if c_key == "group_a":
+                    c_eff_a, c_eff_b, c_eff_ann, c_eff_leg = eff_a, 0, 0, 0
+                    c_eff_tot = eff_a
+                    c_ios_a, c_ios_b, c_ios_tot = row_ios_a, 0, row_ios_a
+                    c_and_a, c_and_b, c_and_tot = row_and_a, 0, row_and_a
+                    c_pw_views = max(int(c_onb.get("step9_reached_devices", 0) or 0), int(c_onb.get("ab_a_paywall_viewed_unique_devices", 0) or 0))
+                else:
+                    c_eff_a, c_eff_b, c_eff_ann, c_eff_leg = 0, eff_b, 0, 0
+                    c_eff_tot = eff_b
+                    c_ios_a, c_ios_b, c_ios_tot = 0, row_ios_b, row_ios_b
+                    c_and_a, c_and_b, c_and_tot = 0, row_and_b, row_and_b
+                    c_pw_views = max(int(c_onb.get("step9_reached_devices", 0) or 0), int(c_onb.get("ab_b_paywall_viewed_unique_devices", 0) or 0))
+                c_st_base = int(c_onb.get("start_base_devices", 0) or 0)
+                c_step9_cvr = min(100.0, round((c_eff_tot / c_pw_views) * 100.0, 1)) if c_pw_views > 0 else None
+                c_step0_cvr = min(100.0, round((c_eff_tot / c_st_base) * 100.0, 1)) if c_st_base > 0 else None
+                c_drop_cnt = max(0, c_pw_views - c_eff_tot) if c_pw_views > 0 else 0
+                c_drop_pct = max(0.0, round(((c_pw_views - c_eff_tot) / c_pw_views) * 100.0, 1)) if c_pw_views > 0 else None
+                c_onb["ab_a_purchases_count"] = c_eff_a
+                c_onb["ab_b_purchases_count"] = c_eff_b
+                c_onb["annual_purchases_count"] = c_eff_ann
+                c_onb["legacy_or_code_purchases_count"] = c_eff_leg
+                c_onb["total_purchases_count"] = c_eff_tot
+                c_onb["ios_purchases_count"] = c_ios_tot
+                c_onb["android_purchases_count"] = c_and_tot
+                c_onb["ios_ab_a_purchases_count"] = c_ios_a
+                c_onb["ios_ab_b_purchases_count"] = c_ios_b
+                c_onb["android_ab_a_purchases_count"] = c_and_a
+                c_onb["android_ab_b_purchases_count"] = c_and_b
+                c_onb["step9_to_purchase_cvr_pct"] = c_step9_cvr
+                c_onb["step0_to_purchase_cvr_pct"] = c_step0_cvr
+                c_onb["step9_to_purchase_dropoff_count"] = c_drop_cnt
+                c_onb["step9_to_purchase_dropoff_pct"] = c_drop_pct
+            ab_cohorts_map["all"] = {
+                k: v for k, v in onb_obj.items() if k != "ab_cohorts"
+            }
 
     _enrich_onboarding_funnel_with_ab_purchases(
         onboarding_step_funnel_all, ab_experiment_all, ab_experiment_ios, ab_experiment_android, "all"
@@ -9959,6 +10070,11 @@ def analytics_dashboard_page(
         )
 
     onb_f = s.get("onboarding_step_funnel") or pf.get("onboarding_step_funnel") or {}
+    onb_ab_cohorts = onb_f.get("ab_cohorts") or {}
+    onb_ga_f = onb_ab_cohorts.get("group_a") or {}
+    onb_gb_f = onb_ab_cohorts.get("group_b") or {}
+    onb_ga_total_devs = int(onb_ga_f.get("total_tracked_onboarding_devices", 0) or 0)
+    onb_gb_total_devs = int(onb_gb_f.get("total_tracked_onboarding_devices", 0) or 0)
     onb_steps_list = onb_f.get("steps") or []
     onb_total_devs = int(onb_f.get("total_tracked_onboarding_devices", 0) or 0)
     onb_comp_pct = onb_f.get("step0_to_step9_completion_pct")
@@ -9999,6 +10115,13 @@ def analytics_dashboard_page(
         st_raw = int(st_item.get("raw_events", 0) or 0)
         st_ios_u = int(st_item.get("ios_unique_devices", 0) or 0)
         st_and_u = int(st_item.get("android_unique_devices", 0) or 0)
+        st_ga_u = int(st_item.get("group_a_unique_devices", 0) or 0)
+        st_gb_u = int(st_item.get("group_b_unique_devices", 0) or 0)
+        st_ab_split_chip = (
+            f" <span style='font-size:11px; color:var(--text-muted); font-weight:700;'>(🔥A:{st_ga_u} • 🎁B:{st_gb_u})</span>"
+            if (st_ga_u > 0 or st_gb_u > 0)
+            else ""
+        )
         st_ret = st_item.get("retention_from_prev_pct")
         st_drop_cnt = int(st_item.get("dropoff_from_prev_count", 0) or 0)
         st_drop_pct = st_item.get("dropoff_from_prev_pct")
@@ -10032,7 +10155,7 @@ def analytics_dashboard_page(
         onb_rows_html += f"""
         <tr>
           <td style="font-weight:800; color:var(--text-primary); white-space:nowrap;">{st_title}<span class="sr-only"> {st_sub}</span></td>
-          <td style="font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums;">{st_uniq}<span class="sr-only"> Cihaz ({st_raw} sinyal)</span></td>
+          <td style="font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums; white-space:nowrap;">{st_uniq}{st_ab_split_chip}<span class="sr-only"> Cihaz ({st_raw} sinyal)</span></td>
           <td style="font-size:12px; white-space:nowrap;">🍏 <strong>{st_ios_u}</strong> • 🤖 <strong>{st_and_u}</strong></td>
           <td style="font-variant-numeric:tabular-nums;">{ret_cell}</td>
           <td style="font-variant-numeric:tabular-nums;">{drop_cell}</td>
@@ -12713,11 +12836,18 @@ def analytics_dashboard_page(
                 <span class="badge" id="onbFunnelDropoffBadge" style="background:rgba(217,119,6,0.14); color:#D97706;">{html.escape(onb_drop_badge_str)}</span>
               </div>
             </div>
-            <div class="kpi-micro-meta" id="onbFunnelContinuationMeta" style="margin-bottom:10px;">
-              <span class="kpi-micro-chip">🚀 Açılış: {int(onb_f.get('first_open_unique_devices', 0) or 0)}</span>
-              <span class="kpi-micro-chip">⚡ 7. Kart Hızlı Çip: {int(onb_f.get('step7_quick_chip_unique_devices', 0) or 0)}</span>
-              <span class="kpi-micro-chip">👁️ Paywall: {int(onb_f.get('paywall_viewed_unique_devices', 0) or 0)} (🔥A:{int(onb_f.get('ab_a_paywall_viewed_unique_devices', 0) or 0)} • 🎁B:{int(onb_f.get('ab_b_paywall_viewed_unique_devices', 0) or 0)})</span>
-              <span class="kpi-micro-chip">👆 Tık: {int(onb_f.get('paywall_cta_unique_devices', 0) or 0)} (🔥A:{int(onb_f.get('ab_a_paywall_cta_unique_devices', 0) or 0)} • 🎁B:{int(onb_f.get('ab_b_paywall_cta_unique_devices', 0) or 0)})</span>
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
+              <div class="period-pills" id="onbAbCohortPills">
+                <button type="button" class="period-pill active" id="onbCohortBtn_all" onclick="switchOnboardingAbCohort('all')">🌐 Kümülatif ({onb_total_devs} Cihaz)</button>
+                <button type="button" class="period-pill" id="onbCohortBtn_group_a" onclick="switchOnboardingAbCohort('group_a')">🔥 A Grubu: İlk Ay ₺49,99 ({onb_ga_total_devs} Cihaz • 💳 {onb_purch_a})</button>
+                <button type="button" class="period-pill" id="onbCohortBtn_group_b" onclick="switchOnboardingAbCohort('group_b')">🎁 B Grubu: 30G Ücretsiz ({onb_gb_total_devs} Cihaz • 💳 {onb_purch_b})</button>
+              </div>
+              <div class="kpi-micro-meta" id="onbFunnelContinuationMeta" style="margin:0;">
+                <span class="kpi-micro-chip">🚀 Açılış: {int(onb_f.get('first_open_unique_devices', 0) or 0)}</span>
+                <span class="kpi-micro-chip">⚡ 7. Kart Hızlı Çip: {int(onb_f.get('step7_quick_chip_unique_devices', 0) or 0)}</span>
+                <span class="kpi-micro-chip">👁️ Paywall: {int(onb_f.get('paywall_viewed_unique_devices', 0) or 0)} (🔥A:{int(onb_f.get('ab_a_paywall_viewed_unique_devices', 0) or 0)} • 🎁B:{int(onb_f.get('ab_b_paywall_viewed_unique_devices', 0) or 0)})</span>
+                <span class="kpi-micro-chip">👆 Tık: {int(onb_f.get('paywall_cta_unique_devices', 0) or 0)} (🔥A:{int(onb_f.get('ab_a_paywall_cta_unique_devices', 0) or 0)} • 🎁B:{int(onb_f.get('ab_b_paywall_cta_unique_devices', 0) or 0)})</span>
+              </div>
             </div>
             <div class="table-wrap">
               <table>
@@ -13063,6 +13193,21 @@ def analytics_dashboard_page(
       <script>
         var PLATFORM_SPLIT = {ps_json_str};
         var currentPlatform = 'all';
+        var currentOnbAbCohort = 'all';
+
+        function switchOnboardingAbCohort(cohortKey) {{
+          if (cohortKey !== 'group_a' && cohortKey !== 'group_b') cohortKey = 'all';
+          currentOnbAbCohort = cohortKey;
+          var cBtns = ['all', 'group_a', 'group_b'];
+          for (var i = 0; i < cBtns.length; i++) {{
+            var b = document.getElementById('onbCohortBtn_' + cBtns[i]);
+            if (b) {{
+              if (cBtns[i] === cohortKey) b.classList.add('active');
+              else b.classList.remove('active');
+            }}
+          }}
+          switchPlatform(currentPlatform, true);
+        }}
 
         document.addEventListener('click', function(ev) {{
           var t = ev.target && ev.target.closest ? ev.target.closest('.card-desc, .step-sub') : null;
@@ -13678,7 +13823,20 @@ def analytics_dashboard_page(
           }}
 
           if (p && p.onboarding_step_funnel) {{
-            var ofData = p.onboarding_step_funnel;
+            var rootOfData = p.onboarding_step_funnel;
+            var abCohortsMap = rootOfData.ab_cohorts || {{}};
+            var ofData = (currentOnbAbCohort !== 'all' && abCohortsMap[currentOnbAbCohort]) ? abCohortsMap[currentOnbAbCohort] : rootOfData;
+            var allCohortObj = abCohortsMap.all || rootOfData;
+            var gaCohortObj = abCohortsMap.group_a || {{}};
+            var gbCohortObj = abCohortsMap.group_b || {{}};
+            var btnAllC = document.getElementById('onbCohortBtn_all');
+            var btnGaC = document.getElementById('onbCohortBtn_group_a');
+            var btnGbC = document.getElementById('onbCohortBtn_group_b');
+            var rootPA = Number(allCohortObj.ab_a_purchases_count !== undefined ? allCohortObj.ab_a_purchases_count : (allCohortObj.ab_a_vip_started_unique_devices || 0));
+            var rootPB = Number(allCohortObj.ab_b_purchases_count !== undefined ? allCohortObj.ab_b_purchases_count : (allCohortObj.ab_b_vip_started_unique_devices || 0));
+            if (btnAllC) btnAllC.textContent = '🌐 Kümülatif (' + Number(allCohortObj.total_tracked_onboarding_devices || 0) + ' Cihaz)';
+            if (btnGaC) btnGaC.textContent = '🔥 A Grubu: İlk Ay ₺49,99 (' + Number(gaCohortObj.total_tracked_onboarding_devices || 0) + ' Cihaz • 💳 ' + rootPA + ')';
+            if (btnGbC) btnGbC.textContent = '🎁 B Grubu: 30G Ücretsiz (' + Number(gbCohortObj.total_tracked_onboarding_devices || 0) + ' Cihaz • 💳 ' + rootPB + ')';
             var devBadge = document.getElementById('onbFunnelDevicesBadge');
             var compBadge = document.getElementById('onbFunnelCompletionBadge');
             var purchBadge = document.getElementById('onbFunnelPurchasesBadge');
@@ -13705,9 +13863,14 @@ def analytics_dashboard_page(
             var pAndA = Number(ofData.android_ab_a_purchases_count || 0);
             var pAndB = Number(ofData.android_ab_b_purchases_count || 0);
             var pAnnSuffix = (pAnn > 0) ? (' • 👑Yıllık: ' + pAnn) : '';
-            if (devBadge) devBadge.textContent = '📱 ' + totOnbDevs + ' Cihaz';
+            var cohortBadgePrefix = (currentOnbAbCohort === 'group_a') ? '🔥 A Grubu: ' : ((currentOnbAbCohort === 'group_b') ? '🎁 B Grubu: ' : '📱 ');
+            if (devBadge) devBadge.textContent = cohortBadgePrefix + totOnbDevs + ' Cihaz';
             if (compBadge) compBadge.textContent = '🏁 0➔9: ' + compStr;
-            if (purchBadge) purchBadge.textContent = '💳 Satın Alma: ' + pTot + ' (🔥A: ' + pA + ' • 🎁B: ' + pB + pAnnSuffix + ')';
+            if (purchBadge) {{
+              if (currentOnbAbCohort === 'group_a') purchBadge.textContent = '💳 🔥 Grup A Satın Alma: ' + pA;
+              else if (currentOnbAbCohort === 'group_b') purchBadge.textContent = '💳 🎁 Grup B Satın Alma: ' + pB;
+              else purchBadge.textContent = '💳 Satın Alma: ' + pTot + ' (🔥A: ' + pA + ' • 🎁B: ' + pB + pAnnSuffix + ')';
+            }}
             if (sideOnb) sideOnb.textContent = compStr + ' (' + st9Devs + '/' + stBaseDevs + ')';
             if (heroOnbPill) heroOnbPill.textContent = compStr + ' (' + st9Devs + '/' + stBaseDevs + ') ➔';
             if (dropBadge) {{
@@ -13719,12 +13882,25 @@ def analytics_dashboard_page(
               }}
             }}
             if (contMeta) {{
-              contMeta.innerHTML =
-                '<span class="kpi-micro-chip">🚀 Açılış: ' + Number(ofData.first_open_unique_devices || 0) + '</span>' +
-                '<span class="kpi-micro-chip">⚡ 7. Kart Hızlı Çip: ' + Number(ofData.step7_quick_chip_unique_devices || 0) + '</span>' +
-                '<span class="kpi-micro-chip">👁️ Paywall: ' + Number(ofData.paywall_viewed_unique_devices || 0) + ' (🔥A:' + Number(ofData.ab_a_paywall_viewed_unique_devices || 0) + ' • 🎁B:' + Number(ofData.ab_b_paywall_viewed_unique_devices || 0) + ')</span>' +
-                '<span class="kpi-micro-chip">👆 Tık: ' + Number(ofData.paywall_cta_unique_devices || 0) + ' (🔥A:' + Number(ofData.ab_a_paywall_cta_unique_devices || 0) + ' • 🎁B:' + Number(ofData.ab_b_paywall_cta_unique_devices || 0) + ')</span>' +
-                '<span class="kpi-micro-chip" style="border-color:rgba(16,185,129,0.40); color:#059669; font-weight:800;">💳 Satın Alma: ' + pTot + ' (🔥 Grup A: ' + pA + ' • 🎁 Grup B: ' + pB + pAnnSuffix + ')</span>';
+              if (currentOnbAbCohort === 'group_a') {{
+                contMeta.innerHTML =
+                  '<span class="kpi-micro-chip">🚀 Açılış: ' + Number(ofData.first_open_unique_devices || 0) + '</span>' +
+                  '<span class="kpi-micro-chip">⚡ 7. Kart Hızlı Çip: ' + Number(ofData.step7_quick_chip_unique_devices || 0) + '</span>' +
+                  '<span class="kpi-micro-chip">👁️ 🔥A Paywall: ' + Number(ofData.ab_a_paywall_viewed_unique_devices || ofData.paywall_viewed_unique_devices || 0) + '</span>' +
+                  '<span class="kpi-micro-chip">👆 🔥A Tık: ' + Number(ofData.ab_a_paywall_cta_unique_devices || ofData.paywall_cta_unique_devices || 0) + '</span>';
+              }} else if (currentOnbAbCohort === 'group_b') {{
+                contMeta.innerHTML =
+                  '<span class="kpi-micro-chip">🚀 Açılış: ' + Number(ofData.first_open_unique_devices || 0) + '</span>' +
+                  '<span class="kpi-micro-chip">⚡ 7. Kart Hızlı Çip: ' + Number(ofData.step7_quick_chip_unique_devices || 0) + '</span>' +
+                  '<span class="kpi-micro-chip">👁️ 🎁B Paywall: ' + Number(ofData.ab_b_paywall_viewed_unique_devices || ofData.paywall_viewed_unique_devices || 0) + '</span>' +
+                  '<span class="kpi-micro-chip">👆 🎁B Tık: ' + Number(ofData.ab_b_paywall_cta_unique_devices || ofData.paywall_cta_unique_devices || 0) + '</span>';
+              }} else {{
+                contMeta.innerHTML =
+                  '<span class="kpi-micro-chip">🚀 Açılış: ' + Number(ofData.first_open_unique_devices || 0) + '</span>' +
+                  '<span class="kpi-micro-chip">⚡ 7. Kart Hızlı Çip: ' + Number(ofData.step7_quick_chip_unique_devices || 0) + '</span>' +
+                  '<span class="kpi-micro-chip">👁️ Paywall: ' + Number(ofData.paywall_viewed_unique_devices || 0) + ' (🔥A:' + Number(ofData.ab_a_paywall_viewed_unique_devices || 0) + ' • 🎁B:' + Number(ofData.ab_b_paywall_viewed_unique_devices || 0) + ')</span>' +
+                  '<span class="kpi-micro-chip">👆 Tık: ' + Number(ofData.paywall_cta_unique_devices || 0) + ' (🔥A:' + Number(ofData.ab_a_paywall_cta_unique_devices || 0) + ' • 🎁B:' + Number(ofData.ab_b_paywall_cta_unique_devices || 0) + ')</span>';
+              }}
             }}
             if (onbTbody && Array.isArray(ofData.steps)) {{
               var rowsHtml = '';
@@ -13735,6 +13911,11 @@ def analytics_dashboard_page(
                 var sRaw = Number(st.raw_events || 0);
                 var sIos = Number(st.ios_unique_devices || 0);
                 var sAnd = Number(st.android_unique_devices || 0);
+                var sGa = Number(st.group_a_unique_devices || 0);
+                var sGb = Number(st.group_b_unique_devices || 0);
+                var sAbChip = (currentOnbAbCohort === 'all' && (sGa > 0 || sGb > 0))
+                  ? ' <span style="font-size:11px; color:var(--text-muted); font-weight:700;">(🔥A:' + sGa + ' • 🎁B:' + sGb + ')</span>'
+                  : '';
                 var sRet = st.retention_from_prev_pct;
                 var sDropCnt = Number(st.dropoff_from_prev_count || 0);
                 var sDropPct = st.dropoff_from_prev_pct;
@@ -13766,7 +13947,7 @@ def analytics_dashboard_page(
                 var bCol = (sNum === 9) ? '#7C3AED' : (bW >= 65 ? '#059669' : (bW >= 35 ? '#2563EB' : '#D97706'));
                 rowsHtml += '<tr>' +
                   '<td style="font-weight:800; color:var(--text-primary); white-space:nowrap;">' + escapeHtmlJs(st.title) + '<span class="sr-only"> ' + escapeHtmlJs(st.subtitle) + '</span></td>' +
-                  '<td style="font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums;">' + sUniq + '<span class="sr-only"> Cihaz (' + sRaw + ' sinyal)</span></td>' +
+                  '<td style="font-weight:800; color:var(--text-primary); font-variant-numeric:tabular-nums; white-space:nowrap;">' + sUniq + sAbChip + '<span class="sr-only"> Cihaz (' + sRaw + ' sinyal)</span></td>' +
                   '<td style="font-size:12px; white-space:nowrap;">🍏 <strong>' + sIos + '</strong> • 🤖 <strong>' + sAnd + '</strong></td>' +
                   '<td style="font-variant-numeric:tabular-nums;">' + retHtml + '</td>' +
                   '<td style="font-variant-numeric:tabular-nums;">' + dropHtml + '</td>' +
@@ -13794,10 +13975,26 @@ def analytics_dashboard_page(
               var pLegChip = (pLeg > 0)
                 ? ' <span class="badge badge-meta" style="font-size:10.5px; padding:2px 6px;">⏳/🎟️ Diğer: ' + pLeg + '</span>'
                 : '';
+              var pRowTitleHtml = '';
+              var pRowCountHtml = '';
+              var pRowPlatHtml = '';
+              if (currentOnbAbCohort === 'group_a') {{
+                pRowTitleHtml = '💳 🔥 A Grubu Satın Alma / VIP Başlatma <span class="badge" style="background:rgba(217,119,6,0.16); color:#D97706; font-size:10.5px; padding:2px 7px; margin-left:4px;">🔥 Grup A: ' + pA + '</span>';
+                pRowCountHtml = pA + ' <span style="font-size:11.5px; color:#D97706; font-weight:700;">(🔥 İlk Ay ₺49,99)</span>';
+                pRowPlatHtml = '🍏 <strong>' + pIosA + '</strong> • 🤖 <strong>' + pAndA + '</strong>';
+              }} else if (currentOnbAbCohort === 'group_b') {{
+                pRowTitleHtml = '💳 🎁 B Grubu Satın Alma / VIP Başlatma <span class="badge" style="background:rgba(16,185,129,0.16); color:#059669; font-size:10.5px; padding:2px 7px; margin-left:4px;">🎁 Grup B: ' + pB + '</span>';
+                pRowCountHtml = pB + ' <span style="font-size:11.5px; color:#059669; font-weight:700;">(🎁 30G Ücretsiz)</span>';
+                pRowPlatHtml = '🍏 <strong>' + pIosB + '</strong> • 🤖 <strong>' + pAndB + '</strong>';
+              }} else {{
+                pRowTitleHtml = '💳 Satın Alma / VIP Başlatma <span class="badge" style="background:rgba(217,119,6,0.16); color:#D97706; font-size:10.5px; padding:2px 7px; margin-left:4px;">🔥 Grup A: ' + pA + '</span> <span class="badge" style="background:rgba(16,185,129,0.16); color:#059669; font-size:10.5px; padding:2px 7px; margin-left:2px;">🎁 Grup B: ' + pB + '</span>' + pAnnChip + pLegChip;
+                pRowCountHtml = pTot + ' <span style="font-size:11.5px; color:var(--text-secondary); font-weight:700;">(🔥A:' + pA + ' • 🎁B:' + pB + ')</span>';
+                pRowPlatHtml = '🍏 <strong>' + pIos + '</strong> <span style="font-size:11px; color:var(--text-muted);">(A:' + pIosA + '/B:' + pIosB + ')</span> • 🤖 <strong>' + pAnd + '</strong> <span style="font-size:11px; color:var(--text-muted);">(A:' + pAndA + '/B:' + pAndB + ')</span>';
+              }}
               rowsHtml += '<tr class="onb-purchase-summary-row" id="onbPurchaseSummaryRow" style="background:rgba(16,185,129,0.08); border-top:2px solid rgba(16,185,129,0.32);">' +
-                '<td style="font-weight:800; color:#059669; white-space:nowrap;">💳 Satın Alma / VIP Başlatma <span class="badge" style="background:rgba(217,119,6,0.16); color:#D97706; font-size:10.5px; padding:2px 7px; margin-left:4px;">🔥 Grup A: ' + pA + '</span> <span class="badge" style="background:rgba(16,185,129,0.16); color:#059669; font-size:10.5px; padding:2px 7px; margin-left:2px;">🎁 Grup B: ' + pB + '</span>' + pAnnChip + pLegChip + '</td>' +
-                '<td style="font-weight:800; color:#059669; font-variant-numeric:tabular-nums; white-space:nowrap;">' + pTot + ' <span style="font-size:11.5px; color:var(--text-secondary); font-weight:700;">(🔥A:' + pA + ' • 🎁B:' + pB + ')</span></td>' +
-                '<td style="font-size:12px; white-space:nowrap;">🍏 <strong>' + pIos + '</strong> <span style="font-size:11px; color:var(--text-muted);">(A:' + pIosA + '/B:' + pIosB + ')</span> • 🤖 <strong>' + pAnd + '</strong> <span style="font-size:11px; color:var(--text-muted);">(A:' + pAndA + '/B:' + pAndB + ')</span></td>' +
+                '<td style="font-weight:800; color:#059669; white-space:nowrap;">' + pRowTitleHtml + '</td>' +
+                '<td style="font-weight:800; color:#059669; font-variant-numeric:tabular-nums; white-space:nowrap;">' + pRowCountHtml + '</td>' +
+                '<td style="font-size:12px; white-space:nowrap;">' + pRowPlatHtml + '</td>' +
                 '<td style="font-variant-numeric:tabular-nums;">' + pRetHtml + '</td>' +
                 '<td style="font-variant-numeric:tabular-nums;">' + pDropHtml + '</td>' +
                 '<td style="min-width:150px;"><div style="display:flex; align-items:center; gap:8px;"><div style="flex:1; height:8px; background:rgba(148,163,184,0.18); border-radius:999px; overflow:hidden;"><div style="width:' + pBarW + '%; height:100%; background:#059669; border-radius:999px;"></div></div><span style="font-size:12px; font-weight:800; color:#059669; min-width:48px; text-align:right;">' + pCumLbl + '</span></div></td>' +

@@ -1540,6 +1540,21 @@ def test_ab_experiment_cockpit_comparison_and_10step_onboarding_v4581(client, db
     assert onb_f["android_ab_b_purchases_count"] == 1
     assert onb_f["purchase_summary"]["group_a_purchases"] == 1
     assert onb_f["purchase_summary"]["group_b_purchases"] == 1
+    assert "ab_cohorts" in onb_f
+    assert onb_f["ab_cohorts"]["group_a"]["total_tracked_onboarding_devices"] == 1
+    assert onb_f["ab_cohorts"]["group_a"]["steps"][0]["unique_devices"] == 1
+    assert onb_f["ab_cohorts"]["group_a"]["steps"][7]["unique_devices"] == 1
+    assert onb_f["ab_cohorts"]["group_a"]["steps"][9]["unique_devices"] == 1
+    assert onb_f["ab_cohorts"]["group_a"]["ab_a_purchases_count"] == 1
+    assert onb_f["ab_cohorts"]["group_a"]["ab_b_purchases_count"] == 0
+    assert onb_f["ab_cohorts"]["group_b"]["total_tracked_onboarding_devices"] == 1
+    assert onb_f["ab_cohorts"]["group_b"]["steps"][0]["unique_devices"] == 1
+    assert onb_f["ab_cohorts"]["group_b"]["steps"][7]["unique_devices"] == 1
+    assert onb_f["ab_cohorts"]["group_b"]["steps"][9]["unique_devices"] == 1
+    assert onb_f["ab_cohorts"]["group_b"]["ab_b_purchases_count"] == 1
+    assert onb_f["ab_cohorts"]["group_b"]["ab_a_purchases_count"] == 0
+    assert onb_f["steps"][0]["group_a_unique_devices"] == 1
+    assert onb_f["steps"][0]["group_b_unique_devices"] == 1
 
     fl = s_data["financial_ledger"]
     assert fl["active_30d_trials_count"] == 1
@@ -1555,6 +1570,11 @@ def test_ab_experiment_cockpit_comparison_and_10step_onboarding_v4581(client, db
     assert 'id="convAbTestPill"' in dash_html
     assert 'id="onbFunnelPurchasesBadge"' in dash_html
     assert 'id="onbPurchaseSummaryRow"' in dash_html
+    assert 'id="onbAbCohortPills"' in dash_html
+    assert 'id="onbCohortBtn_all"' in dash_html
+    assert 'id="onbCohortBtn_group_a"' in dash_html
+    assert 'id="onbCohortBtn_group_b"' in dash_html
+    assert "function switchOnboardingAbCohort(cohortKey)" in dash_html
     assert "💳 Satın Alma / VIP Başlatma" in dash_html
     assert "🔥 Grup A: 1" in dash_html
     assert "🎁 Grup B: 1" in dash_html
