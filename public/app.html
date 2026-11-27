@@ -7224,6 +7224,41 @@
   }
   window.fetchWithTimeout = fetchWithTimeout;
   let isPurchaseInFlight = false;
+  let purchaseInFlightSinceMs = 0;
+  let purchaseSafetyResetTimer = null;
+  const PURCHASE_SAFETY_UNLOCK_MS = 120000;
+
+  function isPurchaseDebounceLocked() {
+    if (!isPurchaseInFlight) return false;
+    const elapsed = Date.now() - (purchaseInFlightSinceMs || 0);
+    if (elapsed >= 0 && elapsed < PURCHASE_SAFETY_UNLOCK_MS) {
+      return true;
+    }
+    clearPurchaseInFlightLock();
+    return false;
+  }
+
+  function armPurchaseInFlightLock() {
+    isPurchaseInFlight = true;
+    purchaseInFlightSinceMs = Date.now();
+    if (purchaseSafetyResetTimer) clearTimeout(purchaseSafetyResetTimer);
+    purchaseSafetyResetTimer = setTimeout(function() {
+      if (isPurchaseInFlight) {
+        isPurchaseInFlight = false;
+        purchaseInFlightSinceMs = 0;
+        if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
+      }
+    }, PURCHASE_SAFETY_UNLOCK_MS);
+  }
+
+  function clearPurchaseInFlightLock() {
+    isPurchaseInFlight = false;
+    purchaseInFlightSinceMs = 0;
+    if (purchaseSafetyResetTimer) {
+      clearTimeout(purchaseSafetyResetTimer);
+      purchaseSafetyResetTimer = null;
+    }
+  }
 
   window.MishilNative = {
     isNative: !!(window.ReactNativeWebView),
@@ -7241,9 +7276,10 @@
       }
     },
 
-    // Google Play / App Store satın alma (Event-driven, kör sayaç yok!)
+    // Google Play / App Store satın alma (Event-driven, 4sn çift tıklama kilidi + 45sn kendini iyileştiren koruma)
     purchasePackage: function(planType) {
-      isPurchaseInFlight = true;
+      if (isPurchaseDebounceLocked()) return;
+      armPurchaseInFlightLock();
       if (window.ReactNativeWebView) {
         window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'PURCHASE_PACKAGE', plan: planType }));
       }
@@ -7251,7 +7287,8 @@
 
     // Satın alım geri yükleme
     restorePurchases: function() {
-      isPurchaseInFlight = true;
+      if (isPurchaseDebounceLocked()) return;
+      armPurchaseInFlightLock();
       if (window.ReactNativeWebView) {
         window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'RESTORE_PURCHASES' }));
       }
@@ -7260,6 +7297,7 @@
     // Native tarafında mağaza açıldığında çağrılır
     onPurchaseStarted: function() {
       isPurchaseInFlight = true;
+      if (!purchaseInFlightSinceMs) purchaseInFlightSinceMs = Date.now();
       var onbScr = document.getElementById('screen-onboarding');
       if (onbScr && onbScr.classList.contains('active')) {
         window.__mishilWasExitingOnboarding = true;
@@ -7268,7 +7306,7 @@
 
     // Native tarafından satın alma başarıyla doğrulandığında çağrılır
     onPurchaseSuccess: function(data) {
-      isPurchaseInFlight = false;
+      clearPurchaseInFlightLock();
       if (typeof clearFreeSoundPreviewTimer === 'function') clearFreeSoundPreviewTimer({ skipAccrue: true, clearNativePreviewTimer: true });
       if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
       const plan = (data && data.plan) ? data.plan : (localStorage.getItem('mishil_selected_plan') || 'monthly');
@@ -7313,7 +7351,7 @@
 
     // Kullanıcı ödeme penceresini kapattığında veya vazgeçtiğinde çağrılır (Evrensel Aylık + Yıllık İptal Kurtarma Çekmecesi)
     onPurchaseCancelled: function() {
-      isPurchaseInFlight = false;
+      clearPurchaseInFlightLock();
       window.__mishilWasExitingOnboarding = false;
       let prevPlan = 'monthly';
       try { prevPlan = localStorage.getItem('mishil_selected_plan') || 'monthly'; } catch (_lse) {}
@@ -7338,11 +7376,19 @@
     },
 
     // Yalnızca gerçek bir mağaza/kart hatası olduğunda çağrılır
-    onPurchaseError: function(errMessage) {
-      isPurchaseInFlight = false;
+    onPurchaseError: function(errMessage, errCode) {
+      clearPurchaseInFlightLock();
       window.__mishilWasExitingOnboarding = false;
       if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
-      try { if (typeof window.sendMishilAnalyticsSignal === 'function') window.sendMishilAnalyticsSignal('purchase_error'); } catch (_pee) {}
+      try {
+        if (typeof window.sendMishilAnalyticsSignal === 'function') {
+          window.sendMishilAnalyticsSignal('purchase_error');
+          if (errCode) {
+            var cleanCode = String(errCode).toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 32);
+            if (cleanCode) window.sendMishilAnalyticsSignal('purchase_error_' + cleanCode);
+          }
+        }
+      } catch (_pee) {}
       if (errMessage) {
         showToast(errMessage);
       }
@@ -7350,7 +7396,7 @@
 
     // Geriye dönük uyumluluk callback'i
     onSubscriptionResult: function(data) {
-      isPurchaseInFlight = false;
+      clearPurchaseInFlightLock();
       if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
       if (data && data.isActive) {
         this.onPurchaseSuccess(data);
@@ -11837,6 +11883,7 @@
   }
 
   function executeSettingsPlanAction() {
+    if (isPurchaseDebounceLocked()) return;
     hapticPulse();
     const isActive = localStorage.getItem('mishil_subscription_active') === 'true';
     const currentPlan = localStorage.getItem('mishil_subscription_plan') || 'monthly';
@@ -11863,6 +11910,7 @@
 
     const btn = document.getElementById('btn-settings-sub-action');
     if (btn) {
+      if (btn.disabled) return;
       btn.disabled = true;
       btn.innerHTML = trEnDe('🔄 Mağaza Açılıyor...', '🔄 Opening Store...', '🔄 Store wird geöffnet...');
     }
@@ -13070,7 +13118,7 @@
   }
 
   function resetPurchaseButtons() {
-    isPurchaseInFlight = false;
+    clearPurchaseInFlightLock();
     const dp = getDynamicPricingState();
     const selPlan = localStorage.getItem('mishil_selected_plan') || 'monthly';
     const btnOnboarding = document.getElementById('btn-onboarding-pro');
@@ -13098,6 +13146,13 @@
   window.resetPurchaseButtons = resetPurchaseButtons;
 
   function activateTrialAndStart() {
+    if (isPurchaseDebounceLocked()) return;
+    const btn = document.getElementById('btn-onboarding-pro');
+    if (btn) {
+      if (btn.disabled) return;
+      btn.disabled = true;
+      btn.innerHTML = trEnDe('🔄 Mağaza Açılıyor...', '🔄 Opening Store...', '🔄 Store wird geöffnet...');
+    }
     hapticPulse();
     try {
       if (typeof window.sendMishilAnalyticsSignal === 'function') {
@@ -13109,12 +13164,6 @@
     commitOnboardingProfile();
 
     const selectedPlan = localStorage.getItem('mishil_selected_plan') || 'monthly';
-
-    const btn = document.getElementById('btn-onboarding-pro');
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = trEnDe('🔄 Mağaza Açılıyor...', '🔄 Opening Store...', '🔄 Store wird geöffnet...');
-    }
 
     // Native uygulama içindeyse → Event-driven IAP başlat
     if (window.ReactNativeWebView) {
@@ -18147,6 +18196,13 @@
   }
 
   function confirmVipRenewalPurchase() {
+    if (isPurchaseDebounceLocked()) return;
+    const btn = document.getElementById('btn-vip-renewal-submit');
+    if (btn) {
+      if (btn.disabled) return;
+      btn.disabled = true;
+      btn.innerHTML = trEnDe('🔄 Mağaza Açılıyor...', '🔄 Opening Store...', '🔄 Store wird geöffnet...');
+    }
     hapticPulse();
     try {
       if (typeof window.sendMishilAnalyticsSignal === 'function') {
@@ -18154,12 +18210,6 @@
       }
     } catch (_pce) {}
     localStorage.setItem('mishil_selected_plan', vipRenewalSelectedPlan);
-
-    const btn = document.getElementById('btn-vip-renewal-submit');
-    if (btn) {
-      btn.disabled = true;
-      btn.innerHTML = trEnDe('🔄 Mağaza Açılıyor...', '🔄 Opening Store...', '🔄 Store wird geöffnet...');
-    }
 
     if (window.ReactNativeWebView) {
       window.MishilNative.purchasePackage(vipRenewalSelectedPlan);

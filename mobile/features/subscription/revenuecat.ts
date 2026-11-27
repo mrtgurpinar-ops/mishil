@@ -249,6 +249,15 @@ function extractAndroidIntroOption(product: any, packageIdentifier?: string, off
   return { option: null, eligibility: 'unknown', introOfferType: 'none' };
 }
 
+const OFFERINGS_CACHE_TTL_MS = 120 * 1000;
+let cachedLiveOfferings: PackageOffer[] | null = null;
+let cachedLiveOfferingsAtMs = 0;
+
+export const invalidateOfferingsCache = () => {
+  cachedLiveOfferings = null;
+  cachedLiveOfferingsAtMs = 0;
+};
+
 export const getOfferings = async (): Promise<PackageOffer[]> => {
   try {
     const ready = await initRevenueCat();
@@ -270,7 +279,7 @@ export const getOfferings = async (): Promise<PackageOffer[]> => {
         } catch {}
       }
 
-      return pkgs.map((pkg: any) => {
+      const mappedOfferings: PackageOffer[] = pkgs.map((pkg: any) => {
         const prod = pkg?.product || {};
         const pkgOfferingId = pkg?.offeringIdentifier || currentOfferingId;
         let introPriceString: string | undefined;
@@ -340,11 +349,30 @@ export const getOfferings = async (): Promise<PackageOffer[]> => {
           rawPackage: pkg,
         };
       });
+
+      // Yalnızca gerçek mağaza paketi (rawPackage) içeren canlı yanıtları önbelleğe al (FALLBACK_OFFERINGS asla önbelleklenmez)
+      if (mappedOfferings.some(o => Boolean(o.rawPackage))) {
+        cachedLiveOfferings = mappedOfferings;
+        cachedLiveOfferingsAtMs = Date.now();
+      }
+      return mappedOfferings;
     }
   } catch (err) {
     console.log('[RevenueCat] Offerings alınamadı, yedek görüntüleme listesi:', err);
   }
   return FALLBACK_OFFERINGS;
+};
+
+export const getCachedOrFetchOfferings = async (): Promise<PackageOffer[]> => {
+  if (
+    cachedLiveOfferings &&
+    cachedLiveOfferings.length > 0 &&
+    cachedLiveOfferings.some(o => Boolean(o.rawPackage)) &&
+    Date.now() - cachedLiveOfferingsAtMs < OFFERINGS_CACHE_TTL_MS
+  ) {
+    return cachedLiveOfferings;
+  }
+  return getOfferings();
 };
 
 export const purchasePackage = async (packageId: string, rawPackage?: any): Promise<PurchaseResult> => {
@@ -361,14 +389,50 @@ export const purchasePackage = async (packageId: string, rawPackage?: any): Prom
           rawPackage.offeringIdentifier
         );
         if (gpIntro.option) {
-          const optRes = await Purchases.purchaseSubscriptionOption(gpIntro.option);
-          const optInfo = optRes?.customerInfo;
-          return {
-            success: true,
-            isActive: hasActiveEntitlement(optInfo),
-            customerInfo: optInfo,
-            transaction: optRes?.transaction || optRes?.storeTransaction,
-          };
+          try {
+            const optRes = await Purchases.purchaseSubscriptionOption(gpIntro.option);
+            const optInfo = optRes?.customerInfo;
+            return {
+              success: true,
+              isActive: hasActiveEntitlement(optInfo),
+              customerInfo: optInfo,
+              transaction: optRes?.transaction || optRes?.storeTransaction,
+            };
+          } catch (optErr: any) {
+            if (optErr?.userCancelled) {
+              return { success: false, isActive: false, cancelled: true };
+            }
+            // Google Play'de ödeme tamamlanıp ağ/makbuz senkronunda hata oluşmuş olabilir — önce canlı hakkı kontrol et
+            try {
+              const postErrInfo = await Purchases.getCustomerInfo();
+              if (hasActiveEntitlement(postErrInfo)) {
+                return {
+                  success: true,
+                  isActive: true,
+                  customerInfo: postErrInfo,
+                };
+              }
+            } catch {}
+            // Yalnızca pencere açılmadan önce oluşan seçenek/yapılandırma hatasıysa standart purchasePackage yedeğine düş
+            const errCodeStr = String(optErr?.code || optErr?.readableErrorCode || '').toUpperCase();
+            const isPreSheetOptionError =
+              errCodeStr.includes('PRODUCT_NOT_AVAILABLE') ||
+              errCodeStr.includes('DEVELOPER_ERROR') ||
+              errCodeStr.includes('CONFIGURATION_ERROR') ||
+              errCodeStr.includes('INVALID') ||
+              errCodeStr === '4' ||
+              errCodeStr === '5' ||
+              !gpIntro.option?.id;
+            if (!isPreSheetOptionError) {
+              console.warn('[RevenueCat] purchaseSubscriptionOption hatası:', optErr);
+              return {
+                success: false,
+                isActive: false,
+                error: optErr?.code ? String(optErr.code) : 'purchase_failed',
+              };
+            }
+            console.warn('[RevenueCat] purchaseSubscriptionOption ön-seçenek hatası, purchasePackage yedeğine geçiliyor:', optErr);
+          }
         }
       }
       const purchaseRes = await Purchases.purchasePackage(rawPackage);

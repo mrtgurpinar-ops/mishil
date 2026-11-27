@@ -18,7 +18,7 @@ import * as Haptics from 'expo-haptics';
 import * as ExpoLinking from 'expo-linking';
 import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { initRevenueCat, purchasePackage, restorePurchases, getOfferings, hasActiveEntitlement, PRO_ENTITLEMENT_ID } from '../features/subscription/revenuecat';
+import { initRevenueCat, purchasePackage, restorePurchases, getOfferings, getCachedOrFetchOfferings, invalidateOfferingsCache, hasActiveEntitlement, PRO_ENTITLEMENT_ID } from '../features/subscription/revenuecat';
 import * as nativeAudio from '../features/audio/nativeAudioPlayer';
 import * as nativeLiveSleep from '../features/sleep/nativeLiveSleep';
 import * as MishilLockScreen from '../modules/mishil-lockscreen/src';
@@ -127,8 +127,20 @@ export default function MishilUnifiedWebView() {
   const reconnectTimer = useRef<ReturnType<typeof setInterval> | null>(null);
   // Satın alma akışı devam ederken arka plan kontrollerinin araya girip lisansı ezmesini önleyen işlem kilidi
   const isPurchaseInProgressRef = useRef(false);
+  const purchaseStartedAtRef = useRef(0);
   const statusRef = useRef<Status>('loading');
   const pendingSleepDeepLinkRef = useRef(false);
+
+  const isPurchaseLockActive = useCallback(() => {
+    if (!isPurchaseInProgressRef.current) return false;
+    // 3D Secure / kart ekleme için 2 dk (120sn) tolerans (app.html PURCHASE_SAFETY_UNLOCK_MS=120000 ile birebir hizalı); aşılırsa kendini iyileştirir
+    if (purchaseStartedAtRef.current > 0 && Date.now() - purchaseStartedAtRef.current > 120000) {
+      isPurchaseInProgressRef.current = false;
+      purchaseStartedAtRef.current = 0;
+      return false;
+    }
+    return true;
+  }, []);
 
   useEffect(() => {
     statusRef.current = status;
@@ -419,13 +431,15 @@ export default function MishilUnifiedWebView() {
   // Uygulama ön plana geldiğinde canlı lisans doğrulaması + 8 saati aşan Live Activity pencere tazelemesi
   useEffect(() => {
     const sub = AppState.addEventListener('change', (next: AppStateStatus) => {
-      if (next === 'active' && !isPurchaseInProgressRef.current) {
+      if (next === 'active' && !isPurchaseLockActive()) {
+        invalidateOfferingsCache();
+        void getOfferings().catch(() => {});
         void syncEntitlementToWebView();
         void nativeLiveSleep.reconcileNativeLiveSleepOnLaunch().then(() => sendLockscreenStateSync());
       }
     });
     return () => sub.remove();
-  }, [syncEntitlementToWebView, sendLockscreenStateSync]);
+  }, [syncEntitlementToWebView, sendLockscreenStateSync, isPurchaseLockActive]);
 
   // RevenueCat resmi event dinleyicisi: Dekont veya abonelik değiştiğinde reaktif senkronizasyon
   useEffect(() => {
@@ -630,6 +644,8 @@ export default function MishilUnifiedWebView() {
   const onLoad = useCallback(() => {
     clearTimers();
     retryCountRef.current = 0;
+    isPurchaseInProgressRef.current = false;
+    purchaseStartedAtRef.current = 0;
     setStatus('ready');
     // Native olduğumuzu web tarafına bildir ve yerel AsyncStorage'daki verileri hidrate et
     void hydrateWebViewStorage().finally(() => {
@@ -821,6 +837,8 @@ export default function MishilUnifiedWebView() {
     clearTimers();
     stopReconnectProbe();
     retryCountRef.current = 0;
+    isPurchaseInProgressRef.current = false;
+    purchaseStartedAtRef.current = 0;
     setStatus('loading');
     armWatchdog();
     if (useOffline) {
@@ -1110,7 +1128,12 @@ export default function MishilUnifiedWebView() {
           break;
 
         case 'PURCHASE_PACKAGE': {
+          // Aktif satın alma akışı devam ederken (240sn self-healing kilit altında) gelen mükerrer tıklamaları native köprüde de kes
+          if (isPurchaseLockActive()) {
+            break;
+          }
           isPurchaseInProgressRef.current = true;
+          purchaseStartedAtRef.current = Date.now();
           const curLang = appLangRef.current;
           const isDe = curLang === 'de';
           const isEn = curLang === 'en';
@@ -1126,7 +1149,7 @@ export default function MishilUnifiedWebView() {
 
           try {
             const plan = msg.plan === 'yearly' ? 'yearly' : 'monthly';
-            const offerings = await getOfferings();
+            const offerings = await getCachedOrFetchOfferings();
             const pkg = offerings.find(o => {
               if (plan === 'yearly') {
                 if (o.packageType === 'ANNUAL') return true;
@@ -1215,6 +1238,7 @@ export default function MishilUnifiedWebView() {
                 })();
               `);
               isPurchaseInProgressRef.current = false;
+              purchaseStartedAtRef.current = 0;
               void syncEntitlementToWebView();
             } else if (result.cancelled) {
               // Kullanıcı ödeme penceresini kapattı veya vazgeçti — sıfır sahte hata, butonu sessizce normale döndür
@@ -1231,6 +1255,7 @@ export default function MishilUnifiedWebView() {
             } else {
               console.warn('[Purchase] Satın alma tamamlanamadı:', result.error);
               const isIOS = Platform.OS === 'ios';
+              const safeErrCode = String(result.error || 'purchase_failed').replace(/[^a-z0-9_]/gi, '').slice(0, 32);
               let errorMsg = isDe
                 ? '⚠️ Kauf konnte nicht abgeschlossen werden. Bitte erneut versuchen.'
                 : (isEn
@@ -1265,7 +1290,7 @@ export default function MishilUnifiedWebView() {
               webviewRef.current?.injectJavaScript(`
                 (function() {
                   if (window.MishilNative && typeof window.MishilNative.onPurchaseError === 'function') {
-                    window.MishilNative.onPurchaseError('${errorMsg}');
+                    window.MishilNative.onPurchaseError('${errorMsg}', '${safeErrCode}');
                   } else {
                     if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
                     if (typeof showToast === 'function') showToast('${errorMsg}');
@@ -1277,34 +1302,55 @@ export default function MishilUnifiedWebView() {
           } finally {
             // İşlem bittiğinde kilidi kaldır, AppState artık güvenle çalışabilir
             isPurchaseInProgressRef.current = false;
+            purchaseStartedAtRef.current = 0;
           }
           break;
         }
 
         case 'RESTORE_PURCHASES': {
+          if (isPurchaseLockActive()) {
+            break;
+          }
+          isPurchaseInProgressRef.current = true;
+          purchaseStartedAtRef.current = Date.now();
           const curLang = appLangRef.current;
           const isDe = curLang === 'de';
           const isEn = curLang === 'en';
-          const result = await restorePurchases();
-          if (result.success && result.isActive) {
-            let detectedPlan: 'yearly' | 'monthly' = 'monthly';
-            try {
-              const Purchases = require('react-native-purchases').default;
-              const customerInfo = await Purchases.getCustomerInfo();
-              detectedPlan = getPlanFromCustomerInfo(customerInfo);
-            } catch {}
-            grantProInWebView(
-              detectedPlan,
-              isDe
-                ? '✅ Käufe wiederhergestellt (Mışıl Baby Pro Aktiv)'
-                : (isEn ? '✅ Purchases restored (Mışıl Baby Pro Active)' : '✅ Satın alımlar geri yüklendi (Mışıl Baby Pro Aktif)')
-            );
-          } else {
-            webToast(
-              isDe
-                ? 'ℹ️ Kein aktives Abonnement auf diesem Konto gefunden.'
-                : (isEn ? 'ℹ️ No active subscription found on this account to restore.' : 'ℹ️ Bu hesapta geri yüklenecek aktif bir abonelik bulunamadı.')
-            );
+          let restoreGranted = false;
+          try {
+            const result = await restorePurchases();
+            if (result.success && result.isActive) {
+              restoreGranted = true;
+              let detectedPlan: 'yearly' | 'monthly' = 'monthly';
+              try {
+                const Purchases = require('react-native-purchases').default;
+                const customerInfo = await Purchases.getCustomerInfo();
+                detectedPlan = getPlanFromCustomerInfo(customerInfo);
+              } catch {}
+              grantProInWebView(
+                detectedPlan,
+                isDe
+                  ? '✅ Käufe wiederhergestellt (Mışıl Baby Pro Aktiv)'
+                  : (isEn ? '✅ Purchases restored (Mışıl Baby Pro Active)' : '✅ Satın alımlar geri yüklendi (Mışıl Baby Pro Aktif)')
+              );
+            } else {
+              webToast(
+                isDe
+                  ? 'ℹ️ Kein aktives Abonnement auf diesem Konto gefunden.'
+                  : (isEn ? 'ℹ️ No active subscription found on this account to restore.' : 'ℹ️ Bu hesapta geri yüklenecek aktif bir abonelik bulunamadı.')
+              );
+            }
+          } finally {
+            isPurchaseInProgressRef.current = false;
+            purchaseStartedAtRef.current = 0;
+            if (!restoreGranted) {
+              webviewRef.current?.injectJavaScript(`
+                (function() {
+                  if (typeof resetPurchaseButtons === 'function') resetPurchaseButtons();
+                  true;
+                })();
+              `);
+            }
           }
           break;
         }
