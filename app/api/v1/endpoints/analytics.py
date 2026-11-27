@@ -10160,16 +10160,17 @@ def analytics_dashboard_page(
           <div class="bento-card tab2-sec tab2-sec-ab" id="abExperimentCommandCard" style="margin-bottom:14px; border-left:4px solid #7C3AED;">
             <div class="section-head">
               <div>
-                <span>🧪 RevenueCat Paywall A/B Testi Komuta Merkezi (%50 / %50 Trafik • Grup A: İlk Ay %67 İndirim vs Grup B: İlk Ay Ücretsiz)</span>
+                <span>🧪 RevenueCat Paywall A/B Testi (%50/%50)<span class="sr-only"> Komuta Merkezi (%50 / %50 Trafik • Grup A: İlk Ay %67 İndirim vs Grup B: İlk Ay Ücretsiz)</span></span>
                 <div class="sr-only" id="abExperimentDiagnosisSr">{ab_win_diag}</div>
               </div>
               <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                 <span class="badge" id="abWinnerBadge" style="background:rgba(124,58,237,0.16); color:#7C3AED;">{ab_win_badge}</span>
                 <span class="badge" style="background:rgba(217,119,6,0.15); color:#D97706;" id="abTopSplitBadge">🔥 Grup A: {ab_a_act} • 🎁 Grup B: {ab_b_act} • 👑 Yıllık: {ab_ann_act}</span>
+                <button type="button" class="collapse-btn" id="btnToggleAbTable" onclick="toggleDetailWrap('abExperimentTableWrap', 'btnToggleAbTable')">📊 Detay Tablosu ▼</button>
               </div>
             </div>
 
-            <div class="card-desc" id="abWinnerDiagnosis" style="display:block !important; margin-bottom:12px; padding:10px 12px; border-radius:10px; background:var(--bg-cell); border:1px solid var(--border-subtle); font-size:12px; color:var(--text-secondary);">
+            <div class="card-desc" id="abWinnerDiagnosis" style="margin-bottom:12px; padding:10px 12px; border-radius:10px; background:var(--bg-cell); border:1px solid var(--border-subtle); font-size:12px; color:var(--text-secondary);">
               <strong>🎯 Otonom A/B Karar Motoru:</strong> <span id="abWinnerDiagnosisText">{ab_win_diag}</span>
             </div>
 
@@ -10186,7 +10187,7 @@ def analytics_dashboard_page(
                   <span class="kpi-micro-chip">🚀 MRR: {float(ab_a.get('projected_mrr_net_try', 0.0) or 0.0):.2f} ₺/Ay</span>
                   <span class="kpi-micro-chip">🛡️ Tutundurma: %{float(ab_a.get('retention_rate_pct', 0.0) or 0.0)}</span>
                 </div>
-                <div class="step-sub" style="display:block !important; font-size:11.5px;">
+                <div class="step-sub" style="font-size:11.5px;">
                   <strong>₺49,99 İlk Ay ➔ ₺149,99/ay</strong> • Paywall: <strong id="abGroupAFunnelTxt">{int(ab_a.get('paywall_views', 0) or 0)} Gösterim ➔ {int(ab_a.get('cta_clicks', 0) or 0)} Tık (%{float(ab_a.get('cta_of_view_pct', 0.0) or 0.0)}) ➔ {int(ab_a.get('purchase_cancelled', 0) or 0)} İptal</strong> •🍏 {int(ab_a.get('ios_active_count', 0) or 0)} iOS / 🤖 {int(ab_a.get('android_active_count', 0) or 0)} Android.
                 </div>
               </div>
@@ -10203,7 +10204,7 @@ def analytics_dashboard_page(
                   <span class="kpi-micro-chip">🚀 MRR: {float(ab_b.get('projected_mrr_net_try', 0.0) or 0.0):.2f} ₺/Ay</span>
                   <span class="kpi-micro-chip">🛡️ Tutundurma: %{float(ab_b.get('retention_rate_pct', 0.0) or 0.0)}</span>
                 </div>
-                <div class="step-sub" style="display:block !important; font-size:11.5px;">
+                <div class="step-sub" style="font-size:11.5px;">
                   <strong>30 Gün ₺0 ➔ ₺149,99/ay</strong> • Paywall: <strong id="abGroupBFunnelTxt">{int(ab_b.get('paywall_views', 0) or 0)} Gösterim ➔ {int(ab_b.get('cta_clicks', 0) or 0)} Tık (%{float(ab_b.get('cta_of_view_pct', 0.0) or 0.0)}) ➔ {int(ab_b.get('purchase_cancelled', 0) or 0)} İptal</strong> • 🍏 {int(ab_b.get('ios_active_count', 0) or 0)} iOS / 🤖 {int(ab_b.get('android_active_count', 0) or 0)} Android.
                 </div>
               </div>
@@ -10220,13 +10221,13 @@ def analytics_dashboard_page(
                   <span class="kpi-micro-chip">🚀 MRR: {float(ab_ann.get('projected_mrr_net_try', 0.0) or 0.0):.2f} ₺/Ay</span>
                   <span class="kpi-micro-chip">🎟️ Kodlu: {int(ab_code.get('active_vip_count', 0) or 0)} • ⏳ 7G: {int(ab_leg.get('active_vip_count', 0) or 0)}</span>
                 </div>
-                <div class="step-sub" style="display:block !important; font-size:11.5px;">
+                <div class="step-sub" style="font-size:11.5px;">
                   <strong>₺599,99/Yıl (~₺49,99/ay)</strong> • Peşin yıllık nakit akışı ve sıfır aylık churn çıpası • 🍏 {int(ab_ann.get('ios_active_count', 0) or 0)} iOS / 🤖 {int(ab_ann.get('android_active_count', 0) or 0)} Android.
                 </div>
               </div>
             </div>
 
-            <div class="table-wrap">
+            <div class="table-wrap" id="abExperimentTableWrap" style="display:none;">
               <table>
                 <thead>
                   <tr>
@@ -11843,6 +11844,53 @@ def analytics_dashboard_page(
             padding: 8px 9px !important;
             font-size: 11.5px !important;
           }}
+          /* Sekme 2 (A/B Testi) ve Sekme 3 (10 Adım Onboarding) Hibrit Mobil Sadeleştirme */
+          #tabPane_tab2 .card-desc:not(.desc-expanded),
+          #tabPane_tab2 .step-sub:not(.desc-expanded),
+          #tabPane_tab3 .card-desc:not(.desc-expanded),
+          #tabPane_tab3 .step-sub:not(.desc-expanded) {{
+            display: none !important;
+          }}
+          #tab3SubNav {{
+            display: none !important;
+          }}
+          #onboardingNineStepFunnelCard .section-head {{
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 6px !important;
+            margin-bottom: 8px !important;
+            padding-bottom: 8px !important;
+          }}
+          #onboardingNineStepFunnelCard .section-head > span:first-child {{
+            font-size: 13px !important;
+          }}
+          #onboardingNineStepFunnelCard #onbFunnelDropoffBadge,
+          #onboardingNineStepFunnelCard #onbFunnelContinuationMeta {{
+            display: none !important;
+          }}
+          #onboardingNineStepFunnelCard table th:nth-child(3),
+          #onboardingNineStepFunnelCard table td:nth-child(3),
+          #onboardingNineStepFunnelCard table th:nth-child(5),
+          #onboardingNineStepFunnelCard table td:nth-child(5) {{
+            display: none !important;
+          }}
+          #onboardingNineStepFunnelCard table th,
+          #onboardingNineStepFunnelCard table td {{
+            padding: 6px 4px !important;
+            font-size: 11px !important;
+            white-space: normal !important;
+          }}
+          #onboardingNineStepFunnelCard table td:nth-child(1) {{
+            font-size: 11.5px !important;
+            line-height: 1.25 !important;
+            max-width: 148px !important;
+          }}
+          #onboardingNineStepFunnelCard table td:nth-child(6) {{
+            min-width: 72px !important;
+          }}
+          #abExperimentCommandCard .section-head > div:first-child > span {{
+            font-size: 13px !important;
+          }}
         }}
         @media (max-width: 480px) {{
           .spark-svg {{
@@ -12475,13 +12523,13 @@ def analytics_dashboard_page(
                 <span>🤖 Google Play Paketleri</span>
                 <div style="display:flex; align-items:center; gap:8px;">
                   <span class="badge badge-gp">{len(gp_catalog)} Paket • {ps_and.get('vip_count', 0)} Abone</span>
-                  <button type="button" class="collapse-btn" id="btnToggleGpLedger" onclick="toggleDetailWrap('gpLedgerTableWrap', 'btnToggleGpLedger')">▲ Gizle</button>
+                  <button type="button" class="collapse-btn" id="btnToggleGpLedger" onclick="toggleDetailWrap('gpLedgerTableWrap', 'btnToggleGpLedger')">▼ Göster</button>
                 </div>
               </div>
               <div class="sr-only">
                 {gp_diag_html}
               </div>
-              <div class="table-wrap" id="gpLedgerTableWrap" style="display:block;">
+              <div class="table-wrap" id="gpLedgerTableWrap" style="display:none;">
                 <table>
                   <thead>
                     <tr>
