@@ -4581,7 +4581,7 @@ def _build_analytics_summary(
         db_feedbacks_total_cnt,
     ) = [int(v or 0) for v in counts_row]
     db_feedbacks_cnt_capped = min(100, db_feedbacks_total_cnt)
-    fb_rows = db.query(Feedback).order_by(desc(Feedback.created_at)).limit(20).all()
+    fb_rows = db.query(Feedback).order_by(desc(Feedback.created_at)).limit(50).all()
     db_feedbacks = [
         SimpleNamespace(
             id=fb.id,
@@ -4598,6 +4598,14 @@ def _build_analytics_summary(
 
     tz_tr = timezone(timedelta(hours=3))
     now_tr = datetime.now(tz_tr)
+    now_utc = datetime.now(timezone.utc)
+    feedbacks_last_24h_cnt = 0
+    for fb_item in db_feedbacks:
+        fb_dt = fb_item.created_at
+        if fb_dt:
+            fb_dt_utc = fb_dt.replace(tzinfo=timezone.utc) if fb_dt.tzinfo is None else fb_dt
+            if (now_utc - fb_dt_utc).total_seconds() <= 86400:
+                feedbacks_last_24h_cnt += 1
     today_str = now_tr.strftime("%Y-%m-%d")
     yesterday_str = (now_tr - timedelta(days=1)).strftime("%Y-%m-%d")
     cutoff_7d_date = (now_tr - timedelta(days=6)).strftime("%Y-%m-%d")
@@ -7800,7 +7808,9 @@ def _build_analytics_summary(
             "routine_logs": db_routine_count,
             "dadi_chats": db_dadi_count,
             "feedbacks_count": db_feedbacks_cnt_capped,
-            "feedbacks_list": db_feedbacks[:20],
+            "feedbacks_total_count": db_feedbacks_total_cnt,
+            "feedbacks_last_24h_count": feedbacks_last_24h_cnt,
+            "feedbacks_list": db_feedbacks[:50],
             "subscriptions_count": apple_vip,
             "unmatched_organic_opens": unmatched_organic_opens,
         },
@@ -7908,6 +7918,33 @@ def get_analytics_summary(
             "ip_masked": c.ip_masked,
         })
     summary["recent_clicks"] = recent_serialized
+    raw_fb_list = summary.get("product_funnel", {}).get("feedbacks_list") or []
+    fb_serialized = []
+    for fb_obj in raw_fb_list[:50]:
+        fb_dt = getattr(fb_obj, "created_at", None)
+        if fb_dt:
+            fb_dt_utc = fb_dt.replace(tzinfo=timezone.utc) if fb_dt.tzinfo is None else fb_dt
+            fb_time_tr = fb_dt_utc.astimezone(tz_tr).strftime("%d.%m.%Y %H:%M")
+        else:
+            fb_time_tr = "-"
+        fb_plat_raw = str(getattr(fb_obj, "platform", "") or "").lower()
+        fb_plat_key = "ios" if "ios" in fb_plat_raw or "iphone" in fb_plat_raw else ("android" if "android" in fb_plat_raw else "all")
+        fb_serialized.append({
+            "id": getattr(fb_obj, "id", 0),
+            "time_tr": fb_time_tr,
+            "platform": fb_plat_key,
+            "platform_raw": str(getattr(fb_obj, "platform", "") or "mobile"),
+            "sentiment": str(getattr(fb_obj, "sentiment", "") or "suggestion"),
+            "baby_age_months": getattr(fb_obj, "baby_age_months", None),
+            "contact_info": str(getattr(fb_obj, "contact_info", "") or ""),
+            "app_version": str(getattr(fb_obj, "app_version", "") or ""),
+            "message": str(getattr(fb_obj, "message", "") or ""),
+        })
+    summary["in_app_feedbacks"] = {
+        "total_count": int(summary.get("product_funnel", {}).get("feedbacks_total_count", len(fb_serialized)) or 0),
+        "last_24h_count": int(summary.get("product_funnel", {}).get("feedbacks_last_24h_count", 0) or 0),
+        "items": fb_serialized,
+    }
     summary["product_funnel"].pop("feedbacks_list", None)
     return summary
 
@@ -9569,6 +9606,78 @@ def analytics_dashboard_page(
         """
 
     tz_tr = timezone(timedelta(hours=3))
+    fb_total_cnt = int(pf.get("feedbacks_total_count", pf.get("feedbacks_count", 0)) or 0)
+    fb_24h_cnt = int(pf.get("feedbacks_last_24h_count", 0) or 0)
+    in_app_feedbacks_html = ""
+    for fb_item in (pf.get("feedbacks_list") or [])[:50]:
+        fb_dt = getattr(fb_item, "created_at", None)
+        if fb_dt:
+            fb_dt_utc = fb_dt.replace(tzinfo=timezone.utc) if fb_dt.tzinfo is None else fb_dt
+            fb_dt_tr = fb_dt_utc.astimezone(tz_tr).strftime("%d.%m.%Y %H:%M")
+        else:
+            fb_dt_tr = "-"
+        fb_plat_raw = str(getattr(fb_item, "platform", "") or "").lower()
+        if "ios" in fb_plat_raw or "iphone" in fb_plat_raw:
+            fb_plat_attr = "ios"
+            fb_plat_badge = '<span class="badge badge-meta">🍏 iOS</span>'
+        elif "android" in fb_plat_raw:
+            fb_plat_attr = "android"
+            fb_plat_badge = '<span class="badge badge-gp">🤖 Android</span>'
+        else:
+            fb_plat_attr = "all"
+            fb_plat_badge = '<span class="badge" style="background:rgba(148,163,184,0.16); color:var(--text-secondary);">🌐 Web</span>'
+
+        fb_sent_raw = str(getattr(fb_item, "sentiment", "") or "suggestion").lower()
+        fb_msg_raw = str(getattr(fb_item, "message", "") or "")
+        if "çözüm yoklaması" in fb_msg_raw.lower():
+            fb_sent_badge = '<span class="badge" style="background:rgba(var(--stage-5-rgb),0.14); color:var(--stage-5);">🔔 Çözüm Yoklaması</span>'
+        elif fb_sent_raw in ("awake", "still_awake"):
+            fb_sent_badge = '<span class="badge" style="background:rgba(var(--stage-5-rgb),0.14); color:var(--stage-5);">🥱 Uyuyamadı</span>'
+        elif fb_sent_raw == "needs_improvement":
+            fb_sent_badge = '<span class="badge" style="background:rgba(217,119,6,0.15); color:#D97706;">🟡 Zorlandık</span>'
+        else:
+            fb_sent_badge = '<span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">💡 Öneri / Mesaj</span>'
+
+        fb_age = getattr(fb_item, "baby_age_months", None)
+        fb_age_chip = (
+            f'<span class="kpi-micro-chip">👶 {int(fb_age)} Aylık</span>'
+            if fb_age is not None
+            else ""
+        )
+        fb_ver_raw = str(getattr(fb_item, "app_version", "") or "").strip()
+        fb_ver_chip = (
+            f'<span class="kpi-micro-chip">v{html.escape(fb_ver_raw)}</span>'
+            if fb_ver_raw
+            else ""
+        )
+        fb_contact_raw = str(getattr(fb_item, "contact_info", "") or "").strip()
+        fb_contact_block = (
+            f'<div class="review-foot" style="margin-top:6px; color:#2563EB; font-weight:700;">📞 İletişim: {html.escape(fb_contact_raw)}</div>'
+            if fb_contact_raw
+            else ""
+        )
+        in_app_feedbacks_html += f"""
+        <div class="review-bubble in-app-feedback-item" data-platform="{fb_plat_attr}">
+          <div class="review-head">
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              {fb_plat_badge}
+              {fb_sent_badge}
+              {fb_age_chip}
+              {fb_ver_chip}
+            </div>
+            <span style="font-size:11.5px; color:var(--text-muted); font-weight:700; font-variant-numeric:tabular-nums;">🕒 {fb_dt_tr}</span>
+          </div>
+          <p class="review-body" style="white-space:pre-wrap; margin:6px 0 2px;">{html.escape(fb_msg_raw)}</p>
+          {fb_contact_block}
+        </div>
+        """
+
+    if not in_app_feedbacks_html:
+        in_app_feedbacks_html = """
+        <div class="bento-card" id="inAppFeedbacksEmptyState" style="grid-column: 1 / -1; text-align:center; color:var(--text-muted); padding:18px;">
+          Henüz uygulama içinden gönderilmiş anne mesajı veya geri bildirim bulunmuyor. Uygulama içinden (veya memnuniyet yoklamasından) mesaj geldiğinde anında burada listelenir.
+        </div>
+        """
     rows_html = ""
     for c in s["recent_clicks"][:60]:
         if c.is_bot or not c.is_unique:
@@ -11970,7 +12079,7 @@ def analytics_dashboard_page(
                 <button class="tab-btn active" id="tabBtn_tab1" onclick="switchTab('tab1')">📊 1. Büyüme</button>
                 <button class="tab-btn" id="tabBtn_tab2" onclick="switchTab('tab2')">💰 2. Gelir & Abone</button>
                 <button class="tab-btn" id="tabBtn_tab3" onclick="switchTab('tab3')">🧭 3. Onboarding & Ürün<span class="sr-only">🍼 3. Ürün & Sadakat</span></button>
-                <button class="tab-btn" id="tabBtn_tab4" onclick="switchTab('tab4')">⭐ 4. Yorum & Trafik</button>
+                <button class="tab-btn" id="tabBtn_tab4" onclick="switchTab('tab4')">⭐ 4. Yorum, Mesaj & Trafik<span class="sr-only">⭐ 4. Yorum & Trafik</span></button>
                 <button class="tab-btn" id="tabBtn_tab5" onclick="switchTab('tab5')">🏛️ 5. Veri Mimarisi<span class="sr-only">🏛️ 5. Referanslar & Veri Mimarisi</span></button>
               </div>
             </div>
@@ -12001,6 +12110,10 @@ def analytics_dashboard_page(
                 <div class="sidebar-kpi-row clickable-kpi-row" onclick="jumpToStarDistribution()" title="🍏 iOS & 🤖 Android 5★..1★ Mağaza Oy Dağılımına Git">
                   <span>⭐ Mağaza Puanı</span>
                   <strong style="color:#F4A261;" id="sideKpiStars">{html.escape(str(all_sd.get('overall_avg_str') or 'Yorum Yok'))} ({int(all_sd.get('overall_count', 0) or 0)} Oy)</strong>
+                </div>
+                <div class="sidebar-kpi-row clickable-kpi-row" onclick="jumpToInAppFeedbacks()" title="Uygulama İçi Anne Mesajları & Geri Bildirimler Kutusu">
+                  <span>💌 Anne Mesajı</span>
+                  <strong style="color:#74C69D;" id="sideKpiFeedbacks">{fb_total_cnt} Mesaj</strong>
                 </div>
               </div>
 
@@ -12045,14 +12158,17 @@ def analytics_dashboard_page(
                     <span id="funnelHeadTitle">🎯 Dönüşüm Hunisi<span class="sr-only"> (Edinim ➔ VIP ➔ Churn ➔ Net Abone)</span>{'' if clean_period == 'all' else f" — {html.escape(s['period_label'])}"}</span>
                   </div>
                   <div class="conv-summary-pills" id="funnelHeadBadge">
-                    <button type="button" class="conv-summary-pill" onclick="jumpToAbExperiment()" style="cursor:pointer; background:rgba(217,119,6,0.15); border-color:rgba(217,119,6,0.42); color:#D97706;" title="RevenueCat Paywall A/B Testi (Grup A İlk Ay 49.99 ₺ vs Grup B İlk Ay Ücretsiz) Tablosuna Git">🧪 A/B Testi: <strong id="convAbTestPill">🔥A:{ab_a_act} vs 🎁B:{ab_b_act} (👑{ab_ann_act}) ➔</strong></button>
-                    <button type="button" class="conv-summary-pill" onclick="jumpToOnboardingFunnel()" style="cursor:pointer; background:rgba(124,58,237,0.14); border-color:rgba(124,58,237,0.38); color:var(--stage-4);" title="10 Adımlı Kullanıcı Onboarding (Adım 0➔9) İlerleme Tablosuna Git">🧭 10 Adım Onboarding: <strong id="convOnbCompPill">{html.escape(onb_comp_str)} ({int(onb_f.get('step9_reached_devices', 0) or 0)}/{int(onb_f.get('start_base_devices', 0) or 0)}) ➔</strong></button>
-                    <button type="button" class="conv-summary-pill" onclick="jumpToStarDistribution()" style="cursor:pointer; background:rgba(245,158,11,0.15); border-color:rgba(245,158,11,0.40); color:#D97706;" title="🍏 iOS & 🤖 Android 5★..1★ Mağaza Oy Dağılımına Git">⭐ Oy Dağılımı: <strong id="convStarsPill">{html.escape(str(all_sd.get('overall_avg_str') or 'Yorum Yok'))} ({int(all_sd.get('overall_count', 0) or 0)} Oy) ➔</strong></button>
                     <span class="conv-summary-pill" style="background:rgba(var(--stage-3-rgb),0.10); border-color:rgba(var(--stage-3-rgb),0.28); color:var(--stage-3);">CVR: <strong id="convStoreCvrPill">%{ps_all.get('store_cvr_pct', 0)}</strong></span>
                     <span class="conv-summary-pill">➔ VIP: <strong id="convStartedVipDlPill">%{ps_all.get('started_vip_of_dl_pct', 0)}</strong></span>
                     <span class="conv-summary-pill" style="background:rgba(var(--stage-5-rgb),0.10); border-color:rgba(var(--stage-5-rgb),0.28); color:var(--stage-5);">Churn: <strong id="convChurnPill">%{ps_all.get('churn_rate_pct', 0)}</strong></span>
                     <span class="conv-summary-pill" style="background:rgba(var(--stage-6-rgb),0.10); border-color:rgba(var(--stage-6-rgb),0.28); color:var(--stage-6);">Tutundurma: <strong id="convRetentionPill">%{ps_all.get('retention_rate_pct', 0)}</strong></span>
-                    <span class="sr-only">Gösterim ➔ VIP: <strong id="convSumVipImp">%{vip_of_imp_pct}</strong> • Tık ➔ VIP: <strong id="convCum4">%{vip_of_vis_pct}</strong></span>
+                    <span class="sr-only">
+                      <strong id="convAbTestPill">🔥A:{ab_a_act} vs 🎁B:{ab_b_act} (👑{ab_ann_act}) ➔</strong>
+                      <strong id="convOnbCompPill">{html.escape(onb_comp_str)} ({int(onb_f.get('step9_reached_devices', 0) or 0)}/{int(onb_f.get('start_base_devices', 0) or 0)}) ➔</strong>
+                      <strong id="convStarsPill">{html.escape(str(all_sd.get('overall_avg_str') or 'Yorum Yok'))} ({int(all_sd.get('overall_count', 0) or 0)} Oy) ➔</strong>
+                      <strong id="convFeedbacksPill">{fb_total_cnt} Mesaj ➔</strong>
+                      Gösterim ➔ VIP: <strong id="convSumVipImp">%{vip_of_imp_pct}</strong> • Tık ➔ VIP: <strong id="convCum4">%{vip_of_vis_pct}</strong>
+                    </span>
                   </div>
                 </div>
 
@@ -12288,23 +12404,11 @@ def analytics_dashboard_page(
             <button type="button" class="subcat-pill" id="subcatBtn_t1_trend" onclick="filterTab1Category('trend')">📈 İndirme Trendi &amp; Sosyal</button>
             <button type="button" class="subcat-pill" id="subcatBtn_t1_donuts" onclick="filterTab1Category('donuts')">🍩 Dağılım Halkaları</button>
             <button type="button" class="subcat-pill" id="subcatBtn_t1_channels" onclick="filterTab1Category('channels')">🎯 Edinim &amp; Ülkeler ({len(countries_list)})</button>
-            <button type="button" class="subcat-pill" onclick="jumpToAbExperiment()" style="border-color:rgba(217,119,6,0.42); color:#D97706;">🧪 A/B Testi (🔥A:{ab_a_act} vs 🎁B:{ab_b_act}) ➔</button>
-            <button type="button" class="subcat-pill" onclick="jumpToOnboardingFunnel()" style="border-color:rgba(124,58,237,0.38); color:var(--stage-4);">🧭 10 Adım Onboarding ({html.escape(onb_comp_str)}) ➔</button>
-            <button type="button" class="subcat-pill" onclick="jumpToStarDistribution()" style="border-color:rgba(245,158,11,0.40); color:#D97706;">⭐ Oy Dağılımı ({html.escape(str(all_sd.get('overall_avg_str') or 'Yorum Yok'))}) ➔</button>
           </div>
 
-          <!-- SEKME 1 DOĞRUDAN GÖRÜNÜR 5★..1★ MAĞAZA OY DAĞILIMI (🍏 iOS & 🤖 Android AYRI AYRI) -->
-          <div class="bento-card tab1-sec tab1-sec-trend" id="tab1StarDistributionCard">
-            <div class="section-head">
-              <span>⭐ Mağaza Oy &amp; Yıldız Dağılımı (🍏 iOS vs 🤖 Android)</span>
-              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                <span class="badge" style="background:rgba(245,158,11,0.16); color:#D97706;">{avg_stars_label}</span>
-                <button type="button" class="collapse-btn" onclick="jumpToStarDistribution()">💬 Yorumlar &amp; Çözüm Yoklaması ➔</button>
-              </div>
-            </div>
-            <div class="bento-split-2col-equal" style="margin-bottom:0;">
-              {tab1_star_dist_boxes_html}
-            </div>
+          <!-- SEKME 1 MÜKERRER OY DAĞILIMI KALDIRILDI (TEK KAYNAK: SEKME 4 #reviewsStarDistributionCard) -->
+          <div class="sr-only" id="tab1StarDistributionCard">
+            {tab1_star_dist_boxes_html}
           </div>
 
           <div class="bento-split-2col tab1-sec tab1-sec-trend">
@@ -12412,8 +12516,11 @@ def analytics_dashboard_page(
             </div>
 
             <div class="bento-card">
-              <div class="section-head"><span>🌍 Ülke Kurulumları ({len(countries_list)} Ülke)</span></div>
-              <div class="table-wrap table-scroll-bounded">
+              <div class="section-head">
+                <span>🌍 Ülke Kurulumları ({len(countries_list)} Ülke)</span>
+                <button type="button" class="collapse-btn" id="btnToggleTab1Countries" onclick="toggleDetailWrap('tab1CountriesTableWrap', 'btnToggleTab1Countries')">▼ Tüm Ülkeleri Göster</button>
+              </div>
+              <div class="table-wrap table-scroll-bounded" id="tab1CountriesTableWrap" style="display:none;">
                 <table>
                   <thead>
                     <tr>
@@ -12594,7 +12701,6 @@ def analytics_dashboard_page(
             <button type="button" class="subcat-pill" id="subcatBtn_t3_onboarding" onclick="filterTab3Category('onboarding')">🧭 10 Adım Onboarding ({onb_total_devs} Cihaz)</button>
             <button type="button" class="subcat-pill" id="subcatBtn_t3_paywall" onclick="filterTab3Category('paywall')">🔄 Paywall &amp; Modüller</button>
             <button type="button" class="subcat-pill" id="subcatBtn_t3_cohort" onclick="filterTab3Category('cohort')">📊 Kohort Matrisi ({len(pr['subscriber_cohorts'])})</button>
-            <button type="button" class="subcat-pill" onclick="jumpToAbExperiment()" style="border-color:rgba(217,119,6,0.42); color:#D97706;">🧪 A/B Testi (🔥A:{ab_a_act} vs 🎁B:{ab_b_act}) ➔</button>
           </div>
 
           <div class="bento-card tab3-sec tab3-sec-onboarding" id="onboardingNineStepFunnelCard">
@@ -12612,7 +12718,6 @@ def analytics_dashboard_page(
               <span class="kpi-micro-chip">⚡ 7. Kart Hızlı Çip: {int(onb_f.get('step7_quick_chip_unique_devices', 0) or 0)}</span>
               <span class="kpi-micro-chip">👁️ Paywall: {int(onb_f.get('paywall_viewed_unique_devices', 0) or 0)} (🔥A:{int(onb_f.get('ab_a_paywall_viewed_unique_devices', 0) or 0)} • 🎁B:{int(onb_f.get('ab_b_paywall_viewed_unique_devices', 0) or 0)})</span>
               <span class="kpi-micro-chip">👆 Tık: {int(onb_f.get('paywall_cta_unique_devices', 0) or 0)} (🔥A:{int(onb_f.get('ab_a_paywall_cta_unique_devices', 0) or 0)} • 🎁B:{int(onb_f.get('ab_b_paywall_cta_unique_devices', 0) or 0)})</span>
-              <span class="kpi-micro-chip" style="border-color:rgba(16,185,129,0.40); color:#059669; font-weight:800;">💳 Satın Alma: {onb_purch_tot} (🔥 Grup A: {onb_purch_a} • 🎁 Grup B: {onb_purch_b}{onb_ann_badge_suffix})</span>
             </div>
             <div class="table-wrap">
               <table>
@@ -12687,33 +12792,21 @@ def analytics_dashboard_page(
           <div class="bento-split-2col-equal tab3-sec tab3-sec-paywall">
             <div class="bento-card">
               <div class="section-head">
-                <span>🔄 Geri Dönüş & Paywall</span>
-                <span class="badge" style="background:rgba(37,99,235,0.12); color:#2563EB;">iOS Geri Dönüş: %{pr['optin_ios_return_rate_pct']}</span>
+                <span>💳 Paywall Dönüşüm &amp; İptal Özeti<span class="sr-only">🔄 Geri Dönüş &amp; Paywall</span></span>
+                <span class="badge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">👁️ {pf['paywall_funnel']['paywall_viewed']} ➔ 👆 {pf['paywall_funnel']['paywall_cta_clicked']}</span>
               </div>
               <div class="steps-grid">
                 <div class="step-box">
-                  <div class="step-num" style="color:#059669;">1. TEKRAR GİREN iOS</div>
-                  <div class="step-val">{pr['returning_optin_ios_devices']} / {pr['optin_ios_total_devices']}</div>
-                  <div class="step-sub">2+ oturum açan doğrulanmış iPhone oranı <strong>%{pr['optin_ios_return_rate_pct']}</strong> ({pr['returning_sessions_total']} tekrar oturumu). <strong>{pr['loyal_optin_ios_devices']} cihaz</strong> 3+ kez girdi.</div>
-                  <span class="step-rate">%{pr['optin_ios_return_rate_pct']} Oran • {pr['loyal_optin_ios_devices']} Sadık</span>
-                </div>
-                <div class="step-box">
-                  <div class="step-num" style="color:#2563EB;">2. AKTİF EBEVEYN</div>
-                  <div class="step-val">~{pr['estimated_total_returning_users']} Ebeveyn</div>
-                  <div class="step-sub">Günlük aktif kullanım: <strong>{pr['daily_active_signals_count']} oturum</strong> (Doğrulanmış taban: <strong>{pr['verified_returning_devices_floor']}–{pr['verified_returning_devices_ceiling']} cihaz</strong>; {f_dl} kurulumda tahmini ~{pr['estimated_total_returning_users']} aktif ebeveyn).</div>
-                  <span class="step-rate">{pr['daily_active_signals_count']} Günlük Aktif</span>
-                </div>
-                <div class="step-box">
-                  <div class="step-num" style="color:#7C3AED;">3. PAYWALL ➔ SATIN ALMA ADIMI</div>
+                  <div class="step-num" style="color:#7C3AED;">1. PAYWALL ➔ SATIN ALMA ADIMI</div>
                   <div class="step-val">{pf['paywall_funnel']['paywall_viewed']} ➔ {pf['paywall_funnel']['paywall_cta_clicked']}</div>
                   <div class="step-sub">İlk Açılış: <strong>{pf['first_open_signals']}</strong> • Bebek Profili: <strong>{pr['babies_count']}</strong> • Paywall Atlama: <strong>{pf['paywall_funnel']['paywall_skipped']}</strong> • 60sn Ses Önizleme Bitişi: <strong>{pf['paywall_funnel']['sound_preview_60s_ended']}</strong>.</div>
-                  <span class="step-rate">{pf['first_open_signals']} İlk Açılış</span>
+                  <span class="step-rate">🍏 {pf['paywall_funnel']['ios']['paywall_viewed']}➔{pf['paywall_funnel']['ios']['paywall_cta_clicked']} • 🤖 {pf['paywall_funnel']['android']['paywall_viewed']}➔{pf['paywall_funnel']['android']['paywall_cta_clicked']}</span>
                 </div>
                 <div class="step-box">
-                  <div class="step-num" style="color:#DC2626;">4. ÖDEME İPTALİ</div>
+                  <div class="step-num" style="color:var(--stage-5);">2. ÖDEME İPTALİ &amp; KURTARMA</div>
                   <div class="step-val">{pf['paywall_funnel']['purchase_cancelled']} (%{pf['paywall_funnel']['cancel_rate_pct']})</div>
                   <div class="step-sub">🍏 iOS: <strong>{pf['paywall_funnel']['ios']['purchase_cancelled']}/{pf['paywall_funnel']['ios']['paywall_cta_clicked']}</strong> • 🤖 Android: <strong>{pf['paywall_funnel']['android']['purchase_cancelled']}/{pf['paywall_funnel']['android']['paywall_cta_clicked']}</strong> • Kurtarma Gösterimi: <strong>{pf['paywall_funnel']['paywall_cancel_recovery_shown']}</strong> (Kurtarma CTA: <strong>{pf['paywall_funnel'].get('paywall_cancel_recovery_cta_clicked', 0)}</strong>).</div>
-                  <span class="step-rate">🍏 {pf['paywall_funnel']['ios']['purchase_cancelled']} • 🤖 {pf['paywall_funnel']['android']['purchase_cancelled']}</span>
+                  <span class="step-rate">🍏 {pf['paywall_funnel']['ios']['purchase_cancelled']} İptal • 🤖 {pf['paywall_funnel']['android']['purchase_cancelled']} İptal</span>
                 </div>
               </div>
             </div>
@@ -12790,6 +12883,21 @@ def analytics_dashboard_page(
             </div>
           </div>
 
+            <div class="bento-card" id="inAppFeedbacksCard" style="margin-bottom:14px;">
+              <div class="section-head">
+                <span id="inAppFeedbacksHeadSpan">💌 Uygulama İçi Anne Mesajları &amp; Geri Bildirimler ({fb_total_cnt})</span>
+                <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                  <span class="badge" id="inAppFeedbacksTotalBadge" style="background:rgba(16,185,129,0.14); color:#059669;">📨 Toplam: {fb_total_cnt}</span>
+                  <span class="badge" id="inAppFeedbacks24hBadge" style="background:rgba(217,119,6,0.14); color:#D97706;">⚡ Son 24s: {fb_24h_cnt}</span>
+                  <input type="search" id="inAppFeedbacksSearchInput" class="table-search-input" placeholder="🔍 Mesaj, iletişim, bebek ayı ara..." oninput="filterInAppFeedbacks(this)" />
+                  <a href="/api/v1/feedback/export.csv" class="btn">📥 CSV</a>
+                </div>
+              </div>
+              <div class="reviews-grid" id="inAppFeedbacksList" style="max-height:460px; overflow-y:auto; padding-right:4px;">
+                {in_app_feedbacks_html}
+              </div>
+            </div>
+
           <div class="bento-split-2col-equal">
             <div class="bento-card">
               <div class="section-head">
@@ -12806,7 +12914,7 @@ def analytics_dashboard_page(
                   <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                     <span class="kpi-micro-chip" title="Yoklamayı Gören Cihaz">👁️ <strong id="pulseShownCnt">{int(pulse_info.get('shown_count', 0) or 0)}</strong></span>
                     <span class="kpi-micro-chip" style="color:#059669;" title="Sorun Çözüldü / Memnun (Mağaza Puanına Yönlendirildi)">😍 <strong id="pulseSatisfiedCnt">{int(pulse_info.get('satisfied_count', 0) or 0)}</strong></span>
-                    <span class="kpi-micro-chip" style="color:#DC2626;" title="Sorun Devam Ediyor (Kokpite Geri Bildirim Düştü)">💬 <strong id="pulseIssueCnt">{int(pulse_info.get('issue_persists_count', 0) or 0)}</strong></span>
+                    <span class="kpi-micro-chip" onclick="jumpToInAppFeedbacks()" style="color:#DC2626; cursor:pointer;" title="Sorun Devam Ediyor (Kokpite Geri Bildirim Düştü — Mesajlara Git)">💬 <strong id="pulseIssueCnt">{int(pulse_info.get('issue_persists_count', 0) or 0)}</strong></span>
                     <button type="button" class="collapse-btn" onclick="toggleDetailWrap('pulseConfigDrawer', 'btnTogglePulseDrawer')" id="btnTogglePulseDrawer" style="font-size:11px; padding:3px 9px;">⚙️ Ayarla</button>
                   </div>
                 </div>
@@ -13016,6 +13124,30 @@ def analytics_dashboard_page(
           }}
         }}
 
+        function jumpToInAppFeedbacks() {{
+          switchTab('tab4');
+          var el = document.getElementById('inAppFeedbacksCard');
+          if (el && el.scrollIntoView) {{
+            setTimeout(function() {{
+              try {{ el.scrollIntoView({{ behavior: 'smooth', block: 'start' }}); }} catch (_se) {{ el.scrollIntoView(); }}
+            }}, 40);
+          }}
+        }}
+
+        function filterInAppFeedbacks(inputEl) {{
+          var listEl = document.getElementById('inAppFeedbacksList');
+          if (!listEl) return;
+          var q = (inputEl && inputEl.value ? inputEl.value : '').toLocaleLowerCase('tr-TR').trim();
+          var items = listEl.querySelectorAll('.in-app-feedback-item');
+          for (var i = 0; i < items.length; i++) {{
+            var itemPlat = items[i].getAttribute('data-platform') || 'all';
+            var platOk = (currentPlatform === 'all' || itemPlat === 'all' || itemPlat === currentPlatform);
+            var txt = (items[i].textContent || '').toLocaleLowerCase('tr-TR');
+            var queryOk = (!q || txt.indexOf(q) > -1);
+            items[i].style.display = (platOk && queryOk) ? '' : 'none';
+          }}
+        }}
+
         function filterTab1Category(cat) {{
           var pills = ['all', 'trend', 'donuts', 'channels'];
           for (var i = 0; i < pills.length; i++) {{
@@ -13074,6 +13206,7 @@ def analytics_dashboard_page(
           filterTableByQuery(document.getElementById('countryRevenueSearchInput'), 'countryRevenueTableBody');
           filterTableByQuery(document.getElementById('appleLedgerSearchInput'), 'appleLedgerTbody');
           filterTableByQuery(document.getElementById('liveClicksSearchInput'), 'liveClicksTbody');
+          filterInAppFeedbacks(document.getElementById('inAppFeedbacksSearchInput'));
         }}
 
         function toggleDetailWrap(wrapId, btnId) {{
@@ -13753,7 +13886,9 @@ def analytics_dashboard_page(
           }} catch (_he) {{}}
 
           var savedTab = localStorage.getItem('mishil_dash_active_tab');
-          if (savedTab && document.getElementById('tabPane_' + savedTab)) {{
+          if (window.location.hash === '#inAppFeedbacksCard') {{
+            jumpToInAppFeedbacks();
+          }} else if (savedTab && document.getElementById('tabPane_' + savedTab)) {{
             switchTab(savedTab);
           }}
 
@@ -13845,6 +13980,67 @@ def analytics_dashboard_page(
               }}
               if (data.satisfaction_pulse) {{
                 updateSatisfactionPulseDom(data.satisfaction_pulse);
+              }}
+              if (data.in_app_feedbacks) {{
+                var fbObj = data.in_app_feedbacks;
+                var fbTot = Number(fbObj.total_count || 0);
+                var fb24 = Number(fbObj.last_24h_count || 0);
+                var sFb = document.getElementById('sideKpiFeedbacks');
+                var cFb = document.getElementById('convFeedbacksPill');
+                var hFb = document.getElementById('inAppFeedbacksHeadSpan');
+                var bTotFb = document.getElementById('inAppFeedbacksTotalBadge');
+                var b24Fb = document.getElementById('inAppFeedbacks24hBadge');
+                if (sFb) sFb.textContent = fbTot + ' Mesaj';
+                if (cFb) cFb.textContent = fbTot + ' Mesaj ➔';
+                if (hFb) hFb.textContent = '💌 Uygulama İçi Anne Mesajları & Geri Bildirimler (' + fbTot + ')';
+                if (bTotFb) bTotFb.textContent = '📨 Toplam: ' + fbTot;
+                if (b24Fb) b24Fb.textContent = '⚡ Son 24s: ' + fb24;
+                var fbListEl = document.getElementById('inAppFeedbacksList');
+                if (fbListEl && Array.isArray(fbObj.items)) {{
+                  if (fbObj.items.length === 0) {{
+                    fbListEl.innerHTML = '<div class="bento-card" id="inAppFeedbacksEmptyState" style="grid-column: 1 / -1; text-align:center; color:var(--text-muted); padding:18px;">Henüz uygulama içinden gönderilmiş anne mesajı veya geri bildirim bulunmuyor. Uygulama içinden (veya memnuniyet yoklamasından) mesaj geldiğinde anında burada listelenir.</div>';
+                  }} else {{
+                    var fbHtmlOut = '';
+                    for (var fi = 0; fi < fbObj.items.length; fi++) {{
+                      var fIt = fbObj.items[fi];
+                      var fPlat = fIt.platform || 'all';
+                      var fPlatBadge = '<span class="badge" style="background:rgba(148,163,184,0.16); color:var(--text-secondary);">🌐 Web</span>';
+                      if (fPlat === 'ios') fPlatBadge = '<span class="badge badge-meta">🍏 iOS</span>';
+                      else if (fPlat === 'android') fPlatBadge = '<span class="badge badge-gp">🤖 Android</span>';
+                      var fMsgStr = String(fIt.message || '');
+                      var fSentStr = String(fIt.sentiment || 'suggestion').toLowerCase();
+                      var fSentBadge = '<span class="badge" style="background:rgba(16,185,129,0.14); color:#059669;">💡 Öneri / Mesaj</span>';
+                      if (fMsgStr.toLocaleLowerCase('tr-TR').indexOf('çözüm yoklaması') > -1) {{
+                        fSentBadge = '<span class="badge" style="background:rgba(var(--stage-5-rgb),0.14); color:var(--stage-5);">🔔 Çözüm Yoklaması</span>';
+                      }} else if (fSentStr === 'awake' || fSentStr === 'still_awake') {{
+                        fSentBadge = '<span class="badge" style="background:rgba(var(--stage-5-rgb),0.14); color:var(--stage-5);">🥱 Uyuyamadı</span>';
+                      }} else if (fSentStr === 'needs_improvement') {{
+                        fSentBadge = '<span class="badge" style="background:rgba(217,119,6,0.15); color:#D97706;">🟡 Zorlandık</span>';
+                      }}
+                      var fAgeChip = (fIt.baby_age_months !== null && fIt.baby_age_months !== undefined)
+                        ? '<span class="kpi-micro-chip">👶 ' + Number(fIt.baby_age_months) + ' Aylık</span>'
+                        : '';
+                      var fVerChip = fIt.app_version
+                        ? '<span class="kpi-micro-chip">v' + escapeHtmlJs(fIt.app_version) + '</span>'
+                        : '';
+                      var fContactBlock = fIt.contact_info
+                        ? '<div class="review-foot" style="margin-top:6px; color:#2563EB; font-weight:700;">📞 İletişim: ' + escapeHtmlJs(fIt.contact_info) + '</div>'
+                        : '';
+                      fbHtmlOut += '<div class="review-bubble in-app-feedback-item" data-platform="' + escapeHtmlJs(fPlat) + '">' +
+                        '<div class="review-head">' +
+                          '<div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">' +
+                            fPlatBadge + fSentBadge + fAgeChip + fVerChip +
+                          '</div>' +
+                          '<span style="font-size:11.5px; color:var(--text-muted); font-weight:700; font-variant-numeric:tabular-nums;">🕒 ' + escapeHtmlJs(fIt.time_tr || '-') + '</span>' +
+                        '</div>' +
+                        '<p class="review-body" style="white-space:pre-wrap; margin:6px 0 2px;">' + escapeHtmlJs(fMsgStr) + '</p>' +
+                        fContactBlock +
+                      '</div>';
+                    }}
+                    fbListEl.innerHTML = fbHtmlOut;
+                    filterInAppFeedbacks(document.getElementById('inAppFeedbacksSearchInput'));
+                  }}
+                }}
               }}
               if (data.zero_static_data_audit) {{
                 var zBadge = document.getElementById('zeroStaticAuditBadge');

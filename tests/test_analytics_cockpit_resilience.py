@@ -1563,6 +1563,69 @@ def test_ab_experiment_cockpit_comparison_and_10step_onboarding_v4581(client, db
     assert "⚡ 7. Kart Hızlı Çip: 2" in dash_html
 
 
+def test_cockpit_unified_in_app_feedbacks_integration(client, db_session, monkeypatch):
+    """
+    Uygulama içi anne mesajlarının ve geri bildirimlerin (/api/v1/feedback) ayrı bir sayfaya
+    gerek kalmadan doğrudan Kurucu Kokpiti (/admin/analytics ➔ Sekme 4 #inAppFeedbacksCard)
+    içinde listelendiğini, XSS korumalı olduğunu ve /admin/feedbacks kısayolunun doğrudan
+    kokpit #inAppFeedbacksCard kartına yönlendirdiğini doğrular.
+    """
+    from app.api.v1.endpoints.analytics import invalidate_analytics_summary_cache
+
+    monkeypatch.setenv("MISIL_SKIP_LIVE_STORE_SYNC_IN_SUMMARY", "1")
+    monkeypatch.setattr("app.api.v1.endpoints.analytics._get_live_apple_itunes_rating", lambda: None)
+
+    fb_res = client.post(
+        "/api/v1/feedback/",
+        json={
+            "message": "Gece 3'te pembe gürültü harika işe yaradı! <script>alert(1)</script>",
+            "sentiment": "suggestion",
+            "baby_age_months": 5,
+            "contact_info": "anne@ornek.com",
+            "platform": "ios",
+            "app_version": "4.58.0",
+        },
+    )
+    assert fb_res.status_code == 201
+    invalidate_analytics_summary_cache(mark_reconcile=False)
+
+    # /admin/feedbacks kısayolu doğrudan kokpit #inAppFeedbacksCard kartına yönlendirmeli
+    redir_res = client.get("/admin/feedbacks", params={"pin": "MISIL-REV-9842"}, follow_redirects=False)
+    assert redir_res.status_code in (302, 307)
+    assert "/api/v1/analytics/dashboard?pin=MISIL-REV-9842#inAppFeedbacksCard" in redir_res.headers.get("location", "")
+
+    # /api/v1/analytics/summary içinde in_app_feedbacks JSON dizisi dönmeli
+    sum_res = client.get("/api/v1/analytics/summary", params={"pin": "MISIL-REV-9842"})
+    assert sum_res.status_code == 200
+    sum_json = sum_res.json()
+    assert "in_app_feedbacks" in sum_json
+    fb_summary = sum_json["in_app_feedbacks"]
+    assert fb_summary["total_count"] >= 1
+    assert fb_summary["last_24h_count"] >= 1
+    assert any("Gece 3'te pembe gürültü harika işe yaradı!" in item["message"] for item in fb_summary["items"])
+
+    # Kokpit HTML'inde #inAppFeedbacksCard, #sideKpiFeedbacks, #convFeedbacksPill ve XSS-safe mesaj yer almalı
+    dash_res = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"})
+    assert dash_res.status_code == 200
+    dash_html = dash_res.text
+    assert 'id="inAppFeedbacksCard"' in dash_html
+    assert 'id="inAppFeedbacksList"' in dash_html
+    assert 'id="sideKpiFeedbacks"' in dash_html
+    assert 'id="convFeedbacksPill"' in dash_html
+    assert "function jumpToInAppFeedbacks()" in dash_html
+    assert "Gece 3&#x27;te pembe gürültü harika işe yaradı!" in dash_html or "Gece 3'te pembe gürültü harika işe yaradı!" in dash_html
+    assert "<script>alert(1)</script>" not in dash_html
+    assert "&lt;script&gt;alert(1)&lt;/script&gt;" in dash_html
+    assert "anne@ornek.com" in dash_html
+    assert "👶 5 Aylık" in dash_html
+    # Mükerrerlik kontrolü: Sekme 1'de görünür yıldız dağılımı kartı olmamalı (yalnızca sr-only kancası)
+    assert 'class="sr-only" id="tab1StarDistributionCard"' in dash_html
+    assert 'id="tab1CountriesTableWrap" style="display:none;"' in dash_html
+    assert "💳 Paywall Dönüşüm &amp; İptal Özeti" in dash_html
+
+
+
+
 
 
 

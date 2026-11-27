@@ -859,9 +859,9 @@ def developer_preview():
 
 @app.get("/admin/feedbacks", response_class=HTMLResponse, tags=["Admin"])
 def admin_feedbacks_shortcut(request: Request, pin: Optional[str] = None):
-    """Direct shortcut for Admin Feedback Dashboard."""
+    """Direct shortcut for In-App Mother Feedbacks inside the Unified Analytics Cockpit."""
     pin_param = f"?pin={pin}" if pin else ""
-    return RedirectResponse(url=f"/api/v1/feedback/dashboard{pin_param}")
+    return RedirectResponse(url=f"/api/v1/analytics/dashboard{pin_param}#inAppFeedbacksCard")
 
 
 @app.get("/admin/analytics", response_class=HTMLResponse, tags=["Admin"])
