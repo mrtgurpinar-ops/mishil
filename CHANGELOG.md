@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.58.9-cockpit-roadmap-phase1-phase2-and-group-b-paused-clarity] - 2026-11-28 (Railway Canlı Yayın — Kurucu Kokpiti (`/admin/analytics`) 3'lü Konsensüs Eksik Analizi & Yol Haritası Faz 1+2 Uygulaması: Grup B `⏸️ Pasif (Meta Purchase Koruması)` Netliği, `product_funnel` Sinyal-DB `max()` Senkronu, `/export-ledger.csv` & `/export-onboarding.csv` Excel CSV İndirme, Sekme 2 `🎯 Reklam Harcaması, ROAS & VIP Kod Özeti` Çekmecesi, Sekme 3 `👶 Bebek Yaş Dağılımı` (`0–3 / 4–6 / 7–12 / 12+ Ay`) + `⚠️ Teknik Hata` Sayacı ve Tek Tık `🔄 Senkronla` Butonu • 🟢 Yeni Native EAS Build Gerekmez)
+### 📊🧭 Kurucu Kokpiti Eksik Giderme (`Faz 1 / P0` + `Faz 2 / P1`) & Grup B Pasif Durum Netliği (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
+1. **3'lü Gerçek CLI Konsensüsü (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-252` canlı veri boşluk analizi & `task-440` git diff incelemesi — `age_buckets` sözlük anahtarı uyuşmazlığı yakalanıp düzeltildi)** ve **Codex CLI (`task-253` & `task-441` — `gpt-6-luna`: `VERDICT: PASS`)** gerçek terminal çıktılarıyla doğrulandı.
+2. **Faz 1 (`P0`) — Veri Doğruluğu, A/B Grup B Pasif Netliği & Yeni CSV Dışa Aktarımlar:**
+   - **Grup B Pasif Netliği:** Hem iOS hem Android'de Meta `Satın Alma (Purchase)` optimizasyonu için `%100 Grup A (İlk Ay ₺49,99)` çalışıp Grup B (`30G ₺0`) kapalı olduğundan, Grup B trafiği ve abonesi `0` iken kokpitin yanıltıcı `"0 VIP vs 5 VIP"` yarışı göstermesi yerine **`🔥 Grup A Aktif • ⏸️ Grup B Pasif`** ve **`⏸️ Pasif (Meta Purchase Koruması)`** rozetlerini göstermesi sağlandı.
+   - **`product_funnel` Sinyal & DB Senkronu:** `baby_created_signals`, `vip_started_signals`, `sleep_sound_signals`, `cry_analysis_signals` alanları `max(db_count, signal_count)` ile gerçek DB kayıtlarıyla (`124 Bebek`, `163 Uyku`, `33 Ağlama Analizi`, `14+ VIP`) eşitlendi.
+   - **Yeni CSV Uç Noktaları:** `GET /api/v1/analytics/export-ledger.csv` (26 abone defteri) ve `GET /api/v1/analytics/export-onboarding.csv` (10 adımlı onboarding + A/B kohort hunisi) Excel uyumlu (`;`) ve Formula-Injection korumalı olarak eklendi.
+3. **Faz 2 (`P1`) — Sekme 2 ROAS / Harcama Çekmecesi, Sekme 3 Bebek Yaş Dağılımı & Tek Tık Mağaza Senkronu:**
+   - Sekme 2'ye `POST /api/v1/analytics/campaign-config` uç noktasına bağlı açılır/kapanır **`🎯 Reklam Harcaması, ROAS & VIP Kod Özeti`** kartı (`#adSpendRoasConfigCard`) ve **`📥 Defter CSV`** (`#btnExportLedgerCsv`) butonu eklendi.
+   - Sekme 3'e veritabanındaki bebeklerin yaş kırılımını gösteren **`👶 Bebek Yaş Dağılımı (`0–3 Ay`, `4–6 Ay`, `7–12 Ay`, `12+ Ay`)`** (`#babyAgeDistributionChips`), Paywall **`⚠️ Teknik Hata (`purchase_error`)`** sayacı ve **`📥 Onboarding CSV`** (`#btnExportOnboardingCsv`) butonu; sol menü ve mobil üst bara tek tık **`🔄 Senkronla`** (`?sync=1`) butonu eklendi (`15/15 pytest PASS`, `360px/390px/1440px` `0px` yatay taşma).
+
 ## [4.58.8-cockpit-declutter-and-zero-mobile-scroll] - 2026-11-28 (Railway Canlı Yayın — Kurucu Kokpiti (`/admin/analytics`) 5 Sekme Baştan Sona Yazı Tekrarı Sadeleştirmesi, `3×2` / `2×3` Ara Oksuz Dönüşüm Hunisi, Çerçevesiz Sakin Alt Metinler, Sağdan Kesilen Tabloların Tam Sığdırılması ve Mobilde `724px ➔ 390px` Sıfır Sağa-Sola Kayma (`Zero Horizontal Scroll`) Onarımı • 🟢 Yeni Native EAS Build Gerekmez)
 ### 📱✨ Kurucu Kokpiti 5 Sekme Sadeleştirmesi & Mobil Sıfır Yatay Kaydırma (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **3'lü Gerçek CLI Konsensüsü (`AGENTS.md §5.1–§5.2`):**

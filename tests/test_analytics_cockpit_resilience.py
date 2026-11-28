@@ -1646,6 +1646,71 @@ def test_cockpit_unified_in_app_feedbacks_integration(client, db_session, monkey
     assert 'class="sr-only" id="tab1StarDistributionCard"' in dash_html
     assert 'id="tab1CountriesTableWrap" style="display:none;"' in dash_html
     assert "💳 Paywall Dönüşüm &amp; İptal Özeti" in dash_html
+    assert 'id="adSpendRoasConfigCard"' in dash_html
+    assert 'id="btnExportLedgerCsv"' in dash_html
+    assert 'id="btnExportOnboardingCsv"' in dash_html
+    assert 'id="babyAgeDistributionChips"' in dash_html
+    assert 'id="sidebarSyncBtn"' in dash_html
+    assert 'id="mobileSyncBtn"' in dash_html
+
+
+def test_cockpit_csv_exports_and_group_b_paused_state(client, db_session, monkeypatch):
+    """
+    v4.58.9:
+    1) /api/v1/analytics/export-ledger.csv ve /api/v1/analytics/export-onboarding.csv uç noktalarının
+       PIN doğrulaması ile 200 OK ve Excel uyumlu (;) CSV döndürdüğünü doğrular.
+    2) Grup B (30G ücretsiz deneme) trafiği 0 olduğunda kokpitin yanıltıcı '0 VIP' yarışı yerine
+       '⏸️ Grup B Pasif' durumunu açıkça raporladığını doğrular.
+    """
+    from app.api.v1.endpoints.analytics import invalidate_analytics_summary_cache
+    from app.db.models import AppInstallSignal, SubscriberLedger
+
+    monkeypatch.setenv("MISIL_SKIP_LIVE_STORE_SYNC_IN_SUMMARY", "1")
+    monkeypatch.setattr("app.api.v1.endpoints.analytics._get_live_apple_itunes_rating", lambda: None)
+
+    # Yetkisiz erişim 401 dönmeli
+    client.cookies.clear()
+    assert client.get("/api/v1/analytics/export-ledger.csv").status_code == 401
+    assert client.get("/api/v1/analytics/export-onboarding.csv").status_code == 401
+
+    # PIN ile CSV indirme 200 OK dönmeli
+    ledger_csv = client.get("/api/v1/analytics/export-ledger.csv", params={"pin": "MISIL-REV-9842"})
+    assert ledger_csv.status_code == 200
+    assert "text/csv" in ledger_csv.headers.get("content-type", "")
+    assert "Sıra;Subscriber ID;Platform;Ürün Kodu" in ledger_csv.text
+
+    onb_csv = client.get("/api/v1/analytics/export-onboarding.csv", params={"pin": "MISIL-REV-9842"})
+    assert onb_csv.status_code == 200
+    assert "text/csv" in onb_csv.headers.get("content-type", "")
+    assert "Adım No;Adım Başlığı;Telemetri Olayı;Tekil Cihaz (Toplam)" in onb_csv.text
+
+    # Grup B sinyalleri ve aboneleri temizlendiğinde 'Grup B Pasif' rozeti üretilmeli
+    from datetime import datetime, timedelta, timezone
+    from app.db.models import Baby
+
+    db_session.query(SubscriberLedger).filter(SubscriberLedger.offer_type == "free_trial_1m").delete()
+    db_session.query(AppInstallSignal).filter(AppInstallSignal.event_type.like("ab_b_%")).delete()
+    db_session.query(Baby).delete()
+    db_session.add(
+        Baby(
+            user_id=1,
+            name="Mışıl Test Bebek",
+            birth_date=datetime.now(timezone.utc) - timedelta(days=150),  # ~5 aylık -> 4–6 Ay (Uyku Gerilemesi)
+        )
+    )
+    db_session.commit()
+    invalidate_analytics_summary_cache(mark_reconcile=False)
+
+    sum_json = client.get("/api/v1/analytics/summary", params={"pin": "MISIL-REV-9842"}).json()
+    assert "⏸️ Grup B Pasif" in sum_json["ab_experiment"]["winner_badge"]
+    assert "Meta Purchase" in sum_json["ab_experiment"]["winner_diagnosis_tr"]
+    assert sum_json["product_retention"]["age_buckets"]["4–6 Ay (Uyku Gerilemesi)"] == 1
+    assert sum_json["product_funnel"]["baby_created_signals"] >= 1
+
+    dash_html = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"}).text
+    assert "⏸️ Pasif (Meta Purchase Koruması)" in dash_html
+    assert "🍼 4–6 Ay: 1" in dash_html
+
 
 
 

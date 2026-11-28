@@ -6753,8 +6753,16 @@ def _build_analytics_summary(
             ann_stats["mrr_share_pct"] = round((ann_stats["projected_mrr_net_try"] / tot_mrr_ab) * 100.0, 1)
             leg_stats["mrr_share_pct"] = round((leg_stats["projected_mrr_net_try"] / tot_mrr_ab) * 100.0, 1)
 
+        gb_is_paused = bool(gb_stats["paywall_views"] == 0 and gb_stats["started_subs_count"] == 0)
         if ga_stats["started_subs_count"] > 0 or gb_stats["started_subs_count"] > 0:
-            if ga_stats["projected_mrr_net_try"] > gb_stats["projected_mrr_net_try"]:
+            if gb_is_paused:
+                lead_var = "group_a_paid_intro"
+                win_badge = f"🔥 Grup A Aktif ({ga_stats['active_subs_count']} VIP • {ga_stats['projected_mrr_net_try']:.2f} ₺ MRR) • ⏸️ Grup B Pasif"
+                win_diag = (
+                    f"Meta Satın Alma (Purchase) optimizasyonu için %100 Grup A (İlk Ay 49.99 ₺) aktif; "
+                    f"anlık nakit ({ga_stats['day0_realized_net_try']:.2f} ₺ Net) ve beklenen Net MRR ({ga_stats['projected_mrr_net_try']:.2f} ₺/Ay) üretiyor (⏸️ Grup B 30G Ücretsiz kapalı)."
+                )
+            elif ga_stats["projected_mrr_net_try"] > gb_stats["projected_mrr_net_try"]:
                 lead_var = "group_a_paid_intro"
                 win_badge = f"🔥 Grup A Önde ({ga_stats['active_subs_count']} Aktif • {ga_stats['projected_mrr_net_try']:.2f} ₺ Net MRR)"
                 win_diag = (
@@ -6774,13 +6782,17 @@ def _build_analytics_summary(
                 win_diag = "Grup A (İlk Ay 49.99 ₺) ve Grup B (İlk Ay 0 ₺) şu an eşit MRR katkısında; 30. gün vade dönüşümü izleniyor."
         elif ab_a_pw_u > 0 or ab_b_pw_u > 0:
             lead_var = "collecting_telemetry"
-            win_badge = f"🧪 Canlı Telemetri Aktif (A: {ab_a_pw_u} / B: {ab_b_pw_u} Cihaz)"
+            win_badge = (
+                f"🔥 %100 Grup A Aktif ({ab_a_pw_u} Cihaz) • ⏸️ Grup B Pasif"
+                if gb_is_paused
+                else f"🧪 Canlı Telemetri Aktif (A: {ab_a_pw_u} / B: {ab_b_pw_u} Cihaz)"
+            )
             win_diag = f"Paywall A/B sinyalleri toplanıyor (🔥 Grup A: {ab_a_pw_u} görüntüleme / {ab_a_cta_u} CTA • 🎁 Grup B: {ab_b_pw_u} görüntüleme / {ab_b_cta_u} CTA)."
         else:
             lead_var = "collecting_data"
-            win_badge = f"🧪 A/B Testi Canlı (%50 Grup A • %50 Grup B)"
+            win_badge = f"🔥 Grup A Aktif (İlk Ay ₺49,99) • ⏸️ Grup B Pasif"
             win_diag = (
-                f"RevenueCat %50/%50 Paywall A/B testi aktif (🔥 Grup A: İlk Ay 49.99 ₺ vs 🎁 Grup B: İlk Ay 30G 0 ₺). "
+                f"Meta Purchase optimizasyonu için Grup A (İlk Ay 49.99 ₺) aktif, Grup B (İlk Ay 30G 0 ₺) pasif durumda. "
                 f"Mevcut portföyde 👑 {ann_stats['active_subs_count']} Yıllık VIP ve {leg_stats['active_subs_count']} Tarihsel Aylık/7G abone korunuyor."
             )
 
@@ -7864,10 +7876,10 @@ def _build_analytics_summary(
             "total_store_installs": total_cumulative_downloads,
             "first_open_signals": len(first_opens),
             "daily_active_signals": len(daily_actives),
-            "baby_created_signals": len(baby_created_signals),
-            "vip_started_signals": len(vip_started_signals),
-            "sleep_sound_signals": len(sleep_sound_signals),
-            "cry_analysis_signals": len(cry_analysis_signals),
+            "baby_created_signals": max(db_babies_count, len(baby_created_signals)),
+            "vip_started_signals": max(apple_vip, len(vip_started_signals)),
+            "sleep_sound_signals": max(db_sleep_count, len(sleep_sound_signals)),
+            "cry_analysis_signals": max(db_cry_count, len(cry_analysis_signals)),
             "paywall_viewed_signals": len(paywall_viewed_signals),
             "paywall_cta_clicked_signals": len(paywall_cta_clicked_signals),
             "paywall_skipped_signals": len(paywall_skipped_signals),
@@ -9094,6 +9106,121 @@ def export_analytics_csv(
         iter([output.getvalue()]),
         media_type="text/csv",
         headers={"Content-Disposition": "attachment; filename=misil_baby_kumulatif_buyume_verileri.csv"},
+    )
+
+
+@router.get("/export-ledger.csv")
+def export_subscriber_ledger_csv(
+    request: Request,
+    pin: Optional[str] = Query(None),
+    x_admin_pin: Optional[str] = Header(None),
+    period: str = Query("all"),
+    db: Session = Depends(get_db),
+):
+    """Abone ve Gelir Defteri kayıtlarını Excel uyumlu ve Formula-Injection korumalı CSV olarak indirir."""
+    if not authorize_admin_request(request, pin, x_admin_pin, request.cookies.get(_ADMIN_SESSION_COOKIE)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz Yönetici PIN kodu.")
+
+    clean_period = period if period in ALLOWED_PERIODS else "all"
+    s = get_resilient_analytics_summary(db, period=clean_period)
+    rows = s.get("subscriber_ledger") or []
+
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=";", quoting=csv.QUOTE_MINIMAL)
+    writer.writerow([
+        "Sıra", "Subscriber ID", "Platform", "Ürün Kodu", "Paket Başlığı",
+        "Durum", "Teklif Türü", "Teklif / Promosyon Kodu", "Başlangıç Tarihi",
+        "Dönüşüm / Son İşlem", "Vade / Yenilenme", "Oto-Yenileme",
+        "Tahsil Edilen Brüt (TRY)", "Tahsil Edilen Net (TRY)",
+        "Sonraki Dönem Brüt (TRY)", "Sonraki Dönem Net (TRY)", "Ülke", "Cihaz"
+    ])
+    for idx, r in enumerate(rows, start=1):
+        writer.writerow([
+            sanitize_csv_cell(idx),
+            sanitize_csv_cell(r.get("subscriber_id", "")),
+            sanitize_csv_cell(r.get("platform", "")),
+            sanitize_csv_cell(r.get("product_id", "")),
+            sanitize_csv_cell(r.get("plan_label", "")),
+            sanitize_csv_cell(r.get("status", "")),
+            sanitize_csv_cell(r.get("offer_type", "")),
+            sanitize_csv_cell(r.get("offer_code_name", "")),
+            sanitize_csv_cell(r.get("started_date", "")),
+            sanitize_csv_cell(r.get("converted_or_renewed_date", "")),
+            sanitize_csv_cell(r.get("maturity_or_renewal_date", "")),
+            "ACIK" if r.get("auto_renew_enabled") else "IPTAL",
+            sanitize_csv_cell(f"{float(r.get('customer_price_try') or 0.0):.2f}"),
+            sanitize_csv_cell(f"{float(r.get('developer_proceeds_try') or 0.0):.2f}"),
+            sanitize_csv_cell(f"{float(r.get('expected_next_price_try') or 0.0):.2f}"),
+            sanitize_csv_cell(f"{float(r.get('expected_next_proceeds_try') or 0.0):.2f}"),
+            sanitize_csv_cell(r.get("country", "TR")),
+            sanitize_csv_cell(r.get("device_type", "")),
+        ])
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=misil_baby_abone_ve_gelir_defteri.csv"},
+    )
+
+
+@router.get("/export-onboarding.csv")
+def export_onboarding_funnel_csv(
+    request: Request,
+    pin: Optional[str] = Query(None),
+    x_admin_pin: Optional[str] = Header(None),
+    period: str = Query("all"),
+    db: Session = Depends(get_db),
+):
+    """10 Adımlı Onboarding Hunisi ve A/B Satın Alma dönüşüm tablosunu CSV olarak indirir."""
+    if not authorize_admin_request(request, pin, x_admin_pin, request.cookies.get(_ADMIN_SESSION_COOKIE)):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz Yönetici PIN kodu.")
+
+    clean_period = period if period in ALLOWED_PERIODS else "all"
+    s = get_resilient_analytics_summary(db, period=clean_period)
+    onb = s.get("onboarding_step_funnel") or {}
+    steps = onb.get("steps") or []
+
+    output = io.StringIO()
+    writer = csv.writer(output, delimiter=";", quoting=csv.QUOTE_MINIMAL)
+    writer.writerow([
+        "Adım No", "Adım Başlığı", "Telemetri Olayı", "Tekil Cihaz (Toplam)",
+        "iOS Cihaz", "Android Cihaz", "Grup A Cihaz", "Grup B Cihaz",
+        "Önceki Adımdan Geçiş (%)", "Adım Kaybı (Cihaz)", "Adım Kaybı (%)", "Başlangıçtan İlerleme (%)"
+    ])
+    for st in steps:
+        writer.writerow([
+            sanitize_csv_cell(st.get("step_number", "")),
+            sanitize_csv_cell(st.get("title", "")),
+            sanitize_csv_cell(st.get("event_type", "")),
+            sanitize_csv_cell(st.get("unique_devices", 0)),
+            sanitize_csv_cell(st.get("ios_unique_devices", 0)),
+            sanitize_csv_cell(st.get("android_unique_devices", 0)),
+            sanitize_csv_cell(st.get("group_a_unique_devices", 0)),
+            sanitize_csv_cell(st.get("group_b_unique_devices", 0)),
+            sanitize_csv_cell(st.get("retention_from_prev_pct", "")),
+            sanitize_csv_cell(st.get("dropoff_from_prev_count", 0)),
+            sanitize_csv_cell(st.get("dropoff_from_prev_pct", "")),
+            sanitize_csv_cell(st.get("cumulative_from_start_pct", "")),
+        ])
+    writer.writerow([
+        "VIP",
+        "Satın Alma / VIP Başlatma Sonucu",
+        "subscriber_ledger + vip_started",
+        sanitize_csv_cell(onb.get("total_purchases_count", 0)),
+        sanitize_csv_cell(onb.get("ios_purchases_count", 0)),
+        sanitize_csv_cell(onb.get("android_purchases_count", 0)),
+        sanitize_csv_cell(onb.get("ab_a_purchases_count", 0)),
+        sanitize_csv_cell(onb.get("ab_b_purchases_count", 0)),
+        sanitize_csv_cell(onb.get("step9_to_purchase_cvr_pct", "")),
+        sanitize_csv_cell(onb.get("step9_to_purchase_dropoff_count", 0)),
+        sanitize_csv_cell(onb.get("step9_to_purchase_dropoff_pct", "")),
+        sanitize_csv_cell(onb.get("step0_to_purchase_cvr_pct", "")),
+    ])
+    output.seek(0)
+    return StreamingResponse(
+        iter([output.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=misil_baby_10adim_onboarding_hunisi.csv"},
     )
 
 
@@ -10387,6 +10514,72 @@ def analytics_dashboard_page(
     ab_a_act = int(ab_a.get("active_vip_count", 0) or 0)
     ab_b_act = int(ab_b.get("active_vip_count", 0) or 0)
     ab_ann_act = int(ab_ann.get("active_vip_count", 0) or 0)
+    ab_b_is_paused = (int(ab_b.get("paywall_views", 0) or 0) == 0 and ab_b_act == 0 and int(ab_b.get("started_vip_count", 0) or 0) == 0)
+    ab_a_badge_lbl = "paid_intro (%100 Aktif)" if ab_b_is_paused else "paid_intro (%50)"
+    ab_b_badge_lbl = "⏸️ Pasif (Meta Purchase Koruması)" if ab_b_is_paused else "free_trial (%50)"
+
+    # Reklam Harcaması, ROAS, Net Kâr & 500 Anne VIP Kod Özeti Kartı
+    tot_spend_usd = float(s.get("total_all_spend_usd", 0.0) or 0.0)
+    meta_spend_val = float(meta.get("spend_usd", 0.0) or 0.0)
+    asa_spend_val = float((s.get("asa_metrics") or {}).get("spend_usd", 0.0) or 0.0)
+    blended_cpi_val = float(s.get("blended_cpi_usd", 0.0) or 0.0)
+    realized_net_usd_val = float(fl.get("realized_net_proceeds_usd", 0.0) or 0.0)
+    realized_net_try_val = float(fl.get("realized_net_proceeds_try", 0.0) or 0.0)
+    projected_mrr_usd_val = float(fl.get("projected_total_mrr_net_usd", 0.0) or 0.0)
+    if tot_spend_usd > 0:
+        roas_mult = round(realized_net_usd_val / tot_spend_usd, 2)
+        net_profit_usd = round(realized_net_usd_val - tot_spend_usd, 2)
+        roas_badge_txt = f"📈 ROAS: {roas_mult}x • Net: {'+' if net_profit_usd >= 0 else ''}${net_profit_usd:.2f}"
+        roas_badge_col = "#059669" if net_profit_usd >= 0 else "#D97706"
+    else:
+        roas_badge_txt = "⚙️ Reklam Harcaması Girilmedi ($0.00)"
+        roas_badge_col = "var(--text-secondary)"
+
+    ad_spend_roas_card_html = f"""
+          <div class="bento-card tab2-sec tab2-sec-overview" id="adSpendRoasConfigCard" style="margin-bottom:14px;">
+            <div class="section-head">
+              <span>🎯 Reklam Harcaması, ROAS &amp; VIP Kod Özeti</span>
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <span class="badge" id="roasStatusBadge" style="background:rgba(16,185,129,0.14); color:{roas_badge_col};">{roas_badge_txt}</span>
+                <span class="badge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">🎟️ Aktif Kodlu VIP: {offer_code_subs} ({html.escape(offer_code_name)})</span>
+                <button type="button" class="collapse-btn" id="btnToggleCampaignConfig" onclick="toggleDetailWrap('campaignConfigFormWrap', 'btnToggleCampaignConfig')">⚙️ Harcama Güncelle ▼</button>
+              </div>
+            </div>
+            <div class="kpi-micro-meta" style="margin-bottom:4px;">
+              <span class="kpi-micro-chip">📲 Meta Harcama: ${meta_spend_val:.2f}</span>
+              <span class="kpi-micro-chip">🔍 Apple ASA: ${asa_spend_val:.2f}</span>
+              <span class="kpi-micro-chip">💵 Toplam Harcama: ${tot_spend_usd:.2f} (CPI: ${blended_cpi_val:.2f})</span>
+              <span class="kpi-micro-chip">💰 Tahsil Edilen Net: {realized_net_try_val:.2f} ₺ (${realized_net_usd_val:.2f})</span>
+              <span class="kpi-micro-chip">🚀 Aylık Net MRR: ${projected_mrr_usd_val:.2f}/Ay</span>
+            </div>
+            <div id="campaignConfigFormWrap" style="display:none; margin-top:10px; padding-top:10px; border-top:1px solid var(--border-subtle);">
+              <form method="POST" action="/api/v1/analytics/campaign-config" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(135px, 1fr)); gap:8px; align-items:end;">
+                <div>
+                  <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); margin-bottom:4px;">Kanal</label>
+                  <select name="channel_key" style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); font-size:12px;">
+                    <option value="meta_ads">📲 Meta Ads (iOS + Android)</option>
+                    <option value="asa_search">🔍 Apple Search Ads (ASA)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); margin-bottom:4px;">Harcama (USD $)</label>
+                  <input type="number" step="0.01" min="0" name="spend_usd" value="{meta_spend_val:.2f}" style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); font-size:12px;" />
+                </div>
+                <div>
+                  <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); margin-bottom:4px;">Raporlanan Tık</label>
+                  <input type="number" min="0" name="reported_clicks" value="{int(meta.get('unique_clicks', 0) or 0)}" style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); font-size:12px;" />
+                </div>
+                <div>
+                  <label style="display:block; font-size:11px; font-weight:700; color:var(--text-secondary); margin-bottom:4px;">Raporlanan Kurulum</label>
+                  <input type="number" min="0" name="reported_installs" value="{int(meta.get('installs', 0) or 0)}" style="width:100%; padding:7px 9px; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); font-size:12px;" />
+                </div>
+                <div>
+                  <button type="submit" class="subcat-pill active" style="width:100%; padding:8px 12px; font-size:12px; justify-content:center;">💾 Kaydet &amp; ROAS Hesapla</button>
+                </div>
+              </form>
+            </div>
+          </div>
+    """
 
     ab_experiment_html = f"""
           <div class="bento-card tab2-sec tab2-sec-ab" id="abExperimentCommandCard" style="margin-bottom:14px; border-left:4px solid #7C3AED;">
@@ -10411,7 +10604,7 @@ def analytics_dashboard_page(
               <div class="step-box" id="abCardGroupA" style="border-left:4px solid #D97706;">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px;">
                   <div class="step-num" style="color:#D97706; margin-bottom:0;">🔥 GRUP A • İLK AY %67 İNDİRİM</div>
-                  <span class="badge" style="background:rgba(217,119,6,0.15); color:#D97706; font-size:10.5px;">paid_intro (%50)</span>
+                  <span class="badge" style="background:rgba(217,119,6,0.15); color:#D97706; font-size:10.5px;">{ab_a_badge_lbl}</span>
                 </div>
                 <div class="step-val" style="color:#D97706;" id="abGroupAActiveVal">{ab_a_act} Aktif VIP <span style="font-size:13px; color:var(--text-muted);">({int(ab_a.get('started_vip_count', 0) or 0)} Başlayan)</span></div>
                 <div class="kpi-micro-meta" style="margin:6px 0;" id="abGroupAMeta">
@@ -10428,7 +10621,7 @@ def analytics_dashboard_page(
               <div class="step-box" id="abCardGroupB" style="border-left:4px solid #059669;">
                 <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; margin-bottom:4px;">
                   <div class="step-num" style="color:#059669; margin-bottom:0;">🎁 GRUP B • İLK AY ÜCRETSİZ (30G)</div>
-                  <span class="badge" style="background:rgba(16,185,129,0.15); color:#059669; font-size:10.5px;">free_trial (%50)</span>
+                  <span class="badge" style="background:rgba(16,185,129,0.15); color:#059669; font-size:10.5px;">{ab_b_badge_lbl}</span>
                 </div>
                 <div class="step-val" style="color:#059669;" id="abGroupBActiveVal">{ab_b_act} Aktif VIP <span style="font-size:13px; color:var(--text-muted);">({int(ab_b.get('started_vip_count', 0) or 0)} Başlayan)</span></div>
                 <div class="kpi-micro-meta" style="margin:6px 0;" id="abGroupBMeta">
@@ -12468,6 +12661,7 @@ def analytics_dashboard_page(
                 </div>
                 <div class="mobile-header-quick-actions">
                   <span class="mobile-brand-mrr-pill" id="mobileHeaderMrrBadge" title="Aktif VIP & Beklenen Net MRR">👑 {f_vip} VIP • {fl['projected_total_mrr_net_try']:.0f} ₺</span>
+                  <a href="/api/v1/analytics/dashboard?sync=1" class="mobile-icon-btn" id="mobileSyncBtn" title="Mağaza Verilerini Senkronla">🔄</a>
                   <button type="button" class="mobile-icon-btn" onclick="toggleTheme()" title="Gündüz / Gece Teması">🌓</button>
                   <a href="/api/v1/analytics/export.csv" class="mobile-icon-btn" title="CSV İndir">📥</a>
                 </div>
@@ -12526,7 +12720,8 @@ def analytics_dashboard_page(
               <div class="sidebar-actions-grid">
                 <button type="button" class="btn" onclick="toggleTheme()" id="themeToggleBtn" title="Gündüz / Gece Teması">☀️ / 🌙 Tema</button>
                 <button type="button" class="btn" onclick="togglePresentationMode()" id="presModeBtn" title="Sunum Modu">📽️ Sunum</button>
-                <a href="/api/v1/analytics/export.csv" class="btn" style="grid-column: 1 / -1;">📥 CSV İndir</a>
+                <a href="/api/v1/analytics/dashboard?sync=1" class="btn" id="sidebarSyncBtn" title="Apple & Google Play Resmi Mağaza Verilerini Senkronla">🔄 Senkronla</a>
+                <a href="/api/v1/analytics/export.csv" class="btn" title="Trafik CSV İndir">📥 CSV İndir</a>
               </div>
             </div>
           </aside>
@@ -13066,11 +13261,14 @@ def analytics_dashboard_page(
             </div>
           </div>
 
+          {ad_spend_roas_card_html}
+
           <div class="bento-card tab2-sec tab2-sec-ledger" id="appleLedgerCard">
             <div class="section-head">
               <span id="ledgerHeadSpan">📒 Abone Defteri ({f_vip} Aktif • {fl.get('cancelled_subs_count', 0)} İptal / %{fl.get('churn_rate_pct', 0.0)} Churn • Toplam {len(sub_ledger)} Kayıt)</span>
               <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <input type="search" id="appleLedgerSearchInput" class="table-search-input" placeholder="🔍 Abone ID, ülke, paket ara..." oninput="filterTableByQuery(this, 'appleLedgerTbody')" />
+                <a href="/api/v1/analytics/export-ledger.csv" class="btn" id="btnExportLedgerCsv" style="padding:5px 10px; font-size:11px;">📥 Defter CSV</a>
                 <button type="button" class="collapse-btn" id="btnToggleAppleLedger" onclick="toggleDetailWrap('appleLedgerTableWrap', 'btnToggleAppleLedger')">▲ Gizle</button>
               </div>
             </div>
@@ -13117,13 +13315,14 @@ def analytics_dashboard_page(
                 <span class="badge" id="onbFunnelCompletionBadge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">🏁 0➔9: {html.escape(onb_comp_str)}</span>
                 <span class="badge" id="onbFunnelPurchasesBadge" style="background:rgba(16,185,129,0.16); color:#059669;">{html.escape(onb_purchases_badge_str)}</span>
                 <span class="badge" id="onbFunnelDropoffBadge" style="background:rgba(217,119,6,0.14); color:#D97706;">{html.escape(onb_drop_badge_str)}</span>
+                <a href="/api/v1/analytics/export-onboarding.csv" class="btn" id="btnExportOnboardingCsv" style="padding:4px 10px; font-size:11px;">📥 Onboarding CSV</a>
               </div>
             </div>
             <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap; margin-bottom:10px;">
               <div class="period-pills" id="onbAbCohortPills">
                 <button type="button" class="period-pill active" id="onbCohortBtn_all" onclick="switchOnboardingAbCohort('all')">🌐 Kümülatif ({onb_total_devs} Cihaz)</button>
                 <button type="button" class="period-pill" id="onbCohortBtn_group_a" onclick="switchOnboardingAbCohort('group_a')">🔥 A Grubu: İlk Ay ₺49,99 ({onb_ga_total_devs} Cihaz • 💳 {onb_purch_a})</button>
-                <button type="button" class="period-pill" id="onbCohortBtn_group_b" onclick="switchOnboardingAbCohort('group_b')">🎁 B Grubu: 30G Ücretsiz ({onb_gb_total_devs} Cihaz • 💳 {onb_purch_b})</button>
+                <button type="button" class="period-pill" id="onbCohortBtn_group_b" onclick="switchOnboardingAbCohort('group_b')">🎁 B Grubu: 30G Ücretsiz{' [⏸️ Pasif]' if (onb_gb_total_devs == 0 and onb_purch_b == 0) else ''} ({onb_gb_total_devs} Cihaz • 💳 {onb_purch_b})</button>
               </div>
               <div class="kpi-micro-meta" id="onbFunnelContinuationMeta" style="margin:0;">
                 <span class="kpi-micro-chip">🚀 Açılış: {int(onb_f.get('first_open_unique_devices', 0) or 0)}</span>
@@ -13218,15 +13417,22 @@ def analytics_dashboard_page(
                 <div class="step-box">
                   <div class="step-num" style="color:var(--stage-5);">2. ÖDEME İPTALİ &amp; KURTARMA</div>
                   <div class="step-val">{pf['paywall_funnel']['purchase_cancelled']} (%{pf['paywall_funnel']['cancel_rate_pct']})</div>
-                  <div class="step-sub">🍏 iOS: <strong>{pf['paywall_funnel']['ios']['purchase_cancelled']}/{pf['paywall_funnel']['ios']['paywall_cta_clicked']}</strong> • 🤖 Android: <strong>{pf['paywall_funnel']['android']['purchase_cancelled']}/{pf['paywall_funnel']['android']['paywall_cta_clicked']}</strong> • Kurtarma Gösterimi: <strong>{pf['paywall_funnel']['paywall_cancel_recovery_shown']}</strong> (Kurtarma CTA: <strong>{pf['paywall_funnel'].get('paywall_cancel_recovery_cta_clicked', 0)}</strong>).</div>
-                  <span class="step-rate">🍏 {pf['paywall_funnel']['ios']['purchase_cancelled']} İptal • 🤖 {pf['paywall_funnel']['android']['purchase_cancelled']} İptal</span>
+                  <div class="step-sub">🍏 iOS: <strong>{pf['paywall_funnel']['ios']['purchase_cancelled']}/{pf['paywall_funnel']['ios']['paywall_cta_clicked']}</strong> • 🤖 Android: <strong>{pf['paywall_funnel']['android']['purchase_cancelled']}/{pf['paywall_funnel']['android']['paywall_cta_clicked']}</strong> • Teknik Hata: <strong>{pf['paywall_funnel'].get('purchase_error', 0)}</strong> • Kurtarma Gösterimi: <strong>{pf['paywall_funnel']['paywall_cancel_recovery_shown']}</strong> (Kurtarma CTA: <strong>{pf['paywall_funnel'].get('paywall_cancel_recovery_cta_clicked', 0)}</strong>).</div>
+                  <span class="step-rate">🍏 {pf['paywall_funnel']['ios']['purchase_cancelled']} İptal • 🤖 {pf['paywall_funnel']['android']['purchase_cancelled']} İptal • ⚠️ {pf['paywall_funnel'].get('purchase_error', 0)} Hata</span>
                 </div>
               </div>
             </div>
 
             <div class="bento-card">
               <div class="section-head">
-                <span>🍼 Modül Aktivitesi</span>
+                <span>🍼 Modül Aktivitesi &amp; Bebek Yaş Dağılımı</span>
+                <span class="badge" style="background:rgba(124,58,237,0.14); color:#7C3AED;">👶 {pr['babies_count']} Kayıtlı Bebek</span>
+              </div>
+              <div class="kpi-micro-meta" id="babyAgeDistributionChips" style="margin-bottom:10px;">
+                <span class="kpi-micro-chip">👶 0–3 Ay: {(pr.get('age_buckets') or {}).get('0–3 Ay (Yenidoğan / 4. Trimester)', 0)}</span>
+                <span class="kpi-micro-chip">🍼 4–6 Ay: {(pr.get('age_buckets') or {}).get('4–6 Ay (Uyku Gerilemesi)', 0)}</span>
+                <span class="kpi-micro-chip">🌙 7–12 Ay: {(pr.get('age_buckets') or {}).get('7–12 Ay', 0)}</span>
+                <span class="kpi-micro-chip">🧸 12+ Ay: {(pr.get('age_buckets') or {}).get('12+ Ay', 0)}</span>
               </div>
               <div class="steps-grid">
                 <div class="step-box">
