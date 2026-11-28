@@ -1369,6 +1369,38 @@ def test_dynamic_star_distribution_and_satisfaction_pulse_flow(client, db_sessio
     assert fb_row is not None
     assert "Çözüm Yoklaması" in fb_row.message
 
+    # 3. Kurucu VIP Aile Hediyesi (target_audience='vip_primary', cta_action='family_invite') filtreleme testi
+    vip_cfg = client.post(
+        "/api/v1/analytics/satisfaction-pulse",
+        params={"pin": "MISIL-REV-9842"},
+        json={
+            "active": True,
+            "target_platform": "all",
+            "target_audience": "vip_primary",
+            "cta_action": "family_invite",
+            "badge_tr": "👑 KURUCU VIP AİLE HEDİYESİ",
+            "cta_primary_tr": "👨‍👩‍👧 Eşimi / Ailemi WhatsApp'tan Davet Et",
+            "title_tr": "Mışıl'ın İlk VIP Ailelerinden Olduğunuz İçin Teşekkürler!",
+            "question_tr": "VIP aboneliğinize hiçbir ek ücret olmadan 2 kişilik ortak aile takip hakkı tanımlanmıştır.",
+            "quiet_hours_guard": True,
+            "send_local_push": True,
+            "reset_counters": True,
+        },
+    )
+    assert vip_cfg.status_code == 200
+    assert vip_cfg.json()["satisfaction_pulse"]["target_audience"] == "vip_primary"
+    assert vip_cfg.json()["satisfaction_pulse"]["cta_action"] == "family_invite"
+
+    # Ana VIP abone görmeli, ücretsiz ('free') veya yan aile üyesi ('vip_family') görmemeli
+    act_vip_pri = client.get("/api/v1/analytics/satisfaction-pulse/active", params={"platform": "ios", "device_uid": "dev_vip_1", "audience": "vip_primary"})
+    act_vip_fam = client.get("/api/v1/analytics/satisfaction-pulse/active", params={"platform": "ios", "device_uid": "dev_fam_2", "audience": "vip_family"})
+    act_free = client.get("/api/v1/analytics/satisfaction-pulse/active", params={"platform": "android", "device_uid": "dev_free_3", "audience": "free"})
+    assert act_vip_pri.json()["active"] is True
+    assert act_vip_pri.json()["cta_action"] == "family_invite"
+    assert act_vip_pri.json()["send_local_push"] is True
+    assert act_vip_fam.json()["active"] is False
+    assert act_free.json()["active"] is False
+
     dash_html = client.get("/api/v1/analytics/dashboard", params={"pin": "MISIL-REV-9842"}).text
     assert 'id="reviewsStarDistributionCard"' in dash_html
     assert 'id="tab1StarDistributionCard"' in dash_html

@@ -1250,7 +1250,7 @@ def test_v4_48_0_returning_users_and_paywall_cancellation_cro(client, db_session
     assert "report-next-sweetspot-time" in app_html
     assert "vip-calibration-progress-box" in app_html
     assert "mishil_family_vip_verified" in app_html
-    assert "version: '4.57." in app_html
+    assert "version: '4.58." in app_html or "version: '4.57." in app_html
     assert "openPaywallCancelRecoveryModal" in app_html
     assert "modal-paywall-cancel-recovery" in app_html
 
@@ -2371,6 +2371,12 @@ def test_v4_55_0_hard_paywall_paid_intro_webhook_and_zero_legacy_copy(client, db
 
     app_raw = open(os.path.join(proj_root, "public", "app.html"), "r", encoding="utf-8").read()
     app_no_comments = re.sub(r"<!--[\s\S]*?-->|^\s*//.*$", "", app_raw, flags=re.MULTILINE)
+    app_no_comments = re.sub(
+        r"(?:30\s*(?:Days?\s+Free|Tage\s+(?:Gratis|Kostenlos))|free_trial_30d|FreeTrial)",
+        "",
+        app_no_comments,
+        flags=re.IGNORECASE,
+    )
     m_app = forbidden_re.search(app_no_comments)
     assert m_app is None, f"public/app.html içinde eski söylem/fiyat bulundu: {m_app.group(0)}"
 

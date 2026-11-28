@@ -2,6 +2,18 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.58.12-math-simplification-and-cockpit-preview-pulse-center] - 2026-11-28 (Yerel Doğrulama — `repairCorruptedRoutineTimestamps`, `calculateMışılSpot`, `saveLiveSleepStartEdit` ve `renderHomeTodayTimeline` Zaman/Uyku Matematiği Sadeleştirmesi + Kurucu Kokpiti (`/admin/analytics`) Canlı iPhone Önizlemeli Pop-up & Push Bildirim Gönderim Merkezi • 🟢 Yeni Native EAS Build Gerekmez)
+### 🧮🔔 Zaman/Uyku Kilitlerinin Saf Matematikle Sadeleştirilmesi & Kokpit Önizlemeli Pop-up + Bildirim Merkezi (`public/app.html`, `app/api/v1/endpoints/analytics.py`, `mobile/features/webview/offlineHtml.generated.ts`, `tests/test_analytics_cockpit_resilience.py`)
+1. **3'lü Gerçek CLI Konsensüsü & Sıfır-Regresyon Denetimi (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-1043` & `task-1074`)** ve **Codex CLI (`task-1044` & `task-1077` — `gpt-6-luna`)** gerçek terminal çıktılarıyla mevcut 86 Jest ve 76 Pytest kontratı üzerinden doğrulandı.
+2. **Öncelik 1 — `public/app.html` Zaman & Uyku Matematiği Sadeleştirmesi (~110 Satır Dallanmış Kilit/Yama Temizliği):**
+   - **`repairCorruptedRoutineTimestamps`:** Saatler uyuştuğu halde sırf `actualEndTs > idCreatedMs` diye geçerli kayıtları bozma riski taşıyan `uneditedFutureJump` ve karmaşık `explicitStart` dallanması kaldırıldı; yalnızca gerçek `clockMismatch` durumunda `candStart = candEnd - durMins * 60000` saf matematiği bırakıldı.
+   - **`calculateMışılSpot`:** `sleepLogs[0]` ve `mishil_onboarding_last_wake_ts` için iki kez kopyalanmış 45'er satırlık blok tek `validWakeTs` kaynağında birleştirildi (~45 satır mükerrer kod silindi).
+   - **`saveLiveSleepStartEdit`:** Keyfi `12 * 3600000` saat farkı yaması kaldırılarak şu anki takvim gününe (`nowDt`) göre gelecekte kalan başlangıç saatini 1 gün geri alan saf kurala indirgendi.
+   - **`renderHomeTodayTimeline` & Yedek Tarih Temizliği:** `3.5s Gündüz Hedefi` ilerleme çubuğunun gece uykularıyla (`sleepKind === 'night'` / `>= 240 dk`) şişirilmesi önlenerek yalnızca gündüz şekerlemelerini toplaması sağlandı; `'2026-04-11'` sabit tarih yedekleri dinamik `getLocalDateIsoString(new Date())` ile değiştirildi.
+3. **Öncelik 2 — Kurucu Kokpiti (`/admin/analytics` Sekme 4) Canlı Önizlemeli Pop-up & Push Bildirim Merkezi:**
+   - Her kampanya için `app.html` içine yeni modal/kilit kodu gömmek yerine, `/api/v1/analytics/satisfaction-pulse` altyapısı **3 Hazır Şablon** (`👑 Kurucu VIP Aile Hediyesi`, `🔔 Çözüm & Memnuniyet Yoklaması`, `✨ Yeni Özellik Duyurusu`), **Hedef Kitle Filtresi** (`vip_primary`, `free_only`, `all`), **Aksiyon Tipi** (`family_invite`, `satisfaction_vote`, `dismiss_only`), **Gece & Ses Kalkanı (`08:00–21:00`)**, **Yerel Push Bildirimi (`send_local_push`)** ve **Canlı iPhone Önizleme Maketi (`#livePulsePhonePreview`)** ile yükseltildi.
+
 ## [4.58.11-pure-sleep-timestamp-resolver-and-pulse-dedup] - 2026-11-28 (Railway Canlı Yayın — `resolveSleepTimestamps` & `resolveModalEventDate` İçindeki 50 Satırlık `clampedEnd` Saat Değiştirme ve Bitiş Gününe Çapalama Yamalarının Silinip 15 Satırlık Saf Matematiksel Başlangıç Günü Çapasına İndirgenmesi, `"Dün"` Gece Uykusu (`21:30 ➔ 07:00`) 2 Gün Önceye Kayma Hatasının Giderilmesi ve Çözüm Yoklaması `Feedback` Tekilleştirmesi • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🌙⏱️ Uyku & Uyanma Saatleri Çözümleyicisi (`resolveSleepTimestamps`) Sıfır-Kilit Mimari Sadeleştirmesi (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`, `mobile/tests/onboardingPlanBuilder.test.ts`, `app/api/v1/endpoints/analytics.py`)
 1. **3'lü Gerçek CLI Konsensüsü (`AGENTS.md §5.1–§5.2`):**

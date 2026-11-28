@@ -5568,9 +5568,9 @@ def _build_analytics_summary(
             lifecycle_stage = "paid_active"
             if r.offer_type == "intro_1m_discounted":
                 lifecycle_badge = (
-                    "🔥 Grup A • İlk Ay 49.99 ₺ Aktif"
+                    "🔥 Grup A • İlk Ay 49.99 ₺ (İlk Ay İndirimli Aktif)"
                     if r.auto_renew_enabled
-                    else "🔥 Grup A • İlk Ay 49.99 ₺ (Yenileme Kapalı)"
+                    else "🔥 Grup A • İlk Ay 49.99 ₺ • İlk Ay İndirimli (Yenileme Kapalı)"
                 )
             elif _is_annual_product(r.product_id):
                 lifecycle_badge = "👑 Yıllık VIP Aktif" if r.auto_renew_enabled else "👑 Yıllık VIP (Yenileme Kapalı)"
@@ -7249,6 +7249,12 @@ def _build_analytics_summary(
         "pulse_id": str(raw_pulse_snap.get("pulse_id") or ""),
         "active": bool(raw_pulse_snap.get("active", False)),
         "target_platform": str(raw_pulse_snap.get("target_platform") or "ios"),
+        "target_audience": str(raw_pulse_snap.get("target_audience") or "all"),
+        "cta_action": str(raw_pulse_snap.get("cta_action") or "satisfaction_vote"),
+        "badge_tr": str(raw_pulse_snap.get("badge_tr") or "🔔 MIŞIL DUYURU"),
+        "cta_primary_tr": str(raw_pulse_snap.get("cta_primary_tr") or ""),
+        "send_local_push": bool(raw_pulse_snap.get("send_local_push", False)),
+        "quiet_hours_guard": bool(raw_pulse_snap.get("quiet_hours_guard", True)),
         "topic_key": str(raw_pulse_snap.get("topic_key") or "sleep_save_fix"),
         "title_tr": str(raw_pulse_snap.get("title_tr") or "Uyku ve uyanma saatleri kaydı iyileştirildi"),
         "question_tr": str(raw_pulse_snap.get("question_tr") or "Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?"),
@@ -8821,9 +8827,15 @@ async def reply_to_store_review(
 class SatisfactionPulseConfigPayload(BaseModel):
     active: bool = Field(default=True)
     target_platform: str = Field(default="ios", max_length=32)  # 'ios', 'android', 'all'
+    target_audience: str = Field(default="all", max_length=32)  # 'all', 'vip_primary', 'free_only'
+    cta_action: str = Field(default="satisfaction_vote", max_length=32)  # 'satisfaction_vote', 'family_invite', 'dismiss_only'
+    badge_tr: Optional[str] = Field(default="🔔 MIŞIL DUYURU", max_length=80)
+    cta_primary_tr: Optional[str] = Field(default="", max_length=120)
+    send_local_push: bool = Field(default=False)
+    quiet_hours_guard: bool = Field(default=True)
     topic_key: str = Field(default="sleep_save_fix", max_length=64)
     title_tr: str = Field(default="Uyku ve uyanma saatleri kaydı iyileştirildi", max_length=160)
-    question_tr: str = Field(default="Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?", max_length=240)
+    question_tr: str = Field(default="Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?", max_length=320)
     reference_author: Optional[str] = Field(default="", max_length=100)
     reference_review_id: Optional[str] = Field(default="", max_length=160)
     reset_counters: bool = Field(default=False)
@@ -8834,7 +8846,7 @@ class SatisfactionPulseResponsePayload(BaseModel):
     device_uid: str = Field(..., min_length=3, max_length=120)
     outcome: str = Field(..., max_length=32)  # 'shown', 'satisfied', 'issue_persists'
     platform: Optional[str] = Field(default="ios", max_length=32)
-    app_version: Optional[str] = Field(default="4.58.11", max_length=32)
+    app_version: Optional[str] = Field(default="4.58.12", max_length=32)
     note: Optional[str] = Field(default="", max_length=500)
 
 
@@ -8847,8 +8859,8 @@ def configure_satisfaction_pulse(
     db: Session = Depends(get_db),
 ):
     """
-    Kurucu Kokpiti (Sekme 4) üzerinden düşük puan veren (örn. Rabia Özcan Kahya — uyku saatleri kaydı)
-    veya sorun yaşayan kullanıcılara uygulama içi + yerel bildirim memnuniyet yoklaması başlatır/durdurur.
+    Kurucu Kokpiti (Sekme 4) üzerinden hedef kitleye ('all', 'vip_primary', 'free_only') ve aksiyona
+    ('satisfaction_vote', 'family_invite', 'dismiss_only') göre önizlemeli pop-up + yerel bildirim başlatır/durdurur.
     """
     if not authorize_admin_request(request, pin, x_admin_pin, request.cookies.get(_ADMIN_SESSION_COOKIE)):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Geçersiz veya eksik Yönetici PIN kodu.")
@@ -8856,6 +8868,16 @@ def configure_satisfaction_pulse(
     clean_plat = (payload.target_platform or "ios").strip().lower()
     if clean_plat not in ("ios", "android", "all"):
         clean_plat = "ios"
+
+    clean_aud = (payload.target_audience or "all").strip().lower()
+    if clean_aud not in ("all", "vip_primary", "free_only"):
+        clean_aud = "all"
+
+    clean_cta = (payload.cta_action or "satisfaction_vote").strip().lower()
+    if clean_cta not in ("satisfaction_vote", "family_invite", "dismiss_only"):
+        clean_cta = "satisfaction_vote"
+    if clean_cta == "family_invite":
+        clean_aud = "vip_primary"
 
     tz_tr = timezone(timedelta(hours=3))
     now_tr_str = datetime.now(tz_tr).strftime("%d.%m.%Y %H:%M")
@@ -8870,28 +8892,49 @@ def configure_satisfaction_pulse(
         if (st_row and isinstance(st_row.snapshot_json, dict))
         else {}
     )
-    is_new_campaign = bool(payload.reset_counters or not prev_snap.get("pulse_id") or (payload.active and not prev_snap.get("active")))
+    clean_badge = (payload.badge_tr or ("👑 KURUCU VIP AİLE HEDİYESİ" if clean_cta == "family_invite" else "🔔 MIŞIL DUYURU")).strip()
+    clean_pri = (payload.cta_primary_tr or "").strip()
+    is_new_campaign = bool(
+        payload.reset_counters
+        or not prev_snap.get("pulse_id")
+        or (payload.active and not prev_snap.get("active"))
+        or (payload.active and str(prev_snap.get("cta_action") or "") != clean_cta)
+        or (payload.active and str(prev_snap.get("target_audience") or "") != clean_aud)
+        or (payload.active and str(prev_snap.get("target_platform") or "") != clean_plat)
+        or (payload.active and str(prev_snap.get("badge_tr") or "") != clean_badge)
+        or (payload.active and str(prev_snap.get("cta_primary_tr") or "") != clean_pri)
+        or (payload.active and bool(prev_snap.get("send_local_push", False)) != bool(payload.send_local_push))
+        or (payload.active and bool(prev_snap.get("quiet_hours_guard", True)) != bool(payload.quiet_hours_guard))
+        or (payload.active and str(prev_snap.get("title_tr") or "") != (payload.title_tr or "").strip())
+        or (payload.active and str(prev_snap.get("question_tr") or "") != (payload.question_tr or "").strip())
+    )
     pulse_id = (
-        f"pulse_{int(time.time())}"
+        f"pulse_{int(time.time() * 1000)}"
         if is_new_campaign
-        else str(prev_snap.get("pulse_id") or f"pulse_{int(time.time())}")
+        else str(prev_snap.get("pulse_id") or f"pulse_{int(time.time() * 1000)}")
     )
 
     new_snap = {
         "pulse_id": pulse_id,
         "active": bool(payload.active),
         "target_platform": clean_plat,
+        "target_audience": clean_aud,
+        "cta_action": clean_cta,
+        "badge_tr": clean_badge,
+        "cta_primary_tr": clean_pri,
+        "send_local_push": bool(payload.send_local_push),
+        "quiet_hours_guard": bool(payload.quiet_hours_guard),
         "topic_key": (payload.topic_key or "sleep_save_fix").strip(),
         "title_tr": (payload.title_tr or "Uyku ve uyanma saatleri kaydı iyileştirildi").strip(),
         "question_tr": (payload.question_tr or "Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?").strip(),
         "reference_author": (payload.reference_author or "").strip(),
         "reference_review_id": (payload.reference_review_id or "").strip(),
         "triggered_at": now_tr_str if payload.active else str(prev_snap.get("triggered_at") or now_tr_str),
-        "shown_count": 0 if payload.reset_counters else int(prev_snap.get("shown_count", 0) or 0),
-        "satisfied_count": 0 if payload.reset_counters else int(prev_snap.get("satisfied_count", 0) or 0),
-        "issue_persists_count": 0 if payload.reset_counters else int(prev_snap.get("issue_persists_count", 0) or 0),
-        "shown_devices": [] if payload.reset_counters else list(prev_snap.get("shown_devices") or [])[-500:],
-        "responded_devices": [] if payload.reset_counters else list(prev_snap.get("responded_devices") or [])[-500:],
+        "shown_count": 0 if is_new_campaign else int(prev_snap.get("shown_count", 0) or 0),
+        "satisfied_count": 0 if is_new_campaign else int(prev_snap.get("satisfied_count", 0) or 0),
+        "issue_persists_count": 0 if is_new_campaign else int(prev_snap.get("issue_persists_count", 0) or 0),
+        "shown_devices": [] if is_new_campaign else list(prev_snap.get("shown_devices") or [])[-500:],
+        "responded_devices": [] if is_new_campaign else list(prev_snap.get("responded_devices") or [])[-500:],
     }
 
     if st_row:
@@ -8917,9 +8960,10 @@ def configure_satisfaction_pulse(
 def get_active_satisfaction_pulse(
     platform: Optional[str] = Query("ios"),
     device_uid: Optional[str] = Query(None),
+    audience: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    """Mobil uygulama / WebView açılışında aktif bir memnuniyet & çözüm yoklaması olup olmadığını döner."""
+    """Mobil uygulama / WebView açılışında aktif bir pop-up kampanyası veya memnuniyet yoklaması olup olmadığını döner."""
     st_row = (
         db.query(StoreSyncState)
         .filter(StoreSyncState.state_key == "active_satisfaction_pulse")
@@ -8938,6 +8982,14 @@ def get_active_satisfaction_pulse(
     if tgt_plat in ("ios", "android") and tgt_plat != req_plat:
         return {"active": False}
 
+    tgt_aud = str(snap.get("target_audience") or "all").lower()
+    cta_act = str(snap.get("cta_action") or "satisfaction_vote").lower()
+    req_aud = (audience or "").strip().lower()
+    if (tgt_aud == "vip_primary" or cta_act == "family_invite") and req_aud != "vip_primary":
+        return {"active": False}
+    if tgt_aud == "free_only" and req_aud != "free":
+        return {"active": False}
+
     clean_duid = (device_uid or "").strip()
     responded_list = list(snap.get("responded_devices") or [])
     if clean_duid and clean_duid in responded_list:
@@ -8947,6 +8999,12 @@ def get_active_satisfaction_pulse(
         "active": True,
         "pulse_id": str(snap.get("pulse_id") or ""),
         "target_platform": tgt_plat,
+        "target_audience": tgt_aud,
+        "cta_action": str(snap.get("cta_action") or "satisfaction_vote"),
+        "badge_tr": str(snap.get("badge_tr") or "🔔 MIŞIL DUYURU"),
+        "cta_primary_tr": str(snap.get("cta_primary_tr") or ""),
+        "send_local_push": bool(snap.get("send_local_push", False)),
+        "quiet_hours_guard": bool(snap.get("quiet_hours_guard", True)),
         "topic_key": str(snap.get("topic_key") or "sleep_save_fix"),
         "title_tr": str(snap.get("title_tr") or ""),
         "question_tr": str(snap.get("question_tr") or ""),
@@ -13525,35 +13583,83 @@ def analytics_dashboard_page(
                 <span>💬 Yazılı Mağaza Yorumları ({reviews_total_cnt})</span>
               </div>
 
-              <!-- DÜŞÜK YILDIZ KURTARMA: UYGULAMA İÇİ + YEREL BİLDİRİM MEMNUNİYET & ÇÖZÜM YOKLAMASI -->
+              <!-- KOKPİT ÖNİZLEMELİ UYGULAMA İÇİ POP-UP & YEREL PUSH BİLDİRİM MERKEZİ -->
               <div class="step-box" id="satisfactionPulseCard" style="margin-bottom:12px; border-left:4px solid #F4A261;">
                 <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; flex-wrap:wrap;">
                   <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                    <span style="font-size:11.5px; font-weight:800; color:#F4A261;">🔔 Çözüm &amp; Memnuniyet Yoklaması</span>
+                    <span style="font-size:11.5px; font-weight:800; color:#F4A261;">🔔 Önizlemeli Pop-up &amp; Push Bildirim Merkezi</span>
                     <span class="badge" id="pulseStatusBadge" style="background:{pulse_status_bg}; color:{pulse_status_col}; font-size:10.5px; padding:2px 8px;">{pulse_status_badge}</span>
                   </div>
                   <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                    <span class="kpi-micro-chip" title="Yoklamayı Gören Cihaz">👁️ <strong id="pulseShownCnt">{int(pulse_info.get('shown_count', 0) or 0)}</strong></span>
-                    <span class="kpi-micro-chip" style="color:#059669;" title="Sorun Çözüldü / Memnun (Mağaza Puanına Yönlendirildi)">😍 <strong id="pulseSatisfiedCnt">{int(pulse_info.get('satisfied_count', 0) or 0)}</strong></span>
+                    <span class="kpi-micro-chip" title="Bildirimi Gören Cihaz">👁️ <strong id="pulseShownCnt">{int(pulse_info.get('shown_count', 0) or 0)}</strong></span>
+                    <span class="kpi-micro-chip" style="color:#059669;" title="Olumlu Aksiyon / Davet / Memnun">😍 <strong id="pulseSatisfiedCnt">{int(pulse_info.get('satisfied_count', 0) or 0)}</strong></span>
                     <span class="kpi-micro-chip" onclick="jumpToInAppFeedbacks()" style="color:#DC2626; cursor:pointer;" title="Sorun Devam Ediyor (Kokpite Geri Bildirim Düştü — Mesajlara Git)">💬 <strong id="pulseIssueCnt">{int(pulse_info.get('issue_persists_count', 0) or 0)}</strong></span>
-                    <button type="button" class="collapse-btn" onclick="toggleDetailWrap('pulseConfigDrawer', 'btnTogglePulseDrawer')" id="btnTogglePulseDrawer" style="font-size:11px; padding:3px 9px;">⚙️ Ayarla</button>
+                    <button type="button" class="collapse-btn" onclick="toggleDetailWrap('pulseConfigDrawer', 'btnTogglePulseDrawer'); renderLivePulsePhonePreview();" id="btnTogglePulseDrawer" style="font-size:11px; padding:3px 9px;">⚙️ Tasarla &amp; Gönder</button>
                   </div>
                 </div>
-                <div id="pulseConfigDrawer" style="display:none; margin-top:10px; padding-top:8px; border-top:1px dashed var(--border-subtle);">
-                  <div style="display:grid; grid-template-columns:110px 1fr; gap:6px; margin-bottom:6px;">
-                    <select id="pulseTargetPlat" style="border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:6px 8px; font-size:11.5px;">
-                      <option value="ios" {'selected' if pulse_info.get('target_platform', 'ios') == 'ios' else ''}>🍏 iOS</option>
-                      <option value="android" {'selected' if pulse_info.get('target_platform') == 'android' else ''}>🤖 Android</option>
-                      <option value="all" {'selected' if pulse_info.get('target_platform') == 'all' else ''}>🌐 Tümü</option>
-                    </select>
-                    <input type="text" id="pulseTitleInput" value="{html.escape(str(pulse_info.get('title_tr') or 'Uyku ve uyanma saatleri kaydı iyileştirildi'))}" placeholder="Başlık (Örn: Uyku saatleri kaydı iyileştirildi)" style="border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:6px 10px; font-size:11.5px;" />
+                <div id="pulseConfigDrawer" style="display:none; margin-top:10px; padding-top:10px; border-top:1px dashed var(--border-subtle);">
+                  <!-- 3 HAZIR ŞABLON ÇİPİ -->
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:10px;">
+                    <span style="font-size:10.5px; font-weight:700; color:var(--text-secondary);">⚡ Hazır Şablon:</span>
+                    <button type="button" class="btn" id="btnTplFounderVip" onclick="applyPulseTemplate('founder_vip_family')" style="font-size:10.5px; padding:4px 9px; border-color:rgba(244,162,97,0.5); color:#D97706; font-weight:700;">👑 Kurucu VIP Aile Hediyesi (+2 Ücretsiz Koltuk)</button>
+                    <button type="button" class="btn" id="btnTplSleepFix" onclick="applyPulseTemplate('sleep_save_fix')" style="font-size:10.5px; padding:4px 9px;">🔔 Çözüm &amp; Memnuniyet Yoklaması</button>
+                    <button type="button" class="btn" id="btnTplFeature" onclick="applyPulseTemplate('feature_announce')" style="font-size:10.5px; padding:4px 9px;">✨ Yeni Özellik Duyurusu</button>
                   </div>
-                  <input type="text" id="pulseQuestionInput" value="{html.escape(str(pulse_info.get('question_tr') or 'Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?'))}" placeholder="Kullanıcıya sorulacak soru..." style="width:100%; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:6px 10px; font-size:11.5px; margin-bottom:8px;" />
+
+                  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:6px; margin-bottom:8px;">
+                    <div>
+                      <div style="font-size:10px; font-weight:700; color:var(--text-muted); margin-bottom:2px;">Hedef Kitle</div>
+                      <select id="pulseTargetAudience" onchange="renderLivePulsePhonePreview()" style="width:100%; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:6px 8px; font-size:11.5px;">
+                        <option value="vip_primary" {'selected' if pulse_info.get('target_audience') == 'vip_primary' else ''}>👑 Sadece Aktif Ana VIP Aboneler</option>
+                        <option value="all" {'selected' if pulse_info.get('target_audience', 'all') == 'all' else ''}>🌍 Tüm Kullanıcılar</option>
+                        <option value="free_only" {'selected' if pulse_info.get('target_audience') == 'free_only' else ''}>🆓 Sadece Abone Olmayanlar</option>
+                      </select>
+                    </div>
+                    <div>
+                      <div style="font-size:10px; font-weight:700; color:var(--text-muted); margin-bottom:2px;">Platform</div>
+                      <select id="pulseTargetPlat" onchange="renderLivePulsePhonePreview()" style="width:100%; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:6px 8px; font-size:11.5px;">
+                        <option value="all" {'selected' if pulse_info.get('target_platform') == 'all' else ''}>📱 iOS + Android (Tümü)</option>
+                        <option value="ios" {'selected' if pulse_info.get('target_platform', 'ios') == 'ios' else ''}>🍏 Sadece iOS</option>
+                        <option value="android" {'selected' if pulse_info.get('target_platform') == 'android' else ''}>🤖 Sadece Android</option>
+                      </select>
+                    </div>
+                    <div>
+                      <div style="font-size:10px; font-weight:700; color:var(--text-muted); margin-bottom:2px;">Kart Tipi &amp; Aksiyon</div>
+                      <select id="pulseCtaAction" onchange="renderLivePulsePhonePreview()" style="width:100%; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:6px 8px; font-size:11.5px;">
+                        <option value="family_invite" {'selected' if pulse_info.get('cta_action') == 'family_invite' else ''}>👨‍👩‍👧 6 Haneli Aile Kodu &amp; WhatsApp Davet</option>
+                        <option value="satisfaction_vote" {'selected' if pulse_info.get('cta_action', 'satisfaction_vote') == 'satisfaction_vote' else ''}>🔔 Çözüm Yoklaması (Evet Düzeldi / Sorun Var)</option>
+                        <option value="dismiss_only" {'selected' if pulse_info.get('cta_action') == 'dismiss_only' else ''}>✨ Tek Butonlu Bilgilendirme</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px;">
+                    <input type="text" id="pulseBadgeInput" oninput="renderLivePulsePhonePreview()" value="{html.escape(str(pulse_info.get('badge_tr') or '🔔 MIŞIL DUYURU'))}" placeholder="Üst Rozet (Örn: 👑 KURUCU VIP AİLE HEDİYESİ)" style="border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:6px 10px; font-size:11.5px;" />
+                    <input type="text" id="pulseCtaPrimaryInput" oninput="renderLivePulsePhonePreview()" value="{html.escape(str(pulse_info.get('cta_primary_tr') or ''))}" placeholder="Buton Metni (Boşsa şablona göre otomatik)" style="border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:6px 10px; font-size:11.5px;" />
+                  </div>
+                  <input type="text" id="pulseTitleInput" oninput="renderLivePulsePhonePreview()" value="{html.escape(str(pulse_info.get('title_tr') or 'Uyku ve uyanma saatleri kaydı iyileştirildi'))}" placeholder="Başlık (Örn: Mışıl'ın İlk VIP Ailelerinden Olduğunuz İçin Teşekkürler!)" style="width:100%; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:6px 10px; font-size:11.5px; margin-bottom:6px;" />
+                  <textarea id="pulseQuestionInput" rows="2" oninput="renderLivePulsePhonePreview()" placeholder="Mesaj / Alt açıklama..." style="width:100%; border-radius:8px; border:1px solid var(--border-subtle); background:var(--bg-card); color:var(--text-primary); padding:6px 10px; font-size:11.5px; margin-bottom:8px; font-family:inherit; resize:vertical;">{html.escape(str(pulse_info.get('question_tr') or 'Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?'))}</textarea>
+
+                  <div style="display:flex; align-items:center; gap:14px; flex-wrap:wrap; margin-bottom:10px; font-size:11px; color:var(--text-secondary);">
+                    <label style="display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
+                      <input type="checkbox" id="pulseQuietGuardCheck" {'checked' if pulse_info.get('quiet_hours_guard', True) else ''} onchange="renderLivePulsePhonePreview()" />
+                      <span>🌙 Gece &amp; Ses Kalkanı (Sadece 08:00–21:00 ve ninni/uyku kapalıyken göster)</span>
+                    </label>
+                    <label style="display:inline-flex; align-items:center; gap:5px; cursor:pointer;">
+                      <input type="checkbox" id="pulseLocalPushCheck" {'checked' if pulse_info.get('send_local_push', False) else ''} onchange="renderLivePulsePhonePreview()" />
+                      <span>📲 Yerel Push Bildirimi de Gönder (Native Bildirim Çubuğu)</span>
+                    </label>
+                  </div>
+
+                  <!-- CANLI İPHONE TELEFON ÖNİZLEME MAKETİ -->
+                  <div id="livePulsePhonePreview" style="background:#141218; border:1.5px solid rgba(232,185,117,0.42); border-radius:20px; padding:14px; margin-bottom:10px; color:#FAF5EE;">
+                  </div>
+
                   <input type="hidden" id="pulseRefAuthor" value="{html.escape(str(pulse_info.get('reference_author') or 'Rabia Özcan Kahya'))}" />
                   <input type="hidden" id="pulseRefReviewId" value="{html.escape(str(pulse_info.get('reference_review_id') or ''))}" />
                   <div style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap;">
-                    <button type="button" class="btn" onclick="submitSatisfactionPulseConfig(false)" id="btnStopPulse" style="padding:5px 10px; font-size:11px;">⏹️ Durdur</button>
-                    <button type="button" class="subcat-pill active" onclick="submitSatisfactionPulseConfig(true)" id="btnStartPulse" style="padding:5px 12px; font-size:11px;">🚀 Bildirim &amp; Yoklamayı Başlat</button>
+                    <button type="button" class="btn" onclick="submitSatisfactionPulseConfig(false)" id="btnStopPulse" style="padding:5px 10px; font-size:11px;">⏹️ Durdur (Kimseye Çıkmasın)</button>
+                    <button type="button" class="subcat-pill active" onclick="submitSatisfactionPulseConfig(true)" id="btnStartPulse" style="padding:6px 14px; font-size:11.5px;">🚀 Önizlemedeki Pop-up &amp; Bildirimi Yayına Al (Tek Seferlik)</button>
                   </div>
                 </div>
               </div>
@@ -13916,35 +14022,161 @@ def analytics_dashboard_page(
           }}
         }}
 
+        function escapePulsePreviewHtml(str) {{
+          return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }}
+
+        function applyPulseTemplate(tplKey) {{
+          var audSel = document.getElementById('pulseTargetAudience');
+          var platSel = document.getElementById('pulseTargetPlat');
+          var ctaSel = document.getElementById('pulseCtaAction');
+          var badgeIn = document.getElementById('pulseBadgeInput');
+          var priIn = document.getElementById('pulseCtaPrimaryInput');
+          var titleIn = document.getElementById('pulseTitleInput');
+          var qIn = document.getElementById('pulseQuestionInput');
+          var quietChk = document.getElementById('pulseQuietGuardCheck');
+          if (tplKey === 'founder_vip_family') {{
+            if (audSel) audSel.value = 'vip_primary';
+            if (platSel) platSel.value = 'all';
+            if (ctaSel) ctaSel.value = 'family_invite';
+            if (badgeIn) badgeIn.value = '👑 KURUCU VIP AİLE HEDİYESİ';
+            if (priIn) priIn.value = "👨‍👩‍👧 Eşimi / Ailemi WhatsApp'tan Davet Et";
+            if (titleIn) titleIn.value = "Mışıl'ın İlk VIP Ailelerinden Olduğunuz İçin Teşekkürler!";
+            if (qIn) qIn.value = 'VIP aboneliğinize hiçbir ek ücret olmadan 2 kişilik ortak aile takip hakkı (Eş / Anneanne) tanımlanmıştır.';
+            if (quietChk) quietChk.checked = true;
+          }} else if (tplKey === 'feature_announce') {{
+            if (audSel) audSel.value = 'all';
+            if (platSel) platSel.value = 'all';
+            if (ctaSel) ctaSel.value = 'dismiss_only';
+            if (badgeIn) badgeIn.value = '✨ YENİ SÜRÜM DUYURUSU';
+            if (priIn) priIn.value = '✨ Harika, Keşfet';
+            if (titleIn) titleIn.value = 'Yeni Mışıl Güncellemesi Yayında';
+            if (qIn) qIn.value = 'Bebeğinizin uyku ve rutin takibi için yeni özelliklerimiz eklendi.';
+            if (quietChk) quietChk.checked = true;
+          }} else {{
+            if (audSel) audSel.value = 'all';
+            if (ctaSel) ctaSel.value = 'satisfaction_vote';
+            if (badgeIn) badgeIn.value = '🔔 ÇÖZÜM YOKLAMASI';
+            if (priIn) priIn.value = '😍 Evet, Düzeldi';
+            if (titleIn) titleIn.value = 'Uyku ve uyanma saatleri kaydı iyileştirildi';
+            if (qIn) qIn.value = 'Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?';
+            if (quietChk) quietChk.checked = true;
+          }}
+          renderLivePulsePhonePreview();
+        }}
+
+        function renderLivePulsePhonePreview() {{
+          var host = document.getElementById('livePulsePhonePreview');
+          if (!host) return;
+          var audSel = document.getElementById('pulseTargetAudience');
+          var platSel = document.getElementById('pulseTargetPlat');
+          var ctaSel = document.getElementById('pulseCtaAction');
+          var badgeIn = document.getElementById('pulseBadgeInput');
+          var priIn = document.getElementById('pulseCtaPrimaryInput');
+          var titleIn = document.getElementById('pulseTitleInput');
+          var qIn = document.getElementById('pulseQuestionInput');
+          var quietChk = document.getElementById('pulseQuietGuardCheck');
+          var pushChk = document.getElementById('pulseLocalPushCheck');
+
+          var audVal = audSel ? audSel.value : 'all';
+          var platVal = platSel ? platSel.value : 'ios';
+          var ctaVal = ctaSel ? ctaSel.value : 'satisfaction_vote';
+          var badgeTxt = (badgeIn && badgeIn.value) ? badgeIn.value : (ctaVal === 'family_invite' ? '👑 KURUCU VIP AİLE HEDİYESİ' : '🔔 MIŞIL DUYURU');
+          var titleTxt = (titleIn && titleIn.value) ? titleIn.value : 'Mışıl Bildirimi';
+          var qTxt = (qIn && qIn.value) ? qIn.value : '';
+          var priTxt = (priIn && priIn.value) ? priIn.value : (ctaVal === 'family_invite' ? "👨‍👩‍👧 Eşimi / Ailemi WhatsApp'tan Davet Et" : (ctaVal === 'dismiss_only' ? '✨ Teşekkürler, Anladım' : '😍 Evet, Düzeldi'));
+          var audBadge = audVal === 'vip_primary' ? '👑 Sadece Aktif Ana VIP' : (audVal === 'free_only' ? '🆓 Abone Olmayanlar' : '🌍 Tüm Kullanıcılar');
+          var platBadge = platVal === 'ios' ? '🍏 iOS' : (platVal === 'android' ? '🤖 Android' : '📱 iOS + Android');
+          var guardBadge = (quietChk && quietChk.checked) ? '🌙 08:00–21:00 & Ses Korumalı' : '⚡ Anında Göster';
+          var pushBadge = (pushChk && pushChk.checked) ? ' • 📲 Push Aktif' : '';
+
+          var previewInner = '';
+          if (ctaVal === 'family_invite') {{
+            previewInner =
+              '<div style="max-width:340px; margin:0 auto; background:linear-gradient(165deg,#25202D 0%,#18151F 100%); border:1.5px solid rgba(232,185,117,0.48); border-radius:22px; padding:16px 14px 14px; text-align:center;">' +
+                '<div style="display:inline-block; background:rgba(232,185,117,0.16); border:1px solid rgba(232,185,117,0.45); color:#F3CA8A; font-size:10px; font-weight:800; padding:4px 10px; border-radius:999px; margin-bottom:8px;">' + escapePulsePreviewHtml(badgeTxt) + '</div>' +
+                '<div style="font-size:15px; font-weight:800; color:#FAF5EE; line-height:1.3; margin-bottom:6px;">' + escapePulsePreviewHtml(titleTxt) + '</div>' +
+                '<div style="font-size:11.5px; color:rgba(250,245,238,0.82); line-height:1.45; margin-bottom:10px;">' + escapePulsePreviewHtml(qTxt) + '</div>' +
+                '<div style="background:rgba(255,255,255,0.045); border:1px solid rgba(232,185,117,0.28); border-radius:14px; padding:10px; margin-bottom:10px; text-align:left;">' +
+                  '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">' +
+                    '<span style="font-size:10.5px; font-weight:700; color:#F3CA8A;">✨ Aile Koltuklarınız (1 / 3 Kişi)</span>' +
+                    '<span style="background:rgba(74,222,128,0.16); border:1px solid rgba(74,222,128,0.4); color:#86EFAC; font-size:9.5px; font-weight:800; padding:2px 6px; border-radius:6px;">Üyeliğinize Dahil • ₺0</span>' +
+                  '</div>' +
+                  '<div style="display:flex; justify-content:space-between; align-items:center; background:rgba(15,13,20,0.78); border-radius:9px; padding:6px 10px;">' +
+                    '<span style="font-size:10.5px; color:rgba(250,245,238,0.7);">6 Haneli Aile Kodunuz (Her Cihazın Kendi Kodu):</span>' +
+                    '<strong style="font-size:12px; font-weight:800; color:#F3CA8A; letter-spacing:1px;">[AİLE KODU]</strong>' +
+                  '</div>' +
+                '</div>' +
+                '<div style="width:100%; border-radius:12px; padding:10px; font-size:12px; font-weight:800; background:linear-gradient(135deg,#F3CA8A 0%,#D99B4E 100%); color:#18141E; margin-bottom:6px;">' + escapePulsePreviewHtml(priTxt) + '</div>' +
+                '<div style="font-size:11px; color:rgba(250,245,238,0.65);">Teşekkürler, Daha Sonra ✨</div>' +
+              '</div>';
+          }} else {{
+            var btns = (ctaVal === 'dismiss_only')
+              ? '<div style="width:100%; border-radius:12px; padding:9px; font-size:11.5px; font-weight:800; background:linear-gradient(135deg,#F3CA8A,#D99B4E); color:#18141E; text-align:center;">' + escapePulsePreviewHtml(priTxt) + '</div>'
+              : '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">' +
+                  '<div style="border-radius:12px; padding:8px; font-size:11.5px; font-weight:800; background:linear-gradient(135deg,#74C69D,#40916C); color:#0E1712; text-align:center;">' + escapePulsePreviewHtml(priTxt) + '</div>' +
+                  '<div style="border:1px solid rgba(244,162,97,0.45); border-radius:12px; padding:8px; font-size:11.5px; font-weight:700; background:rgba(255,255,255,0.06); color:#FAF5EE; text-align:center;">💬 Sorun Var</div>' +
+                '</div>';
+            previewInner =
+              '<div style="max-width:340px; margin:0 auto; background:rgba(24,20,36,0.97); border:1.5px solid rgba(244,162,97,0.55); border-radius:18px; padding:12px 14px;">' +
+                '<div style="display:inline-block; background:rgba(244,162,97,0.16); border:1px solid rgba(244,162,97,0.45); color:#F4A261; font-size:9.5px; font-weight:800; padding:3px 9px; border-radius:999px; margin-bottom:6px;">' + escapePulsePreviewHtml(badgeTxt) + '</div>' +
+                '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">' +
+                  '<strong style="font-size:12.5px; color:#F4A261;">🔔 ' + escapePulsePreviewHtml(titleTxt) + '</strong>' +
+                  '<span style="color:#9E94B0; font-size:13px;">✕</span>' +
+                '</div>' +
+                '<div style="font-size:11.5px; color:#E2DAE8; line-height:1.4; margin-bottom:10px;">' + escapePulsePreviewHtml(qTxt) + '</div>' +
+                btns +
+              '</div>';
+          }}
+
+          host.innerHTML =
+            '<div style="display:flex; justify-content:space-between; align-items:center; gap:6px; flex-wrap:wrap; margin-bottom:10px; font-size:10.5px; color:#F3CA8A;">' +
+              '<strong>📱 CANLI TELEFON ÖNİZLEMESİ (Tek Seferlik Gösterim)</strong>' +
+              '<span>' + audBadge + ' • ' + platBadge + ' • ' + guardBadge + pushBadge + '</span>' +
+            '</div>' +
+            previewInner;
+        }}
+
         function prefillAndTriggerPulse(plat, authorName, revId, revTitle) {{
           var drawer = document.getElementById('pulseConfigDrawer');
           var platSel = document.getElementById('pulseTargetPlat');
+          var audSel = document.getElementById('pulseTargetAudience');
+          var ctaSel = document.getElementById('pulseCtaAction');
           var titleIn = document.getElementById('pulseTitleInput');
           var qIn = document.getElementById('pulseQuestionInput');
           var authIn = document.getElementById('pulseRefAuthor');
           var revIn = document.getElementById('pulseRefReviewId');
           if (drawer) drawer.style.display = 'block';
           if (platSel) platSel.value = (plat === 'android' ? 'android' : 'ios');
+          if (audSel) audSel.value = 'all';
+          if (ctaSel) ctaSel.value = 'satisfaction_vote';
           if (authIn) authIn.value = authorName || '';
           if (revIn) revIn.value = revId || '';
           if (titleIn) titleIn.value = 'Uyku ve uyanma saatleri kaydı iyileştirildi';
           if (qIn) qIn.value = 'Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?';
+          renderLivePulsePhonePreview();
           var card = document.getElementById('satisfactionPulseCard');
           if (card && card.scrollIntoView) {{
             try {{ card.scrollIntoView({{ behavior: 'smooth', block: 'center' }}); }} catch (_se) {{ card.scrollIntoView(); }}
           }}
-          submitSatisfactionPulseConfig(true);
         }}
 
         async function submitSatisfactionPulseConfig(isActive) {{
           var platSel = document.getElementById('pulseTargetPlat');
+          var audSel = document.getElementById('pulseTargetAudience');
+          var ctaSel = document.getElementById('pulseCtaAction');
+          var badgeIn = document.getElementById('pulseBadgeInput');
+          var priIn = document.getElementById('pulseCtaPrimaryInput');
           var titleIn = document.getElementById('pulseTitleInput');
           var qIn = document.getElementById('pulseQuestionInput');
+          var quietChk = document.getElementById('pulseQuietGuardCheck');
+          var pushChk = document.getElementById('pulseLocalPushCheck');
           var authIn = document.getElementById('pulseRefAuthor');
           var revIn = document.getElementById('pulseRefReviewId');
           var startBtn = document.getElementById('btnStartPulse');
           if (startBtn) startBtn.disabled = true;
           try {{
+            var ctaVal = ctaSel ? ctaSel.value : 'satisfaction_vote';
             var res = await fetch('/api/v1/analytics/satisfaction-pulse', {{
               method: 'POST',
               headers: {{ 'Content-Type': 'application/json', 'Accept': 'application/json' }},
@@ -13952,12 +14184,18 @@ def analytics_dashboard_page(
               body: JSON.stringify({{
                 active: Boolean(isActive),
                 target_platform: platSel ? platSel.value : 'ios',
-                topic_key: 'sleep_save_fix',
+                target_audience: audSel ? audSel.value : 'all',
+                cta_action: ctaVal,
+                badge_tr: badgeIn ? badgeIn.value : '',
+                cta_primary_tr: priIn ? priIn.value : '',
+                quiet_hours_guard: quietChk ? Boolean(quietChk.checked) : true,
+                send_local_push: pushChk ? Boolean(pushChk.checked) : false,
+                topic_key: ctaVal === 'family_invite' ? 'founder_vip_family' : 'sleep_save_fix',
                 title_tr: titleIn ? titleIn.value : 'Uyku ve uyanma saatleri kaydı iyileştirildi',
                 question_tr: qIn ? qIn.value : 'Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?',
                 reference_author: authIn ? authIn.value : '',
                 reference_review_id: revIn ? revIn.value : '',
-                reset_counters: false
+                reset_counters: Boolean(isActive)
               }})
             }});
             var data = await res.json();

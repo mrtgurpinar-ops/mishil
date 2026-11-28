@@ -9264,7 +9264,7 @@
 
     const _b = getBaby();
     const babyName = _b ? _b.name : (localStorage.getItem('mishil_baby_name') || BABY_FALLBACK_NAME);
-    const birthDate = _b ? _b.bdate : (localStorage.getItem('mishil_baby_bdate') || '2026-04-11');
+    const birthDate = _b ? _b.bdate : (localStorage.getItem('mishil_baby_bdate') || getLocalDateIsoString(clampedAddMonths(new Date(), -3)));
     const userRole = localStorage.getItem('mishil_user_role') || 'mother';
     const userName = localStorage.getItem('mishil_user_name') || (userRole === 'father' ? 'Baba' : 'Anne');
     const manualLeap = localStorage.getItem('mishil_manual_leap') ? parseInt(localStorage.getItem('mishil_manual_leap')) : null;
@@ -14593,7 +14593,7 @@
       const devUid = getOrCreateMishilDeviceUid();
       const _b = typeof getBaby === 'function' ? getBaby() : null;
       const effBabyName = babyName || (_b && _b.name) || localStorage.getItem('mishil_baby_name') || getDefaultBabyName();
-      const effBirthDate = (birthDate || (_b && _b.bdate) || localStorage.getItem('mishil_baby_bdate') || '2026-04-11').slice(0, 10);
+      const effBirthDate = (birthDate || (_b && _b.bdate) || localStorage.getItem('mishil_baby_bdate') || getLocalDateIsoString(clampedAddMonths(new Date(), -3))).slice(0, 10);
       const effRole = creatorRole || localStorage.getItem('mishil_user_role') || 'mother';
       const effName = creatorName || localStorage.getItem('mishil_user_name') || getDefaultParentRoleName(effRole);
       const isVipNow = typeof isPaidOrVerifiedVip === 'function' ? isPaidOrVerifiedVip() : (localStorage.getItem('mishil_subscription_active') === 'true');
@@ -18768,102 +18768,65 @@
       ? activeRoutines.filter(r => r.type === 'sleep' && (r.endTs || r.timestamp)).sort((a, b) => (b.endTs || b.timestamp || 0) - (a.endTs || a.timestamp || 0))
       : [];
 
-    if (sleepLogs.length > 0) {
-      const lastSleep = sleepLogs[0];
-      const wakeTs = lastSleep.endTs || lastSleep.timestamp;
-      if (wakeTs) {
-        const lastWakeDate = new Date(wakeTs);
-        const elapsedMins = Math.floor((now.getTime() - lastWakeDate.getTime()) / 60000);
-        // Son uyanma son 48 saat içindeyse ("Dün" sabah kayıtları dahil)
-        if (elapsedMins >= 0 && elapsedMins < 2880) {
-          const wakeDayLabel = typeof formatPlanDayTimeLabel === 'function'
-            ? formatPlanDayTimeLabel(lastWakeDate, now, getAppLang())
-            : `${String(lastWakeDate.getHours()).padStart(2, '0')}:${String(lastWakeDate.getMinutes()).padStart(2, '0')}`;
-          const isPriorDayOvernightGap = (typeof isSameLocalCalendarDay === 'function')
-            ? (!isSameLocalCalendarDay(lastWakeDate, now) && elapsedMins >= 360)
-            : (elapsedMins >= 600);
-          if (isPriorDayOvernightGap) {
-            needsWakeCalibration = true;
-            nextSleepDate = new Date(now.getTime() + wakeWindowMinutes * 60000);
-            statusNote = trEnDe(
-              `Son kayıt: ${wakeDayLabel} • Bugünkü ilk MışılSpot™ için sabah uyanışını girin`,
-              `Last log: ${wakeDayLabel} • Log morning wake for today's first MışılSpot™`,
-              `Letzter Eintrag: ${wakeDayLabel} • Aufwachzeit für heutigen MışılSpot™ eintragen`
-            );
-          } else {
-            nextSleepDate = new Date(lastWakeDate.getTime() + wakeWindowMinutes * 60000);
-            if (now.getTime() > nextSleepDate.getTime()) {
-              isOverdue = true;
-              const spotDayLabel = typeof formatPlanDayTimeLabel === 'function'
-                ? formatPlanDayTimeLabel(nextSleepDate, now, getAppLang())
-                : `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
-              statusNote = trEnDe(
-                `⚠️ Son uyanış: ${wakeDayLabel} • Hedef (${spotDayLabel}) geçti, şimdi uyutun`,
-                `⚠️ Last wake: ${wakeDayLabel} • Target (${spotDayLabel}) passed, put to sleep now`,
-                `⚠️ Aufgewacht: ${wakeDayLabel} • Ziel (${spotDayLabel}) vorbei, jetzt schlafen legen`
-              );
-            } else {
-              const remMins = Math.floor((nextSleepDate.getTime() - now.getTime()) / 60000);
-              statusNote = trEnDe(
-                `Son uyanış (${wakeDayLabel}) • ${remMins} dk sonra uyku vakti`,
-                `From last wake (${wakeDayLabel}) • sleep time in ${remMins} min`,
-                `Ab Aufwachen (${wakeDayLabel}) • Schlafenszeit in ${remMins} Min.`
-              );
-            }
-          }
-        }
-      }
-    }
+    const nowMs = now.getTime();
+    const validSleepLog = sleepLogs.find(r => {
+      const ts = Number(r.endTs || r.timestamp || 0);
+      if (!Number.isFinite(ts) || ts <= 0) return false;
+      const el = Math.floor((nowMs - ts) / 60000);
+      return el >= 0 && el < 2880;
+    });
+    const latestSleepValid = validSleepLog ? Number(validSleepLog.endTs || validSleepLog.timestamp || 0) : 0;
+    const onbWakeRaw = localStorage.getItem('mishil_onboarding_last_wake_ts');
+    const onbWakeTs = onbWakeRaw ? Number(onbWakeRaw) : 0;
+    const onbElapsed = (Number.isFinite(onbWakeTs) && onbWakeTs > 0) ? Math.floor((nowMs - onbWakeTs) / 60000) : -1;
+    const onbValid = (onbElapsed >= 0 && onbElapsed < 2880) ? onbWakeTs : 0;
+    const validWakeTs = Math.max(latestSleepValid, onbValid);
 
-    if (!nextSleepDate) {
-      const onbWakeRaw = localStorage.getItem('mishil_onboarding_last_wake_ts');
-      const onbWakeTs = onbWakeRaw ? Number(onbWakeRaw) : 0;
-      const onbElapsedMins = onbWakeTs > 0 ? Math.floor((now.getTime() - onbWakeTs) / 60000) : -1;
-      if (onbElapsedMins >= 0 && onbElapsedMins < 2880) {
-        const onbWakeDate = new Date(onbWakeTs);
-        const wakeDayLabel = typeof formatPlanDayTimeLabel === 'function'
-          ? formatPlanDayTimeLabel(onbWakeDate, now, getAppLang())
-          : `${String(onbWakeDate.getHours()).padStart(2, '0')}:${String(onbWakeDate.getMinutes()).padStart(2, '0')}`;
-        const isPriorOnbGap = (typeof isSameLocalCalendarDay === 'function')
-          ? (!isSameLocalCalendarDay(onbWakeDate, now) && onbElapsedMins >= 360)
-          : (onbElapsedMins >= 600);
-        if (isPriorOnbGap) {
-          needsWakeCalibration = true;
-          nextSleepDate = new Date(now.getTime() + wakeWindowMinutes * 60000);
-          statusNote = trEnDe(
-            `Son kayıt: ${wakeDayLabel} • Bugünkü ilk MışılSpot™ için sabah uyanışını girin`,
-            `Last log: ${wakeDayLabel} • Log morning wake for today's first MışılSpot™`,
-            `Letzter Eintrag: ${wakeDayLabel} • Aufwachzeit für heutigen MışılSpot™ eintragen`
-          );
-        } else {
-          nextSleepDate = new Date(onbWakeTs + wakeWindowMinutes * 60000);
-          if (now.getTime() > nextSleepDate.getTime()) {
-            isOverdue = true;
-            const spotDayLabel = typeof formatPlanDayTimeLabel === 'function'
-              ? formatPlanDayTimeLabel(nextSleepDate, now, getAppLang())
-              : `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
-            statusNote = trEnDe(
-              `⚠️ Son uyanış: ${wakeDayLabel} • Hedef (${spotDayLabel}) geçti, şimdi uyutun`,
-              `⚠️ Last wake: ${wakeDayLabel} • Target (${spotDayLabel}) passed, put to sleep now`,
-              `⚠️ Aufgewacht: ${wakeDayLabel} • Ziel (${spotDayLabel}) vorbei, jetzt schlafen legen`
-            );
-          } else {
-            const remMins = Math.max(1, Math.floor((nextSleepDate.getTime() - now.getTime()) / 60000));
-            statusNote = trEnDe(
-              `Son uyanış (${wakeDayLabel}) • ${remMins} dk sonra uyku vakti`,
-              `From last wake (${wakeDayLabel}) • sleep time in ${remMins} min`,
-              `Ab Aufwachen (${wakeDayLabel}) • Schlafenszeit in ${remMins} Min.`
-            );
-          }
-        }
-      } else {
+    if (validWakeTs > 0) {
+      const lastWakeDate = new Date(validWakeTs);
+      const elapsedMins = Math.floor((now.getTime() - lastWakeDate.getTime()) / 60000);
+      const wakeDayLabel = typeof formatPlanDayTimeLabel === 'function'
+        ? formatPlanDayTimeLabel(lastWakeDate, now, getAppLang())
+        : `${String(lastWakeDate.getHours()).padStart(2, '0')}:${String(lastWakeDate.getMinutes()).padStart(2, '0')}`;
+      const isPriorDayOvernightGap = (typeof isSameLocalCalendarDay === 'function')
+        ? (!isSameLocalCalendarDay(lastWakeDate, now) && elapsedMins >= 360)
+        : (elapsedMins >= 600);
+      if (isPriorDayOvernightGap) {
+        needsWakeCalibration = true;
         nextSleepDate = new Date(now.getTime() + wakeWindowMinutes * 60000);
         statusNote = trEnDe(
-          `MışılSpot™ Önerisi • uyanıklık penceresi ${wakeWindowMinutes} dk`,
-          `MışılSpot™ Prediction • wake window ${wakeWindowMinutes} min`,
-          `MışılSpot™ Empfehlung • Wachfenster ${wakeWindowMinutes} Min.`
+          `Son kayıt: ${wakeDayLabel} • Bugünkü ilk MışılSpot™ için sabah uyanışını girin`,
+          `Last log: ${wakeDayLabel} • Log morning wake for today's first MışılSpot™`,
+          `Letzter Eintrag: ${wakeDayLabel} • Aufwachzeit für heutigen MışılSpot™ eintragen`
         );
+      } else {
+        nextSleepDate = new Date(lastWakeDate.getTime() + wakeWindowMinutes * 60000);
+        if (now.getTime() > nextSleepDate.getTime()) {
+          isOverdue = true;
+          const spotDayLabel = typeof formatPlanDayTimeLabel === 'function'
+            ? formatPlanDayTimeLabel(nextSleepDate, now, getAppLang())
+            : `${String(nextSleepDate.getHours()).padStart(2, '0')}:${String(nextSleepDate.getMinutes()).padStart(2, '0')}`;
+          statusNote = trEnDe(
+            `⚠️ Son uyanış: ${wakeDayLabel} • Hedef (${spotDayLabel}) geçti, şimdi uyutun`,
+            `⚠️ Last wake: ${wakeDayLabel} • Target (${spotDayLabel}) passed, put to sleep now`,
+            `⚠️ Aufgewacht: ${wakeDayLabel} • Ziel (${spotDayLabel}) vorbei, jetzt schlafen legen`
+          );
+        } else {
+          const remMins = Math.floor((nextSleepDate.getTime() - now.getTime()) / 60000);
+          statusNote = trEnDe(
+            `Son uyanış (${wakeDayLabel}) • ${remMins} dk sonra uyku vakti`,
+            `From last wake (${wakeDayLabel}) • sleep time in ${remMins} min`,
+            `Ab Aufwachen (${wakeDayLabel}) • Schlafenszeit in ${remMins} Min.`
+          );
+        }
       }
+    } else {
+      nextSleepDate = new Date(now.getTime() + wakeWindowMinutes * 60000);
+      statusNote = trEnDe(
+        `MışılSpot™ Önerisi • uyanıklık penceresi ${wakeWindowMinutes} dk`,
+        `MışılSpot™ Prediction • wake window ${wakeWindowMinutes} min`,
+        `MışılSpot™ Empfehlung • Wachfenster ${wakeWindowMinutes} Min.`
+      );
     }
 
     const th = String(nextSleepDate.getHours()).padStart(2, '0');
@@ -19437,7 +19400,18 @@
       .filter(r => r && r.type === 'sleep')
       .sort((a, b) => ((b.endTs || b.timestamp || 0) - (a.endTs || a.timestamp || 0)));
     const sleepLogs = allSleepLogs.filter(r => (r.endTs || r.timestamp || 0) >= todayStart);
-    let totalMins = sleepLogs.reduce((acc, s) => acc + (s.durationMins || 0), 0);
+    const daytimeNapLogs = sleepLogs.filter(s => {
+      if (s.sleepKind === 'night' || s.sleepKind === 'onb_night' || s.quality === 'night') return false;
+      const dur = Number(s.durationMins) || 0;
+      if (dur >= 240) return false;
+      let sh = s.startTs ? new Date(s.startTs).getHours() : -1;
+      if (sh < 0 && typeof s.start === 'string' && /^\d{1,2}:\d{2}$/.test(s.start.trim())) {
+        sh = parseInt(s.start.trim().split(':')[0], 10);
+      }
+      if (sh >= 20 || (sh >= 0 && sh < 6)) return false;
+      return true;
+    });
+    let totalMins = daytimeNapLogs.reduce((acc, s) => acc + (Number(s.durationMins) || 0), 0);
     const hrs = Math.floor(totalMins / 60);
     const mins = totalMins % 60;
     const progressPercent = Math.min(100, Math.round((totalMins / TARGET_DAY_SLEEP_MINS) * 100));
@@ -21945,12 +21919,12 @@
     const inp = document.getElementById('live-sleep-edit-time-input');
     const val = (inp && inp.value) ? inp.value : formatTimeHHMM(new Date());
     const [sh, sm] = normalizeHHMM(val, formatTimeHHMM(sleepStartTime || new Date())).split(':').map(Number);
-    const newStart = sleepStartTime ? new Date(sleepStartTime) : new Date();
-    newStart.setHours(sh || 0, sm || 0, 0, 0);
-    if (sleepStartTime && newStart.getTime() - sleepStartTime.getTime() > 12 * 3600000) {
-      newStart.setDate(newStart.getDate() - 1);
-    }
-    while (newStart.getTime() > Date.now() + 60000) {
+    const nowDt = new Date();
+    const baseDt = (sleepStartTime instanceof Date && !isNaN(sleepStartTime.getTime()) && sleepStartTime.getTime() <= nowDt.getTime() + 60000)
+      ? sleepStartTime
+      : nowDt;
+    const newStart = new Date(baseDt.getFullYear(), baseDt.getMonth(), baseDt.getDate(), sh || 0, sm || 0, 0, 0);
+    while (newStart.getTime() > nowDt.getTime() + 60000) {
       newStart.setDate(newStart.getDate() - 1);
     }
     sleepStartTime = newStart;
@@ -24890,7 +24864,7 @@
         if (typeof window.syncBabyProfileToBackend === 'function') window.syncBabyProfileToBackend(false);
       }).catch(function() {});
 
-      // Kokpitten Tetiklenen Memnuniyet & Çözüm Yoklaması (Satisfaction Pulse — v4.57.7)
+      // Kokpitten Tetiklenen Önizlemeli Pop-up, VIP Aile Hediyesi & Çözüm Yoklaması (Campaign & Satisfaction Pulse — v4.58.12)
       setTimeout(function checkActiveSatisfactionPulse() {
         try {
           if (localStorage.getItem('mishil_onboarding_completed') !== 'true') return;
@@ -24899,40 +24873,123 @@
           var _duid = localStorage.getItem('mishil_device_uid') || devUid || 'msl_anon';
           var _ua = (navigator.userAgent || '').toLowerCase();
           var _os = _ua.indexOf('android') > -1 ? 'android' : 'ios';
-          fetch(apiBase + '/api/v1/analytics/satisfaction-pulse/active?platform=' + encodeURIComponent(_os) + '&device_uid=' + encodeURIComponent(_duid))
+          var _isVipNow = (typeof isPaidOrVerifiedVip === 'function' && isPaidOrVerifiedVip());
+          var _planNow = localStorage.getItem('mishil_subscription_plan') || 'free';
+          var _isReviewer = localStorage.getItem('mishil_reviewer_bypass') === '1';
+          var _audParam = (_isVipNow && !_isReviewer && _planNow !== 'family_vip') ? 'vip_primary' : (_isVipNow ? 'vip_family' : 'free');
+          fetch(apiBase + '/api/v1/analytics/satisfaction-pulse/active?platform=' + encodeURIComponent(_os) + '&device_uid=' + encodeURIComponent(_duid) + '&audience=' + encodeURIComponent(_audParam))
             .then(function(rp) { return rp && rp.ok ? rp.json() : null; })
             .then(function(pData) {
               if (!pData || !pData.active || !pData.pulse_id) return;
               var _seenKey = 'mishil_pulse_done_' + pData.pulse_id;
               if (localStorage.getItem(_seenKey) === '1') return;
-              fetch(apiBase + '/api/v1/analytics/satisfaction-pulse/respond', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ pulse_id: pData.pulse_id, device_uid: _duid, outcome: 'shown', platform: _os })
-              }).catch(function() {});
+
+              var _tgtAud = String(pData.target_audience || 'all').toLowerCase();
+              var _ctaAction = String(pData.cta_action || 'satisfaction_vote').toLowerCase();
+              if ((_tgtAud === 'vip_primary' || _ctaAction === 'family_invite') && _audParam !== 'vip_primary') return;
+              if (_tgtAud === 'free_only' && _isVipNow) return;
+
+              var _quietGuard = pData.quiet_hours_guard !== false;
+              if (_quietGuard) {
+                var _hr = new Date().getHours();
+                if (_hr < 8 || _hr >= 21) return;
+                if (typeof currentTrackId !== 'undefined' && Boolean(currentTrackId)) return;
+                if (typeof isBabyCurrentlyLiveSleeping === 'function' && isBabyCurrentlyLiveSleeping()) return;
+                if (localStorage.getItem('mishil_live_nursing_state')) return;
+              }
+              if (document.body.classList.contains('spotlight-tour-open') || document.querySelector('.modal-overlay.active')) return;
+
+              var _famMembers = (typeof getFamilyMembers === 'function') ? getFamilyMembers() : [];
+              var _fCodeDisp = (typeof getOrGenerateFamilyCode === 'function') ? getOrGenerateFamilyCode() : (localStorage.getItem('mishil_family_code') || '');
+              if (_ctaAction === 'family_invite') {
+                if ((Array.isArray(_famMembers) && _famMembers.length >= 3) || !_fCodeDisp || _fCodeDisp.length < 4) return;
+              }
 
               var existingCard = document.getElementById('mishil-satisfaction-pulse-banner');
               if (existingCard) existingCard.remove();
               var card = document.createElement('div');
               card.id = 'mishil-satisfaction-pulse-banner';
-              card.style.cssText = 'position:fixed; left:14px; right:14px; bottom:94px; z-index:9998; background:rgba(24,20,36,0.97); border:1.5px solid rgba(244,162,97,0.55); border-radius:22px; padding:14px 16px; box-shadow:0 16px 38px rgba(0,0,0,0.65); color:#FAF5EE; font-family:inherit; backdrop-filter:blur(16px);';
               var titleTxt = pData.title_tr || trEnDe('Uyku saatleri kaydı iyileştirildi', 'Sleep time logging improved', 'Schlafzeit-Speicherung verbessert');
               var qTxt = pData.question_tr || trEnDe('Son güncellememizden sonra uyku kayıtlarınız sorunsuz çalışıyor mu?', 'Are your sleep logs working smoothly after our latest update?', 'Funktionieren Ihre Schlafeinträge nach dem Update reibungslos?');
-              card.innerHTML =
-                '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;">' +
-                  '<strong style="font-size:13px; color:#F4A261;">🔔 ' + escapeHtml(titleTxt) + '</strong>' +
-                  '<button type="button" id="btnPulseCloseX" style="background:none; border:none; color:#9E94B0; font-size:16px; cursor:pointer; padding:2px 6px;">✕</button>' +
-                '</div>' +
-                '<div style="font-size:12.5px; color:#E2DAE8; line-height:1.45; margin-bottom:10px;">' + escapeHtml(qTxt) + '</div>' +
-                '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">' +
-                  '<button type="button" id="btnPulseSatisfied" style="border:none; border-radius:14px; padding:9px 10px; font-size:12px; font-weight:800; background:linear-gradient(135deg,#74C69D,#40916C); color:#0E1712; cursor:pointer;">' +
-                    escapeHtml(trEnDe('😍 Evet, Düzeldi', '😍 Yes, Fixed!', '😍 Ja, super!')) +
-                  '</button>' +
-                  '<button type="button" id="btnPulseIssue" style="border:1px solid rgba(244,162,97,0.45); border-radius:14px; padding:9px 10px; font-size:12px; font-weight:700; background:rgba(255,255,255,0.06); color:#FAF5EE; cursor:pointer;">' +
-                    escapeHtml(trEnDe('💬 Sorun Var', '💬 Still an Issue', '💬 Noch ein Problem')) +
-                  '</button>' +
-                '</div>';
+              var badgeTxt = pData.badge_tr || (_ctaAction === 'family_invite' ? '👑 KURUCU VIP AİLE HEDİYESİ' : '🔔 MIŞIL DUYURU');
+              var primaryLbl = pData.cta_primary_tr || (_ctaAction === 'family_invite'
+                ? trEnDe('👨‍👩‍👧 Eşimi / Ailemi WhatsApp\'tan Davet Et', '👨‍👩‍👧 Invite Partner / Family via WhatsApp', '👨‍👩‍👧 Partner / Familie per WhatsApp einladen')
+                : (_ctaAction === 'dismiss_only'
+                    ? trEnDe('✨ Teşekkürler, Anladım', '✨ Got It, Thanks', '✨ Verstanden, danke')
+                    : trEnDe('😍 Evet, Düzeldi', '😍 Yes, Fixed!', '😍 Ja, super!')));
+
+              if (_ctaAction === 'family_invite') {
+                var _fCodeDisp = (typeof getOrGenerateFamilyCode === 'function') ? getOrGenerateFamilyCode() : (localStorage.getItem('mishil_family_code') || '—');
+                var _mCnt = Math.min(3, Math.max(1, Array.isArray(_famMembers) ? _famMembers.length : 1));
+                var _seat2Filled = _mCnt >= 2;
+                var _seat3Filled = _mCnt >= 3;
+                card.style.cssText = 'position:fixed; inset:0; z-index:10005; background:rgba(12,10,16,0.74); backdrop-filter:blur(8px); display:flex; align-items:center; justify-content:center; padding:18px;';
+                card.innerHTML =
+                  '<div style="width:100%; max-width:385px; background:linear-gradient(165deg,#25202D 0%,#18151F 100%); border:1.5px solid rgba(232,185,117,0.48); border-radius:26px; padding:22px 18px 18px; box-shadow:0 24px 60px rgba(0,0,0,0.68); text-align:center; color:#FAF5EE;">' +
+                    '<div style="display:inline-flex; align-items:center; gap:6px; background:rgba(232,185,117,0.16); border:1px solid rgba(232,185,117,0.45); color:#F3CA8A; font-size:10.5px; font-weight:800; padding:5px 12px; border-radius:999px; margin-bottom:12px;">' + escapeHtml(badgeTxt) + '</div>' +
+                    '<div style="width:58px; height:58px; margin:0 auto 10px; border-radius:18px; background:rgba(243,202,138,0.16); border:1.5px solid rgba(243,202,138,0.45); display:flex; align-items:center; justify-content:center; font-size:30px;">👨‍👩‍👧</div>' +
+                    '<div style="font-size:17.5px; font-weight:800; color:#FAF5EE; line-height:1.3; margin-bottom:7px;">' + escapeHtml(titleTxt) + '</div>' +
+                    '<div style="font-size:12.5px; color:rgba(250,245,238,0.82); line-height:1.5; margin-bottom:14px;">' + escapeHtml(qTxt) + '</div>' +
+                    '<div style="background:rgba(255,255,255,0.045); border:1px solid rgba(232,185,117,0.28); border-radius:16px; padding:12px; margin-bottom:14px; text-align:left;">' +
+                      '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">' +
+                        '<span style="font-size:11.5px; font-weight:700; color:#F3CA8A;">✨ Aile Koltuklarınız (' + _mCnt + ' / 3 Kişi)</span>' +
+                        '<span style="background:rgba(74,222,128,0.16); border:1px solid rgba(74,222,128,0.4); color:#86EFAC; font-size:10px; font-weight:800; padding:2px 7px; border-radius:7px;">Üyeliğinize Dahil • ₺0</span>' +
+                      '</div>' +
+                      '<div style="display:flex; gap:6px; margin-bottom:10px;">' +
+                        '<div style="flex:1; background:rgba(232,185,117,0.14); border:1px solid rgba(232,185,117,0.5); border-radius:10px; padding:6px 4px; text-align:center; font-size:10.5px; color:#F3CA8A; font-weight:700;">👩 Siz<br><span style="font-size:9px; opacity:0.85;">👑 Kurucu VIP</span></div>' +
+                        '<div style="flex:1; background:rgba(255,255,255,0.05); border:1px ' + (_seat2Filled ? 'solid rgba(74,222,128,0.45)' : 'dashed rgba(232,185,117,0.35)') + '; border-radius:10px; padding:6px 4px; text-align:center; font-size:10.5px; color:#FAF5EE; font-weight:700;">' + (_seat2Filled ? '✓ 2. Aile Üyesi<br><span style="font-size:9px; color:#86EFAC;">Bağlı</span>' : '➕ Eş / Baba<br><span style="font-size:9px; color:#86EFAC;">Ücretsiz Koltuk</span>') + '</div>' +
+                        '<div style="flex:1; background:rgba(255,255,255,0.05); border:1px ' + (_seat3Filled ? 'solid rgba(74,222,128,0.45)' : 'dashed rgba(232,185,117,0.35)') + '; border-radius:10px; padding:6px 4px; text-align:center; font-size:10.5px; color:#FAF5EE; font-weight:700;">' + (_seat3Filled ? '✓ 3. Aile Üyesi<br><span style="font-size:9px; color:#86EFAC;">Bağlı</span>' : '➕ Anneanne<br><span style="font-size:9px; color:#86EFAC;">Ücretsiz Koltuk</span>') + '</div>' +
+                      '</div>' +
+                      '<div style="display:flex; align-items:center; justify-content:space-between; background:rgba(15,13,20,0.78); border:1px solid rgba(255,255,255,0.12); border-radius:10px; padding:8px 11px;">' +
+                        '<span style="font-size:11px; color:rgba(250,245,238,0.7);">6 Haneli Aile Kodunuz:</span>' +
+                        '<strong style="font-size:14px; font-weight:800; color:#F3CA8A; letter-spacing:2px;">' + escapeHtml(_fCodeDisp) + '</strong>' +
+                      '</div>' +
+                    '</div>' +
+                    '<button type="button" id="btnPulseSatisfied" style="width:100%; border:none; border-radius:14px; padding:13px 14px; font-size:13px; font-weight:800; background:linear-gradient(135deg,#F3CA8A 0%,#D99B4E 100%); color:#18141E; cursor:pointer; margin-bottom:8px;">' + escapeHtml(primaryLbl) + '</button>' +
+                    '<button type="button" id="btnPulseCloseX" style="width:100%; background:none; border:none; color:rgba(250,245,238,0.68); font-size:12px; font-weight:600; padding:6px; cursor:pointer;">Teşekkürler, Daha Sonra ✨</button>' +
+                  '</div>';
+              } else {
+                card.style.cssText = 'position:fixed; left:14px; right:14px; bottom:94px; z-index:9998; background:rgba(24,20,36,0.97); border:1.5px solid rgba(244,162,97,0.55); border-radius:22px; padding:14px 16px; box-shadow:0 16px 38px rgba(0,0,0,0.65); color:#FAF5EE; font-family:inherit; backdrop-filter:blur(16px);';
+                var buttonsHtml = (_ctaAction === 'dismiss_only')
+                  ? '<button type="button" id="btnPulseSatisfied" style="width:100%; border:none; border-radius:14px; padding:10px 12px; font-size:12.5px; font-weight:800; background:linear-gradient(135deg,#F3CA8A,#D99B4E); color:#18141E; cursor:pointer;">' + escapeHtml(primaryLbl) + '</button>'
+                  : '<div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">' +
+                      '<button type="button" id="btnPulseSatisfied" style="border:none; border-radius:14px; padding:9px 10px; font-size:12px; font-weight:800; background:linear-gradient(135deg,#74C69D,#40916C); color:#0E1712; cursor:pointer;">' +
+                        escapeHtml(primaryLbl) +
+                      '</button>' +
+                      '<button type="button" id="btnPulseIssue" style="border:1px solid rgba(244,162,97,0.45); border-radius:14px; padding:9px 10px; font-size:12px; font-weight:700; background:rgba(255,255,255,0.06); color:#FAF5EE; cursor:pointer;">' +
+                        escapeHtml(trEnDe('💬 Sorun Var', '💬 Still an Issue', '💬 Noch ein Problem')) +
+                      '</button>' +
+                    '</div>';
+                card.innerHTML =
+                  '<div style="display:inline-flex; align-items:center; gap:5px; background:rgba(244,162,97,0.16); border:1px solid rgba(244,162,97,0.45); color:#F4A261; font-size:9.5px; font-weight:800; padding:3px 9px; border-radius:999px; margin-bottom:6px;">' + escapeHtml(badgeTxt) + '</div>' +
+                  '<div style="display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px;">' +
+                    '<strong style="font-size:13px; color:#F4A261;">🔔 ' + escapeHtml(titleTxt) + '</strong>' +
+                    '<button type="button" id="btnPulseCloseX" style="background:none; border:none; color:#9E94B0; font-size:16px; cursor:pointer; padding:2px 6px;">✕</button>' +
+                  '</div>' +
+                  '<div style="font-size:12.5px; color:#E2DAE8; line-height:1.45; margin-bottom:10px;">' + escapeHtml(qTxt) + '</div>' +
+                  buttonsHtml;
+              }
               document.body.appendChild(card);
+
+              localStorage.setItem(_seenKey, '1');
+              fetch(apiBase + '/api/v1/analytics/satisfaction-pulse/respond', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pulse_id: pData.pulse_id, device_uid: _duid, outcome: 'shown', platform: _os, app_version: _activeAppVer })
+              }).catch(function() {});
+
+              if (pData.send_local_push && window.ReactNativeWebView && typeof window.ReactNativeWebView.postMessage === 'function') {
+                try {
+                  window.ReactNativeWebView.postMessage(JSON.stringify({
+                    type: 'TRIGGER_CAMPAIGN_NOTIFICATION',
+                    payload: {
+                      pulseId: pData.pulse_id,
+                      title: pData.title_tr || 'Mışıl Baby',
+                      body: pData.question_tr || ''
+                    }
+                  }));
+                } catch (_npErr) {}
+              }
 
               var closeBtn = document.getElementById('btnPulseCloseX');
               if (closeBtn) {
@@ -24949,10 +25006,12 @@
                   fetch(apiBase + '/api/v1/analytics/satisfaction-pulse/respond', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pulse_id: pData.pulse_id, device_uid: _duid, outcome: 'satisfied', platform: _os })
+                    body: JSON.stringify({ pulse_id: pData.pulse_id, device_uid: _duid, outcome: 'satisfied', platform: _os, app_version: _activeAppVer })
                   }).catch(function() {});
-                  if (typeof submitStoreRating === 'function') {
-                    submitStoreRating();
+                  if (_ctaAction === 'family_invite') {
+                    if (typeof shareFamilyInviteLink === 'function') shareFamilyInviteLink();
+                  } else if (_ctaAction !== 'dismiss_only') {
+                    if (typeof submitStoreRating === 'function') submitStoreRating();
                   }
                 };
               }
@@ -24964,7 +25023,7 @@
                   fetch(apiBase + '/api/v1/analytics/satisfaction-pulse/respond', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ pulse_id: pData.pulse_id, device_uid: _duid, outcome: 'issue_persists', platform: _os })
+                    body: JSON.stringify({ pulse_id: pData.pulse_id, device_uid: _duid, outcome: 'issue_persists', platform: _os, app_version: _activeAppVer })
                   }).catch(function() {});
                   if (typeof openMotherFeedbackSheet === 'function') {
                     openMotherFeedbackSheet();
