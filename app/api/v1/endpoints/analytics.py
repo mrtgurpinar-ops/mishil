@@ -8834,6 +8834,7 @@ class SatisfactionPulseResponsePayload(BaseModel):
     device_uid: str = Field(..., min_length=3, max_length=120)
     outcome: str = Field(..., max_length=32)  # 'shown', 'satisfied', 'issue_persists'
     platform: Optional[str] = Field(default="ios", max_length=32)
+    app_version: Optional[str] = Field(default="4.58.11", max_length=32)
     note: Optional[str] = Field(default="", max_length=500)
 
 
@@ -8997,31 +8998,32 @@ def respond_to_satisfaction_pulse(
             else:
                 snap["issue_persists_count"] = int(snap.get("issue_persists_count", 0) or 0) + 1
 
-        if clean_outcome == "issue_persists":
-            note_txt = (payload.note or "").strip() or f"[{snap.get('title_tr', 'Çözüm Yoklaması')}] Kullanıcı sorunun devam ettiğini bildirdi."
+            clean_app_ver = (payload.app_version or "4.58.11").strip()[:32] or "4.58.11"
+            if clean_outcome == "issue_persists":
+                note_txt = (payload.note or "").strip() or f"[{snap.get('title_tr', 'Çözüm Yoklaması')}] Kullanıcı sorunun devam ettiğini bildirdi."
+                db.add(
+                    Feedback(
+                        message=f"🔔 [Çözüm Yoklaması #{snap.get('pulse_id', '')}] {note_txt}",
+                        sentiment="needs_improvement",
+                        contact_info=clean_duid,
+                        platform=clean_plat,
+                        app_version=clean_app_ver,
+                        ip_address=_extract_client_ip(request),
+                    )
+                )
+
             db.add(
-                Feedback(
-                    message=f"🔔 [Çözüm Yoklaması #{snap.get('pulse_id', '')}] {note_txt}",
-                    sentiment="needs_improvement",
-                    contact_info=clean_duid,
-                    platform=clean_plat,
-                    app_version="4.57.7",
-                    ip_address=_extract_client_ip(request),
+                AppInstallSignal(
+                    device_uid=clean_duid or "msl_pulse",
+                    event_type=f"pulse_{clean_outcome}",
+                    os_family=clean_plat,
+                    platform=f"{clean_plat}_native",
+                    app_version=clean_app_ver,
+                    ip_masked=_extract_client_ip(request),
+                    country="TR",
+                    match_confidence="unmatched",
                 )
             )
-
-        db.add(
-            AppInstallSignal(
-                device_uid=clean_duid or "msl_pulse",
-                event_type=f"pulse_{clean_outcome}",
-                os_family=clean_plat,
-                platform=f"{clean_plat}_native",
-                app_version="4.57.7",
-                ip_masked=_extract_client_ip(request),
-                country="TR",
-                match_confidence="unmatched",
-            )
-        )
 
     st_row.snapshot_json = snap
     db.commit()

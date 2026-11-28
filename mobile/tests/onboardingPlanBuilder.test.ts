@@ -765,7 +765,7 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
     expect(html.includes('totalMins / (activeDaysCount * 60)')).toBe(true);
   });
 
-  it('v4.51.1: resolveSleepTimestamps & resolveModalEventDate clamp future times on explicit "Bugün" instead of rolling back to yesterday, while preserving "Dün" & overnight ranges', () => {
+  it('v4.51.1: resolveSleepTimestamps & resolveModalEventDate preserve exact HH:MM user inputs and anchor selected date to sleep start day', () => {
     const { sandbox } = createOnboardingEngineSandbox();
     const htmlPath = path.resolve(__dirname, '../../public/app.html');
     const html = fs.readFileSync(htmlPath, 'utf8').replace(/\r\n/g, '\n');
@@ -792,33 +792,37 @@ describe('Onboarding Combobox & Personal Plan Builder Engine (v4.49.0)', () => {
 
     const now = new Date(2026, 10, 13, 14, 20, 35); // 13 Nov 2026 14:20:35
 
-    // 1. Explicit "Bugün" (2026-11-13) with future end time (13:00 -> 15:00):
-    // Must stay on 2026-11-13 (clamped to 14:20, 80 mins), NEVER rolled back to 2026-11-12!
-    const clampedNap = sandbox.resolveSleepTimestamps('13:00', '15:00', null, null, '2026-11-13', now);
-    expect(sandbox.getLocalDateIsoString(clampedNap.endDate)).toBe('2026-11-13');
-    expect(sandbox.formatTimeHHMM(clampedNap.startDate)).toBe('13:00');
-    expect(sandbox.formatTimeHHMM(clampedNap.endDate)).toBe('14:20');
-    expect(clampedNap.durMins).toBe(80);
+    // 1. Explicit "Bugün" (2026-11-13) with future time (13:00 -> 15:00):
+    // Never mutates user's HH:MM (13:00 -> 15:00, 120 mins); shifts calendar day to 2026-11-12
+    const futureEndNap = sandbox.resolveSleepTimestamps('13:00', '15:00', null, null, '2026-11-13', now);
+    expect(sandbox.getLocalDateIsoString(futureEndNap.startDate)).toBe('2026-11-12');
+    expect(sandbox.getLocalDateIsoString(futureEndNap.endDate)).toBe('2026-11-12');
+    expect(sandbox.formatTimeHHMM(futureEndNap.startDate)).toBe('13:00');
+    expect(sandbox.formatTimeHHMM(futureEndNap.endDate)).toBe('15:00');
+    expect(futureEndNap.durMins).toBe(120);
 
     // 2. Explicit "Bugün" with both start & end in the future (15:00 -> 16:00):
-    // Clamps endDate to 14:20 today and steps startDate back by 60m -> 13:20 today
+    // Preserves exact 15:00 -> 16:00 (60m) on yesterday (2026-11-12) without mutating HH:MM
     const bothFuture = sandbox.resolveSleepTimestamps('15:00', '16:00', null, null, '2026-11-13', now);
-    expect(sandbox.getLocalDateIsoString(bothFuture.endDate)).toBe('2026-11-13');
-    expect(sandbox.formatTimeHHMM(bothFuture.startDate)).toBe('13:20');
-    expect(sandbox.formatTimeHHMM(bothFuture.endDate)).toBe('14:20');
+    expect(sandbox.getLocalDateIsoString(bothFuture.startDate)).toBe('2026-11-12');
+    expect(sandbox.getLocalDateIsoString(bothFuture.endDate)).toBe('2026-11-12');
+    expect(sandbox.formatTimeHHMM(bothFuture.startDate)).toBe('15:00');
+    expect(sandbox.formatTimeHHMM(bothFuture.endDate)).toBe('16:00');
     expect(bothFuture.durMins).toBe(60);
 
     // 3. Explicit "Dün" (2026-11-12) overnight sleep (22:30 -> 06:45):
-    // Woke up on 2026-11-12 06:45, started on 2026-11-11 22:30 (495 mins)
+    // Anchors selected "Dün" (2026-11-12) to sleep start (22:30) and wakes up today (2026-11-13 06:45, 495 mins)
     const yesterdayOvernight = sandbox.resolveSleepTimestamps('22:30', '06:45', null, null, '2026-11-12', now);
-    expect(sandbox.getLocalDateIsoString(yesterdayOvernight.endDate)).toBe('2026-11-12');
-    expect(sandbox.getLocalDateIsoString(yesterdayOvernight.startDate)).toBe('2026-11-11');
+    expect(sandbox.getLocalDateIsoString(yesterdayOvernight.startDate)).toBe('2026-11-12');
+    expect(sandbox.getLocalDateIsoString(yesterdayOvernight.endDate)).toBe('2026-11-13');
+    expect(sandbox.formatTimeHHMM(yesterdayOvernight.startDate)).toBe('22:30');
+    expect(sandbox.formatTimeHHMM(yesterdayOvernight.endDate)).toBe('06:45');
     expect(yesterdayOvernight.durMins).toBe(495);
 
-    // 4. Feed/Diaper/Custom resolveModalEventDate parity on explicit "Bugün" vs "Dün"
-    const clampedFeed = sandbox.resolveModalEventDate('2026-11-13', '16:30', null, now);
-    expect(sandbox.getLocalDateIsoString(clampedFeed)).toBe('2026-11-13');
-    expect(sandbox.formatTimeHHMM(clampedFeed)).toBe('14:20');
+    // 4. Feed/Diaper/Custom resolveModalEventDate parity on explicit "Bugün" vs "Dün" (never mutates HH:MM)
+    const futureFeed = sandbox.resolveModalEventDate('2026-11-13', '16:30', null, now);
+    expect(sandbox.getLocalDateIsoString(futureFeed)).toBe('2026-11-12');
+    expect(sandbox.formatTimeHHMM(futureFeed)).toBe('16:30');
 
     const yesterdayFeed = sandbox.resolveModalEventDate('2026-11-12', '18:45', null, now);
     expect(sandbox.getLocalDateIsoString(yesterdayFeed)).toBe('2026-11-12');

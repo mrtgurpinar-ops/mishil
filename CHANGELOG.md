@@ -2,6 +2,16 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.58.11-pure-sleep-timestamp-resolver-and-pulse-dedup] - 2026-11-28 (Railway Canlı Yayın — `resolveSleepTimestamps` & `resolveModalEventDate` İçindeki 50 Satırlık `clampedEnd` Saat Değiştirme ve Bitiş Gününe Çapalama Yamalarının Silinip 15 Satırlık Saf Matematiksel Başlangıç Günü Çapasına İndirgenmesi, `"Dün"` Gece Uykusu (`21:30 ➔ 07:00`) 2 Gün Önceye Kayma Hatasının Giderilmesi ve Çözüm Yoklaması `Feedback` Tekilleştirmesi • 🟢 Yeni Native EAS Build Gerekmez)
+### 🌙⏱️ Uyku & Uyanma Saatleri Çözümleyicisi (`resolveSleepTimestamps`) Sıfır-Kilit Mimari Sadeleştirmesi (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`, `mobile/tests/onboardingPlanBuilder.test.ts`, `app/api/v1/endpoints/analytics.py`)
+1. **3'lü Gerçek CLI Konsensüsü (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-677`, `task-729` kök neden & `task-772` diff denetimi: `VERDICT: PASS`)** ve **Codex CLI (`task-678`, `task-730` & `task-773` — `gpt-6-luna`)** gerçek terminal çıktılarıyla doğrulandı.
+2. **`resolveSleepTimestamps` & `resolveModalEventDate` İçindeki 50 Satırlık `clampedEnd` Yamasının Silinmesi (`public/app.html`):**
+   - `v4.51.1`'de eklenen ve (a) `"Dün"` seçilen gece uykularını (`21:30 ➔ 07:00`) bitiş gününe bağlayıp 2 gün önceye atan, (b) `"Bugün"` seçiliyken kullanıcının yazdığı `HH:MM` saatlerini sessizce `nowMs` (`clampedEnd`) saatine çeviren 50 satırlık dallanmış kod tamamen silindi.
+   - Yerine tek bir matematiksel kural konuldu: **Kullanıcının girdiği `HH:MM` saat rakamları hiçbir koşulda değiştirilmez; seçilen tarih uykunun başlangıç günüdür (`startDate`), uyanış zamanı `startDate + durMins` olarak türetilir ve gelecekte kalan tarihlerde yalnızca takvim günü 1 gün geriye kaydırılır.** Böylece anne sabahleyin dün gecenin uykusunu (`21:30 ➔ 07:00`) girerken ister `Bugün` ister `Dün` seçsin, kayıt her zaman `Dün 21:30 ➔ Bugün 07:00` olarak bugünün çizelgesine düşer (`86/86 Jest PASS`, `15/15 pytest PASS`).
+3. **Çözüm Yoklaması (`Satisfaction Pulse`) Tekilleştirmesi (`analytics.py`):**
+   - `respond_to_satisfaction_pulse` içinde `Feedback` kaydı yalnızca `clean_duid not in resp_devs` koşulunda ve dinamik `app_version` ile oluşturulacak şekilde tekilleştirildi.
+
 ## [4.58.10-clean-release-notes-and-queue-safe-sync] - 2026-11-28 (Railway Canlı Yayın — Uygulama İçi Sürüm Geçmişi `public/app.html` `CHANGELOG_ENTRIES` `4.58.0` Satırından `"İlk Ay Ücretsiz / Free First Month / 1. Monat Kostenlos"` İfadesinin Temizlenmesi ve İnceleme Sırasını Korumalı Mağaza Sürüm Notu Senkron Aracı `scripts/sync_clean_store_release_notes.py` • 🟢 Yeni Native EAS Build Gerekmez)
 ### 🧹📱 Uygulama İçi & Mağaza Sürüm Notlarından "İlk Ay Ücretsiz" İfadesinin İnceleme Sırası Korumalı Temizliği (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`, `scripts/sync_clean_store_release_notes.py`)
 1. **3'lü Gerçek CLI Konsensüsü (`AGENTS.md §5.1–§5.2`):**

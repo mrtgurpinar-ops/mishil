@@ -21752,16 +21752,8 @@
       baseEvtDate = new Date(now);
       baseEvtDate.setHours(evH || 0, evM || 0, 0, 0);
     }
-    if (baseEvtDate.getTime() > now.getTime() + 5 * 60000) {
-      const todayIso = getLocalDateIsoString(now);
-      if (parsedExplicit && getLocalDateIsoString(parsedExplicit) === todayIso) {
-        const clamped = new Date(now.getTime());
-        clamped.setSeconds(0, 0);
-        return clamped;
-      }
-      while (baseEvtDate.getTime() > now.getTime() + 5 * 60000) {
-        baseEvtDate.setDate(baseEvtDate.getDate() - 1);
-      }
+    while (baseEvtDate.getTime() > now.getTime() + 5 * 60000) {
+      baseEvtDate.setDate(baseEvtDate.getDate() - 1);
     }
     return baseEvtDate;
   }
@@ -21771,67 +21763,25 @@
     const [eh, em] = normalizeHHMM(endStr, '14:15').split(':').map(Number);
     const startMins = (sh || 0) * 60 + (sm || 0);
     const rawEndMins = (eh || 0) * 60 + (em || 0);
-    let endMins = rawEndMins;
-    if (endMins < startMins) endMins += 24 * 60;
-    let durMins = Math.max(1, endMins - startMins);
+    const durMins = Math.max(1, rawEndMins < startMins ? (rawEndMins + 24 * 60 - startMins) : (rawEndMins - startMins));
 
     const nowDate = nowRef instanceof Date ? nowRef : new Date();
     const nowMs = nowDate.getTime();
     const parsedExplicit = (explicitDateStr && typeof parseLocalYYYYMMDD === 'function')
       ? parseLocalYYYYMMDD(explicitDateStr)
       : null;
-    let endDate;
-    if (parsedExplicit) {
-      endDate = new Date(parsedExplicit.getFullYear(), parsedExplicit.getMonth(), parsedExplicit.getDate(), eh || 0, em || 0, 0, 0);
-    } else if (referenceStartTs) {
-      const baseStart = new Date(referenceStartTs);
-      baseStart.setHours(sh || 0, sm || 0, 0, 0);
-      if (baseStart.getTime() - referenceStartTs > 12 * 3600000) baseStart.setDate(baseStart.getDate() - 1);
-      else if (referenceStartTs - baseStart.getTime() > 12 * 3600000) baseStart.setDate(baseStart.getDate() + 1);
-      endDate = new Date(baseStart.getTime() + durMins * 60000);
-    } else {
-      const refDate = referenceTs ? new Date(referenceTs) : new Date(nowMs);
-      endDate = new Date(refDate);
-      endDate.setHours(eh || 0, em || 0, 0, 0);
-      if (referenceTs) {
-        if (endDate.getTime() - referenceTs > 12 * 3600000) {
-          endDate.setDate(endDate.getDate() - 1);
-        } else if (referenceTs - endDate.getTime() > 12 * 3600000) {
-          endDate.setDate(endDate.getDate() + 1);
-        }
-      }
-    }
+    const anchorSource = parsedExplicit || (referenceStartTs ? new Date(referenceStartTs) : (referenceTs ? new Date(referenceTs) : nowDate));
 
-    // Gelecek zaman koruması: Açıkça "Bugün" seçildiyse dünü zorlamak yerine şu ana sabitle (clamp);
-    // aksi halde (açık tarih yok veya taşma) bir önceki güne çek.
-    if (endDate.getTime() > nowMs + 5 * 60000) {
-      const todayIso = getLocalDateIsoString(nowDate);
-      if (parsedExplicit && getLocalDateIsoString(parsedExplicit) === todayIso) {
-        const clampedEnd = new Date(nowMs);
-        clampedEnd.setSeconds(0, 0);
-        endDate = clampedEnd;
-        const startDayOffset = rawEndMins < startMins ? -1 : 0;
-        const candStart = new Date(
-          parsedExplicit.getFullYear(),
-          parsedExplicit.getMonth(),
-          parsedExplicit.getDate() + startDayOffset,
-          sh || 0,
-          sm || 0,
-          0,
-          0
-        );
-        if (candStart.getTime() < endDate.getTime()) {
-          durMins = Math.max(1, Math.round((endDate.getTime() - candStart.getTime()) / 60000));
-          return { startDate: candStart, endDate, durMins };
-        }
-        const fallbackStart = new Date(endDate.getTime() - durMins * 60000);
-        return { startDate: fallbackStart, endDate, durMins };
-      }
-      while (endDate.getTime() > nowMs + 5 * 60000) {
-        endDate.setDate(endDate.getDate() - 1);
-      }
+    // 1) Seçilen gün uykunun başlangıç (yatış) günüdür; kullanıcının yazdığı HH:MM saat rakamları asla değiştirilmez.
+    const startDate = new Date(anchorSource.getFullYear(), anchorSource.getMonth(), anchorSource.getDate(), sh || 0, sm || 0, 0, 0);
+    // 2) Uyanış zamanı her zaman startDate + durMins olarak türetilir (gece yarısını geçen uykuda otomatik ertesi sabaha düşer).
+    const endDate = new Date(startDate.getTime() + durMins * 60000);
+
+    // 3) Gelecek zaman koruması: kullanıcının girdiği saat/dakikaya dokunmadan yalnızca takvim gününü geriye kaydır.
+    while (startDate.getTime() > nowMs + 5 * 60000 || endDate.getTime() > nowMs + 5 * 60000) {
+      startDate.setDate(startDate.getDate() - 1);
+      endDate.setDate(endDate.getDate() - 1);
     }
-    const startDate = new Date(endDate.getTime() - durMins * 60000);
     return { startDate, endDate, durMins };
   }
 
@@ -22056,7 +22006,7 @@
     }
     const dateInput = document.getElementById('routine-modal-date');
     if (dateInput) {
-      const refItemTs = item.endTs || item.timestamp || Date.now();
+      const refItemTs = (item.type === 'sleep' && item.startTs) ? item.startTs : (item.endTs || item.timestamp || Date.now());
       dateInput.max = getLocalDateIsoString(new Date());
       dateInput.value = getLocalDateIsoString(new Date(refItemTs));
       syncRoutineModalDatePills();
