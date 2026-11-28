@@ -2,6 +2,14 @@
  
 Tüm önemli değişiklikler bu dosyada belgelenecektir.
 
+## [4.58.10-clean-release-notes-and-queue-safe-sync] - 2026-11-28 (Railway Canlı Yayın — Uygulama İçi Sürüm Geçmişi `public/app.html` `CHANGELOG_ENTRIES` `4.58.0` Satırından `"İlk Ay Ücretsiz / Free First Month / 1. Monat Kostenlos"` İfadesinin Temizlenmesi ve İnceleme Sırasını Korumalı Mağaza Sürüm Notu Senkron Aracı `scripts/sync_clean_store_release_notes.py` • 🟢 Yeni Native EAS Build Gerekmez)
+### 🧹📱 Uygulama İçi & Mağaza Sürüm Notlarından "İlk Ay Ücretsiz" İfadesinin İnceleme Sırası Korumalı Temizliği (`public/app.html`, `mobile/features/webview/offlineHtml.generated.ts`, `scripts/sync_clean_store_release_notes.py`)
+1. **3'lü Gerçek CLI Konsensüsü (`AGENTS.md §5.1–§5.2`):**
+   - **Claude Code CLI (`task-518`)** ve **Codex CLI (`task-519` — `gpt-6-luna`)** tarafından yapılan resmi mağaza API ve politika incelemesinde; iOS `Build 75` (`IN_REVIEW`) ve Android `Build 76` (`In Review`) inceleme sıralarını sıfırlamamak için inceleme sırasında zorlayıcı `Remove from Review` veya `edits.commit` (`CANCEL_IN_REVIEW_AND_SUBMIT`) çağrılmaması, uygulama içi `public/app.html` (`CHANGELOG_ENTRIES`) metninin hemen temizlenmesi ve mağaza onayları çıkar çıkmaz tek komutla temiz metinleri basacak aracın hazırlanması kararlaştırıldı.
+2. **Uygulama İçi Sürüm Geçmişi (`public/app.html` & `offlineHtml.generated.ts`) ve Kuyruk Korumalı Senkron Aracı:**
+   - `public/app.html` içindeki `4.58.0` sürüm geçmişinden (`TR / EN / DE`) `"İlk Ay Ücretsiz / Grup B (₺0)"` ifadeleri kaldırılarak yalnızca aktif olan **İlk Ay %67 İndirimli Başlangıç Teklifi (`₺49,99`)** bırakıldı ve `offlineHtml.generated.ts` yenilendi (`86/86 Jest PASS`, `READY_FOR_RELEASE`).
+   - Apple `v4.58.0` (`IN_REVIEW` kilidi kalktığında) ve Google Play `v4.58.7 (Build 76)` (`In Review` tamamlandığında `--commit-play` bayrağıyla) üzerinde 3 dilde (`TR / EN-US / DE-DE`) temiz "Yenilikler" (`whatsNew` / `releaseNotes`) metnini güncelleyen `scripts/sync_clean_store_release_notes.py` eklendi.
+
 ## [4.58.9-cockpit-roadmap-phase1-phase2-and-group-b-paused-clarity] - 2026-11-28 (Railway Canlı Yayın — Kurucu Kokpiti (`/admin/analytics`) 3'lü Konsensüs Eksik Analizi & Yol Haritası Faz 1+2 Uygulaması: Grup B `⏸️ Pasif (Meta Purchase Koruması)` Netliği, `product_funnel` Sinyal-DB `max()` Senkronu, `/export-ledger.csv` & `/export-onboarding.csv` Excel CSV İndirme, Sekme 2 `🎯 Reklam Harcaması, ROAS & VIP Kod Özeti` Çekmecesi, Sekme 3 `👶 Bebek Yaş Dağılımı` (`0–3 / 4–6 / 7–12 / 12+ Ay`) + `⚠️ Teknik Hata` Sayacı ve Tek Tık `🔄 Senkronla` Butonu • 🟢 Yeni Native EAS Build Gerekmez)
 ### 📊🧭 Kurucu Kokpiti Eksik Giderme (`Faz 1 / P0` + `Faz 2 / P1`) & Grup B Pasif Durum Netliği (`app/api/v1/endpoints/analytics.py`, `tests/test_analytics_cockpit_resilience.py`)
 1. **3'lü Gerçek CLI Konsensüsü (`AGENTS.md §5.1–§5.2`):**
